@@ -27,6 +27,10 @@ Spec: `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
   is absent. Record which image actually got used here once Task 4 runs.
 - **Pinned image tags**: Navidrome and FileBrowser Quantum compose image tags are pinned
   in Task 3, not yet chosen. Record the exact tags here once that task lands.
+- **Ruling**: the global "no `latest`, pin explicitly" constraint governs container image
+  tags (Task 3's `compose.yaml`), not host RPMs. `dnf-automatic` manages host package
+  versions via security-only auto-updates by design (cloud-init/user-data.yaml); that is
+  intentional drift, not a constraint violation.
 
 ## Recent history
 

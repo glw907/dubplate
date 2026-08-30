@@ -10,6 +10,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 USER_DATA="$REPO_ROOT/cloud-init/user-data.yaml"
 
 FIREWALL_NAME="musicbox-fw"
+FIREWALL_RULES_FILE="$REPO_ROOT/scripts/firewall-rules.json"
 VOLUME_NAME="musicbox-data"
 VOLUME_SIZE_GB=50
 SERVER_NAME="musicbox"
@@ -49,8 +50,18 @@ if ! command -v hcloud >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq not found; required to verify firewall rules. Install it: brew install jq" >&2
+  exit 1
+fi
+
 if [ ! -f "$USER_DATA" ]; then
   echo "Missing cloud-init file: $USER_DATA" >&2
+  exit 1
+fi
+
+if [ ! -f "$FIREWALL_RULES_FILE" ]; then
+  echo "Missing firewall rules file: $FIREWALL_RULES_FILE" >&2
   exit 1
 fi
 
@@ -74,6 +85,20 @@ firewall_exists() {
   hcloud firewall list -o columns=name | grep -qx "$FIREWALL_NAME"
 }
 
+# True only if an inbound tcp/22 rule already covers both 0.0.0.0/0 and ::/0,
+# so an existing firewall is never assumed correct just because it exists.
+firewall_rule_present() {
+  hcloud firewall describe "$FIREWALL_NAME" -o json | jq -e '
+    [.rules[]? | select(
+      .direction == "in" and
+      .protocol == "tcp" and
+      .port == "22" and
+      ((.source_ips // []) | contains(["0.0.0.0/0"])) and
+      ((.source_ips // []) | contains(["::/0"]))
+    )] | length > 0
+  ' >/dev/null
+}
+
 volume_exists() {
   hcloud volume list -o columns=name | grep -qx "$VOLUME_NAME"
 }
@@ -88,7 +113,11 @@ if [ "$check_only" = true ]; then
   echo "musicbox provisioning plan (--check: nothing created)"
   echo "  image:    $image"
   if firewall_exists; then
-    echo "  firewall: $FIREWALL_NAME (exists)"
+    if firewall_rule_present; then
+      echo "  firewall: $FIREWALL_NAME (exists, rule present)"
+    else
+      echo "  firewall: $FIREWALL_NAME (exists, MISSING the tcp/22 rule)"
+    fi
   else
     echo "  firewall: $FIREWALL_NAME (would create: inbound tcp/22 from 0.0.0.0/0 and ::/0)"
   fi
@@ -106,18 +135,19 @@ if [ "$check_only" = true ]; then
 fi
 
 if firewall_exists; then
-  echo "Firewall $FIREWALL_NAME already exists; skipping."
+  if firewall_rule_present; then
+    echo "Firewall $FIREWALL_NAME already exists with the expected rule; skipping."
+  else
+    echo "Firewall $FIREWALL_NAME exists but is missing the tcp/22 rule from $FIREWALL_RULES_FILE." >&2
+    echo "Fix by hand (hcloud firewall replace-rules) and re-run; this script never rewrites an existing firewall's rules." >&2
+    exit 1
+  fi
 else
   echo "Creating firewall $FIREWALL_NAME..."
-  hcloud firewall create --name "$FIREWALL_NAME"
-  # Two source-ips flags, not one comma-joined value: hcloud treats the flag as
-  # repeatable, and a single dual-stack rule keeps the firewall to one rule.
-  hcloud firewall add-rule "$FIREWALL_NAME" \
-    --direction in \
-    --protocol tcp \
-    --port 22 \
-    --source-ips 0.0.0.0/0 \
-    --source-ips ::/0
+  # Rules load at create time, not via a separate add-rule call: a failure
+  # between create and add-rule would otherwise leave a rules-less firewall
+  # that (per Hetzner's default) denies all inbound traffic, including SSH.
+  hcloud firewall create --name "$FIREWALL_NAME" --rules-file "$FIREWALL_RULES_FILE"
 fi
 
 if volume_exists; then

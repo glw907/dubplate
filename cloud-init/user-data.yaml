@@ -18,8 +18,8 @@ packages:
   - e2fsprogs
 
 write_files:
-  # Belt-and-suspenders alongside ssh_pwauth above: a dedicated drop-in survives an
-  # unrelated edit to the main sshd_config clobbering a single inline directive.
+  # cloud-init.service is ordered Before=sshd.service, so this drop-in is already
+  # in place the first time sshd starts; no reload needed.
   - path: /etc/ssh/sshd_config.d/60-disable-password-auth.conf
     owner: root:root
     permissions: "0644"
@@ -28,7 +28,9 @@ write_files:
 
   # dnf-automatic's package ships this same path %config(noreplace); installing it
   # first (write_files runs before runcmd's package install) means our values win
-  # and the packaged default lands beside it as automatic.conf.rpmnew.
+  # and the packaged default lands beside it as automatic.conf.rpmnew. Only
+  # [commands], [emitters], and [base] apply here: emit_via=stdio never reads
+  # [email] or [command] (those back the unused email/exec-command emitters).
   - path: /etc/dnf/automatic.conf
     owner: root:root
     permissions: "0644"
@@ -43,26 +45,56 @@ write_files:
       [emitters]
       emit_via = stdio
 
-      [email]
-      email_from = root@localhost
-      email_to = root
-      email_host = localhost
-
-      [command]
-      command_format = "{0}"
-      stdio_only = False
-
       [base]
       debuglevel = 1
 
-# fstab entry only; this does not format the device. nofail plus the device
-# timeout keep boot from hanging if the volume is slow to attach or (on a fresh
-# volume) has no filesystem yet at the moment systemd generates the mount unit.
-# runcmd formats first, then "mount -a" brings this entry up for real.
-mounts:
-  - [ "/dev/disk/by-id/scsi-0HC_Volume_musicbox-data", "/srv/music", "ext4", "defaults,nofail,x-systemd.device-timeout=30s", "0", "2" ]
-
+# cloud-init concatenates every runcmd item into ONE /bin/sh script, so the first
+# "set -e" governs everything after it and item order is real execution order.
+# Storage comes first: a transient package-install failure later must not leave
+# the box without its data volume mounted and populated.
 runcmd:
+  # Hetzner by-id links key on the volume's NUMERIC id (scsi-0HC_Volume_<id>), not
+  # its name, and that id is not known until the volume attaches. udevadm settle
+  # waits for the symlink; the glob must resolve to exactly one device, or this
+  # aborts rather than silently formatting the wrong disk. No static mounts:
+  # entry: the fstab line is written here, after the UUID is known.
+  - |
+    set -e
+    udevadm settle
+    set -- /dev/disk/by-id/scsi-0HC_Volume_*
+    if [ "$#" -ne 1 ]; then
+      echo "expected exactly one HC volume device, got $#: $*" >&2
+      exit 1
+    fi
+    DEV=$1
+    mkdir -p /srv/music
+    if [ -z "$(blkid -o value -s TYPE "$DEV" 2>/dev/null)" ]; then
+      mkfs.ext4 -F "$DEV"
+    fi
+    UUID=$(blkid -o value -s UUID "$DEV")
+    FSTAB_LINE="UUID=$UUID /srv/music ext4 defaults,nofail,x-systemd.device-timeout=30s 0 2"
+    grep -qxF "$FSTAB_LINE" /etc/fstab || echo "$FSTAB_LINE" >> /etc/fstab
+    mount -a
+    # mount -a returns 0 even when a nofail device never mounted; without this
+    # check the tree below would land on the root disk instead of the volume.
+    mountpoint -q /srv/music || { echo "volume not mounted at /srv/music" >&2; exit 1; }
+
+  - |
+    set -e
+    mkdir -p /srv/music/library /srv/music/inbox /srv/music/review /srv/music/state /srv/music/staging
+    chown -R 2000:2000 /srv/music
+    chmod 0755 /srv/music/library /srv/music/review /srv/music/state /srv/music/staging
+    chmod 2775 /srv/music/inbox
+    restorecon -R /srv/music
+
+  # Fixed uid/gid so a later reprovision or restore never renumbers ownership.
+  # -M: do not create the home directory here; the /srv/music tree already
+  # exists from the block above.
+  - |
+    set -e
+    getent group music >/dev/null || groupadd -g 2000 music
+    getent passwd music >/dev/null || useradd -u 2000 -g 2000 -d /srv/music -M -s /usr/sbin/nologin music
+
   # Docker CE from its own RHEL-family repo, not the AlmaLinux base repos.
   - |
     set -e
@@ -76,32 +108,3 @@ runcmd:
     set -e
     dnf install -y dnf-automatic
     systemctl enable --now dnf-automatic.timer
-
-  # Fixed uid/gid so a later reprovision or restore never renumbers ownership.
-  # -M: do not create the home directory here; the /srv/music tree is built
-  # below, after the data volume is mounted onto it.
-  - |
-    set -e
-    getent group music >/dev/null || groupadd -g 2000 music
-    getent passwd music >/dev/null || useradd -u 2000 -g 2000 -d /srv/music -M -s /usr/sbin/nologin music
-
-  - systemctl reload sshd
-
-  # Format only if the volume is blank, so a reboot or a re-run never wipes
-  # data already on it.
-  - |
-    set -e
-    DEV=/dev/disk/by-id/scsi-0HC_Volume_musicbox-data
-    mkdir -p /srv/music
-    if [ -z "$(blkid -o value -s TYPE "$DEV" 2>/dev/null)" ]; then
-      mkfs.ext4 -F "$DEV"
-    fi
-    mount -a
-
-  # Runs after the mount, so the tree lands on the volume, not the root disk.
-  - |
-    set -e
-    mkdir -p /srv/music/library /srv/music/inbox /srv/music/review /srv/music/state /srv/music/staging
-    chown -R 2000:2000 /srv/music
-    chmod 0755 /srv/music/library /srv/music/review /srv/music/state /srv/music/staging
-    chmod 2775 /srv/music/inbox
