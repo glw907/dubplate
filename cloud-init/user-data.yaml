@@ -1,0 +1,107 @@
+#cloud-config
+# musicbox first-boot config for AlmaLinux 10. SELinux stays enforcing throughout;
+# nothing here calls setenforce or edits /etc/selinux/config.
+
+# Only the users listed below are created. Omitting the "default" entry means
+# cloud-init does not also create a distro default user.
+disable_root: false
+ssh_pwauth: false
+
+users:
+  - name: root
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGRjkroBDeqUur67LcPZ5KX3uoLm3vzBTfKFVcOBcGxC geoff@907.life
+
+# e2fsprogs provides mkfs.ext4/blkid; present on a full AlmaLinux install already,
+# listed here so a minimal image still has the volume-formatting tools.
+packages:
+  - e2fsprogs
+
+write_files:
+  # Belt-and-suspenders alongside ssh_pwauth above: a dedicated drop-in survives an
+  # unrelated edit to the main sshd_config clobbering a single inline directive.
+  - path: /etc/ssh/sshd_config.d/60-disable-password-auth.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+
+  # dnf-automatic's package ships this same path %config(noreplace); installing it
+  # first (write_files runs before runcmd's package install) means our values win
+  # and the packaged default lands beside it as automatic.conf.rpmnew.
+  - path: /etc/dnf/automatic.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [commands]
+      upgrade_type = security
+      random_sleep = 0
+      network_online_timeout = 60
+      download_updates = yes
+      apply_updates = yes
+
+      [emitters]
+      emit_via = stdio
+
+      [email]
+      email_from = root@localhost
+      email_to = root
+      email_host = localhost
+
+      [command]
+      command_format = "{0}"
+      stdio_only = False
+
+      [base]
+      debuglevel = 1
+
+# fstab entry only; this does not format the device. nofail plus the device
+# timeout keep boot from hanging if the volume is slow to attach or (on a fresh
+# volume) has no filesystem yet at the moment systemd generates the mount unit.
+# runcmd formats first, then "mount -a" brings this entry up for real.
+mounts:
+  - [ "/dev/disk/by-id/scsi-0HC_Volume_musicbox-data", "/srv/music", "ext4", "defaults,nofail,x-systemd.device-timeout=30s", "0", "2" ]
+
+runcmd:
+  # Docker CE from its own RHEL-family repo, not the AlmaLinux base repos.
+  - |
+    set -e
+    dnf install -y dnf5-plugins || dnf install -y dnf-plugins-core
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    systemctl enable --now docker
+
+  # automatic.conf above already carries the security-only settings.
+  - |
+    set -e
+    dnf install -y dnf-automatic
+    systemctl enable --now dnf-automatic.timer
+
+  # Fixed uid/gid so a later reprovision or restore never renumbers ownership.
+  # -M: do not create the home directory here; the /srv/music tree is built
+  # below, after the data volume is mounted onto it.
+  - |
+    set -e
+    getent group music >/dev/null || groupadd -g 2000 music
+    getent passwd music >/dev/null || useradd -u 2000 -g 2000 -d /srv/music -M -s /usr/sbin/nologin music
+
+  - systemctl reload sshd
+
+  # Format only if the volume is blank, so a reboot or a re-run never wipes
+  # data already on it.
+  - |
+    set -e
+    DEV=/dev/disk/by-id/scsi-0HC_Volume_musicbox-data
+    mkdir -p /srv/music
+    if [ -z "$(blkid -o value -s TYPE "$DEV" 2>/dev/null)" ]; then
+      mkfs.ext4 -F "$DEV"
+    fi
+    mount -a
+
+  # Runs after the mount, so the tree lands on the volume, not the root disk.
+  - |
+    set -e
+    mkdir -p /srv/music/library /srv/music/inbox /srv/music/review /srv/music/state /srv/music/staging
+    chown -R 2000:2000 /srv/music
+    chmod 0755 /srv/music/library /srv/music/review /srv/music/state /srv/music/staging
+    chmod 2775 /srv/music/inbox

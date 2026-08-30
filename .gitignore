@@ -1,0 +1,4 @@
+# Nothing secret exists in this repo yet; these are defensive, not because
+# either path is populated today.
+*.env
+env/rendered/
