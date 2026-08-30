@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# music-backup: nightly backup of the beets and Navidrome databases plus
+# the canonical library, to R2. rclone must never read a live SQLite file
+# directly, because a mid-write copy would be a torn backup that opens
+# fine and restores garbage; sqlite3's own .backup command takes a
+# consistent snapshot into a staging dir first.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+MUSICBOX_ROOT="${MUSICBOX_ROOT:-/srv/music}"
+LIBRARY_DIR="$MUSICBOX_ROOT/library"
+BEETS_DB="${MUSICBOX_BEETS_DB:-$MUSICBOX_ROOT/state/library.db}"
+NAVIDROME_DB="${MUSICBOX_NAVIDROME_DB:-$MUSICBOX_ROOT/state/navidrome/navidrome.db}"
+BACKUP_STAGING="${MUSICBOX_BACKUP_STAGING:-$MUSICBOX_ROOT/state/backup-staging}"
+
+R2_ACCOUNT_ID="120c269ad6d3dfbe6d63a0bb53758ca0"
+R2_BUCKET="music-library"
+R2_REMOTE="musicboxr2"
+DATE_STR="$(date +%Y-%m-%d)"
+
+# One rclone sync per tree, each pinned to its own --backup-dir: a single
+# root-level sync would have each tree's run delete the other tree's
+# objects, and rclone refuses an overlapping backup-dir outright.
+rclone_backup_sync() {
+  local src="$1" tree="$2"
+  RCLONE_CONFIG_MUSICBOXR2_TYPE=s3 \
+    RCLONE_CONFIG_MUSICBOXR2_PROVIDER=Cloudflare \
+    RCLONE_CONFIG_MUSICBOXR2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+    RCLONE_CONFIG_MUSICBOXR2_ACCESS_KEY_ID="$MUSICBOX_R2_ACCESS_KEY_ID" \
+    RCLONE_CONFIG_MUSICBOXR2_SECRET_ACCESS_KEY="$MUSICBOX_R2_SECRET_ACCESS_KEY" \
+    rclone sync "$src" "$R2_REMOTE:$R2_BUCKET/$tree" \
+    --backup-dir "$R2_REMOTE:$R2_BUCKET/_archive/$tree/$DATE_STR" \
+    --exclude "/_archive/**"
+}
+
+if [ -z "${MUSICBOX_R2_ACCESS_KEY_ID:-}" ] || [ -z "${MUSICBOX_R2_SECRET_ACCESS_KEY:-}" ]; then
+  echo "music-backup: MUSICBOX_R2_ACCESS_KEY_ID/MUSICBOX_R2_SECRET_ACCESS_KEY not set; aborting." >&2
+  ping_hc musicbox-backup fail
+  exit 1
+fi
+
+rm -rf "$BACKUP_STAGING"
+mkdir -p "$BACKUP_STAGING"
+
+if [ -f "$BEETS_DB" ]; then
+  sqlite3 "$BEETS_DB" ".backup '$BACKUP_STAGING/library.db'"
+else
+  echo "music-backup: $BEETS_DB not found; skipping beets DB backup." >&2
+fi
+
+if [ -f "$NAVIDROME_DB" ]; then
+  sqlite3 "$NAVIDROME_DB" ".backup '$BACKUP_STAGING/navidrome.db'"
+else
+  echo "music-backup: $NAVIDROME_DB not found; skipping Navidrome DB backup." >&2
+fi
+
+if ! rclone_backup_sync "$LIBRARY_DIR" "library"; then
+  echo "music-backup: rclone sync of $LIBRARY_DIR failed." >&2
+  ping_hc musicbox-backup fail
+  exit 1
+fi
+
+if ! rclone_backup_sync "$BACKUP_STAGING" "state"; then
+  echo "music-backup: rclone sync of $BACKUP_STAGING failed." >&2
+  ping_hc musicbox-backup fail
+  exit 1
+fi
+
+ping_hc musicbox-backup
+echo "music-backup: done."
