@@ -172,6 +172,46 @@ else
     "install -m 0644 -o root -g root /tmp/musicbox-msmtprc /etc/msmtprc && rm -f /tmp/musicbox-msmtprc"
 fi
 
+# --- /etc/musicbox/contributors.yaml --------------------------------------
+# music-import's uploader_email() (Task 2) reads CONTRIBUTORS_FILE, which
+# defaults to this exact path. root:music 0640 lets the `music` user (the
+# systemd unit's User=) read it without making contributor emails
+# world-readable.
+echo "== /etc/musicbox/contributors.yaml =="
+if $check_only; then
+  if ssh -o BatchMode=yes "${SSH_OPTS[@]}" "$SSH_TARGET" true 2>/dev/null; then
+    # shellcheck disable=SC2029
+    if diff -q "$REPO_ROOT/config/contributors.yaml" \
+      <(ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cat /etc/musicbox/contributors.yaml 2>/dev/null") >/dev/null 2>&1; then
+      echo "  no changes"
+    else
+      echo "  would install $REPO_ROOT/config/contributors.yaml -> /etc/musicbox/contributors.yaml"
+    fi
+  else
+    echo "  can't reach $SSH_TARGET to diff; would install /etc/musicbox/contributors.yaml"
+  fi
+else
+  rsync -avz -e "$RSYNC_SSH" "$REPO_ROOT/config/contributors.yaml" "$SSH_TARGET:/tmp/musicbox-contributors.yaml"
+  # shellcheck disable=SC2029
+  ssh "${SSH_OPTS[@]}" "$SSH_TARGET" \
+    "install -D -m 0640 -o root -g music /tmp/musicbox-contributors.yaml /etc/musicbox/contributors.yaml && rm -f /tmp/musicbox-contributors.yaml"
+fi
+
+# --- state directories for bind-mounted volumes -------------------------
+# Docker creates a missing bind-mount source itself, but as root:root; both
+# navidrome and filebrowser run as 2000:2000 (compose.yaml) and would then be
+# unable to write their own databases on first start. Pre-creating with the
+# right ownership makes the first `up -d` on a fresh box work the same as
+# every later one.
+STATE_DIRS="/srv/music/state/navidrome /srv/music/state/filebrowser"
+echo "== state directories ($STATE_DIRS) =="
+if $check_only; then
+  echo "  would run: mkdir -p $STATE_DIRS && chown 2000:2000 $STATE_DIRS"
+else
+  # shellcheck disable=SC2029
+  ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "mkdir -p $STATE_DIRS && chown 2000:2000 $STATE_DIRS"
+fi
+
 # --- compose stack -------------------------------------------------------
 COMPOSE_CMD="docker compose --env-file $REMOTE_ENV -f $REMOTE_DIR/compose.yaml --project-directory $REMOTE_DIR up -d"
 echo "== compose stack =="
@@ -202,7 +242,13 @@ else
   # shellcheck disable=SC2087
   ssh "${SSH_OPTS[@]}" "$SSH_TARGET" bash -s <<REMOTE
 set -euo pipefail
-command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
+# UV_INSTALL_DIR=/usr/local/bin (rather than the installer's root-only
+# default of /root/.local/bin) puts uv on every user's PATH, including the
+# non-login shell this whole heredoc runs in and the runuser -u music call
+# below; without it uv installs where only an interactive root login would
+# find it. The command -v guard skips the install (and its curl+network
+# round trip) on every re-deploy once uv is already present.
+command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh
 install -d -o music -g music -m 0755 /srv/music/.config/beets
 install -o music -g music -m 0644 /tmp/musicbox-beets-config.yaml /srv/music/.config/beets/config.yaml
 rm -f /tmp/musicbox-beets-config.yaml

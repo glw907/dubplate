@@ -13,9 +13,13 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGRjkroBDeqUur67LcPZ5KX3uoLm3vzBTfKFVcOBcGxC geoff@907.life
 
 # e2fsprogs provides mkfs.ext4/blkid; present on a full AlmaLinux install already,
-# listed here so a minimal image still has the volume-formatting tools.
+# listed here so a minimal image still has the volume-formatting tools. jq is
+# music-import's JSON filter over yq's YAML->JSON output (Task 2); yq itself
+# (mikefarah/go, v4) is not in AlmaLinux's repos and is installed below via a
+# pinned, checksum-verified GitHub release instead.
 packages:
   - e2fsprogs
+  - jq
 
 write_files:
   # cloud-init.service is ordered Before=sshd.service, so this drop-in is already
@@ -108,3 +112,17 @@ runcmd:
     set -e
     dnf install -y dnf-automatic
     systemctl enable --now dnf-automatic.timer
+
+  # yq (mikefarah/go, v4): music-import (Task 2) shells out to it to turn
+  # config/contributors.yaml into JSON for jq. Not in AlmaLinux's repos, so
+  # pinned to a specific release and checksum-verified against it rather
+  # than trusted from a third-party repo. Version and checksum recorded in
+  # docs/STATUS.md; re-verify both there before bumping.
+  - |
+    set -e
+    YQ_VERSION=v4.53.6
+    YQ_SHA256=c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
+    curl -LsSf -o /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+    echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
+    install -m 0755 -o root -g root /tmp/yq /usr/local/bin/yq
+    rm -f /tmp/yq

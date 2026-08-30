@@ -23,11 +23,12 @@ quiescent() {
 # component-by-component rather than by substring match on "../" so a bare
 # ".." member, a trailing "/..", and "../" all reject the same way.
 _no_traversal_member() {
-  local path="$1" part
+  local path="$1" parts part
   case "$path" in
   /*) return 1 ;;
   esac
-  for part in ${path//\// }; do
+  IFS=/ read -ra parts <<<"$path"
+  for part in "${parts[@]}"; do
     [ "$part" = ".." ] && return 1
   done
   return 0

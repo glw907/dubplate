@@ -27,9 +27,12 @@ Spec: `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
 | FileBrowser Quantum | `gtstef/filebrowser` (upstream repo name `gtsteffaniak/filebrowser`) | `1.5.5-stable` | 2026-08-30 |
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` | 2026-08-14 |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` | current at lookup |
+| yq (box, cloud-init) | GitHub `mikefarah/yq` (`yq_linux_amd64`) | `v4.53.6` (sha256 `c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385`) | current at lookup |
 
-Re-verify all four before Task 4's real deploy if this pass is more than a few days
-stale — `docker compose config` never checks that a pinned tag still exists upstream.
+Re-verify all five before Task 4's real deploy if this pass is more than a few days
+stale — `docker compose config` never checks that a pinned tag still exists upstream, and
+cloud-init's `sha256sum -c` check will hard-fail first boot if the pin drifts from a
+yanked or replaced release.
 
 ## Open items
 

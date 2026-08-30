@@ -141,5 +141,5 @@ Decisions a later pass would be wrong to rediscover from scratch:
 - **Archive cap default**: `MUSICBOX_MAX_ARCHIVE_BYTES` defaults to 2 GiB in
   `music-import`; revisit if a real Bandcamp download exceeds it.
 - New host dependency: `yq` (mikefarah/go, v4) for parsing `contributors.yaml`,
-  needed on the box alongside `beet`/`rclone`/`msmtp`/`bsdtar` — add it to Task 3's
+  needed on the box alongside `beet`/`rclone`/`msmtp`/`bsdtar`. Add it to Task 3's
   `deploy.sh` package list.

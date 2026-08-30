@@ -24,20 +24,20 @@ echo "== shellcheck =="
 bash_scripts=()
 for f in scripts/*; do
   [ -f "$f" ] || continue
-  case "$(head -c2 "$f" 2>/dev/null)" in
-  '#!')
-    head -n1 "$f" | grep -q "bash" && bash_scripts+=("$f")
-    continue
-    ;;
-  esac
-  # A shebang-less file can still be a bash library meant to be sourced:
-  # either its own shellcheck directive says so, or its name says so.
-  case "$f" in
-  *.sh)
+  first_line="$(head -n1 "$f" 2>/dev/null)"
+  case "$first_line" in
+  # A bash shebang, or a shebang-less file whose own shellcheck directive
+  # declares it a bash library meant to be sourced.
+  '#!'*bash* | '# shellcheck shell=bash'*)
     bash_scripts+=("$f")
     ;;
+  # Some other interpreter's script; not ours to shellcheck.
+  '#!'*) ;;
+  # No shebang and no directive, so the name is the last thing left to go on.
   *)
-    head -n1 "$f" | grep -q '^# shellcheck shell=bash' && bash_scripts+=("$f")
+    case "$f" in
+    *.sh) bash_scripts+=("$f") ;;
+    esac
     ;;
   esac
 done
