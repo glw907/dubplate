@@ -2,6 +2,90 @@
 
 Per-pass ledger, newest first.
 
+## Task 3: service configuration — compose, systemd units, deploy (2026-08-30)
+
+Landed `compose.yaml` (Navidrome, FileBrowser Quantum, cloudflared — no service
+publishes a host port; only cloudflared is reachable from outside), `config/
+navidrome.toml`, `config/filebrowser.yaml`, `config/msmtprc`, `config/beets-config.yaml`,
+`config/cloudflared-tunnel-config.json`, the four `systemd/music-{import,backup}.
+{service,timer}` units plus a shared `systemd/musicbox-ping-failure@.service` template,
+`env/musicbox.env.template`, and `scripts/deploy.sh`. Extended `scripts/check.sh` with
+`docker compose config -q` and a pattern-filtered `systemd-analyze verify`. All pinned
+tags looked up and dated in `docs/STATUS.md`.
+
+Two Task 2/Task 3 interface mismatches found and fixed (Task 3's own acceptance criteria
+named the authoritative env var scheme, so Task 2's code was the thing that moved):
+- **healthchecks.io slugs**: `music-import`/`music-backup` called `ping_hc
+  musicbox-import` / `ping_hc musicbox-backup`, which resolves (per `lib.sh`'s own
+  uppercase-and-dash-to-underscore rule) to `MUSICBOX_HC_MUSICBOX_IMPORT_URL` /
+  `MUSICBOX_HC_MUSICBOX_BACKUP_URL` — doubled "MUSICBOX", not the
+  `MUSICBOX_HC_IMPORT_URL` / `MUSICBOX_HC_BACKUP_URL` this task's env template requires.
+  Fixed both scripts to call `ping_hc import` / `ping_hc backup`; updated
+  `tests/lib.bats` and `tests/music-import.bats` to match (still 16 green). Monitoring
+  would otherwise have silently no-op'd forever — `ping_hc` treats an unset URL var as a
+  no-op, not an error, precisely so a monitoring bug never takes down the pipeline it
+  monitors, which also means a naming bug like this one would never have surfaced as a
+  failure anywhere.
+- **Navidrome scan-trigger credentials**: `music-import`'s `trigger_navidrome_scan()`
+  read `NAVIDROME_USER`/`NAVIDROME_PASSWORD`; this task's env template is required to
+  name `NAVIDROME_ADMIN_USER`/`NAVIDROME_ADMIN_PASSWORD`. Renamed in the script and in
+  `tests/music-import.bats`.
+
+Decisions a later pass would be wrong to rediscover from scratch:
+- **Navidrome config split**: non-secret baseline settings (`MusicFolder`, `DataFolder`,
+  `LogLevel`) live in `config/navidrome.toml`, bind-mounted read-only at
+  `/data/navidrome.toml` alongside the read-write `/data` mount for the DB — Docker lets
+  a single-file bind mount overlay a path inside an already-mounted directory. Scanner
+  settings and the encryption key live in `compose.yaml`'s `environment:` instead (ND_
+  env vars override the toml), specifically so the two option names the task called out
+  by name (`ND_SCANNER_SCHEDULE`, `ND_SCANNER_WATCHERWAIT`) are literally grep-able in
+  compose.yaml. `ND_CONFIGFILE=/data/navidrome.toml` is set explicitly rather than relied
+  on implicitly, per navidrome.org's own Docker install guidance.
+- **FileBrowser Quantum 1.5.x has no static per-user YAML config** — verified against the
+  actual `v1.5.5-stable` tag's Go source (`backend/common/settings/structs.go`), not just
+  the docs site (which mixes in v2.0 beta content). Users and their scopes live in its own
+  SQLite DB, created via CLI/API, not this repo. `config/filebrowser.yaml` instead
+  configures one source (`/srv/music/inbox`) with `createUserDir: true` +
+  `defaultUserScope: "/"`, so creating an account named `alice` automatically scopes her
+  to exactly `/srv/music/inbox/alice` — no per-user YAML needed, and the username IS the
+  inbox directory name music-import already matches against `contributors.yaml`. Task 8
+  creates the real accounts (one per `contributor`-role entry) once Task 0 lands real
+  names.
+- **cloudflared runs `tunnel --no-autoupdate run` with no local `--config`.** A
+  token-driven tunnel is remotely managed; a local ingress file is silently ignored
+  (verified against upstream `cloudflared` issues, not assumed). The actual ingress
+  mapping is `config/cloudflared-tunnel-config.json`, a ready-to-PUT API body for Task 5
+  to apply once the named tunnel exists — see STATUS.md's Open items, this is a real gap
+  Task 5 must not skip.
+- **msmtp's `passwordeval` reads `$MUSICBOX_SMTP_PASSWORD` from its own inherited process
+  environment** (`printenv MUSICBOX_SMTP_PASSWORD`), not by re-reading
+  `/etc/musicbox/env` from disk. That variable is already present in music-import's
+  environment via its unit's `EnvironmentFile=`; having msmtp open the file a second time
+  would require it group-readable by the unprivileged `music` user, widening every OTHER
+  secret in that one file to the same process for no actual reduction in blast radius
+  (that process already receives all of them via `EnvironmentFile=`). `config/msmtprc`
+  itself holds no secret and installs world-readable at `/etc/msmtprc`.
+- **Deploy target directory**: `deploy.sh` rsyncs `compose.yaml` + `config/` to
+  `/opt/musicbox` on the box (not `/srv/music`, which is data, restored from R2, and
+  never holds repo-sourced config). `docker compose` runs with `--project-directory
+  /opt/musicbox` so the compose file's relative `./config/...` volume paths resolve
+  regardless of the caller's cwd.
+- **`deploy.sh --check` never prints secret contents**, even when diffing the rendered
+  `/etc/musicbox/env` against what's already on the box: it reports only whether the
+  content differs (`diff -q` via process substitution, nothing touches local disk).
+  Exercised in this pass against an intentionally-unreachable host and against
+  `127.0.0.1` (connection refused) — both paths report cleanly and exit 0 without a real
+  box to deploy to.
+- **beets on the box**: installed via `uv tool install --force beets==2.13.1` as the
+  `music` user (`HOME=/srv/music`), then symlinked `/usr/local/bin/beet ->
+  /srv/music/.local/bin/beet` — `uv tool install`'s default bin dir is not on systemd's
+  default `PATH`, so without the symlink `music-import`'s `beet import` call would fail
+  with "command not found" the first time a real timer fires. `config/beets-config.yaml`
+  mirrors the workstation's `~/.dotfiles/beets` layout and plugins (fetchart, embedart),
+  repointed at `/srv/music`, plus a quiet-mode section (`quiet_fallback: skip`,
+  `none_rec_action: skip`) so `beet import -q` sends anything it can't confidently tag to
+  review instead of guessing or blocking on input that will never arrive.
+
 ## Task 2: import, backup, and wrapper scripts (2026-08-30)
 
 Landed `scripts/lib.sh` (`quiescent`, `safe_extract`, `free_space_ok`, `notify`,
