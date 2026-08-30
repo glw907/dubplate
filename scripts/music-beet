@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# music-beet: interactive/administrative wrapper around beet. Blocks on the
+# same lock music-import uses (waiting, with a message, rather than failing
+# outright) so an interactive session and the timer never touch the beets
+# database at the same time.
+
+LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}"
+
+exec 200>"$LOCK_FILE"
+if ! flock -n 200; then
+  echo "music-beet: another music-import run holds the lock; waiting..." >&2
+  flock 200
+fi
+
+exec beet "$@"
