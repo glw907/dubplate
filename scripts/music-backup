@@ -38,7 +38,7 @@ rclone_backup_sync() {
 
 if [ -z "${MUSICBOX_R2_ACCESS_KEY_ID:-}" ] || [ -z "${MUSICBOX_R2_SECRET_ACCESS_KEY:-}" ]; then
   echo "music-backup: MUSICBOX_R2_ACCESS_KEY_ID/MUSICBOX_R2_SECRET_ACCESS_KEY not set; aborting." >&2
-  ping_hc musicbox-backup fail
+  ping_hc backup fail
   exit 1
 fi
 
@@ -59,15 +59,15 @@ fi
 
 if ! rclone_backup_sync "$LIBRARY_DIR" "library"; then
   echo "music-backup: rclone sync of $LIBRARY_DIR failed." >&2
-  ping_hc musicbox-backup fail
+  ping_hc backup fail
   exit 1
 fi
 
 if ! rclone_backup_sync "$BACKUP_STAGING" "state"; then
   echo "music-backup: rclone sync of $BACKUP_STAGING failed." >&2
-  ping_hc musicbox-backup fail
+  ping_hc backup fail
   exit 1
 fi
 
-ping_hc musicbox-backup
+ping_hc backup
 echo "music-backup: done."

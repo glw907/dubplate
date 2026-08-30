@@ -21,8 +21,8 @@ setup() {
   export MUSICBOX_MIN_FREE_GB=0
   export MUSICBOX_MAX_ARCHIVE_BYTES=10000000
   export MUSICBOX_REVIEW_RETENTION_DAYS=60
-  export MUSICBOX_HC_MUSICBOX_IMPORT_URL="https://hc.example/ping/musicbox-import"
-  unset NAVIDROME_USER NAVIDROME_PASSWORD 2>/dev/null || true
+  export MUSICBOX_HC_IMPORT_URL="https://hc.example/ping/import"
+  unset NAVIDROME_ADMIN_USER NAVIDROME_ADMIN_PASSWORD 2>/dev/null || true
 
   cat >"$MUSICBOX_CONTRIBUTORS_FILE" <<'EOF'
 contributors:
@@ -117,8 +117,8 @@ EOF
   run "$SCRIPT"
   [ "$status" -eq 0 ]
 
-  # A success ping (no /fail suffix) went out for musicbox-import.
-  grep -qx -- "-fsS -o /dev/null https://hc.example/ping/musicbox-import" "$CURL_LOG"
+  # A success ping (no /fail suffix) went out for import.
+  grep -qx -- "-fsS -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
   ! grep -q "/fail" "$CURL_LOG"
 
   # Nothing landed in review, and no notification fired.
@@ -164,7 +164,7 @@ EOF
 
   run "$SCRIPT"
   [ "$status" -ne 0 ]
-  grep -qx -- "-fsS -o /dev/null https://hc.example/ping/musicbox-import/fail" "$CURL_LOG"
+  grep -qx -- "-fsS -o /dev/null https://hc.example/ping/import/fail" "$CURL_LOG"
 }
 
 @test "a non-quiescent inbox is left alone this run" {

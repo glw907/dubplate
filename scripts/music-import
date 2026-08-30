@@ -135,12 +135,12 @@ move_skips_and_notify() {
 # scanner endpoint) rather than Subsonic, since Subsonic has no scan
 # trigger.
 trigger_navidrome_scan() {
-  if [ -z "${NAVIDROME_USER:-}" ] || [ -z "${NAVIDROME_PASSWORD:-}" ]; then
-    echo "music-import: NAVIDROME_USER/NAVIDROME_PASSWORD not set; skipping scan trigger." >&2
+  if [ -z "${NAVIDROME_ADMIN_USER:-}" ] || [ -z "${NAVIDROME_ADMIN_PASSWORD:-}" ]; then
+    echo "music-import: NAVIDROME_ADMIN_USER/NAVIDROME_ADMIN_PASSWORD not set; skipping scan trigger." >&2
     return 0
   fi
   local login_body token
-  login_body="$(jq -n --arg u "$NAVIDROME_USER" --arg p "$NAVIDROME_PASSWORD" '{username:$u,password:$p}')"
+  login_body="$(jq -n --arg u "$NAVIDROME_ADMIN_USER" --arg p "$NAVIDROME_ADMIN_PASSWORD" '{username:$u,password:$p}')"
   token="$(curl -fsS -X POST "$NAVIDROME_URL/auth/login" \
     -H 'Content-Type: application/json' -d "$login_body" | jq -r '.token // empty')"
   if [ -z "$token" ]; then
@@ -176,7 +176,7 @@ shopt -u nullglob
 
 if ! free_space_ok "$MUSICBOX_ROOT" "$MIN_FREE_GB"; then
   echo "music-import: free space on $MUSICBOX_ROOT is below ${MIN_FREE_GB}GB; aborting before import." >&2
-  ping_hc musicbox-import fail
+  ping_hc import fail
   exit 1
 fi
 
@@ -186,4 +186,4 @@ find "$STAGING_DIR" -mindepth 1 -type d -empty -delete
 
 trigger_navidrome_scan
 sweep_review
-ping_hc musicbox-import
+ping_hc import

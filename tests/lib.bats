@@ -118,8 +118,8 @@ printf '%s\n' "$@" >>"$CURL_STUB_LOG"
 EOF
   chmod +x "$STUB_BIN/curl"
   export CURL_STUB_LOG="$WORK_DIR/curl-log"
-  export MUSICBOX_HC_MUSICBOX_IMPORT_URL="https://hc.example/ping/abc123"
-  run ping_hc "musicbox-import"
+  export MUSICBOX_HC_IMPORT_URL="https://hc.example/ping/abc123"
+  run ping_hc "import"
   [ "$status" -eq 0 ]
   grep -qx "https://hc.example/ping/abc123" "$CURL_STUB_LOG"
 }
@@ -131,15 +131,15 @@ printf '%s\n' "$@" >>"$CURL_STUB_LOG"
 EOF
   chmod +x "$STUB_BIN/curl"
   export CURL_STUB_LOG="$WORK_DIR/curl-log"
-  export MUSICBOX_HC_MUSICBOX_BACKUP_URL="https://hc.example/ping/def456"
-  run ping_hc "musicbox-backup" fail
+  export MUSICBOX_HC_BACKUP_URL="https://hc.example/ping/def456"
+  run ping_hc "backup" fail
   [ "$status" -eq 0 ]
   grep -qx "https://hc.example/ping/def456/fail" "$CURL_STUB_LOG"
 }
 
 @test "ping_hc no-ops with a notice when the env var is unset" {
-  unset MUSICBOX_HC_MUSICBOX_DISK_URL
-  run ping_hc "musicbox-disk"
+  unset MUSICBOX_HC_DISK_URL
+  run ping_hc "disk"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"MUSICBOX_HC_MUSICBOX_DISK_URL"* ]]
+  [[ "$output" == *"MUSICBOX_HC_DISK_URL"* ]]
 }
