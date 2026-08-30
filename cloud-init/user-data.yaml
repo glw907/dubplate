@@ -62,7 +62,7 @@ runcmd:
     set -e
     udevadm settle
     set -- /dev/disk/by-id/scsi-0HC_Volume_*
-    if [ "$#" -ne 1 ]; then
+    if [ "$#" -ne 1 ] || [ ! -b "$1" ]; then
       echo "expected exactly one HC volume device, got $#: $*" >&2
       exit 1
     fi
