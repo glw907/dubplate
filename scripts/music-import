@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# music-import: the hosted gatekeeper. Runs under flock so a scheduled
+# invocation never overlaps another run or an interactive `beet` session
+# (see music-beet). Scans each contributor's inbox, stages quiescent
+# uploads, imports them with beets, files anything beets could not
+# confidently tag for manual review, and nudges Navidrome to rescan.
+#
+# Every path and credential is overridable via env var so the same script
+# runs unmodified against the real /srv/music tree and against a fixture
+# tree in tests; only the defaults are production values.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+MUSICBOX_ROOT="${MUSICBOX_ROOT:-/srv/music}"
+INBOX_DIR="$MUSICBOX_ROOT/inbox"
+STAGING_DIR="$MUSICBOX_ROOT/staging"
+REVIEW_DIR="$MUSICBOX_ROOT/review"
+STATE_DIR="$MUSICBOX_ROOT/state"
+LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}"
+QUIESCENT_MINUTES="${MUSICBOX_QUIESCENT_MINUTES:-10}"
+MIN_FREE_GB="${MUSICBOX_MIN_FREE_GB:-5}"
+MAX_ARCHIVE_BYTES="${MUSICBOX_MAX_ARCHIVE_BYTES:-2147483648}"
+REVIEW_RETENTION_DAYS="${MUSICBOX_REVIEW_RETENTION_DAYS:-60}"
+CONTRIBUTORS_FILE="${MUSICBOX_CONTRIBUTORS_FILE:-/etc/musicbox/contributors.yaml}"
+GEOFF_EMAIL="${MUSICBOX_GEOFF_EMAIL:-geoff-login@907.life}"
+NAVIDROME_URL="${NAVIDROME_URL:-http://localhost:4533}"
+
+# A held lock means another run (or an interactive music-beet session) is
+# already touching the beets database; skip quietly rather than queue up.
+exec 200>"$LOCK_FILE"
+if ! flock -n 200; then
+  echo "music-import: another run holds the lock; exiting." >&2
+  exit 0
+fi
+
+mkdir -p "$STAGING_DIR" "$REVIEW_DIR" "$STATE_DIR"
+
+DATE_STR="$(date +%Y-%m-%d)"
+LOGFILE="$STATE_DIR/import-$(date +%Y%m%d-%H%M%S).log"
+
+# True for filenames beets can't read directly: Bandcamp delivers ZIPs, and
+# without unpacking them the archive would just sit in staging forever.
+is_archive_name() {
+  case "${1,,}" in
+  *.zip | *.tar | *.tar.gz | *.tgz | *.tar.bz2 | *.tbz2) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# Looks up a contributor's email by matching the inbox directory name
+# against contributors.yaml's "name" field (the only identifier the
+# uploaded tree carries). Empty output means no match; callers treat that
+# as "can't notify this uploader", not as an error.
+uploader_email() {
+  local user="$1"
+  [ -f "$CONTRIBUTORS_FILE" ] || return 0
+  yq -o=json "$CONTRIBUTORS_FILE" |
+    jq -r --arg n "$user" '.contributors[]? | select(.name == $n) | .email' |
+    head -n1
+}
+
+# Moves one contributor's quiescent inbox entries into their staging
+# subdirectory: archives are expanded (then removed from the inbox so a
+# later run never re-extracts them), everything else is moved as-is.
+stage_user_uploads() {
+  local user="$1" src="$2" dest="$3" entry name
+  mkdir -p "$dest"
+  shopt -s nullglob
+  for entry in "$src"/*; do
+    name="$(basename "$entry")"
+    if [ -f "$entry" ] && is_archive_name "$name"; then
+      if safe_extract "$entry" "$dest" "$MAX_ARCHIVE_BYTES"; then
+        rm -f "$entry"
+      else
+        echo "music-import: rejected archive $entry; left in $user's inbox for review" >&2
+      fi
+    else
+      mv "$entry" "$dest/"
+    fi
+  done
+  shopt -u nullglob
+}
+
+# Parses beets' quiet-import logfile (lines "skip <path>[; <path>...]",
+# per beets' own tag_log format), relocates each skipped path to
+# review/<date>/<uploader>/, and notifies the uploader plus Geoff once
+# each, never once per skipped file.
+move_skips_and_notify() {
+  local logfile="$1" review_root="$2" date_str="$3"
+  local -A skip_users=()
+  [ -f "$logfile" ] || return 0
+
+  local line rest part trimmed rel user dest_dir
+  while IFS= read -r line; do
+    case "$line" in
+    "skip "*)
+      rest="${line#skip }"
+      IFS=';' read -ra parts <<<"$rest"
+      for part in "${parts[@]}"; do
+        trimmed="${part# }"
+        [ -n "$trimmed" ] && [ -e "$trimmed" ] || continue
+        rel="${trimmed#"$STAGING_DIR"/}"
+        user="${rel%%/*}"
+        dest_dir="$review_root/$date_str/$user"
+        mkdir -p "$dest_dir"
+        mv "$trimmed" "$dest_dir/"
+        skip_users["$user"]=1
+      done
+      ;;
+    esac
+  done <"$logfile"
+
+  [ "${#skip_users[@]}" -eq 0 ] && return 0
+
+  local email
+  for user in "${!skip_users[@]}"; do
+    email="$(uploader_email "$user")"
+    if [ -n "$email" ]; then
+      notify "$email" "Musicbox: some uploads need review" \
+        "Some of your uploaded music could not be auto-tagged and was moved to $review_root/$date_str/$user for Geoff to review."
+    else
+      echo "music-import: no email on file for uploader '$user'; skipping their notice" >&2
+    fi
+  done
+  notify "$GEOFF_EMAIL" "Musicbox: import skipped items ($date_str)" \
+    "Contributors with skipped uploads today: ${!skip_users[*]}. See $review_root/$date_str."
+}
+
+# Best-effort: a failed scan trigger does not fail the import, because
+# Navidrome's daily Scanner.Schedule backstop will pick up the change
+# regardless. Uses the native admin API (login for a JWT, then the
+# scanner endpoint) rather than Subsonic, since Subsonic has no scan
+# trigger.
+trigger_navidrome_scan() {
+  if [ -z "${NAVIDROME_USER:-}" ] || [ -z "${NAVIDROME_PASSWORD:-}" ]; then
+    echo "music-import: NAVIDROME_USER/NAVIDROME_PASSWORD not set; skipping scan trigger." >&2
+    return 0
+  fi
+  local login_body token
+  login_body="$(jq -n --arg u "$NAVIDROME_USER" --arg p "$NAVIDROME_PASSWORD" '{username:$u,password:$p}')"
+  token="$(curl -fsS -X POST "$NAVIDROME_URL/auth/login" \
+    -H 'Content-Type: application/json' -d "$login_body" | jq -r '.token // empty')"
+  if [ -z "$token" ]; then
+    echo "music-import: Navidrome login failed; scan trigger skipped." >&2
+    return 0
+  fi
+  curl -fsS -X POST "$NAVIDROME_URL/api/scanner/scan" \
+    -H "x-nd-authorization: Bearer $token" -H 'Content-Type: application/json' \
+    -d '{"fullScan": false}' >/dev/null ||
+    echo "music-import: Navidrome scan request failed." >&2
+  return 0
+}
+
+# Duplicates a contributor's bad MusicBrainz match forever if never swept;
+# 60 days gives Geoff a season to drain the review queue by hand.
+sweep_review() {
+  find "$REVIEW_DIR" -mindepth 1 -maxdepth 1 -type d -mtime "+$REVIEW_RETENTION_DAYS" -exec rm -rf {} +
+}
+
+shopt -s nullglob
+for user_dir in "$INBOX_DIR"/*/; do
+  user="$(basename "$user_dir")"
+  if ! quiescent "$user_dir" "$QUIESCENT_MINUTES"; then
+    echo "music-import: $user's inbox is still changing; skipping this run." >&2
+    continue
+  fi
+  if [ -z "$(find "$user_dir" -mindepth 1 -print -quit)" ]; then
+    continue
+  fi
+  stage_user_uploads "$user" "$user_dir" "$STAGING_DIR/$user"
+done
+shopt -u nullglob
+
+if ! free_space_ok "$MUSICBOX_ROOT" "$MIN_FREE_GB"; then
+  echo "music-import: free space on $MUSICBOX_ROOT is below ${MIN_FREE_GB}GB; aborting before import." >&2
+  ping_hc musicbox-import fail
+  exit 1
+fi
+
+beet import -q -l "$LOGFILE" "$STAGING_DIR"
+move_skips_and_notify "$LOGFILE" "$REVIEW_DIR" "$DATE_STR"
+find "$STAGING_DIR" -mindepth 1 -type d -empty -delete
+
+trigger_navidrome_scan
+sweep_review
+ping_hc musicbox-import
