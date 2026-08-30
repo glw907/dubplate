@@ -141,9 +141,35 @@ if $check_only; then
     echo "  can't reach $SSH_TARGET to diff; would write ${#env_lines[@]} variables"
   fi
 else
+  # -D creates $REMOTE_ENV's parent (/etc/musicbox) if this is the box's
+  # first deploy; install itself no-ops that part on every later run.
   # shellcheck disable=SC2029
   printf '%s\n' "${env_lines[@]}" | ssh "${SSH_OPTS[@]}" "$SSH_TARGET" \
-    "install -m 600 -o root -g root /dev/stdin $REMOTE_ENV"
+    "install -D -m 600 -o root -g root /dev/stdin $REMOTE_ENV"
+fi
+
+# --- /etc/msmtprc ---------------------------------------------------------
+# lib.sh's notify() calls plain `msmtp`, which reads its account config from
+# /etc/msmtprc (msmtp's own system-wide default) — a separate destination
+# from the config/ copy rsynced into $REMOTE_DIR above for the record.
+echo "== /etc/msmtprc =="
+if $check_only; then
+  if ssh -o BatchMode=yes "${SSH_OPTS[@]}" "$SSH_TARGET" true 2>/dev/null; then
+    # shellcheck disable=SC2029
+    if diff -q "$REPO_ROOT/config/msmtprc" \
+      <(ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cat /etc/msmtprc 2>/dev/null") >/dev/null 2>&1; then
+      echo "  no changes"
+    else
+      echo "  would install $REPO_ROOT/config/msmtprc -> /etc/msmtprc"
+    fi
+  else
+    echo "  can't reach $SSH_TARGET to diff; would install /etc/msmtprc"
+  fi
+else
+  rsync -avz -e "$RSYNC_SSH" "$REPO_ROOT/config/msmtprc" "$SSH_TARGET:/tmp/musicbox-msmtprc"
+  # shellcheck disable=SC2029
+  ssh "${SSH_OPTS[@]}" "$SSH_TARGET" \
+    "install -m 0644 -o root -g root /tmp/musicbox-msmtprc /etc/msmtprc && rm -f /tmp/musicbox-msmtprc"
 fi
 
 # --- compose stack -------------------------------------------------------

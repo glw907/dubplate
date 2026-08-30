@@ -31,6 +31,22 @@ named the authoritative env var scheme, so Task 2's code was the thing that move
   name `NAVIDROME_ADMIN_USER`/`NAVIDROME_ADMIN_PASSWORD`. Renamed in the script and in
   `tests/music-import.bats`.
 
+Two review findings fixed after the first pass (both would have broken the first real
+deploy, not just this repo's own gate):
+- **`/etc/musicbox/env`'s parent directory didn't exist.** Nothing in `provision.sh` or
+  `cloud-init/user-data.yaml` creates `/etc/musicbox` (only `/srv/music` is built at
+  provision time), so `install -m 600 ... /etc/musicbox/env` died with "cannot create
+  regular file" on a fresh box, after the scripts and units had already landed. Fixed by
+  adding `-D` to that `install` call, which creates the missing parent and is a no-op on
+  every later re-deploy.
+- **`config/msmtprc` was never actually installed to `/etc/msmtprc`.** The file's own
+  header already claimed deploy.sh put it there, but deploy.sh only rsynced `config/` to
+  `/opt/musicbox/config` for the record — `lib.sh`'s `notify()` calls plain `msmtp`, which
+  resolves its account from `/etc/msmtprc` and would have found nothing there, aborting
+  `music-import` under `set -euo pipefail` on the first skipped-track notification. Added
+  an explicit install step (rsync to a temp path, then `install -m 0644` to
+  `/etc/msmtprc`), with a matching diff-and-report line in `--check`.
+
 Decisions a later pass would be wrong to rediscover from scratch:
 - **Navidrome config split**: non-secret baseline settings (`MusicFolder`, `DataFolder`,
   `LogLevel`) live in `config/navidrome.toml`, bind-mounted read-only at
