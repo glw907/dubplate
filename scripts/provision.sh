@@ -87,8 +87,17 @@ firewall_exists() {
 
 # True only if an inbound tcp/22 rule already covers both 0.0.0.0/0 and ::/0,
 # so an existing firewall is never assumed correct just because it exists.
+# The describe call is captured separately from the jq check: piping it
+# straight into jq would make a network/API failure indistinguishable from
+# "rule absent" (both make the pipeline exit nonzero), which would report a
+# fixable connectivity blip as the firewall needing manual repair.
 firewall_rule_present() {
-  hcloud firewall describe "$FIREWALL_NAME" -o json | jq -e '
+  local describe_output
+  if ! describe_output="$(hcloud firewall describe "$FIREWALL_NAME" -o json)"; then
+    echo "Failed to describe firewall $FIREWALL_NAME via the hcloud API; cannot verify its rules. Check network/API access and re-run." >&2
+    exit 1
+  fi
+  jq -e '
     [.rules[]? | select(
       .direction == "in" and
       .protocol == "tcp" and
@@ -96,7 +105,7 @@ firewall_rule_present() {
       ((.source_ips // []) | contains(["0.0.0.0/0"])) and
       ((.source_ips // []) | contains(["::/0"]))
     )] | length > 0
-  ' >/dev/null
+  ' >/dev/null <<<"$describe_output"
 }
 
 volume_exists() {
