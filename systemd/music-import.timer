@@ -1,0 +1,10 @@
+[Unit]
+Description=musicbox: run music-import every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+Unit=music-import.service
+
+[Install]
+WantedBy=timers.target

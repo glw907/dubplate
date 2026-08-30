@@ -1,0 +1,13 @@
+[Unit]
+Description=musicbox: nightly backup of the beets and Navidrome databases to R2
+# See music-import.service's comment: the instance name is a healthchecks.io
+# slug, matched against MUSICBOX_HC_BACKUP_URL in env/musicbox.env.template.
+OnFailure=musicbox-ping-failure@backup.service
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/musicbox/env
+ExecStart=/usr/local/bin/music-backup

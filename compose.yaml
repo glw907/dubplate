@@ -1,0 +1,66 @@
+# musicbox service stack: Navidrome (streaming), FileBrowser Quantum (the
+# upload inbox), and cloudflared (the only way either is reachable from the
+# internet — neither service publishes a host port). Every image tag below
+# is pinned to a real release, looked up and dated in docs/STATUS.md; no
+# `latest`, no auto-updater. Every bind mount carries the SELinux `:Z`
+# relabel the box's enforcing SELinux requires (global constraint).
+#
+# Variable interpolation (${VAR}) is resolved by `docker compose --env-file
+# /etc/musicbox/env ...` (see deploy.sh); an unset variable at parse time
+# (e.g. on the workstation, before Task 0's secrets exist) only warns and
+# substitutes an empty string, so `docker compose config -q` stays green
+# without real secrets present.
+
+services:
+  navidrome:
+    image: deluan/navidrome:0.63.2
+    restart: unless-stopped
+    user: "2000:2000"
+    environment:
+      ND_CONFIGFILE: /data/navidrome.toml
+      # Cron-syntax daily backstop scan; the watcher is disabled
+      # (WatcherWait=0s) so a mid-move album is never indexed half-written.
+      # Current option names verified against navidrome.org's configuration
+      # options page 2026-08-30: Scanner.Schedule / ND_SCANNER_SCHEDULE,
+      # Scanner.WatcherWait / ND_SCANNER_WATCHERWAIT.
+      ND_SCANNER_SCHEDULE: "0 3 * * *"
+      ND_SCANNER_WATCHERWAIT: "0s"
+      # Secret: Subsonic token auth forces Navidrome to keep passwords
+      # recoverable, so this passphrase must come from the age-store-backed
+      # env file, never a literal here.
+      ND_PASSWORDENCRYPTIONKEY: ${ND_PASSWORDENCRYPTIONKEY}
+    volumes:
+      - /srv/music/library:/music:ro,Z
+      - /srv/music/state/navidrome:/data:Z
+      - ./config/navidrome.toml:/data/navidrome.toml:ro,Z
+    expose:
+      - "4533"
+
+  filebrowser:
+    image: gtstef/filebrowser:1.5.5-stable
+    restart: unless-stopped
+    user: "2000:2000"
+    volumes:
+      - /srv/music/inbox:/srv/music/inbox:Z
+      - /srv/music/state/filebrowser:/home/filebrowser/data:Z
+      - ./config/filebrowser.yaml:/home/filebrowser/data/config.yaml:ro,Z
+    expose:
+      - "80"
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.8.2
+    restart: unless-stopped
+    # No local --config: a token-run tunnel is remotely managed, so a local
+    # ingress file would be silently ignored (cloudflare/cloudflared issues
+    # #633, #933, #1520). The real ingress rules (music.907.life ->
+    # navidrome:4533, inbox.907.life -> filebrowser:80, 404 catch-all) are
+    # applied against the Cloudflare API once the tunnel exists — see
+    # config/cloudflared-tunnel-config.json, applied by Task 5.
+    command: tunnel --no-autoupdate run
+    environment:
+      # Secret: minted when Task 5 creates the named tunnel via the
+      # Cloudflare API.
+      TUNNEL_TOKEN: ${MUSICBOX_TUNNEL_TOKEN}
+    depends_on:
+      - navidrome
+      - filebrowser

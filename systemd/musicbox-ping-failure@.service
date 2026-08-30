@@ -1,0 +1,8 @@
+[Unit]
+Description=musicbox: notify healthchecks.io that %i failed
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/musicbox/env
+ExecStart=/usr/local/bin/musicbox-ping-failure %i

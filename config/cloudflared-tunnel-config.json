@@ -1,0 +1,18 @@
+{
+  "_comment": "Not consumed by compose.yaml or deploy.sh. cloudflared's compose service runs with TUNNEL_TOKEN, which makes it a remotely-managed tunnel: a local ingress config file is silently ignored by design (confirmed against cloudflare/cloudflared issues #633/#933/#1520 — ingress for a token-run tunnel must come from the Cloudflare API/dashboard, fetched at connect time). This file is the exact PUT body Task 5 (Cloudflare wiring) applies to the musicbox tunnel once it exists: PUT https://api.cloudflare.com/client/v4/accounts/120c269ad6d3dfbe6d63a0bb53758ca0/cfd_tunnel/<tunnel_id>/configurations, header 'Authorization: Bearer $CLOUDFLARE_API_TOKEN', this object as the JSON body.",
+  "config": {
+    "ingress": [
+      {
+        "hostname": "music.907.life",
+        "service": "http://navidrome:4533"
+      },
+      {
+        "hostname": "inbox.907.life",
+        "service": "http://filebrowser:80"
+      },
+      {
+        "service": "http_status:404"
+      }
+    ]
+  }
+}

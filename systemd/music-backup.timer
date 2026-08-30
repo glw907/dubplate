@@ -1,0 +1,10 @@
+[Unit]
+Description=musicbox: run music-backup daily at 11:30 UTC
+
+[Timer]
+OnCalendar=*-*-* 11:30:00 UTC
+Persistent=true
+Unit=music-backup.service
+
+[Install]
+WantedBy=timers.target

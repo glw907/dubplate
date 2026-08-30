@@ -1,0 +1,14 @@
+[Unit]
+Description=musicbox: scan contributor inboxes and import new music
+# The instance name ("import") is the healthchecks.io slug musicbox-ping-
+# failure passes straight to ping_hc; it must match the MUSICBOX_HC_IMPORT_URL
+# variable name in env/musicbox.env.template (uppercased, "-" -> "_").
+OnFailure=musicbox-ping-failure@import.service
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/musicbox/env
+ExecStart=/usr/local/bin/music-import
