@@ -27,6 +27,17 @@ for f in scripts/*; do
   case "$(head -c2 "$f" 2>/dev/null)" in
   '#!')
     head -n1 "$f" | grep -q "bash" && bash_scripts+=("$f")
+    continue
+    ;;
+  esac
+  # A shebang-less file can still be a bash library meant to be sourced:
+  # either its own shellcheck directive says so, or its name says so.
+  case "$f" in
+  *.sh)
+    bash_scripts+=("$f")
+    ;;
+  *)
+    head -n1 "$f" | grep -q '^# shellcheck shell=bash' && bash_scripts+=("$f")
     ;;
   esac
 done
