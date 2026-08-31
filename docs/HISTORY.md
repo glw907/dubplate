@@ -2,6 +2,78 @@
 
 Per-pass ledger, newest first.
 
+## Task 4a: AlmaLinux 10 image-defect fix round, rebuild to 8/8 green (2026-08-31)
+
+Two deterministic image defects blocked the recreated box at 5/8 green (see the prior
+round's entry below): Docker's missing `xt_addrtype` kernel module
+([docker/docker-ce-packaging#1340](https://github.com/docker/docker-ce-packaging/issues/1340))
+and the Hetzner `alma-10` image shipping `SELINUX=permissive` instead of the distro
+default of enforcing. Both fixes landed in `cloud-init/user-data.yaml`'s `runcmd` plus a
+new top-level `power_state` key:
+
+- **Docker/kernel-module fix**: a new `runcmd` item installs
+  `kernel-modules-extra-$(uname -r)` — the exact NVR paired to the boot's running
+  kernel — before the Docker CE install, falling back to `dnf update kernel &&  dnf
+  install kernel-modules-extra` only if the mirrors have moved past this image's shipped
+  kernel (that fallback needs the reboot below to take effect). `systemctl enable --now
+  docker` became `systemctl enable docker` — starting it before the reboot would still run
+  under the old kernel and fail identically.
+- **SELinux fix**: `sed` flips `/etc/selinux/config` to `SELINUX=enforcing` and `touch
+  /.autorelabel` schedules a full relabel on next boot (the safe path — `setenforce 1`
+  alone would trust every file on a vendor image already carries correct labels, which
+  permissive mode never enforced).
+- **Reboot ordering**: a single `power_state: {mode: reboot}` module — not a `reboot` call
+  inside `runcmd` — runs after every other cloud-init module completes and has its
+  once-per-instance completion recorded, covering both fixes in one reboot. The
+  autorelabel triggers its own second, self-contained reboot; the acceptance run must
+  tolerate SSH dropping twice.
+
+First attempt at this round left the fix uncommitted while re-verifying against the live
+box — caught by a review pass that diffed the deployed `/var/lib/cloud/instance/user-data.txt`
+sha256 against `HEAD`'s copy of `cloud-init/user-data.yaml` and found them different
+(`196e76f...` deployed vs `db0b633...` at HEAD). Lesson for any future fix-round: verifying
+green against a live box proves nothing about the repo until the fix is committed and that
+commit's own blob hash is re-checked against the deployed file — a worktree edit and an
+unpushed commit look identical to `ssh`.
+
+Re-verified after commit `3fa905d`: `sha256sum cloud-init/user-data.yaml` at HEAD equals
+the deployed `/var/lib/cloud/instance/user-data.txt` hash
+(`196e76fbc51d5a5828c6a378761d480b790160cc9fd07fa7a1f41ab1557dfa5a`), and all 8 Task 4a
+on-box checks are green (evidence in `docs/STATUS.md`'s Current state). `bash
+scripts/check.sh` exits 0.
+
+## Task 4a: real provisioning, forced-root-password fix round (2026-08-30/31)
+
+`scripts/provision.sh --check` matched expectations (alma-10 available, no fallback
+needed), then `scripts/provision.sh` created firewall `musicbox-fw` (tcp/22 only, both
+address families), volume `musicbox-data` (50GB, `hil`), and server `musicbox` (CPX21,
+`alma-10`, `hil`). Server IPv4 `5.78.148.42`, IPv6 `2a01:4ff:1f0:97c6::1`. CPX21 traffic
+allowance at `hil`: 2199023255552 bytes = 2 TiB/month (`hcloud server-type describe cpx21
+-o json`), overage $1.20/TB — generous for a family Navidrome, no need to default clients
+to transcoded streams.
+
+A fix round closed three blocking findings from a forced-root-password blocker, and the
+server was recreated to pick them up:
+
+1. `scripts/provision.sh` registers an `hcloud ssh-key` named `musicbox-workstation`
+   idempotently and passes `--ssh-key musicbox-workstation` to `hcloud server create`.
+   Confirmed on the recreate: no "Root password: ..." line appeared in the create output.
+2. `cloud-init/user-data.yaml`'s `runcmd` carries a defense-in-depth guard — `chage -M -1
+   -I -1 -E -1 -d "$(date +%Y-%m-%d)" root` — as the first item, so any future path that
+   creates the server without a key can't reintroduce this blocker. Confirmed on-box:
+   `chage -l root` shows `Password expires: never`.
+3. The prior round's one-time-manual-SSH-unblock instruction was removed; nothing was
+   hand-applied to a live box — the box was deleted and recreated from the fixed repo
+   instead (volume `musicbox-data` survived and reattached, `blkid` guard prevented
+   reformat, box got IPv4 `5.78.148.42` again).
+
+Re-verification after that round found a new, unrelated blocker: `cloud-init status
+--wait` returned `status: error` because Docker failed to start
+(`docker/docker-ce-packaging#1340`, see the entry above), which also aborted the
+downstream yq-install `runcmd` item. `getenforce` also reported `Permissive`, traced to
+the Hetzner `alma-10` image's own shipped default, not to anything cloud-init touched.
+Both became the next fix round, entry above.
+
 ## Task 3: service configuration — compose, systemd units, deploy (2026-08-30)
 
 Landed `compose.yaml` (Navidrome, FileBrowser Quantum, cloudflared — no service
