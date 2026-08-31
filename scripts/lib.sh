@@ -88,9 +88,11 @@ notify() {
 #
 # Curls the healthchecks.io URL named MUSICBOX_HC_<SLUG>_URL, slug
 # uppercased with "-" turned into "_" to make a legal env var name. Appends
-# /fail when the second argument is the literal word "fail". A missing env
-# var is a no-op, not an error: monitoring must never take down the pipeline
-# it monitors.
+# /fail when the second argument is the literal word "fail". A missing or
+# empty env var is a no-op (with a notice to stderr), not an error:
+# monitoring must never take down the pipeline it monitors. --retry 3
+# --max-time 10 keeps a slow or flaky healthchecks.io from ever being the
+# reason an otherwise-successful run hangs or gets misreported as failed.
 ping_hc() {
   local slug="$1" mode="${2:-}" var_name url
   var_name="MUSICBOX_HC_$(printf '%s' "$slug" | tr '[:lower:]-' '[:upper:]_')_URL"
@@ -102,7 +104,7 @@ ping_hc() {
   if [ "$mode" = "fail" ]; then
     url="${url%/}/fail"
   fi
-  curl -fsS -o /dev/null "$url"
+  curl -fsS --retry 3 --max-time 10 -o /dev/null "$url"
 }
 
 # quality_gate <dir>

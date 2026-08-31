@@ -113,34 +113,42 @@ EOF
 
 # --- ping_hc -----------------------------------------------------------
 
-@test "ping_hc curls the URL from the matching env var" {
+# Logs the whole argument list on one line, so a test asserts the exact curl
+# invocation -- retry and timeout flags included -- and not merely the URL.
+stub_curl() {
   cat >"$STUB_BIN/curl" <<'EOF'
 #!/usr/bin/env bash
-printf '%s\n' "$@" >>"$CURL_STUB_LOG"
+echo "$*" >>"$CURL_STUB_LOG"
 EOF
   chmod +x "$STUB_BIN/curl"
   export CURL_STUB_LOG="$WORK_DIR/curl-log"
+}
+
+@test "ping_hc curls the URL from the matching env var, retried and time-bounded" {
+  stub_curl
   export MUSICBOX_HC_IMPORT_URL="https://hc.example/ping/abc123"
   run ping_hc "import"
   [ "$status" -eq 0 ]
-  grep -qx "https://hc.example/ping/abc123" "$CURL_STUB_LOG"
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/abc123" "$CURL_STUB_LOG"
 }
 
 @test "ping_hc appends /fail for a failure ping" {
-  cat >"$STUB_BIN/curl" <<'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$@" >>"$CURL_STUB_LOG"
-EOF
-  chmod +x "$STUB_BIN/curl"
-  export CURL_STUB_LOG="$WORK_DIR/curl-log"
+  stub_curl
   export MUSICBOX_HC_BACKUP_URL="https://hc.example/ping/def456"
   run ping_hc "backup" fail
   [ "$status" -eq 0 ]
-  grep -qx "https://hc.example/ping/def456/fail" "$CURL_STUB_LOG"
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/def456/fail" "$CURL_STUB_LOG"
 }
 
 @test "ping_hc no-ops with a notice when the env var is unset" {
   unset MUSICBOX_HC_DISK_URL
+  run ping_hc "disk"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"MUSICBOX_HC_DISK_URL"* ]]
+}
+
+@test "ping_hc no-ops with a notice when the env var is set but empty" {
+  export MUSICBOX_HC_DISK_URL=""
   run ping_hc "disk"
   [ "$status" -eq 0 ]
   [[ "$output" == *"MUSICBOX_HC_DISK_URL"* ]]

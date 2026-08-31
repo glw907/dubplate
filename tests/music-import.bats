@@ -133,7 +133,7 @@ EOF
   [ "$status" -eq 0 ]
 
   # A success ping (no /fail suffix) went out for import.
-  grep -qx -- "-fsS -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
   ! grep -q "/fail" "$CURL_LOG"
 
   # Nothing landed in review, and no notification fired.
@@ -179,7 +179,7 @@ EOF
 
   run "$SCRIPT"
   [ "$status" -ne 0 ]
-  grep -qx -- "-fsS -o /dev/null https://hc.example/ping/import/fail" "$CURL_LOG"
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import/fail" "$CURL_LOG"
 }
 
 @test "a non-quiescent inbox is left alone this run" {
