@@ -44,22 +44,79 @@ section (step 4). Four items, one commit each:
 - **Beets config synced to the workstation's** (`~/.dotfiles/beets/.config/beets/config.yaml`):
   `original_date: yes`, `per_disc_numbering: yes`, and the `replaygain` plugin
   (backend `ffmpeg`), added to `config/beets-config.yaml` alongside the existing
-  quiet-mode section. `cloud-init/user-data.yaml`'s `packages:` list gains `flac`
-  (the quality gate) and `ffmpeg` (replaygain's analysis backend) — **flagged, not
-  resolved**: neither is in AlmaLinux 10's BaseOS/AppStream repos (flac needs
-  EPEL, ffmpeg needs RPM Fusion or a static build), so the next real
-  provisioning run needs one of those enabled first or this package install
-  step fails. Tracked in STATUS's Open items.
+  quiet-mode section. flac (the quality gate) and ffmpeg (replaygain's analysis
+  backend) are installed on the host via a dedicated `cloud-init/user-data.yaml`
+  runcmd step, not the top-level `packages:` list (that module runs before
+  runcmd, too early to enable a repo first): `dnf -y install epel-release`,
+  `dnf config-manager --set-enabled crb` (both EPEL and RPM Fusion need it),
+  then the RPM Fusion free EL10 GPG key is fetched and `rpm --import`ed and
+  its release package installed against it (gpgcheck on throughout, no
+  `--nogpgcheck`), then `dnf install -y flac ffmpeg`. Ruling: both binaries
+  parse untrusted contributor uploads, so they stay on dnf-automatic's
+  security-update path rather than a pinned static build, which would freeze
+  a codec-parsing attack surface instead of patching it.
+- **Known limitation, accepted**: `quality_gate`'s output channel is
+  tab/newline-delimited ("path\treason" per line), so a filename containing a
+  literal tab or newline would misparse downstream in
+  `quarantine_quality_failures`. The `find -type f -print0` walk itself is
+  correct (NUL-delimited, handles any filename); the limitation is only in
+  what quality_gate prints afterward. Not expected in practice for
+  contributor uploads; revisit if it ever is.
 
 Fixed a docs nit found while touching STATUS.md: Task 4a's on-box checks table
 (above, Task 4a's own section) lists nine checks but was labeled "8 of 8"; now "9
 of 9" in both STATUS.md and here.
 
-Full test suite: `tests/lib.bats` (5 new `quality_gate` cases + 1 `ping_hc` case)
+Full test suite: `tests/lib.bats` (4 new `quality_gate` cases + 1 `ping_hc` case)
 and `tests/music-import.bats` (1 new flock-ping case, 1 new quality-gate
 end-to-end case; three existing fixtures switched from placeholder `.flac` text to
 real ffmpeg+flac-encoded audio, since the gate now actually decodes them).
 `bash scripts/check.sh` exits 0.
+
+## Task 2 follow-up, fix round: Opus review of 5da3844..d43972b (2026-08-30)
+
+Six items landed, TDD where a test was named:
+
+- **Blocking: unquoted `&` in `render_reject_email`'s `${var//pat/repl}`
+  substitutions.** Confirmed on this box's bash (5.3.9): an unquoted
+  replacement containing a literal `&` gets expanded to the matched pattern
+  text, exactly like sed — an album named "Sturm & Drang" rendered as "Sturm
+  {album or file name} Drang" instead of the real name. Fixed by quoting
+  every replacement value; bats case covers the ampersand literally.
+- **Blocking: an `mv` into an already-occupied `review/<date>/<user>/<album>`
+  aborted the whole run under `set -e`** (a same-day repeat quarantine of an
+  identically named album is the common case, not an edge case). New
+  `lib.sh` helpers: `unique_dest_path` (appends a `-HHMMSS` suffix on
+  collision, then `.2`/`.3`/... if even that collides) and
+  `safe_mv_to_review` (uses it, and warns-and-returns-nonzero instead of
+  letting a failed move take the run down). Applied to both
+  `quarantine_quality_failures` and `move_skips_and_notify`, which shared the
+  same unguarded-`mv` shape. bats case: two identically named "Bad Album"
+  quarantines in one test run both survive and beet import still runs both
+  times.
+- **A missing `reject-email.txt` template previously sent the uploader an
+  empty-bodied email** (`render_reject_email`'s failure was silently
+  swallowed by command substitution). Now an explicit `[ -f ... ]` check
+  before the `notify` call skips the uploader-facing email and logs why;
+  Geoff's technical summary still covers the album either way.
+- **Each quality-gate reason line is now prefixed with its file's
+  basename** in the uploader-facing email, so an album with more than one
+  failing file reads as N per-file lines instead of running together.
+- **Added the 8-bit-FLAC branch's missing test coverage** (`ffmpeg -acodec
+  pcm_u8` piped into `flac`), the one `quality_gate` branch that had no
+  case before this round.
+- **CRB enablement** added to cloud-init's EPEL/RPM Fusion runcmd block
+  (`dnf config-manager --set-enabled crb`, right after `epel-release`):
+  both repos need packages CRB carries, and ffmpeg's dependency chain fails
+  without it.
+
+Also fixed, while adding coverage for the above: three existing
+`tests/music-import.bats` assertions used `! grep ...` as a non-final line —
+under bats' `set -e`, a command negated with a leading `!` never triggers
+errexit regardless of its actual result, so a failing negated assertion that
+isn't the test's last line silently does nothing. Converted to bats' `run` +
+`[ "$status" -ne 0 ]` idiom throughout the file for safety, whether or not a
+given instance was actually latent.
 
 ## Task 5/6: Cloudflare Access + Navidrome secrets, tunnel blocked (2026-08-30)
 

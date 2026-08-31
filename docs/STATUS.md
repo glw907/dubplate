@@ -6,9 +6,9 @@ Task 3 (compose.yaml, systemd units, deploy.sh) is done. Task 4a (real
 provisioning) is done: server `musicbox` is up at `5.78.148.42` (CPX21,
 `alma-10`, `hil`, 2 TiB/month traffic) with volume `musicbox-data` (50GB)
 attached, 9 of 9 on-box checks green. Import pipeline's quality gate (spec
-step 4), `ping_hc` retry/timeout hardening, a flock-held-lock success ping,
-and beets config sync landed this pass; `bash scripts/check.sh` exits 0
-(25 bats cases).
+step 4), `ping_hc` hardening, a flock-held-lock success ping, beets config
+sync, and an Opus-review fix round (quoting bug, mv-collision safety, CRB)
+landed this pass; `bash scripts/check.sh` exits 0 (33 bats cases).
 
 Task 5 (Cloudflare wiring) is **blocked on a token permission**: neither
 `CLOUDFLARE_API_TOKEN` nor `CF_ZT_TOKEN` carries Cloudflare Tunnel:Edit, so
