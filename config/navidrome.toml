@@ -8,6 +8,10 @@ LogLevel = "info"
 MusicFolder = "/music"
 DataFolder = "/data"
 
+# Login-page welcome line. Renders beneath the Navidrome header; the
+# header's own name and logo are not configurable upstream.
+UIWelcomeMessage = "Wright Family Music Server"
+
 # The filesystem watcher is disabled (WatcherWait = "0s") because it would
 # start indexing an album while music-import is still moving files into
 # place; Schedule is the sole, daily backstop scan. music-import also pokes
