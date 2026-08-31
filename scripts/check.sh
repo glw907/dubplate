@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# check.sh: the repo gate. Shellcheck over every scripts/* bash file, then
-# the full bats suite. Exits nonzero on any failure so it can be wired into
-# CI or a pre-push hook unmodified.
+# check.sh: the repo gate. `make check` covers the Go module (build, vet,
+# golangci-lint, test); shellcheck and bats cover the shell layer during
+# the migration window. Exits nonzero on any failure so it can be wired
+# into CI or a pre-push hook unmodified.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 status=0
 
+if ! command -v go >/dev/null 2>&1; then
+  echo "check.sh: go not found; install it." >&2
+  exit 1
+fi
+if ! command -v golangci-lint >/dev/null 2>&1; then
+  echo "check.sh: golangci-lint not found; install it." >&2
+  exit 1
+fi
 if ! command -v shellcheck >/dev/null 2>&1; then
   echo "check.sh: shellcheck not found; install it (brew install shellcheck)." >&2
   exit 1
@@ -16,6 +25,11 @@ fi
 if ! command -v bats >/dev/null 2>&1; then
   echo "check.sh: bats not found; install it (brew install bats-core)." >&2
   exit 1
+fi
+
+echo "== make check (Go) =="
+if ! make check; then
+  status=1
 fi
 
 echo "== shellcheck =="

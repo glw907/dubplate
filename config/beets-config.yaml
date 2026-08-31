@@ -28,7 +28,14 @@ original_date: yes
 # Multi-disc albums number tracks per disc instead of one long run.
 per_disc_numbering: yes
 
+# A query-prefixed key routes any item carrying a non-empty "collection"
+# flexible attribute (set by the importer's `--set collection=<c>` for a
+# non-default collection) into a "<collection>/" subtree, checked before
+# the plain keys below. The default collection's import never sets that
+# attribute at all, so its items never match this query and keep today's
+# exact, unmigrated layout under the unprefixed keys.
 paths:
+  collection::.+: $collection/$albumartist/$album%aunique{}/$track $title
   default: $albumartist/$album%aunique{}/$track $title
   singleton: Singles/$artist - $title
   comp: Compilations/$album%aunique{}/$track $title

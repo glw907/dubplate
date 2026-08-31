@@ -2,3 +2,7 @@
 # either path is populated today.
 *.env
 env/rendered/
+
+# Go build output (make build / make build-linux).
+/dubplate
+/dubplate-linux-amd64
