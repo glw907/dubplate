@@ -21,6 +21,9 @@ users:
 # (mikefarah/go, v4) is not in AlmaLinux's repos and is installed below via a
 # pinned, checksum-verified GitHub release instead. sqlite is the sqlite3 CLI
 # music-backup's `.backup` snapshots need, and comes from the base repo.
+# bsdtar backs lib.sh's safe_extract (archive expansion in music-import) and
+# comes from AppStream; its absence broke the first seeded import run
+# (2026-08-31, installed by hand on the box the same day).
 #
 # flac, ffmpeg, rclone, and msmtp are needed on the host too, but are NOT
 # listed here: this packages module runs before runcmd, and all four come
@@ -32,6 +35,7 @@ packages:
   - e2fsprogs
   - jq
   - sqlite
+  - bsdtar
 
 write_files:
   # cloud-init.service is ordered Before=sshd.service, so this drop-in is already

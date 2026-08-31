@@ -16,6 +16,11 @@ import:
   quiet_fallback: skip
   none_rec_action: skip
   timid: no
+  # Group by album tags, not by directory: contributor ZIPs extract FLAT
+  # (loose "Artist - Album - NN Track.flac" files), so one staging dir
+  # holds many albums. Without this, beets saw the first seed's nine
+  # albums as one 135-track candidate and skipped them all (2026-08-31).
+  group_albums: yes
 
 # Tag reissues and remasters by their original release year, so a 1993
 # album that got remastered in 2015 still sorts as 1993.
@@ -28,7 +33,11 @@ paths:
   singleton: Singles/$artist - $title
   comp: Compilations/$album%aunique{}/$track $title
 
-plugins: fetchart embedart replaygain
+# musicbrainz must be listed explicitly: since beets 2.4 MusicBrainz is a
+# metadata-source plugin, and an explicit plugins line without it leaves
+# the autotagger with zero candidate sources (every album "Evaluating 0
+# candidates" -> skipped; hit on the first seed, 2026-08-31).
+plugins: musicbrainz fetchart embedart replaygain
 
 fetchart:
   auto: yes

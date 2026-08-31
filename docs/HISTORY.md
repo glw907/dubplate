@@ -2,6 +2,36 @@
 
 Per-pass ledger, newest first.
 
+## Bring-up runbook execution: seed, backup, monitoring truth (2026-08-31)
+
+A separate agent executed the bring-up runbook against the live box; the
+close-out session verified steps 5–7 read-only from the box and committed
+the outcomes. Seed result: nine ZIPs in, seven albums imported (Angel Du$t,
+Bully, Cheekface, De La Soul, Nightmares on Wax, TV Girl, Wax Tailor — 7
+albums / 105 items in the beets DB), two review-queued with reasons
+(Aim "Hinterland (Remastered)", illuminati hotties "POWER") plus a TV Girl
+zine PDF routed to review. Post-seed backup succeeded 18:06 UTC:
+`library/` in R2 at 112 objects / 2.794 GiB, `state/` holding both DB
+snapshots. Monitoring truth: import and backup success pings green; the
+failure-ping path is confirmed dead on the box (curl 404 in both
+`musicbox-ping-failure@` journals — the known pre-wave GET-/fail bug) and
+the disk/navidrome check timers were never enabled by the pre-wave deploy;
+both fixed by the interim deploy this entry accompanies.
+
+What a later pass would be wrong to rediscover:
+
+- Contributor ZIPs extract FLAT (loose `Artist - Album - NN Track.flac`),
+  so beets needs `group_albums: yes`; without it the whole seed read as
+  one 135-track candidate and skipped.
+- Since beets 2.4, MusicBrainz is a metadata-source plugin: an explicit
+  `plugins:` line without `musicbrainz` leaves the autotagger with zero
+  candidate sources and every album skips.
+- Hetzner Cloud blocks outbound 25 and 465 by default on new accounts;
+  Fastmail submission works on 587 STARTTLS from the box.
+- `safe_extract` needs bsdtar on the host; it was missing from cloud-init
+  packages and broke the first seeded import (hand-installed on the box,
+  cloud-init now carries it).
+
 ## Architecture refinement pass (2026-08-30/31)
 
 Adversarial review of the estate as built, then a fix wave. Phase A: nine

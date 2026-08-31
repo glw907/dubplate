@@ -10,7 +10,7 @@ print a secret value; name-and-length checks only. On-box work over SSH as root
 
 1. **Gate on first boot.** `cloud-init status` must be `done` (poll; two reboots are
    designed in). Then verify: `getenforce` = Enforcing; docker active; volume
-   mounted; `flac ffmpeg sqlite3 rclone msmtp yq jq` all present; tree ownership
+   mounted; `flac ffmpeg sqlite3 rclone msmtp yq jq bsdtar` all present; tree ownership
    2000:2000 with inbox setgid. Any miss: stop and report; do not patch the box.
 2. **Deploy.** `bash scripts/deploy.sh --check`, review, then `bash scripts/deploy.sh`.
 3. **Acceptance.** Containers healthy with zero restarts after 60s; tunnel healthy
