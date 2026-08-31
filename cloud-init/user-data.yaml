@@ -54,9 +54,23 @@ write_files:
 
 # cloud-init concatenates every runcmd item into ONE /bin/sh script, so the first
 # "set -e" governs everything after it and item order is real execution order.
-# Storage comes first: a transient package-install failure later must not leave
-# the box without its data volume mounted and populated.
+# The root-password guard comes first because it is a single trivial, order-independent
+# command; storage comes first among the substantive tasks: a transient package-install
+# failure later must not leave the box without its data volume mounted and populated.
 runcmd:
+  # Defense in depth against Hetzner's out-of-band root-password injection: when a
+  # server is created WITHOUT an --ssh-key, Hetzner mints a one-time root password
+  # with a forced-expiry flag that PAM enforces on every SSH session's post-auth
+  # chauthtok phase, regardless of `PasswordAuthentication no` (that setting governs
+  # only the authentication phase). provision.sh always attaches an SSH key at
+  # create time, so Hetzner should never mint that password in the first place —
+  # but this clears any forced-expiry state unconditionally and idempotently, so a
+  # future rebuild (this box, the Task 7 drill server, any path that ever creates
+  # the server without a key by mistake) can never again be blocked on a
+  # non-interactive `New password:` prompt. `chage -l` on a fresh AlmaLinux root
+  # account with no injected password is a no-op here, not an error.
+  - chage -M -1 -I -1 -E -1 -d "$(date +%Y-%m-%d)" root
+
   # Hetzner by-id links key on the volume's NUMERIC id (scsi-0HC_Volume_<id>), not
   # its name, and that id is not known until the volume attaches. udevadm settle
   # waits for the symlink; the glob must resolve to exactly one device, or this

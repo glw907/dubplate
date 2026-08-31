@@ -22,41 +22,70 @@ TiB/month** (`hcloud server-type describe cpx21 -o json`, `.prices[] | select(.l
 "hil") | .included_traffic`; overage `$1.20`/TB). 2 TiB is generous for a family Navidrome
 — no need to default clients to transcoded streams.
 
-**Blocked: on-box cloud-init verification (Task 4a steps 4-5).** `ssh
-root@5.78.148.42` authenticates fine via the workstation pubkey cloud-init installed, but
-Hetzner's own out-of-band root-password injection (separate from cloud-init; visible as
-"Root password: ..." in `provision.sh`'s create output, not stored anywhere) carries a
-forced-expiry flag. PAM's account-management phase enforces the change on *every* SSH
-session post-auth, regardless of the pubkey login succeeding and regardless of
-`PasswordAuthentication no` already being live in `sshd_config.d` — that setting governs
-the authentication phase, not the post-auth `chauthtok` account check. A non-interactive
-session (`ssh root@IP 'cmd'`, or `-tt` fed via a pipe) gets "Password change required but
-no TTY available" and closes; the Claude Code harness's safety classifier separately
-declines to let this agent complete the interactive change itself (any command touching
-the remote root credential — `chage -l`, piping a new password into a `-tt` session, even
-`hcloud ssh-key list` — is denied), correctly, since an agent silently rewriting root
-credentials on a live box deserves a human in the loop.
+**Fix round 2026-08-31 closed three blocking findings** from the forced-root-password
+blocker above, and the server was recreated to pick them up:
 
-**One-time manual unblock (30 seconds, from a real terminal, not this harness):**
-```
-ssh root@5.78.148.42
-```
-It authenticates via key immediately, then PAM will prompt `New password:` /
-`Retype new password:` — no *old* password is needed (root changing its own password
-doesn't require it). Answer both with anything; the session then drops and a fresh `ssh
-root@5.78.148.42` works as a normal, no-prompt root shell going forward, since only the
-one-time chage state was blocking it. After that, resume exactly at plan Task 4a step 4:
-`ssh -o StrictHostKeyChecking=accept-new root@5.78.148.42 'cloud-init status --wait'`,
-then the step-5 on-box checks (mount, ownership, `music` uid, docker, SELinux enforcing,
-sshd passwordauthentication, yq/jq, fstab), then finish this STATUS entry and the Task 4a
-commit.
+1. `scripts/provision.sh` now registers an `hcloud ssh-key` named `musicbox-workstation`
+   idempotently (checks `hcloud ssh-key list` first, creates it from
+   `~/.ssh/id_ed25519.pub` — the same key already embedded in
+   `cloud-init/user-data.yaml` — only if missing) and passes `--ssh-key
+   musicbox-workstation` to `hcloud server create`. Confirmed on the recreate: no "Root
+   password: ..." line appeared in the create output at all, so there was no forced
+   password to expire this time.
+2. `cloud-init/user-data.yaml`'s `runcmd` now carries a defense-in-depth guard —
+   `chage -M -1 -I -1 -E -1 -d "$(date +%Y-%m-%d)" root` — as the very first item, so any
+   future path that ever creates the server without a key can't reintroduce this blocker.
+   Confirmed on-box: `chage -l root` shows `Password expires: never` and `Account
+   expires: never`.
+3. The one-time-manual-SSH-unblock instruction that stood here is removed; nothing was
+   hand-applied to a live box for this round — the box was deleted and recreated from the
+   fixed repo instead (`hcloud server delete musicbox`, volume `musicbox-data` survived
+   and reattached, `blkid` guard prevented reformat, box got IPv4 `5.78.148.42` again).
 
-Consider folding a `chage -d $(date +%s) -M 99999 root`-equivalent (or an explicit
-`chpasswd: {expire: false}` — verify it actually reaches Hetzner's injected password, not
-just cloud-init-managed ones) into `cloud-init/user-data.yaml`'s `runcmd` so a future
-reprovision (this box, the Task 7 drill server, any rebuild) doesn't hit this again.
+**New blocker found during re-verification, unrelated to the three fixes above:**
+`cloud-init status --wait` now returns `status: error` (`Runparts: 1 failures (runcmd) in
+1 attempted commands`). `journalctl -xeu docker.service` shows dockerd failing to start:
+`iptables ... Extension addrtype revision 0 not supported, missing kernel module?` —
+`xt_addrtype` isn't present (`modinfo xt_addrtype` → not found) on this box's kernel
+(`6.12.0-211.43.1.el10_2.x86_64`). This is a confirmed, known upstream regression,
+[docker/docker-ce-packaging#1340](https://github.com/docker/docker-ce-packaging/issues/1340):
+`iptables-nft` on RHEL/AlmaLinux 10 no longer pulls in `kernel-modules-extra` (which ships
+`xt_addrtype.ko`) as a dependency, so a fresh Docker install on a minimal AlmaLinux 10
+cloud image fails to start the daemon. Because cloud-init concatenates every `runcmd` item
+into one `set -e` shell script, the docker block's failure aborted everything after it —
+the yq-install item never ran either. **This is deterministic, not transient: it will
+recur on every AlmaLinux-10-based rebuild, including Task 7's drill server**, until
+`cloud-init/user-data.yaml` installs `kernel-modules-extra` before the docker `dnf
+install`. Per this round's instructions ("if cloud-init failed, gather the log tail
+instead of improvising fixes on the box"), this fix-round did not attempt that change —
+it's scoped to the three findings above — and left the box running in this state rather
+than hand-patching it live.
 
-Next task: finish Task 4a verification (blocked above), then continue Task 4/5.
+**Task 4a step 4-5 evidence, captured 2026-08-31 against the recreated box
+(`root@5.78.148.42`):**
+
+| Check | Command | Result |
+|---|---|---|
+| cloud-init | `cloud-init status --wait` | `status: error` — **FAIL**, see blocker above |
+| volume mount | `mountpoint -q /srv/music` | mounted — **PASS** |
+| tree ownership | `ls -lnd /srv/music/{library,inbox,review,state,staging}` | all `2000 2000`; `inbox` is `drwxrwsr-x` (2775, setgid) — **PASS** |
+| music user | `id music` | `uid=2000(music) gid=2000(music) groups=2000(music)` — **PASS** |
+| SELinux | `getenforce` | `Permissive` — **FAIL**. Not caused by cloud-init, which never calls `setenforce` or touches `/etc/selinux/config` (confirmed unchanged, still just `#cloud-config` + `runcmd`); the Hetzner `alma-10` image itself ships `/etc/selinux/config` with `SELINUX=permissive`. Needs its own decision (force enforcing in cloud-init, or update the acceptance criterion) in a future round. |
+| docker | `systemctl is-active docker` | `failed` — **FAIL**, see blocker above |
+| sshd password auth | `sshd -T \| grep -i '^passwordauthentication'` | `passwordauthentication no` — **PASS** |
+| yq | `/usr/local/bin/yq --version` | binary missing (its runcmd item never ran — aborted by the docker failure above) — **FAIL** |
+| jq | `jq --version` | present and functional (`echo '{"a":1}' \| jq .a` → `1`); the version string itself prints as bare `jq-` on this AlmaLinux 10 build, a cosmetic upstream packaging quirk, not a functional defect — **PASS** |
+| fstab | `grep srv/music /etc/fstab` | exactly one line: `UUID=6614e3dd-9014-4949-9f4c-effcd317bd3a /srv/music ext4 defaults,nofail,x-systemd.device-timeout=30s 0 2` — **PASS** |
+
+**Task 4a remains open: 5 of 8 on-box checks are green.** The three named blocking
+findings from the previous round are closed and verified (ssh-key at create time, the
+`chage` defense-in-depth guard, no more hand-edit instruction). The two reds (docker,
+SELinux) trace to the base AlmaLinux 10 Hetzner image, not to anything touched in this
+round, and are new open items below.
+
+Next task: a fix round for the `kernel-modules-extra` / docker blocker (and a decision on
+the `getenforce: Permissive` base-image default), then re-verify Task 4a steps 4-5, then
+continue Task 4/5.
 
 Plan: `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md`
 Spec: `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
@@ -84,9 +113,19 @@ yanked or replaced release.
   state above) — plenty; no transcode-by-default needed.
 - **`alma-10` image availability**: confirmed available on Hetzner as of 2026-08-30;
   `provision.sh` used it directly, no `alma-9` fallback triggered.
-- **Hetzner forced root-password-expiry blocks non-interactive SSH post-provision**: see
-  the Task 4a blocker in Current state; needs one manual interactive `ssh` from a real
-  terminal before automated verification/deploy can proceed.
+- **Hetzner forced root-password-expiry**: resolved 2026-08-31 — `provision.sh` attaches
+  an SSH key at server-create time so Hetzner never mints the password, plus a `chage`
+  guard in cloud-init as defense in depth. See Current state.
+- **Docker fails to start on this AlmaLinux 10 image (blocking Task 4a)**: `xt_addrtype`
+  kernel module missing (`kernel-modules-extra` no longer a dependency of `iptables-nft`
+  on RHEL/AlmaLinux 10 — [docker/docker-ce-packaging#1340](https://github.com/docker/docker-ce-packaging/issues/1340)).
+  Fix is to add `kernel-modules-extra` to `cloud-init/user-data.yaml`'s `packages:` (or a
+  `runcmd` install) before the docker block. Also aborts the yq-install runcmd item that
+  follows it. See Current state for full evidence.
+- **`getenforce` reports `Permissive`, not `Enforcing`, on a stock `alma-10` Hetzner
+  image**: cloud-init never touches SELinux config (confirmed); this is the image's own
+  default. Needs a decision: force enforcing via cloud-init, or update Task 4a's
+  acceptance criterion to match the image's actual default.
 - **cloudflared ingress is not set anywhere in compose.yaml on purpose**: a token-run
   tunnel is remotely managed, so a local ingress file would be silently ignored.
   `config/cloudflared-tunnel-config.json` is the exact API body Task 5 must PUT to the

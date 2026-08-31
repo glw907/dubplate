@@ -18,6 +18,8 @@ SERVER_TYPE="cpx21"
 LOCATION="hil"
 PREFERRED_IMAGE="alma-10"
 FALLBACK_IMAGE="alma-9"
+SSH_KEY_NAME="musicbox-workstation"
+SSH_PUBKEY_FILE="$HOME/.ssh/id_ed25519.pub"
 
 check_only=false
 for arg in "$@"; do
@@ -62,6 +64,11 @@ fi
 
 if [ ! -f "$FIREWALL_RULES_FILE" ]; then
   echo "Missing firewall rules file: $FIREWALL_RULES_FILE" >&2
+  exit 1
+fi
+
+if [ ! -f "$SSH_PUBKEY_FILE" ]; then
+  echo "Missing SSH public key: $SSH_PUBKEY_FILE" >&2
   exit 1
 fi
 
@@ -116,11 +123,20 @@ server_exists() {
   hcloud server list -o columns=name | grep -qx "$SERVER_NAME"
 }
 
+ssh_key_exists() {
+  hcloud ssh-key list -o columns=name | grep -qx "$SSH_KEY_NAME"
+}
+
 image="$(resolve_image)"
 
 if [ "$check_only" = true ]; then
   echo "musicbox provisioning plan (--check: nothing created)"
   echo "  image:    $image"
+  if ssh_key_exists; then
+    echo "  ssh-key:  $SSH_KEY_NAME (exists)"
+  else
+    echo "  ssh-key:  $SSH_KEY_NAME (would create from $SSH_PUBKEY_FILE)"
+  fi
   if firewall_exists; then
     if firewall_rule_present; then
       echo "  firewall: $FIREWALL_NAME (exists, rule present)"
@@ -141,6 +157,16 @@ if [ "$check_only" = true ]; then
     echo "  server:   $SERVER_NAME (would create: $SERVER_TYPE, $image, $LOCATION, firewall+volume attached)"
   fi
   exit 0
+fi
+
+if ssh_key_exists; then
+  echo "SSH key $SSH_KEY_NAME already exists; skipping."
+else
+  # Registered up front so `hcloud server create` can attach it at creation
+  # time below. A key present at create time makes Hetzner skip minting a
+  # one-time root password entirely, so there is nothing to expire.
+  echo "Creating SSH key $SSH_KEY_NAME from $SSH_PUBKEY_FILE..."
+  hcloud ssh-key create --name "$SSH_KEY_NAME" --public-key-from-file "$SSH_PUBKEY_FILE"
 fi
 
 if firewall_exists; then
@@ -180,6 +206,7 @@ else
     --type "$SERVER_TYPE" \
     --image "$image" \
     --location "$LOCATION" \
+    --ssh-key "$SSH_KEY_NAME" \
     --firewall "$FIREWALL_NAME" \
     --volume "$VOLUME_NAME" \
     --user-data-from-file "$USER_DATA"
