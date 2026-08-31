@@ -1,19 +1,14 @@
-# Placeholder schema only. Real values arrive with Task 0 (the credential batch),
-# where Geoff supplies the family contributor list: name, email, and role.
-#
-# role is one of:
-#   contributor - gets a FileBrowser inbox account and a Navidrome account
-#   listener    - gets a Navidrome account only
-#
-# Consumed by: the Cloudflare Access policy on inbox.907.life (Task 5), the
-# FileBrowser account list (Task 3/8), the Navidrome account list (Task 8), and
-# music-import's uploader-notification map (Task 2).
-#
-# contributors:
-#   - name: Geoff
-#     email: geoff-login@907.life
-#     role: contributor
-#   - name: Example Family Member
-#     email: example@example.com
-#     role: listener
-contributors: []
+# Family members of the musicbox library. Drives FileBrowser accounts
+# (pass 1), the Access allow-list, Navidrome accounts, and the
+# quality-gate notification map. Names and emails are config, not
+# secrets; passwords never live here.
+contributors:
+  - name: Geoff Wright
+    email: geoff-login@907.life
+    role: contributor
+  - name: Oliver Wright
+    email: oliver@907.life
+    role: contributor
+  - name: Duncan Wright
+    email: duncan@907.life
+    role: contributor
