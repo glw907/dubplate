@@ -58,7 +58,14 @@ binaries from one repo and engine (Geoff, 2026-08-31) — `dubplate`
 in the dependency graph) and `dubplate-server` (today's estate, keeping
 its full required-no-defaults wall) — so each binary owns its
 requirement wall outright and no mode-scoped config matrix exists.
-Shared subcommands are shared cobra constructors, not duplicates.
+Shared subcommands are shared cobra constructors, not duplicates. The
+TUI is remote-capable (Geoff, 2026-08-31): it binds the same operations
+in-process locally or over dubplate-server's API remotely
+(Access-authenticated via the cloudflared access token flow; admin =
+AdminEmail match, no role system) — so the server stays headless, ssh
+stops being the admin interface, and review-queue triage becomes the
+TUI's first remote job. Admin API surface is this initiative's, NOT the
+uploader pass's (its spec's out-of-scope wall holds).
 Evidence:
 `~/.dotfiles/docs/superpowers/research/2026-08-31-beets-plugin-usage.md`
 (+ tally JSON beside it). Preconditions: uploader and packaging shipped;
