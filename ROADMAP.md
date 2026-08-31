@@ -52,10 +52,14 @@ adoption: beets stays behind the subprocess seam until the harvested
 matcher proves conformance, then swaps at that one seam. Two ladder
 implications settled early: migration between rungs is backup/restore
 (T10b already frames restore as the adopter's path — local-to-VPS is
-backup-from-laptop, restore-to-box); and the required-no-defaults config
-wall becomes mode-scoped (local mode requires only a music dir; hosted
-keeps today's full requirement set) — a deliberate decision, not
-implementer improvisation. Evidence:
+backup-from-laptop, restore-to-box); and the favored shape is TWO
+binaries from one repo and engine (Geoff, 2026-08-31) — `dubplate`
+(local: TUI, import, restore; requires only a music dir; no web/tusd/JWT
+in the dependency graph) and `dubplate-server` (today's estate, keeping
+its full required-no-defaults wall) — so each binary owns its
+requirement wall outright and no mode-scoped config matrix exists.
+Shared subcommands are shared cobra constructors, not duplicates.
+Evidence:
 `~/.dotfiles/docs/superpowers/research/2026-08-31-beets-plugin-usage.md`
 (+ tally JSON beside it). Preconditions: uploader and packaging shipped;
 the packaging story and this mode ladder converge deliberately. Same
