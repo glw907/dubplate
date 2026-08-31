@@ -14,9 +14,16 @@ repo's hardening is committed (`40fdfa7`). Remote: github.com/glw907/dubplate
 
 ## Rules for a new session in this repo
 
-1. **Do not touch scripts/, systemd/, tests/, or config/ until the
-   refinement close-out commit lands on master** — the uncommitted tree
-   belongs to that ritual (wave + bring-up attribution + simplifier).
+1. The fix wave is committed (087df6c). Four files remain uncommitted and
+   belong to the bring-up run's outcome commit (cloud-init/user-data.yaml,
+   docs/bringup-runbook.md, config/beets-config.yaml, config/msmtprc) —
+   leave them. Close-out remainder, owned by the refinement session (or
+   whoever holds its notifications): when the bring-up agent reports steps
+   5–7, commit those files with its outcomes, append the bring-up section
+   to HISTORY, then run `bash scripts/deploy.sh` against the box so the
+   live scripts gain the wave's fixes (the box still runs pre-wave code
+   with dead failure pings until then), and apply the SSH firewall
+   restriction while the box is quiet.
 2. Then execute the Go rewrite:
    `~/.dotfiles/docs/superpowers/plans/2026-08-30-dubplate-go-rewrite.md`
    (fifteen tasks, pass-execute workflow; spec beside it). Verify no other
@@ -53,5 +60,5 @@ repo's hardening is committed (`40fdfa7`). Remote: github.com/glw907/dubplate
 FileBrowser (`gtstef/filebrowser 1.5.5-stable`) retires with the uploader.
 Re-verify pins before any fresh provision.
 
-**Next action**: refinement session lands the close-out commit; then a fresh
-session runs the rewrite plan.
+**Next action**: bring-up outcome commit + interim deploy (item 1), then a
+fresh session runs the rewrite plan.

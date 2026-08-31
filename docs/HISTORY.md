@@ -2,6 +2,43 @@
 
 Per-pass ledger, newest first.
 
+## Architecture refinement pass (2026-08-30/31)
+
+Adversarial review of the estate as built, then a fix wave. Phase A: nine
+finder lenses plus an opus verify wave over both repos, the spec chain, and
+live Cloudflare state — 72 findings, 40 confirmed, 12 endorsed, 0 refuted
+(ledger: ~/.dotfiles/docs/superpowers/plans/2026-08-30-musicbox-arch-refinement-findings.json).
+Fix wave: 11 tasks + lock follow-ups through implementer/diff-reviewer/gate
+chains, all accepted (commit 087df6c); pings hardened in its own repo
+(40fdfa7). Spend ~6.2M tokens against a 6M ceiling (3% over, driven by an
+uploader design brainstorm folded into the same session); human
+interaction: one combined triage question, approvals otherwise.
+
+What a later pass would be wrong to rediscover:
+
+- A lock file in a systemd RuntimeDirectory is a lifecycle bug (deleted at
+  unit stop, unlinked-inode races across units). Locks live in
+  /var/lib/musicbox; per-run scratch keeps /run. Doctrine now in the
+  vps-conventions skill — invoke it before touching units.
+- ping_hc fail is POST; the Worker 404s GET /fail. Every failure ping ever
+  sent before this pass was dropped.
+- bash cannot re-arm errexit inside a command-substitution subshell; the
+  M3 first attempt guarded notify() with a subshell set -e that did
+  nothing. Best-effort is enforced by if-guarding at the definition.
+- The beets database is the only import success record (tag log = skips
+  only; beets renames everything). The uploader design builds on this.
+- Review standard that caught real bugs: verify test non-vacuity by
+  mutation (M10's reviewer), and re-run implementer claims yourself
+  (M2b's reviewer caught a misdescribed unit).
+- The estate renamed musicbox → dubplate (2026-08-31); repo/paths converge
+  at rewrite T14. The rewrite, uploader, and packaging specs were authored
+  and adversarially reviewed this same session.
+
+Carried out of the pass: SELinux one-time check on /var/lib/musicbox at
+first deploy; provision.sh's ssh_cidrs_json exits only its substitution
+subshell on malformed input (diagnostic degrades to a jq error); pings
+remove-check has no --force for a permanently orphaned route record.
+
 ## Spec gaps closed: rclone/msmtp provisioning, Subsonic scan trigger (2026-08-31)
 
 Closed the two real spec gaps the first live deploy exposed (previous entry below),
