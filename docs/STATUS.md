@@ -47,14 +47,14 @@ nor cloud-init's `sha256sum -c` catch a pin drifted upstream.
 ## Open items
 
 - **Task 5 tunnel-permission blocker (Geoff, manual)**: see Next action above.
-- **flac/ffmpeg aren't in AlmaLinux's BaseOS/AppStream repos** (cloud-init's
-  `packages:` now names both): flac needs EPEL, ffmpeg needs RPM Fusion (or a
-  static build), before the next real provisioning run. Unresolved.
+- **Resolved: flac/ffmpeg's missing repos.** Ruling, 2026-08-30: enable EPEL
+  and RPM Fusion free in cloud-init's runcmd (key imported, no `--nogpgcheck`)
+  since both parse untrusted uploads and must stay on dnf-automatic's path.
 - **cloudflared ingress is not set anywhere in compose.yaml on purpose**: a
   token-run tunnel is remotely managed. `config/cloudflared-tunnel-config.json`
   is the exact API body Task 5 must PUT once the tunnel exists.
 - **MUSICBOX_HC_DISK_URL / MUSICBOX_HC_NAVIDROME_URL are named but unwired**:
-  only `import`/`backup` have real `ping_hc` calls; Task 6 needs disk-space and
-  Navidrome-heartbeat scripts + timers too.
+  only `import`/`backup` have real `ping_hc` calls; Task 6 needs disk-space
+  and Navidrome-heartbeat scripts + timers too.
 - **Ruling**: "no `latest`, pin explicitly" governs container tags and package
   versions (beets); `dnf-automatic` and `uv` itself are intentional exceptions.

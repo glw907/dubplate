@@ -19,19 +19,14 @@ users:
 # listed here so a minimal image still has the volume-formatting tools. jq is
 # music-import's JSON filter over yq's YAML->JSON output (Task 2); yq itself
 # (mikefarah/go, v4) is not in AlmaLinux's repos and is installed below via a
-# pinned, checksum-verified GitHub release instead. flac and ffmpeg back
-# beets on the host: flac (flac -t, metaflac) is music-import's quality
-# gate, ffmpeg is the replaygain plugin's analysis backend
-# (config/beets-config.yaml). NEITHER is in AlmaLinux's BaseOS/AppStream
-# repos -- flac needs EPEL, ffmpeg needs RPM Fusion (or a static build) --
-# so a real provisioning run needs one of those repos enabled before this
-# packages module runs, or this install fails. Tracked in docs/STATUS.md
-# until a repo (or an alternative) is chosen.
+# pinned, checksum-verified GitHub release instead. flac and ffmpeg (also
+# needed on the host, for the quality gate and replaygain) are NOT listed
+# here: this packages module runs before runcmd, but they need EPEL and RPM
+# Fusion enabled first, which is a runcmd step (see below) -- so they're
+# installed there instead, right after those repos come up.
 packages:
   - e2fsprogs
   - jq
-  - flac
-  - ffmpeg
 
 write_files:
   # cloud-init.service is ordered Before=sshd.service, so this drop-in is already
@@ -193,6 +188,31 @@ runcmd:
     echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
     install -m 0755 -o root -g root /tmp/yq /usr/local/bin/yq
     rm -f /tmp/yq
+
+  # flac and ffmpeg back beets on the host: flac (flac -t, metaflac) is
+  # music-import's quality gate, ffmpeg is the replaygain plugin's analysis
+  # backend (config/beets-config.yaml). Neither is in AlmaLinux's
+  # BaseOS/AppStream repos, so EPEL (flac) and RPM Fusion free (ffmpeg) are
+  # enabled first. Conductor ruling, 2026-08-30: a pinned static build was
+  # rejected in favor of these repos, because both binaries parse untrusted
+  # contributor uploads -- freezing them off dnf-automatic's security-update
+  # path would freeze a codec-parsing attack surface right along with them.
+  # dnf-automatic (installed above, already running as a timer) picks up
+  # both repos automatically: it scans whatever is enabled when it fires,
+  # not just what was enabled when it was installed.
+  #
+  # epel-release comes from AlmaLinux's own already-trusted repos, so a
+  # plain install verifies fine. RPM Fusion's release package does not: its
+  # signature can't be checked against a key dnf doesn't have yet, so the
+  # key is fetched and imported over HTTPS first (rpm --import, not
+  # `dnf install --nogpgcheck`) and the release package installs against
+  # it normally, gpgcheck on throughout.
+  - |
+    set -e
+    dnf -y install epel-release
+    rpm --import https://download1.rpmfusion.org/free/el/RPM-GPG-KEY-rpmfusion-free-el-10
+    dnf install -y https://download1.rpmfusion.org/free/el/rpmfusion-free-release-10.noarch.rpm
+    dnf install -y flac ffmpeg
 
   # SELinux transition: the Hetzner alma-10 image ships /etc/selinux/config
   # with SELINUX=permissive, not the AlmaLinux install-default enforcing
