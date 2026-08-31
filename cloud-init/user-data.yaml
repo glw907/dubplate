@@ -206,10 +206,17 @@ runcmd:
   # signature can't be checked against a key dnf doesn't have yet, so the
   # key is fetched and imported over HTTPS first (rpm --import, not
   # `dnf install --nogpgcheck`) and the release package installs against
-  # it normally, gpgcheck on throughout.
+  # it normally, gpgcheck on throughout. CRB (CodeReady Builder) is enabled
+  # in the same block, immediately after epel-release: both EPEL and RPM
+  # Fusion lean on packages CRB carries and BaseOS/AppStream don't, and
+  # ffmpeg's dependency chain fails outright without it -- which, inside
+  # one `set -e` script, would take the SELinux transition below down with
+  # it rather than just this block. `dnf config-manager` is already on PATH
+  # here; the Docker CE block above installs dnf5-plugins/dnf-plugins-core.
   - |
     set -e
     dnf -y install epel-release
+    dnf config-manager --set-enabled crb
     rpm --import https://download1.rpmfusion.org/free/el/RPM-GPG-KEY-rpmfusion-free-el-10
     dnf install -y https://download1.rpmfusion.org/free/el/rpmfusion-free-release-10.noarch.rpm
     dnf install -y flac ffmpeg
