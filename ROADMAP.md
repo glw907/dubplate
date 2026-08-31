@@ -65,7 +65,10 @@ in-process locally or over dubplate-server's API remotely
 AdminEmail match, no role system) — so the server stays headless, ssh
 stops being the admin interface, and review-queue triage becomes the
 TUI's first remote job. Admin API surface is this initiative's, NOT the
-uploader pass's (its spec's out-of-scope wall holds).
+uploader pass's (its spec's out-of-scope wall holds). A web admin page
+stays a deferred option the API spine keeps cheap — it earns its build
+only if phone triage (approve from the review email, no laptop) proves
+wanted in practice; until then admin verbs stay off the browser origin.
 Evidence:
 `~/.dotfiles/docs/superpowers/research/2026-08-31-beets-plugin-usage.md`
 (+ tally JSON beside it). Preconditions: uploader and packaging shipped;
