@@ -42,7 +42,9 @@ commit red.
   and `ts-conventions` before writing components or TS. `tus-js-client`
   pinned 4.3.x. Node is workstation build-time only; nothing Node ships to
   the box.
-- **systemd / cloud-init**: units are code — hardened (`NoNewPrivileges`,
+- **systemd / cloud-init**: invoke the `vps-conventions` skill BEFORE
+  touching `systemd/`, `cloud-init/`, or deploy/provision scripts. Units
+  are code — hardened (`NoNewPrivileges`,
   `PrivateTmp`, `ProtectSystem` with explicit `ReadWritePaths`), verified by
   the gate. A `ReadWritePaths` entry must exist on the host before the unit
   starts (deploy.sh pre-creates). cloud-init runs at first boot only;
