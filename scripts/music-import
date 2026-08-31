@@ -134,8 +134,7 @@ move_skips_and_notify() {
         rel="${trimmed#"$STAGING_DIR"/}"
         user="${rel%%/*}"
         dest_dir="$review_root/$date_str/$user"
-        mkdir -p "$dest_dir"
-        mv "$trimmed" "$dest_dir/"
+        safe_mv_to_review "$trimmed" "$dest_dir" >/dev/null || continue
         skip_users["$user"]=1
       done
       ;;
@@ -195,13 +194,19 @@ friendly_reason() {
 # below} -- with plain bash substring replacement (the template has no
 # other braces, so a literal match is enough; no sed metacharacter risk).
 # Geoff owns the copy in that file; this function never rewords it.
+#
+# Every replacement value is quoted. Unquoted, bash 5.2+ treats a literal
+# "&" in a ${var//pattern/replacement} replacement as "insert the matched
+# text" -- exactly like sed -- so an unquoted $name of "Sturm & Drang"
+# would render as "Sturm {album or file name} Drang" instead of the album's
+# own name. Confirmed against this box's bash (5.3.9).
 render_reject_email() {
   local first_name="$1" name="$2" reason_lines="$3" template
   [ -f "$REJECT_EMAIL_TEMPLATE" ] || return 1
   template="$(<"$REJECT_EMAIL_TEMPLATE")"
-  template="${template//\{first name\}/$first_name}"
-  template="${template//\{album or file name\}/$name}"
-  template="${template//\{one reason line per file, from the mapping below\}/$reason_lines}"
+  template="${template//\{first name\}/"$first_name"}"
+  template="${template//\{album or file name\}/"$name"}"
+  template="${template//\{one reason line per file, from the mapping below\}/"$reason_lines"}"
   printf '%s' "$template"
 }
 
@@ -242,13 +247,18 @@ quarantine_quality_failures() {
     user="${album_key%%/*}"
     album_dir="$staging_root/$album_key"
     dest="$review_root/$date_str/$user"
-    mkdir -p "$dest"
-    mv "$album_dir" "$dest/"
+    # An album that could not be moved is still in staging, so it has not
+    # been rejected: skip its emails too, rather than telling its uploader
+    # about a quarantine that did not happen. safe_mv_to_review has
+    # already warned about the move itself.
+    safe_mv_to_review "$album_dir" "$dest" >/dev/null || continue
 
+    # Each line carries its own file's basename, so N failures in one
+    # album read as N distinct per-file lines rather than one paragraph.
     friendly_lines=""
     while IFS=$'\t' read -r failed_rel raw_reason; do
       [ -n "$failed_rel" ] || continue
-      friendly_lines+="$(friendly_reason "$failed_rel" "$raw_reason")"$'\n'
+      friendly_lines+="${failed_rel##*/}: $(friendly_reason "$failed_rel" "$raw_reason")"$'\n'
     done <<<"${album_reasons[$album_key]}"
     # Drop the trailing newline: the template already supplies the blank
     # line that separates the reasons block from the next paragraph, and
@@ -261,6 +271,12 @@ quarantine_quality_failures() {
       echo "music-import: no email on file for uploader '$user'; skipping their quality-gate notice" >&2
     elif [ -z "$first_name" ]; then
       echo "music-import: no contributor name on file for uploader '$user'; skipping their quality-gate notice" >&2
+    elif [ ! -f "$REJECT_EMAIL_TEMPLATE" ]; then
+      # Checked here, not left to render_reject_email's own guard: notify
+      # takes the rendered body as a command substitution, whose failed
+      # exit status nothing downstream inspects, so the uploader would
+      # get an empty-bodied email. Geoff's summary below still lands.
+      echo "music-import: reject-email template $REJECT_EMAIL_TEMPLATE is missing; skipping the quality-gate notice for '$user'" >&2
     else
       notify "$email" "Your music upload needs a different format" \
         "$(render_reject_email "$first_name" "${album_key#*/}" "$friendly_lines")"

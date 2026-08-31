@@ -91,6 +91,17 @@ make_flac() {
   flac --best -f -o "$dest" "$wav" >/dev/null 2>&1
 }
 
+# Stages one album in alice's inbox that the quality gate must reject: a
+# genuinely valid FLAC beside a file carrying an .mp3 extension, the whole
+# tree aged past the quiescence window so this run picks it up.
+stage_bad_album() {
+  local dir="$MUSICBOX_ROOT/inbox/alice/$1"
+  mkdir -p "$dir"
+  make_flac "$dir/track1.flac"
+  echo not-really-audio >"$dir/track2.mp3"
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+}
+
 # beet stub used by the happy-path test: every album is a clean auto-tag,
 # nothing is written to the logfile, matching how real beets behaves when
 # quiet mode finds confident matches for everything.
@@ -132,9 +143,13 @@ EOF
   run "$SCRIPT"
   [ "$status" -eq 0 ]
 
-  # A success ping (no /fail suffix) went out for import.
+  # A success ping (no /fail suffix) went out for import. "! grep" would
+  # silently no-op here under bats' set -e (a leading "!" is exempt from
+  # errexit, so a failing negated assertion that isn't the test's last
+  # line never surfaces); run+status is the assertion that actually holds.
   grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
-  ! grep -q "/fail" "$CURL_LOG"
+  run grep -q "/fail" "$CURL_LOG"
+  [ "$status" -ne 0 ]
 
   # Nothing landed in review, and no notification fired.
   [ -z "$(find "$MUSICBOX_ROOT/review" -mindepth 1 -print -quit 2>/dev/null)" ]
@@ -159,7 +174,8 @@ EOF
   # Both the uploader and Geoff were notified, and nobody else was.
   grep -q "alice@example.com" "$MSMTP_LOG"
   grep -q "geoff-login@907.life" "$MSMTP_LOG"
-  ! grep -q "bob@example.com" "$MSMTP_LOG"
+  run grep -q "bob@example.com" "$MSMTP_LOG"
+  [ "$status" -ne 0 ]
 }
 
 @test "insufficient free space aborts before beet runs and fires a fail ping" {
@@ -225,7 +241,8 @@ EOF
   # system, not the residual risk of a permanently wedged lock going
   # unnoticed), so the success ping fires before the early exit.
   grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
-  ! grep -q "/fail" "$CURL_LOG"
+  run grep -q "/fail" "$CURL_LOG"
+  [ "$status" -ne 0 ]
   # Nothing past the lock check ran: no staging dir, no notifications.
   [ ! -d "$MUSICBOX_ROOT/staging" ]
   [ ! -s "$MSMTP_LOG" ]
@@ -235,10 +252,7 @@ EOF
 
 @test "quality gate: an album with any failing file moves entirely to review" {
   stub_beet_clean
-  mkdir -p "$MUSICBOX_ROOT/inbox/alice/Bad Album"
-  make_flac "$MUSICBOX_ROOT/inbox/alice/Bad Album/track1.flac"
-  echo not-really-audio >"$MUSICBOX_ROOT/inbox/alice/Bad Album/track2.mp3"
-  touch_old "$MUSICBOX_ROOT/inbox/alice"
+  stage_bad_album "Bad Album"
 
   run "$SCRIPT"
   [ "$status" -eq 0 ]
@@ -266,4 +280,60 @@ EOF
   grep -q "geoff-login@907.life" "$MSMTP_LOG"
   grep -q "track2.mp3" "$MSMTP_LOG"
   grep -q "not FLAC" "$MSMTP_LOG"
+
+  # Each reason line carries its own file's basename, so N failures read
+  # as N distinct per-file lines rather than running together.
+  grep -q "track2.mp3: This is an MP3 file, and the library keeps lossless FLAC." "$MSMTP_LOG"
+}
+
+@test "quality gate: an ampersand in an album name renders literally, not as the matched pattern" {
+  stub_beet_clean
+  stage_bad_album "Sturm & Drang"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Bash's ${var//pat/repl} treats an unquoted "&" in the replacement as
+  # "insert the matched text" (confirmed on bash 5.3): an unquoted
+  # $first_name/$name/$reason_lines substitution would corrupt this into
+  # the literal placeholder text instead of the album name.
+  grep -qF "Sturm & Drang" "$MSMTP_LOG"
+  run grep -q "album or file name" "$MSMTP_LOG"
+  [ "$status" -ne 0 ]
+}
+
+@test "quality gate: a same-day repeat quarantine of an identically named album doesn't clobber the first" {
+  stub_beet_clean
+  stage_bad_album "Bad Album"
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # A second upload under the exact same name later the same day: the
+  # review dir already holds one "Bad Album" from the first run above.
+  stage_bad_album "Bad Album"
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Both copies survive under distinct names -- a colliding mv must never
+  # abort the run under set -e -- and both runs reached the very end
+  # (beet import, then the closing success ping), not just the quarantine
+  # step.
+  count="$(find "$MUSICBOX_ROOT/review" -mindepth 3 -maxdepth 3 -type d -iname "Bad Album*" | wc -l)"
+  [ "$count" -eq 2 ]
+  [ "$(grep -cx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG")" -eq 2 ]
+  run grep -q "/fail" "$CURL_LOG"
+  [ "$status" -ne 0 ]
+}
+
+@test "quality gate: a missing reject-email template skips the uploader email but still tells Geoff" {
+  stub_beet_clean
+  export MUSICBOX_REJECT_EMAIL_TEMPLATE="$WORK_DIR/does-not-exist.txt"
+  stage_bad_album "Bad Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+  run grep -q "alice@example.com" "$MSMTP_LOG"
+  [ "$status" -ne 0 ]
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "track2.mp3" "$MSMTP_LOG"
 }
