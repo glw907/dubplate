@@ -27,6 +27,10 @@ REVIEW_RETENTION_DAYS="${MUSICBOX_REVIEW_RETENTION_DAYS:-60}"
 CONTRIBUTORS_FILE="${MUSICBOX_CONTRIBUTORS_FILE:-/etc/musicbox/contributors.yaml}"
 GEOFF_EMAIL="${MUSICBOX_GEOFF_EMAIL:-geoff-login@907.life}"
 NAVIDROME_URL="${NAVIDROME_URL:-http://localhost:4533}"
+# config/ is rsynced wholesale to $REMOTE_DIR/config by deploy.sh (no
+# dedicated deploy step of its own, unlike contributors.yaml: this file
+# carries no secrets or PII, just copy-editable customer-facing text).
+REJECT_EMAIL_TEMPLATE="${MUSICBOX_REJECT_EMAIL_TEMPLATE:-/opt/musicbox/config/reject-email.txt}"
 
 # A held lock means another run (or an interactive music-beet session) is
 # already touching the beets database; skip quietly rather than queue up.
@@ -60,6 +64,22 @@ uploader_email() {
   yq -o=json "$CONTRIBUTORS_FILE" |
     jq -r --arg n "$user" '.contributors[]? | select(.name == $n) | .email' |
     head -n1
+}
+
+# The first word of a contributor's name, for the quality-gate rejection
+# email's greeting ("Hi Alice,"); empty output means the inbox directory
+# matches no contributor, which callers treat the same way uploader_email's
+# empty output is treated. contributors.yaml is matched on its "name" field
+# against that same inbox directory name, so a matched contributor's name
+# IS the directory name: the query below confirms membership rather than
+# fetching some other string, and the first word is all the greeting wants
+# of a full display name like "Example Family Member".
+uploader_name() {
+  local user="$1"
+  [ -f "$CONTRIBUTORS_FILE" ] || return 0
+  yq -o=json "$CONTRIBUTORS_FILE" |
+    jq -e --arg n "$user" 'any(.contributors[]?; .name == $n)' >/dev/null || return 0
+  printf '%s' "${user%% *}"
 }
 
 # Moves one contributor's quiescent inbox entries into their staging
@@ -129,6 +149,123 @@ move_skips_and_notify() {
     "Contributors with skipped uploads today: ${!skip_users[*]}. See $review_root/$date_str."
 }
 
+# Translates one of quality_gate's raw, technical reasons into the plain
+# language the rejection-email template needs. quality_gate's own wording
+# is for Geoff's copy (a path and a reason are all he needs); an uploader
+# needs to know what to do about it, never a decode-test name.
+friendly_reason() {
+  local file="$1" raw="$2" ext
+  case "$raw" in
+  "not FLAC"*)
+    ext="${file##*.}"
+    case "${ext,,}" in
+    mp3) ext="MP3" ;;
+    m4a) ext="AAC" ;;
+    ogg) ext="Ogg Vorbis" ;;
+    opus) ext="Opus" ;;
+    wav) ext="WAV" ;;
+    aiff) ext="AIFF" ;;
+    *) ext="${ext^^}" ;;
+    esac
+    echo "This is an $ext file, and the library keeps lossless FLAC."
+    ;;
+  *"decode test failed"*)
+    echo "This file didn't survive the upload intact. Uploading it again usually fixes this."
+    ;;
+  *"below CD quality"*)
+    echo "This FLAC is below CD quality."
+    ;;
+  *)
+    echo "$raw"
+    ;;
+  esac
+}
+
+# Fills config/reject-email.txt's three placeholders -- {first name},
+# {album or file name}, and {one reason line per file, from the mapping
+# below} -- with plain bash substring replacement (the template has no
+# other braces, so a literal match is enough; no sed metacharacter risk).
+# Geoff owns the copy in that file; this function never rewords it.
+render_reject_email() {
+  local first_name="$1" name="$2" reason_lines="$3" template
+  [ -f "$REJECT_EMAIL_TEMPLATE" ] || return 1
+  template="$(<"$REJECT_EMAIL_TEMPLATE")"
+  template="${template//\{first name\}/$first_name}"
+  template="${template//\{album or file name\}/$name}"
+  template="${template//\{one reason line per file, from the mapping below\}/$reason_lines}"
+  printf '%s' "$template"
+}
+
+# Runs quality_gate over the whole staging tree, between extraction and
+# beet import. beets only ever sees what's still in staging afterward, so
+# any audio file that fails takes its whole containing album directory (or,
+# for a bare singleton, just the file) to review/<date>/<user>/: admitting
+# the passing tracks from an otherwise-failing rip would tag a partial
+# album into the library while the rest vanishes into review with no
+# context to reassemble it from. Sends one friendly, plain-language email
+# per quarantined album to its uploader (config/reject-email.txt) and one
+# technical summary to Geoff, covering every album this run quarantined.
+quarantine_quality_failures() {
+  local staging_root="$1" review_root="$2" date_str="$3"
+  local file reason rel rest user album_key
+  # Keyed by "<user>/<album>", the same relative pair Geoff's summary
+  # prints and the only thing the second loop needs: both the uploader and
+  # the album directory read straight back out of the key, so no second
+  # array has to be kept in step with this one.
+  local -A album_reasons=() # "user/album" -> "relpath<TAB>raw reason\n..." lines
+  local -a album_order=()   # first-seen order, for deterministic emails
+
+  while IFS=$'\t' read -r file reason; do
+    [ -n "$file" ] || continue
+    rel="${file#"$staging_root"/}" # <user>/<album>/<track> (or <user>/<track>)
+    user="${rel%%/*}"
+    rest="${rel#*/}"
+    album_key="$user/${rest%%/*}"
+    [ -n "${album_reasons[$album_key]+x}" ] || album_order+=("$album_key")
+    album_reasons["$album_key"]+="$rel"$'\t'"$reason"$'\n'
+  done < <(quality_gate "$staging_root")
+
+  [ "${#album_order[@]}" -eq 0 ] && return 0
+
+  local album_dir dest first_name email failed_rel raw_reason
+  local friendly_lines geoff_summary=""
+  for album_key in "${album_order[@]}"; do
+    user="${album_key%%/*}"
+    album_dir="$staging_root/$album_key"
+    dest="$review_root/$date_str/$user"
+    mkdir -p "$dest"
+    mv "$album_dir" "$dest/"
+
+    friendly_lines=""
+    while IFS=$'\t' read -r failed_rel raw_reason; do
+      [ -n "$failed_rel" ] || continue
+      friendly_lines+="$(friendly_reason "$failed_rel" "$raw_reason")"$'\n'
+    done <<<"${album_reasons[$album_key]}"
+    # Drop the trailing newline: the template already supplies the blank
+    # line that separates the reasons block from the next paragraph, and
+    # keeping this one would double it.
+    friendly_lines="${friendly_lines%$'\n'}"
+
+    email="$(uploader_email "$user")"
+    first_name="$(uploader_name "$user")"
+    if [ -z "$email" ]; then
+      echo "music-import: no email on file for uploader '$user'; skipping their quality-gate notice" >&2
+    elif [ -z "$first_name" ]; then
+      echo "music-import: no contributor name on file for uploader '$user'; skipping their quality-gate notice" >&2
+    else
+      notify "$email" "Your music upload needs a different format" \
+        "$(render_reject_email "$first_name" "${album_key#*/}" "$friendly_lines")"
+    fi
+
+    geoff_summary+="$album_key:"$'\n'"${album_reasons[$album_key]}"
+  done
+
+  notify "$GEOFF_EMAIL" "Musicbox: import quality gate failures ($date_str)" \
+    "The following uploads failed the quality gate and were moved to $review_root/$date_str:
+
+$geoff_summary"
+}
+
 # Best-effort: a failed scan trigger does not fail the import, because
 # Navidrome's daily Scanner.Schedule backstop will pick up the change
 # regardless. Uses the native admin API (login for a JWT, then the
@@ -179,6 +316,8 @@ if ! free_space_ok "$MUSICBOX_ROOT" "$MIN_FREE_GB"; then
   ping_hc import fail
   exit 1
 fi
+
+quarantine_quality_failures "$STAGING_DIR" "$REVIEW_DIR" "$DATE_STR"
 
 beet import -q -l "$LOGFILE" "$STAGING_DIR"
 move_skips_and_notify "$LOGFILE" "$REVIEW_DIR" "$DATE_STR"

@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
 # Unit tests for scripts/lib.sh, the pure helper functions music-import and
-# music-backup depend on. Every test stubs external binaries (msmtp, curl) on
-# PATH rather than touching a real mail server or healthchecks.io.
+# music-backup depend on. Anything that would reach the network or a real
+# mail server is stubbed on PATH (msmtp, curl); the audio tools quality_gate
+# drives (ffmpeg, flac, metaflac) run for real, since a stub could not tell
+# a genuinely valid FLAC from a corrupt one.
 
 setup() {
   LIB_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
@@ -142,4 +144,56 @@ EOF
   run ping_hc "disk"
   [ "$status" -eq 0 ]
   [[ "$output" == *"MUSICBOX_HC_DISK_URL"* ]]
+}
+
+# --- quality_gate --------------------------------------------------------
+
+# make_flac <path> [rate]: a real, valid FLAC, synthesized rather than
+# shipped as a binary fixture. ffmpeg and flac are both present on this
+# workstation (brew install ffmpeg flac) and the source is fully
+# deterministic: a one-second 440Hz sine tone, encoded at rate (default
+# 44100) in 16-bit.
+make_flac() {
+  local dest="$1" rate="${2:-44100}" wav="$WORK_DIR/gen.wav"
+  ffmpeg -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=440:duration=1" \
+    -ar "$rate" -sample_fmt s16 "$wav"
+  flac --best -f -o "$dest" "$wav" >/dev/null 2>&1
+}
+
+@test "quality_gate fails a non-FLAC extension without inspecting the file" {
+  mkdir -p "$WORK_DIR/album"
+  echo not-really-audio >"$WORK_DIR/album/track.mp3"
+  run quality_gate "$WORK_DIR/album"
+  [ "$status" -ne 0 ]
+  [[ "$output" == "$WORK_DIR/album/track.mp3"$'\t'*"FLAC"* ]]
+}
+
+@test "quality_gate fails a corrupt/truncated flac" {
+  mkdir -p "$WORK_DIR/album"
+  make_flac "$WORK_DIR/album/track.flac"
+  truncate -s 2000 "$WORK_DIR/album/track.flac"
+  run quality_gate "$WORK_DIR/album"
+  [ "$status" -ne 0 ]
+  [[ "$output" == "$WORK_DIR/album/track.flac"$'\t'*"decode"* ]]
+}
+
+@test "quality_gate fails a flac below 44.1kHz" {
+  mkdir -p "$WORK_DIR/album"
+  make_flac "$WORK_DIR/album/track.flac" 22050
+  run quality_gate "$WORK_DIR/album"
+  [ "$status" -ne 0 ]
+  [[ "$output" == "$WORK_DIR/album/track.flac"$'\t'*"44100"* ]]
+}
+
+# The passing case and the out-of-scope-extension case are one test: art and
+# sleeve notes sit beside the tracks in every real album directory, so a gate
+# that admits a valid FLAC must ignore its siblings in the same walk.
+@test "quality_gate passes a valid 44.1kHz/16-bit flac and ignores non-audio siblings" {
+  mkdir -p "$WORK_DIR/album"
+  make_flac "$WORK_DIR/album/track.flac"
+  echo cover >"$WORK_DIR/album/cover.jpg"
+  echo notes >"$WORK_DIR/album/notes.nfo"
+  run quality_gate "$WORK_DIR/album"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
 }

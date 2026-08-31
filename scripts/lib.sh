@@ -104,3 +104,53 @@ ping_hc() {
   fi
   curl -fsS -o /dev/null "$url"
 }
+
+# quality_gate <dir>
+#
+# Enforces the only-FLAC ingest rule (Geoff, 2026-08-30: only high-quality
+# FLAC enters the library) over every audio file under dir, recursively.
+# An audio file is one with a case-insensitive flac/mp3/m4a/ogg/opus/wav/
+# aiff extension; anything else (art, .cue, .nfo) is out of scope and never
+# inspected. A non-FLAC extension fails outright; a FLAC file must both
+# pass `flac -t`'s full decode test (catches a corrupt or truncated
+# upload) and carry at least 44.1kHz/16-bit. Prints one "path<TAB>reason"
+# line per failing file to stdout -- the raw, technical reason; callers
+# that notify a human are expected to translate it, not forward it
+# verbatim to an uploader. Exits 0 only when every audio file under dir
+# passed.
+quality_gate() {
+  local dir="$1" file ext rate bps failed=0
+  while IFS= read -r -d '' file; do
+    ext="${file##*.}"
+    ext="${ext,,}"
+    case "$ext" in
+    flac) ;;
+    mp3 | m4a | ogg | opus | wav | aiff)
+      printf '%s\tnot FLAC (.%s)\n' "$file" "$ext"
+      failed=1
+      continue
+      ;;
+    *) continue ;;
+    esac
+
+    if ! flac -t "$file" >/dev/null 2>&1; then
+      printf '%s\tflac -t decode test failed (corrupt or truncated file)\n' "$file"
+      failed=1
+      continue
+    fi
+
+    # metaflac prints the two values on their own lines, and read clears its
+    # variable at EOF, so a metaflac that printed nothing leaves both empty
+    # for the guard below to report. The trailing "|| true" is what keeps
+    # that case from aborting a caller under set -e, since the second read
+    # returns nonzero at EOF: this file promises to return a status rather
+    # than take the calling script down with it.
+    { read -r rate; read -r bps; } < <(metaflac --show-sample-rate --show-bps "$file" 2>/dev/null) || true
+    if [ -z "$rate" ] || [ -z "$bps" ] || [ "$rate" -lt 44100 ] || [ "$bps" -lt 16 ]; then
+      printf '%s\tbelow CD quality (%s Hz / %s-bit; needs >=44100 Hz and >=16-bit)\n' \
+        "$file" "${rate:-unknown}" "${bps:-unknown}"
+      failed=1
+    fi
+  done < <(find "$dir" -type f -print0)
+  return "$failed"
+}
