@@ -156,3 +156,49 @@ quality_gate() {
   done < <(find "$dir" -type f -print0)
   return "$failed"
 }
+
+# unique_dest_path <dir> <name>
+#
+# Prints "<dir>/<name>" if nothing is there yet; otherwise appends a
+# HHMMSS time suffix, and if even that collides (two collisions inside the
+# same second), a further numeric ".2", ".3", ... suffix. Never overwrites:
+# a same-named album already in review from an earlier run today must
+# never be silently merged with, or clobbered by, a fresh one.
+unique_dest_path() {
+  local dir="$1" name="$2" stem n
+  if [ ! -e "$dir/$name" ]; then
+    printf '%s' "$dir/$name"
+    return 0
+  fi
+  stem="$dir/$name-$(date +%H%M%S)"
+  if [ ! -e "$stem" ]; then
+    printf '%s' "$stem"
+    return 0
+  fi
+  n=2
+  while [ -e "$stem.$n" ]; do
+    n=$((n + 1))
+  done
+  printf '%s' "$stem.$n"
+}
+
+# safe_mv_to_review <src> <dest_dir>
+#
+# Moves src into dest_dir under a name unique_dest_path guarantees is
+# free, so a same-day repeat quarantine of an identically named item lands
+# beside the first instead of overwriting or merging into it. A move that
+# fails for any other reason (permissions, cross-device, disk full) warns
+# and returns nonzero rather than aborting a caller under `set -e`: one
+# contributor's un-movable item must never take every other contributor's
+# run down with it. Prints the destination path on success.
+safe_mv_to_review() {
+  local src="$1" dest_dir="$2" name dest
+  name="$(basename "$src")"
+  mkdir -p "$dest_dir"
+  dest="$(unique_dest_path "$dest_dir" "$name")"
+  if ! mv "$src" "$dest"; then
+    echo "safe_mv_to_review: could not move $src to $dest; left in place" >&2
+    return 1
+  fi
+  printf '%s' "$dest"
+}

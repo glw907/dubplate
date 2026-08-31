@@ -205,3 +205,81 @@ make_flac() {
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
+
+@test "quality_gate fails an 8-bit flac" {
+  mkdir -p "$WORK_DIR/album"
+  # ffmpeg's wav muxer needs an explicit 8-bit PCM codec (-sample_fmt alone
+  # targets the encoder's default codec, which rejects u8); piped straight
+  # into flac rather than staged as an intermediate wav file.
+  ffmpeg -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=440:duration=1" \
+    -ar 44100 -acodec pcm_u8 -f wav - 2>/dev/null |
+    flac --best -f -o "$WORK_DIR/album/track.flac" - >/dev/null 2>&1
+  run quality_gate "$WORK_DIR/album"
+  [ "$status" -ne 0 ]
+  [[ "$output" == "$WORK_DIR/album/track.flac"$'\t'*"8-bit"* ]]
+}
+
+# --- unique_dest_path ------------------------------------------------------
+
+# Freezes the HHMMSS suffix unique_dest_path reaches for on a collision, so
+# the expected path below is a literal rather than a value the test has to
+# recompute and race across a second boundary.
+stub_date() {
+  cat >"$STUB_BIN/date" <<'EOF'
+#!/usr/bin/env bash
+echo 120000
+EOF
+  chmod +x "$STUB_BIN/date"
+}
+
+@test "unique_dest_path returns the plain path when nothing is there yet" {
+  mkdir -p "$WORK_DIR/dest"
+  run unique_dest_path "$WORK_DIR/dest" "Bad Album"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$WORK_DIR/dest/Bad Album" ]
+}
+
+@test "unique_dest_path appends a time suffix on collision" {
+  mkdir -p "$WORK_DIR/dest/Bad Album"
+  stub_date
+  run unique_dest_path "$WORK_DIR/dest" "Bad Album"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$WORK_DIR/dest/Bad Album-120000" ]
+}
+
+@test "unique_dest_path falls back to a numeric suffix if the time-based name also collides" {
+  mkdir -p "$WORK_DIR/dest/Bad Album" "$WORK_DIR/dest/Bad Album-120000"
+  stub_date
+  run unique_dest_path "$WORK_DIR/dest" "Bad Album"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$WORK_DIR/dest/Bad Album-120000.2" ]
+}
+
+# --- safe_mv_to_review -----------------------------------------------------
+
+@test "safe_mv_to_review moves into an empty destination directory" {
+  mkdir -p "$WORK_DIR/staging/Good Album"
+  echo track >"$WORK_DIR/staging/Good Album/one.flac"
+  run safe_mv_to_review "$WORK_DIR/staging/Good Album" "$WORK_DIR/review"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$WORK_DIR/review/Good Album" ]
+  [ -f "$WORK_DIR/review/Good Album/one.flac" ]
+  [ ! -e "$WORK_DIR/staging/Good Album" ]
+}
+
+@test "safe_mv_to_review disambiguates instead of merging into an existing same-named destination" {
+  mkdir -p "$WORK_DIR/staging/Bad Album" "$WORK_DIR/review/Bad Album"
+  echo first >"$WORK_DIR/review/Bad Album/keep.flac"
+  echo second >"$WORK_DIR/staging/Bad Album/new.flac"
+  run safe_mv_to_review "$WORK_DIR/staging/Bad Album" "$WORK_DIR/review"
+  [ "$status" -eq 0 ]
+  [ "$output" != "$WORK_DIR/review/Bad Album" ]
+  [ -f "$WORK_DIR/review/Bad Album/keep.flac" ]
+  [ -f "$output/new.flac" ]
+}
+
+@test "safe_mv_to_review warns and returns nonzero instead of aborting when the move fails" {
+  run safe_mv_to_review "$WORK_DIR/does-not-exist" "$WORK_DIR/review"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"could not move"* ]]
+}
