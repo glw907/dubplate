@@ -2,31 +2,32 @@
 
 ## Current state
 
-Task 3 (compose.yaml, systemd units, deploy.sh) is done; `bash scripts/check.sh` is green.
-Task 4a (real provisioning) is done: server `musicbox` is up at `5.78.148.42` (CPX21,
-`alma-10`, `hil`, 2 TiB/month traffic) with volume `musicbox-data` (50GB) attached, built
-from `cloud-init/user-data.yaml` at commit `3fa905d`. Full narrative: `docs/HISTORY.md`.
+Task 3 (compose.yaml, systemd units, deploy.sh) is done. Task 4a (real
+provisioning) is done: server `musicbox` is up at `5.78.148.42` (CPX21,
+`alma-10`, `hil`, 2 TiB/month traffic) with volume `musicbox-data` (50GB)
+attached, 8 of 8 on-box checks green. `bash scripts/check.sh` exits 0.
 
-**Task 4a evidence, re-verified 2026-08-31 against `root@5.78.148.42` — 8 of 8 green:**
+Task 5 (Cloudflare wiring) is **blocked on a token permission**: neither
+`CLOUDFLARE_API_TOKEN` nor `CF_ZT_TOKEN` carries Cloudflare Tunnel:Edit, so
+`POST .../cfd_tunnel` 403s on both — tunnel creation, its token, the ingress
+config PUT, and the DNS CNAMEs all wait on this. Cloudflare Access is done
+independently: `inbox.907.life` has a self-hosted Access app (one-time-PIN
+policy for `geoff-login@907.life`); confirmed `music.907.life` has no Access
+app. Task 6's Navidrome secrets are generated and stored
+(`ND_PASSWORDENCRYPTIONKEY`, `NAVIDROME_ADMIN_USER`, `NAVIDROME_ADMIN_PASS`).
+Full narrative: `docs/HISTORY.md`.
 
-| Check | Command | Result |
-|---|---|---|
-| cloud-init | `cloud-init status --wait` | `status: done` — PASS |
-| volume mount | `mountpoint -q /srv/music` | mounted — PASS |
-| tree ownership | `ls -lnd /srv/music/{library,inbox,review,state,staging}` | all `2000 2000`; `inbox` is `drwxrwsr-x` (2775, setgid) — PASS |
-| music user | `id music` | `uid=2000(music) gid=2000(music) groups=2000(music)` — PASS |
-| docker | `systemctl is-active docker` | `active` — PASS |
-| SELinux | `getenforce` | `Enforcing` — PASS |
-| sshd password auth | `sshd -T \| grep -i '^passwordauthentication'` | `passwordauthentication no` — PASS |
-| yq / jq | `/usr/local/bin/yq --version` / `jq --version` | `v4.53.6` / present (`jq-` is a cosmetic upstream version-string quirk on this AlmaLinux 10 build, not a functional defect) — PASS |
-| fstab | `grep srv/music /etc/fstab` | exactly one line: `UUID=6614e3dd-9014-4949-9f4c-effcd317bd3a /srv/music ext4 defaults,nofail,x-systemd.device-timeout=30s 0 2` — PASS |
-
-Deployed sha256 (box `/var/lib/cloud/instance/user-data.txt`) equals committed sha256
-(`cloud-init/user-data.yaml` at commit `3fa905d`), both
-`196e76fbc51d5a5828c6a378761d480b790160cc9fd07fa7a1f41ab1557dfa5a`. `bash scripts/check.sh` exits 0.
-
-Next task: Task 4/5 — deploy the compose stack (`scripts/deploy.sh`) and wire the
-Cloudflare tunnel, once Task 0's credentials land (see Open items below).
+**Next action (Geoff, manual, blocking)**: add the Cloudflare Tunnel:Edit
+permission group to `CLOUDFLARE_API_TOKEN` (id `1d508f1ab69df49d3ef9572dc1917273`,
+"Cloudflare Admin 2026-07") via the dashboard — API token self-management is
+deliberately not grantable through the API itself. Once added, resume Task 5:
+create tunnel `musicbox`, `secret-set.sh MUSICBOX_TUNNEL_TOKEN --stdin`, PUT
+`config/cloudflared-tunnel-config.json` as the ingress config, upsert proxied
+CNAMEs `music`/`inbox` → `<tunnel-id>.cfargotunnel.com`, then verify the Access
+challenge on `inbox.907.life` and `https://music.907.life/rest/ping`. Then
+Task 4's first real `deploy.sh` run (cloudflared needs the tunnel token to come
+up) and Task 6's remaining items (R2 lifecycle/lock, healthchecks.io checks,
+first backup, seed content).
 
 Plan: `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md` — Spec:
 `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
@@ -46,8 +47,7 @@ config` nor cloud-init's `sha256sum -c` catch a pin drifted upstream.
 
 ## Open items
 
-- **Task 0 (Geoff, manual, blocking Task 4+)**: credential batch not landed. `deploy.sh`
-  already fails correctly, listing every missing env var by name.
+- **Task 5 tunnel-permission blocker (Geoff, manual)**: see Next action above.
 - **cloudflared ingress is not set anywhere in compose.yaml on purpose**: a token-run
   tunnel is remotely managed, so a local ingress file would be silently ignored.
   `config/cloudflared-tunnel-config.json` is the exact API body Task 5 must PUT to the

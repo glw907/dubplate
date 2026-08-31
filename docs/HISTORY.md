@@ -2,6 +2,55 @@
 
 Per-pass ledger, newest first.
 
+## Task 5/6: Cloudflare Access + Navidrome secrets, tunnel blocked (2026-08-30)
+
+Control-plane pass, no box changes. Findings and what landed:
+
+- **Tunnel creation blocked, not a code problem**: `POST
+  /accounts/{a}/cfd_tunnel` 403s `{"code":10000,"message":"Authentication
+  error"}` on both `CLOUDFLARE_API_TOKEN` and `CF_ZT_TOKEN` — neither carries the
+  Cloudflare Tunnel:Edit permission group (confirmed: both tokens list/read
+  tunnels fine, i.e. GET `.../cfd_tunnel` is 200; only the POST 403s). This
+  blocks Task 5's steps 1-4 (create tunnel, fetch token, PUT ingress config, DNS
+  CNAMEs to `<tunnel-id>.cfargotunnel.com`) and, downstream, Task 4's first real
+  `deploy.sh` run (cloudflared needs `MUSICBOX_TUNNEL_TOKEN` to come up).
+  Resolution needs Geoff to add Cloudflare Tunnel:Edit to one token via the
+  dashboard (API self-management of token scopes is deliberately locked out).
+  Detail in registry.md's `CF_ZT_TOKEN` entry.
+- **Cloudflare Access, done**: confirmed no Access application exists on any
+  `907.life` hostname (checked the full account app list — zero matches), so
+  `music.907.life` correctly has none. Created a self-hosted Access application
+  for `inbox.907.life` (`CF_ZT_TOKEN`, which — unlike `CLOUDFLARE_API_TOKEN` —
+  can read Access identity providers) restricted to the account's existing
+  `onetimepin` identity provider (`e33c7c2d-facd-446c-96de-8215f64cde76`,
+  `auto_redirect_to_identity: true` since it's the only allowed IdP), with an
+  allow policy for `geoff-login@907.life` (policy
+  `92425260-87f6-4a3a-b66e-d71bb8d9d6a8`). Family emails join this policy at
+  Task 8 per plan. **Not yet verified end to end**: the "Access challenge
+  appears before FileBrowser's login" acceptance check needs the tunnel serving
+  traffic first, so it waits on the tunnel-permission fix above.
+- **Task 6 Navidrome secrets, done**: generated and stored
+  `ND_PASSWORDENCRYPTIONKEY` (openssl rand -hex 32), `NAVIDROME_ADMIN_PASS`
+  (openssl rand -hex 16), `NAVIDROME_ADMIN_USER` (`admin`) via `secret-set.sh`.
+  No value printed; lengths only (64/32/5 chars) confirmed against
+  `~/.local/secrets`.
+- **registry.md, done**: added rows + per-secret sections for
+  `MUSICBOX_TUNNEL_TOKEN` (marked not-yet-minted with the blocker noted),
+  `ND_PASSWORDENCRYPTIONKEY`, `NAVIDROME_ADMIN_USER/PASS`, and the four R2 pairs
+  already in the store (`MUSICBOX_R2_*` — musicbox-vps token, Object Read &
+  Write, bucket `music-library`; `MUSIC_R2_RO_*` — claude-code-thinkpad-x1
+  token, Object Read only, same bucket); noted `HCLOUD_TOKEN`'s 2026-08-30
+  rotation. Committed to `~/.dotfiles` as two commits (registry.md text, then
+  `values.age` separately) — a third file in the working tree,
+  `bin/.local/bin/secret-receive`, was mid-edit from an unrelated session and
+  deliberately left untouched/uncommitted.
+
+Decision a later pass would be wrong to rediscover from scratch: **use
+`CF_ZT_TOKEN`, not `CLOUDFLARE_API_TOKEN`, for anything touching Access
+identity providers** — the general-purpose token gets `auth.forbidden` reading
+`.../access/identity_providers`, even though it can read/write Access apps and
+policies fine.
+
 ## Task 4a: AlmaLinux 10 image-defect fix round, rebuild to 8/8 green (2026-08-31)
 
 Two deterministic image defects blocked the recreated box at 5/8 green (see the prior
@@ -38,9 +87,22 @@ unpushed commit look identical to `ssh`.
 
 Re-verified after commit `3fa905d`: `sha256sum cloud-init/user-data.yaml` at HEAD equals
 the deployed `/var/lib/cloud/instance/user-data.txt` hash
-(`196e76fbc51d5a5828c6a378761d480b790160cc9fd07fa7a1f41ab1557dfa5a`), and all 8 Task 4a
-on-box checks are green (evidence in `docs/STATUS.md`'s Current state). `bash
+(`196e76fbc51d5a5828c6a378761d480b790160cc9fd07fa7a1f41ab1557dfa5a`). `bash
 scripts/check.sh` exits 0.
+
+**8 of 8 on-box checks green, re-verified 2026-08-31 against `root@5.78.148.42`:**
+
+| Check | Command | Result |
+|---|---|---|
+| cloud-init | `cloud-init status --wait` | `status: done` — PASS |
+| volume mount | `mountpoint -q /srv/music` | mounted — PASS |
+| tree ownership | `ls -lnd /srv/music/{library,inbox,review,state,staging}` | all `2000 2000`; `inbox` is `drwxrwsr-x` (2775, setgid) — PASS |
+| music user | `id music` | `uid=2000(music) gid=2000(music) groups=2000(music)` — PASS |
+| docker | `systemctl is-active docker` | `active` — PASS |
+| SELinux | `getenforce` | `Enforcing` — PASS |
+| sshd password auth | `sshd -T \| grep -i '^passwordauthentication'` | `passwordauthentication no` — PASS |
+| yq / jq | `/usr/local/bin/yq --version` / `jq --version` | `v4.53.6` / present (`jq-` is a cosmetic upstream version-string quirk on this AlmaLinux 10 build, not a functional defect) — PASS |
+| fstab | `grep srv/music /etc/fstab` | exactly one line: `UUID=6614e3dd-9014-4949-9f4c-effcd317bd3a /srv/music ext4 defaults,nofail,x-systemd.device-timeout=30s 0 2` — PASS |
 
 ## Task 4a: real provisioning, forced-root-password fix round (2026-08-30/31)
 
