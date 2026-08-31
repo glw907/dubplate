@@ -2,6 +2,65 @@
 
 Per-pass ledger, newest first.
 
+## Task 2 follow-up: quality gate, ping hardening, config sync (2026-08-30)
+
+TDD, red-first for every case, against the spec's freshly amended import-pipeline
+section (step 4). Four items, one commit each:
+
+- **`quality_gate <dir>`** (`scripts/lib.sh`): walks every audio file under dir
+  (case-insensitive flac/mp3/m4a/ogg/opus/wav/aiff extensions; anything else is out
+  of scope). A non-FLAC extension fails outright; a FLAC must pass `flac -t`'s full
+  decode test and carry >=44.1kHz/16-bit (`metaflac --show-sample-rate
+  --show-bps`). Prints "path\treason" per failure, exit 0 only if everything
+  passed. Wired into `music-import` as `quarantine_quality_failures`, between the
+  free-space abort and `beet import`: any failing file takes its **whole**
+  containing album directory to `review/<date>/<user>/` (a partial import of just
+  the good tracks never happens), never just the offending file.
+- **Uploader copy is templated, not generated**: `config/reject-email.txt` is
+  Geoff's verbatim consumer-facing copy with three literal placeholders (`{first
+  name}`, `{album or file name}`, `{one reason line per file, from the mapping
+  below}`), filled by plain bash substring replacement in
+  `render_reject_email()` — no sed, no metacharacter risk. `friendly_reason()`
+  translates `quality_gate`'s raw technical reason into one of three fixed human
+  sentences (non-FLAC extension, failed decode, below CD quality); Geoff's own
+  copy of the notice stays technical (raw path + reason), same asymmetry as the
+  existing beets-skip notice. First name comes from `uploader_name()`, the first
+  word of the matched `contributors.yaml` `name` field (mirrors `uploader_email`'s
+  lookup). Default template path is `/opt/musicbox/config/reject-email.txt` —
+  `config/` is already rsynced wholesale to that tree by `deploy.sh`, so this
+  needed no new deploy step; only `contributors.yaml` and `beets-config.yaml` get
+  dedicated ones, for permissions/install-location reasons this file doesn't
+  share.
+- **`ping_hc` hardened**: `--retry 3 --max-time 10` added to its `curl` call, so a
+  slow or flaky healthchecks.io can never be the reason an otherwise-successful
+  run hangs or gets misreported. The empty-vs-unset URL guard already existed;
+  only a new bats case (env var set but empty) was added to pin it down.
+- **Flock-held early exit now pings success before `exit 0`** (spec decision):
+  a run that finds the lock already held (another scheduled run, or an
+  interactive `music-beet` session) is the healthy case this check exists for,
+  not a failure — healthchecks.io has no third state between success and
+  failure. Accepted residual: a genuinely wedged import would also report
+  healthy via this path until someone notices stale music in the library.
+- **Beets config synced to the workstation's** (`~/.dotfiles/beets/.config/beets/config.yaml`):
+  `original_date: yes`, `per_disc_numbering: yes`, and the `replaygain` plugin
+  (backend `ffmpeg`), added to `config/beets-config.yaml` alongside the existing
+  quiet-mode section. `cloud-init/user-data.yaml`'s `packages:` list gains `flac`
+  (the quality gate) and `ffmpeg` (replaygain's analysis backend) — **flagged, not
+  resolved**: neither is in AlmaLinux 10's BaseOS/AppStream repos (flac needs
+  EPEL, ffmpeg needs RPM Fusion or a static build), so the next real
+  provisioning run needs one of those enabled first or this package install
+  step fails. Tracked in STATUS's Open items.
+
+Fixed a docs nit found while touching STATUS.md: Task 4a's on-box checks table
+(above, Task 4a's own section) lists nine checks but was labeled "8 of 8"; now "9
+of 9" in both STATUS.md and here.
+
+Full test suite: `tests/lib.bats` (5 new `quality_gate` cases + 1 `ping_hc` case)
+and `tests/music-import.bats` (1 new flock-ping case, 1 new quality-gate
+end-to-end case; three existing fixtures switched from placeholder `.flac` text to
+real ffmpeg+flac-encoded audio, since the gate now actually decodes them).
+`bash scripts/check.sh` exits 0.
+
 ## Task 5/6: Cloudflare Access + Navidrome secrets, tunnel blocked (2026-08-30)
 
 Control-plane pass, no box changes. Findings and what landed:
@@ -90,7 +149,7 @@ the deployed `/var/lib/cloud/instance/user-data.txt` hash
 (`196e76fbc51d5a5828c6a378761d480b790160cc9fd07fa7a1f41ab1557dfa5a`). `bash
 scripts/check.sh` exits 0.
 
-**8 of 8 on-box checks green, re-verified 2026-08-31 against `root@5.78.148.42`:**
+**9 of 9 on-box checks green, re-verified 2026-08-31 against `root@5.78.148.42`:**
 
 | Check | Command | Result |
 |---|---|---|
