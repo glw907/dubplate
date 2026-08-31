@@ -13,12 +13,24 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 
 ## Rules for a new session in this repo
 
-1. Execute the Go rewrite:
-   `~/.dotfiles/docs/superpowers/plans/2026-08-30-dubplate-go-rewrite.md`
-   (fifteen tasks, pass-execute workflow — workflow mode authorized by
-   Geoff 2026-08-31; spec beside it). Verify no other executor holds the
-   repo first.
-2. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
+1. The Go rewrite's T1–T11 are LANDED (commit 6ec7aab, workflow
+   wf_edc843fb, gate green). Follow-up ledger before T12: T5 — restore
+   per-extension rejection wording via a path-aware line builder in
+   RenderEmail (conductor ruling 2026-08-31), port the pinned bats case,
+   exhaustive no-empty-Friendly test; T6 — archive/gate have ZERO tests
+   and were never reviewed (implementer died mid-task; T9's implementer
+   repaired the lint residue): write the T6 criteria tests (CD-quality
+   bats ports, corrupt-FLAC, traversal, caps, free-space-first) and
+   review against T6; T9 — fix the reviewer's two parity findings
+   (album-key derivation vs shell rel-path rule; could-not-move summary
+   branches); T11 — add the two missing tests (doctor report rendering,
+   bare/unknown `check` exits nonzero); then re-review T7/T8 (content
+   judged sound; escalations were red-gate context from T6). Spend:
+   ~3.2M of the 4M ceiling — T12–T14 (box tasks, Geoff-sanctioned) plus
+   consolidation will exceed it; Geoff decides overage vs split.
+2. Uploader plan drafted + twice adversarially reviewed, awaiting
+   Geoff's approval: `~/.dotfiles/docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
+3. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
 
 ## Open items (carried)
 
