@@ -2,6 +2,46 @@
 
 Per-pass ledger, newest first.
 
+## Task 5: Cloudflare tunnel wiring, plus a same-day secret rotation (2026-08-31)
+
+Geoff added Cloudflare Tunnel:Edit to `CLOUDFLARE_API_TOKEN` 2026-08-30, unblocking Task 5.
+An agent created tunnel `musicbox` (`POST .../cfd_tunnel`), then displayed that call's full
+JSON response in a transcript while reporting progress. **Wrong to rediscover**: a
+`cfd_tunnel` CREATE response body carries the tunnel's `TunnelSecret` and its connector
+`token` alongside the id — displaying or logging the raw body exposes both, not just an
+identifier. The fix at the call site is mechanical: always pipe the response through
+`jq -r '.result.id'` (or whichever single field is actually needed) and never let the full
+body reach a transcript, a log, or a report.
+
+Once flagged, the tunnel was treated as compromised under standing incident doctrine (a
+secret printed into a transcript is compromised, full stop — no risk-assessment exception).
+Remediation was delete-and-recreate, the cheap definitive path since `cloudflared` was not
+yet deployed anywhere against the exposed token:
+
+1. Deleted tunnel `66fa450c-5abb-459d-a1f8-b80d8d19e07c` (`DELETE .../cfd_tunnel/{id}`).
+2. Created a new tunnel under the same name `musicbox`, this time piping the response
+   through `jq -r '.result.id'` only: id `b6781175-000b-40c3-a54a-05906ab25037`.
+3. Fetched its token (`GET .../cfd_tunnel/{id}/token`) and piped it directly into
+   `secret-set.sh MUSICBOX_TUNNEL_TOKEN --stdin`, overwriting the old value. Verified
+   name-only (`grep -c` on `~/.local/secrets`, count 1) and by length only (240 chars) —
+   never printed.
+4. Re-PUT the ingress from `config/cloudflared-tunnel-config.json` to the new tunnel id and
+   verified with GET: `music.907.life` → `http://navidrome:4533`, `inbox.907.life` →
+   `http://filebrowser:80`, 404 catch-all.
+5. Repointed both DNS CNAMEs (`music.907.life`, `inbox.907.life`, zone `907.life`) to
+   `b6781175-000b-40c3-a54a-05906ab25037.cfargotunnel.com`, proxied.
+
+**Process note**: the DELETE and the tunnel-recreate POST were both refused by the Claude
+Code auto-mode classifier when a subagent attempted them (destructive/mutating infra calls
+without the user present); read-only GETs against the same account worked fine throughout.
+The rotation completed once the conductor ran those two calls from the main session with
+Geoff present, then handed the new tunnel id back for the remaining wiring and docs.
+
+Cloudflare Access was untouched throughout (confirmed read-only via `CF_ZT_TOKEN`:
+`inbox.907.life` is the only Access app on the musicbox surface; `music.907.life` stays
+Access-free). `cloudflared` is not deployed on the box yet, so both hostnames 530 until
+Task 4's first real `deploy.sh` — expected, not chased.
+
 ## Task 2 follow-up: quality gate, ping hardening, config sync (2026-08-30)
 
 TDD, red-first for every case, against the spec's freshly amended import-pipeline

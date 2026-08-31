@@ -10,21 +10,27 @@ step 4), `ping_hc` hardening, a flock-held-lock success ping, beets config
 sync, and an Opus-review fix round (quoting bug, mv-collision safety, CRB)
 landed this pass; `bash scripts/check.sh` exits 0 (35 bats cases).
 
-Task 5 (Cloudflare wiring) is **done at the control-plane level**. Geoff added
-Cloudflare Tunnel:Edit to `CLOUDFLARE_API_TOKEN` 2026-08-30; on 2026-08-31 the
-tunnel `musicbox` (id `66fa450c-5abb-459d-a1f8-b80d8d19e07c`, `config_src:
-cloudflare`) was created, its token stored as `MUSICBOX_TUNNEL_TOKEN` (via
-`secret-set.sh --stdin`, piped directly from the API response), its ingress
-PUT from `config/cloudflared-tunnel-config.json` and verified by GET
-(`music.907.life` → `http://navidrome:4533`, `inbox.907.life` →
-`http://filebrowser:80`, 404 catch-all), and DNS CNAMEs `music.907.life` /
-`inbox.907.life` created proxied → `66fa450c-5abb-459d-a1f8-b80d8d19e07c.cfargotunnel.com`
-on zone `907.life`. Cloudflare Access is done independently (`inbox.907.life`
-has a self-hosted Access app, one-time-PIN for `geoff-login@907.life`,
-re-confirmed as the only Access app on the musicbox surface; `music.907.life`
-confirmed Access-free). Task 6's Navidrome secrets are generated and stored.
-`cloudflared` is not yet running on the box, so both hostnames 530 until the
-first real deploy — expected, not a defect. Full narrative: `docs/HISTORY.md`.
+Task 5 (Cloudflare wiring) is **done at the control-plane level**, on the
+tunnel's second incarnation after a same-day secret rotation. Geoff added
+Cloudflare Tunnel:Edit to `CLOUDFLARE_API_TOKEN` 2026-08-30; on 2026-08-31 an
+agent transcript displayed the first tunnel's CREATE response body in full
+(it carries the tunnel secret and connector token, not just the id), so that
+tunnel (`66fa450c-5abb-459d-a1f8-b80d8d19e07c`) was treated as compromised,
+deleted, and recreated. **Live tunnel** `musicbox` is id
+`b6781175-000b-40c3-a54a-05906ab25037` (`config_src: cloudflare`); its token
+is stored as `MUSICBOX_TUNNEL_TOKEN` (via `secret-set.sh --stdin`, piped
+directly from the API response, never displayed), its ingress is PUT from
+`config/cloudflared-tunnel-config.json` and verified by GET (`music.907.life`
+→ `http://navidrome:4533`, `inbox.907.life` → `http://filebrowser:80`, 404
+catch-all), and DNS CNAMEs `music.907.life` / `inbox.907.life` are proxied →
+`b6781175-000b-40c3-a54a-05906ab25037.cfargotunnel.com` on zone `907.life`.
+Cloudflare Access is done independently (`inbox.907.life` has a self-hosted
+Access app, one-time-PIN for `geoff-login@907.life`, re-confirmed as the only
+Access app on the musicbox surface; `music.907.life` confirmed Access-free).
+Task 6's Navidrome secrets are generated and stored. `cloudflared` is not yet
+running on the box, so both hostnames 530 until the first real deploy —
+expected, not a defect. Incident narrative and the rotation sequence: see the
+2026-08-31 entry in `docs/HISTORY.md`.
 
 **Next action**: Task 4's first real `deploy.sh` (which starts `cloudflared`
 with `MUSICBOX_TUNNEL_TOKEN` and should clear the 530s), then verify Access on
