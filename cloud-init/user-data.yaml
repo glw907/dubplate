@@ -19,14 +19,21 @@ users:
 # listed here so a minimal image still has the volume-formatting tools. jq is
 # music-import's JSON filter over yq's YAML->JSON output (Task 2); yq itself
 # (mikefarah/go, v4) is not in AlmaLinux's repos and is installed below via a
-# pinned, checksum-verified GitHub release instead. flac and ffmpeg (also
-# needed on the host, for the quality gate and replaygain) are NOT listed
-# here: this packages module runs before runcmd, but they need EPEL and RPM
-# Fusion enabled first, which is a runcmd step (see below) -- so they're
-# installed there instead, right after those repos come up.
+# pinned, checksum-verified GitHub release instead. sqlite is the sqlite3 CLI
+# music-backup's `.backup` snapshots need, and comes from the base repo. flac
+# and ffmpeg (also needed on the host, for the quality gate and replaygain)
+# are NOT listed here: this packages module runs before runcmd, but they need
+# EPEL and RPM Fusion enabled first, which is a runcmd step (see below) -- so
+# they're installed there instead, right after those repos come up.
+#
+# STILL MISSING (open item in docs/STATUS.md): rclone (music-backup's R2 sync)
+# and msmtp (lib.sh's notify()). Neither is in the base/AppStream repos, and
+# where each does come from is unconfirmed, so neither is guessed into this
+# unattended, set -e first boot. Confirm the source before adding them.
 packages:
   - e2fsprogs
   - jq
+  - sqlite
 
 write_files:
   # cloud-init.service is ordered Before=sshd.service, so this drop-in is already

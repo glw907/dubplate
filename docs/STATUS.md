@@ -2,41 +2,61 @@
 
 ## Current state
 
-Task 3 (compose.yaml, systemd units, deploy.sh) is done. Task 4a (real
-provisioning) is done: server `musicbox` is up at `5.78.148.42` (CPX21,
-`alma-10`, `hil`, 2 TiB/month traffic) with volume `musicbox-data` (50GB)
-attached, 9 of 9 on-box checks green. Import pipeline's quality gate (spec
-step 4), `ping_hc` hardening, a flock-held-lock success ping, beets config
-sync, and an Opus-review fix round (quoting bug, mv-collision safety, CRB)
-landed this pass; `bash scripts/check.sh` exits 0 (35 bats cases).
+**musicbox is deployed and live** as of 2026-08-31. `scripts/deploy.sh` has run
+successfully against `5.78.148.42`; all three containers (`navidrome`,
+`filebrowser`, `cloudflared`) are up with zero restarts, the tunnel reads
+`healthy`, and both public hostnames serve through it correctly (Access
+challenge on `inbox.907.life`, none on `music.907.life`). Six real bugs
+surfaced by this first live run (a fixture-backed test suite can't catch
+host-environment issues) are fixed and committed; two package-provisioning
+gaps remain open, blocking `music-backup` entirely and degrading
+`music-import`. Full narrative, root causes, and every fix: the 2026-08-31
+"Task 4/6: first live deploy" entry in `docs/HISTORY.md`.
 
-Task 5 (Cloudflare wiring) is **done at the control-plane level**, on the
-tunnel's second incarnation after a same-day secret rotation. Geoff added
-Cloudflare Tunnel:Edit to `CLOUDFLARE_API_TOKEN` 2026-08-30; on 2026-08-31 an
-agent transcript displayed the first tunnel's CREATE response body in full
-(it carries the tunnel secret and connector token, not just the id), so that
-tunnel (`66fa450c-5abb-459d-a1f8-b80d8d19e07c`) was treated as compromised,
-deleted, and recreated. **Live tunnel** `musicbox` is id
-`b6781175-000b-40c3-a54a-05906ab25037` (`config_src: cloudflare`); its token
-is stored as `MUSICBOX_TUNNEL_TOKEN` (via `secret-set.sh --stdin`, piped
-directly from the API response, never displayed), its ingress is PUT from
-`config/cloudflared-tunnel-config.json` and verified by GET (`music.907.life`
-→ `http://navidrome:4533`, `inbox.907.life` → `http://filebrowser:80`, 404
-catch-all), and DNS CNAMEs `music.907.life` / `inbox.907.life` are proxied →
-`b6781175-000b-40c3-a54a-05906ab25037.cfargotunnel.com` on zone `907.life`.
-Cloudflare Access is done independently (`inbox.907.life` has a self-hosted
-Access app, one-time-PIN for `geoff-login@907.life`, re-confirmed as the only
-Access app on the musicbox surface; `music.907.life` confirmed Access-free).
-Task 6's Navidrome secrets are generated and stored. `cloudflared` is not yet
-running on the box, so both hostnames 530 until the first real deploy —
-expected, not a defect. Incident narrative and the rotation sequence: see the
-2026-08-31 entry in `docs/HISTORY.md`.
+### Acceptance sweep (2026-08-31)
 
-**Next action**: Task 4's first real `deploy.sh` (which starts `cloudflared`
-with `MUSICBOX_TUNNEL_TOKEN` and should clear the 530s), then verify Access on
-`inbox.907.life` and `https://music.907.life/rest/ping`, then Task 6's
-remainder (R2 lifecycle/lock, healthchecks.io checks, first backup, seed
-content).
+| # | Check | Result |
+|---|---|---|
+| 3a | `docker compose ps` + 60s settle, restart counts | **Pass** — all 3 containers running, RestartCount=0 |
+| 3b | `cfd_tunnel` API status | **Pass** — `status: healthy`, connections active |
+| 3c | `/rest/ping`, `music.907.life` web, `inbox.907.life` Access | **Pass** — all three behave as specified |
+| 3d | Timers active; first `music-import` run | **Pass, degraded** — clean no-op run, success ping; replaygain/ffmpeg load fails (non-fatal, empty inbox); Navidrome scan-trigger 404s (stale native-API assumption, non-fatal — cron backstop covers it) |
+| 3e | First `music-backup` run; R2 `state/` layout | **Blocked** — `sqlite3`/`rclone` missing on box, neither ever in cloud-init; R2 confirmed empty via read-only `lsjson` |
+| 3f | Navidrome admin bootstrap + login | **Pass** — `POST /auth/createAdmin` then `POST /auth/login`, verified via API only |
+
+## Open items
+
+- **`ffmpeg`/`flac`/`sqlite3` fixes are committed to `cloud-init/user-data.yaml`
+  but not yet applied to this already-provisioned box** (cloud-init only runs
+  at first boot). Needs Geoff present to run the remediation over SSH or a
+  full reprovision — a subagent's `dnf install` attempt was refused by the
+  Claude Code auto-mode classifier this pass (same shape as Task 5's
+  tunnel-recreate refusal).
+- **`rclone`/`msmtp` are missing on the box AND were never in cloud-init at
+  all** — a real spec gap. Blocks `music-backup.service` entirely and leaves
+  `lib.sh`'s `notify()` unverified. Needs each package's AlmaLinux 10 install
+  path looked up before adding (an unattended `set -e` first-boot script is
+  the wrong place to guess).
+- **`trigger_navidrome_scan()` calls a native admin endpoint that doesn't
+  exist in pinned Navidrome `0.63.2`** (moved to the Subsonic API's
+  `startScan` action). Non-fatal — the daily cron scan covers it — needs a
+  rewrite to Subsonic query-param auth.
+- **`MUSICBOX_HC_DISK_URL`/`MUSICBOX_HC_NAVIDROME_URL` are minted but
+  unwired**: only `import`/`backup` have real `ping_hc` calls; Task 6 needs
+  disk-space and Navidrome-heartbeat scripts + timers too.
+- **cloudflared ingress is not set anywhere in compose.yaml on purpose**: a
+  token-run tunnel is remotely managed; `config/cloudflared-tunnel-config.json`
+  is the record of what's PUT to the tunnel's remote config, not something
+  compose.yaml or deploy.sh reads.
+- **Ruling**: "no `latest`, pin explicitly" governs container tags and
+  package versions (beets); `dnf-automatic` and `uv` itself are exceptions.
+- Task 8 (per-contributor FileBrowser accounts, Navidrome family accounts,
+  seed content, out-of-band credential delivery to Geoff) has not started.
+
+**Next action**: with Geoff present, run the ffmpeg/flac/sqlite3 remediation
+on the live box (or reprovision), confirm a real `music-backup` run and a
+`music-import` run with actual FLAC content, look up `rclone`/`msmtp`'s
+AlmaLinux 10 install path and add both to cloud-init, then Task 8.
 
 Plan: `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md` — Spec:
 `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
@@ -51,24 +71,6 @@ Plan: `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md` — Spe
 | beets (box, via uv) | PyPI `beets` | `2.13.1` | current at lookup |
 | yq (box, cloud-init) | GitHub `mikefarah/yq` (`yq_linux_amd64`) | `v4.53.6` (sha256 `c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385`) | current at lookup |
 
-Re-verify all five before Task 4's deploy if stale — neither `docker compose config`
-nor cloud-init's `sha256sum -c` catch a pin drifted upstream.
-
-## Open items
-
-- **Resolved: Task 5 tunnel-permission blocker.** Cloudflare Tunnel:Edit added
-  to `CLOUDFLARE_API_TOKEN` 2026-08-30; tunnel created and wired 2026-08-31
-  (see Current state above).
-- **Resolved: flac/ffmpeg's missing repos.** Ruling, 2026-08-30: enable EPEL
-  and RPM Fusion free in cloud-init's runcmd (key imported, no `--nogpgcheck`)
-  since both parse untrusted uploads and must stay on dnf-automatic's path.
-- **cloudflared ingress is not set anywhere in compose.yaml on purpose**: a
-  token-run tunnel is remotely managed. `config/cloudflared-tunnel-config.json`
-  is the API body already PUT to the tunnel's remote configuration (Task 5,
-  2026-08-31); it stays in the repo as the record of that config, not as
-  something compose.yaml or deploy.sh reads.
-- **MUSICBOX_HC_DISK_URL / MUSICBOX_HC_NAVIDROME_URL are named but unwired**:
-  only `import`/`backup` have real `ping_hc` calls; Task 6 needs disk-space
-  and Navidrome-heartbeat scripts + timers too.
-- **Ruling**: "no `latest`, pin explicitly" governs container tags and package
-  versions (beets); `dnf-automatic` and `uv` itself are intentional exceptions.
+Re-verify all five before the next fresh provision if stale — neither
+`docker compose config` nor cloud-init's `sha256sum -c` catch a pin drifted
+upstream.

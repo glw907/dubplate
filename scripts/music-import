@@ -26,7 +26,10 @@ REVIEW_DIR="$MUSICBOX_ROOT/review"
 # a healthy box never has one.
 QUARANTINE_FAILED_DIR="$MUSICBOX_ROOT/quarantine-failed"
 STATE_DIR="$MUSICBOX_ROOT/state"
-LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}"
+# /run/lock itself is root:root 0755 on Alma (unlike Debian's world-writable
+# 1777), so the User=music service can't create a lock file there; the unit's
+# RuntimeDirectory=musicbox gives it /run/musicbox instead, owned by music.
+LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/musicbox/musicbox-import.lock}"
 QUIESCENT_MINUTES="${MUSICBOX_QUIESCENT_MINUTES:-10}"
 MIN_FREE_GB="${MUSICBOX_MIN_FREE_GB:-5}"
 MAX_ARCHIVE_BYTES="${MUSICBOX_MAX_ARCHIVE_BYTES:-2147483648}"
@@ -326,8 +329,11 @@ trigger_navidrome_scan() {
   fi
   local login_body token
   login_body="$(jq -n --arg u "$NAVIDROME_ADMIN_USER" --arg p "$NAVIDROME_ADMIN_PASSWORD" '{username:$u,password:$p}')"
+  # || true keeps an unreachable Navidrome on the empty-token path below
+  # instead of failing the whole import through set -e/pipefail; curl's own
+  # message on stderr says which failure it was.
   token="$(curl -fsS -X POST "$NAVIDROME_URL/auth/login" \
-    -H 'Content-Type: application/json' -d "$login_body" | jq -r '.token // empty')"
+    -H 'Content-Type: application/json' -d "$login_body" | jq -r '.token // empty')" || true
   if [ -z "$token" ]; then
     echo "music-import: Navidrome login failed; scan trigger skipped." >&2
     return 0

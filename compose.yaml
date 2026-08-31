@@ -33,13 +33,24 @@ services:
       - /srv/music/library:/music:ro,Z
       - /srv/music/state/navidrome:/data:Z
       - ./config/navidrome.toml:/data/navidrome.toml:ro,Z
-    expose:
-      - "4533"
+    # Loopback publish rather than `expose`: music-import runs on the host as
+    # the `music` user, outside this compose network, and its
+    # trigger_navidrome_scan() needs the native admin API at localhost:4533.
+    # Binding 127.0.0.1 leaves Navidrome as unreachable from the internet as
+    # `expose` did; cloudflared remains the only external path in.
+    ports:
+      - "127.0.0.1:4533:4533"
 
   filebrowser:
     image: gtstef/filebrowser:1.5.5-stable
     restart: unless-stopped
     user: "2000:2000"
+    environment:
+      # Secret: FileBrowser's first-run admin bootstrap password. Without it
+      # the built-in default fails our own auth.methods.password.minLength: 8
+      # policy (config/filebrowser.yaml) and the container crash-loops. Task 8
+      # replaces it with per-contributor accounts.
+      FILEBROWSER_ADMIN_PASSWORD: ${FILEBROWSER_ADMIN_PASSWORD}
     volumes:
       - /srv/music/inbox:/srv/music/inbox:Z
       - /srv/music/state/filebrowser:/home/filebrowser/data:Z

@@ -2,6 +2,83 @@
 
 Per-pass ledger, newest first.
 
+## Task 4/6: first live deploy (2026-08-31)
+
+`scripts/deploy.sh --check` then a real run against the provisioned box. Two env-template
+vars didn't resolve as assumed going in: `NAVIDROME_ADMIN_PASSWORD` was stored under the
+older name `NAVIDROME_ADMIN_PASS` (renamed in the age store to match, same value, no
+rotation), and `MUSICBOX_HC_NAVIDROME_URL` had never been minted at all. Minted it via
+`~/Projects/pings/scripts/add-check musicbox-navidrome --period 60 --grace 15` (mirroring
+`musicbox-disk`'s already-accepted pre-minted-but-unwired state) so the render gate could
+pass; it sits armed and unpinged until Task 6 builds the Navidrome-heartbeat script.
+
+The deploy itself succeeded, but the acceptance sweep surfaced real bugs a fixture-backed
+test suite can't see — **wrong to rediscover**, each one below:
+
+1. **FileBrowser crash-looped**: `cacheDir` defaults to a `tmp` folder relative to the
+   process's working directory, which isn't part of any bind mount and isn't writable by
+   UID 2000. Fixed by pointing `server.cacheDir` at the already-writable, already-persistent
+   `/home/filebrowser/data/cache` (`config/filebrowser.yaml`).
+2. **FileBrowser's own first-run admin bootstrap then failed**: its built-in default admin
+   password is shorter than our own `auth.methods.password.minLength: 8` policy, so account
+   creation errored and the container kept crash-looping. Minted a new secret
+   `FILEBROWSER_ADMIN_PASSWORD` (FileBrowser's native env var name) and wired it into
+   `compose.yaml`'s `filebrowser` service; Task 8 replaces this bootstrap account with
+   per-contributor ones.
+3. **music-import.service failed on `/run/lock/musicbox-import.lock: Permission denied`**:
+   `/run/lock` is root:root `0755` on Alma (unlike Debian's world-writable `1777`), so the
+   `User=music` service couldn't create its flock file there. Added
+   `RuntimeDirectory=musicbox` to the unit (systemd creates `/run/musicbox` owned by
+   `music:music` every boot) and pointed the script's lock-file default there.
+4. **music-import then failed on `curl: (7) ... Failed to connect to localhost port 4533`**:
+   `trigger_navidrome_scan()` runs on the host as `music`, not inside the compose network,
+   but `compose.yaml`'s `navidrome` service only used `expose` (container-network-only).
+   Switched to `ports: - "127.0.0.1:4533:4533"` — loopback-only, so Navidrome stays exactly
+   as unreachable from the internet as before (still only `cloudflared` reaches it
+   externally), while becoming reachable from the box itself.
+5. **Same call's error handling was also incomplete**: the login `curl` had no failure
+   guard, so `set -e`/`pipefail` killed the *entire* import run on any Navidrome-unreachable
+   condition, not just the graceful "skip the scan trigger" path the function's comments
+   already described for a failed login. Added `|| true` to match.
+6. **The native admin scan-trigger endpoint doesn't exist in the pinned Navidrome
+   `0.63.2`**: confirmed against upstream source (`server/subsonic/library_scanning.go`,
+   `server/subsonic/api.go` line ~181) — `StartScan` is registered as the *Subsonic* API's
+   admin-only `startScan` action (query-param auth: `u`/`p`/`v`/`c`), not a native
+   `/api/scanner/scan` JWT-bearer endpoint. Every `music-import` run now logs a 404 there
+   after a real login success. **Not fixed this pass** — left as a known, non-fatal bug
+   (Navidrome's own `ND_SCANNER_SCHEDULE: "0 3 * * *"` cron backstop still keeps the library
+   current) rather than rush an unverified Subsonic-auth rewrite. Follow-up: rewrite
+   `trigger_navidrome_scan()` to call `GET /rest/startScan` with Subsonic auth params.
+
+**Two gaps could not be closed this pass, both blocked by the Claude Code auto-mode
+classifier refusing an on-box `dnf install` from a subagent** (same shape as Task 5's
+DELETE/create-tunnel refusal above — mutating infra calls need Geoff present, not a
+subagent acting alone):
+
+- **`ffmpeg`/`flac` are still absent on this box.** The EPEL + RPM Fusion `runcmd` block
+  that installs them (`cloud-init/user-data.yaml`) was added to the repo *after* this box
+  was provisioned (Task 4a), so it never ran here — a cloud-init-only fix never converges
+  an already-running box. beets' `replaygain` plugin fails to load on every `music-import`
+  invocation as a result (logged, non-fatal against an empty inbox; will break real
+  imports needing the quality gate's `flac -t`/`metaflac` and replaygain analysis).
+- **`music-backup.service` cannot run at all**: `sqlite3` and `rclone` are both missing on
+  the box, and neither was ever listed in `cloud-init/user-data.yaml` in the first place (a
+  real spec gap, not just an unapplied one). Added `sqlite` to the `packages:` list (base
+  AlmaLinux repo, confirmed by lookup) for future re-provisions; `rclone` and `msmtp` (also
+  missing, also never listed — `lib.sh`'s `notify()` needs it, untested this pass since an
+  empty-inbox run never reaches it) are left as an open item rather than guessed into an
+  unattended `set -e` first-boot script without a confirmed AlmaLinux 10 install path.
+  Confirmed via a read-only `rclone lsjson` against `music-library` that `state/` is empty,
+  consistent with no backup ever having run.
+
+Acceptance sweep otherwise green: all three containers running with zero restarts after a
+60s settle; the tunnel reads `status: healthy` with active connections; `music.907.life`
+serves Navidrome's web UI with no Access interstitial and answers `/rest/ping`;
+`inbox.907.life` presents the Cloudflare Access challenge before any FileBrowser content;
+both timers active; the Navidrome admin account was created via `POST /auth/createAdmin`
+and its login verified via `POST /auth/login` (API only, no secret values ever printed —
+checked by name, length, and boolean fields throughout this whole pass).
+
 ## Task 5: Cloudflare tunnel wiring, plus a same-day secret rotation (2026-08-31)
 
 Geoff added Cloudflare Tunnel:Edit to `CLOUDFLARE_API_TOKEN` 2026-08-30, unblocking Task 5.

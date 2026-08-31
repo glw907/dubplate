@@ -10,5 +10,8 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=music
+# Creates /run/musicbox every boot, owned by music:music, to hold the flock
+# lock file; /run/lock is root:root 0755 on Alma, not Debian's 1777.
+RuntimeDirectory=musicbox
 EnvironmentFile=/etc/musicbox/env
 ExecStart=/usr/local/bin/music-import

@@ -20,6 +20,11 @@ server:
   port: 80
   baseURL: "/"
   database: "/home/filebrowser/data/database.db"
+  # The default is "tmp", relative to the working directory: outside every
+  # bind mount and not writable by UID 2000, so the container crash-loops on
+  # "mkdir tmp: permission denied". The data volume below is already both
+  # writable and persistent, so the cache belongs under it.
+  cacheDir: "/home/filebrowser/data/cache"
   sources:
     - path: "/srv/music/inbox"
       name: "inbox"
