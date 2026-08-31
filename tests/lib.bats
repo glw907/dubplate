@@ -283,3 +283,15 @@ EOF
   [ "$status" -ne 0 ]
   [[ "$output" == *"could not move"* ]]
 }
+
+@test "safe_mv_to_review warns and returns nonzero instead of aborting when the dest dir can't be created" {
+  mkdir -p "$WORK_DIR/staging/Good Album" "$WORK_DIR/readonly-parent"
+  chmod 0555 "$WORK_DIR/readonly-parent"
+  run safe_mv_to_review "$WORK_DIR/staging/Good Album" "$WORK_DIR/readonly-parent/nested"
+  # Restored before the assertions, so a failing one still leaves teardown
+  # a writable tree to sweep.
+  chmod 0755 "$WORK_DIR/readonly-parent"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"could not create"* ]]
+  [ -e "$WORK_DIR/staging/Good Album" ]
+}

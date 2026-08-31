@@ -18,6 +18,13 @@ MUSICBOX_ROOT="${MUSICBOX_ROOT:-/srv/music}"
 INBOX_DIR="$MUSICBOX_ROOT/inbox"
 STAGING_DIR="$MUSICBOX_ROOT/staging"
 REVIEW_DIR="$MUSICBOX_ROOT/review"
+# Where a quality-gate failure lands when it cannot be filed to review at
+# all. Deliberately outside both staging and review's own tree, so a
+# problem isolated to review (its permissions, a bad mount) doesn't also
+# block the fallback: a different failure domain, reached by a different
+# filesystem path. Not created up front like the directories below, since
+# a healthy box never has one.
+QUARANTINE_FAILED_DIR="$MUSICBOX_ROOT/quarantine-failed"
 STATE_DIR="$MUSICBOX_ROOT/state"
 LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}"
 QUIESCENT_MINUTES="${MUSICBOX_QUIESCENT_MINUTES:-10}"
@@ -241,17 +248,28 @@ quarantine_quality_failures() {
 
   [ "${#album_order[@]}" -eq 0 ] && return 0
 
-  local album_dir dest first_name email failed_rel raw_reason
+  local album_dir dest holding_dest first_name email failed_rel raw_reason
   local friendly_lines geoff_summary=""
   for album_key in "${album_order[@]}"; do
     user="${album_key%%/*}"
     album_dir="$staging_root/$album_key"
     dest="$review_root/$date_str/$user"
-    # An album that could not be moved is still in staging, so it has not
-    # been rejected: skip its emails too, rather than telling its uploader
-    # about a quarantine that did not happen. safe_mv_to_review has
-    # already warned about the move itself.
-    safe_mv_to_review "$album_dir" "$dest" >/dev/null || continue
+    holding_dest="$QUARANTINE_FAILED_DIR/$date_str/$user"
+    if ! safe_mv_to_review "$album_dir" "$dest" >/dev/null; then
+      # safe_mv_to_review has already warned about the move itself. beet
+      # import scans $STAGING_DIR recursively with no way to skip one
+      # subdirectory, so this album must still leave staging by some
+      # path, or it gets silently imported despite failing the quality
+      # gate -- the guarantee this whole function exists for. Geoff hears
+      # about it either way: a quarantine that could not be filed the
+      # normal way must never go silent just because that way failed.
+      if safe_mv_to_review "$album_dir" "$holding_dest" >/dev/null; then
+        geoff_summary+="$album_key: could not move; excluded from import (see $holding_dest)"$'\n'
+      else
+        geoff_summary+="$album_key: COULD NOT MOVE BY ANY MEANS -- still in staging and beet import may ingest it; manual removal required"$'\n'
+      fi
+      continue
+    fi
 
     # Each line carries its own file's basename, so N failures in one
     # album read as N distinct per-file lines rather than one paragraph.
@@ -285,8 +303,13 @@ quarantine_quality_failures() {
     geoff_summary+="$album_key:"$'\n'"${album_reasons[$album_key]}"
   done
 
+  # Belt and suspenders alongside the album_order check above: every
+  # branch of the loop appends something, so this cannot be empty today.
+  # A no-content email is worse than a skipped one if that ever changes.
+  [ -n "$geoff_summary" ] || return 0
+
   notify "$GEOFF_EMAIL" "Musicbox: import quality gate failures ($date_str)" \
-    "The following uploads failed the quality gate and were moved to $review_root/$date_str:
+    "The following uploads failed the quality gate today (see each item for where it landed):
 
 $geoff_summary"
 }

@@ -110,6 +110,34 @@ Six items landed, TDD where a test was named:
   both repos need packages CRB carries, and ffmpeg's dependency chain fails
   without it.
 
+Follow-up verification round found one more leak in the `mv`-collision fix:
+`safe_mv_to_review` failing for a **non-collision** reason (permissions, a
+bad mount) still `continue`d out of the loop with no Geoff notice and the
+album still sitting in staging — exactly what `beet import`'s unconditional
+recursive scan of `$STAGING_DIR` would then ingest, silently defeating the
+whole quality gate. Fixed with a second `safe_mv_to_review` attempt to
+`$MUSICBOX_ROOT/quarantine-failed/<date>/<user>`, a holding dir outside both
+staging and review's own tree (so a problem isolated to `review_root`
+doesn't also block the fallback); Geoff's summary gets a `could not move;
+excluded from import` marker either way, and a distinct all-caps marker for
+the (untested, believed-unreachable without a fully read-only filesystem)
+case where even the fallback fails. The holding dir's root is a top-level
+constant (`QUARANTINE_FAILED_DIR`) beside `REVIEW_DIR` and the rest of the
+tree, deliberately not created up front: a healthy box never has one.
+
+Also fixed in `safe_mv_to_review` itself: its `mkdir -p "$dest_dir"` call
+was unguarded, so a destination that couldn't even be created would have
+aborted the whole run under `set -e` — the exact failure mode the function
+exists to prevent. Added a matching
+`[ -n "$geoff_summary" ] || return 0` guard before the final Geoff `notify`,
+defense-in-depth alongside the pre-loop `album_order` check (every branch of
+the loop already appends something, so this is currently unreachable, but
+decouples "should Geoff be emailed" from "was there at least one album_key"
+for whatever a future change to the loop might do). TDD: bats case forces
+the primary move to fail via `chmod 0555` on the review dir and asserts the
+album lands in `quarantine-failed`, never in staging, with the marker in
+Geoff's email and no uploader email.
+
 Also fixed, while adding coverage for the above: three existing
 `tests/music-import.bats` assertions used `! grep ...` as a non-final line —
 under bats' `set -e`, a command negated with a leading `!` never triggers

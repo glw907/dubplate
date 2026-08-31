@@ -337,3 +337,42 @@ EOF
   grep -q "geoff-login@907.life" "$MSMTP_LOG"
   grep -q "track2.mp3" "$MSMTP_LOG"
 }
+
+@test "quality gate: an album that can't be moved to review is excluded from import and reported to Geoff" {
+  stub_beet_clean
+  stage_bad_album "Bad Album"
+
+  # Force the normal review destination to be unwritable: mkdir -p for
+  # review/<date>/alice fails when review itself carries no write
+  # permission, so safe_mv_to_review's primary move fails for a reason
+  # that has nothing to do with a name collision.
+  mkdir -p "$MUSICBOX_ROOT/review"
+  chmod 0555 "$MUSICBOX_ROOT/review"
+
+  run "$SCRIPT"
+
+  chmod 0755 "$MUSICBOX_ROOT/review"
+
+  [ "$status" -eq 0 ]
+
+  # The album never reached review, and it must also be gone from staging:
+  # beet import scans $STAGING_DIR recursively with no way to skip one
+  # subdirectory, so anything left there is imported despite having failed
+  # the gate. quarantine-failed is the holding dir it lands in instead.
+  [ ! -e "$MUSICBOX_ROOT/staging/alice/Bad Album" ]
+  found="$(find "$MUSICBOX_ROOT/quarantine-failed" -type d -iname "Bad Album" -print -quit)"
+  [ -n "$found" ]
+  [[ "$found" == *"/quarantine-failed/"*"/alice/Bad Album" ]]
+  [ -f "$found/track1.flac" ]
+  [ -f "$found/track2.mp3" ]
+
+  # Geoff hears about it even though the review move failed: this case
+  # must never go silent, which is the whole point.
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "could not move; excluded from import" "$MSMTP_LOG"
+
+  # No uploader-facing email for this one: nothing was filed to review
+  # the normal, contributor-visible way.
+  run grep -q "alice@example.com" "$MSMTP_LOG"
+  [ "$status" -ne 0 ]
+}

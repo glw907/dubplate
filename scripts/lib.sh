@@ -186,15 +186,19 @@ unique_dest_path() {
 #
 # Moves src into dest_dir under a name unique_dest_path guarantees is
 # free, so a same-day repeat quarantine of an identically named item lands
-# beside the first instead of overwriting or merging into it. A move that
-# fails for any other reason (permissions, cross-device, disk full) warns
-# and returns nonzero rather than aborting a caller under `set -e`: one
+# beside the first instead of overwriting or merging into it. Creating
+# dest_dir and the move itself can each fail for another reason
+# (permissions, cross-device, disk full); either one warns and returns
+# nonzero rather than aborting a caller under `set -e`, because one
 # contributor's un-movable item must never take every other contributor's
 # run down with it. Prints the destination path on success.
 safe_mv_to_review() {
   local src="$1" dest_dir="$2" name dest
   name="$(basename "$src")"
-  mkdir -p "$dest_dir"
+  if ! mkdir -p "$dest_dir"; then
+    echo "safe_mv_to_review: could not create $dest_dir; leaving $src in place" >&2
+    return 1
+  fi
   dest="$(unique_dest_path "$dest_dir" "$name")"
   if ! mv "$src" "$dest"; then
     echo "safe_mv_to_review: could not move $src to $dest; left in place" >&2

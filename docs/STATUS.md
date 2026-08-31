@@ -8,7 +8,7 @@ provisioning) is done: server `musicbox` is up at `5.78.148.42` (CPX21,
 attached, 9 of 9 on-box checks green. Import pipeline's quality gate (spec
 step 4), `ping_hc` hardening, a flock-held-lock success ping, beets config
 sync, and an Opus-review fix round (quoting bug, mv-collision safety, CRB)
-landed this pass; `bash scripts/check.sh` exits 0 (33 bats cases).
+landed this pass; `bash scripts/check.sh` exits 0 (35 bats cases).
 
 Task 5 (Cloudflare wiring) is **blocked on a token permission**: neither
 `CLOUDFLARE_API_TOKEN` nor `CF_ZT_TOKEN` carries Cloudflare Tunnel:Edit, so
