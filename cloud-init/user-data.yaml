@@ -19,10 +19,19 @@ users:
 # listed here so a minimal image still has the volume-formatting tools. jq is
 # music-import's JSON filter over yq's YAML->JSON output (Task 2); yq itself
 # (mikefarah/go, v4) is not in AlmaLinux's repos and is installed below via a
-# pinned, checksum-verified GitHub release instead.
+# pinned, checksum-verified GitHub release instead. flac and ffmpeg back
+# beets on the host: flac (flac -t, metaflac) is music-import's quality
+# gate, ffmpeg is the replaygain plugin's analysis backend
+# (config/beets-config.yaml). NEITHER is in AlmaLinux's BaseOS/AppStream
+# repos -- flac needs EPEL, ffmpeg needs RPM Fusion (or a static build) --
+# so a real provisioning run needs one of those repos enabled before this
+# packages module runs, or this install fails. Tracked in docs/STATUS.md
+# until a repo (or an alternative) is chosen.
 packages:
   - e2fsprogs
   - jq
+  - flac
+  - ffmpeg
 
 write_files:
   # cloud-init.service is ordered Before=sshd.service, so this drop-in is already
