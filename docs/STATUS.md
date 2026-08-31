@@ -10,23 +10,27 @@ step 4), `ping_hc` hardening, a flock-held-lock success ping, beets config
 sync, and an Opus-review fix round (quoting bug, mv-collision safety, CRB)
 landed this pass; `bash scripts/check.sh` exits 0 (35 bats cases).
 
-Task 5 (Cloudflare wiring) is **blocked on a token permission**: neither
-`CLOUDFLARE_API_TOKEN` nor `CF_ZT_TOKEN` carries Cloudflare Tunnel:Edit, so
-`POST .../cfd_tunnel` 403s on both — tunnel creation, its token, the ingress
-PUT, and the DNS CNAMEs all wait on this. Cloudflare Access is done
-independently (`inbox.907.life` has a self-hosted Access app, one-time-PIN
-for `geoff-login@907.life`; `music.907.life` confirmed Access-free). Task 6's
-Navidrome secrets are generated and stored. Full narrative: `docs/HISTORY.md`.
+Task 5 (Cloudflare wiring) is **done at the control-plane level**. Geoff added
+Cloudflare Tunnel:Edit to `CLOUDFLARE_API_TOKEN` 2026-08-30; on 2026-08-31 the
+tunnel `musicbox` (id `66fa450c-5abb-459d-a1f8-b80d8d19e07c`, `config_src:
+cloudflare`) was created, its token stored as `MUSICBOX_TUNNEL_TOKEN` (via
+`secret-set.sh --stdin`, piped directly from the API response), its ingress
+PUT from `config/cloudflared-tunnel-config.json` and verified by GET
+(`music.907.life` → `http://navidrome:4533`, `inbox.907.life` →
+`http://filebrowser:80`, 404 catch-all), and DNS CNAMEs `music.907.life` /
+`inbox.907.life` created proxied → `66fa450c-5abb-459d-a1f8-b80d8d19e07c.cfargotunnel.com`
+on zone `907.life`. Cloudflare Access is done independently (`inbox.907.life`
+has a self-hosted Access app, one-time-PIN for `geoff-login@907.life`,
+re-confirmed as the only Access app on the musicbox surface; `music.907.life`
+confirmed Access-free). Task 6's Navidrome secrets are generated and stored.
+`cloudflared` is not yet running on the box, so both hostnames 530 until the
+first real deploy — expected, not a defect. Full narrative: `docs/HISTORY.md`.
 
-**Next action (Geoff, manual, blocking)**: add Cloudflare Tunnel:Edit to
-`CLOUDFLARE_API_TOKEN` (id `1d508f1ab69df49d3ef9572dc1917273`, "Cloudflare
-Admin 2026-07") via the dashboard — token self-management isn't API-grantable.
-Then resume Task 5: create tunnel `musicbox`, `secret-set.sh
-MUSICBOX_TUNNEL_TOKEN --stdin`, PUT `config/cloudflared-tunnel-config.json` as
-ingress, upsert CNAMEs `music`/`inbox` → `<tunnel-id>.cfargotunnel.com`, verify
-Access on `inbox.907.life` and `https://music.907.life/rest/ping`. Then Task
-4's first real `deploy.sh` and Task 6's remainder (R2 lifecycle/lock,
-healthchecks.io checks, first backup, seed content).
+**Next action**: Task 4's first real `deploy.sh` (which starts `cloudflared`
+with `MUSICBOX_TUNNEL_TOKEN` and should clear the 530s), then verify Access on
+`inbox.907.life` and `https://music.907.life/rest/ping`, then Task 6's
+remainder (R2 lifecycle/lock, healthchecks.io checks, first backup, seed
+content).
 
 Plan: `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md` — Spec:
 `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
@@ -46,13 +50,17 @@ nor cloud-init's `sha256sum -c` catch a pin drifted upstream.
 
 ## Open items
 
-- **Task 5 tunnel-permission blocker (Geoff, manual)**: see Next action above.
+- **Resolved: Task 5 tunnel-permission blocker.** Cloudflare Tunnel:Edit added
+  to `CLOUDFLARE_API_TOKEN` 2026-08-30; tunnel created and wired 2026-08-31
+  (see Current state above).
 - **Resolved: flac/ffmpeg's missing repos.** Ruling, 2026-08-30: enable EPEL
   and RPM Fusion free in cloud-init's runcmd (key imported, no `--nogpgcheck`)
   since both parse untrusted uploads and must stay on dnf-automatic's path.
 - **cloudflared ingress is not set anywhere in compose.yaml on purpose**: a
   token-run tunnel is remotely managed. `config/cloudflared-tunnel-config.json`
-  is the exact API body Task 5 must PUT once the tunnel exists.
+  is the API body already PUT to the tunnel's remote configuration (Task 5,
+  2026-08-31); it stays in the repo as the record of that config, not as
+  something compose.yaml or deploy.sh reads.
 - **MUSICBOX_HC_DISK_URL / MUSICBOX_HC_NAVIDROME_URL are named but unwired**:
   only `import`/`backup` have real `ping_hc` calls; Task 6 needs disk-space
   and Navidrome-heartbeat scripts + timers too.
