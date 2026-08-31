@@ -29,6 +29,11 @@ services:
       # recoverable, so this passphrase must come from the age-store-backed
       # env file, never a literal here.
       ND_PASSWORDENCRYPTIONKEY: ${ND_PASSWORDENCRYPTIONKEY}
+      # Spotify agent credentials (artist images in the UI). Secrets, same
+      # age-store path as the passphrase above; Navidrome reads these
+      # literal names directly.
+      ND_SPOTIFY_ID: ${ND_SPOTIFY_ID}
+      ND_SPOTIFY_SECRET: ${ND_SPOTIFY_SECRET}
     volumes:
       - /srv/music/library:/music:ro,Z
       - /srv/music/state/navidrome:/data:Z
