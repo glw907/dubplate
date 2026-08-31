@@ -194,6 +194,43 @@ EOF
   [ ! -e "$MUSICBOX_ROOT/staging/alice" ]
 }
 
+@test "lock held: another run fires a success ping and exits 0 without touching staging" {
+  mkdir -p "$MUSICBOX_ROOT/inbox/alice/Good Album"
+  echo fake-audio >"$MUSICBOX_ROOT/inbox/alice/Good Album/track1.flac"
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+
+  # A separate process holds the non-blocking flock the whole time this
+  # run executes, standing in for a concurrent scheduled run or an
+  # interactive `music-beet` session. Poll until it has actually acquired
+  # the lock before invoking the script, so the test never races its own
+  # fixture.
+  flock "$MUSICBOX_IMPORT_LOCK_FILE" sleep 5 &
+  holder_pid=$!
+  # Taking the lock here still SUCCEEDING means the holder has not got it
+  # yet, so the wait ends on the first failure. Bounded, so a holder that
+  # never starts fails the assertions below instead of hanging the suite.
+  for _ in {1..100}; do
+    flock -n "$MUSICBOX_IMPORT_LOCK_FILE" -c true 2>/dev/null || break
+    sleep 0.05
+  done
+
+  run "$SCRIPT"
+
+  kill "$holder_pid" 2>/dev/null || true
+  wait "$holder_pid" 2>/dev/null || true
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"another run holds the lock"* ]]
+  # Per the spec decision: a wedged import still reports healthy (a healthy
+  # system, not the residual risk of a permanently wedged lock going
+  # unnoticed), so the success ping fires before the early exit.
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
+  ! grep -q "/fail" "$CURL_LOG"
+  # Nothing past the lock check ran: no staging dir, no notifications.
+  [ ! -d "$MUSICBOX_ROOT/staging" ]
+  [ ! -s "$MSMTP_LOG" ]
+}
+
 # --- quality gate (end to end) --------------------------------------------
 
 @test "quality gate: an album with any failing file moves entirely to review" {

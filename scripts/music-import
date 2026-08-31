@@ -34,9 +34,18 @@ REJECT_EMAIL_TEMPLATE="${MUSICBOX_REJECT_EMAIL_TEMPLATE:-/opt/musicbox/config/re
 
 # A held lock means another run (or an interactive music-beet session) is
 # already touching the beets database; skip quietly rather than queue up.
+# Pinged as a success, not skipped or failed: a wedged lock either means a
+# real concurrent run (the common, healthy case this check exists for) or
+# a stuck previous run (rare; its own timeout is a separate concern), and
+# healthchecks.io has no "this run did nothing, and that's fine" state
+# between success and failure. Spec decision, 2026-08-30: treat it as
+# success rather than let a merely-overlapping run page Geoff at 3am; the
+# accepted residual is a wedged import silently reporting healthy until
+# someone notices stale music in the library.
 exec 200>"$LOCK_FILE"
 if ! flock -n 200; then
   echo "music-import: another run holds the lock; exiting." >&2
+  ping_hc import
   exit 0
 fi
 
