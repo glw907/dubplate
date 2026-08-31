@@ -17,7 +17,10 @@
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
-      "Bash(git show*)"
+      "Bash(git show*)",
+      "Bash(ssh root@5.78.148.42 docker compose --env-file /etc/musicbox/env -f /opt/musicbox/compose.yaml --project-directory /opt/musicbox restart *)",
+      "Bash(ssh root@5.78.148.42 systemctl restart *)",
+      "Bash(ssh root@5.78.148.42 systemctl reset-failed *)"
     ]
   }
 }
