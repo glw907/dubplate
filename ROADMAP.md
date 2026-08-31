@@ -34,15 +34,6 @@ clone floor; cloud-init generation; existing-box bootstrap; pre-setup-VPS
 option map). Runs after `uploader` so it templates the final intake. The
 `oss-pair` write-up below doubles as its demand test.
 
-## Closing
-
-### Architecture refinement pass `arch-refinement`
-Ran 2026-08-30/31: 9-lens adversarial review (72 findings, verified), an
-11-task fix wave plus lock follow-ups (all accepted), pings hardening
-(committed), and the charter for everything above. Close-out commit and
-HISTORY entry land when the bring-up run finishes; then this entry moves to
-HISTORY.
-
 ## Someday
 
 ### Open-source the pair `oss-pair`
