@@ -1,6 +1,9 @@
 #cloud-config
-# musicbox first-boot config for AlmaLinux 10. SELinux stays enforcing throughout;
-# nothing here calls setenforce or edits /etc/selinux/config.
+# musicbox first-boot config for AlmaLinux 10. SELinux ends this boot sequence
+# enforcing (global constraint); never `setenforce 0`. Getting there from the
+# Hetzner alma-10 image's shipped `SELINUX=permissive` default requires an
+# autorelabel + reboot — see the SELinux transition block near the end of
+# runcmd and the top-level `power_state` key.
 
 # Only the users listed below are created. Omitting the "default" entry means
 # cloud-init does not also create a distro default user.
@@ -113,13 +116,54 @@ runcmd:
     getent group music >/dev/null || groupadd -g 2000 music
     getent passwd music >/dev/null || useradd -u 2000 -g 2000 -d /srv/music -M -s /usr/sbin/nologin music
 
+  # docker/docker-ce-packaging#1340: on AlmaLinux/RHEL 10, iptables-nft no
+  # longer pulls in kernel-modules-extra (which ships xt_addrtype.ko) as a
+  # dependency, so a fresh dockerd fails to start ("Extension addrtype
+  # revision 0 not supported, missing kernel module?"). kernel-modules-extra
+  # is not currently installed at all (that omission is the bug), so a bare
+  # `dnf update kernel-modules-extra` is a no-op — update only touches
+  # already-installed packages — and a bare `dnf install kernel-modules-extra`
+  # risks skew: it resolves to the repo's newest build, which can name a
+  # kernel version newer than the one actually installed and running on this
+  # image (Hetzner's image build date and the AlmaLinux mirrors' current
+  # kernel are independent), leaving the .ko under a /lib/modules/<version>/
+  # nothing is running yet.
+  #
+  # Fast path: install the EXACT NVR matching this boot's running kernel
+  # (`uname -r`) — correct by construction, no kernel change, no reboot
+  # strictly required for this fix alone. Falls back only if the mirrors
+  # have moved past this image's shipped kernel and that exact package no
+  # longer exists upstream: update kernel to the repo's current version,
+  # then install kernel-modules-extra bare, which now resolves to that same
+  # just-updated version — paired by construction, not by version-string
+  # coincidence. That new kernel only becomes the running one after a
+  # reboot, and this box already needs exactly one reboot below for the
+  # SELinux autorelabel, so docker is `enable`d here but deliberately NOT
+  # started (`--now`) until that single reboot lands both fixes at once —
+  # uniformly across both branches, so this fast/slow split never has to be
+  # threaded through the docker block too. A `systemctl enable --now` here
+  # would start dockerd under the OLD (still running, on the fallback path
+  # still missing the module) kernel and fail the same way, aborting this
+  # whole concatenated runcmd script before the SELinux block below ever
+  # runs.
+  - |
+    set -e
+    KVER="$(uname -r)"
+    if dnf install -y "kernel-modules-extra-${KVER}"; then
+      echo "musicbox: kernel-modules-extra-${KVER} installed, matches the running kernel"
+    else
+      echo "musicbox: kernel-modules-extra-${KVER} not in the repo (mirrors have moved past this image's shipped kernel); updating kernel and pairing kernel-modules-extra to it" >&2
+      dnf update -y kernel
+      dnf install -y kernel-modules-extra
+    fi
+
   # Docker CE from its own RHEL-family repo, not the AlmaLinux base repos.
   - |
     set -e
     dnf install -y dnf5-plugins || dnf install -y dnf-plugins-core
     dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    systemctl enable --now docker
+    systemctl enable docker
 
   # automatic.conf above already carries the security-only settings.
   - |
@@ -140,3 +184,47 @@ runcmd:
     echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
     install -m 0755 -o root -g root /tmp/yq /usr/local/bin/yq
     rm -f /tmp/yq
+
+  # SELinux transition: the Hetzner alma-10 image ships /etc/selinux/config
+  # with SELINUX=permissive, not the AlmaLinux install-default enforcing
+  # (confirmed 2026-08-31 — cloud-init had never touched this file before
+  # this block existed, so the permissive value is the image's own choice,
+  # not a prior run's regression). Global constraint says enforcing, always;
+  # `setenforce 1` alone is rejected here even though it needs no reboot,
+  # because it trusts that every file on this vendor-built image already
+  # carries the label policy would assign it — permissive mode logs would-be
+  # denials but does not require correct labels to boot, so an image built
+  # or customized with SELinux off at some stage can carry mislabeled files
+  # that only `setenforce 1` would silently misbehave on, invisibly, well
+  # after this cloud-init run has reported success. `touch /.autorelabel` +
+  # reboot is the documented safe path: early next boot, before any service
+  # starts, the SELinux dracut hook relabels every mounted filesystem
+  # (including /srv/music) from the loaded policy and reboots itself again
+  # automatically once done, then boots normally already enforcing. This is
+  # also why the acceptance run must poll patiently past 10 minutes and
+  # tolerate SSH dropping twice, not once: our own `power_state` reboot
+  # below, then the relabel's own self-triggered second reboot.
+  - |
+    set -e
+    sed -i 's/^SELINUX=.*/SELINUX=enforcing/' /etc/selinux/config
+    grep -qx 'SELINUX=enforcing' /etc/selinux/config
+    touch /.autorelabel
+
+# Deliberately the last thing cloud-init does, and a dedicated top-level
+# module rather than a `reboot` call inside runcmd above: runcmd's items are
+# one concatenated `set -e` script, so triggering a reboot from inside it
+# would tear down cloud-init's own process mid-script, before it records
+# this run as complete — the next boot would then see an unfinished
+# per-instance run and nothing here would enforce "run the rest exactly
+# once". `power_state` instead runs strictly after every other module
+# (write_files, packages, runcmd) has already finished and had its
+# once-per-instance completion recorded, then reboots in the background —
+# so `cloud-init status --wait` reports a clean `done` both on this boot and
+# after the reboot(s) that follow. `condition: true` is intentional, not a
+# placeholder: this boot always both updated the kernel/kernel-modules-extra
+# pair and requested an autorelabel above, so the reboot is unconditionally
+# needed every time, not gated on a state check.
+power_state:
+  mode: reboot
+  message: "musicbox: rebooting for the new kernel and the SELinux autorelabel"
+  condition: true
