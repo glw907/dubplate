@@ -43,9 +43,11 @@ EOF
 
   MSMTP_LOG="$WORK_DIR/msmtp.log"
   CURL_LOG="$WORK_DIR/curl.log"
+  CURL_CONFIG_LOG="$WORK_DIR/curl-config.log"
   : >"$MSMTP_LOG"
   : >"$CURL_LOG"
-  export MSMTP_LOG CURL_LOG
+  : >"$CURL_CONFIG_LOG"
+  export MSMTP_LOG CURL_LOG CURL_CONFIG_LOG
 
   cat >"$STUB_BIN/msmtp" <<'EOF'
 #!/usr/bin/env bash
@@ -55,10 +57,30 @@ EOF
 } >>"$MSMTP_LOG"
 EOF
 
+  # Logs every call's arguments, and -- for a --config call, which is
+  # trigger_navidrome_scan's Subsonic request -- copies that file's contents
+  # to a second log, since the real function deletes it the moment the
+  # request is done. Setting CURL_FAIL_STARTSCAN makes only the startScan
+  # call fail, so the failure-tolerant path can be exercised without also
+  # breaking ping_hc's own curl calls.
   cat >"$STUB_BIN/curl" <<'EOF'
 #!/usr/bin/env bash
 echo "$*" >>"$CURL_LOG"
-echo '{"token":"faketoken"}'
+config_file=""
+prev=""
+for arg in "$@"; do
+  if [ "$prev" = "--config" ]; then
+    config_file="$arg"
+  fi
+  prev="$arg"
+done
+if [ -n "$config_file" ]; then
+  cat "$config_file" >>"$CURL_CONFIG_LOG"
+  if [ -n "${CURL_FAIL_STARTSCAN:-}" ] && grep -q "rest/startScan" "$config_file"; then
+    echo "stub curl: forced startScan failure" >&2
+    exit 22
+  fi
+fi
 EOF
 
   cat >"$STUB_BIN/rclone" <<'EOF'
@@ -89,6 +111,16 @@ make_flac() {
   ffmpeg -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=440:duration=1" \
     -ar 44100 -sample_fmt s16 "$wav"
   flac --best -f -o "$dest" "$wav" >/dev/null 2>&1
+}
+
+# Stages one album in alice's inbox that the quality gate must accept: a
+# single genuinely valid FLAC, aged past the quiescence window so this run
+# picks it up.
+stage_good_album() {
+  local dir="$MUSICBOX_ROOT/inbox/alice/$1"
+  mkdir -p "$dir"
+  make_flac "$dir/track1.flac"
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
 }
 
 # Stages one album in alice's inbox that the quality gate must reject: a
@@ -136,9 +168,7 @@ EOF
 
 @test "happy path: quiescent upload imports cleanly, no review items, success ping" {
   stub_beet_clean
-  mkdir -p "$MUSICBOX_ROOT/inbox/alice/Good Album"
-  make_flac "$MUSICBOX_ROOT/inbox/alice/Good Album/track1.flac"
-  touch_old "$MUSICBOX_ROOT/inbox/alice"
+  stage_good_album "Good Album"
 
   run "$SCRIPT"
   [ "$status" -eq 0 ]
@@ -154,6 +184,44 @@ EOF
   # Nothing landed in review, and no notification fired.
   [ -z "$(find "$MUSICBOX_ROOT/review" -mindepth 1 -print -quit 2>/dev/null)" ]
   [ ! -s "$MSMTP_LOG" ]
+}
+
+@test "Navidrome scan trigger: calls Subsonic startScan via a curl config file, never argv" {
+  stub_beet_clean
+  export NAVIDROME_ADMIN_USER="admin"
+  export NAVIDROME_ADMIN_PASSWORD="s3cret"
+  stage_good_album "Good Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # The startScan request happened -- u/t/s/v/c query-param auth -- but only
+  # inside the --config file's contents, never as a curl argument. The
+  # password itself appears in neither: t is its md5 with the salt.
+  grep -q "rest/startScan" "$CURL_CONFIG_LOG"
+  grep -qE "[&?]u=admin" "$CURL_CONFIG_LOG"
+  grep -qE "[&?]t=[0-9a-f]{32}" "$CURL_CONFIG_LOG"
+  grep -qE "[&?]s=[0-9a-f]{16}" "$CURL_CONFIG_LOG"
+  run grep -q "rest/startScan" "$CURL_LOG"
+  [ "$status" -ne 0 ]
+  run grep -q "s3cret" "$CURL_LOG"
+  [ "$status" -ne 0 ]
+  run grep -q "s3cret" "$CURL_CONFIG_LOG"
+  [ "$status" -ne 0 ]
+}
+
+@test "Navidrome scan trigger: a failed startScan request logs but doesn't fail the run" {
+  stub_beet_clean
+  export NAVIDROME_ADMIN_USER="admin"
+  export NAVIDROME_ADMIN_PASSWORD="s3cret"
+  export CURL_FAIL_STARTSCAN=1
+  stage_good_album "Good Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Navidrome scan request failed."* ]]
+  # The rest of the run still completed: a success ping still fired.
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
 }
 
 @test "skip path: a beets skip is filed to review and notifies uploader plus Geoff" {

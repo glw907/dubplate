@@ -30,6 +30,12 @@ STATE_DIR="$MUSICBOX_ROOT/state"
 # 1777), so the User=music service can't create a lock file there; the unit's
 # RuntimeDirectory=musicbox gives it /run/musicbox instead, owned by music.
 LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/musicbox/musicbox-import.lock}"
+# Where trigger_navidrome_scan puts its short-lived curl --config file.
+# Derived from the lock file rather than given an env var of its own, so it
+# is somewhere already known writable in both places: /run/musicbox on the
+# box (owned by music:music, made every boot by the unit's
+# RuntimeDirectory=), and the fixture's own WORK_DIR under test.
+RUNTIME_DIR="$(dirname "$LOCK_FILE")"
 QUIESCENT_MINUTES="${MUSICBOX_QUIESCENT_MINUTES:-10}"
 MIN_FREE_GB="${MUSICBOX_MIN_FREE_GB:-5}"
 MAX_ARCHIVE_BYTES="${MUSICBOX_MAX_ARCHIVE_BYTES:-2147483648}"
@@ -319,28 +325,46 @@ $geoff_summary"
 
 # Best-effort: a failed scan trigger does not fail the import, because
 # Navidrome's daily Scanner.Schedule backstop will pick up the change
-# regardless. Uses the native admin API (login for a JWT, then the
-# scanner endpoint) rather than Subsonic, since Subsonic has no scan
-# trigger.
+# regardless. Pinned Navidrome 0.63.2 has no native admin scan endpoint
+# (confirmed against upstream source: StartScan is registered only as the
+# Subsonic API's admin-only startScan action), so this calls
+# GET /rest/startScan with Subsonic's query-param auth: t is
+# md5(password+salt), s is a fresh random salt per call, and u/v/c carry
+# the username, API version, and client name the spec requires, plus f for
+# the response format.
+#
+# That query string is a credential, so the full URL is written to a curl
+# --config file (mode 0600, in the same runtime dir as the import lock)
+# instead of ever appearing as a curl argument: an argument lands in argv,
+# which every local user can read from /proc or `ps`, but a --config
+# file's contents do not. Only non-secret flags (-fsS, -o /dev/null) stay
+# on the command line.
 trigger_navidrome_scan() {
   if [ -z "${NAVIDROME_ADMIN_USER:-}" ] || [ -z "${NAVIDROME_ADMIN_PASSWORD:-}" ]; then
     echo "music-import: NAVIDROME_ADMIN_USER/NAVIDROME_ADMIN_PASSWORD not set; skipping scan trigger." >&2
     return 0
   fi
-  local login_body token
-  login_body="$(jq -n --arg u "$NAVIDROME_ADMIN_USER" --arg p "$NAVIDROME_ADMIN_PASSWORD" '{username:$u,password:$p}')"
-  # || true keeps an unreachable Navidrome on the empty-token path below
-  # instead of failing the whole import through set -e/pipefail; curl's own
-  # message on stderr says which failure it was.
-  token="$(curl -fsS -X POST "$NAVIDROME_URL/auth/login" \
-    -H 'Content-Type: application/json' -d "$login_body" | jq -r '.token // empty')" || true
-  if [ -z "$token" ]; then
-    echo "music-import: Navidrome login failed; scan trigger skipped." >&2
-    return 0
-  fi
-  curl -fsS -X POST "$NAVIDROME_URL/api/scanner/scan" \
-    -H "x-nd-authorization: Bearer $token" -H 'Content-Type: application/json' \
-    -d '{"fullScan": false}' >/dev/null ||
+  local user_enc salt token scan_url config_file
+  # The username is the only value here that can carry characters needing
+  # escaping -- both for the query string and for the quoted config-file
+  # value below, which would otherwise read a bare " or \ as syntax. The
+  # token and salt are hex.
+  user_enc="$(jq -rn --arg s "$NAVIDROME_ADMIN_USER" '$s | @uri')"
+  # od reads exactly 8 bytes and stops, unlike the usual
+  # `tr </dev/urandom | head` idiom, whose early-closing head would send tr
+  # a SIGPIPE that pipefail could propagate out of this substitution.
+  salt="$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+  token="$(printf '%s' "${NAVIDROME_ADMIN_PASSWORD}${salt}" | md5sum | cut -d' ' -f1)"
+  scan_url="$NAVIDROME_URL/rest/startScan?u=$user_enc&t=$token&s=$salt&v=1.16.1&c=musicbox&f=json"
+
+  config_file="$(mktemp "$RUNTIME_DIR/navidrome-scan.XXXXXX")"
+  # Registered before anything is written, so the file cannot outlive this
+  # call by any path out of it.
+  trap 'rm -f "$config_file"' RETURN
+  chmod 0600 "$config_file"
+  printf 'url = "%s"\n' "$scan_url" >"$config_file"
+
+  curl -fsS -o /dev/null --config "$config_file" ||
     echo "music-import: Navidrome scan request failed." >&2
   return 0
 }
