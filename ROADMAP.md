@@ -36,6 +36,25 @@ option map). Runs after `uploader` so it templates the final intake. The
 
 ## Someday
 
+### dubplate as a music library organizer `dubplate-organizer`
+Extend dubplate into a batteries-included organizer that runs two ways on
+one shared engine: locally as a bubbletea TUI (no tunnel, no Access — the
+trust surface deletes itself) or hosted with the web frontend, with
+Navidrome-native integration (scan observation, collection routing,
+library-aware imports) as the bonus only dubplate can offer. Core thesis:
+harvest beets' battle-tested matcher into Go behind a behavioral
+conformance harness that tracks upstream releases (autotag churn is
+refactors, not retunes — measured 2026-08-31), and ship the empirically
+top plugins as built-ins: art fetch/embed, genre, duplicates, tag
+hygiene, fingerprinting, ReplayGain (28–90% adoption in a 87-config
+survey; scrapers and the sub-10% tail refused permanently). Staged
+adoption: beets stays behind the subprocess seam until the harvested
+matcher proves conformance, then swaps at that one seam. Evidence:
+`~/.dotfiles/docs/superpowers/research/2026-08-31-beets-plugin-usage.md`
+(+ tally JSON beside it). Preconditions: uploader and packaging shipped;
+the packaging story and this mode ladder converge deliberately. Same
+maintainership caveat as oss-pair.
+
 ### Open-source the pair `oss-pair`
 Publish the uploader and the pings Worker as documentation-linked siblings —
 a validated-intake drop target and a dead-man's-switch monitor, proven here
