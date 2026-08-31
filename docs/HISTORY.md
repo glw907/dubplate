@@ -2,6 +2,39 @@
 
 Per-pass ledger, newest first.
 
+## Spec gaps closed: rclone/msmtp provisioning, Subsonic scan trigger (2026-08-31)
+
+Closed the two real spec gaps the first live deploy exposed (previous entry below),
+without touching the live box.
+
+- **`rclone`/`msmtp` were never in `cloud-init/user-data.yaml` at all.** Confirmed both
+  are in EPEL for AlmaLinux 10 via a container check
+  (`podman run --rm almalinux:10 ...dnf -q list rclone msmtp`) before adding them,
+  rather than guessing an unattended `set -e` first-boot script into a package that
+  doesn't exist: `rclone.x86_64 1.74.3-1.el10_2` and `msmtp.x86_64 1.8.25-6.el10_1`,
+  both from the `epel` repo alone, no RPM Fusion or CRB dependency. Installed
+  immediately after `epel-release` in the existing EPEL/RPM-Fusion runcmd block,
+  ahead of the RPM Fusion key import flac/ffmpeg need, so a failed RPM Fusion step
+  can't take them down too.
+- **`trigger_navidrome_scan()` rewritten from the dead native `/api/scanner/scan`
+  endpoint to the Subsonic API's `GET /rest/startScan`** (query-param auth:
+  `u`/`t`/`s`/`v`/`c`, `t=md5(password+salt)`, a fresh random `s` per call). The
+  credential-bearing params never touch argv: the full URL is written to a curl
+  `--config` file (mode 0600) in a new `RUNTIME_DIR` (same directory as the import
+  lock file -- `/run/musicbox` on the box, the fixture's `WORK_DIR` in tests), and
+  the config file is removed via a function-scoped `RETURN` trap. Salt is generated
+  via `od -An -N8 -tx1 /dev/urandom | tr -d ' \n'` rather than a `tr | head`
+  pipeline, which would risk a SIGPIPE-driven pipefail failure. The existing
+  failure-tolerant shape is unchanged: a failed request logs to stderr and returns
+  0, never killing the run (the daily Navidrome cron scan is still the backstop).
+  `tests/music-import.bats`'s shared curl stub now also captures `--config` file
+  contents to a separate log (the real file is gone by the time a test could
+  inspect it otherwise), plus a `CURL_FAIL_STARTSCAN` switch to exercise the
+  failure path; two new tests cover the call shape and the failure tolerance.
+
+Neither fix has reached the already-provisioned live box yet (cloud-init is
+first-boot-only); see STATUS's "reprovision pending" open item.
+
 ## Task 4/6: first live deploy (2026-08-31)
 
 `scripts/deploy.sh --check` then a real run against the provisioned box. Two env-template

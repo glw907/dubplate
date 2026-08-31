@@ -8,10 +8,14 @@ successfully against `5.78.148.42`; all three containers (`navidrome`,
 `healthy`, and both public hostnames serve through it correctly (Access
 challenge on `inbox.907.life`, none on `music.907.life`). Six real bugs
 surfaced by this first live run (a fixture-backed test suite can't catch
-host-environment issues) are fixed and committed; two package-provisioning
-gaps remain open, blocking `music-backup` entirely and degrading
-`music-import`. Full narrative, root causes, and every fix: the 2026-08-31
-"Task 4/6: first live deploy" entry in `docs/HISTORY.md`.
+host-environment issues) are fixed and committed. Both spec gaps that run
+also exposed — `rclone`/`msmtp` never listed in cloud-init at all, and
+`trigger_navidrome_scan()` calling a native endpoint gone in Navidrome
+`0.63.2` — are now closed too (`docs/HISTORY.md`'s 2026-08-31 "spec gaps
+closed" entry); what remains is applying all five package fixes to the
+already-provisioned box, which cloud-init changes alone can't do. Full
+narrative, root causes, and every fix: the 2026-08-31 "Task 4/6: first live
+deploy" entry in `docs/HISTORY.md`.
 
 ### Acceptance sweep (2026-08-31)
 
@@ -26,21 +30,15 @@ gaps remain open, blocking `music-backup` entirely and degrading
 
 ## Open items
 
-- **`ffmpeg`/`flac`/`sqlite3` fixes are committed to `cloud-init/user-data.yaml`
-  but not yet applied to this already-provisioned box** (cloud-init only runs
-  at first boot). Needs Geoff present to run the remediation over SSH or a
-  full reprovision — a subagent's `dnf install` attempt was refused by the
-  Claude Code auto-mode classifier this pass (same shape as Task 5's
-  tunnel-recreate refusal).
-- **`rclone`/`msmtp` are missing on the box AND were never in cloud-init at
-  all** — a real spec gap. Blocks `music-backup.service` entirely and leaves
-  `lib.sh`'s `notify()` unverified. Needs each package's AlmaLinux 10 install
-  path looked up before adding (an unattended `set -e` first-boot script is
-  the wrong place to guess).
-- **`trigger_navidrome_scan()` calls a native admin endpoint that doesn't
-  exist in pinned Navidrome `0.63.2`** (moved to the Subsonic API's
-  `startScan` action). Non-fatal — the daily cron scan covers it — needs a
-  rewrite to Subsonic query-param auth.
+- **Reprovision pending**: `ffmpeg`/`flac`/`sqlite3`/`rclone`/`msmtp` are all
+  now in `cloud-init/user-data.yaml`, but cloud-init only runs at first boot,
+  so none of this converges the already-provisioned box until Geoff either
+  runs the remediation over SSH or reprovisions it fresh — a subagent's
+  `dnf install` attempt was refused by the Claude Code auto-mode classifier
+  this pass (same shape as Task 5's tunnel-recreate refusal). `rclone`/
+  `msmtp` were confirmed available from EPEL via a container check
+  (2026-08-31) and added alongside flac/ffmpeg's existing EPEL+RPM Fusion
+  runcmd block; see the 2026-08-31 "spec gaps closed" entry in HISTORY.
 - **`MUSICBOX_HC_DISK_URL`/`MUSICBOX_HC_NAVIDROME_URL` are minted but
   unwired**: only `import`/`backup` have real `ping_hc` calls; Task 6 needs
   disk-space and Navidrome-heartbeat scripts + timers too.
@@ -53,10 +51,9 @@ gaps remain open, blocking `music-backup` entirely and degrading
 - Task 8 (per-contributor FileBrowser accounts, Navidrome family accounts,
   seed content, out-of-band credential delivery to Geoff) has not started.
 
-**Next action**: with Geoff present, run the ffmpeg/flac/sqlite3 remediation
-on the live box (or reprovision), confirm a real `music-backup` run and a
-`music-import` run with actual FLAC content, look up `rclone`/`msmtp`'s
-AlmaLinux 10 install path and add both to cloud-init, then Task 8.
+**Next action**: with Geoff present, apply the ffmpeg/flac/sqlite3/rclone/msmtp
+remediation to the live box (or reprovision), confirm a real `music-backup`
+run and a `music-import` run with actual FLAC content, then Task 8.
 
 Plan: `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md` — Spec:
 `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
