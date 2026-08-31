@@ -15,6 +15,14 @@ LIBRARY_DIR="$MUSICBOX_ROOT/library"
 BEETS_DB="${MUSICBOX_BEETS_DB:-$MUSICBOX_ROOT/state/library.db}"
 NAVIDROME_DB="${MUSICBOX_NAVIDROME_DB:-$MUSICBOX_ROOT/state/navidrome/navidrome.db}"
 BACKUP_STAGING="${MUSICBOX_BACKUP_STAGING:-$MUSICBOX_ROOT/state/backup-staging}"
+# Its own lock, never music-import's musicbox_lock_file: an in-progress
+# import and a backup run are unrelated operations that must be free to
+# overlap, only two backup runs must not. Persistent for the same reason
+# musicbox_lock_file's default is (see that function's comment), sharper
+# here: RuntimeDirectory=musicbox is shared with music-import.service, and
+# systemd removes it without reference counting whenever EITHER unit
+# stops, which could unlink this lock file mid-sync.
+BACKUP_LOCK_FILE="${MUSICBOX_BACKUP_LOCK_FILE:-/var/lib/musicbox/musicbox-backup.lock}"
 
 R2_ACCOUNT_ID="120c269ad6d3dfbe6d63a0bb53758ca0"
 R2_BUCKET="music-library"
@@ -26,7 +34,15 @@ DATE_STR="$(date +%Y-%m-%d)"
 # objects, and rclone refuses an overlapping backup-dir outright.
 rclone_backup_sync() {
   local src="$1" tree="$2"
+  # no_check_bucket: the token is bucket-scoped (no ListBuckets or
+  # CreateBucket), and rclone's --backup-dir path probes the bucket before
+  # its first server-side archive move; the probe 403s and rclone falls
+  # back to CreateBucket, which the token rightly cannot do. Cloudflare's
+  # R2 rclone guide prescribes this flag for object-scoped tokens. First
+  # hit on the second-ever backup run (2026-08-31), the first with
+  # existing objects to archive.
   RCLONE_CONFIG_MUSICBOXR2_TYPE=s3 \
+    RCLONE_CONFIG_MUSICBOXR2_NO_CHECK_BUCKET=true \
     RCLONE_CONFIG_MUSICBOXR2_PROVIDER=Cloudflare \
     RCLONE_CONFIG_MUSICBOXR2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
     RCLONE_CONFIG_MUSICBOXR2_ACCESS_KEY_ID="$MUSICBOX_R2_ACCESS_KEY_ID" \
@@ -36,10 +52,47 @@ rclone_backup_sync() {
     --exclude "/_archive/**"
 }
 
-if [ -z "${MUSICBOX_R2_ACCESS_KEY_ID:-}" ] || [ -z "${MUSICBOX_R2_SECRET_ACCESS_KEY:-}" ]; then
-  echo "music-backup: MUSICBOX_R2_ACCESS_KEY_ID/MUSICBOX_R2_SECRET_ACCESS_KEY not set; aborting." >&2
+# Every abort below the lock guard is the same three steps. Sharing them
+# keeps a later guard from being added with the fail ping left off, which
+# would leave a dead backup looking healthy on the dashboard.
+abort_with_fail_ping() {
+  echo "music-backup: $1" >&2
   ping_hc backup fail
   exit 1
+}
+
+# A held lock means a previous backup run (rclone syncing a large tree can
+# run past a single night) is still going; skip quietly rather than start a
+# second sync against the same R2 prefix, which could interleave with the
+# first run's --backup-dir in confusing ways. Pinged as a success, matching
+# music-import's own overlap guard: a merely-overlapping run is the healthy
+# case this check exists for, not a failure to page Geoff over.
+#
+# musicbox_ensure_lock_dir runs first because nothing else creates the
+# persistent lock directory, and `exec` under `set -e` aborts outright on a
+# missing one; that function's own comment carries the rest.
+musicbox_ensure_lock_dir "$BACKUP_LOCK_FILE"
+exec 201>"$BACKUP_LOCK_FILE"
+if ! flock -n 201; then
+  echo "music-backup: another run holds the backup lock; exiting." >&2
+  ping_hc backup
+  exit 0
+fi
+
+if [ -z "${MUSICBOX_R2_ACCESS_KEY_ID:-}" ] || [ -z "${MUSICBOX_R2_SECRET_ACCESS_KEY:-}" ]; then
+  abort_with_fail_ping "MUSICBOX_R2_ACCESS_KEY_ID/MUSICBOX_R2_SECRET_ACCESS_KEY not set; aborting."
+fi
+
+# A missing or empty LIBRARY_DIR is never a legitimate "nothing to back up"
+# state -- it means a mount didn't come up or the tree was wiped -- and
+# rclone sync must never see it: sync treats an empty source as the new
+# truth and deletes every object already in R2 to match, turning a mount
+# glitch into data loss instead of a caught failure.
+if [ ! -d "$LIBRARY_DIR" ]; then
+  abort_with_fail_ping "$LIBRARY_DIR does not exist; aborting before any sync."
+fi
+if [ -z "$(find "$LIBRARY_DIR" -mindepth 1 -print -quit)" ]; then
+  abort_with_fail_ping "$LIBRARY_DIR is empty; aborting before any sync."
 fi
 
 rm -rf "$BACKUP_STAGING"
@@ -58,15 +111,11 @@ else
 fi
 
 if ! rclone_backup_sync "$LIBRARY_DIR" "library"; then
-  echo "music-backup: rclone sync of $LIBRARY_DIR failed." >&2
-  ping_hc backup fail
-  exit 1
+  abort_with_fail_ping "rclone sync of $LIBRARY_DIR failed."
 fi
 
 if ! rclone_backup_sync "$BACKUP_STAGING" "state"; then
-  echo "music-backup: rclone sync of $BACKUP_STAGING failed." >&2
-  ping_hc backup fail
-  exit 1
+  abort_with_fail_ping "rclone sync of $BACKUP_STAGING failed."
 fi
 
 ping_hc backup

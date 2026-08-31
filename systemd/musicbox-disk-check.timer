@@ -1,0 +1,14 @@
+[Unit]
+Description=musicbox: run musicbox-disk-check every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+# Spreads the check across a 5-minute window instead of firing on the exact
+# minute boundary every time, so this timer and music-import.timer's own
+# *:0/15 schedule don't repeatedly stack their disk I/O in the same instant.
+RandomizedDelaySec=300
+Persistent=true
+Unit=musicbox-disk-check.service
+
+[Install]
+WantedBy=timers.target

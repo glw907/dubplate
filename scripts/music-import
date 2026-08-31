@@ -26,16 +26,20 @@ REVIEW_DIR="$MUSICBOX_ROOT/review"
 # a healthy box never has one.
 QUARANTINE_FAILED_DIR="$MUSICBOX_ROOT/quarantine-failed"
 STATE_DIR="$MUSICBOX_ROOT/state"
-# /run/lock itself is root:root 0755 on Alma (unlike Debian's world-writable
-# 1777), so the User=music service can't create a lock file there; the unit's
-# RuntimeDirectory=musicbox gives it /run/musicbox instead, owned by music.
-LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/musicbox/musicbox-import.lock}"
-# Where trigger_navidrome_scan puts its short-lived curl --config file.
-# Derived from the lock file rather than given an env var of its own, so it
-# is somewhere already known writable in both places: /run/musicbox on the
-# box (owned by music:music, made every boot by the unit's
-# RuntimeDirectory=), and the fixture's own WORK_DIR under test.
-RUNTIME_DIR="$(dirname "$LOCK_FILE")"
+# Shared with music-beet via lib.sh's musicbox_lock_file, so the two never
+# drift onto different lock files (see that function's comment for why the
+# default is a persistent path rather than the RuntimeDirectory tmpfs).
+LOCK_FILE="$(musicbox_lock_file)"
+# Where trigger_navidrome_scan puts its short-lived curl --config file
+# (carries the Navidrome admin credentials, briefly) and where
+# load_contributors_json caches its JSON parse. Deliberately NOT derived
+# from the lock file's directory: those two are short-lived, run-scoped
+# artifacts that have no business surviving past this run, so they stay on
+# systemd's RuntimeDirectory=musicbox (tmpfs, wiped at every unit stop and
+# every boot) even though the lock file itself moved to the persistent
+# /var/lib/musicbox. Overridable via MUSICBOX_RUNTIME_DIR for the fixture
+# tree in tests.
+RUNTIME_DIR="${MUSICBOX_RUNTIME_DIR:-/run/musicbox}"
 QUIESCENT_MINUTES="${MUSICBOX_QUIESCENT_MINUTES:-10}"
 MIN_FREE_GB="${MUSICBOX_MIN_FREE_GB:-5}"
 MAX_ARCHIVE_BYTES="${MUSICBOX_MAX_ARCHIVE_BYTES:-2147483648}"
@@ -47,6 +51,14 @@ NAVIDROME_URL="${NAVIDROME_URL:-http://localhost:4533}"
 # dedicated deploy step of its own, unlike contributors.yaml: this file
 # carries no secrets or PII, just copy-editable customer-facing text).
 REJECT_EMAIL_TEMPLATE="${MUSICBOX_REJECT_EMAIL_TEMPLATE:-/opt/musicbox/config/reject-email.txt}"
+# Where load_contributors_json caches contributors.yaml's JSON parse for
+# the rest of this run. Suffixed with this process's own PID, not a fixed
+# name: a hard-killed previous run that skipped the trap below would
+# otherwise leave a stale cache file for a fresh run to mistake for its own
+# parse. RUNTIME_DIR is already relied on to exist here -- systemd's
+# RuntimeDirectory=musicbox creates it fresh every boot.
+CONTRIBUTORS_JSON_CACHE="$RUNTIME_DIR/contributors-parsed.$$.json"
+trap 'rm -f "$CONTRIBUTORS_JSON_CACHE"' EXIT
 
 # A held lock means another run (or an interactive music-beet session) is
 # already touching the beets database; skip quietly rather than queue up.
@@ -58,6 +70,11 @@ REJECT_EMAIL_TEMPLATE="${MUSICBOX_REJECT_EMAIL_TEMPLATE:-/opt/musicbox/config/re
 # success rather than let a merely-overlapping run page Geoff at 3am; the
 # accepted residual is a wedged import silently reporting healthy until
 # someone notices stale music in the library.
+#
+# musicbox_ensure_lock_dir runs first because nothing else creates the
+# persistent lock directory, and `exec` under `set -e` aborts the whole run
+# on a missing one; that function's own comment carries the rest.
+musicbox_ensure_lock_dir "$LOCK_FILE"
 exec 200>"$LOCK_FILE"
 if ! flock -n 200; then
   echo "music-import: another run holds the lock; exiting." >&2
@@ -66,6 +83,18 @@ if ! flock -n 200; then
 fi
 
 mkdir -p "$STAGING_DIR" "$REVIEW_DIR" "$STATE_DIR"
+
+# Checked here, before a single archive is extracted or a single file is
+# staged, not after: staging can itself consume the last of the free space
+# it is meant to guard, and an archive already expanded onto disk by the
+# time this check runs would have to be un-staged rather than simply never
+# staged. Nothing above this line touches contributor data -- only the
+# musicbox tree's own scaffold directories.
+if ! free_space_ok "$MUSICBOX_ROOT" "$MIN_FREE_GB"; then
+  echo "music-import: free space on $MUSICBOX_ROOT is below ${MIN_FREE_GB}GB; aborting before import." >&2
+  ping_hc import fail
+  exit 1
+fi
 
 DATE_STR="$(date +%Y-%m-%d)"
 LOGFILE="$STATE_DIR/import-$(date +%Y%m%d-%H%M%S).log"
@@ -79,15 +108,49 @@ is_archive_name() {
   esac
 }
 
+# Prints contributors.yaml's JSON parse, computing it only on the first
+# call this run and reading the on-disk cache (CONTRIBUTORS_JSON_CACHE)
+# thereafter -- empty output for a missing CONTRIBUTORS_FILE, matching
+# uploader_email/uploader_name's prior behavior of treating "no file" the
+# same as "no match". A run can call the two of them once per skipped or
+# quarantined album, so without this the same static file would cost a
+# fresh yq|jq pipeline every single time.
+#
+# The cache lives in a file rather than a shell variable because every
+# caller here is invoked inside a `$(...)` command substitution, which
+# forks a subshell: a variable set on first load never survives past that
+# subshell's exit, so the very next command substitution would see the
+# unloaded state all over again. The cache file's own existence is the
+# "already loaded" flag (an empty file still counts, for the missing-file
+# case), which a subshell's writes to disk do outlive.
+#
+# Created 0600 before any content is written, in both branches: RUNTIME_DIR
+# (systemd's RuntimeDirectory=musicbox) is world-traversable at 0755 with no
+# UMask= override, and contributors.yaml itself is deployed 0640 root:music
+# specifically so its contributor names and emails aren't world-readable
+# (deploy.sh) -- a 0644 cache under the default umask would undo that for
+# the run's duration. trigger_navidrome_scan's own config_file below is
+# private the same way.
+load_contributors_json() {
+  if [ ! -e "$CONTRIBUTORS_JSON_CACHE" ]; then
+    : >"$CONTRIBUTORS_JSON_CACHE"
+    chmod 0600 "$CONTRIBUTORS_JSON_CACHE"
+    if [ -f "$CONTRIBUTORS_FILE" ]; then
+      yq -o=json "$CONTRIBUTORS_FILE" >"$CONTRIBUTORS_JSON_CACHE"
+    fi
+  fi
+  cat "$CONTRIBUTORS_JSON_CACHE"
+}
+
 # Looks up a contributor's email by matching the inbox directory name
 # against contributors.yaml's "name" field (the only identifier the
 # uploaded tree carries). Empty output means no match; callers treat that
 # as "can't notify this uploader", not as an error.
 uploader_email() {
-  local user="$1"
-  [ -f "$CONTRIBUTORS_FILE" ] || return 0
-  yq -o=json "$CONTRIBUTORS_FILE" |
-    jq -r --arg n "$user" '.contributors[]? | select(.name == $n) | .email' |
+  local user="$1" json
+  json="$(load_contributors_json)"
+  [ -n "$json" ] || return 0
+  jq -r --arg n "$user" '.contributors[]? | select(.name == $n) | .email' <<<"$json" |
     head -n1
 }
 
@@ -100,28 +163,46 @@ uploader_email() {
 # fetching some other string, and the first word is all the greeting wants
 # of a full display name like "Example Family Member".
 uploader_name() {
-  local user="$1"
-  [ -f "$CONTRIBUTORS_FILE" ] || return 0
-  yq -o=json "$CONTRIBUTORS_FILE" |
-    jq -e --arg n "$user" 'any(.contributors[]?; .name == $n)' >/dev/null || return 0
+  local user="$1" json
+  json="$(load_contributors_json)"
+  [ -n "$json" ] || return 0
+  jq -e --arg n "$user" 'any(.contributors[]?; .name == $n)' <<<"$json" >/dev/null || return 0
   printf '%s' "${user%% *}"
 }
 
 # Moves one contributor's quiescent inbox entries into their staging
-# subdirectory: archives are expanded (then removed from the inbox so a
-# later run never re-extracts them), everything else is moved as-is.
+# subdirectory. Each archive is first expanded into its own private,
+# per-archive scratch subdirectory (via mktemp -d, never straight into
+# dest) and only then has its top-level entries individually moved into
+# dest under a collision-safe name (unique_dest_path). Extracting straight
+# into the shared dest would let two archives in the same batch step on
+# each other: two rips both landing a top-level "Album" directory, or two
+# loose tracks both named "01.flac", would silently merge or clobber
+# instead of both surviving. Routing every archive through its own scratch
+# dir first, then reconciling names on the move into dest, keeps that
+# collision from ever reaching the shared tree. Archives are removed from
+# the inbox once staged (successfully or not: safe_extract leaves the
+# entry alone on rejection) so a later run never re-extracts them;
+# everything else is moved as-is.
 stage_user_uploads() {
-  local user="$1" src="$2" dest="$3" entry name
+  local user="$1" src="$2" dest="$3" entry name extract_dir item item_name target
   mkdir -p "$dest"
   shopt -s nullglob
   for entry in "$src"/*; do
     name="$(basename "$entry")"
     if [ -f "$entry" ] && is_archive_name "$name"; then
-      if safe_extract "$entry" "$dest" "$MAX_ARCHIVE_BYTES"; then
+      extract_dir="$(mktemp -d "$dest/.extract-XXXXXX")"
+      if safe_extract "$entry" "$extract_dir" "$MAX_ARCHIVE_BYTES"; then
+        while IFS= read -r -d '' item; do
+          item_name="$(basename "$item")"
+          target="$(unique_dest_path "$dest" "$item_name")"
+          mv "$item" "$target"
+        done < <(find "$extract_dir" -mindepth 1 -maxdepth 1 -print0)
         rm -f "$entry"
       else
         echo "music-import: rejected archive $entry; left in $user's inbox for review" >&2
       fi
+      rm -rf "$extract_dir"
     else
       mv "$entry" "$dest/"
     fi
@@ -198,6 +279,9 @@ friendly_reason() {
     ;;
   *"below CD quality"*)
     echo "This FLAC is below CD quality."
+    ;;
+  "symlink not allowed"*)
+    echo "This looks like a symlink or shortcut rather than a real file, and the library only accepts real files."
     ;;
   *)
     echo "$raw"
@@ -334,45 +418,74 @@ $geoff_summary"
 # the response format.
 #
 # That query string is a credential, so the full URL is written to a curl
-# --config file (mode 0600, in the same runtime dir as the import lock)
-# instead of ever appearing as a curl argument: an argument lands in argv,
+# --config file (mode 0600, under RUNTIME_DIR, which the lock file
+# deliberately no longer shares) instead of ever appearing as a curl
+# argument: an argument lands in argv,
 # which every local user can read from /proc or `ps`, but a --config
 # file's contents do not. Only non-secret flags (-fsS, -o /dev/null) stay
 # on the command line.
+#
+# The never-fails contract covers every step here, not just the final
+# curl: jq/od/md5sum could be missing, mktemp or chmod or the config-file
+# write could fail (a full /run/musicbox, a permissions problem), and any
+# of those under the caller's `set -e` would abort the whole import run
+# over a monitoring side effect. Bash disables errexit inside a compound
+# command that is the left operand of `||` (and an inner `set -e` cannot
+# re-enable it), so `( set -e; ... ) || …` would let execution run past a
+# failing step to the next one instead of stopping there. Stopping at the
+# first failing step is what the `set +e` toggle below buys: the subshell
+# it wraps belongs to no `||` or `if` condition, so the subshell's own
+# `set -euo pipefail` takes effect, and its status is captured explicitly
+# rather than swallowed by a guard.
 trigger_navidrome_scan() {
   if [ -z "${NAVIDROME_ADMIN_USER:-}" ] || [ -z "${NAVIDROME_ADMIN_PASSWORD:-}" ]; then
     echo "music-import: NAVIDROME_ADMIN_USER/NAVIDROME_ADMIN_PASSWORD not set; skipping scan trigger." >&2
     return 0
   fi
-  local user_enc salt token scan_url config_file
-  # The username is the only value here that can carry characters needing
-  # escaping -- both for the query string and for the quoted config-file
-  # value below, which would otherwise read a bare " or \ as syntax. The
-  # token and salt are hex.
-  user_enc="$(jq -rn --arg s "$NAVIDROME_ADMIN_USER" '$s | @uri')"
-  # od reads exactly 8 bytes and stops, unlike the usual
-  # `tr </dev/urandom | head` idiom, whose early-closing head would send tr
-  # a SIGPIPE that pipefail could propagate out of this substitution.
-  salt="$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
-  token="$(printf '%s' "${NAVIDROME_ADMIN_PASSWORD}${salt}" | md5sum | cut -d' ' -f1)"
-  scan_url="$NAVIDROME_URL/rest/startScan?u=$user_enc&t=$token&s=$salt&v=1.16.1&c=musicbox&f=json"
+  set +e
+  (
+    set -euo pipefail
+    local user_enc salt token scan_url config_file
+    # The username is the only value here that can carry characters
+    # needing escaping -- both for the query string and for the quoted
+    # config-file value below, which would otherwise read a bare " or \
+    # as syntax. The token and salt are hex.
+    user_enc="$(jq -rn --arg s "$NAVIDROME_ADMIN_USER" '$s | @uri')"
+    # od reads exactly 8 bytes and stops, unlike the usual
+    # `tr </dev/urandom | head` idiom, whose early-closing head would send
+    # tr a SIGPIPE that pipefail could propagate out of this substitution.
+    salt="$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+    token="$(printf '%s' "${NAVIDROME_ADMIN_PASSWORD}${salt}" | md5sum | cut -d' ' -f1)"
+    scan_url="$NAVIDROME_URL/rest/startScan?u=$user_enc&t=$token&s=$salt&v=1.16.1&c=musicbox&f=json"
 
-  config_file="$(mktemp "$RUNTIME_DIR/navidrome-scan.XXXXXX")"
-  # Registered before anything is written, so the file cannot outlive this
-  # call by any path out of it.
-  trap 'rm -f "$config_file"' RETURN
-  chmod 0600 "$config_file"
-  printf 'url = "%s"\n' "$scan_url" >"$config_file"
+    config_file="$(mktemp "$RUNTIME_DIR/navidrome-scan.XXXXXX")"
+    # Registered right after the file exists, before anything is written
+    # to it, so it cannot outlive this subshell by any path out of it --
+    # a later step failing included.
+    trap 'rm -f "$config_file"' EXIT
+    chmod 0600 "$config_file"
+    printf 'url = "%s"\n' "$scan_url" >"$config_file"
 
-  curl -fsS -o /dev/null --config "$config_file" ||
-    echo "music-import: Navidrome scan request failed." >&2
+    curl -fsS -o /dev/null --config "$config_file"
+  )
+  local rc=$?
+  set -e
+  [ "$rc" -eq 0 ] || echo "music-import: Navidrome scan request failed." >&2
   return 0
 }
 
-# Duplicates a contributor's bad MusicBrainz match forever if never swept;
-# 60 days gives Geoff a season to drain the review queue by hand.
-sweep_review() {
-  find "$REVIEW_DIR" -mindepth 1 -maxdepth 1 -type d -mtime "+$REVIEW_RETENTION_DAYS" -exec rm -rf {} +
+# Removes each top-level dated subdirectory of dir older than
+# REVIEW_RETENTION_DAYS, so a contributor's bad MusicBrainz match (or a
+# quality-gate quarantine) doesn't sit there forever if never swept; 60
+# days gives Geoff a season to drain the queue by hand. Applied to both
+# REVIEW_DIR and QUARANTINE_FAILED_DIR -- the latter is deliberately never
+# created up front (a healthy box never has one), so this is a no-op until
+# the fallback-quarantine path in quarantine_quality_failures first creates
+# it.
+sweep_old_dirs() {
+  local dir="$1"
+  [ -d "$dir" ] || return 0
+  find "$dir" -mindepth 1 -maxdepth 1 -type d -mtime "+$REVIEW_RETENTION_DAYS" -exec rm -rf {} +
 }
 
 shopt -s nullglob
@@ -389,12 +502,6 @@ for user_dir in "$INBOX_DIR"/*/; do
 done
 shopt -u nullglob
 
-if ! free_space_ok "$MUSICBOX_ROOT" "$MIN_FREE_GB"; then
-  echo "music-import: free space on $MUSICBOX_ROOT is below ${MIN_FREE_GB}GB; aborting before import." >&2
-  ping_hc import fail
-  exit 1
-fi
-
 quarantine_quality_failures "$STAGING_DIR" "$REVIEW_DIR" "$DATE_STR"
 
 beet import -q -l "$LOGFILE" "$STAGING_DIR"
@@ -402,5 +509,6 @@ move_skips_and_notify "$LOGFILE" "$REVIEW_DIR" "$DATE_STR"
 find "$STAGING_DIR" -mindepth 1 -type d -empty -delete
 
 trigger_navidrome_scan
-sweep_review
+sweep_old_dirs "$REVIEW_DIR"
+sweep_old_dirs "$QUARANTINE_FAILED_DIR"
 ping_hc import

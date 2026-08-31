@@ -5,8 +5,19 @@ set -euo pipefail
 # outright) so an interactive session and the timer never touch the beets
 # database at the same time.
 
-LOCK_FILE="${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./lib.sh
+source "$SCRIPT_DIR/lib.sh"
 
+# Shared with music-import via lib.sh's musicbox_lock_file, so the two
+# never drift onto different lock files.
+LOCK_FILE="$(musicbox_lock_file)"
+
+# musicbox_ensure_lock_dir runs first because nothing else creates the
+# persistent lock directory, and `exec` under `set -e` aborts outright on a
+# missing one -- least of all on this path, an ad hoc invocation no systemd
+# unit precedes.
+musicbox_ensure_lock_dir "$LOCK_FILE"
 exec 200>"$LOCK_FILE"
 if ! flock -n 200; then
   echo "music-beet: another music-import run holds the lock; waiting..." >&2

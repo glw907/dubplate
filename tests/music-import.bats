@@ -10,11 +10,28 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
   SCRIPT="$REPO_ROOT/scripts/music-import"
 
-  WORK_DIR="$(mktemp -d)"
+  # Symlink-resolved at creation, so the path comparisons below (the cache
+  # lands under MUSICBOX_RUNTIME_DIR test resolves the real path from inside
+  # the run) hold on a host where /tmp is itself a symlink.
+  WORK_DIR="$(cd "$(mktemp -d)" && pwd -P)"
   export MUSICBOX_ROOT="$WORK_DIR/srv-music"
   mkdir -p "$MUSICBOX_ROOT/inbox" "$MUSICBOX_ROOT/library" "$MUSICBOX_ROOT/state"
 
-  export MUSICBOX_IMPORT_LOCK_FILE="$WORK_DIR/musicbox-import.lock"
+  # Deliberately NOT $WORK_DIR itself -- a distinct subdirectory, so this
+  # fixture can't accidentally pass by coincidence if the RUNTIME_DIR/
+  # LOCK_FILE decoupling below ever regressed back to deriving RUNTIME_DIR
+  # from the lock file's own directory (see the dedicated regression test
+  # below). Pre-created here, not left to the script's own mkdir -p: a
+  # couple of tests below flock this path directly, from outside the
+  # script under test, before the script ever runs.
+  export MUSICBOX_IMPORT_LOCK_FILE="$WORK_DIR/lockdir/musicbox-import.lock"
+  mkdir -p "$(dirname "$MUSICBOX_IMPORT_LOCK_FILE")"
+  # Stands in for systemd's RuntimeDirectory=musicbox (/run/musicbox on the
+  # box, created fresh every boot): the scan-trigger temp credential file
+  # and the contributors.yaml JSON cache both live here, deliberately
+  # decoupled from the lock file's own (now persistent) directory. WORK_DIR
+  # already exists via mktemp -d above.
+  export MUSICBOX_RUNTIME_DIR="$WORK_DIR"
   export MUSICBOX_CONTRIBUTORS_FILE="$WORK_DIR/contributors.yaml"
   # The real template, not a test fixture copy: exercises exactly what
   # deploy.sh ships to the box.
@@ -44,17 +61,26 @@ EOF
   MSMTP_LOG="$WORK_DIR/msmtp.log"
   CURL_LOG="$WORK_DIR/curl.log"
   CURL_CONFIG_LOG="$WORK_DIR/curl-config.log"
+  CURL_METHOD_LOG="$WORK_DIR/curl-method.log"
   : >"$MSMTP_LOG"
   : >"$CURL_LOG"
   : >"$CURL_CONFIG_LOG"
-  export MSMTP_LOG CURL_LOG CURL_CONFIG_LOG
+  : >"$CURL_METHOD_LOG"
+  export MSMTP_LOG CURL_LOG CURL_CONFIG_LOG CURL_METHOD_LOG
 
+  # MSMTP_FAIL makes every call fail after still consuming and logging its
+  # stdin, standing in for a stalled mail queue or a bad /etc/msmtprc: the
+  # message was attempted, delivery just didn't happen.
   cat >"$STUB_BIN/msmtp" <<'EOF'
 #!/usr/bin/env bash
 {
   echo "--- args: $*"
   cat
 } >>"$MSMTP_LOG"
+if [ -n "${MSMTP_FAIL:-}" ]; then
+  echo "stub msmtp: forced failure" >&2
+  exit 1
+fi
 EOF
 
   # Logs every call's arguments, and -- for a --config call, which is
@@ -62,24 +88,41 @@ EOF
   # to a second log, since the real function deletes it the moment the
   # request is done. Setting CURL_FAIL_STARTSCAN makes only the startScan
   # call fail, so the failure-tolerant path can be exercised without also
-  # breaking ping_hc's own curl calls.
+  # breaking ping_hc's own curl calls. Also resolves and logs the HTTP
+  # method curl would actually send (the argument after -X/--request, or
+  # curl's own default of GET when neither is present), one line per call,
+  # so a test can tell a real POST from a plain call that silently defaults
+  # to GET -- the gap that let every failure ping the estate ever sent go
+  # out as a GET against a Worker route that 404s anything but POST.
+  # CURL_FAIL_ALL fails every call regardless of what it's for, standing in
+  # for a dead network path that takes out ping_hc's own status pings along
+  # with the Navidrome trigger.
   cat >"$STUB_BIN/curl" <<'EOF'
 #!/usr/bin/env bash
 echo "$*" >>"$CURL_LOG"
 config_file=""
+method="GET"
 prev=""
 for arg in "$@"; do
   if [ "$prev" = "--config" ]; then
     config_file="$arg"
   fi
+  case "$prev" in
+  -X | --request) method="$arg" ;;
+  esac
   prev="$arg"
 done
+echo "$method" >>"$CURL_METHOD_LOG"
 if [ -n "$config_file" ]; then
   cat "$config_file" >>"$CURL_CONFIG_LOG"
   if [ -n "${CURL_FAIL_STARTSCAN:-}" ] && grep -q "rest/startScan" "$config_file"; then
     echo "stub curl: forced startScan failure" >&2
     exit 22
   fi
+fi
+if [ -n "${CURL_FAIL_ALL:-}" ]; then
+  echo "stub curl: forced failure" >&2
+  exit 22
 fi
 EOF
 
@@ -90,7 +133,24 @@ EOF
   # rclone's stub needs WORK_DIR at generation time, not at call time.
   sed -i "s#\$WORK_DIR_MARKER#$WORK_DIR#" "$STUB_BIN/rclone"
 
-  chmod +x "$STUB_BIN/msmtp" "$STUB_BIN/curl" "$STUB_BIN/rclone"
+  # Counts invocations without changing behavior: one line per call in
+  # YQ_LOG, then execs the real yq (resolved now, before the wrapper itself
+  # exists on PATH, so this lookup can't find itself) so every test still
+  # gets yq's real, deterministic parse of contributors.yaml. Exists to let
+  # the caching test below assert "at most once per run" against something
+  # other than the parsed output, which looks identical whether it came
+  # from one parse or five.
+  REAL_YQ="$(command -v yq)"
+  YQ_LOG="$WORK_DIR/yq.log"
+  : >"$YQ_LOG"
+  export YQ_LOG
+  cat >"$STUB_BIN/yq" <<EOF
+#!/usr/bin/env bash
+echo call >>"$YQ_LOG"
+exec "$REAL_YQ" "\$@"
+EOF
+
+  chmod +x "$STUB_BIN/msmtp" "$STUB_BIN/curl" "$STUB_BIN/rclone" "$STUB_BIN/yq"
 
   touch_old() {
     find "$1" -exec touch -d "30 minutes ago" {} +
@@ -166,6 +226,36 @@ EOF
   chmod +x "$STUB_BIN/beet"
 }
 
+# General form of stub_beet_with_skip: logs one "skip" line per <user>
+# <album> pair given as arguments (e.g. `stub_beet_with_skips carol "Weird
+# Album C" alice "Weird Album A"`), each under that user's staging
+# subdirectory. Lets the unmatched-uploader tests name whichever uploaders,
+# and however many at once, each scenario needs instead of always alice's
+# single fixed album.
+stub_beet_with_skips() {
+  local user album
+  {
+    cat <<'EOF'
+#!/usr/bin/env bash
+logfile=""
+prev=""
+for arg in "$@"; do
+  if [ "$prev" = "-l" ]; then
+    logfile="$arg"
+  fi
+  prev="$arg"
+done
+EOF
+    while [ "$#" -gt 0 ]; do
+      user="$1"
+      album="$2"
+      shift 2
+      printf 'echo "skip %s" >> "$logfile"\n' "$MUSICBOX_ROOT/staging/$user/$album"
+    done
+  } >"$STUB_BIN/beet"
+  chmod +x "$STUB_BIN/beet"
+}
+
 @test "happy path: quiescent upload imports cleanly, no review items, success ping" {
   stub_beet_clean
   stage_good_album "Good Album"
@@ -173,11 +263,13 @@ EOF
   run "$SCRIPT"
   [ "$status" -eq 0 ]
 
-  # A success ping (no /fail suffix) went out for import. "! grep" would
-  # silently no-op here under bats' set -e (a leading "!" is exempt from
-  # errexit, so a failing negated assertion that isn't the test's last
-  # line never surfaces); run+status is the assertion that actually holds.
+  # A success ping (no /fail suffix) went out for import, as a plain GET.
+  # "! grep" would silently no-op here under bats' set -e (a leading "!" is
+  # exempt from errexit, so a failing negated assertion that isn't the
+  # test's last line never surfaces); run+status is the assertion that
+  # actually holds.
   grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
+  grep -qx "GET" "$CURL_METHOD_LOG"
   run grep -q "/fail" "$CURL_LOG"
   [ "$status" -ne 0 ]
 
@@ -224,6 +316,40 @@ EOF
   grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
 }
 
+@test "a failed mail delivery does not abort the run: notify's best-effort contract holds under set -e" {
+  stub_beet_with_skip
+  export MSMTP_FAIL=1
+  mkdir -p "$MUSICBOX_ROOT/inbox/alice/Weird Album"
+  make_flac "$MUSICBOX_ROOT/inbox/alice/Weird Album/track1.flac"
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # notify was called bare -- the skip path notifies both alice and Geoff --
+  # and every msmtp invocation failed, yet the run still reached the end:
+  # the skipped album was filed, and the closing success ping fired.
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Weird Album" -print -quit)"
+  [ -n "$found" ]
+  [[ "$output" == *"msmtp delivery"*"failed"* ]]
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
+}
+
+@test "a failed curl does not abort the run: ping_hc's best-effort contract holds under set -e" {
+  stub_beet_clean
+  export CURL_FAIL_ALL=1
+  stage_good_album "Good Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # The closing ping_hc call was attempted -- logged even though the stub
+  # failed it -- and the run still exited 0 instead of dying on ping_hc's
+  # own nonzero return.
+  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import" "$CURL_LOG"
+  [[ "$output" == *"ping to"*"did not succeed"* ]]
+}
+
 @test "skip path: a beets skip is filed to review and notifies uploader plus Geoff" {
   stub_beet_with_skip
   mkdir -p "$MUSICBOX_ROOT/inbox/alice/Weird Album"
@@ -246,6 +372,34 @@ EOF
   [ "$status" -ne 0 ]
 }
 
+@test "insufficient free space aborts before any archive is extracted" {
+  stub_beet_clean
+  mkdir -p "$MUSICBOX_ROOT/inbox/alice"
+  local src="$WORK_DIR/src-album"
+  mkdir -p "$src/Good Album"
+  make_flac "$src/Good Album/track1.flac"
+  (cd "$src" && bsdtar -cf "$MUSICBOX_ROOT/inbox/alice/upload.tar" "Good Album")
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+  export MUSICBOX_MIN_FREE_GB=999999999
+
+  # If beet ran, it would exit nonzero here, so the test could not mistake a
+  # false pass for the real abort-before-extraction guarantee.
+  cat >"$STUB_BIN/beet" <<'EOF'
+#!/usr/bin/env bash
+exit 17
+EOF
+  chmod +x "$STUB_BIN/beet"
+
+  run "$SCRIPT"
+  [ "$status" -ne 0 ]
+  grep -qx -- "-fsS --retry 3 --max-time 10 -X POST -o /dev/null https://hc.example/ping/import/fail" "$CURL_LOG"
+
+  # The archive was never touched: still sitting whole in alice's inbox,
+  # never unpacked anywhere, and staging never even got a directory for her.
+  [ -f "$MUSICBOX_ROOT/inbox/alice/upload.tar" ]
+  [ ! -d "$MUSICBOX_ROOT/staging/alice" ]
+}
+
 @test "insufficient free space aborts before beet runs and fires a fail ping" {
   stub_beet_clean
   mkdir -p "$MUSICBOX_ROOT/inbox/alice/Good Album"
@@ -263,7 +417,11 @@ EOF
 
   run "$SCRIPT"
   [ "$status" -ne 0 ]
-  grep -qx -- "-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/import/fail" "$CURL_LOG"
+  # The failure ping must be a real POST: the pings Worker routes
+  # /ping/<slug>/fail on POST only and 404s a bare GET, so a plain call
+  # here would be silently dropped rather than recorded.
+  grep -qx -- "-fsS --retry 3 --max-time 10 -X POST -o /dev/null https://hc.example/ping/import/fail" "$CURL_LOG"
+  grep -qx "POST" "$CURL_METHOD_LOG"
 }
 
 @test "a non-quiescent inbox is left alone this run" {
@@ -316,7 +474,69 @@ EOF
   [ ! -s "$MSMTP_LOG" ]
 }
 
+# --- staging isolation -----------------------------------------------------
+
+@test "staging: two archives whose top-level entries collide by name land side by side, not merged" {
+  stub_beet_clean
+  mkdir -p "$MUSICBOX_ROOT/inbox/alice"
+
+  local src1="$WORK_DIR/src1" src2="$WORK_DIR/src2"
+  mkdir -p "$src1/Album" "$src2/Album"
+  make_flac "$src1/Album/track1.flac"
+  make_flac "$src2/Album/track1.flac"
+  (cd "$src1" && bsdtar -cf "$MUSICBOX_ROOT/inbox/alice/one.tar" Album)
+  (cd "$src2" && bsdtar -cf "$MUSICBOX_ROOT/inbox/alice/two.tar" Album)
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Both archives extract into their own private scratch subdirectory
+  # first, so the second archive's top-level "Album" never lands straight
+  # into the first archive's already-staged "Album" -- it survives beside
+  # it under a disambiguated name instead of merging into (or clobbering a
+  # same-named file inside) the first.
+  count="$(find "$MUSICBOX_ROOT/staging/alice" -mindepth 1 -maxdepth 1 -type d -iname "Album*" | wc -l)"
+  [ "$count" -eq 2 ]
+  for d in "$MUSICBOX_ROOT/staging/alice"/Album*; do
+    [ "$(find "$d" -name '*.flac' | wc -l)" -eq 1 ]
+  done
+
+  # No leftover scratch directories from the per-archive extraction step.
+  [ -z "$(find "$MUSICBOX_ROOT/staging/alice" -maxdepth 1 -iname '.extract-*' -print -quit)" ]
+}
+
 # --- quality gate (end to end) --------------------------------------------
+
+@test "quality gate: a symlink in an upload is quarantined instead of silently bypassing the FLAC-only gate" {
+  stub_beet_clean
+  local dir="$MUSICBOX_ROOT/inbox/alice/Symlinked Album"
+  mkdir -p "$dir"
+  make_flac "$dir/track1.flac"
+  ln -s track1.flac "$dir/sneaky.flac"
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # The whole album -- symlink included -- was quarantined; beets never saw
+  # it, because -type f alone would have let the symlink glide straight
+  # through the gate unexamined.
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Symlinked Album" -print -quit)"
+  [ -n "$found" ]
+  [ -L "$found/sneaky.flac" ]
+  [ -f "$found/track1.flac" ]
+  [ ! -e "$MUSICBOX_ROOT/staging/alice/Symlinked Album" ]
+
+  # Geoff's technical copy names the file and the reason.
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "sneaky.flac" "$MSMTP_LOG"
+  grep -q "symlink not allowed" "$MSMTP_LOG"
+
+  # Alice gets the friendly, translated version -- never the raw reason.
+  grep -q "alice@example.com" "$MSMTP_LOG"
+  grep -q "sneaky.flac: This looks like a symlink" "$MSMTP_LOG"
+}
 
 @test "quality gate: an album with any failing file moves entirely to review" {
   stub_beet_clean
@@ -443,4 +663,259 @@ EOF
   # the normal, contributor-visible way.
   run grep -q "alice@example.com" "$MSMTP_LOG"
   [ "$status" -ne 0 ]
+}
+
+# --- unknown uploader (absent from contributors.yaml) ----------------------
+#
+# "carol" never appears in the setup() fixture's contributors.yaml, so
+# uploader_email/uploader_name return empty for her in both callers that
+# use them: move_skips_and_notify (the beets-skip path) and
+# quarantine_quality_failures (the quality-gate path). Each caller has its
+# own "no email on file" branch (music-import:241 and :373); these tests
+# exercise both, each once with carol alone and once alongside alice (a
+# real contributor), to prove the unmatched branch changes only the
+# notification -- never where the file lands or whether the run succeeds --
+# and never bleeds into a sibling upload from a real contributor in the same
+# run.
+
+@test "skip path: an unmatched uploader is not emailed, but Geoff still hears about it and the run succeeds" {
+  stub_beet_with_skips carol "Weird Album"
+  mkdir -p "$MUSICBOX_ROOT/inbox/carol/Weird Album"
+  make_flac "$MUSICBOX_ROOT/inbox/carol/Weird Album/track1.flac"
+  touch_old "$MUSICBOX_ROOT/inbox/carol"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Same filing behavior as a known uploader's skip: relocated under
+  # review/<date>/carol/, gone from staging.
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Weird Album" -print -quit)"
+  [ -n "$found" ]
+  [[ "$found" == *"/review/"*"/carol/Weird Album" ]]
+  [ ! -e "$MUSICBOX_ROOT/staging/carol/Weird Album" ]
+
+  # The diagnostic fired, and Geoff still learned carol had a skip -- but
+  # nobody was emailed on her behalf: only his own address appears, in
+  # exactly one message.
+  [[ "$output" == *"no email on file for uploader 'carol'; skipping their notice"* ]]
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "carol" "$MSMTP_LOG"
+  [ "$(grep -c '^--- args:' "$MSMTP_LOG")" -eq 1 ]
+}
+
+@test "skip path: a known and an unmatched uploader together -- only the known one is emailed" {
+  stub_beet_with_skips carol "Weird Album C" alice "Weird Album A"
+  mkdir -p "$MUSICBOX_ROOT/inbox/carol/Weird Album C" "$MUSICBOX_ROOT/inbox/alice/Weird Album A"
+  make_flac "$MUSICBOX_ROOT/inbox/carol/Weird Album C/track1.flac"
+  make_flac "$MUSICBOX_ROOT/inbox/alice/Weird Album A/track1.flac"
+  touch_old "$MUSICBOX_ROOT/inbox/carol"
+  touch_old "$MUSICBOX_ROOT/inbox/alice"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Both skips were filed regardless of contributor status.
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Weird Album C" -print -quit)"
+  [[ "$found" == *"/review/"*"/carol/Weird Album C" ]]
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Weird Album A" -print -quit)"
+  [[ "$found" == *"/review/"*"/alice/Weird Album A" ]]
+
+  # alice, a real contributor, got her own notice; carol did not -- only
+  # alice's and Geoff's aggregate (which still names both) went out.
+  [[ "$output" == *"no email on file for uploader 'carol'; skipping their notice"* ]]
+  run grep -q "no email on file for uploader 'alice'" <<<"$output"
+  [ "$status" -ne 0 ]
+  grep -q "alice@example.com" "$MSMTP_LOG"
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "carol" "$MSMTP_LOG"
+  [ "$(grep -c '^--- args:' "$MSMTP_LOG")" -eq 2 ]
+}
+
+@test "quality gate: an unmatched uploader's quarantine skips their email but Geoff still gets the technical detail" {
+  local dir="$MUSICBOX_ROOT/inbox/carol/Bad Album"
+  mkdir -p "$dir"
+  make_flac "$dir/track1.flac"
+  echo not-really-audio >"$dir/track2.mp3"
+  touch_old "$MUSICBOX_ROOT/inbox/carol"
+  stub_beet_clean
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Same filing behavior as a known uploader's quality-gate failure.
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Bad Album" -print -quit)"
+  [ -n "$found" ]
+  [[ "$found" == *"/review/"*"/carol/Bad Album" ]]
+  [ ! -e "$MUSICBOX_ROOT/staging/carol/Bad Album" ]
+
+  [[ "$output" == *"no email on file for uploader 'carol'; skipping their quality-gate notice"* ]]
+  # Geoff's technical summary still names the file and the raw reason; his
+  # is the only message that went out.
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "carol/Bad Album" "$MSMTP_LOG"
+  grep -q "track2.mp3" "$MSMTP_LOG"
+  grep -q "not FLAC" "$MSMTP_LOG"
+  [ "$(grep -c '^--- args:' "$MSMTP_LOG")" -eq 1 ]
+}
+
+@test "quality gate: a known and an unmatched uploader together -- only the known one gets the rejection email" {
+  stage_bad_album "Bad Album A"
+  local dir="$MUSICBOX_ROOT/inbox/carol/Bad Album C"
+  mkdir -p "$dir"
+  make_flac "$dir/track1.flac"
+  echo not-really-audio >"$dir/track2.mp3"
+  touch_old "$MUSICBOX_ROOT/inbox/carol"
+  stub_beet_clean
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Bad Album A" -print -quit)"
+  [[ "$found" == *"/review/"*"/alice/Bad Album A" ]]
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Bad Album C" -print -quit)"
+  [[ "$found" == *"/review/"*"/carol/Bad Album C" ]]
+
+  # alice gets the friendly template; carol gets nothing, only the
+  # diagnostic and a mention in Geoff's technical summary.
+  [[ "$output" == *"no email on file for uploader 'carol'; skipping their quality-gate notice"* ]]
+  run grep -q "no email on file for uploader 'alice'" <<<"$output"
+  [ "$status" -ne 0 ]
+  grep -q "alice@example.com" "$MSMTP_LOG"
+  grep -q "Hi alice," "$MSMTP_LOG"
+  grep -q "geoff-login@907.life" "$MSMTP_LOG"
+  grep -q "carol/Bad Album C" "$MSMTP_LOG"
+  [ "$(grep -c '^--- args:' "$MSMTP_LOG")" -eq 2 ]
+}
+
+# --- contributors.yaml parse cache -----------------------------------------
+
+@test "contributors.yaml is parsed to JSON at most once per run, even with multiple uploader lookups" {
+  # A beets skip for a good album (uploader_email, via move_skips_and_notify)
+  # plus a quality-gate quarantine for a bad album (uploader_email and
+  # uploader_name, via quarantine_quality_failures) together drive three
+  # uploader lookups in one run. Before caching, each lookup re-spent its
+  # own yq|jq pipeline over the same static file; now they all share one
+  # parse.
+  stage_good_album "Good Album"
+  stage_bad_album "Bad Album"
+  cat >"$STUB_BIN/beet" <<EOF
+#!/usr/bin/env bash
+logfile=""
+prev=""
+for arg in "\$@"; do
+  if [ "\$prev" = "-l" ]; then
+    logfile="\$arg"
+  fi
+  prev="\$arg"
+done
+echo "skip $MUSICBOX_ROOT/staging/alice/Good Album" >> "\$logfile"
+EOF
+  chmod +x "$STUB_BIN/beet"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  # Both notification paths actually fired -- otherwise a passing yq.log
+  # count would just mean uploader_email/uploader_name were never called.
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Good Album" -print -quit)"
+  [ -n "$found" ]
+  found="$(find "$MUSICBOX_ROOT/review" -type d -iname "Bad Album" -print -quit)"
+  [ -n "$found" ]
+  grep -q "alice@example.com" "$MSMTP_LOG"
+
+  [ "$(wc -l <"$YQ_LOG")" -eq 1 ]
+}
+
+@test "the contributors.yaml JSON cache is created owner-only, not world/group readable" {
+  # RUNTIME_DIR (systemd's RuntimeDirectory=musicbox on the box) is
+  # world-traversable at 0755 with no UMask= override, and
+  # contributors.yaml itself is deployed 0640 root:music specifically so
+  # its contributor names and emails aren't world-readable -- a cache file
+  # created under the default umask would undo that. Since the real
+  # trap removes the cache the moment the script exits, the only way to
+  # observe its mode is from inside the run: this yq stub, invoked with
+  # its stdout already redirected to the cache file, stats that file
+  # through its own fd 1 (via the "magic" /proc/PID/fd/1 symlink,
+  # dereferenced with `stat -L`) the instant the real load happens. The
+  # log write goes out fd 3, not fd 1 itself -- writing the stat result to
+  # fd 1 would repoint fd 1 at the log file before the stat call ever ran,
+  # making it observe the log file's own mode instead of the cache's.
+  cat >"$STUB_BIN/yq" <<EOF
+#!/usr/bin/env bash
+exec 3>>"$WORK_DIR/cache-mode.log"
+stat -L -c '%a' /proc/\$\$/fd/1 >&3
+exec 3>&-
+exec "$REAL_YQ" "\$@"
+EOF
+  chmod +x "$STUB_BIN/yq"
+
+  stub_beet_clean
+  stage_bad_album "Bad Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  [ -s "$WORK_DIR/cache-mode.log" ]
+  [ "$(cat "$WORK_DIR/cache-mode.log")" = "600" ]
+}
+
+@test "the contributors.yaml JSON cache lands under MUSICBOX_RUNTIME_DIR, not beside the lock file" {
+  # Guards the RUNTIME_DIR/LOCK_FILE decoupling itself, not just its
+  # symptom: setup() points MUSICBOX_IMPORT_LOCK_FILE at $WORK_DIR/lockdir
+  # (a subdirectory distinct from MUSICBOX_RUNTIME_DIR=$WORK_DIR) precisely
+  # so this can fail. If RUNTIME_DIR were ever re-derived from the lock
+  # file's own directory (music-import's pre-M2b behavior), the cache
+  # would land one level down, under lockdir, instead of directly under
+  # WORK_DIR -- caught here by resolving the cache file's real path from
+  # inside the run, the same /proc/PID/fd/1 trick the owner-only mode test
+  # above uses, since the trap deletes it before bats could ever inspect
+  # it after the fact.
+  cat >"$STUB_BIN/yq" <<EOF
+#!/usr/bin/env bash
+exec 3>>"$WORK_DIR/cache-path.log"
+readlink -f /proc/\$\$/fd/1 >&3
+exec 3>&-
+exec "$REAL_YQ" "\$@"
+EOF
+  chmod +x "$STUB_BIN/yq"
+
+  stub_beet_clean
+  stage_bad_album "Bad Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  [ -s "$WORK_DIR/cache-path.log" ]
+  cache_path="$(cat "$WORK_DIR/cache-path.log")"
+  [ "$(dirname "$cache_path")" = "$WORK_DIR" ]
+}
+
+@test "no uploader lookup at all means contributors.yaml is never parsed" {
+  stub_beet_clean
+  stage_good_album "Good Album"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  [ ! -s "$YQ_LOG" ]
+}
+
+# --- quarantine-failed retention sweep --------------------------------------
+
+@test "quarantine-failed gets the same retention sweep review already has" {
+  stub_beet_clean
+
+  local old_dir="$MUSICBOX_ROOT/quarantine-failed/2020-01-01"
+  local fresh_dir="$MUSICBOX_ROOT/quarantine-failed/$(date +%Y-%m-%d)"
+  mkdir -p "$old_dir/alice" "$fresh_dir/alice"
+  # Backdates only the dated directory's own mtime, past the 60-day
+  # MUSICBOX_REVIEW_RETENTION_DAYS set in setup(); the sweep checks that
+  # mtime directly (-maxdepth 1), not anything recursively underneath it.
+  touch -d "90 days ago" "$old_dir"
+
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+
+  [ ! -d "$old_dir" ]
+  [ -d "$fresh_dir" ]
 }

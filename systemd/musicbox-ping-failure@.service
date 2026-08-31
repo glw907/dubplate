@@ -5,4 +5,7 @@ Description=musicbox: notify healthchecks.io that %i failed
 Type=oneshot
 User=music
 EnvironmentFile=/etc/musicbox/env
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
 ExecStart=/usr/local/bin/musicbox-ping-failure %i

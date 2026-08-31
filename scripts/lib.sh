@@ -1,7 +1,47 @@
 # shellcheck shell=bash
-# Pure helper functions shared by music-import and music-backup. Meant to be
-# sourced, not executed; every function returns a status rather than exiting
-# the calling script, so a caller under `set -e` controls its own aborts.
+# Pure helper functions shared by music-import, music-beet, and
+# music-backup. Meant to be sourced, not executed; every function returns a
+# status rather than exiting the calling script, so a caller under `set -e`
+# controls its own aborts.
+
+# musicbox_lock_file
+#
+# Prints the path to the single flock music-import and music-beet both
+# take before touching the beets database, so a scheduled import run and
+# an interactive `beet` session (via music-beet) never race each other.
+# The default is a persistent path, /var/lib/musicbox, not the
+# RuntimeDirectory=musicbox systemd tmpfs (/run/musicbox): with flock, the
+# lock IS the flock held on the open file descriptor, not the file's
+# content, so a lock file that is never deleted is harmless -- but a
+# RuntimeDirectory is torn down at unit stop and recreated fresh at unit
+# start, which broke mutual exclusion two ways: a long interactive
+# music-beet session outlives the directory (dies on the missing
+# directory on its next run, since the fd is opened under `set -e`), and a
+# beet session already holding a lock on the old (now-unlinked) inode
+# never contends with the next scheduled import, which opens a brand new
+# file at the same path. Overridable via MUSICBOX_IMPORT_LOCK_FILE -- both
+# callers must resolve through this one function rather than carrying
+# their own default, or a fix applied to one and not the other silently
+# breaks their mutual exclusion.
+musicbox_lock_file() {
+  printf '%s' "${MUSICBOX_IMPORT_LOCK_FILE:-/var/lib/musicbox/musicbox-import.lock}"
+}
+
+# musicbox_ensure_lock_dir <lock_file>
+#
+# mkdir -p's a lock file's parent directory. Called by every lock-opening
+# script right before it opens the lock fd (`exec N>"$lock_file"` under
+# `set -e` dies outright on a missing directory), so this one function is
+# what keeps music-import and music-beet from each carrying their own
+# mkdir -- and therefore each needing its own fix the day one of them
+# forgets it. Unlike the RuntimeDirectory=musicbox systemd creates for
+# /run/musicbox, nothing recreates /var/lib/musicbox's tree on its own; a
+# fresh box or a wiped state volume needs this at least once, and a
+# no-op mkdir -p on every other run costs nothing.
+musicbox_ensure_lock_dir() {
+  local lock_file="$1"
+  mkdir -p "$(dirname "$lock_file")"
+}
 
 # quiescent <dir> <minutes>
 #
@@ -75,24 +115,43 @@ free_space_ok() {
 #
 # Sends a plain-text message via msmtp. msmtp itself resolves the account
 # and credentials from /etc/msmtprc; this function only shapes the message.
+# Best-effort by contract, guarded here rather than at each call site: a
+# stalled mail queue or a msmtprc misconfiguration must never take an
+# import run down, so a delivery failure is logged to stderr and this
+# function still returns 0. That guarantee has to live in the function
+# itself -- notify is routinely called bare under `set -e` (music-import
+# never wraps a call in `|| true`), so any call site that forgot the guard
+# would otherwise abort the run on the next mail-delivery hiccup.
 notify() {
   local email="$1" subject="$2" body="$3"
   {
     printf 'To: %s\n' "$email"
     printf 'Subject: %s\n' "$subject"
     printf '\n%s\n' "$body"
-  } | msmtp "$email"
+  } | msmtp "$email" ||
+    echo "notify: msmtp delivery to $email failed" >&2
+  return 0
 }
 
 # ping_hc <slug> [fail]
 #
-# Curls the healthchecks.io URL named MUSICBOX_HC_<SLUG>_URL, slug
-# uppercased with "-" turned into "_" to make a legal env var name. Appends
-# /fail when the second argument is the literal word "fail". A missing or
-# empty env var is a no-op (with a notice to stderr), not an error:
+# Curls the pings Worker URL named MUSICBOX_HC_<SLUG>_URL, slug uppercased
+# with "-" turned into "_" to make a legal env var name. Appends /fail when
+# the second argument is the literal word "fail", and that failure path is
+# sent as an explicit POST: the Worker (~/Projects/pings/src/index.ts)
+# routes /ping/<slug>/fail on POST only and 404s a bare GET, so a failure
+# ping sent the way the success path is (curl's default GET) is silently
+# dropped rather than recorded. The success ping stays on curl's default
+# method, since the Worker accepts GET or POST for /ping/<slug>. A missing
+# or empty env var is a no-op (with a notice to stderr), not an error:
 # monitoring must never take down the pipeline it monitors. --retry 3
-# --max-time 10 keeps a slow or flaky healthchecks.io from ever being the
-# reason an otherwise-successful run hangs or gets misreported as failed.
+# --max-time 10 keeps a slow or flaky Worker from ever being the reason an
+# otherwise-successful run hangs or gets misreported as failed. That same
+# never-fails contract covers curl itself failing outright (DNS, timeout,
+# a non-2xx after retries exhaust): guarded here, at the function
+# definition, rather than trusting every call site to remember `|| true`
+# -- ping_hc is called bare in more than one place in music-import, several
+# of them on a success path that must still reach `exit 0`.
 ping_hc() {
   local slug="$1" mode="${2:-}" var_name url
   var_name="MUSICBOX_HC_$(printf '%s' "$slug" | tr '[:lower:]-' '[:upper:]_')_URL"
@@ -103,8 +162,13 @@ ping_hc() {
   fi
   if [ "$mode" = "fail" ]; then
     url="${url%/}/fail"
+    curl -fsS --retry 3 --max-time 10 -X POST -o /dev/null "$url" ||
+      echo "ping_hc: failure ping to $url did not succeed" >&2
+  else
+    curl -fsS --retry 3 --max-time 10 -o /dev/null "$url" ||
+      echo "ping_hc: ping to $url did not succeed" >&2
   fi
-  curl -fsS --retry 3 --max-time 10 -o /dev/null "$url"
+  return 0
 }
 
 # quality_gate <dir>
@@ -115,14 +179,29 @@ ping_hc() {
 # aiff extension; anything else (art, .cue, .nfo) is out of scope and never
 # inspected. A non-FLAC extension fails outright; a FLAC file must both
 # pass `flac -t`'s full decode test (catches a corrupt or truncated
-# upload) and carry at least 44.1kHz/16-bit. Prints one "path<TAB>reason"
-# line per failing file to stdout -- the raw, technical reason; callers
-# that notify a human are expected to translate it, not forward it
-# verbatim to an uploader. Exits 0 only when every audio file under dir
-# passed.
+# upload) and carry at least 44.1kHz/16-bit.
+#
+# Every symlink under dir fails outright, regardless of extension, checked
+# before any extension logic runs. `find -type f` never matches a symlink
+# (even one that resolves to a plain regular file), so scanning with
+# -type f alone would let a symlink glide straight through this whole
+# function unexamined -- and a symlink can point anywhere the beets
+# process can read, or (from a maliciously crafted archive member) at a
+# path that does not even exist yet. This function's `find` therefore also
+# matches -type l, and the loop checks `-L` first.
+#
+# Prints one "path<TAB>reason" line per failing file to stdout -- the raw,
+# technical reason; callers that notify a human are expected to translate
+# it, not forward it verbatim to an uploader. Exits 0 only when every
+# audio file under dir passed.
 quality_gate() {
   local dir="$1" file ext rate bps failed=0
   while IFS= read -r -d '' file; do
+    if [ -L "$file" ]; then
+      printf '%s\tsymlink not allowed\n' "$file"
+      failed=1
+      continue
+    fi
     ext="${file##*.}"
     ext="${ext,,}"
     case "$ext" in
@@ -153,7 +232,7 @@ quality_gate() {
         "$file" "${rate:-unknown}" "${bps:-unknown}"
       failed=1
     fi
-  done < <(find "$dir" -type f -print0)
+  done < <(find "$dir" \( -type f -o -type l \) -print0)
   return "$failed"
 }
 

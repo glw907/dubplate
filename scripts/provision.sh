@@ -67,6 +67,27 @@ if [ ! -f "$FIREWALL_RULES_FILE" ]; then
   exit 1
 fi
 
+# M11: firewall-rules.json ships with an empty source_ips placeholder for the
+# tcp/22 rule; the real allowlist never lives in the repo. It comes from
+# FIREWALL_SSH_CIDRS (comma-separated CIDRs, e.g. "203.0.113.4/32") at apply
+# time via render_firewall_rules() below. Refusing outright when it is unset,
+# rather than falling back to 0.0.0.0/0 + ::/0, is the point of this task:
+# an unset var must never silently produce an open rule.
+#
+# Recovery path if the workstation IP rotates and SSH access to the box is
+# lost: the Hetzner API is reachable from any machine holding HCLOUD_TOKEN,
+# so the rule can always be re-widened from there, no SSH needed:
+#   hcloud firewall replace-rules musicbox-fw --rules-file <(echo \
+#     '[{"direction":"in","protocol":"tcp","port":"22","source_ips":["0.0.0.0/0","::/0"],"destination_ips":[]}]')
+# Then re-run this script with a corrected FIREWALL_SSH_CIDRS to narrow it
+# back down.
+if [ -z "${FIREWALL_SSH_CIDRS:-}" ]; then
+  echo "FIREWALL_SSH_CIDRS is not set. Refusing to apply the firewall step." >&2
+  echo "Set it to a comma-separated list of CIDRs allowed to reach tcp/22 (e.g. FIREWALL_SSH_CIDRS=\"203.0.113.4/32\"), in ~/.local/secrets or the environment, then re-run." >&2
+  echo "This script will not fall back to an open 0.0.0.0/0 + ::/0 rule." >&2
+  exit 1
+fi
+
 if [ ! -f "$SSH_PUBKEY_FILE" ]; then
   echo "Missing SSH public key: $SSH_PUBKEY_FILE" >&2
   exit 1
@@ -92,25 +113,56 @@ firewall_exists() {
   hcloud firewall list -o columns=name | grep -qx "$FIREWALL_NAME"
 }
 
-# True only if an inbound tcp/22 rule already covers both 0.0.0.0/0 and ::/0,
-# so an existing firewall is never assumed correct just because it exists.
+# Renders FIREWALL_SSH_CIDRS (comma-separated, whitespace around entries
+# tolerated) as a compact JSON array, e.g. FIREWALL_SSH_CIDRS="1.2.3.4/32, ::1/128"
+# becomes ["1.2.3.4/32","::1/128"]. Exits with a clear message if every entry
+# is blank, so a malformed value (e.g. a bare comma) never renders as an
+# empty, effectively-no-one-allowed source_ips list without saying so.
+ssh_cidrs_json() {
+  local raw=() cidr trimmed cidrs=()
+  IFS=',' read -ra raw <<<"$FIREWALL_SSH_CIDRS"
+  for cidr in "${raw[@]}"; do
+    trimmed="${cidr#"${cidr%%[![:space:]]*}"}"
+    trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+    [ -n "$trimmed" ] && cidrs+=("$trimmed")
+  done
+  if [ "${#cidrs[@]}" -eq 0 ]; then
+    echo "FIREWALL_SSH_CIDRS is set but contains no usable CIDR (got: '$FIREWALL_SSH_CIDRS'). Fix it and re-run." >&2
+    exit 1
+  fi
+  printf '%s\n' "${cidrs[@]}" | jq -R . | jq -s -c .
+}
+
+# Fills firewall-rules.json's placeholder tcp/22 source_ips with the CIDRs
+# from FIREWALL_SSH_CIDRS and writes the effective rules to stdout. Nothing
+# in the repo ever states the real allowlist; this is computed fresh from
+# the environment every run.
+render_firewall_rules() {
+  jq --argjson cidrs "$(ssh_cidrs_json)" \
+    '(.[] | select(.port == "22")).source_ips = $cidrs' \
+    "$FIREWALL_RULES_FILE"
+}
+
+# True only if an inbound tcp/22 rule already matches FIREWALL_SSH_CIDRS
+# exactly, so an existing firewall is never assumed correct just because it
+# exists, and a stale wider (or narrower) rule is caught rather than skipped.
 # The describe call is captured separately from the jq check: piping it
 # straight into jq would make a network/API failure indistinguishable from
 # "rule absent" (both make the pipeline exit nonzero), which would report a
 # fixable connectivity blip as the firewall needing manual repair.
 firewall_rule_present() {
-  local describe_output
+  local describe_output expected_cidrs
   if ! describe_output="$(hcloud firewall describe "$FIREWALL_NAME" -o json)"; then
     echo "Failed to describe firewall $FIREWALL_NAME via the hcloud API; cannot verify its rules. Check network/API access and re-run." >&2
     exit 1
   fi
-  jq -e '
+  expected_cidrs="$(ssh_cidrs_json)"
+  jq -e --argjson expected "$expected_cidrs" '
     [.rules[]? | select(
       .direction == "in" and
       .protocol == "tcp" and
       .port == "22" and
-      ((.source_ips // []) | contains(["0.0.0.0/0"])) and
-      ((.source_ips // []) | contains(["::/0"]))
+      (((.source_ips // []) | sort) == ($expected | sort))
     )] | length > 0
   ' >/dev/null <<<"$describe_output"
 }
@@ -139,12 +191,12 @@ if [ "$check_only" = true ]; then
   fi
   if firewall_exists; then
     if firewall_rule_present; then
-      echo "  firewall: $FIREWALL_NAME (exists, rule present)"
+      echo "  firewall: $FIREWALL_NAME (exists, rule matches FIREWALL_SSH_CIDRS)"
     else
-      echo "  firewall: $FIREWALL_NAME (exists, MISSING the tcp/22 rule)"
+      echo "  firewall: $FIREWALL_NAME (exists, tcp/22 rule MISSING or does not match FIREWALL_SSH_CIDRS)"
     fi
   else
-    echo "  firewall: $FIREWALL_NAME (would create: inbound tcp/22 from 0.0.0.0/0 and ::/0)"
+    echo "  firewall: $FIREWALL_NAME (would create: inbound tcp/22 from FIREWALL_SSH_CIDRS=$FIREWALL_SSH_CIDRS)"
   fi
   if volume_exists; then
     echo "  volume:   $VOLUME_NAME (exists)"
@@ -171,9 +223,9 @@ fi
 
 if firewall_exists; then
   if firewall_rule_present; then
-    echo "Firewall $FIREWALL_NAME already exists with the expected rule; skipping."
+    echo "Firewall $FIREWALL_NAME already exists with a tcp/22 rule matching FIREWALL_SSH_CIDRS; skipping."
   else
-    echo "Firewall $FIREWALL_NAME exists but is missing the tcp/22 rule from $FIREWALL_RULES_FILE." >&2
+    echo "Firewall $FIREWALL_NAME exists but its tcp/22 rule does not match FIREWALL_SSH_CIDRS." >&2
     echo "Fix by hand (hcloud firewall replace-rules) and re-run; this script never rewrites an existing firewall's rules." >&2
     exit 1
   fi
@@ -182,7 +234,10 @@ else
   # Rules load at create time, not via a separate add-rule call: a failure
   # between create and add-rule would otherwise leave a rules-less firewall
   # that (per Hetzner's default) denies all inbound traffic, including SSH.
-  hcloud firewall create --name "$FIREWALL_NAME" --rules-file "$FIREWALL_RULES_FILE"
+  # The rules file is rendered from FIREWALL_SSH_CIDRS via process
+  # substitution; firewall-rules.json's own source_ips placeholder is never
+  # passed to hcloud unfilled.
+  hcloud firewall create --name "$FIREWALL_NAME" --rules-file <(render_firewall_rules)
 fi
 
 if volume_exists; then
