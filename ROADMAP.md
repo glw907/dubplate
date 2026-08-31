@@ -49,7 +49,13 @@ top plugins as built-ins: art fetch/embed, genre, duplicates, tag
 hygiene, fingerprinting, ReplayGain (28–90% adoption in a 87-config
 survey; scrapers and the sub-10% tail refused permanently). Staged
 adoption: beets stays behind the subprocess seam until the harvested
-matcher proves conformance, then swaps at that one seam. Evidence:
+matcher proves conformance, then swaps at that one seam. Two ladder
+implications settled early: migration between rungs is backup/restore
+(T10b already frames restore as the adopter's path — local-to-VPS is
+backup-from-laptop, restore-to-box); and the required-no-defaults config
+wall becomes mode-scoped (local mode requires only a music dir; hosted
+keeps today's full requirement set) — a deliberate decision, not
+implementer improvisation. Evidence:
 `~/.dotfiles/docs/superpowers/research/2026-08-31-beets-plugin-usage.md`
 (+ tally JSON beside it). Preconditions: uploader and packaging shipped;
 the packaging story and this mode ladder converge deliberately. Same
