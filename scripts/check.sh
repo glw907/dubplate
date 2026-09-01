@@ -90,7 +90,7 @@ echo "== systemd unit verification =="
 # missing-executable complaint, so the filter is the actual mechanism doing
 # the work.
 if command -v systemd-analyze >/dev/null 2>&1; then
-  unit_files=(systemd/*.service systemd/*.timer)
+  unit_files=(systemd/*.service systemd/*.timer systemd/*.path)
   verify_output="$(systemd-analyze verify --recursive-errors=no "${unit_files[@]}" 2>&1 || true)"
   unexpected="$(grep -v -E ': Command /usr/local/bin/[A-Za-z0-9_.-]+ is not executable: No such file or directory$' <<<"$verify_output" || true)"
   if [ -n "$unexpected" ]; then

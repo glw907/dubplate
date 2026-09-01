@@ -2,8 +2,13 @@ package checks
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -338,13 +343,16 @@ func TestProbeR2Failure(t *testing.T) {
 func TestRunDoctorConfigInvalidSkipsProbes(t *testing.T) {
 	cfgErr := errors.Join(fmt.Errorf("DUBPLATE_ADMIN_EMAIL: %w", config.ErrMissing))
 
-	report := RunDoctor(context.Background(), nil, cfgErr, "rclone")
+	report := RunDoctor(context.Background(), nil, cfgErr, "rclone", nil)
 
 	if report.Probed {
 		t.Error("Probed = true, want false when config did not resolve")
 	}
 	if report.SMTPErr != nil || report.R2Err != nil || report.NavidromeErr != nil {
 		t.Error("a probe field is set even though probes were never run")
+	}
+	if report.AccessErr != nil || report.UploadsWritableErr != nil || report.LedgerAppendErr != nil {
+		t.Error("a new probe field is set even though probes were never run")
 	}
 	if !report.Failed() {
 		t.Error("Failed() = false, want true when config did not resolve")
@@ -357,7 +365,7 @@ func TestRunDoctorConfigInvalidNotJustMissingSurfacesErr(t *testing.T) {
 	// is the only place the report carries the reason for a reader.
 	cfgErr := errors.Join(fmt.Errorf("DUBPLATE_SMTP_PORT: invalid port %q", "abc"))
 
-	report := RunDoctor(context.Background(), nil, cfgErr, "rclone")
+	report := RunDoctor(context.Background(), nil, cfgErr, "rclone", nil)
 
 	if report.Probed {
 		t.Error("Probed = true, want false when config did not resolve")
@@ -370,6 +378,34 @@ func TestRunDoctorConfigInvalidNotJustMissingSurfacesErr(t *testing.T) {
 			t.Errorf("field %s reported missing, want none: the failure is a parse error, not a missing field", s.Name)
 		}
 	}
+}
+
+// newAccessCertsTestServer starts an httptest TLS server publishing pub
+// under kid at [accessCertsPath], standing in for the real
+// https-only Cloudflare Access certs endpoint.
+func newAccessCertsTestServer(t *testing.T, kid string, pub *rsa.PublicKey) *httptest.Server {
+	t.Helper()
+	e := big.NewInt(int64(pub.E)).Bytes()
+	doc := struct {
+		Keys []map[string]string `json:"keys"`
+	}{Keys: []map[string]string{{
+		"kid": kid,
+		"kty": "RSA",
+		"n":   base64.RawURLEncoding.EncodeToString(pub.N.Bytes()),
+		"e":   base64.RawURLEncoding.EncodeToString(e),
+	}}}
+
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != accessCertsPath {
+			t.Errorf("access certs saw path %q, want %q", r.URL.Path, accessCertsPath)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(doc); err != nil {
+			t.Fatalf("encode jwks response: %v", err)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	return srv
 }
 
 func TestRunDoctorAllGreen(t *testing.T) {
@@ -396,14 +432,38 @@ func TestRunDoctorAllGreen(t *testing.T) {
 
 	rclonePath := writeStubRclone(t, okScript)
 
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+	accessSrv := newAccessCertsTestServer(t, "kid-1", &priv.PublicKey)
+	accessTeamDomain := strings.TrimPrefix(accessSrv.URL, "https://")
+
+	root := t.TempDir()
+	uploadsDir := filepath.Join(root, "uploads")
+	inboxDir := filepath.Join(root, "inbox")
+	for _, dir := range []string{uploadsDir, inboxDir} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", dir, err)
+		}
+	}
+	ledgerPath := filepath.Join(root, "contributions.jsonl")
+
 	cfg := &config.Config{
 		SMTP:      config.SMTPConfig{Host: smtpHost, Port: portNum},
 		R2:        config.R2Config{Remote: "r2", Bucket: "bucket"},
 		Navidrome: config.NavidromeConfig{URL: navidrome.URL},
-		PingURLs:  map[string]string{"disk": "https://pings.example/hc/disk"},
+		Serve: config.ServeConfig{
+			AccessTeamDomain:   accessTeamDomain,
+			AccessAUD:          strings.Repeat("a1", 32),
+			PublicNavidromeURL: "https://navidrome.example.com",
+		},
+		Paths:      config.Paths{UploadsDir: uploadsDir, InboxDir: inboxDir},
+		LedgerPath: ledgerPath,
+		PingURLs:   map[string]string{"disk": "https://pings.example/hc/disk"},
 	}
 
-	report := RunDoctor(context.Background(), cfg, nil, rclonePath)
+	report := RunDoctor(context.Background(), cfg, nil, rclonePath, accessSrv.Client())
 
 	if !report.Probed {
 		t.Fatal("Probed = false, want true")
@@ -416,6 +476,21 @@ func TestRunDoctorAllGreen(t *testing.T) {
 	}
 	if report.NavidromeErr != nil {
 		t.Errorf("NavidromeErr = %v, want nil", report.NavidromeErr)
+	}
+	if report.AccessErr != nil {
+		t.Errorf("AccessErr = %v, want nil", report.AccessErr)
+	}
+	if report.UploadsWritableErr != nil {
+		t.Errorf("UploadsWritableErr = %v, want nil", report.UploadsWritableErr)
+	}
+	if report.LedgerAppendErr != nil {
+		t.Errorf("LedgerAppendErr = %v, want nil", report.LedgerAppendErr)
+	}
+	if report.PublicNavidromeURLErr != nil {
+		t.Errorf("PublicNavidromeURLErr = %v, want nil", report.PublicNavidromeURLErr)
+	}
+	if report.SameFilesystemErr != nil {
+		t.Errorf("SameFilesystemErr = %v, want nil", report.SameFilesystemErr)
 	}
 	if len(report.PingURLErrs) != 0 {
 		t.Errorf("PingURLErrs = %v, want none", report.PingURLErrs)

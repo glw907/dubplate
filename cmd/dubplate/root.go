@@ -27,12 +27,14 @@ func newRootCmd() *cobra.Command {
 
 	cmd.AddCommand(newVersionCmd())
 	cmd.AddCommand(newImportCmd())
+	cmd.AddCommand(newNudgeConsumeCmd())
 	cmd.AddCommand(newBackupCmd())
 	cmd.AddCommand(newBeetCmd())
 	cmd.AddCommand(newPingFailCmd())
 	cmd.AddCommand(newRestoreCmd())
 	cmd.AddCommand(newCheckCmd())
 	cmd.AddCommand(newDoctorCmd())
+	cmd.AddCommand(newServeCmd())
 
 	return cmd
 }

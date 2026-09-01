@@ -133,4 +133,51 @@ func TestRoster_zeroValueIsEmpty(t *testing.T) {
 	if _, ok := r.EmailFor("anyone"); ok {
 		t.Error("EmailFor(anyone) on zero Roster reported present, want absent")
 	}
+	if _, ok := r.DirNameFor("anyone@example.com"); ok {
+		t.Error("DirNameFor(anyone@example.com) on zero Roster reported present, want absent")
+	}
+}
+
+// --- DirNameFor: the uploader's email-to-directory-name identity index ----
+
+func TestRoster_DirNameForRoundTrip(t *testing.T) {
+	path := writeFixture(t, fixtureYAML)
+	r, err := LoadContributors(path)
+	if err != nil {
+		t.Fatalf("LoadContributors() error = %v, want nil", err)
+	}
+
+	email, ok := r.EmailFor("alice")
+	if !ok {
+		t.Fatal("EmailFor(alice) reported absent, want present")
+	}
+	dirName, ok := r.DirNameFor(email)
+	if !ok || dirName != "alice" {
+		t.Errorf("DirNameFor(%q) = (%q, %v), want (alice, true)", email, dirName, ok)
+	}
+}
+
+func TestRoster_DirNameForCaseInsensitive(t *testing.T) {
+	path := writeFixture(t, fixtureYAML)
+	r, err := LoadContributors(path)
+	if err != nil {
+		t.Fatalf("LoadContributors() error = %v, want nil", err)
+	}
+
+	dirName, ok := r.DirNameFor("ALICE@EXAMPLE.COM")
+	if !ok || dirName != "alice" {
+		t.Errorf("DirNameFor(ALICE@EXAMPLE.COM) = (%q, %v), want (alice, true)", dirName, ok)
+	}
+}
+
+func TestRoster_DirNameForUnknownEmail(t *testing.T) {
+	path := writeFixture(t, fixtureYAML)
+	r, err := LoadContributors(path)
+	if err != nil {
+		t.Fatalf("LoadContributors() error = %v, want nil", err)
+	}
+
+	if _, ok := r.DirNameFor("nobody@example.com"); ok {
+		t.Error("DirNameFor(nobody@example.com) reported present, want absent")
+	}
 }

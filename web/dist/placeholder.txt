@@ -1,0 +1,5 @@
+This file exists only so `//go:embed all:dist` in embed.go has a
+non-empty directory to embed before U9's Vite build ever runs (a bare
+`dist/` with zero files fails go:embed at compile time). U9 replaces
+this directory's contents with Vite's real build output and must either
+keep a file here or change the embed pattern in the same change.

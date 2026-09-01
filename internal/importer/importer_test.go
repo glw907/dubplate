@@ -3,14 +3,20 @@ package importer
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/beets"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/ledger"
+	"github.com/glw907/dubplate/internal/lock"
 	"github.com/glw907/dubplate/internal/notify"
+	"github.com/glw907/dubplate/internal/ping"
 )
 
 func TestIsArchiveName(t *testing.T) {
@@ -273,6 +279,10 @@ func testImporter(root string) *Importer {
 		Now:    time.Now,
 	}
 }
+
+// testUploaderEmail is testUploader's verified email in every
+// session.json sidecar fixture below.
+const testUploaderEmail = "alice@example.com"
 
 // testUploader is the inbox directory name every fixture below stages
 // under; the tests assert their outcomes carry it back.
@@ -546,5 +556,458 @@ func TestRunReportHeldLockOmitsAlbums(t *testing.T) {
 	}
 	if _, ok := decoded["albums"]; !ok {
 		t.Errorf("albums field missing on a held-lock report: %s", data)
+	}
+}
+
+// --- U8: session mode, terminal ledger events, per-run reports ---------
+
+// testImporterForRun extends testImporter with the paths and
+// collaborators [Importer.Run] and [Importer.ImportSessionLocked]
+// exercise beyond gateAndQuarantine/fileSkips alone: a state directory
+// for the lock and report files, an inbox directory, and a live (but
+// harmless -- an empty PingURLs map makes every ping a no-op) Ping
+// client the healthy exit paths call unconditionally.
+func testImporterForRun(root string) *Importer {
+	im := testImporter(root)
+	im.Cfg.Paths.InboxDir = filepath.Join(root, "inbox")
+	im.Cfg.Paths.StateDir = filepath.Join(root, "state")
+	im.Ping = ping.NewClient()
+	return im
+}
+
+// sidecarJSON returns session.json's exact on-disk bytes, matching
+// internal/serve's sessionSidecar shape field for field -- the importer
+// package cannot import internal/serve (an import cycle: serve already
+// imports nothing from importer, but importer's tests pin the contract
+// from this side rather than share a type across the package
+// boundary), so this is the shared contract's other half.
+func sidecarJSON(t *testing.T, sessionID, email, dirName, album, collection string) []byte {
+	t.Helper()
+	data, err := json.Marshal(map[string]any{
+		"version":    1,
+		"session_id": sessionID,
+		"email":      email,
+		"dir_name":   dirName,
+		"album":      album,
+		"collection": collection,
+		"created_at": time.Now().UTC().Format(time.RFC3339),
+	})
+	if err != nil {
+		t.Fatalf("marshal sidecar: %v", err)
+	}
+	return data
+}
+
+// stagePromotedSession creates
+// <inboxDir>/<testUploader>/<sessionID>__<album>/<track> plus its
+// session.json sidecar, matching exactly what [Engine.promote]
+// (internal/serve) leaves behind after a real upload's atomic
+// promotion, and returns the session directory's path. Every call site
+// in this file wants the same testUploader dirName and
+// testUploaderEmail, so neither is a parameter.
+func stagePromotedSession(t *testing.T, inboxDir, sessionID, album, track, collection string) string {
+	t.Helper()
+	dir := filepath.Join(inboxDir, testUploader, sessionID+"__"+album)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatalf("mkdir session dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, track), []byte("x"), 0o644); err != nil {
+		t.Fatalf("write track: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, sessionSidecarName), sidecarJSON(t, sessionID, testUploaderEmail, testUploader, album, collection), 0o644); err != nil {
+		t.Fatalf("write sidecar: %v", err)
+	}
+	return dir
+}
+
+func TestFindSessionDir(t *testing.T) {
+	root := t.TempDir()
+	want := stagePromotedSession(t, root, "sess123", "Album A", "track.flac", "")
+
+	got, err := findSessionDir(root, "sess123")
+	if err != nil {
+		t.Fatalf("findSessionDir: %v", err)
+	}
+	if got != want {
+		t.Errorf("findSessionDir = %q, want %q", got, want)
+	}
+
+	if _, err := findSessionDir(root, "no-such-session"); !errors.Is(err, ErrSessionNotFound) {
+		t.Errorf("findSessionDir(unknown) error = %v, want ErrSessionNotFound", err)
+	}
+}
+
+func TestReadAndConsumeSidecar(t *testing.T) {
+	t.Run("present", func(t *testing.T) {
+		dir := t.TempDir()
+		if err := os.WriteFile(filepath.Join(dir, sessionSidecarName), sidecarJSON(t, "sess1", "a@example.com", "alice", "Album", "vinyl"), 0o644); err != nil {
+			t.Fatalf("write sidecar: %v", err)
+		}
+		sc, ok, err := readAndConsumeSidecar(dir)
+		if err != nil {
+			t.Fatalf("readAndConsumeSidecar: %v", err)
+		}
+		if !ok {
+			t.Fatal("ok = false, want true")
+		}
+		if sc.SessionID != "sess1" || sc.Email != "a@example.com" || sc.DirName != "alice" || sc.Collection != "vinyl" {
+			t.Errorf("sidecar = %+v, want the written fields", sc)
+		}
+		if _, err := os.Stat(filepath.Join(dir, sessionSidecarName)); !errors.Is(err, os.ErrNotExist) {
+			t.Errorf("sidecar file survived readAndConsumeSidecar: err = %v", err)
+		}
+	})
+
+	t.Run("absent is not an error", func(t *testing.T) {
+		_, ok, err := readAndConsumeSidecar(t.TempDir())
+		if err != nil {
+			t.Fatalf("readAndConsumeSidecar: %v", err)
+		}
+		if ok {
+			t.Error("ok = true for a directory with no sidecar, want false")
+		}
+	})
+
+	t.Run("malformed json errors", func(t *testing.T) {
+		dir := t.TempDir()
+		if err := os.WriteFile(filepath.Join(dir, sessionSidecarName), []byte("not json"), 0o644); err != nil {
+			t.Fatalf("write sidecar: %v", err)
+		}
+		if _, _, err := readAndConsumeSidecar(dir); err == nil {
+			t.Error("readAndConsumeSidecar(malformed) error = nil, want an error")
+		}
+	})
+}
+
+func TestStageSession(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+	srcDir := stagePromotedSession(t, im.Cfg.Paths.InboxDir, "sess1", "Album A", "track.flac", "vinyl")
+
+	u, err := im.stageSession(srcDir, "sess1")
+	if err != nil {
+		t.Fatalf("stageSession: %v", err)
+	}
+	if u.uploader != "alice" || u.sessionID != "sess1" || u.email != "alice@example.com" || u.collection != "vinyl" {
+		t.Errorf("unit = %+v, want the sidecar's fields", u)
+	}
+	wantStagedDir := filepath.Join(im.Cfg.Paths.StagingDir, "alice", "sess1__Album A")
+	if u.stagedDir != wantStagedDir {
+		t.Errorf("stagedDir = %q, want %q", u.stagedDir, wantStagedDir)
+	}
+	if _, err := os.Stat(filepath.Join(u.stagedDir, "track.flac")); err != nil {
+		t.Errorf("track not found under staged dir: %v", err)
+	}
+	if _, err := os.Stat(srcDir); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("source dir survived staging: err = %v", err)
+	}
+
+	if _, err := im.stageSession(t.TempDir(), "sess2"); !errors.Is(err, ErrMissingSidecar) {
+		t.Errorf("stageSession(no sidecar) error = %v, want ErrMissingSidecar", err)
+	}
+}
+
+func TestAlbumFromStagedDir(t *testing.T) {
+	tests := []struct {
+		stagedDir string
+		want      string
+	}{
+		{"/staging/alice/sess123__Album A", "Album A"},
+		{"/staging/alice/sess123__Album__With__Dashes", "Album__With__Dashes"},
+		{"/staging/alice/no-separator", "no-separator"},
+	}
+	for _, tt := range tests {
+		if got := albumFromStagedDir(tt.stagedDir); got != tt.want {
+			t.Errorf("albumFromStagedDir(%q) = %q, want %q", tt.stagedDir, got, tt.want)
+		}
+	}
+}
+
+func TestSweepReports(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+	if err := os.MkdirAll(im.Cfg.Paths.StateDir, 0o755); err != nil {
+		t.Fatalf("mkdir state dir: %v", err)
+	}
+
+	// Five report files, each with a distinct, increasing mtime so
+	// sweepReports' oldest-first deletion order is unambiguous.
+	var paths []string
+	base := time.Now().Add(-time.Hour)
+	for i := range 5 {
+		path := im.reportPath(fmt.Sprintf("run%d", i))
+		if err := os.WriteFile(path, []byte("{}"), 0o644); err != nil {
+			t.Fatalf("write report %d: %v", i, err)
+		}
+		mtime := base.Add(time.Duration(i) * time.Minute)
+		if err := os.Chtimes(path, mtime, mtime); err != nil {
+			t.Fatalf("chtimes report %d: %v", i, err)
+		}
+		paths = append(paths, path)
+	}
+
+	if err := im.sweepReports(2); err != nil {
+		t.Fatalf("sweepReports: %v", err)
+	}
+
+	for i, path := range paths {
+		_, err := os.Stat(path)
+		wantGone := i < 3 // the three oldest are swept; the two newest survive
+		if wantGone && !errors.Is(err, os.ErrNotExist) {
+			t.Errorf("report %d survived sweep: err = %v", i, err)
+		}
+		if !wantGone && err != nil {
+			t.Errorf("report %d removed by sweep: %v", i, err)
+		}
+	}
+}
+
+func TestSweepReportsNonPositiveRetentionKeepsEverything(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+	if err := os.MkdirAll(im.Cfg.Paths.StateDir, 0o755); err != nil {
+		t.Fatalf("mkdir state dir: %v", err)
+	}
+	path := im.reportPath("only")
+	if err := os.WriteFile(path, []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write report: %v", err)
+	}
+	if err := im.sweepReports(0); err != nil {
+		t.Fatalf("sweepReports: %v", err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Errorf("sweepReports(0) removed a report: %v", err)
+	}
+}
+
+// TestImportSessionLockedMissingSession proves a --session (or
+// nudge-triggered) target that matches no promoted directory fails with
+// [ErrSessionNotFound], still writing a per-run report -- the absence
+// of a report is the monitoring event, not the caller's returned error.
+func TestImportSessionLockedMissingSession(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+
+	err := im.ImportSessionLocked(context.Background(), "does-not-exist")
+	if !errors.Is(err, ErrSessionNotFound) {
+		t.Fatalf("ImportSessionLocked error = %v, want ErrSessionNotFound", err)
+	}
+
+	reports, globErr := filepath.Glob(filepath.Join(im.Cfg.Paths.StateDir, reportFilePrefix+"*"+reportFileSuffix))
+	if globErr != nil {
+		t.Fatalf("glob reports: %v", globErr)
+	}
+	if len(reports) != 1 {
+		t.Fatalf("report files = %d, want exactly 1", len(reports))
+	}
+	data, err := os.ReadFile(reports[0])
+	if err != nil {
+		t.Fatalf("read report: %v", err)
+	}
+	var report RunReport
+	if err := json.Unmarshal(data, &report); err != nil {
+		t.Fatalf("unmarshal report: %v", err)
+	}
+	if report.Error == "" {
+		t.Error("report.Error is empty, want the session-not-found failure recorded")
+	}
+}
+
+// TestAcquireOrRecordHeldReportsHealthyOverlap proves the held-lock
+// path RunSession shares with Run: another holder's lock is a healthy
+// overlap, not a failure -- ok is false, err is nil, and a minimal
+// LockHeld report is still written.
+func TestAcquireOrRecordHeldReportsHealthyOverlap(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+	if err := os.MkdirAll(im.Cfg.Paths.StateDir, 0o755); err != nil {
+		t.Fatalf("mkdir state dir: %v", err)
+	}
+
+	held, err := lock.Acquire(lock.Path(im.Cfg.Paths.StateDir))
+	if err != nil {
+		t.Fatalf("acquire lock for the test's own holder: %v", err)
+	}
+	defer func() { _ = held.Release() }()
+
+	l, ok, err := im.acquireOrRecordHeld(context.Background())
+	if err != nil {
+		t.Fatalf("acquireOrRecordHeld error = %v, want nil", err)
+	}
+	if ok {
+		t.Fatal("acquireOrRecordHeld ok = true, want false: the lock is already held")
+	}
+	if l != nil {
+		t.Errorf("acquireOrRecordHeld lock = %v, want nil", l)
+	}
+
+	reports, globErr := filepath.Glob(filepath.Join(im.Cfg.Paths.StateDir, reportFilePrefix+"*"+reportFileSuffix))
+	if globErr != nil {
+		t.Fatalf("glob reports: %v", globErr)
+	}
+	if len(reports) != 1 {
+		t.Fatalf("report files = %d, want exactly 1", len(reports))
+	}
+	data, err := os.ReadFile(reports[0])
+	if err != nil {
+		t.Fatalf("read report: %v", err)
+	}
+	var report RunReport
+	if err := json.Unmarshal(data, &report); err != nil {
+		t.Fatalf("unmarshal report: %v", err)
+	}
+	if !report.LockHeld {
+		t.Error("report.LockHeld = false, want true")
+	}
+}
+
+// TestTenConsecutiveRunsPreserveLedgerHistory proves the move from one
+// shared, overwritten report file to per-run report-<runid>.json files
+// (U8) does not break the ledger's own accumulation: ten consecutive
+// poll-mode runs, sharing one frozen clock so their report IDs cannot
+// derive uniqueness from time, each still append their own terminal
+// ledger event, and none of the earlier nine are lost or overwritten.
+func TestTenConsecutiveRunsPreserveLedgerHistory(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+
+	led, err := ledger.Open(filepath.Join(root, "contributions.jsonl"))
+	if err != nil {
+		t.Fatalf("open ledger: %v", err)
+	}
+	im.Ledger = led
+	// lock.Acquire requires StateDir to already exist (production relies
+	// on deploy.sh's pre-create, same as the persistent-lock-file
+	// doctrine internal/lock documents); Run's own prepareRunDirs only
+	// runs after the lock is already held.
+	if err := os.MkdirAll(im.Cfg.Paths.StateDir, 0o755); err != nil {
+		t.Fatalf("mkdir state dir: %v", err)
+	}
+
+	// Frozen well ahead of real wall-clock time so every iteration's
+	// freshly written file -- real mtime, taken during the test's brief
+	// real run -- reads as quiescent against this one unmoving cutoff,
+	// no matter how many iterations run before it.
+	frozen := time.Now().Add(time.Hour)
+	im.Now = func() time.Time { return frozen }
+
+	for i := range 10 {
+		sessionID := fmt.Sprintf("sess%02d", i)
+		album := fmt.Sprintf("Album %02d", i)
+		// track.mp3 fails the quality gate's extension check before beets
+		// is ever invoked (pendingUnits is empty), so this run needs no
+		// beet/flac/metaflac binaries -- it exercises exactly the
+		// gate-reject-then-append-ledger path a timer run takes.
+		stagePromotedSession(t, im.Cfg.Paths.InboxDir, sessionID, album, "track.mp3", "")
+
+		if err := im.Run(context.Background()); err != nil {
+			t.Fatalf("Run() iteration %d: %v", i, err)
+		}
+	}
+
+	events, err := led.History("alice@example.com")
+	if err != nil {
+		t.Fatalf("ledger.History: %v", err)
+	}
+	if len(events) != 10 {
+		t.Fatalf("ledger history = %d events, want 10 (one per run): %+v", len(events), events)
+	}
+	seen := make(map[string]bool, 10)
+	for _, e := range events {
+		if e.State != ledger.StateRejected {
+			t.Errorf("event state = %q, want %q", e.State, ledger.StateRejected)
+		}
+		if seen[e.SessionID] {
+			t.Errorf("session id %q appended more than once", e.SessionID)
+		}
+		seen[e.SessionID] = true
+	}
+	if len(seen) != 10 {
+		t.Errorf("distinct session ids in history = %d, want 10", len(seen))
+	}
+
+	reports, err := filepath.Glob(filepath.Join(im.Cfg.Paths.StateDir, reportFilePrefix+"*"+reportFileSuffix))
+	if err != nil {
+		t.Fatalf("glob reports: %v", err)
+	}
+	if len(reports) != 10 {
+		t.Errorf("report files = %d, want 10 distinct per-run files despite a shared frozen clock", len(reports))
+	}
+}
+
+// writeStubExec writes an executable shell script at dir/name and
+// returns its path -- the same BeetPath/FlacPath/MetaflacPath/
+// SqlitePath test-seam pattern internal/beets and internal/gate's own
+// test suites use.
+func writeStubExec(t *testing.T, dir, name, script string) string {
+	t.Helper()
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, []byte("#!/bin/sh\n"+script), 0o755); err != nil {
+		t.Fatalf("write stub %s: %v", name, err)
+	}
+	return path
+}
+
+// TestImportSessionLockedAppliesSidecarCollectionAndTagsLedger drives
+// ImportSessionLocked through a full accept: the quality gate passes
+// (stubbed flac/metaflac), the beet import moves the file out of
+// staging (stubbed beet, proving OutcomeImported), and the sidecar's
+// OWN collection -- not [config.Config.Collections]' default -- is what
+// reaches beets' --set flag, and what the appended StateTagging ledger
+// event carries alongside the beets-resolved LibraryPaths (stubbed
+// sqlite3).
+func TestImportSessionLockedAppliesSidecarCollectionAndTagsLedger(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+	im.Cfg.Collections = []string{"default"}
+
+	led, err := ledger.Open(filepath.Join(root, "contributions.jsonl"))
+	if err != nil {
+		t.Fatalf("open ledger: %v", err)
+	}
+	im.Ledger = led
+
+	binDir := t.TempDir()
+	im.FlacPath = writeStubExec(t, binDir, "flac", "exit 0\n")
+	im.MetaflacPath = writeStubExec(t, binDir, "metaflac", "echo 44100; echo 16\n")
+	im.SqlitePath = writeStubExec(t, binDir, "sqlite3", "echo '1\t/srv/music/library/Alice/Album/01.flac'\n")
+
+	argsLog := filepath.Join(binDir, "beet-args.log")
+	beetScript := fmt.Sprintf(`for a in "$@"; do printf '%%s\n' "$a"; done > %q
+for a in "$@"; do lastarg="$a"; done
+find "$lastarg" -type f -delete
+`, argsLog)
+	im.Beets = &beets.Runner{BeetPath: writeStubExec(t, binDir, "beet", beetScript), StateDir: im.Cfg.Paths.StateDir}
+
+	stagePromotedSession(t, im.Cfg.Paths.InboxDir, "sessABC", "Album A", "track.flac", "vinyl")
+
+	if err := im.ImportSessionLocked(context.Background(), "sessABC"); err != nil {
+		t.Fatalf("ImportSessionLocked: %v", err)
+	}
+
+	argsData, err := os.ReadFile(argsLog)
+	if err != nil {
+		t.Fatalf("read beet args log: %v", err)
+	}
+	if !strings.Contains(string(argsData), "--set\ncollection=vinyl\n") {
+		t.Errorf("beet args = %q, want the sidecar's own collection (vinyl), not the config default", argsData)
+	}
+
+	events, err := led.Session("sessABC")
+	if err != nil {
+		t.Fatalf("ledger.Session: %v", err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("ledger events for sessABC = %d, want 1", len(events))
+	}
+	e := events[0]
+	if e.State != ledger.StateTagging {
+		t.Errorf("state = %q, want %q", e.State, ledger.StateTagging)
+	}
+	if e.Email != "alice@example.com" {
+		t.Errorf("email = %q, want alice@example.com", e.Email)
+	}
+	if len(e.LibraryPaths) != 1 || e.LibraryPaths[0] != "/srv/music/library/Alice/Album/01.flac" {
+		t.Errorf("library paths = %v, want the beets-database match", e.LibraryPaths)
 	}
 }

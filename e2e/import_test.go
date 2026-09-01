@@ -34,10 +34,20 @@ func (e *testEnv) writeBadAlbum(user, album string) {
 }
 
 // readReport reads and parses the run report the last [testEnv.run] call
-// wrote.
+// wrote: since U8, one report-<runid>.json per run rather than one
+// shared, overwritten file, so this finds it by glob -- every e2e test
+// using it calls "import" exactly once per testEnv, so exactly one match
+// is the invariant being checked here too.
 func (e *testEnv) readReport() importer.RunReport {
 	e.t.Helper()
-	data, err := os.ReadFile(filepath.Join(e.stateDir, "import-report.json"))
+	matches, err := filepath.Glob(filepath.Join(e.stateDir, "report-*.json"))
+	if err != nil {
+		e.t.Fatalf("glob run reports: %v", err)
+	}
+	if len(matches) != 1 {
+		e.t.Fatalf("run report files = %d, want exactly 1: %v", len(matches), matches)
+	}
+	data, err := os.ReadFile(matches[0])
 	if err != nil {
 		e.t.Fatalf("read run report: %v", err)
 	}

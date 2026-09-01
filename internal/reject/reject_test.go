@@ -1,12 +1,31 @@
 package reject
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// allReasons lists every non-zero Reason this package defines, kept
+// separate from the production code so a reason added to the const block
+// without a matching entry here fails TestFriendlyNeverEmpty and
+// TestNextStepNeverEmpty instead of silently shipping blank copy.
+// TestAllReasonsCoversEnum pins the list's end against the const block
+// itself, so a forgotten entry here fails loudly rather than by omission.
+var allReasons = []Reason{
+	ReasonBadExtension,
+	ReasonSymlink,
+	ReasonCorrupt,
+	ReasonBelowCDQuality,
+	ReasonTooLarge,
+	ReasonUnpackFailed,
+	ReasonUnsafePath,
+	ReasonNoSpace,
+	ReasonTooManySessions,
+}
 
 func TestReasonFriendly(t *testing.T) {
 	tests := []struct {
@@ -37,21 +56,47 @@ func TestReasonFriendly(t *testing.T) {
 // by design, since it's the zero value a passing verdict carries -- Friendly
 // renders it as an empty string on purpose rather than a placeholder line.
 func TestFriendlyNeverEmpty(t *testing.T) {
-	reasons := []Reason{
-		ReasonBadExtension,
-		ReasonSymlink,
-		ReasonCorrupt,
-		ReasonBelowCDQuality,
-		ReasonTooLarge,
-		ReasonUnpackFailed,
-	}
-	for _, r := range reasons {
+	for _, r := range allReasons {
 		if got := r.Friendly(); got == "" {
 			t.Errorf("Friendly() for reason %d = %q, want non-empty", r, got)
 		}
 	}
 	if got := ReasonNone.Friendly(); got != "" {
 		t.Errorf("Friendly() for ReasonNone = %q, want empty string, not a placeholder line", got)
+	}
+}
+
+// TestNextStepNeverEmpty mirrors TestFriendlyNeverEmpty for NextStep: every
+// reason a real rejection can carry must tell the contributor what to do
+// next, and ReasonNone (a passing verdict) must not.
+func TestNextStepNeverEmpty(t *testing.T) {
+	for _, r := range allReasons {
+		if got := r.NextStep(); got == "" {
+			t.Errorf("NextStep() for reason %d = %q, want non-empty", r, got)
+		}
+	}
+	if got := ReasonNone.NextStep(); got != "" {
+		t.Errorf("NextStep() for ReasonNone = %q, want empty string, not a placeholder line", got)
+	}
+}
+
+// TestAllReasonsCoversEnum pins allReasons' length against the end of the
+// Reason const block: the value one past the last entry in allReasons must
+// fall through every switch to its default case (empty Friendly, empty
+// NextStep, "none" code), the same fallthrough an unregistered Reason
+// would hit. If a Reason is ever added to the const block without a
+// matching entry in allReasons, that new Reason lands exactly at this
+// boundary and this test fails, naming the fix.
+func TestAllReasonsCoversEnum(t *testing.T) {
+	next := Reason(len(allReasons) + 1)
+	if got := next.Friendly(); got != "" {
+		t.Errorf("Reason %d (one past allReasons) has non-empty Friendly() = %q; add the new Reason to allReasons in reject_test.go", next, got)
+	}
+	if got := next.NextStep(); got != "" {
+		t.Errorf("Reason %d (one past allReasons) has non-empty NextStep() = %q; add the new Reason to allReasons in reject_test.go", next, got)
+	}
+	if got := next.code(); got != "none" {
+		t.Errorf("Reason %d (one past allReasons) has code() = %q, want %q; add the new Reason to allReasons in reject_test.go", next, got, "none")
 	}
 }
 
@@ -101,8 +146,8 @@ func TestRenderEmail(t *testing.T) {
 		if err != nil {
 			t.Fatalf("RenderEmail: %v", err)
 		}
-		wantLines := "track1.flac: This FLAC is below CD quality.\n" +
-			"track2.mp3: This is an MP3 file, and the library keeps lossless FLAC."
+		wantLines := "track1.flac: This FLAC is below CD quality. " + ReasonBelowCDQuality.NextStep() + "\n" +
+			"track2.mp3: This is an MP3 file, and the library keeps lossless FLAC. " + ReasonBadExtension.NextStep()
 		if !strings.Contains(got, wantLines) {
 			t.Errorf("reason lines out of order or malformed; got %q, want substring %q", got, wantLines)
 		}
@@ -208,4 +253,101 @@ func TestRenderEmail(t *testing.T) {
 			}
 		}
 	})
+}
+
+// TestReasonMarshalJSON pins the wire shape [Reason.MarshalJSON] emits
+// against the literal example the plan names: a bare-integer encode is
+// the failure this golden guards against, since a plain `int` marshal
+// would silently pass a byte-count check but produce "5" instead of an
+// object a client can render.
+func TestReasonMarshalJSON(t *testing.T) {
+	got, err := json.Marshal(ReasonBelowCDQuality)
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	want := `{"code":"below-cd-quality","friendly":"This FLAC is below CD quality.","next_step":"Get a CD-quality or better FLAC and upload that instead."}`
+	if string(got) != want {
+		t.Errorf("Marshal(ReasonBelowCDQuality) = %s, want %s", got, want)
+	}
+}
+
+// TestReasonJSONRoundTrip proves every reason a real rejection can carry,
+// plus the zero value, survives a Marshal/Unmarshal round trip unchanged.
+func TestReasonJSONRoundTrip(t *testing.T) {
+	for _, r := range append([]Reason{ReasonNone}, allReasons...) {
+		data, err := json.Marshal(r)
+		if err != nil {
+			t.Fatalf("Marshal(%d): %v", r, err)
+		}
+		var got Reason
+		if err := json.Unmarshal(data, &got); err != nil {
+			t.Fatalf("Unmarshal(%s): %v", data, err)
+		}
+		if got != r {
+			t.Errorf("round trip: Marshal(%d) -> Unmarshal -> %d, want %d", r, got, r)
+		}
+	}
+}
+
+// TestReasonUnmarshalJSONUnknownCode proves a code this package never
+// wrote (a future addition a decoder hasn't been rebuilt for) fails
+// loudly instead of silently decoding to ReasonNone.
+func TestReasonUnmarshalJSONUnknownCode(t *testing.T) {
+	var r Reason
+	err := json.Unmarshal([]byte(`{"code":"not-a-real-reason","friendly":"x","next_step":"y"}`), &r)
+	if err == nil {
+		t.Fatal("Unmarshal: want error for an unknown code, got nil")
+	}
+}
+
+// TestReasonUnmarshalJSONIgnoresWireFriendlyAndNextStep proves Friendly
+// and NextStep are recomputed from the decoded code rather than trusted
+// off the wire: a decoder fed forged copy for a real code still lands on
+// this package's own wording.
+func TestReasonUnmarshalJSONIgnoresWireFriendlyAndNextStep(t *testing.T) {
+	var r Reason
+	forged := `{"code":"below-cd-quality","friendly":"forged text","next_step":"forged next step"}`
+	if err := json.Unmarshal([]byte(forged), &r); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+	if r != ReasonBelowCDQuality {
+		t.Fatalf("Unmarshal: got %d, want ReasonBelowCDQuality", r)
+	}
+	if r.Friendly() != ReasonBelowCDQuality.Friendly() {
+		t.Errorf("Friendly() = %q, want the package's own wording, not the wire's", r.Friendly())
+	}
+}
+
+// TestEmailAndJSONCarryIdenticalStrings is the cross-asset test the plan
+// requires: it renders a rejection email and independently marshals the
+// same Reason to the API's JSON shape, then proves the email's per-file
+// line carries exactly the Friendly and NextStep strings the JSON
+// decodes to. A hardcoded divergence between RenderEmail and
+// Reason.MarshalJSON -- one asset changed without the other -- fails
+// this test.
+func TestEmailAndJSONCarryIdenticalStrings(t *testing.T) {
+	path := writeTemplate(t)
+	rj := Rejection{Path: "alice/Bad Album/track1.flac", Reason: ReasonBelowCDQuality}
+
+	email, err := RenderEmail(path, "Alice", "Bad Album", []Rejection{rj})
+	if err != nil {
+		t.Fatalf("RenderEmail: %v", err)
+	}
+
+	data, err := json.Marshal(rj.Reason)
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	var wire struct {
+		Friendly string `json:"friendly"`
+		NextStep string `json:"next_step"`
+	}
+	if err := json.Unmarshal(data, &wire); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+
+	wantLine := "track1.flac: " + wire.Friendly + " " + wire.NextStep
+	if !strings.Contains(email, wantLine) {
+		t.Errorf("email does not carry the same Friendly/NextStep strings as the API JSON;\nemail = %q\nwant substring = %q", email, wantLine)
+	}
 }

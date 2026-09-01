@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 )
 
 // requiredEnv is a complete set of every required environment variable,
@@ -38,6 +39,12 @@ func requiredEnv() map[string]string {
 		"DUBPLATE_REVIEW_DIR":               "/srv/music/review",
 		"DUBPLATE_QUARANTINE_DIR":           "/srv/music/quarantine",
 		"DUBPLATE_BACKUP_STAGING":           "/srv/music/state/backup-staging",
+		"DUBPLATE_UPLOADS_DIR":              "/srv/music/uploads",
+		"DUBPLATE_SERVE_BIND_ADDRS":         "127.0.0.1,10.89.0.1",
+		"DUBPLATE_SERVE_PORT":               "8080",
+		"DUBPLATE_ACCESS_TEAM_DOMAIN":       "family.cloudflareaccess.com",
+		"DUBPLATE_ACCESS_AUD":               "aud-value",
+		"DUBPLATE_PUBLIC_NAVIDROME_URL":     "https://music.example.com",
 	}
 }
 
@@ -71,6 +78,219 @@ func TestLoad_allRequiredSet(t *testing.T) {
 	}
 	if cfg.Paths.LibraryDir != "/srv/music/library" {
 		t.Errorf("Paths.LibraryDir = %q, want /srv/music/library", cfg.Paths.LibraryDir)
+	}
+	if cfg.Paths.UploadsDir != "/srv/music/uploads" {
+		t.Errorf("Paths.UploadsDir = %q, want /srv/music/uploads", cfg.Paths.UploadsDir)
+	}
+	wantAddrs := []string{"127.0.0.1", "10.89.0.1"}
+	if len(cfg.Serve.BindAddrs) != len(wantAddrs) {
+		t.Fatalf("Serve.BindAddrs = %v, want %v", cfg.Serve.BindAddrs, wantAddrs)
+	}
+	for i, addr := range wantAddrs {
+		if cfg.Serve.BindAddrs[i] != addr {
+			t.Errorf("Serve.BindAddrs[%d] = %q, want %q", i, cfg.Serve.BindAddrs[i], addr)
+		}
+	}
+	if cfg.Serve.Port != 8080 {
+		t.Errorf("Serve.Port = %d, want 8080", cfg.Serve.Port)
+	}
+	if cfg.Serve.AccessTeamDomain != "family.cloudflareaccess.com" {
+		t.Errorf("Serve.AccessTeamDomain = %q, want family.cloudflareaccess.com", cfg.Serve.AccessTeamDomain)
+	}
+	if cfg.Serve.AccessAUD != "aud-value" {
+		t.Errorf("Serve.AccessAUD = %q, want aud-value", cfg.Serve.AccessAUD)
+	}
+	if cfg.Serve.PublicNavidromeURL != "https://music.example.com" {
+		t.Errorf("Serve.PublicNavidromeURL = %q, want https://music.example.com", cfg.Serve.PublicNavidromeURL)
+	}
+}
+
+// --- Serve.BindAddrs list parsing --------------------------------------
+
+func TestLoad_bindAddrsBlankAfterTrimIsMissing(t *testing.T) {
+	env := requiredEnv()
+	env["DUBPLATE_SERVE_BIND_ADDRS"] = " , , "
+	setEnv(t, env)
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want non-nil for an all-blank bind-addrs list")
+	}
+	if !errors.Is(err, ErrMissing) || !strings.Contains(err.Error(), "DUBPLATE_SERVE_BIND_ADDRS") {
+		t.Errorf("Load() error = %v, want ErrMissing naming DUBPLATE_SERVE_BIND_ADDRS", err)
+	}
+}
+
+func TestLoad_bindAddrsMissingIsErrMissing(t *testing.T) {
+	env := requiredEnv()
+	delete(env, "DUBPLATE_SERVE_BIND_ADDRS")
+	setEnv(t, env)
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want non-nil")
+	}
+	if !strings.Contains(err.Error(), "DUBPLATE_SERVE_BIND_ADDRS") {
+		t.Errorf("Load() error %q missing DUBPLATE_SERVE_BIND_ADDRS", err.Error())
+	}
+}
+
+// TestLoad_newRequiredFieldsMissingAreNamed pins this pass's remaining new
+// required fields (Serve.Port/AccessTeamDomain/AccessAUD/
+// PublicNavidromeURL, Paths.UploadsDir): each unset field's env var name
+// appears in Load's joined error, exactly like every pre-existing required
+// field.
+func TestLoad_newRequiredFieldsMissingAreNamed(t *testing.T) {
+	env := requiredEnv()
+	newFields := []string{
+		"DUBPLATE_SERVE_PORT",
+		"DUBPLATE_ACCESS_TEAM_DOMAIN",
+		"DUBPLATE_ACCESS_AUD",
+		"DUBPLATE_PUBLIC_NAVIDROME_URL",
+		"DUBPLATE_UPLOADS_DIR",
+	}
+	for _, name := range newFields {
+		delete(env, name)
+	}
+	setEnv(t, env)
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want non-nil")
+	}
+	if !errors.Is(err, ErrMissing) {
+		t.Errorf("errors.Is(err, ErrMissing) = false, want true")
+	}
+	msg := err.Error()
+	for _, name := range newFields {
+		if !strings.Contains(msg, name) {
+			t.Errorf("Load() error %q missing %q", msg, name)
+		}
+	}
+}
+
+// --- Upload defaults -----------------------------------------------------
+
+func TestLoad_uploadDefaults(t *testing.T) {
+	setEnv(t, requiredEnv())
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	want := UploadConfig{
+		ChunkMB:            8,
+		MaxAlbumBytes:      2 * 1024 * 1024 * 1024,
+		PartialTTL:         24 * time.Hour,
+		MaxSessionsPerUser: 3,
+	}
+	if cfg.Upload != want {
+		t.Errorf("Upload = %+v, want %+v", cfg.Upload, want)
+	}
+}
+
+func TestLoad_uploadOverride(t *testing.T) {
+	env := requiredEnv()
+	env["DUBPLATE_UPLOAD_CHUNK_MB"] = "12"
+	env["DUBPLATE_UPLOAD_MAX_ALBUM_BYTES"] = "1073741824"
+	env["DUBPLATE_UPLOAD_PARTIAL_TTL"] = "48h"
+	env["DUBPLATE_UPLOAD_MAX_SESSIONS_PER_USER"] = "1"
+	setEnv(t, env)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	want := UploadConfig{
+		ChunkMB:            12,
+		MaxAlbumBytes:      1073741824,
+		PartialTTL:         48 * time.Hour,
+		MaxSessionsPerUser: 1,
+	}
+	if cfg.Upload != want {
+		t.Errorf("Upload = %+v, want %+v", cfg.Upload, want)
+	}
+}
+
+func TestLoad_uploadPartialTTLInvalidDuration(t *testing.T) {
+	env := requiredEnv()
+	env["DUBPLATE_UPLOAD_PARTIAL_TTL"] = "not-a-duration"
+	setEnv(t, env)
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want non-nil for invalid duration")
+	}
+	if !strings.Contains(err.Error(), "DUBPLATE_UPLOAD_PARTIAL_TTL") {
+		t.Errorf("Load() error %q missing DUBPLATE_UPLOAD_PARTIAL_TTL", err.Error())
+	}
+}
+
+// --- LedgerPath ------------------------------------------------------------
+
+func TestLoad_ledgerPathDefaultsFromStateDir(t *testing.T) {
+	setEnv(t, requiredEnv())
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	want := "/srv/music/state/contributions.jsonl"
+	if cfg.LedgerPath != want {
+		t.Errorf("LedgerPath = %q, want %q", cfg.LedgerPath, want)
+	}
+}
+
+func TestLoad_ledgerPathOverride(t *testing.T) {
+	env := requiredEnv()
+	env["DUBPLATE_LEDGER_PATH"] = "/custom/ledger.jsonl"
+	setEnv(t, env)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	if cfg.LedgerPath != "/custom/ledger.jsonl" {
+		t.Errorf("LedgerPath = %q, want /custom/ledger.jsonl", cfg.LedgerPath)
+	}
+}
+
+// --- StallMinutes / ReportRetention ----------------------------------------
+
+func TestStallMinutesDefaultExceedsTimerPlusQuiescence(t *testing.T) {
+	floor := importTimerIntervalMin + defaultQuiescentMin
+	if defaultStallMinutes <= floor {
+		t.Fatalf("defaultStallMinutes = %d, want > importTimerIntervalMin(%d)+defaultQuiescentMin(%d) = %d",
+			defaultStallMinutes, importTimerIntervalMin, defaultQuiescentMin, floor)
+	}
+}
+
+func TestLoad_stallAndReportRetentionDefaults(t *testing.T) {
+	setEnv(t, requiredEnv())
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	if cfg.Thresholds.StallMinutes != defaultStallMinutes {
+		t.Errorf("Thresholds.StallMinutes = %d, want %d", cfg.Thresholds.StallMinutes, defaultStallMinutes)
+	}
+	if cfg.Thresholds.ReportRetention != defaultReportRetention {
+		t.Errorf("Thresholds.ReportRetention = %d, want %d", cfg.Thresholds.ReportRetention, defaultReportRetention)
+	}
+}
+
+func TestLoad_stallMinutesOverride(t *testing.T) {
+	env := requiredEnv()
+	env["DUBPLATE_STALL_MINUTES"] = "45"
+	setEnv(t, env)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	if cfg.Thresholds.StallMinutes != 45 {
+		t.Errorf("Thresholds.StallMinutes = %d, want 45", cfg.Thresholds.StallMinutes)
 	}
 }
 
@@ -125,11 +345,13 @@ func TestLoad_thresholdDefaults(t *testing.T) {
 	}
 
 	want := Thresholds{
-		QuiescentMin:  10,
-		FreeFloorGB:   5,
-		ArchiveCapGB:  2,
-		RetentionDays: 60,
-		DiskPct:       90,
+		QuiescentMin:    10,
+		FreeFloorGB:     5,
+		ArchiveCapGB:    2,
+		RetentionDays:   60,
+		DiskPct:         90,
+		StallMinutes:    defaultStallMinutes,
+		ReportRetention: defaultReportRetention,
 	}
 	if cfg.Thresholds != want {
 		t.Errorf("Thresholds = %+v, want %+v", cfg.Thresholds, want)

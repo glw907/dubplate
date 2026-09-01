@@ -108,3 +108,44 @@ func (l *Lock) Release() error {
 func (l *Lock) File() *os.File {
 	return l.file
 }
+
+// Held reports whether another holder currently has the exclusive lock
+// at path, without ever taking or blocking on it itself: the
+// non-destructive probe internal/journey's queued "the library is busy"
+// variant needs, since serve must never take the import lock just to
+// test it.
+//
+// It probes with its own non-blocking flock(2) attempt -- a fresh
+// LOCK_EX|LOCK_NB on a fresh file descriptor, released immediately on
+// success -- rather than fcntl(2) F_GETLK. Since Linux 2.6, flock()
+// locks and fcntl() record locks are maintained in entirely independent
+// tables with no interaction between them: an F_GETLK probe can never
+// see a lock [Acquire] took with flock(), so it would always report
+// "not held" even while another process holds it. Probing with the same
+// mechanism [Acquire] itself uses is the only way this function's answer
+// can ever be true. A path that does not exist yet reports false, not
+// an error: nobody can hold a lock on a file that was never created.
+func Held(path string) (bool, error) {
+	f, err := os.OpenFile(path, os.O_RDWR, 0o644)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, fmt.Errorf("open lock file %s: %w", path, err)
+	}
+	defer func() { _ = f.Close() }()
+
+	fd := int(f.Fd())
+	if err := unix.Flock(fd, unix.LOCK_EX|unix.LOCK_NB); err != nil {
+		if errors.Is(err, unix.EWOULDBLOCK) {
+			return true, nil
+		}
+		return false, fmt.Errorf("flock %s: %w", path, err)
+	}
+	// Nobody held it: release the probe's own lock immediately so it
+	// never lingers as one of its own.
+	if err := unix.Flock(fd, unix.LOCK_UN); err != nil {
+		return false, fmt.Errorf("release probe flock %s: %w", path, err)
+	}
+	return false, nil
+}

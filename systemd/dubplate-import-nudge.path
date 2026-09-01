@@ -1,0 +1,20 @@
+[Unit]
+Description=dubplate: watch the nudge trigger directory for newly promoted sessions
+# U8 (plan-time decision): DirectoryNotEmpty=, not PathChanged= --
+# level-triggered, so a trigger file written while
+# dubplate-import-nudge.service is already running (the path unit
+# deactivates while its service runs) is not lost: the directory is
+# still non-empty when the path unit re-arms on the service's exit, so
+# it re-fires immediately rather than waiting for the next write event.
+# A path-unit trigger alone still loses events in the narrow re-arm gap
+# itself (vps-conventions), which is exactly what
+# dubplate-import.timer's unrelated 15-minute poll backstops -- both
+# read the same InboxDir/ledger, so a missed nudge is caught there
+# regardless.
+
+[Path]
+DirectoryNotEmpty=/run/dubplate/nudge-triggers
+Unit=dubplate-import-nudge.service
+
+[Install]
+WantedBy=multi-user.target

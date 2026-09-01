@@ -4,8 +4,10 @@
 // pings its own slug success or failure through [config.Config.PingURLs].
 // [RunDoctor] builds the report `dubplate doctor` prints: every required
 // config field's resolution state, then, only once config resolves,
-// read-only probes of SMTP, R2, and Navidrome, plus a syntax-only check of
-// every configured ping URL.
+// read-only probes of SMTP, R2, Navidrome, and the Access certs endpoint;
+// a writability probe of the upload store and the contributions ledger;
+// and syntax-only checks of PublicNavidromeURL and every configured ping
+// URL. See uploader.go for the upload-path probes.
 package checks
 
 import (
@@ -204,6 +206,12 @@ var requiredFields = []string{
 	"DUBPLATE_REVIEW_DIR",
 	"DUBPLATE_QUARANTINE_DIR",
 	"DUBPLATE_BACKUP_STAGING",
+	"DUBPLATE_UPLOADS_DIR",
+	"DUBPLATE_SERVE_BIND_ADDRS",
+	"DUBPLATE_SERVE_PORT",
+	"DUBPLATE_ACCESS_TEAM_DOMAIN",
+	"DUBPLATE_ACCESS_AUD",
+	"DUBPLATE_PUBLIC_NAVIDROME_URL",
 }
 
 // FieldStatuses reports every field [config.Load] requires and whether
@@ -257,6 +265,23 @@ type DoctorReport struct {
 	R2Err        error
 	NavidromeErr error
 
+	// AccessErr reports whether the configured Access team domain
+	// publishes a JWKS and AccessAUD is shaped like a real application
+	// tag; see [probeAccess].
+	AccessErr error
+	// UploadsWritableErr reports whether the tus upload store
+	// (Paths.UploadsDir) actually accepts a write, not merely exists.
+	UploadsWritableErr error
+	// LedgerAppendErr reports whether the contributions ledger path is
+	// reachable in append mode.
+	LedgerAppendErr error
+	// PublicNavidromeURLErr reports whether Serve.PublicNavidromeURL is
+	// a syntactically valid absolute http(s) URL.
+	PublicNavidromeURLErr error
+	// SameFilesystemErr reports whether UploadsDir and InboxDir share a
+	// device, the precondition atomic promotion depends on.
+	SameFilesystemErr error
+
 	// PingURLErrs maps each configured ping slug to its syntactic
 	// validation error. A slug absent from the map validated cleanly.
 	PingURLErrs map[string]error
@@ -271,6 +296,12 @@ func (r DoctorReport) Failed() bool {
 	if r.SMTPErr != nil || r.R2Err != nil || r.NavidromeErr != nil {
 		return true
 	}
+	if r.AccessErr != nil || r.UploadsWritableErr != nil || r.LedgerAppendErr != nil {
+		return true
+	}
+	if r.PublicNavidromeURLErr != nil || r.SameFilesystemErr != nil {
+		return true
+	}
 	return len(r.PingURLErrs) > 0
 }
 
@@ -278,7 +309,11 @@ func (r DoctorReport) Failed() bool {
 // return values: when cfgErr is non-nil, cfg is nil and the probes are
 // skipped entirely, since there is nothing to probe with. rclonePath is
 // the rclone binary the R2 probe runs; production passes "rclone".
-func RunDoctor(ctx context.Context, cfg *config.Config, cfgErr error, rclonePath string) DoctorReport {
+// httpClient is the client the Navidrome and Access probes share;
+// production passes nil, which runs a client with a [probeTimeout]
+// timeout, and tests override it to reach an httptest server (including
+// a TLS one, for the Access probe's real https certs endpoint).
+func RunDoctor(ctx context.Context, cfg *config.Config, cfgErr error, rclonePath string, httpClient *http.Client) DoctorReport {
 	report := DoctorReport{Fields: FieldStatuses(cfgErr)}
 	if cfg == nil {
 		report.ConfigErr = cfgErr
@@ -286,6 +321,11 @@ func RunDoctor(ctx context.Context, cfg *config.Config, cfgErr error, rclonePath
 	}
 
 	report.Probed = true
+
+	client := httpClient
+	if client == nil {
+		client = &http.Client{Timeout: probeTimeout}
+	}
 
 	smtpCtx, cancel := withProbeTimeout(ctx)
 	report.SMTPErr = probeSMTP(smtpCtx, cfg.SMTP)
@@ -296,8 +336,17 @@ func RunDoctor(ctx context.Context, cfg *config.Config, cfgErr error, rclonePath
 	cancel()
 
 	navCtx, cancel := withProbeTimeout(ctx)
-	report.NavidromeErr = navidromePing(navCtx, &http.Client{Timeout: probeTimeout}, cfg.Navidrome.URL)
+	report.NavidromeErr = navidromePing(navCtx, client, cfg.Navidrome.URL)
 	cancel()
+
+	accessCtx, cancel := withProbeTimeout(ctx)
+	report.AccessErr = probeAccess(accessCtx, client, cfg.Serve)
+	cancel()
+
+	report.UploadsWritableErr = probeUploadsWritable(cfg.Paths.UploadsDir)
+	report.LedgerAppendErr = probeLedgerAppendable(cfg.LedgerPath)
+	report.PublicNavidromeURLErr = probePublicNavidromeURL(cfg.Serve.PublicNavidromeURL)
+	report.SameFilesystemErr = probeSameFilesystem(cfg.Paths.UploadsDir, cfg.Paths.InboxDir)
 
 	report.PingURLErrs = validatePingURLs(cfg.PingURLs)
 	return report

@@ -23,7 +23,7 @@ const rclonePath = "rclone"
 func newDoctorCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "doctor",
-		Short: "Print every config field's resolution state and probe SMTP, R2, and Navidrome read-only",
+		Short: "Print every config field's resolution state and probe SMTP, R2, Navidrome, and Access read-only",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := signalContext(cmd)
@@ -41,7 +41,7 @@ var errDoctorFailed = errors.New("doctor: one or more checks failed")
 // main() exits nonzero.
 func runDoctor(ctx context.Context, w io.Writer) error {
 	cfg, cfgErr := config.Load()
-	report := checks.RunDoctor(ctx, cfg, cfgErr, rclonePath)
+	report := checks.RunDoctor(ctx, cfg, cfgErr, rclonePath, nil)
 	if err := printDoctorReport(w, report); err != nil {
 		return fmt.Errorf("print doctor report: %w", err)
 	}
@@ -76,6 +76,11 @@ func printDoctorReport(w io.Writer, r checks.DoctorReport) error {
 	writeProbe(&b, "SMTP (connect, EHLO, QUIT -- no send)", r.SMTPErr)
 	writeProbe(&b, "R2 (rclone lsjson --max-depth 1)", r.R2Err)
 	writeProbe(&b, "Navidrome (GET /rest/ping)", r.NavidromeErr)
+	writeProbe(&b, "Access (certs endpoint + AUD shape)", r.AccessErr)
+	writeProbe(&b, "UploadsDir (create + remove a probe file)", r.UploadsWritableErr)
+	writeProbe(&b, "Ledger (open for append)", r.LedgerAppendErr)
+	writeProbe(&b, "PublicNavidromeURL (syntax only)", r.PublicNavidromeURLErr)
+	writeProbe(&b, "UploadsDir/InboxDir (same filesystem)", r.SameFilesystemErr)
 
 	b.WriteString("\nPing URLs (syntax only -- never fetched: a GET would record a\n")
 	b.WriteString("false success ping for a check that never actually ran):\n")

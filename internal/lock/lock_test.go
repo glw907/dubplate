@@ -98,6 +98,87 @@ func TestAcquireBlockingWaitsForRelease(t *testing.T) {
 	}
 }
 
+func TestHeldReportsTrueWhileAnotherHolderHasIt(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "test.lock")
+
+	held, err := Held(path)
+	if err != nil {
+		t.Fatalf("Held before Acquire: %v", err)
+	}
+	if held {
+		t.Fatal("Held = true before any Acquire, want false")
+	}
+
+	first, err := Acquire(path)
+	if err != nil {
+		t.Fatalf("Acquire: %v", err)
+	}
+
+	held, err = Held(path)
+	if err != nil {
+		t.Fatalf("Held while acquired: %v", err)
+	}
+	if !held {
+		t.Error("Held = false while another holder has the lock, want true")
+	}
+
+	if err := first.Release(); err != nil {
+		t.Fatalf("Release: %v", err)
+	}
+
+	held, err = Held(path)
+	if err != nil {
+		t.Fatalf("Held after release: %v", err)
+	}
+	if held {
+		t.Error("Held = true after Release, want false")
+	}
+}
+
+// TestHeldDoesNotDisturbTheLock proves Held's own probe releases
+// immediately: a real AcquireBlocking against the same path, running
+// concurrently with repeated Held calls, must still succeed once the
+// original holder releases -- Held's probe attempt must never leave a
+// lock of its own behind to block it.
+func TestHeldDoesNotDisturbTheLock(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "test.lock")
+
+	held, err := Acquire(path)
+	if err != nil {
+		t.Fatalf("Acquire: %v", err)
+	}
+
+	for range 5 {
+		if ok, err := Held(path); err != nil || !ok {
+			t.Fatalf("Held = %v, %v, want true, nil", ok, err)
+		}
+	}
+
+	if err := held.Release(); err != nil {
+		t.Fatalf("Release: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	waited, err := AcquireBlocking(ctx, path)
+	if err != nil {
+		t.Fatalf("AcquireBlocking after Held probes: %v", err)
+	}
+	_ = waited.Release()
+}
+
+func TestHeldMissingPath(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "never-created.lock")
+
+	held, err := Held(path)
+	if err != nil {
+		t.Fatalf("Held on missing path: %v", err)
+	}
+	if held {
+		t.Error("Held = true for a path that was never created, want false")
+	}
+}
+
 func TestAcquireBlockingCtxCanceled(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "test.lock")
 

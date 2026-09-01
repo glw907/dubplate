@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // ErrMissing marks a required setting that Load found unset. Load wraps
@@ -25,13 +27,18 @@ type Config struct {
 	SMTP                SMTPConfig
 	R2                  R2Config
 	Navidrome           NavidromeConfig
+	Serve               ServeConfig
+	Upload              UploadConfig
 	Contributors        string
 	RejectEmailTemplate string
 	BeetsConfig         string
 	BeetsDB             string
 	NavidromeDB         string
 	Paths               Paths
-	Thresholds          Thresholds
+	// LedgerPath is the contributions ledger's JSONL file, defaulted to
+	// <StateDir>/contributions.jsonl when unset.
+	LedgerPath string
+	Thresholds Thresholds
 	// PingURLs maps a lowercased check slug to its ping URL, populated by
 	// scanning the environment for DUBPLATE_PING_<SLUG>_URL. An empty map
 	// is valid: no checks configured, no pings sent.
@@ -70,16 +77,47 @@ type NavidromeConfig struct {
 	AdminPassword string
 }
 
+// ServeConfig holds the settings `dubplate serve` needs to bind its
+// listener and to verify Cloudflare Access assertions. PublicNavidromeURL
+// is the externally reachable address the journey UI links into, distinct
+// from [NavidromeConfig.URL]'s admin-API address.
+type ServeConfig struct {
+	BindAddrs          []string
+	Port               int
+	AccessTeamDomain   string
+	AccessAUD          string
+	PublicNavidromeURL string
+}
+
+// UploadConfig holds the upload-path thresholds: chunk size, the
+// per-album byte ceiling, how long an abandoned partial upload survives
+// before a sweep reclaims it, and how many sessions one contributor may
+// have in flight at once. Every field is defaulted.
+type UploadConfig struct {
+	ChunkMB            int
+	MaxAlbumBytes      int64
+	PartialTTL         time.Duration
+	MaxSessionsPerUser int
+}
+
 // Paths holds every directory dubplate reads or writes on the host.
 type Paths struct {
-	LibraryDir    string
-	InboxDir      string
-	StagingDir    string
-	StateDir      string
+	LibraryDir string
+	InboxDir   string
+	StagingDir string
+	StateDir   string
+	// RunDir is the systemd RuntimeDirectory dubplate's serve and nudge
+	// units share; it never survives a reboot, so nothing here may be a
+	// durable state file (that is StateDir's job). serve derives the
+	// nudge trigger directory from it.
 	RunDir        string
 	ReviewDir     string
 	QuarantineDir string
 	BackupStaging string
+	// UploadsDir is the tus resumable-upload store; it must share a
+	// filesystem with InboxDir since promotion into the inbox is an
+	// atomic rename.
+	UploadsDir string
 }
 
 // Thresholds holds the behavior tunables that are the only fields Load
@@ -90,6 +128,13 @@ type Thresholds struct {
 	ArchiveCapGB  int
 	RetentionDays int
 	DiskPct       int
+	// StallMinutes is how long a session may sit with no terminal ledger
+	// event before it is reported stalled; see defaultStallMinutes for
+	// the floor this default must clear.
+	StallMinutes int
+	// ReportRetention is how many run-report files survive before the
+	// oldest are pruned.
+	ReportRetention int
 }
 
 // Values carried forward unchanged from the retired shell layer's
@@ -105,6 +150,31 @@ const (
 	defaultDiskPct       = 90
 )
 
+// importTimerIntervalMin mirrors systemd/dubplate-import.timer's
+// OnCalendar=*:0/15: the worst-case wait for the backstop importer to
+// even notice a finished, healthy upload.
+const importTimerIntervalMin = 15
+
+// defaultStallMinutes must exceed importTimerIntervalMin (the worst-case
+// wait for the backstop timer to fire) plus defaultQuiescentMin (the
+// importer's own wait before touching a session once triggered): 15+10 =
+// 25. Below that floor, a perfectly healthy upload caught between timer
+// ticks would be reported stalled before the backstop path ever gets to
+// run it. 30 clears the floor with a five-minute margin.
+const defaultStallMinutes = importTimerIntervalMin + defaultQuiescentMin + 5
+
+const defaultReportRetention = 30
+
+const (
+	defaultUploadChunkMB = 8
+	// defaultMaxAlbumBytes is 2 GiB, the same magnitude as
+	// defaultArchiveCapGB: generous headroom for a multi-disc lossless
+	// album while still bounding a single session's tus-store footprint.
+	defaultMaxAlbumBytes      int64 = 2 * 1024 * 1024 * 1024
+	defaultPartialTTL               = 24 * time.Hour
+	defaultMaxSessionsPerUser       = 3
+)
+
 // get reads a single environment variable. Load and its helpers read
 // every setting through this one choke point, so the packaging
 // initiative can later overlay a non-secret config file by changing get
@@ -112,6 +182,61 @@ const (
 // only env is wired now).
 func get(name string) (string, bool) {
 	return os.LookupEnv(name)
+}
+
+// optInt reads name as an integer, returning def when name is unset or
+// empty and recording a parse error on errs when name is set but not a
+// valid integer.
+func optInt(name string, def int, errs *[]error) int {
+	v, ok := get(name)
+	if !ok || v == "" {
+		return def
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		*errs = append(*errs, fmt.Errorf("%s: invalid integer %q", name, v))
+		return def
+	}
+	return n
+}
+
+// optInt64 is [optInt] for values too large for int on a 32-bit build,
+// such as a byte ceiling.
+func optInt64(name string, def int64, errs *[]error) int64 {
+	v, ok := get(name)
+	if !ok || v == "" {
+		return def
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		*errs = append(*errs, fmt.Errorf("%s: invalid integer %q", name, v))
+		return def
+	}
+	return n
+}
+
+// optDuration reads name via [time.ParseDuration], returning def when
+// name is unset or empty and recording a parse error on errs when name is
+// set but not a valid duration.
+func optDuration(name string, def time.Duration, errs *[]error) time.Duration {
+	v, ok := get(name)
+	if !ok || v == "" {
+		return def
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		*errs = append(*errs, fmt.Errorf("%s: invalid duration %q", name, v))
+		return def
+	}
+	return d
+}
+
+// optString reads name, returning def when name is unset or empty.
+func optString(name, def string) string {
+	if v, ok := get(name); ok && v != "" {
+		return v
+	}
+	return def
 }
 
 // Load reads Config from the process environment. It returns every
@@ -142,6 +267,39 @@ func Load() (*Config, error) {
 		return port
 	}
 
+	// requireList reads name as a comma-separated list, trimming and
+	// dropping blank entries. A missing name, an empty value, or a value
+	// with no non-blank entries all record one [ErrMissing].
+	requireList := func(name string) []string {
+		v, ok := get(name)
+		if !ok || v == "" {
+			errs = append(errs, fmt.Errorf("%s: %w", name, ErrMissing))
+			return nil
+		}
+		var list []string
+		for item := range strings.SplitSeq(v, ",") {
+			if item = strings.TrimSpace(item); item != "" {
+				list = append(list, item)
+			}
+		}
+		if len(list) == 0 {
+			errs = append(errs, fmt.Errorf("%s: %w", name, ErrMissing))
+		}
+		return list
+	}
+
+	paths := Paths{
+		LibraryDir:    require("DUBPLATE_LIBRARY_DIR"),
+		InboxDir:      require("DUBPLATE_INBOX_DIR"),
+		StagingDir:    require("DUBPLATE_STAGING_DIR"),
+		StateDir:      require("DUBPLATE_STATE_DIR"),
+		RunDir:        require("DUBPLATE_RUN_DIR"),
+		ReviewDir:     require("DUBPLATE_REVIEW_DIR"),
+		QuarantineDir: require("DUBPLATE_QUARANTINE_DIR"),
+		BackupStaging: require("DUBPLATE_BACKUP_STAGING"),
+		UploadsDir:    require("DUBPLATE_UPLOADS_DIR"),
+	}
+
 	cfg := &Config{
 		AdminEmail: require("DUBPLATE_ADMIN_EMAIL"),
 		SMTP: SMTPConfig{
@@ -163,24 +321,24 @@ func Load() (*Config, error) {
 			AdminUser:     require("DUBPLATE_NAVIDROME_ADMIN_USER"),
 			AdminPassword: require("DUBPLATE_NAVIDROME_ADMIN_PASSWORD"),
 		},
+		Serve: ServeConfig{
+			BindAddrs:          requireList("DUBPLATE_SERVE_BIND_ADDRS"),
+			Port:               requirePort("DUBPLATE_SERVE_PORT"),
+			AccessTeamDomain:   require("DUBPLATE_ACCESS_TEAM_DOMAIN"),
+			AccessAUD:          require("DUBPLATE_ACCESS_AUD"),
+			PublicNavidromeURL: require("DUBPLATE_PUBLIC_NAVIDROME_URL"),
+		},
+		Upload:              loadUpload(&errs),
 		Contributors:        require("DUBPLATE_CONTRIBUTORS_FILE"),
 		RejectEmailTemplate: require("DUBPLATE_REJECT_EMAIL_TEMPLATE"),
 		BeetsConfig:         require("DUBPLATE_BEETS_CONFIG"),
 		BeetsDB:             require("DUBPLATE_BEETS_DB"),
 		NavidromeDB:         require("DUBPLATE_NAVIDROME_DB"),
-		Paths: Paths{
-			LibraryDir:    require("DUBPLATE_LIBRARY_DIR"),
-			InboxDir:      require("DUBPLATE_INBOX_DIR"),
-			StagingDir:    require("DUBPLATE_STAGING_DIR"),
-			StateDir:      require("DUBPLATE_STATE_DIR"),
-			RunDir:        require("DUBPLATE_RUN_DIR"),
-			ReviewDir:     require("DUBPLATE_REVIEW_DIR"),
-			QuarantineDir: require("DUBPLATE_QUARANTINE_DIR"),
-			BackupStaging: require("DUBPLATE_BACKUP_STAGING"),
-		},
-		Thresholds:  loadThresholds(&errs),
-		PingURLs:    pingURLsFromEnv(),
-		Collections: loadCollections(),
+		Paths:               paths,
+		LedgerPath:          optString("DUBPLATE_LEDGER_PATH", filepath.Join(paths.StateDir, "contributions.jsonl")),
+		Thresholds:          loadThresholds(&errs),
+		PingURLs:            pingURLsFromEnv(),
+		Collections:         loadCollections(),
 	}
 
 	if len(errs) > 0 {
@@ -193,25 +351,25 @@ func Load() (*Config, error) {
 // unset and recording a parse error on any that are set but not an
 // integer.
 func loadThresholds(errs *[]error) Thresholds {
-	optInt := func(name string, def int) int {
-		v, ok := get(name)
-		if !ok || v == "" {
-			return def
-		}
-		n, err := strconv.Atoi(v)
-		if err != nil {
-			*errs = append(*errs, fmt.Errorf("%s: invalid integer %q", name, v))
-			return def
-		}
-		return n
-	}
-
 	return Thresholds{
-		QuiescentMin:  optInt("DUBPLATE_QUIESCENT_MINUTES", defaultQuiescentMin),
-		FreeFloorGB:   optInt("DUBPLATE_FREE_FLOOR_GB", defaultFreeFloorGB),
-		ArchiveCapGB:  optInt("DUBPLATE_ARCHIVE_CAP_GB", defaultArchiveCapGB),
-		RetentionDays: optInt("DUBPLATE_RETENTION_DAYS", defaultRetentionDays),
-		DiskPct:       optInt("DUBPLATE_DISK_PCT", defaultDiskPct),
+		QuiescentMin:    optInt("DUBPLATE_QUIESCENT_MINUTES", defaultQuiescentMin, errs),
+		FreeFloorGB:     optInt("DUBPLATE_FREE_FLOOR_GB", defaultFreeFloorGB, errs),
+		ArchiveCapGB:    optInt("DUBPLATE_ARCHIVE_CAP_GB", defaultArchiveCapGB, errs),
+		RetentionDays:   optInt("DUBPLATE_RETENTION_DAYS", defaultRetentionDays, errs),
+		DiskPct:         optInt("DUBPLATE_DISK_PCT", defaultDiskPct, errs),
+		StallMinutes:    optInt("DUBPLATE_STALL_MINUTES", defaultStallMinutes, errs),
+		ReportRetention: optInt("DUBPLATE_REPORT_RETENTION", defaultReportRetention, errs),
+	}
+}
+
+// loadUpload reads the upload-path thresholds, defaulting any that are
+// unset and recording a parse error on any that are set but invalid.
+func loadUpload(errs *[]error) UploadConfig {
+	return UploadConfig{
+		ChunkMB:            optInt("DUBPLATE_UPLOAD_CHUNK_MB", defaultUploadChunkMB, errs),
+		MaxAlbumBytes:      optInt64("DUBPLATE_UPLOAD_MAX_ALBUM_BYTES", defaultMaxAlbumBytes, errs),
+		PartialTTL:         optDuration("DUBPLATE_UPLOAD_PARTIAL_TTL", defaultPartialTTL, errs),
+		MaxSessionsPerUser: optInt("DUBPLATE_UPLOAD_MAX_SESSIONS_PER_USER", defaultMaxSessionsPerUser, errs),
 	}
 }
 

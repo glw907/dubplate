@@ -25,7 +25,8 @@ type contributorsFile struct {
 // query: every lookup method reports absent rather than panicking, so a
 // missing contributors.yaml degrades to "nobody on file", never an error.
 type Roster struct {
-	byName map[string]contributor
+	byName  map[string]contributor
+	byEmail map[string]contributor
 }
 
 // LoadContributors parses the contributors.yaml at path. A missing file
@@ -47,10 +48,12 @@ func LoadContributors(path string) (Roster, error) {
 	}
 
 	byName := make(map[string]contributor, len(cf.Contributors))
+	byEmail := make(map[string]contributor, len(cf.Contributors))
 	for _, c := range cf.Contributors {
 		byName[c.Name] = c
+		byEmail[strings.ToLower(strings.TrimSpace(c.Email))] = c
 	}
-	return Roster{byName: byName}, nil
+	return Roster{byName: byName, byEmail: byEmail}, nil
 }
 
 // EmailFor reports the email address on file for name, and whether name
@@ -80,4 +83,17 @@ func (r Roster) FirstName(name string) (string, bool) {
 func (r Roster) Has(name string) bool {
 	_, ok := r.byName[name]
 	return ok
+}
+
+// DirNameFor reports the inbox directory name for the contributor
+// registered under email, matched case-insensitively, and whether email
+// matched a contributor. It is the uploader's identity index: Access
+// verifies an email address, the importer's directory-name key stays
+// untouched, and this is the bridge between the two.
+func (r Roster) DirNameFor(email string) (string, bool) {
+	c, ok := r.byEmail[strings.ToLower(strings.TrimSpace(email))]
+	if !ok {
+		return "", false
+	}
+	return c.Name, true
 }
