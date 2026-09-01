@@ -87,7 +87,7 @@ screenshots, fresh-context `visual-verifier`, Geoff's before/after).
 ## Safety rails
 
 - Before any executor touches this repo or the box: check for live
-  executors (`pgrep -f Projects/musicbox`, `git status` for warm changes
+  executors (`pgrep -f Projects/dubplate`, `git status` for warm changes
   you did not author). The box (`5.78.148.42`) is production — no writes
   without a quiet-box check; read-only ssh only during reviews.
 - Never commit secrets, `.env` values, or `~/.local/secrets` content. The

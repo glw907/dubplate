@@ -13,19 +13,15 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 
 ## Rules for a new session in this repo
 
-1. The Go rewrite is CODE-COMPLETE through T11 (all tasks accepted;
-   consolidation landed at 4489c99: simplifier sweep, vale comment
-   gate, tidy-check; gate green). T12's repo side (deploy.sh
-   build-and-ship, dubplate-* check/backup units, additive DUBPLATE_*
-   env names) and the Geoff-sanctioned box flips landed; T13's review
-   blockers and repo-side closeout, plus T14's repo rename sweep
-   (`internal/beets` `subsonicClient` now "dubplate"; the spec/plan
-   chain migrated into `docs/superpowers/`), are done in this working
-   tree. Remaining: T14's box + estate steps (the conductor's job —
-   `/etc/musicbox` → `/etc/dubplate`, pings check re-registration,
-   `~/Projects/musicbox` → `~/Projects/dubplate`). Spend ≈4.3M of the
-   approved 5.5M before this pass. Overage + per-step box sanction
-   granted by Geoff 2026-08-31.
+1. The Go rewrite is CLOSED on the box and in the repo (2026-08-31
+   evening): the estate runs entirely on the dubplate binary (all four
+   jobs green on supervised first runs; doctor fully green), box paths
+   are /etc/dubplate + /opt/dubplate, pings checks are dubplate-*
+   slugs, the shell layer and msmtp are deleted everywhere, and the
+   repo lives at ~/Projects/dubplate. Post-hoc soak: overnight timer
+   evidence (backup fires ~11:37 UTC) confirms unattended operation;
+   the dead-man checks alert if not. Then the pass post-mortem.
+   Kept identifiers: README's list. Spend ≈5.0M of the approved 5.5M.
 2. Uploader plan APPROVED (Geoff 2026-08-31, two adversarial rounds):
    `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
    Gate 3 (iPad picker) already CLOSED documentarily — see the plan's
@@ -63,6 +59,6 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 FileBrowser (`gtstef/filebrowser 1.5.5-stable`) retires with the uploader.
 Re-verify pins before any fresh provision.
 
-**Next action**: the rewrite's box + estate close (rule 1): deploy the
-end state, flip all units, retire old-name box paths, swap the pings
-slugs, rename the workstation directory — then launch uploader Pass A.
+**Next action**: verify overnight timer evidence, then the rewrite
+post-mortem. Uploader Pass A (U1-U8) is executing via pass-execute in
+this repo; gates 1-2 run against the deployed serve after U12a.

@@ -1,6 +1,44 @@
-# musicbox history
+# dubplate history (born musicbox; entries keep the names of their day)
 
 Per-pass ledger, newest first.
+
+## Go rewrite close: box cutover and estate rename, T12–T14 (2026-08-31)
+
+Geoff's no-users ruling collapsed the plan's staged migration (additive
+env window, per-subcommand flips, soak-gated T13) into one evening: the
+estate has a library worth protecting (backed up, verified) but no users
+a botched cutover could hurt, so the windows bought safety nobody
+needed. One continuous run: T12–T14 repo work through the chain (two
+review rounds each; the reviewers caught a ReadWritePaths grant that
+would have failed every backup — fixed by clearing staging CONTENTS so
+the leaf grant holds — and a compose project-name float that would have
+orphaned every container, fixed by pinning `name: musicbox`); one
+deploy shipping the binary, nine units, and the 36-name
+single-generation env at /etc/dubplate; doctor fully green first try;
+all four jobs green on supervised first runs; old units/scripts/paths
+removed from the box; pings checks re-registered as dubplate-* inside
+the grace window (no false alert); `~/Projects/musicbox` →
+`~/Projects/dubplate`. The soak runs post-hoc: overnight timers prove
+unattended operation with the dead-man checks as witness.
+
+What a later pass would be wrong to rediscover:
+
+- Compose derives its project name from --project-directory's basename;
+  moving the directory without pinning `name:` makes `up -d` orphan
+  every running container and start duplicates. The pin carries a
+  never-remove-without-migration comment in compose.yaml.
+- A ReadWritePaths LEAF grant cannot survive os.RemoveAll on the
+  granted directory itself (needs parent write). dubplate-backup clears
+  contents instead; the unit comment carries the contract.
+- Kept identifiers (Hetzner names, tunnel, compose project,
+  /var/lib/musicbox, /srv/music) are documented in README; the estate
+  rename is complete EXCEPT those, deliberately.
+- `Paths.RunDir`/`DUBPLATE_RUN_DIR` is required by config.Load but read
+  by nothing — dead config, escalated to the uploader pass's U1 rather
+  than patched around the frozen inventory.
+- Slug swap ordering that avoids false dead-man alerts: add new checks,
+  re-mint URLs, redeploy env, prove one ping, THEN remove old slugs —
+  all inside the shortest check's period+grace.
 
 ## Go rewrite, repo phase T1–T11 (2026-08-31)
 
