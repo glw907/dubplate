@@ -707,7 +707,11 @@ sends it. `History.svelte` renders `/api/history`: unambiguous terminal
 states checkable without an active flow; in-flight resumables first with
 a resume affordance; review items show who looks and the 60-day clock;
 queued shows the applicable copy variant. Every rejection string comes
-from the API.
+from the API. **Copy pipeline (Geoff, 2026-09-01: mockup wording read
+"very AI"):** every user-facing string in U10/U11 that is not already
+reject-taxonomy contract is drafted through the content-draft skill and
+gated by content-review's AI-tell pass before the visual-fidelity gate;
+the mockups' strings are layout reference only, never copy contract.
 
 ### U12b: Cutover and FileBrowser retirement (box task, Geoff-sanctioned)
 
