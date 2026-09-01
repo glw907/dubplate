@@ -122,8 +122,26 @@ and Access — which is exactly what Pass A ships. They therefore run
 
 ## Gate outcomes (filled before Pass B starts)
 
-- Gate 1 (SSE): _unrecorded_
-- Gate 2 (chunk): _unrecorded_
+- Gate 1 (SSE): **PASS 2026-09-01**, measured against the live serve
+  through the full production path (edge, Access email-code login as
+  geoff-login@907.life, tunnel). POST /upload/api/stream/probe: 200
+  text/event-stream, first byte 154ms, heartbeats at 15.0s cadence with
+  no edge buffering (arrivals 15148/30158/45165/60249/75200ms).
+  Last-Event-ID: 2 on reconnect resumed at id 3 within 120ms and held
+  cadence. The POST-opened SSE design stands as specified.
+- Gate 2 (chunk): **PASS 2026-09-01**, same path. tus create 201 in
+  119ms (a standalone non-ZIP correctly refused with
+  dubplate-session-required and a missing album with dubplate-bad-album,
+  so admission control is live); 4MB PATCH 204 in 2.1s (workstation
+  uplink bound, ~1.9MB/s); a PATCH aborted mid-flight persisted offset
+  exactly 4,194,304; HEAD read it back; a resume PATCH from that offset
+  reached 8,388,608; DELETE 204. Offset persistence through the tunnel
+  holds. One defect found, fixed at gate time rather than queued: tusd's
+  absolute Location header read `http://music.907.life/...` because
+  serve sees plain HTTP behind cloudflared, and a stock tus-js-client
+  would follow it into an https redirect mid-protocol. Fix: honor
+  forwarded headers in the tusd Engine config (cloudflared sends
+  X-Forwarded-Proto). [Recorded by the conductor at gate time.]
 - Gate 3 (iPad): **CLOSED documentarily 2026-08-31, no device needed**
   (two research rounds; artifacts in the research dir). Rulings for
   U10: (a) accept values are extension-first, never bare `audio/*` —
