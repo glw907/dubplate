@@ -1,0 +1,272 @@
+<!--
+  @component
+  The post-upload journey (passb-copy-final.md sections 2 and 3; Pass B
+  conductor rulings 4 and 5): drives {@link JourneySteps}'s frozen
+  four-step spine plus whichever of {@link OutcomeAlert}'s three branch
+  outcomes or the terminal "In your library" card applies, over U9's
+  store. Mounting calls `store.finishSession` (the synchronous,
+  server-blocking custody-policy probe) exactly once; only once it
+  resolves `promoted` does this component start `store.startJourneyPolling`
+  -- starting it earlier would read the session's live state mid-decision,
+  a transient window `internal/serve/api.go`'s own live-session switch
+  does not cover (verified against the landed backend, not the plan's
+  earlier draft). The one polite aria-live region {@link announce}
+  owns exists empty from first render; every step and outcome change
+  announces through it once, and completion gets its own distinct call.
+-->
+<script lang="ts">
+	import { onDestroy, onMount } from 'svelte';
+	import JourneySteps, { type StepStatus } from './JourneySteps.svelte';
+	import OutcomeAlert from './OutcomeAlert.svelte';
+	import { LiveRegion } from '../announce';
+	import { uploadStore, type FinishOutcome, type UploadStore } from '../store/upload.svelte';
+
+	interface Props {
+		sessionId: string;
+		album: string;
+		totalFiles: number;
+		store?: UploadStore;
+		onUploadPrivate?: () => void;
+		onFixNames?: () => void;
+	}
+
+	let { sessionId, album, totalFiles, store = uploadStore, onUploadPrivate = () => {}, onFixNames = () => {} }: Props =
+		$props();
+
+	let finishing = $state(true);
+	let outcome = $state<FinishOutcome | null>(null);
+	let liveRegionEl: HTMLDivElement | undefined = $state();
+	let wakeLockOn = $state(false);
+	let wakeLockSupported = $state(false);
+
+	// A structural fallback for the Screen Wake Lock API: some
+	// TypeScript lib.dom.d.ts versions ship it, some do not, and this
+	// component must build cleanly either way (U9's "no Node shims"
+	// production-build criterion extends to never depending on a DOM
+	// lib version this workstation happens to have).
+	interface WakeLockSentinelLike {
+		release(): Promise<void>;
+		addEventListener(type: 'release', listener: () => void): void;
+	}
+	interface NavigatorWithWakeLock {
+		wakeLock?: { request(type: 'screen'): Promise<WakeLockSentinelLike> };
+	}
+
+	let wakeLockSentinel: WakeLockSentinelLike | null = null;
+	const announcer = new LiveRegion();
+	let stopPolling: (() => void) | null = null;
+
+	const journey = $derived(store.journey);
+
+	type ViewMode = 'finishing' | 'matched' | 'queued' | 'stalled' | 'in-library' | 'pushed-back' | 'probe-unavailable' | 'format-rejected';
+
+	const viewMode = $derived.by((): ViewMode => {
+		if (finishing || !outcome) {
+			return 'finishing';
+		}
+		if (outcome.pushedBack) {
+			return 'pushed-back';
+		}
+		if (outcome.probeUnavailable) {
+			return 'probe-unavailable';
+		}
+		if (!outcome.promoted) {
+			return 'format-rejected';
+		}
+		if (journey?.state === 'in-library') {
+			return 'in-library';
+		}
+		if (journey?.state === 'stalled') {
+			return 'stalled';
+		}
+		if (journey?.state === 'queued') {
+			return 'queued';
+		}
+		return 'matched';
+	});
+
+	const statuses = $derived.by((): [StepStatus, StepStatus, StepStatus, StepStatus] => {
+		switch (viewMode) {
+			case 'finishing':
+				return ['complete', 'complete', 'current', 'upcoming'];
+			case 'pushed-back':
+			case 'probe-unavailable':
+				return ['complete', 'complete', 'error', 'upcoming'];
+			case 'format-rejected':
+				return ['complete', 'error', 'upcoming', 'upcoming'];
+			case 'stalled':
+				return ['complete', 'complete', 'complete', 'error'];
+			case 'queued':
+				return ['complete', 'complete', 'complete', 'upcoming'];
+			default:
+				return ['complete', 'complete', 'complete', 'current'];
+		}
+	});
+
+	/** passb-copy-final.md section 3's "Matched:" line, shown only for a main-lane confident match -- a private-lane promotion carries no matched metadata (internal/serve's own doc comment on sessionOutcome). */
+	const matchedLine = $derived(
+		viewMode === 'matched' && outcome?.matchedArtist
+			? `Matched: ${outcome.matchedArtist} - ${outcome.matchedAlbum} (${outcome.matchedYear}). You can close this page now.`
+			: null,
+	);
+
+	const inLibraryTitle = $derived(
+		outcome?.matchedArtist ? `${outcome.matchedArtist} - ${outcome.matchedAlbum}` : (journey?.album ?? album),
+	);
+
+	// The two queued variants share one wire Detail signal
+	// (internal/journey.QueuedDetail's own two literal strings), never
+	// rendered verbatim -- OutcomeAlert owns the contract copy for each.
+	const ownEarlierUpload = $derived(journey?.detail === 'waiting on your other upload');
+
+	onMount(() => {
+		if (liveRegionEl) {
+			announcer.attach(liveRegionEl);
+		}
+		wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
+		void runFinish();
+	});
+
+	onDestroy(() => {
+		stopPolling?.();
+		announcer.detach();
+		void releaseWakeLock();
+	});
+
+	async function runFinish(): Promise<void> {
+		finishing = true;
+		try {
+			const result = await store.finishSession(sessionId, album);
+			outcome = result;
+		} catch {
+			// store.signedOut already carries the reload-to-sign-in state;
+			// there is nothing further for this view to do.
+		} finally {
+			finishing = false;
+			announceForViewMode();
+			if (outcome?.promoted) {
+				stopPolling = store.startJourneyPolling(sessionId);
+			}
+		}
+	}
+
+	function announceForViewMode(): void {
+		switch (viewMode) {
+			case 'matched':
+				announcer.announceState(matchedLine ?? 'Adding it to the library now.');
+				break;
+			case 'pushed-back':
+				announcer.announceState('No MusicBrainz match for this album.');
+				break;
+			case 'probe-unavailable':
+				announcer.announceState("Can't check MusicBrainz right now.");
+				break;
+			case 'format-rejected':
+				announcer.announceState("Couldn't add this album.");
+				break;
+			default:
+				break;
+		}
+	}
+
+	// journey.state changing (via the 5s poll) is announced the same way
+	// a state change from runFinish is: a fresh, distinct message each
+	// time, never a progress-style delta.
+	let lastAnnouncedJourneyState = $state<string | null>(null);
+	$effect(() => {
+		if (!journey || journey.state === lastAnnouncedJourneyState) {
+			return;
+		}
+		lastAnnouncedJourneyState = journey.state;
+		if (journey.state === 'in-library') {
+			announcer.announceCompletion(`${inLibraryTitle} is in your library.`);
+		} else if (journey.state === 'stalled') {
+			announcer.announceState('Taking longer than it should.');
+		} else if (journey.state === 'queued') {
+			announcer.announceState('Waiting its turn.');
+		}
+	});
+
+	async function toggleWakeLock(): Promise<void> {
+		const nav = navigator as Navigator & NavigatorWithWakeLock;
+		if (wakeLockOn) {
+			await releaseWakeLock();
+			return;
+		}
+		if (!nav.wakeLock) {
+			return;
+		}
+		try {
+			wakeLockSentinel = await nav.wakeLock.request('screen');
+			wakeLockOn = true;
+			wakeLockSentinel.addEventListener('release', () => {
+				wakeLockOn = false;
+			});
+		} catch {
+			wakeLockOn = false;
+		}
+	}
+
+	async function releaseWakeLock(): Promise<void> {
+		if (wakeLockSentinel) {
+			await wakeLockSentinel.release();
+			wakeLockSentinel = null;
+		}
+		wakeLockOn = false;
+	}
+
+	function retryFinish(): void {
+		void runFinish();
+	}
+</script>
+
+<div class="flex flex-col gap-4">
+	<div bind:this={liveRegionEl} aria-live="polite" class="sr-only" role="status"></div>
+
+	{#if viewMode === 'in-library'}
+		<div class="alert alert-success flex-col items-start gap-3 motion-safe:transition-opacity" role="status">
+			<h3 class="font-semibold">In your library</h3>
+			<p>{inLibraryTitle} is ready.</p>
+			{#if journey?.libraryLink}
+				<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
+					Open in Navidrome
+				</a>
+			{/if}
+		</div>
+	{:else}
+		<JourneySteps {totalFiles} {statuses} />
+
+		{#if matchedLine}
+			<p class="text-sm">{matchedLine}</p>
+		{/if}
+
+		{#if viewMode === 'finishing' || viewMode === 'matched'}
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<p class="text-base-content/60 text-sm">
+					Switching away pauses the upload; coming back resumes it. If the page closes, pick it up from Your
+					uploads.
+				</p>
+				{#if wakeLockSupported}
+					<button type="button" class="btn btn-outline btn-sm" aria-pressed={wakeLockOn} onclick={toggleWakeLock}>
+						Keep my screen awake
+					</button>
+				{/if}
+			</div>
+		{/if}
+
+		{#if viewMode === 'pushed-back'}
+			<OutcomeAlert outcome={{ kind: 'pushed-back', onUploadPrivate, onFixNames }} />
+		{:else if viewMode === 'probe-unavailable'}
+			<OutcomeAlert outcome={{ kind: 'probe-unavailable', onTryAgain: retryFinish }} />
+		{:else if viewMode === 'queued'}
+			<OutcomeAlert outcome={{ kind: 'queued', ownEarlierUpload }} />
+		{:else if viewMode === 'stalled'}
+			<OutcomeAlert outcome={{ kind: 'stalled' }} />
+		{:else if viewMode === 'format-rejected'}
+			<div class="alert alert-error flex-col items-start" role="alert">
+				<h3 class="font-semibold">Couldn't add this album</h3>
+				<p>{outcome?.detail || "The album didn't pass its checks."}</p>
+			</div>
+		{/if}
+	{/if}
+</div>

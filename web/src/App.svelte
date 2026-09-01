@@ -1,14 +1,15 @@
 <!--
   @component
-  The uploader's root shell and U10's composition root: loads
+  The uploader's root shell and U10/U11's composition root: loads
   `/api/config`, then walks the selection -> pre-flight -> (private
-  lane tag form) -> upload flow through U10's display-only components,
-  translating their callback props into the store's own methods (the
-  only place in this file that touches `uploadStore` for anything
-  beyond reading state). U11's journey spine (post-upload steps,
-  outcomes, history) is not this file's job -- once a file starts
-  uploading, U10's job is done and this shell hands off to whatever
-  renders `uploadStore.session.state` next.
+  lane tag form) -> upload -> journey flow through U10/U11's
+  display-only components, translating their callback props into the
+  store's own methods (the only place in this file that touches
+  `uploadStore` for anything beyond reading state). Once every file in
+  the current selection reaches `'ok'`, this shell hands off to U11's
+  `Journey` for the post-upload steps spine, outcomes, and completion;
+  a "Your uploads" link swaps the whole main region for U11's `History`
+  independently of upload phase.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -16,11 +17,13 @@
 	import CollectionPicker, { isPrivateCollection } from './lib/components/CollectionPicker.svelte';
 	import DropZone from './lib/components/DropZone.svelte';
 	import FileRow from './lib/components/FileRow.svelte';
+	import History from './lib/components/History.svelte';
+	import Journey from './lib/components/Journey.svelte';
 	import PickerButton from './lib/components/PickerButton.svelte';
 	import SpecCard from './lib/components/SpecCard.svelte';
 	import { supportsDirectorySelect } from './lib/platform';
 	import { isZipSelection, screenSelection, type PreflightVerdict } from './lib/preflight';
-	import { uploadStore, type FileVerdict } from './lib/store/upload.svelte';
+	import { sessionIdFromUploadURL, uploadStore, type FileVerdict } from './lib/store/upload.svelte';
 
 	/** The picker/drop accept list: extension-first per gate 3 (audio/* greys out FLAC on iOS Safari). */
 	const acceptExtensions = '.zip,.flac';
@@ -30,8 +33,10 @@
 	const supportsFolderSelect = supportsDirectorySelect();
 
 	type Phase = 'idle' | 'preflight-rejected' | 'tagging' | 'uploading';
+	type View = 'upload' | 'history';
 
 	let phase = $state<Phase>('idle');
+	let view = $state<View>('upload');
 	let selectedCollection = $state('');
 	let pendingFiles = $state<File[]>([]);
 	let preflightRejections = $state<PreflightVerdict[]>([]);
@@ -126,6 +131,33 @@
 	const currentFiles = $derived(uploadStore.files.filter((file) => uploadFileIds.includes(file.id)));
 	const stalledFiles = $derived(currentFiles.filter((file) => file.status === 'failed' && file.failureKind === 'connection'));
 
+	// U11's Journey takes over once every file in the current selection
+	// has landed: a multi-file session already carries its own ID from
+	// createSession; a lone ZIP never calls that endpoint, so its
+	// session ID only exists in the completed upload's own URL (see
+	// sessionIdFromUploadURL's doc comment for why that is safe to
+	// parse).
+	const allFilesLanded = $derived(currentFiles.length > 0 && currentFiles.every((file) => file.status === 'ok'));
+	const journeySessionId = $derived.by(() => {
+		if (uploadStore.session.sessionId) {
+			return uploadStore.session.sessionId;
+		}
+		const zipURL = currentFiles[0]?.tusUploadURL;
+		return zipURL ? sessionIdFromUploadURL(zipURL) : null;
+	});
+	const journeyAlbum = $derived(uploadStore.session.album || deriveAlbumLabel(pendingFiles));
+
+	/** OutcomeAlert's "Upload to Private Recordings" action: the picked files are still held in memory, so a pushed-back album re-routes through the same tag form U10 already built rather than asking for a fresh pick. */
+	function retryAsPrivateCollection(): void {
+		const privateCollection = uploadStore.config?.collections.find((name) => isPrivateCollection(name));
+		if (!privateCollection) {
+			return;
+		}
+		selectedCollection = privateCollection;
+		tagTrackTitles = pendingFiles.map((file) => deriveTitleFromFilename(file.name));
+		phase = 'tagging';
+	}
+
 	function retryStalled(): void {
 		const metadata: Record<string, string> = isZipSelection(pendingFiles)
 			? { album: deriveAlbumLabel(pendingFiles), collection: selectedCollection }
@@ -171,14 +203,28 @@
 </script>
 
 <div class="bg-base-100 text-base-content min-h-screen">
-	<header class="navbar bg-base-200">
+	<header class="navbar bg-base-200 flex items-center justify-between">
 		<span class="text-xl font-semibold uppercase tracking-wide">
 			{collectionMode === 'private' ? 'Private Recordings' : (uploadStore.config?.siteName ?? 'dubplate')}
 		</span>
+		<button type="button" class="btn btn-ghost btn-sm" onclick={() => (view = view === 'upload' ? 'history' : 'upload')}>
+			{view === 'upload' ? 'Your uploads' : 'Back to upload'}
+		</button>
 	</header>
 
 	<main class="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-		{#if uploadStore.signedOut}
+		{#if view === 'history'}
+			<History
+				onUploadPrivate={() => {
+					view = 'upload';
+					retryAsPrivateCollection();
+				}}
+				onFixNames={() => {
+					view = 'upload';
+					resetSelection();
+				}}
+			/>
+		{:else if uploadStore.signedOut}
 			<div class="alert alert-warning" role="alert">
 				<span>Your sign-in has expired. Reload the page to sign in again.</span>
 			</div>
@@ -265,30 +311,43 @@
 					onSubmit={submitTagForm}
 				/>
 			{:else if phase === 'uploading'}
-				{#if isZipSelection(pendingFiles)}
-					<p class="text-base-content/70 text-sm">We check the tracks once the zip finishes uploading.</p>
+				{#if allFilesLanded && journeySessionId}
+					<Journey
+						sessionId={journeySessionId}
+						album={journeyAlbum}
+						totalFiles={currentFiles.length}
+						onUploadPrivate={retryAsPrivateCollection}
+						onFixNames={resetSelection}
+					/>
+				{:else}
+					{#if isZipSelection(pendingFiles)}
+						<p class="text-base-content/70 text-sm">We check the tracks once the zip finishes uploading.</p>
+					{/if}
+					{#if stalledFiles.length > 0}
+						<div class="alert alert-warning flex-col items-start" role="alert">
+							<h3 class="font-semibold">Upload stopped</h3>
+							<p>
+								It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it left
+								off.
+							</p>
+							<button type="button" class="btn btn-sm" onclick={retryStalled}>Retry</button>
+						</div>
+					{/if}
+					<ul class="border-base-300 divide-base-300 divide-y rounded border">
+						{#each currentFiles as file (file.id)}
+							<FileRow
+								name={file.name}
+								size={file.size}
+								status={file.status}
+								progressBytes={file.progressBytes}
+								ackedBytes={file.ackedBytes}
+								verdict={file.verdict}
+								failureKind={file.failureKind}
+								variant="progress"
+							/>
+						{/each}
+					</ul>
 				{/if}
-				{#if stalledFiles.length > 0}
-					<div class="alert alert-warning flex-col items-start" role="alert">
-						<h3 class="font-semibold">Upload stopped</h3>
-						<p>It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it left off.</p>
-						<button type="button" class="btn btn-sm" onclick={retryStalled}>Retry</button>
-					</div>
-				{/if}
-				<ul class="border-base-300 divide-base-300 divide-y rounded border">
-					{#each currentFiles as file (file.id)}
-						<FileRow
-							name={file.name}
-							size={file.size}
-							status={file.status}
-							progressBytes={file.progressBytes}
-							ackedBytes={file.ackedBytes}
-							verdict={file.verdict}
-							failureKind={file.failureKind}
-							variant="progress"
-						/>
-					{/each}
-				</ul>
 			{/if}
 		{/if}
 	</main>

@@ -92,6 +92,119 @@ export interface FileVerdict {
 	Reason: RejectReason;
 }
 
+// --- journey (GET /api/journey/<id>, GET /api/history) -------------------
+
+/** internal/journey.Journey's wire shape, mirrored from internal/serve/api.go. */
+interface journeyWire {
+	session_id: string;
+	state: LedgerState;
+	detail?: string;
+	album?: string;
+	library_link?: string;
+	files?: FileVerdict[];
+}
+
+/** One session's current journey, as U11's spine/history components read it. */
+export interface Journey {
+	sessionId: string;
+	state: LedgerState;
+	detail: string;
+	album: string;
+	libraryLink: string;
+	files: FileVerdict[];
+}
+
+function fromJourneyWire(wire: journeyWire): Journey {
+	return {
+		sessionId: wire.session_id,
+		state: wire.state,
+		detail: wire.detail ?? '',
+		album: wire.album ?? '',
+		libraryLink: wire.library_link ?? '',
+		files: wire.files ?? [],
+	};
+}
+
+/** {@link Journey.state} widened with the two client-remembered outcomes {@link Journey} itself can never carry (see the pushed-back-memory note above). */
+export type HistoryState = LedgerState | 'pushed-back' | 'probe-unavailable';
+
+/** One row of `History.svelte`'s "Your uploads" list: a server-reported {@link Journey}, or a locally-remembered pushed-back/probe-unavailable session the ledger will never carry. */
+export interface HistoryRow {
+	sessionId: string;
+	album: string;
+	state: HistoryState;
+	detail: string;
+	libraryLink: string;
+	files: FileVerdict[];
+	/** True when a {@link ResumeAnchor} in this browser can resume this row's upload -- History's "resume" affordance. */
+	resumable: boolean;
+}
+
+// --- session completion outcome (POST /api/session/<id>/finish) ----------
+
+/**
+ * internal/serve.finishResponse's wire shape: the same body both an
+ * explicit POST .../finish and a lone ZIP's completing PATCH return
+ * (internal/serve/upload.go's doc comment on finishResponse). The store
+ * always reaches it through the explicit POST, since {@link TusDriver}
+ * has no seam for reading a PATCH's response body.
+ */
+interface finishWire {
+	promoted: boolean;
+	pushed_back?: boolean;
+	probe_unavailable?: boolean;
+	detail?: string;
+	matched_artist?: string;
+	matched_album?: string;
+	matched_year?: string;
+	files: FileVerdict[];
+}
+
+/** A session's terminal completion outcome, per the custody-policy decision. */
+export interface FinishOutcome {
+	promoted: boolean;
+	pushedBack: boolean;
+	probeUnavailable: boolean;
+	detail: string;
+	matchedArtist: string;
+	matchedAlbum: string;
+	matchedYear: string;
+	files: FileVerdict[];
+}
+
+function fromFinishWire(wire: finishWire): FinishOutcome {
+	return {
+		promoted: wire.promoted,
+		pushedBack: wire.pushed_back ?? false,
+		probeUnavailable: wire.probe_unavailable ?? false,
+		detail: wire.detail ?? '',
+		matchedArtist: wire.matched_artist ?? '',
+		matchedAlbum: wire.matched_album ?? '',
+		matchedYear: wire.matched_year ?? '',
+		files: wire.files ?? [],
+	};
+}
+
+/**
+ * The fixed-width session-id token every completed upload's own URL is
+ * prefixed with: `internal/serve/upload.go`'s `preCreate` names every
+ * reserved slot's tus upload ID `"<session-id>-<slot>"`, for an explicit
+ * multi-file session and an implicit lone-ZIP session alike, and the
+ * session-identity plan-time decision fixes that ID at exactly 26
+ * lowercase base32 characters (`^[a-z2-7]{26}$`). A lone ZIP never
+ * calls `POST /api/session`, so its completed upload URL is the only
+ * place the client can recover the session ID {@link Journey} polling
+ * needs.
+ */
+const sessionIDPattern = /^[a-z2-7]{26}/;
+
+/** Recovers a session ID from a completed upload's tus URL; null if url's last segment does not start with one. */
+export function sessionIdFromUploadURL(url: string): string | null {
+	const segment = url.split('/').filter(Boolean).pop() ?? '';
+	const match = sessionIDPattern.exec(segment);
+	return match ? match[0] : null;
+}
+
 // --- per-file client-local state -----------------------------------------
 
 /** A file's local upload lifecycle, independent of the session's server-side {@link LedgerState}. */
@@ -168,6 +281,57 @@ function writeAnchors(storage: KeyValueStorage | null, anchors: ResumeAnchor[]):
 	storage.setItem(resumeStorageKey, JSON.stringify(anchors));
 }
 
+// --- pushed-back/probe-unavailable memory (localStorage) ------------------
+//
+// internal/ledger's [LedgerState] vocabulary has no "pushed back" or
+// "probe unavailable" member: per the custody-policy decision, a
+// pushed-back session is never promoted, so it is never written to the
+// ledger, and [journey.Resolve]'s live-session fallback has no case for
+// [sessionOutcome.PushedBack]/[sessionOutcome.ProbeUnavailable] either
+// (verified against internal/serve/api.go's liveSession switch) --
+// this outcome exists ONLY in the synchronous POST .../finish response
+// {@link finishSession} reads. Without a client-side memory, "Your
+// uploads" (U11's History) could never show a pushed-back row at all,
+// contradicting the plan's own criterion for it. This is that memory:
+// the browser, not the server, is the only place that ever learned the
+// fact, so it is the only place that can still show it after the page
+// reloads -- the same reasoning [ResumeAnchor] already applies to a
+// killed tab's in-flight upload.
+
+/** One session {@link finishSession} learned was pushed back or unmatchable, remembered so {@link UploadStore.loadHistory} can still show it after a reload. */
+export interface PushedBackRecord {
+	sessionId: string;
+	album: string;
+	kind: 'pushed-back' | 'probe-unavailable';
+}
+
+const pushedBackStorageKey = 'dubplate:upload:pushed-back';
+
+function readPushedBackRecords(storage: KeyValueStorage | null): PushedBackRecord[] {
+	if (!storage) {
+		return [];
+	}
+	const raw = storage.getItem(pushedBackStorageKey);
+	if (!raw) {
+		return [];
+	}
+	try {
+		const parsed = JSON.parse(raw) as unknown;
+		return Array.isArray(parsed) ? (parsed as PushedBackRecord[]) : [];
+	} catch {
+		return [];
+	}
+}
+
+function writePushedBackRecord(storage: KeyValueStorage | null, record: PushedBackRecord): void {
+	if (!storage) {
+		return;
+	}
+	const records = readPushedBackRecords(storage).filter((r) => r.sessionId !== record.sessionId);
+	records.push(record);
+	storage.setItem(pushedBackStorageKey, JSON.stringify(records));
+}
+
 function defaultStorage(): KeyValueStorage | null {
 	return typeof localStorage === 'undefined' ? null : localStorage;
 }
@@ -193,11 +357,23 @@ export class UploadStore {
 	files = $state<UploadFile[]>([]);
 	/** Set on a 401 or an HTML-where-JSON response from either a tus PATCH or a plain fetch; renders reload-to-sign-in. */
 	signedOut = $state(false);
+	/**
+	 * The session's terminal completion outcome, once {@link finishSession}
+	 * resolves: null while awaiting it, or for a lone-format-rejection
+	 * (`!promoted && !pushedBack && !probeUnavailable`) U10's own
+	 * rejected-alert copy already covers.
+	 */
+	journeyOutcome = $state<FinishOutcome | null>(null);
+	/** The session's current polled journey (U11's steps spine); null until {@link pollJourneyOnce} first resolves. */
+	journey = $state<Journey | null>(null);
+	/** Every session GET /api/history returns for the signed-in contributor, plus this browser's own pushed-back memory, resumables first (see {@link loadHistory}). */
+	history = $state<HistoryRow[]>([]);
 
 	private readonly driver: TusDriver;
 	private readonly storage: KeyValueStorage | null;
 	private readonly handles = new Map<string, TusUploadHandle>();
 	private readonly fileObjects = new Map<string, File>();
+	private journeyPollHandle: ReturnType<typeof setInterval> | null = null;
 
 	constructor(driver: TusDriver = createTusDriver(), storage: KeyValueStorage | null = defaultStorage()) {
 		this.driver = driver;
@@ -344,6 +520,136 @@ export class UploadStore {
 	abortFile(id: string): void {
 		this.handles.get(id)?.abort();
 		this.handles.delete(id);
+	}
+
+	// --- U11: journey, history, and session completion -----------------
+
+	/**
+	 * Runs sessionId's album verdict and (main-lane, non-private) tag
+	 * check to a terminal outcome and returns it. The request is
+	 * idempotent and blocks server-side until the real outcome is
+	 * decided (internal/serve's `Session.waitOutcome`), so the caller
+	 * never has to poll to find out whether it landed -- this is also
+	 * why U11's Journey never starts {@link pollJourneyOnce} until this
+	 * resolves: polling during the window this call is settling can
+	 * observe the session's transient, not-yet-decided live state.
+	 *
+	 * album is remembered alongside a pushed-back or probe-unavailable
+	 * outcome (see the pushed-back-memory note above) purely for
+	 * History's display; it plays no role in the request itself.
+	 */
+	async finishSession(sessionId: string, album: string): Promise<FinishOutcome> {
+		try {
+			const wire = await fetchJSON<finishWire>(`/upload/api/session/${sessionId}/finish`, { method: 'POST' });
+			const outcome = fromFinishWire(wire);
+			this.journeyOutcome = outcome;
+			if (outcome.pushedBack || outcome.probeUnavailable) {
+				writePushedBackRecord(this.storage, {
+					sessionId,
+					album,
+					kind: outcome.pushedBack ? 'pushed-back' : 'probe-unavailable',
+				});
+			}
+			return outcome;
+		} catch (err) {
+			if (err instanceof SignedOutError) {
+				this.signedOut = true;
+			}
+			throw err;
+		}
+	}
+
+	/**
+	 * Fetches sessionId's current journey once and stores it at
+	 * {@link journey}. A transient failure (anything but signed-out) is
+	 * swallowed rather than thrown: the 5s poll {@link startJourneyPolling}
+	 * drives this with is itself the retry, and a page mid-poll should
+	 * never crash on one dropped request.
+	 */
+	async pollJourneyOnce(sessionId: string): Promise<void> {
+		try {
+			const wire = await fetchJSON<journeyWire>(`/upload/api/journey/${sessionId}`);
+			this.journey = fromJourneyWire(wire);
+		} catch (err) {
+			if (err instanceof SignedOutError) {
+				this.signedOut = true;
+			}
+		}
+	}
+
+	/**
+	 * Starts polling sessionId's journey every intervalMs (the plan's 5s
+	 * default), firing once immediately rather than waiting out the
+	 * first interval. Returns a stop function; {@link stopJourneyPolling}
+	 * is the same operation by name, for a caller that would rather hold
+	 * onto the store than the closure.
+	 */
+	startJourneyPolling(sessionId: string, intervalMs = 5000): () => void {
+		this.stopJourneyPolling();
+		void this.pollJourneyOnce(sessionId);
+		this.journeyPollHandle = setInterval(() => void this.pollJourneyOnce(sessionId), intervalMs);
+		return () => this.stopJourneyPolling();
+	}
+
+	/** Stops any journey poll {@link startJourneyPolling} started; a no-op if none is running. */
+	stopJourneyPolling(): void {
+		if (this.journeyPollHandle !== null) {
+			clearInterval(this.journeyPollHandle);
+			this.journeyPollHandle = null;
+		}
+	}
+
+	/**
+	 * Fetches GET /api/history and stores it at {@link history}: every
+	 * session, in-flight and terminal, the caller's verified email has
+	 * ever touched, plus this browser's own pushed-back memory for a
+	 * session the ledger will never carry (the pushed-back-memory note
+	 * above) -- filtered to drop a locally-remembered session the
+	 * ledger has since superseded (a later ledger event for the same ID
+	 * means the client's memory of it is stale). In-flight resumables
+	 * sort first (U11 criterion): a row this browser can still resume
+	 * via a {@link ResumeAnchor}.
+	 */
+	async loadHistory(): Promise<void> {
+		try {
+			const wire = await fetchJSON<journeyWire[]>('/upload/api/history');
+			const resumableIDs = new Set(
+				readAnchors(this.storage)
+					.map((a) => sessionIdFromUploadURL(a.tusUploadURL))
+					.filter((id): id is string => id !== null),
+			);
+			const ledgerRows: HistoryRow[] = wire.map((w) => {
+				const j = fromJourneyWire(w);
+				return {
+					sessionId: j.sessionId,
+					album: j.album,
+					state: j.state,
+					detail: j.detail,
+					libraryLink: j.libraryLink,
+					files: j.files,
+					resumable: resumableIDs.has(j.sessionId),
+				};
+			});
+			const knownIDs = new Set(ledgerRows.map((r) => r.sessionId));
+			const localRows: HistoryRow[] = readPushedBackRecords(this.storage)
+				.filter((r) => !knownIDs.has(r.sessionId))
+				.map((r) => ({
+					sessionId: r.sessionId,
+					album: r.album,
+					state: r.kind,
+					detail: '',
+					libraryLink: '',
+					files: [],
+					resumable: false,
+				}));
+			this.history = [...localRows, ...ledgerRows].sort((a, b) => Number(b.resumable) - Number(a.resumable));
+		} catch (err) {
+			if (err instanceof SignedOutError) {
+				this.signedOut = true;
+				return;
+			}
+			throw err;
+		}
 	}
 
 	/**

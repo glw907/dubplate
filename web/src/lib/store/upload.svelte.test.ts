@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TusDriver, TusUploadConfig, TusUploadHandle, TusUploadHandlers } from '../tus';
-import { UploadStore, type KeyValueStorage } from './upload.svelte';
+import { UploadStore, sessionIdFromUploadURL, type KeyValueStorage } from './upload.svelte';
 
 /** An in-memory {@link KeyValueStorage}, so resume-anchor tests never touch jsdom's real localStorage. */
 function memoryStorage(): KeyValueStorage {
@@ -362,6 +362,270 @@ describe('createSession', () => {
 		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
 
 		await expect(store.createSession('Album', '', 1)).rejects.toThrow();
+		expect(store.signedOut).toBe(true);
+	});
+});
+
+const sessionA = 'a2b2c2d2e2f2g2h2i2j2k2l2m2'; // 26 lowercase base32 characters
+const sessionB = 'n2o2p2q2r2s2t2u2v2w2x2y2z2'; // a second, distinct 26-character id
+
+describe('sessionIdFromUploadURL', () => {
+	it('recovers the 26-character session id prefix from a completed upload URL', () => {
+		expect(sessionIdFromUploadURL(`/upload/files/${sessionA}-0`)).toBe(sessionA);
+		expect(sessionIdFromUploadURL(`https://music.example.com/upload/files/${sessionA}-2`)).toBe(sessionA);
+	});
+
+	it('returns null for a URL whose last segment is not a session-id-shaped prefix', () => {
+		expect(sessionIdFromUploadURL('/upload/files/not-a-session-id')).toBeNull();
+		expect(sessionIdFromUploadURL('')).toBeNull();
+	});
+});
+
+describe('finishSession', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it('POSTs to the session finish endpoint and converts every wire field', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse({
+				promoted: true,
+				matched_artist: 'My Bloody Valentine',
+				matched_album: 'Loveless',
+				matched_year: '1991',
+				files: [],
+			}),
+		);
+		vi.stubGlobal('fetch', fetchMock);
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		const outcome = await store.finishSession(sessionA, 'Loveless');
+
+		expect(outcome).toEqual({
+			promoted: true,
+			pushedBack: false,
+			probeUnavailable: false,
+			detail: '',
+			matchedArtist: 'My Bloody Valentine',
+			matchedAlbum: 'Loveless',
+			matchedYear: '1991',
+			files: [],
+		});
+		expect(store.journeyOutcome).toEqual(outcome);
+		const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+		expect(url).toBe(`/upload/api/session/${sessionA}/finish`);
+		expect(init.method).toBe('POST');
+	});
+
+	it('remembers a pushed-back outcome in storage for History to recover after a reload', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(jsonResponse({ promoted: false, pushed_back: true, detail: 'no match', files: [] })),
+		);
+		const storage = memoryStorage();
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.finishSession(sessionA, 'Unknown Album');
+
+		const raw = storage.getItem('dubplate:upload:pushed-back');
+		expect(JSON.parse(raw ?? '[]')).toEqual([{ sessionId: sessionA, album: 'Unknown Album', kind: 'pushed-back' }]);
+	});
+
+	it('remembers a probe-unavailable outcome distinctly from a pushed-back one', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(jsonResponse({ promoted: false, probe_unavailable: true, files: [] })),
+		);
+		const storage = memoryStorage();
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.finishSession(sessionA, 'Some Album');
+
+		const raw = storage.getItem('dubplate:upload:pushed-back');
+		expect(JSON.parse(raw ?? '[]')).toEqual([{ sessionId: sessionA, album: 'Some Album', kind: 'probe-unavailable' }]);
+	});
+
+	it('does not remember anything for a straightforwardly promoted session', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ promoted: true, files: [] })));
+		const storage = memoryStorage();
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.finishSession(sessionA, 'Loveless');
+
+		expect(storage.getItem('dubplate:upload:pushed-back')).toBeNull();
+	});
+
+	it('sets signedOut and rethrows on a 401', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 401 })));
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		await expect(store.finishSession(sessionA, 'Album')).rejects.toThrow();
+		expect(store.signedOut).toBe(true);
+	});
+});
+
+describe('journey polling', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.useRealTimers();
+	});
+
+	it('fetches once immediately and converts the wire shape', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				jsonResponse({ session_id: sessionA, state: 'tagging', album: 'Loveless', files: [] }),
+			),
+		);
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		await store.pollJourneyOnce(sessionA);
+
+		expect(store.journey).toEqual({
+			sessionId: sessionA,
+			state: 'tagging',
+			detail: '',
+			album: 'Loveless',
+			libraryLink: '',
+			files: [],
+		});
+	});
+
+	it('polls again after the interval elapses, and stops once told to', async () => {
+		vi.useFakeTimers();
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(jsonResponse({ session_id: sessionA, state: 'uploaded', files: [] }));
+		vi.stubGlobal('fetch', fetchMock);
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		const stop = store.startJourneyPolling(sessionA, 1000);
+		await vi.advanceTimersByTimeAsync(0);
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+
+		stop();
+		await vi.advanceTimersByTimeAsync(3000);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it('sets signedOut on a poll that reports 401, without throwing', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 401 })));
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		await store.pollJourneyOnce(sessionA);
+
+		expect(store.signedOut).toBe(true);
+	});
+});
+
+describe('loadHistory', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it('fetches /api/history and converts every row', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(jsonResponse([{ session_id: sessionA, state: 'in-library', album: 'Loveless' }])),
+		);
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		await store.loadHistory();
+
+		expect(store.history).toEqual([
+			{
+				sessionId: sessionA,
+				album: 'Loveless',
+				state: 'in-library',
+				detail: '',
+				libraryLink: '',
+				files: [],
+				resumable: false,
+			},
+		]);
+	});
+
+	it('marks a row resumable when a resume anchor derives the same session id', async () => {
+		const storage = memoryStorage();
+		storage.setItem(
+			'dubplate:upload:resume-anchors',
+			JSON.stringify([{ fileId: 'f1', name: 'track01.flac', size: 10, tusUploadURL: `/upload/files/${sessionA}-0` }]),
+		);
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(jsonResponse([{ session_id: sessionA, state: 'uploading' }])),
+		);
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.loadHistory();
+
+		expect(store.history[0].resumable).toBe(true);
+	});
+
+	it('sorts resumable rows before non-resumable ones', async () => {
+		const storage = memoryStorage();
+		storage.setItem(
+			'dubplate:upload:resume-anchors',
+			JSON.stringify([{ fileId: 'f1', name: 'track01.flac', size: 10, tusUploadURL: `/upload/files/${sessionB}-0` }]),
+		);
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				jsonResponse([
+					{ session_id: sessionA, state: 'in-library', album: 'Not Resumable' },
+					{ session_id: sessionB, state: 'uploading', album: 'Resumable' },
+				]),
+			),
+		);
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.loadHistory();
+
+		expect(store.history.map((r) => r.sessionId)).toEqual([sessionB, sessionA]);
+	});
+
+	it('folds in a locally-remembered pushed-back session absent from the ledger', async () => {
+		const storage = memoryStorage();
+		storage.setItem(
+			'dubplate:upload:pushed-back',
+			JSON.stringify([{ sessionId: sessionA, album: 'Mystery Album', kind: 'pushed-back' }]),
+		);
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse([])));
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.loadHistory();
+
+		expect(store.history).toEqual([
+			{ sessionId: sessionA, album: 'Mystery Album', state: 'pushed-back', detail: '', libraryLink: '', files: [], resumable: false },
+		]);
+	});
+
+	it('drops a locally-remembered pushed-back record once the ledger reports a newer event for the same session', async () => {
+		const storage = memoryStorage();
+		storage.setItem(
+			'dubplate:upload:pushed-back',
+			JSON.stringify([{ sessionId: sessionA, album: 'Now Promoted', kind: 'pushed-back' }]),
+		);
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(jsonResponse([{ session_id: sessionA, state: 'in-library', album: 'Now Promoted' }])),
+		);
+		const store = new UploadStore(new FakeTusDriver(), storage);
+
+		await store.loadHistory();
+
+		expect(store.history).toHaveLength(1);
+		expect(store.history[0].state).toBe('in-library');
+	});
+
+	it('sets signedOut without throwing on a 401', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 401 })));
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+
+		await expect(store.loadHistory()).resolves.toBeUndefined();
 		expect(store.signedOut).toBe(true);
 	});
 });
