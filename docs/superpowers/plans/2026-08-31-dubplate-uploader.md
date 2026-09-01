@@ -674,7 +674,12 @@ flagged with the taxonomy copy BEFORE a single byte uploads — the
 album-verdict rule applies at selection time, so a mixed batch is
 stopped cold, not discovered at 80% upload. Server-side rejection
 remains the enforcement of record (accept filtering is unreliable on
-iOS per research). `SpecCard` publishes formats, the CD-quality floor, and caps up front
+iOS per research). `SpecCard` also states the album-art position (Geoff, 2026-09-01),
+which per the pipeline is a relief, not a requirement: cover images in
+the upload are used; absent ones are fetched automatically
+(fetchart/embedart); non-audio files are never inspected by the gate —
+say so plainly so nobody hunts for a 3000px cover before uploading.
+`SpecCard` publishes formats, the CD-quality floor, and caps up front
 from `/api/config`, in the educational register. No client-side
 full-file reads ever. **Verdict timing is path-honest (M7):** on the
 multi-file path, per-file verdict rows genuinely stream as each upload's
