@@ -245,13 +245,13 @@ func (im *Importer) Run(ctx context.Context) error {
 		return runErr
 	}
 
-	if err := im.gateAndQuarantine(ctx, units, dateStr); err != nil {
+	if err := im.gateAndQuarantine(ctx, &units, dateStr); err != nil {
 		runErr = err
 		return runErr
 	}
 
 	if pending := pendingUnits(units); len(pending) > 0 {
-		if err := im.beetImportAndFileSkips(ctx, pending, dateStr); err != nil {
+		if err := im.beetImportAndFileSkips(ctx, &units, pending, dateStr); err != nil {
 			runErr = err
 			return runErr
 		}
@@ -484,8 +484,10 @@ func collectUnits(user, inboxUserDir, stagingUserDir string) ([]*albumUnit, erro
 // each matched uploader and one technical summary to the admin. Only a
 // gate infrastructure failure (the walk itself erroring) returns an
 // error; an individual album's rejection is per-item and never aborts
-// the run.
-func (im *Importer) gateAndQuarantine(ctx context.Context, units []*albumUnit, dateStr string) error {
+// the run. units is a pointer because a verdict matching no unit staged
+// this run -- a leftover album, per [Importer.deriveOrphanUnit] -- is
+// appended to it so the run report still carries the album's outcome.
+func (im *Importer) gateAndQuarantine(ctx context.Context, units *[]*albumUnit, dateStr string) error {
 	policy := gate.Policy{
 		AllowedExt:       []string{".flac"},
 		RequireDecode:    true,
@@ -504,10 +506,15 @@ func (im *Importer) gateAndQuarantine(ctx context.Context, units []*albumUnit, d
 		if v.OK {
 			continue
 		}
-		u := findUnit(units, v.Path)
+		u := findUnit(*units, v.Path)
 		if u == nil {
-			slog.Warn("importer: quality-gate verdict matched no staged upload", "path", v.Path)
-			continue
+			orphan, ok := im.deriveOrphanUnit(v.Path)
+			if !ok {
+				slog.Warn("importer: quality-gate verdict matched no staged upload", "path", v.Path)
+				continue
+			}
+			*units = append(*units, orphan)
+			u = orphan
 		}
 		if _, seen := failures[u]; !seen {
 			order = append(order, u)
@@ -539,18 +546,25 @@ func (im *Importer) quarantineOne(ctx context.Context, u *albumUnit, failed []ga
 	dest, err := im.filerFor(dateStr, u.uploader).MoveToReview(u.stagedDir)
 	if err != nil {
 		// Geoff's summary in the shell layer's own words: this must never
-		// go silent, since the review move failing is exactly the case
-		// that most needs a human's attention.
+		// go silent, since neither move succeeding is exactly the case
+		// that most needs a human's attention -- the album is still in
+		// staging and the beet import that follows may ingest it anyway.
 		u.result = OutcomeQuarantined
 		u.errMsg = err.Error()
-		fmt.Fprintf(adminSummary, "%s: could not move; excluded from import: %v\n", albumKey, err)
+		fmt.Fprintf(adminSummary, "%s: COULD NOT MOVE BY ANY MEANS -- still in staging and beet import may ingest it; manual removal required: %v\n", albumKey, err)
 		return
 	}
 	if strings.HasPrefix(dest, im.Cfg.Paths.QuarantineDir) {
+		// The review move itself failed and only the quarantine fallback
+		// landed it. The friendly per-file detail and reject email below
+		// are for albums actually filed to review, so this album gets
+		// only the shell's own one-line note -- Geoff's promised "see
+		// each item for where it landed" -- and nothing else.
 		u.result = OutcomeQuarantined
-	} else {
-		u.result = OutcomeRejected
+		fmt.Fprintf(adminSummary, "%s: could not move; excluded from import (see %s)\n", albumKey, dest)
+		return
 	}
+	u.result = OutcomeRejected
 
 	var rejections []reject.Rejection
 	var rawLines strings.Builder
@@ -579,6 +593,34 @@ func (im *Importer) quarantineOne(ctx context.Context, u *albumUnit, failed []ga
 	}
 }
 
+// deriveOrphanUnit builds a synthetic [albumUnit] for a quality-gate
+// verdict or beets skip whose path falls under StagingDir but matches no
+// unit staged this run -- a leftover from an earlier or aborted run, or a
+// contributor this run skipped for non-quiescence. music-import at HEAD
+// derives the same album key from the staging-relative path
+// (rel=${file#"$staging_root"/}, user=${rel%%/*}) and files it
+// regardless of provenance: staging can hold leftovers, and beet import
+// scans the whole staging tree, so a leftover that fails the gate must
+// still be filed or a later run's beet import may ingest it. It reports
+// ok false only when path is not under StagingDir at all, the one case
+// that stays a bare warning.
+func (im *Importer) deriveOrphanUnit(path string) (unit *albumUnit, ok bool) {
+	rel, err := filepath.Rel(im.Cfg.Paths.StagingDir, path)
+	if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return nil, false
+	}
+	parts := strings.SplitN(rel, string(filepath.Separator), 3)
+	if len(parts) < 2 {
+		return nil, false
+	}
+	uploader, album := parts[0], parts[1]
+	return &albumUnit{
+		uploader:  uploader,
+		sourceDir: filepath.Join(im.Cfg.Paths.InboxDir, uploader),
+		stagedDir: filepath.Join(im.Cfg.Paths.StagingDir, uploader, album),
+	}, true
+}
+
 // --- beet import and skip handling --------------------------------------
 
 // pendingUnits returns the units the quality gate left untouched: those
@@ -602,7 +644,9 @@ func pendingUnits(units []*albumUnit) []*albumUnit {
 // A beet import subprocess failure is a per-run failure -- the shell
 // layer's own `beet import` call runs unguarded under `set -e`, so this
 // preserves that behavior rather than degrading it to a per-item one.
-func (im *Importer) beetImportAndFileSkips(ctx context.Context, pending []*albumUnit, dateStr string) error {
+// units is the same pointer gateAndQuarantine received, so a skip
+// matching no pending unit can still be appended for the run report.
+func (im *Importer) beetImportAndFileSkips(ctx context.Context, units *[]*albumUnit, pending []*albumUnit, dateStr string) error {
 	collection := ""
 	if len(im.Cfg.Collections) > 0 {
 		collection = im.Cfg.Collections[0]
@@ -615,7 +659,7 @@ func (im *Importer) beetImportAndFileSkips(ctx context.Context, pending []*album
 		return fmt.Errorf("beet import %s: %w", im.Cfg.Paths.StagingDir, err)
 	}
 
-	skipUsers := im.fileSkips(ctx, pending, result.Skipped, dateStr)
+	skipUsers := im.fileSkips(ctx, units, pending, result.Skipped, dateStr)
 	if len(skipUsers) > 0 {
 		im.notifySkips(ctx, skipUsers, dateStr)
 	}
@@ -650,14 +694,25 @@ func (im *Importer) beetImportAndFileSkips(ctx context.Context, pending []*album
 
 // fileSkips relocates every path beets declined to auto-tag into review
 // (or quarantine, on a review-filing failure), marks the owning unit's
-// outcome, and returns the set of affected uploaders.
-func (im *Importer) fileSkips(ctx context.Context, pending []*albumUnit, skipped []string, dateStr string) map[string]bool {
+// outcome, and returns the set of affected uploaders. units is a pointer
+// because a skip matching no pending unit -- a leftover album staged in
+// an earlier run, per [Importer.deriveOrphanUnit] -- is appended to it
+// so the run report still carries the album's outcome.
+func (im *Importer) fileSkips(ctx context.Context, units *[]*albumUnit, pending []*albumUnit, skipped []string, dateStr string) map[string]bool {
 	skipUsers := make(map[string]bool)
 	for _, path := range skipped {
 		u := findUnit(pending, path)
 		if u == nil {
-			slog.Warn("importer: skipped path matched no staged upload", "path", path)
-			continue
+			u = findUnit(*units, path)
+		}
+		if u == nil {
+			orphan, ok := im.deriveOrphanUnit(path)
+			if !ok {
+				slog.Warn("importer: skipped path matched no staged upload", "path", path)
+				continue
+			}
+			*units = append(*units, orphan)
+			u = orphan
 		}
 
 		dest, err := im.filerFor(dateStr, u.uploader).MoveToReview(path)

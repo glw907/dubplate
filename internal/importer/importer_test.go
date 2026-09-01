@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -295,7 +296,7 @@ func TestGateAndQuarantineFallsBackToQuarantine(t *testing.T) {
 	}
 
 	units := []*albumUnit{{uploader: "alice", stagedDir: albumDir}}
-	if err := im.gateAndQuarantine(context.Background(), units, "2026-08-31"); err != nil {
+	if err := im.gateAndQuarantine(context.Background(), &units, "2026-08-31"); err != nil {
 		t.Fatalf("gateAndQuarantine() error = %v", err)
 	}
 
@@ -334,7 +335,7 @@ func TestGateAndQuarantineCouldNotMoveByAnyMeans(t *testing.T) {
 	}
 
 	units := []*albumUnit{{uploader: "alice", stagedDir: albumDir}}
-	if err := im.gateAndQuarantine(context.Background(), units, "2026-08-31"); err != nil {
+	if err := im.gateAndQuarantine(context.Background(), &units, "2026-08-31"); err != nil {
 		t.Fatalf("gateAndQuarantine() error = %v", err)
 	}
 
@@ -346,6 +347,147 @@ func TestGateAndQuarantineCouldNotMoveByAnyMeans(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(albumDir, "track1.mp3")); err != nil {
 		t.Errorf("album no longer in staging despite both moves failing: %v", err)
+	}
+}
+
+// TestQuarantineOneEmitsShellCouldNotMoveWording pins the admin
+// summary's two could-not-move lines against scripts/music-import at
+// HEAD: a quarantine-fallback success states where the album actually
+// landed (Geoff's promised "see each item for where it landed"), and a
+// complete failure states the shell's own manual-removal alarm rather
+// than the misleading "excluded from import" -- the album is still in
+// staging and the beet import that follows may ingest it anyway.
+func TestQuarantineOneEmitsShellCouldNotMoveWording(t *testing.T) {
+	tests := []struct {
+		name            string
+		blockReview     bool
+		blockQuarantine bool
+		wantSubstr      string
+	}{
+		{
+			name:        "quarantine fallback succeeds",
+			blockReview: true,
+			wantSubstr:  "alice/Bad Album: could not move; excluded from import (see ",
+		},
+		{
+			name:            "neither move succeeds",
+			blockReview:     true,
+			blockQuarantine: true,
+			wantSubstr:      "alice/Bad Album: COULD NOT MOVE BY ANY MEANS -- still in staging and beet import may ingest it; manual removal required:",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			albumDir := filepath.Join(root, "staging", "alice", "Bad Album")
+			if err := os.MkdirAll(albumDir, 0o755); err != nil {
+				t.Fatalf("mkdir album: %v", err)
+			}
+			if err := os.WriteFile(filepath.Join(albumDir, "track1.mp3"), []byte("x"), 0o644); err != nil {
+				t.Fatalf("write track: %v", err)
+			}
+
+			im := testImporter(root)
+			if tt.blockReview {
+				if err := os.WriteFile(im.Cfg.Paths.ReviewDir, []byte("x"), 0o644); err != nil {
+					t.Fatalf("block review dir: %v", err)
+				}
+			}
+			if tt.blockQuarantine {
+				if err := os.WriteFile(im.Cfg.Paths.QuarantineDir, []byte("x"), 0o644); err != nil {
+					t.Fatalf("block quarantine dir: %v", err)
+				}
+			}
+
+			u := &albumUnit{uploader: "alice", stagedDir: albumDir}
+			var adminSummary strings.Builder
+			im.quarantineOne(context.Background(), u, nil, "2026-08-31", &adminSummary)
+
+			got := adminSummary.String()
+			if !strings.Contains(got, tt.wantSubstr) {
+				t.Errorf("admin summary = %q, want substring %q", got, tt.wantSubstr)
+			}
+			if n := strings.Count(got, "\n"); n != 1 {
+				t.Errorf("admin summary has %d lines, want exactly 1 (no per-file detail block on this path): %q", n, got)
+			}
+		})
+	}
+}
+
+// TestGateAndQuarantineFilesOrphanVerdict proves a quality-gate verdict
+// matching no albumUnit staged this run -- a leftover album from an
+// earlier or aborted run, still under StagingDir -- is filed to review
+// exactly like a matched unit's failure and appended to the report,
+// rather than silently skipped: staging can hold leftovers, and beet
+// import scans the whole staging tree, so an unfiled leftover risks
+// getting ingested by whatever run comes next.
+func TestGateAndQuarantineFilesOrphanVerdict(t *testing.T) {
+	root := t.TempDir()
+	albumDir := filepath.Join(root, "staging", "alice", "Leftover Album")
+	if err := os.MkdirAll(albumDir, 0o755); err != nil {
+		t.Fatalf("mkdir album: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(albumDir, "track1.mp3"), []byte("x"), 0o644); err != nil {
+		t.Fatalf("write track: %v", err)
+	}
+
+	im := testImporter(root)
+	im.Cfg.Paths.InboxDir = filepath.Join(root, "inbox")
+
+	var units []*albumUnit // this run staged nothing: the album is a leftover
+	if err := im.gateAndQuarantine(context.Background(), &units, "2026-08-31"); err != nil {
+		t.Fatalf("gateAndQuarantine() error = %v", err)
+	}
+
+	if len(units) != 1 {
+		t.Fatalf("units = %d entries, want 1 appended for the orphan album", len(units))
+	}
+	if units[0].uploader != "alice" {
+		t.Errorf("uploader = %q, want %q", units[0].uploader, "alice")
+	}
+	if units[0].result != OutcomeRejected {
+		t.Errorf("result = %q, want %q", units[0].result, OutcomeRejected)
+	}
+	if _, err := os.Stat(albumDir); !os.IsNotExist(err) {
+		t.Errorf("orphan album still in staging after gateAndQuarantine: err = %v", err)
+	}
+}
+
+// TestFileSkipsFilesOrphanSkip proves a beets skip matching no pending
+// albumUnit -- a leftover album this run never staged -- is filed to
+// review and appended to the report the same way, mirroring
+// TestGateAndQuarantineFilesOrphanVerdict for the beets-skip call site.
+func TestFileSkipsFilesOrphanSkip(t *testing.T) {
+	root := t.TempDir()
+	albumDir := filepath.Join(root, "staging", "alice", "Leftover Album")
+	if err := os.MkdirAll(albumDir, 0o755); err != nil {
+		t.Fatalf("mkdir album: %v", err)
+	}
+	trackPath := filepath.Join(albumDir, "track1.flac")
+	if err := os.WriteFile(trackPath, []byte("x"), 0o644); err != nil {
+		t.Fatalf("write track: %v", err)
+	}
+
+	im := testImporter(root)
+	im.Cfg.Paths.InboxDir = filepath.Join(root, "inbox")
+
+	var units []*albumUnit // nothing pending this run: the album is a leftover
+	skipUsers := im.fileSkips(context.Background(), &units, nil, []string{trackPath}, "2026-08-31")
+
+	if !skipUsers["alice"] {
+		t.Errorf("skipUsers = %v, want alice present", skipUsers)
+	}
+	if len(units) != 1 {
+		t.Fatalf("units = %d entries, want 1 appended for the orphan skip", len(units))
+	}
+	if units[0].uploader != "alice" {
+		t.Errorf("uploader = %q, want %q", units[0].uploader, "alice")
+	}
+	if units[0].result != OutcomeReview {
+		t.Errorf("result = %q, want %q", units[0].result, OutcomeReview)
+	}
+	if _, err := os.Stat(trackPath); !os.IsNotExist(err) {
+		t.Errorf("orphan skip still in staging after fileSkips: err = %v", err)
 	}
 }
 

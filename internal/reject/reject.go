@@ -25,12 +25,10 @@ const (
 	ReasonUnpackFailed
 )
 
-// Friendly returns the plain-language explanation shown to the contributor
-// who uploaded the rejected file. It matches the shell layer's
-// friendly_reason() wording verbatim, with one deliberate narrowing: the
-// shell named the file's actual extension ("This is an MP3 file, ..."),
-// which Reason can't reproduce since it carries no file path. The trailing
-// clause that wording shares across every extension survives unchanged.
+// Friendly returns the plain-language explanation for r, matching the shell
+// layer's friendly_reason() wording verbatim. Reason alone carries no file
+// path, so the bad-extension case falls back to a generic phrasing here;
+// RenderEmail names the actual extension instead, via friendlyLine.
 func (r Reason) Friendly() string {
 	switch r {
 	case ReasonBadExtension:
@@ -57,6 +55,41 @@ type Rejection struct {
 	Reason Reason
 }
 
+// extName maps a lowercase file extension, without its leading dot, to the
+// label the bad-extension rejection line names it by. It reproduces the
+// shell layer's friendly_reason() name table verbatim; an extension outside
+// the table renders uppercased.
+func extName(ext string) string {
+	switch strings.ToLower(ext) {
+	case "mp3":
+		return "MP3"
+	case "m4a":
+		return "AAC"
+	case "ogg":
+		return "Ogg Vorbis"
+	case "opus":
+		return "Opus"
+	case "wav":
+		return "WAV"
+	case "aiff":
+		return "AIFF"
+	default:
+		return strings.ToUpper(ext)
+	}
+}
+
+// friendlyLine returns the rejection-email line for rj. For
+// ReasonBadExtension it names the file's actual extension, taken from
+// rj.Path, since Friendly's Reason-only signature can't carry it; every
+// other reason renders its Friendly() wording unchanged.
+func friendlyLine(rj Rejection) string {
+	if rj.Reason != ReasonBadExtension {
+		return rj.Reason.Friendly()
+	}
+	ext := strings.TrimPrefix(filepath.Ext(rj.Path), ".")
+	return "This is an " + extName(ext) + " file, and the library keeps lossless FLAC."
+}
+
 // RenderEmail fills the rejection-email template at templatePath and
 // returns the rendered body. The template carries three literal
 // placeholders -- "{first name}", "{album or file name}", and "{one reason
@@ -72,7 +105,7 @@ func RenderEmail(templatePath, firstName, albumName string, rejections []Rejecti
 
 	lines := make([]string, len(rejections))
 	for i, rj := range rejections {
-		lines[i] = filepath.Base(rj.Path) + ": " + rj.Reason.Friendly()
+		lines[i] = filepath.Base(rj.Path) + ": " + friendlyLine(rj)
 	}
 
 	body := string(data)
