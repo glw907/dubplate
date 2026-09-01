@@ -663,7 +663,18 @@ iPad/iPhone copy presents multi-FLAC selection and "zip it first" as
 first-class per gate 3, and explicitly surfaces the **"⋯ → Select"
 multi-select gesture** (iPadOS hides multi-select behind it —
 discoverability is a copy job, not an assumption).
-`SpecCard` publishes formats, the CD-quality floor, and caps up front
+**Format-requirement prominence and prevention (Geoff, 2026-09-01: the
+user must not upload the wrong format):** three layers, all required —
+(1) the format requirements are visible on EVERY selection surface
+before any picker opens, not tucked behind a link; (2) extension-first
+accept values filter the picker where the platform honors them (gate 3
+ruling); (3) **at-selection pre-flight**: the instant files are chosen,
+their extensions are screened client-side and wrong-format files are
+flagged with the taxonomy copy BEFORE a single byte uploads — the
+album-verdict rule applies at selection time, so a mixed batch is
+stopped cold, not discovered at 80% upload. Server-side rejection
+remains the enforcement of record (accept filtering is unreliable on
+iOS per research). `SpecCard` publishes formats, the CD-quality floor, and caps up front
 from `/api/config`, in the educational register. No client-side
 full-file reads ever. **Verdict timing is path-honest (M7):** on the
 multi-file path, per-file verdict rows genuinely stream as each upload's
