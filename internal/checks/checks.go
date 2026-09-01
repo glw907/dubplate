@@ -1,11 +1,11 @@
 // Package checks runs dubplate's health checks and its doctor report.
-// [DiskChecker] and [NavidromeChecker] port scripts/musicbox-disk-check
-// and scripts/musicbox-navidrome-check: each pings its own slug success
-// or failure through [config.Config.PingURLs]. [RunDoctor] builds the
-// report `dubplate doctor` prints: every required config field's
-// resolution state, then, only once config resolves, read-only probes of
-// SMTP, R2, and Navidrome, plus a syntax-only check of every configured
-// ping URL.
+// [DiskChecker] and [NavidromeChecker] port the retired shell layer's
+// scripts/musicbox-disk-check and scripts/musicbox-navidrome-check: each
+// pings its own slug success or failure through [config.Config.PingURLs].
+// [RunDoctor] builds the report `dubplate doctor` prints: every required
+// config field's resolution state, then, only once config resolves,
+// read-only probes of SMTP, R2, and Navidrome, plus a syntax-only check of
+// every configured ping URL.
 package checks
 
 import (

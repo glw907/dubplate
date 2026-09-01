@@ -12,10 +12,10 @@
 #     -> a user named "alice" gets exactly /srv/music/inbox/alice
 # Task 8 creates one FileBrowser account per `contributor`-role entry in
 # config/contributors.yaml, using that entry's `name` field as the
-# username — the same field music-import's uploader_email() already
-# matches against the inbox directory name (docs/HISTORY.md, Task 2 entry).
-# Keeping the username and the inbox directory name identical is what makes
-# both sides agree without a second mapping table.
+# username — the same field dubplate's roster matching (internal/config's
+# Roster) already matches against the inbox directory name. Keeping the
+# username and the inbox directory name identical is what makes both sides
+# agree without a second mapping table.
 server:
   port: 80
   baseURL: "/"
@@ -43,7 +43,7 @@ auth:
 
 # Permissions granted to every newly created account (contributors need to
 # drop files and, for a mis-upload, take them back before the next
-# music-import run; they never need admin, API, sharing, or realtime).
+# dubplate import run; they never need admin, API, sharing, or realtime).
 userDefaults:
   account:
     permissions:

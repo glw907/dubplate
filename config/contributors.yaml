@@ -1,13 +1,14 @@
-# Family members of the musicbox library. Drives FileBrowser accounts
+# Family members of the dubplate library. Drives FileBrowser accounts
 # (pass 1), the Access allow-list, Navidrome accounts, and the
 # quality-gate notification map. Names and emails are config, not
 # secrets; passwords never live here.
 #
 # `name` IS the contributor's inbox directory name (inbox/<name>/) —
-# music-import matches them as equal strings, so display names do not
-# belong here (found live 2026-08-31: "Geoff Wright" never matched
-# inbox/geoff, so no uploader notice ever sent). The uploader initiative
-# replaces this with email-keyed identity.
+# dubplate's roster matching (internal/config.Roster) matches them as equal
+# strings, so display names do not belong here (found live 2026-08-31, in
+# the retired shell layer: "Geoff Wright" never matched inbox/geoff, so no
+# uploader notice ever sent). The uploader initiative replaces this with
+# email-keyed identity.
 contributors:
   - name: geoff
     email: geoff-login@907.life

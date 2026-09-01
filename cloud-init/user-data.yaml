@@ -1,5 +1,5 @@
 #cloud-config
-# musicbox first-boot config for AlmaLinux 10. SELinux ends this boot sequence
+# dubplate first-boot config for AlmaLinux 10. SELinux ends this boot sequence
 # enforcing (global constraint); never `setenforce 0`. Getting there from the
 # Hetzner alma-10 image's shipped `SELINUX=permissive` default requires an
 # autorelabel + reboot — see the SELinux transition block near the end of
@@ -16,24 +16,24 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGRjkroBDeqUur67LcPZ5KX3uoLm3vzBTfKFVcOBcGxC geoff@907.life
 
 # e2fsprogs provides mkfs.ext4/blkid; present on a full AlmaLinux install already,
-# listed here so a minimal image still has the volume-formatting tools. jq is
-# music-import's JSON filter over yq's YAML->JSON output (Task 2); yq itself
-# (mikefarah/go, v4) is not in AlmaLinux's repos and is installed below via a
-# pinned, checksum-verified GitHub release instead. sqlite is the sqlite3 CLI
-# music-backup's `.backup` snapshots need, and comes from the base repo.
-# bsdtar backs lib.sh's safe_extract (archive expansion in music-import) and
-# comes from AppStream; its absence broke the first seeded import run
-# (2026-08-31, installed by hand on the box the same day).
+# listed here so a minimal image still has the volume-formatting tools. sqlite
+# is the sqlite3 CLI `dubplate backup`'s `.backup` snapshots need, and comes
+# from the base repo. bsdtar backs the dubplate binary's archive expansion on
+# import and comes from AppStream; its absence broke the first seeded import
+# run (2026-08-31, installed by hand on the box the same day). jq and yq are
+# no longer needed: the shell layer they backed (music-import's YAML->JSON
+# filtering) is retired, and the dubplate binary parses YAML natively.
 #
-# flac, ffmpeg, rclone, and msmtp are needed on the host too, but are NOT
-# listed here: this packages module runs before runcmd, and all four come
-# from repos that runcmd enables (EPEL, plus RPM Fusion free for ffmpeg).
-# They're installed there instead, right after those repos come up; the
-# runcmd comment below records what each one backs, which repo it needs,
-# and how that was confirmed.
+# flac, ffmpeg, and rclone are needed on the host too, but are NOT listed
+# here: this packages module runs before runcmd, and all three come from
+# repos that runcmd enables (EPEL, plus RPM Fusion free for ffmpeg). They're
+# installed there instead, right after those repos come up; the runcmd
+# comment below records what each one backs, which repo it needs, and how
+# that was confirmed. msmtp is gone too: internal/notify speaks SMTP
+# natively, so nothing on the box shells out to a mail transfer agent
+# anymore.
 packages:
   - e2fsprogs
-  - jq
   - sqlite
   - bsdtar
 
@@ -163,9 +163,9 @@ runcmd:
     set -e
     KVER="$(uname -r)"
     if dnf install -y "kernel-modules-extra-${KVER}"; then
-      echo "musicbox: kernel-modules-extra-${KVER} installed, matches the running kernel"
+      echo "dubplate: kernel-modules-extra-${KVER} installed, matches the running kernel"
     else
-      echo "musicbox: kernel-modules-extra-${KVER} not in the repo (mirrors have moved past this image's shipped kernel); updating kernel and pairing kernel-modules-extra to it" >&2
+      echo "dubplate: kernel-modules-extra-${KVER} not in the repo (mirrors have moved past this image's shipped kernel); updating kernel and pairing kernel-modules-extra to it" >&2
       dnf update -y kernel
       dnf install -y kernel-modules-extra
     fi
@@ -184,38 +184,25 @@ runcmd:
     dnf install -y dnf-automatic
     systemctl enable --now dnf-automatic.timer
 
-  # yq (mikefarah/go, v4): music-import (Task 2) shells out to it to turn
-  # config/contributors.yaml into JSON for jq. Not in AlmaLinux's repos, so
-  # pinned to a specific release and checksum-verified against it rather
-  # than trusted from a third-party repo. Version and checksum recorded in
-  # docs/STATUS.md; re-verify both there before bumping.
-  - |
-    set -e
-    YQ_VERSION=v4.53.6
-    YQ_SHA256=c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
-    curl -LsSf -o /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-    echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
-    install -m 0755 -o root -g root /tmp/yq /usr/local/bin/yq
-    rm -f /tmp/yq
-
-  # flac, ffmpeg, rclone, and msmtp all back the host scripts, and none are
-  # in AlmaLinux's BaseOS/AppStream repos: flac (flac -t, metaflac) is
-  # music-import's quality gate, ffmpeg is the replaygain plugin's analysis
-  # backend (config/beets-config.yaml), rclone is music-backup's R2 sync,
-  # and msmtp is lib.sh's notify(). rclone and msmtp need nothing beyond
-  # EPEL itself, confirmed by a container check (`podman run --rm
-  # almalinux:10 ...dnf -q list rclone msmtp`, 2026-08-31) rather than
-  # guessed into this unattended, set -e first boot; flac and ffmpeg
-  # additionally need RPM Fusion free, enabled further down. Conductor
-  # ruling, 2026-08-30: a pinned static build was rejected for flac/ffmpeg
-  # in favor of these repos, because both binaries parse untrusted
-  # contributor uploads -- freezing them off dnf-automatic's security-update
-  # path would freeze a codec-parsing attack surface right along with them;
-  # the same reasoning applies to rclone and msmtp, which respectively move
-  # untrusted uploads to R2 and parse mail-server responses. dnf-automatic
-  # (installed above, already running as a timer) picks up every repo
-  # enabled here automatically: it scans whatever is enabled when it
-  # fires, not just what was enabled when it was installed.
+  # flac, ffmpeg, and rclone all back the dubplate binary, and none are in
+  # AlmaLinux's BaseOS/AppStream repos: the flac package (flac -t, metaflac)
+  # is the import quality gate's codec probe, ffmpeg is the replaygain
+  # plugin's analysis backend (config/beets-config.yaml), and rclone is
+  # `dubplate backup`'s R2 sync. rclone needs nothing beyond EPEL itself,
+  # confirmed by a container check (`podman run --rm almalinux:10 ...dnf -q
+  # list rclone`, 2026-08-31) rather than guessed into this unattended,
+  # set -e first boot; flac and ffmpeg additionally need RPM Fusion free,
+  # enabled further down. Conductor ruling, 2026-08-30: a pinned static
+  # build was rejected for flac/ffmpeg in favor of these repos, because
+  # both binaries parse untrusted contributor uploads -- freezing them off
+  # dnf-automatic's security-update path would freeze a codec-parsing
+  # attack surface right along with them; the same reasoning applies to
+  # rclone, which moves untrusted uploads to R2. msmtp is gone: notify
+  # parity has passed and internal/notify speaks SMTP natively, so nothing
+  # here needs a local mail transfer agent. dnf-automatic (installed above,
+  # already running as a timer) picks up every repo enabled here
+  # automatically: it scans whatever is enabled when it fires, not just
+  # what was enabled when it was installed.
   #
   # epel-release comes from AlmaLinux's own already-trusted repos, so a
   # plain install verifies fine. RPM Fusion's release package does not: its
@@ -230,13 +217,13 @@ runcmd:
   # it rather than just this block. `dnf config-manager` is already on PATH
   # here; the Docker CE block above installs dnf5-plugins/dnf-plugins-core.
   #
-  # rclone and msmtp go in right after epel-release, ahead of the RPM Fusion
-  # key import: neither needs anything RPM Fusion or CRB carries, and a
-  # failed RPM Fusion step must never take them down with it.
+  # rclone goes in right after epel-release, ahead of the RPM Fusion key
+  # import: it needs nothing RPM Fusion or CRB carries, and a failed RPM
+  # Fusion step must never take it down with it.
   - |
     set -e
     dnf -y install epel-release
-    dnf install -y rclone msmtp
+    dnf install -y rclone
     dnf config-manager --set-enabled crb
     rpm --import https://download1.rpmfusion.org/free/el/RPM-GPG-KEY-rpmfusion-free-el-10
     dnf install -y https://download1.rpmfusion.org/free/el/rpmfusion-free-release-10.noarch.rpm
@@ -283,5 +270,5 @@ runcmd:
 # needed every time, not gated on a state check.
 power_state:
   mode: reboot
-  message: "musicbox: rebooting for the new kernel and the SELinux autorelabel"
+  message: "dubplate: rebooting for the new kernel and the SELinux autorelabel"
   condition: true

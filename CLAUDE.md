@@ -12,17 +12,16 @@ no site-specific value, path, or identity default outside `internal/config`.
 - `docs/STATUS.md` — read in full at session start; present tense only.
 - `docs/HISTORY.md` — per-pass ledger, read on demand.
 - `ROADMAP.md` — initiative queue. Current: Go rewrite → uploader →
-  packaging (specs in `docs/superpowers/`; until T14 of the rewrite lands
-  they live in `~/.dotfiles/docs/superpowers/` — STATUS points at the
-  authoritative copies).
+  packaging (specs and plans live in `docs/superpowers/`, migrated into the
+  repo at T14; the dotfiles copies are pointers only).
 
 ## Gate
 
-`bash scripts/check.sh` before every commit — shellcheck, bats, compose
-config, systemd-analyze verify, and (once the Go module lands) `make check`
-(build, vet, golangci-lint, test) plus the `web/` build. A check either
-gates or does not exist; never guard one with `command -v || skip`. Never
-commit red.
+`bash scripts/check.sh` before every commit — `make check` (build, vet,
+golangci-lint, test, tidy-check), shellcheck, vale (Go comment prose),
+compose config, systemd-analyze verify. The `web/` build joins when the
+uploader lands. A check either gates or does not exist; never guard one
+with `command -v || skip`. Never commit red.
 
 ## Stack rules (mandatory skills by area)
 
@@ -68,8 +67,9 @@ screenshots, fresh-context `visual-verifier`, Geoff's before/after).
 - Failure pings are POST to `<url>/fail`; success is GET. The Worker 404s a
   GET to `/fail` — this was a live bug once.
 - Lock files live in `/var/lib/musicbox/` (persistent), NOT `/run/musicbox`
-  (RuntimeDirectory, deleted at unit stop). The scan-trigger temp file and
-  contributors cache DO use the runtime dir. Do not "unify" them.
+  (RuntimeDirectory, deleted at unit stop). The Go layer uses NO runtime
+  directory at all: the scan URL builds inline and the roster loads into
+  memory (the retired shell layer's temp-file pattern died with it).
 - The beets database is the only import success record: the tag log records
   skips only, and beets renames every file. Never infer success from the
   filesystem.
@@ -77,7 +77,7 @@ screenshots, fresh-context `visual-verifier`, Geoff's before/after).
   admit a partial album.
 - Reject wording is contract (`internal/reject` / `friendly_reason`): the
   uploader page and emails share it verbatim; upload-check reuses it.
-- `env/musicbox.env.template` is a secrets MANIFEST rendered by deploy.sh
+- `env/dubplate.env.template` is a secrets MANIFEST rendered by deploy.sh
   from the age store — inline values in it are not defaults and adding a
   name there requires minting it (`secret-set.sh`, registry).
 - Collections route via a beets flexible attribute with query-prefixed path

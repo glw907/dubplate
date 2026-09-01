@@ -360,13 +360,13 @@ func TestGateAndQuarantineCouldNotMoveByAnyMeans(t *testing.T) {
 	}
 }
 
-// TestQuarantineOneEmitsShellCouldNotMoveWording pins the admin
-// summary's two could-not-move lines against scripts/music-import at
-// HEAD: a quarantine-fallback success states where the album actually
-// landed (Geoff's promised "see each item for where it landed"), and a
-// complete failure states the shell's own manual-removal alarm rather
-// than the misleading "excluded from import" -- the album is still in
-// staging and the beet import that follows may ingest it anyway.
+// TestQuarantineOneEmitsShellCouldNotMoveWording pins the admin summary's
+// two could-not-move lines against the retired shell layer's
+// scripts/music-import: a quarantine-fallback success states where the
+// album actually landed (Geoff's promised "see each item for where it
+// landed"), and a complete failure states the shell's own manual-removal
+// alarm rather than the misleading "excluded from import" -- the album is
+// still in staging and the beet import that follows may ingest it anyway.
 func TestQuarantineOneEmitsShellCouldNotMoveWording(t *testing.T) {
 	tests := []struct {
 		name            string

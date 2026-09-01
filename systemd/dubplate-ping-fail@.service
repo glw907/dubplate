@@ -1,0 +1,20 @@
+[Unit]
+Description=dubplate: notify the configured pings provider that %i failed
+# Rewrite plan T13: replaces musicbox-ping-failure@.service. This is a
+# template (OnFailure=...@%i.service) unit, so it runs with the same
+# privileges as the services it backstops -- hardening applies here too, not
+# just to the "main" services.
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/dubplate/env
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+# No ReadWritePaths: `dubplate ping-fail` resolves DUBPLATE_PING_<SLUG>_URL
+# straight from the process environment (deliberately bypassing
+# config.Load, per internal/config's doctrine that a failure ping must never
+# be silenced by an unrelated required-field miss) and issues one outbound
+# HTTP POST. It writes nothing to disk.
+ExecStart=/usr/local/bin/dubplate ping-fail %i

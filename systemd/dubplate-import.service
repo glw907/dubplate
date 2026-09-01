@@ -1,0 +1,55 @@
+[Unit]
+Description=dubplate: scan contributor inboxes and import new music
+# Rewrite plan T13 (single-generation closeout): replaces music-import.service
+# outright -- the shell layer is deleted in this same change, so there is no
+# older generation left to fall back to. OnFailure targets the Go ping-fail
+# chain (dubplate-ping-fail@import.service, DUBPLATE_PING_IMPORT_URL), not
+# the retired musicbox-ping-failure@ template.
+OnFailure=dubplate-ping-fail@import.service
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/dubplate/env
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+# No RuntimeDirectory: unlike music-import.service, nothing in
+# internal/importer or its collaborators (internal/beets, internal/lock)
+# writes to a systemd RuntimeDirectory. The shell layer's /run/musicbox held
+# a scan-trigger temp credential file and a contributors cache; the Go
+# rewrite builds the Subsonic scan-trigger URL directly (fresh salt/token per
+# request, no temp file) and loads contributors straight into memory
+# (config.LoadContributors), so there is nothing left that needs tmpfs
+# scratch space. Confirmed by reading internal/importer/importer.go in full:
+# every write goes to one of the paths below.
+#
+# ReadWritePaths derivation, read from internal/importer/importer.go: a run
+# reads DUBPLATE_INBOX_DIR and MOVES entries out of it into
+# DUBPLATE_STAGING_DIR (review.Move renames/copies, which needs write on
+# both the source and destination directories, not just the destination);
+# gate failures move from staging into DUBPLATE_REVIEW_DIR or its quarantine
+# fallback (review.Filer.MoveToReview, same config value as DUBPLATE_
+# QUARANTINE_DIR); `beet import` moves accepted files from staging into
+# DUBPLATE_LIBRARY_DIR and writes beets' own library database at
+# /srv/music/state/library.db (config/beets-config.yaml's `library:`); the
+# lock file, the per-run tag log (internal/beets.Runner), and the run report
+# (internal/importer's reportFileName) all live under DUBPLATE_STATE_DIR,
+# which is /var/lib/musicbox, not /srv/music/state (see dubplate-backup.
+# service's own comment for why those two are deliberately different paths).
+#
+# The grant below is /srv/music as a whole rather than each subtree
+# individually: QuarantineDir is deliberately never pre-created on a healthy
+# box (docs/HISTORY.md) -- review.Filer mkdir -p's it lazily the first time
+# a file actually needs quarantining -- so a narrower per-subtree
+# ReadWritePaths would need deploy.sh to pre-create a directory the design
+# intentionally leaves absent, which is out of this change's scope. This
+# does grant write access to /srv/music/state/navidrome and .../filebrowser
+# too, which import never touches; that is a wider blast radius than
+# dubplate-backup.service's leaf-only grant, but it is not a regression --
+# music-import.service granted the identical /srv/music before it. Narrowing
+# this is a follow-up, not a T13 requirement.
+ReadWritePaths=/srv/music /var/lib/musicbox
+ExecStart=/usr/local/bin/dubplate import

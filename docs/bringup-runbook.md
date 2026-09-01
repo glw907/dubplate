@@ -10,28 +10,32 @@ print a secret value; name-and-length checks only. On-box work over SSH as root
 
 1. **Gate on first boot.** `cloud-init status` must be `done` (poll; two reboots are
    designed in). Then verify: `getenforce` = Enforcing; docker active; volume
-   mounted; `flac ffmpeg sqlite3 rclone msmtp yq jq bsdtar` all present; tree ownership
-   2000:2000 with inbox setgid. Any miss: stop and report; do not patch the box.
+   mounted; `flac ffmpeg sqlite3 rclone bsdtar` all present (flac's package also
+   carries `metaflac`); tree ownership 2000:2000 with inbox setgid. Any miss: stop
+   and report; do not patch the box. `dubplate doctor` replaces the rest of this
+   step's hand verification (config resolution, SMTP/R2/Navidrome reachability,
+   ping URL syntax) once the binary is deployed — run it as step 2's smoke test
+   rather than checking each dependency by hand.
 2. **Deploy.** `bash scripts/deploy.sh --check`, review, then `bash scripts/deploy.sh`.
 3. **Acceptance.** Containers healthy with zero restarts after 60s; tunnel healthy
    (read-only GET on cfd_tunnel b6781175-000b-40c3-a54a-05906ab25037); from the
    workstation, music.907.life serves Navidrome (no Access) and inbox.907.life
    challenges via Access; both timers active; a manual `systemctl start
-   music-import` no-ops cleanly with a success ping; beets loads all three plugins
-   (replaygain must load now that ffmpeg exists).
-4. **First backup.** `systemctl start music-backup`; verify success in the journal,
-   then from the workstation (RO token) `rclone lsjson` shows the pinned layout
-   (`state/` holding both DB snapshots). Backup ping green.
+   dubplate-import.service` no-ops cleanly with a success ping; beets loads all
+   three plugins (replaygain must load now that ffmpeg exists).
+4. **First backup.** `systemctl start dubplate-backup.service`; verify success in
+   the journal, then from the workstation (RO token) `rclone lsjson` shows the
+   pinned layout (`state/` holding both DB snapshots). Backup ping green.
 5. **Seed.** rsync the nine ZIPs from the workstation `~/Downloads/` into
    `/srv/music/inbox/geoff/` (as root, then chown 2000:2000). Wait for the timer (or
-   start music-import once). Track per-album outcomes: imported (visible via
+   start `dubplate-import.service` once). Track per-album outcomes: imported (visible via
    Subsonic API search on music.907.life with admin creds from env, never printed) vs
    review-queued (with reasons). Rejection or review emails are expected for any
    MusicBrainz misses; that path working is a pass, not a failure.
-6. **Post-seed backup.** Run music-backup again; verify `library/` objects appear in
-   R2; note total object count and approximate size.
+6. **Post-seed backup.** `systemctl start dubplate-backup.service` again; verify
+   `library/` objects appear in R2; note total object count and approximate size.
 7. **Monitoring truth.** All three push checks green (backup, import, disk pings
-   observed in journals); `musicbox-navidrome` pull check now has a live endpoint —
+   observed in journals); the `dubplate-navidrome` push check (driven by its box timer) —
    verify the pings Worker's next cron ticks record probe success (read-only
    `wrangler tail` briefly or KV state read of the pull check's ping:/alert: keys by
    name).
@@ -42,3 +46,9 @@ print a secret value; name-and-length checks only. On-box work over SSH as root
 
 Report shape: per-step results; per-album outcome table; anything degraded;
 couldNotDo.
+
+## Kept identifiers
+
+`musicbox` (server), `musicbox-data` (volume), and the pings check names
+above are live Hetzner/infrastructure identifiers, not stale references —
+see README.md's own kept-identifiers note.

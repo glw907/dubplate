@@ -28,7 +28,7 @@ const subsonicVersion = "1.16.1"
 
 // subsonicClient is the c= client-name parameter Navidrome logs against
 // startScan requests.
-const subsonicClient = "musicbox"
+const subsonicClient = "dubplate"
 
 // scanTimeout bounds one startScan request.
 const scanTimeout = 10 * time.Second

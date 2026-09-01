@@ -162,9 +162,10 @@ func TestRenderEmail(t *testing.T) {
 		}
 	})
 
-	// Ports tests/music-import.bats:565 and :574, which pin friendly_reason()'s
-	// per-extension wording literally: the shell names the file's actual
-	// extension rather than a generic "not a FLAC file" phrasing.
+	// Ports the retired shell layer's tests/music-import.bats, which pinned
+	// friendly_reason()'s per-extension wording literally: the shell names
+	// the file's actual extension rather than a generic "not a FLAC file"
+	// phrasing.
 	t.Run("bad-extension line names the actual extension", func(t *testing.T) {
 		path := writeTemplate(t)
 		got, err := RenderEmail(path, "alice", "Bad Album", []Rejection{
@@ -173,11 +174,11 @@ func TestRenderEmail(t *testing.T) {
 		if err != nil {
 			t.Fatalf("RenderEmail: %v", err)
 		}
-		// bats:565 -- the reason wording itself.
+		// The reason wording itself.
 		if !strings.Contains(got, "This is an MP3 file, and the library keeps lossless FLAC.") {
 			t.Errorf("output missing the per-extension reason line; got %q", got)
 		}
-		// bats:574 -- the reason line prefixed with the failing file's basename.
+		// The reason line prefixed with the failing file's basename.
 		if !strings.Contains(got, "track2.mp3: This is an MP3 file, and the library keeps lossless FLAC.") {
 			t.Errorf("output missing the per-file reason line; got %q", got)
 		}

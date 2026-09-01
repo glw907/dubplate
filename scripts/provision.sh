@@ -9,6 +9,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 USER_DATA="$REPO_ROOT/cloud-init/user-data.yaml"
 
+# Hetzner resource names keep the musicbox name deliberately: they label
+# live infrastructure, not the project (README.md "Kept identifiers").
 FIREWALL_NAME="musicbox-fw"
 FIREWALL_RULES_FILE="$REPO_ROOT/scripts/firewall-rules.json"
 VOLUME_NAME="musicbox-data"

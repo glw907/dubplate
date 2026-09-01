@@ -2,7 +2,7 @@
 # bind-mounted read-only into the container at /data/navidrome.toml (see
 # compose.yaml's ND_CONFIGFILE). ND_PASSWORDENCRYPTIONKEY and every other
 # secret stay out of this file entirely: they land only via compose's
-# environment substitution from /etc/musicbox/env, never in a repo-committed
+# environment substitution from /etc/dubplate/env, never in a repo-committed
 # file, even one that only ever holds a placeholder.
 LogLevel = "info"
 MusicFolder = "/music"
@@ -13,11 +13,10 @@ DataFolder = "/data"
 UIWelcomeMessage = "Wright Family Music Server"
 
 # The filesystem watcher is disabled (WatcherWait = "0s") because it would
-# start indexing an album while music-import is still moving files into
-# place; Schedule is the sole, daily backstop scan. music-import also pokes
-# Navidrome's scan API directly after every successful import (see
-# scripts/music-import's trigger_navidrome_scan), so the backstop only
-# matters when that direct trigger is missed or fails.
+# start indexing an album while dubplate is still moving files into place;
+# Schedule is the sole, daily backstop scan. dubplate also pokes Navidrome's
+# scan API directly after every successful import (internal/beets.TriggerScan),
+# so the backstop only matters when that direct trigger is missed or fails.
 [Scanner]
 Schedule = "0 3 * * *"
 WatcherWait = "0s"

@@ -1,25 +1,22 @@
 [Unit]
 Description=dubplate: nightly backup of the beets and Navidrome databases to R2
-# Rewrite plan T12: the Go binary's replacement for music-backup.service,
-# shipped alongside it rather than in place of it -- deploy.sh lists this
-# unit but does not enable it (see deploy.sh's UNIT_FILES/TIMER_UNITS
-# comments); the conductor's supervised flip enables this timer and
-# disables music-backup.timer in the same step.
+# Rewrite plan T13 (single-generation closeout): replaces
+# music-backup.service outright -- the shell layer is deleted in this same
+# change.
 #
-# OnFailure still targets the EXISTING musicbox-ping-failure@ template
-# (the shell script, MUSICBOX_HC_BACKUP_URL) rather than `dubplate
-# ping-fail`: that flip is T13's, alongside music-import's. Belt and
-# suspenders alongside internal/backup's own success/fail ping (via
-# DUBPLATE_PING_BACKUP_URL): this catches a crash before Run ever reaches
-# its own ping call.
-OnFailure=musicbox-ping-failure@backup.service
+# OnFailure targets the Go ping-fail chain (dubplate-ping-fail@backup.
+# service, DUBPLATE_PING_BACKUP_URL), not the retired
+# musicbox-ping-failure@ template. Belt and suspenders alongside
+# internal/backup's own success/fail ping (same env var): this catches a
+# crash before Run ever reaches its own ping call.
+OnFailure=dubplate-ping-fail@backup.service
 After=network-online.target docker.service
 Wants=network-online.target
 
 [Service]
 Type=oneshot
 User=music
-EnvironmentFile=/etc/musicbox/env
+EnvironmentFile=/etc/dubplate/env
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

@@ -29,10 +29,9 @@ type Roster struct {
 }
 
 // LoadContributors parses the contributors.yaml at path. A missing file
-// returns an empty [Roster] and a nil error: the shell layer's
-// load_contributors_json treated "no file" the same as "no match"
-// (scripts/music-import, lines 111-142), and every caller here preserves
-// that.
+// returns an empty [Roster] and a nil error: the retired shell layer's
+// load_contributors_json (scripts/music-import) treated "no file" the same
+// as "no match", and every caller here preserves that.
 func LoadContributors(path string) (Roster, error) {
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {

@@ -92,10 +92,10 @@ type Thresholds struct {
 	DiskPct       int
 }
 
-// The shell layer's current defaults (scripts/music-import, lines 43-46;
-// scripts/musicbox-disk-check, line 16), carried forward unchanged:
+// Values carried forward unchanged from the retired shell layer's
+// music-import and musicbox-disk-check scripts, whose env vars were named
 // MUSICBOX_QUIESCENT_MINUTES=10, MUSICBOX_MIN_FREE_GB=5,
-// MUSICBOX_MAX_ARCHIVE_BYTES=2147483648 (2 GiB, docs/HISTORY.md line 636),
+// MUSICBOX_MAX_ARCHIVE_BYTES=2147483648 (2 GiB, per docs/HISTORY.md),
 // MUSICBOX_REVIEW_RETENTION_DAYS=60, MUSICBOX_DISK_THRESHOLD_PCT=90.
 const (
 	defaultQuiescentMin  = 10

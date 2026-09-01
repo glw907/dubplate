@@ -1,4 +1,4 @@
-# musicbox service stack: Navidrome (streaming), FileBrowser Quantum (the
+# dubplate service stack: Navidrome (streaming), FileBrowser Quantum (the
 # upload inbox), and cloudflared (the only way either is reachable from the
 # internet — neither service publishes a host port). Every image tag below
 # is pinned to a real release, looked up and dated in docs/STATUS.md; no
@@ -6,10 +6,21 @@
 # relabel the box's enforcing SELinux requires (global constraint).
 #
 # Variable interpolation (${VAR}) is resolved by `docker compose --env-file
-# /etc/musicbox/env ...` (see deploy.sh); an unset variable at parse time
-# (e.g. on the workstation, before Task 0's secrets exist) only warns and
-# substitutes an empty string, so `docker compose config -q` stays green
-# without real secrets present.
+# /etc/dubplate/env ...` (see deploy.sh); an unset variable at parse time
+# (e.g. on the workstation, before secrets exist) only warns and substitutes
+# an empty string, so `docker compose config -q` stays green without real
+# secrets present.
+#
+# name: pins the compose project to "musicbox" explicitly (rewrite plan
+# T13): deploy.sh's --project-directory moved from /opt/musicbox to
+# /opt/dubplate in this same change, and compose derives an implicit
+# project name from that directory's basename when none is pinned — letting
+# it float to "dubplate" would make compose treat every existing container
+# (musicbox-navidrome-1 etc.) as belonging to a different project and start
+# fresh ones alongside them instead of adopting them. Never rename this
+# without a supervised box-side migration (stop the stack under the old
+# project name first).
+name: musicbox
 
 services:
   navidrome:
@@ -38,11 +49,12 @@ services:
       - /srv/music/library:/music:ro,Z
       - /srv/music/state/navidrome:/data:Z
       - ./config/navidrome.toml:/data/navidrome.toml:ro,Z
-    # Loopback publish rather than `expose`: music-import runs on the host as
-    # the `music` user, outside this compose network, and its
-    # trigger_navidrome_scan() needs the native admin API at localhost:4533.
-    # Binding 127.0.0.1 leaves Navidrome as unreachable from the internet as
-    # `expose` did; cloudflared remains the only external path in.
+    # Loopback publish rather than `expose`: dubplate import runs on the host
+    # as the `music` user, outside this compose network, and its scan
+    # trigger (internal/beets.TriggerScan) needs the native admin API at
+    # localhost:4533. Binding 127.0.0.1 leaves Navidrome as unreachable from
+    # the internet as `expose` did; cloudflared remains the only external
+    # path in.
     ports:
       - "127.0.0.1:4533:4533"
 
@@ -75,8 +87,9 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       # Secret: minted when Task 5 creates the named tunnel via the
-      # Cloudflare API.
-      TUNNEL_TOKEN: ${MUSICBOX_TUNNEL_TOKEN}
+      # Cloudflare API. Renamed from MUSICBOX_TUNNEL_TOKEN to
+      # DUBPLATE_TUNNEL_TOKEN at T13 (same secret value, new variable name).
+      TUNNEL_TOKEN: ${DUBPLATE_TUNNEL_TOKEN}
     depends_on:
       - navidrome
       - filebrowser

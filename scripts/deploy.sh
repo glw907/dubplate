@@ -1,30 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploys musicbox to the box: rsyncs repo config, renders /etc/musicbox/env
-# from env/musicbox.env.template plus the workstation age-store values,
-# cross-compiles and ships the dubplate Go binary, installs the Task 2
-# scripts and every systemd unit (shell-layer and dubplate-*) to their
-# fixed paths, brings the compose stack up, and installs beets via uv as
-# the "music" user. Idempotent: re-running against an unchanged box is a
-# no-op diff (rsync's own reporting, plus the env-render and compose-up
-# steps being naturally idempotent). Shipping a dubplate-* unit here does
-# not enable it -- see UNIT_FILES vs. TIMER_UNITS below -- flipping a job
-# from its shell predecessor to dubplate is a supervised step the rewrite
-# plan's box tasks run explicitly, never a side effect of a routine
-# deploy.
+# Deploys dubplate to the box: rsyncs repo config, renders /etc/dubplate/env
+# from env/dubplate.env.template plus the workstation age-store values,
+# cross-compiles and ships the dubplate Go binary, installs every
+# dubplate-* systemd unit to its fixed path, brings the compose stack up,
+# and installs beets via uv as the "music" user. Idempotent: re-running
+# against an unchanged box is a no-op diff (rsync's own reporting, plus the
+# env-render and compose-up steps being naturally idempotent).
+#
+# Rewrite plan T13 (single-generation closeout): the shell layer, its
+# scripts, and the music-*/musicbox-* units it shipped alongside are gone.
+# This is the only generation deploy.sh ships or enables now -- there is no
+# separate supervised flip step left to run.
 #
 # Usage:
 #   deploy.sh [--check] [HOST]
-# HOST defaults to `hcloud server ip musicbox` (Task 1/4's provisioned
-# server) when omitted. --check diffs and reports every step without
+# HOST defaults to `hcloud server ip musicbox` (the box's Hetzner server
+# name, unrenamed -- see docs/STATUS.md on the estate rename's box-side
+# remainder) when omitted. --check diffs and reports every step without
 # applying any of them, and without ever writing decrypted secret values to
 # a log or a local file.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_TEMPLATE="$REPO_ROOT/env/musicbox.env.template"
-REMOTE_DIR="/opt/musicbox"
-REMOTE_ENV="/etc/musicbox/env"
+ENV_TEMPLATE="$REPO_ROOT/env/dubplate.env.template"
+REMOTE_DIR="/opt/dubplate"
+REMOTE_ENV="/etc/dubplate/env"
 BEETS_VERSION="2.13.1"
 
 # Pinned uv installer: a specific release tag (an immutable GitHub release
@@ -36,29 +37,18 @@ UV_VERSION="0.12.7"
 UV_INSTALLER_URL="https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-installer.sh"
 UV_INSTALLER_SHA256="92e8554321e2bde08c9b1445dae47a65360f885274f31df51cdc2f9faa84e001"
 
-SCRIPT_FILES=(
-  music-import music-backup music-beet
-  musicbox-ping-failure musicbox-disk-check musicbox-navidrome-check
-  lib.sh
-)
-# One job per line, each service beside its own timer (the ping-failure
+# One job per line, each service beside its own timer (the ping-fail
 # template has none), so a new job is added as a visible pair rather than
-# appended to a run-on line. The dubplate-* units (rewrite plan T12) ride
-# alongside their music-*/musicbox-* shell predecessors rather than
-# replacing them here: this array only ships unit FILES to the box, it
-# never enables one (see the TIMER_UNITS enable-now list below), so both
-# generations can sit on disk at once while the conductor's supervised
-# flip -- not a routine deploy -- decides which is live. The old units
-# leave this array only in T13, once every job has flipped.
+# appended to a run-on line. dubplate is a single static binary
+# (/usr/local/bin/dubplate, shipped by its own step below) plus these
+# units -- there is no separate scripts-to-/usr/local/bin manifest left
+# now that the shell layer is gone.
 UNIT_FILES=(
-  music-import.service music-import.timer
-  music-backup.service music-backup.timer
-  musicbox-ping-failure@.service
-  musicbox-disk-check.service musicbox-disk-check.timer
-  musicbox-navidrome-check.service musicbox-navidrome-check.timer
+  dubplate-import.service dubplate-import.timer
   dubplate-backup.service dubplate-backup.timer
   dubplate-disk-check.service dubplate-disk-check.timer
   dubplate-navidrome-check.service dubplate-navidrome-check.timer
+  "dubplate-ping-fail@.service"
 )
 
 # ControlMaster/ControlPersist share one TCP+SSH handshake across this run's
@@ -66,7 +56,7 @@ UNIT_FILES=(
 # full connection setup for each; the socket is cleaned up automatically
 # 60s after the last call finishes.
 SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 \
-  -o ControlMaster=auto -o ControlPersist=60s -o "ControlPath=$HOME/.ssh/musicbox-deploy-%r@%h:%p")
+  -o ControlMaster=auto -o ControlPersist=60s -o "ControlPath=$HOME/.ssh/dubplate-deploy-%r@%h:%p")
 
 check_only=false
 HOST=""
@@ -86,8 +76,8 @@ for arg in "$@"; do
 done
 
 # --- workstation secrets ---------------------------------------------
-# HCLOUD_TOKEN (to look up HOST) and every value env/musicbox.env.template
-# names originate here (Task 0, via secret-set.sh), never in this repo.
+# HCLOUD_TOKEN (to look up HOST) and every value env/dubplate.env.template
+# names originate here (via secret-set.sh), never in this repo.
 if [ -f "$HOME/.local/secrets" ]; then
   # shellcheck disable=SC1091
   source "$HOME/.local/secrets"
@@ -191,7 +181,7 @@ if [ "${#missing[@]}" -gt 0 ]; then
   exit 1
 fi
 
-echo "musicbox deploy -> $SSH_TARGET$($check_only && echo ' (--check: nothing will be applied)')"
+echo "dubplate deploy -> $SSH_TARGET$($check_only && echo ' (--check: nothing will be applied)')"
 
 # --- repo config: compose.yaml + config/ -------------------------------
 echo "== repo config -> $SSH_TARGET:$REMOTE_DIR =="
@@ -206,17 +196,11 @@ else
     "$REPO_ROOT/compose.yaml" "$REPO_ROOT/config" "$SSH_TARGET:$REMOTE_DIR/"
 fi
 
-# --- scripts -> /usr/local/bin, units -> /etc/systemd/system -----------
-echo "== scripts (${SCRIPT_FILES[*]}) -> $SSH_TARGET:/usr/local/bin =="
+# --- units -> /etc/systemd/system ---------------------------------------
 echo "== units (${UNIT_FILES[*]}) -> $SSH_TARGET:/etc/systemd/system =="
 if $check_only; then
-  rsync -avzn -e "$RSYNC_SSH" "${SCRIPT_FILES[@]/#/$REPO_ROOT/scripts/}" "$SSH_TARGET:/usr/local/bin/" || true
   rsync -avzn -e "$RSYNC_SSH" "${UNIT_FILES[@]/#/$REPO_ROOT/systemd/}" "$SSH_TARGET:/etc/systemd/system/" || true
 else
-  rsync -avz -e "$RSYNC_SSH" "${SCRIPT_FILES[@]/#/$REPO_ROOT/scripts/}" "$SSH_TARGET:/usr/local/bin/"
-  # SC2029: the file-list expansion is local; client-side is wanted here too.
-  # shellcheck disable=SC2029
-  ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "chmod 0755 ${SCRIPT_FILES[*]/#//usr/local/bin/}"
   rsync -avz -e "$RSYNC_SSH" "${UNIT_FILES[@]/#/$REPO_ROOT/systemd/}" "$SSH_TARGET:/etc/systemd/system/"
 fi
 
@@ -245,7 +229,7 @@ fi
 echo "== smoke test: dubplate version =="
 run_remote "/usr/local/bin/dubplate version"
 
-# --- /etc/musicbox/env --------------------------------------------------
+# --- /etc/dubplate/env --------------------------------------------------
 # Not deploy_file: this content is assembled in memory from secrets and must
 # never touch local disk (see the usage note at the top of this file), so
 # there is no LOCAL path to hand the helper. It already avoids the
@@ -265,27 +249,24 @@ if $check_only; then
     echo "  can't reach $SSH_TARGET to diff; would write ${#env_lines[@]} variables"
   fi
 else
-  # -D creates $REMOTE_ENV's parent (/etc/musicbox) if this is the box's
+  # -D creates $REMOTE_ENV's parent (/etc/dubplate) if this is the box's
   # first deploy; install itself no-ops that part on every later run.
   # shellcheck disable=SC2029
   printf '%s\n' "${env_lines[@]}" | ssh "${SSH_OPTS[@]}" "$SSH_TARGET" \
     "install -D -m 600 -o root -g root /dev/stdin $REMOTE_ENV"
 fi
 
-# --- /etc/msmtprc ---------------------------------------------------------
-# lib.sh's notify() calls plain `msmtp`, which reads its account config from
-# /etc/msmtprc (msmtp's own system-wide default) — a separate destination
-# from the config/ copy rsynced into $REMOTE_DIR above for the record.
-echo "== /etc/msmtprc =="
-deploy_file "$REPO_ROOT/config/msmtprc" /etc/msmtprc 0644 root:root
+# msmtp retired at T13: internal/notify sends mail itself (SMTP, no local
+# MTA), and notify parity against msmtp had already passed before this
+# change. No /etc/msmtprc install step remains.
 
-# --- /etc/musicbox/contributors.yaml --------------------------------------
-# music-import's uploader_email() (Task 2) reads CONTRIBUTORS_FILE, which
-# defaults to this exact path. root:music 0640 lets the `music` user (the
-# systemd unit's User=) read it without making contributor emails
-# world-readable.
-echo "== /etc/musicbox/contributors.yaml =="
-deploy_file "$REPO_ROOT/config/contributors.yaml" /etc/musicbox/contributors.yaml 0640 root:music
+# --- /etc/dubplate/contributors.yaml --------------------------------------
+# internal/importer's roster lookup reads DUBPLATE_CONTRIBUTORS_FILE, which
+# the rendered env file (above) points at this exact path. root:music 0640
+# lets the `music` user (the systemd units' User=) read it without making
+# contributor emails world-readable.
+echo "== /etc/dubplate/contributors.yaml =="
+deploy_file "$REPO_ROOT/config/contributors.yaml" /etc/dubplate/contributors.yaml 0640 root:music
 
 # --- state directories for bind-mounted volumes -------------------------
 # Docker creates a missing bind-mount source itself, but as root:root; both
@@ -297,23 +278,23 @@ STATE_DIRS="/srv/music/state/navidrome /srv/music/state/filebrowser"
 echo "== state directories ($STATE_DIRS) =="
 run_remote "mkdir -p $STATE_DIRS && chown 2000:2000 $STATE_DIRS"
 
-# --- /var/lib/musicbox (persistent import lock) ---------------------------
-# music-import and music-beet both flock this directory's
-# musicbox-import.lock (lib.sh's musicbox_lock_file). music-import.service
-# runs it under ProtectSystem=strict with ReadWritePaths=/var/lib/musicbox;
-# systemd requires that path to already exist on the host or the unit fails
-# outright ("Failed to set up mount namespacing"), so it has to be
-# pre-created here rather than left to the scripts' own mkdir -p, which
-# only helps once the sandbox is already up. music:music matches the
-# scripts' own User=music.
+# --- /var/lib/musicbox (DUBPLATE_STATE_DIR) --------------------------------
+# Deliberately still named /var/lib/musicbox, not /var/lib/dubplate: this is
+# a box data path, and T13's rename covers the estate's config/identity
+# layer (/etc, /opt) only -- renaming a live data directory needs a
+# supervised box-side migration, out of this change's scope (see
+# docs/STATUS.md).
 #
-# It is also DUBPLATE_STATE_DIR (rewrite plan T12): dubplate's own lock
-# files (internal/lock.Path, internal/backup's "backup.lock"), the import
-# run report, and the per-run tag log all live here too, unified under one
-# persistent directory rather than the shell layer's split between this
-# path (lock only) and /srv/music/state (everything else) -- so no
-# separate pre-create is needed for dubplate-backup.service's own
-# ReadWritePaths, this directory already covers it.
+# dubplate's import, backup, and beet-passthrough commands all flock a lock
+# file here (internal/lock.Path); the import run report and per-run tag log
+# (internal/beets.Runner) live here too, unified under one persistent,
+# non-RuntimeDirectory directory. dubplate-import.service and
+# dubplate-backup.service both run it under ProtectSystem=strict with this
+# path in their own ReadWritePaths=; systemd requires the path to already
+# exist on the host or the unit fails outright ("Failed to set up mount
+# namespacing"), so it has to be pre-created here rather than left to
+# dubplate's own mkdir -p, which only helps once the sandbox is already up.
+# music:music matches every unit's own User=music.
 MUSICBOX_LIB_DIR="/var/lib/musicbox"
 echo "== $MUSICBOX_LIB_DIR =="
 run_remote "mkdir -p $MUSICBOX_LIB_DIR && chown music:music $MUSICBOX_LIB_DIR"
@@ -337,12 +318,11 @@ echo "== compose stack =="
 run_remote "$COMPOSE_CMD"
 
 # --- systemd timers --------------------------------------------------
-# Deliberately still the shell-layer timers only: daemon-reload above (via
-# the units rsync) makes systemd aware of the dubplate-* units too, but
-# enabling them is the rewrite plan's supervised per-job flip, not this
-# routine step -- see the UNIT_FILES comment above.
+# daemon-reload (via the units rsync just above) picks up every unit file,
+# including dubplate-ping-fail@.service, which is never enabled directly --
+# it only ever runs as an OnFailure= instance.
 echo "== systemd timers =="
-TIMER_UNITS="music-import.timer music-backup.timer musicbox-disk-check.timer musicbox-navidrome-check.timer"
+TIMER_UNITS="dubplate-import.timer dubplate-backup.timer dubplate-disk-check.timer dubplate-navidrome-check.timer"
 run_remote "systemctl daemon-reload && systemctl enable --now $TIMER_UNITS"
 
 # --- beets, via uv, as the music user ----------------------------------
@@ -378,4 +358,4 @@ ln -sf /srv/music/.local/bin/beet /usr/local/bin/beet
 REMOTE
 fi
 
-echo "musicbox deploy: done."
+echo "dubplate deploy: done."

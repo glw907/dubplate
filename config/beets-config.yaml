@@ -1,12 +1,12 @@
-# musicbox beets config, installed by scripts/deploy.sh to
+# dubplate beets config, installed by scripts/deploy.sh to
 # /srv/music/.config/beets/config.yaml (the "music" system user's HOME is
 # /srv/music, so beets finds this with no BEETSDIR override needed).
 # Mirrors the workstation's own layout and plugin choices
 # (~/.dotfiles/beets/.config/beets/config.yaml) repointed at /srv/music, plus
-# the quiet-mode section music-import's non-interactive `beet import -q`
-# relies on: quiet_fallback/none_rec_action both "skip" send anything beets
-# can't confidently tag to review rather than guessing or blocking on input
-# that will never come.
+# the quiet-mode section dubplate's non-interactive `beet import -q` relies
+# on: quiet_fallback/none_rec_action both "skip" send anything beets can't
+# confidently tag to review rather than guessing or blocking on input that
+# will never come.
 directory: /srv/music/library
 library: /srv/music/state/library.db
 

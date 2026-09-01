@@ -97,10 +97,10 @@ func setup() error {
 }
 
 // generateGoodFlac synthesizes one real, valid 44.1kHz/16-bit FLAC via
-// ffmpeg and flac, exactly like tests/music-import.bats' make_flac: the
-// quality gate runs a real `flac -t` and `metaflac` probe over every
-// staged track, so a fixture album that must pass the gate needs a file
-// that actually does.
+// ffmpeg and flac, exactly like the retired shell layer's
+// tests/music-import.bats' make_flac helper: the quality gate runs a real
+// `flac -t` and `metaflac` probe over every staged track, so a fixture
+// album that must pass the gate needs a file that actually does.
 func generateGoodFlac(workDir string) ([]byte, error) {
 	wav := filepath.Join(workDir, "gen.wav")
 	flacPath := filepath.Join(workDir, "gen.flac")

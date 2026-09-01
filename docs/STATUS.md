@@ -15,16 +15,19 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 
 1. The Go rewrite is CODE-COMPLETE through T11 (all tasks accepted;
    consolidation landed at 4489c99: simplifier sweep, vale comment
-   gate, tidy-check; gate green). Remaining: T12–T14 per the plan —
-   T12's repo side (deploy.sh build-and-ship, dubplate-* check/backup
-   units, additive DUBPLATE_* env names) then Geoff-sanctioned box
-   flips; one green timer cycle (daily backup included) gates T13;
-   T14 renames the estate. Carries into T14's sweep:
-   `internal/beets` `subsonicClient = "musicbox"`. Spend ≈4.3M of the
-   approved 5.5M. Overage + per-step box sanction granted by Geoff
-   2026-08-31.
+   gate, tidy-check; gate green). T12's repo side (deploy.sh
+   build-and-ship, dubplate-* check/backup units, additive DUBPLATE_*
+   env names) and the Geoff-sanctioned box flips landed; T13's review
+   blockers and repo-side closeout, plus T14's repo rename sweep
+   (`internal/beets` `subsonicClient` now "dubplate"; the spec/plan
+   chain migrated into `docs/superpowers/`), are done in this working
+   tree. Remaining: T14's box + estate steps (the conductor's job —
+   `/etc/musicbox` → `/etc/dubplate`, pings check re-registration,
+   `~/Projects/musicbox` → `~/Projects/dubplate`). Spend ≈4.3M of the
+   approved 5.5M before this pass. Overage + per-step box sanction
+   granted by Geoff 2026-08-31.
 2. Uploader plan APPROVED (Geoff 2026-08-31, two adversarial rounds):
-   `~/.dotfiles/docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
+   `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
    Gate 3 (iPad picker) already CLOSED documentarily — see the plan's
    Gate outcomes; gates 1–2 run post-Pass-A against the real serve.
 3. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
@@ -56,9 +59,10 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 | Navidrome | `deluan/navidrome` | `0.63.2` |
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` |
-| yq (box, cloud-init) | `mikefarah/yq` | `v4.53.6` |
 
 FileBrowser (`gtstef/filebrowser 1.5.5-stable`) retires with the uploader.
 Re-verify pins before any fresh provision.
 
-**Next action**: run the Go rewrite plan (rule 1).
+**Next action**: the rewrite's box + estate close (rule 1): deploy the
+end state, flip all units, retire old-name box paths, swap the pings
+slugs, rename the workstation directory — then launch uploader Pass A.

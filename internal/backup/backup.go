@@ -1,6 +1,7 @@
 // Package backup runs one dubplate backup: a consistent sqlite3 snapshot
 // of the beets and Navidrome databases, then an rclone sync of the
-// library and the snapshot to R2. It replaces scripts/music-backup.
+// library and the snapshot to R2. It replaces the retired shell layer's
+// scripts/music-backup.
 package backup
 
 import (

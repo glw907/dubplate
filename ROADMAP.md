@@ -1,9 +1,12 @@
 # ROADMAP
 
 > Strategic initiatives. Managed by `/log-project`. Issues tracked in `BACKLOG.md`.
-> The estate renamed musicbox → dubplate 2026-08-31 (repo/paths converge at the
-> rewrite's T14). Product essence: a group of family or friends building a
-> well-organized library for a shared Navidrome server.
+> The estate renamed musicbox → dubplate 2026-08-31; the rewrite's T14 is
+> landing the repo-side convergence (spec/plan chain migrated into
+> `docs/superpowers/`, remaining code and doc references swept), with the
+> box move and the `~/Projects/musicbox` → `~/Projects/dubplate` directory
+> rename still to follow. Product essence: a group of family or friends
+> building a well-organized library for a shared Navidrome server.
 
 ## Active
 
@@ -11,8 +14,9 @@
 The box-side shell layer becomes one `dubplate` binary (import, backup, beet,
 ping-fail, checks, doctor, restore), migrated per-subcommand with rollback,
 carrying the estate rename. Fifteen tasks; a fresh session executes. Plan:
-`~/.dotfiles/docs/superpowers/plans/2026-08-30-dubplate-go-rewrite.md` — spec
-beside it. Starts after the refinement close-out commit lands on master.
+`docs/superpowers/plans/2026-08-30-dubplate-go-rewrite.md` — spec beside it
+in `docs/superpowers/specs/`. Starts after the refinement close-out commit
+lands on master.
 
 ## Planned
 
@@ -21,7 +25,7 @@ The estate's one user-facing surface: `dubplate serve` + a bespoke Svelte 5 /
 DaisyUI page replacing FileBrowser — album-unit validation at upload, an honest
 journey to "in your library", a collections picker, kind rejection copy. Spec
 (approved 2026-08-31 through three adversarial reviews, plan at kickoff):
-`~/.dotfiles/docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md`.
+`docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md`.
 Supersedes the 2026-08-30 upload-check draft. Runs after `go-rewrite`; three
 pre-pass gates (SSE spike through the real tunnel, chunk-size timing, real-iPad
 picker check).

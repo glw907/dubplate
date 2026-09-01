@@ -16,9 +16,9 @@
   ssh is fine for reviews.
 - **pings Worker** (`~/Projects/pings`): admin API at pings.907.life with
   `$PINGS_ADMIN_TOKEN`; per-check ping URLs are capability tokens minted
-  into the age store as `DUBPLATE_PING_*` (transitionally `MUSICBOX_HC_*`).
+  into the age store as `DUBPLATE_PING_*`.
 - **Secrets flow**: age store is the origin
   (`~/.dotfiles/scripts/secrets/secret-set.sh`, registry in
-  `~/.dotfiles/secrets/registry.md`); `env/musicbox.env.template` is the
+  `~/.dotfiles/secrets/registry.md`); `env/dubplate.env.template` is the
   manifest deploy.sh renders onto the box. Never commit values; never print
   them.

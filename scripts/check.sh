@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # check.sh: the repo gate. `make check` covers the Go module (build, vet,
-# golangci-lint, test); shellcheck and bats cover the shell layer during
-# the migration window. Exits nonzero on any failure so it can be wired
-# into CI or a pre-push hook unmodified.
+# golangci-lint, test), the Go suites being the only coverage now that the
+# shell layer and its bats suites are gone; shellcheck still covers the
+# scripts that remain (deploy.sh, check.sh itself, vale-comments.sh,
+# provision.sh). Exits nonzero on any failure so it can be wired into CI or
+# a pre-push hook unmodified.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -22,10 +24,6 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   echo "check.sh: shellcheck not found; install it (brew install shellcheck)." >&2
   exit 1
 fi
-if ! command -v bats >/dev/null 2>&1; then
-  echo "check.sh: bats not found; install it (brew install bats-core)." >&2
-  exit 1
-fi
 
 echo "== make check (Go) =="
 if ! make check; then
@@ -33,8 +31,10 @@ if ! make check; then
 fi
 
 echo "== shellcheck =="
-# -P scripts resolves each script's "source=./lib.sh" relative to the
-# scripts/ directory regardless of the caller's own working directory.
+# -P scripts resolves any script's relative `source=` directive against the
+# scripts/ directory regardless of the caller's own working directory (no
+# remaining script sources another one, now that lib.sh is gone, but the
+# flag costs nothing to keep).
 bash_scripts=()
 for f in scripts/*; do
   [ -f "$f" ] || continue
@@ -64,11 +64,6 @@ else
   status=1
 fi
 
-echo "== bats =="
-if ! bats tests/; then
-  status=1
-fi
-
 echo "== vale (Go comment prose) =="
 if ! scripts/vale-comments.sh; then
   status=1
@@ -86,8 +81,8 @@ fi
 echo "== systemd unit verification =="
 # systemd-analyze verify insists every ExecStart= binary already exists on
 # THIS machine, which is never true here: the paths are box-only
-# (/usr/local/bin/music-import etc., installed by deploy.sh, never present
-# on the workstation). That specific complaint is expected and filtered out
+# (/usr/local/bin/dubplate, installed by deploy.sh, never present on the
+# workstation). That specific complaint is expected and filtered out
 # by pattern; any other verify output (bad section, missing directive, bad
 # OnCalendar syntax, and so on) still fails the gate. This is the
 # pattern-filtered `systemd-analyze verify` approach, not a grep-based
