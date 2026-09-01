@@ -35,7 +35,12 @@ export type FailureKind = 'signed-out' | 'rejected' | 'retryable';
 /**
  * Classifies status/contentType as {@link FailureKind}. An HTML
  * content-type on any status is treated as signed-out first: Access's
- * own reauth page can arrive on a 200, not only a 401.
+ * own reauth page can arrive on a 200, not only a 401. A missing or
+ * sub-400 status is a network-level failure (offline, DNS, a dropped
+ * connection, `status: 0` from {@link responseDetails}) rather than a
+ * server verdict, so it is retryable the same as a 5xx -- otherwise the
+ * most common transient failure the ladder exists for would look like a
+ * terminal server rejection.
  */
 export function classifyFailure(status: number, contentType: string | null): FailureKind {
 	if (contentType !== null && contentType.toLowerCase().startsWith('text/html')) {
@@ -44,7 +49,7 @@ export function classifyFailure(status: number, contentType: string | null): Fai
 	if (status === 401) {
 		return 'signed-out';
 	}
-	if (status >= 500) {
+	if (status < 400 || status >= 500) {
 		return 'retryable';
 	}
 	return 'rejected';
@@ -138,6 +143,14 @@ export interface TusUploadHandlers {
 	/** Fires once the creation POST returns a URL, well before completion -- the resume anchor to persist. */
 	onUploadURLAvailable(uploadURL: string): void;
 	onProgress(progressBytes: number, totalBytes: number): void;
+	/**
+	 * Fires once per completed chunk with the server-confirmed tus
+	 * offset (`bytesAccepted`) -- the honest "acked" figure, distinct
+	 * from `onProgress`'s client-observed transfer bytes and always
+	 * lagging behind it (passb-copy-final.md section 2's "{acked_bytes}
+	 * confirmed" readout).
+	 */
+	onAcked(bytesAccepted: number): void;
 	onSuccess(uploadURL: string | null): void;
 	/** A 401 or an HTML body: the session expired, no retry budget spent. */
 	onSignedOut(): void;
@@ -212,6 +225,9 @@ export function createTusDriver(): TusDriver {
 				onProgress: (bytesSent, bytesTotal) => {
 					lastProgressBytes = bytesSent;
 					handlers.onProgress(bytesSent, bytesTotal);
+				},
+				onChunkComplete: (_chunkSize, bytesAccepted) => {
+					handlers.onAcked(bytesAccepted);
 				},
 				onSuccess: () => {
 					handlers.onSuccess(upload.url);

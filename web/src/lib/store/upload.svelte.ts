@@ -298,6 +298,9 @@ export class UploadStore {
 				onProgress: (progressBytes) => {
 					entry.progressBytes = progressBytes;
 				},
+				onAcked: (ackedBytes) => {
+					entry.ackedBytes = ackedBytes;
+				},
 				onSuccess: (uploadURL) => {
 					entry.status = 'ok';
 					entry.progressBytes = entry.size;

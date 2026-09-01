@@ -21,6 +21,10 @@ describe('classifyFailure', () => {
 			expect(classifyFailure(status, 'application/json')).toBe('rejected');
 		}
 	});
+
+	it('classifies status 0 as retryable (a network-level failure, not a server verdict)', () => {
+		expect(classifyFailure(0, null)).toBe('retryable');
+	});
 });
 
 function freshState(chunkSizeBytes = 8 * 1024 * 1024): RetryState {
@@ -79,6 +83,13 @@ describe('decideRetry', () => {
 		const exhausted = decideRetry(state, { status: 500, contentType: 'application/json', offset: retryDelays.length });
 		expect(exhausted.action).toBe('stalled');
 		expect(exhausted.delayMs).toBe(0);
+	});
+
+	it('retries a status-0 network failure at the ladder start (a Wi-Fi blip is not a rejection)', () => {
+		const state = freshState();
+		const decision = decideRetry(state, { status: 0, contentType: null, offset: 0 });
+		expect(decision.action).toBe('retry');
+		expect(decision.delayMs).toBe(retryDelays[0]);
 	});
 
 	it('signs out on a 401 without spending any retry budget', () => {

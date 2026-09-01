@@ -142,16 +142,17 @@ describe('addFile and startFile', () => {
 		expect(store.files[0].status).toBe('uploading');
 	});
 
-	it('keeps progressBytes (transfer) and ackedBytes (server-confirmed) distinct until success', async () => {
+	it('keeps progressBytes (transfer) and ackedBytes (server-confirmed) distinct, acked lagging transfer', async () => {
 		const { store, driver } = await readyStore();
 		const id = store.addFile(testFile('track01.flac', 1000));
 		store.startFile(id, {});
 
 		driver.lastHandlers().onProgress(400, 1000);
+		driver.lastHandlers().onAcked(256);
 
 		const entry = store.files[0];
 		expect(entry.progressBytes).toBe(400);
-		expect(entry.ackedBytes).toBe(0);
+		expect(entry.ackedBytes).toBe(256);
 	});
 
 	it('marks a file ok and sets both progress fields to its full size on success', async () => {
