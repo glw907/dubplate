@@ -13,23 +13,20 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 
 ## Rules for a new session in this repo
 
-1. The Go rewrite's T1–T11 are LANDED (commit 6ec7aab, workflow
-   wf_edc843fb, gate green). Follow-up ledger before T12: T5 — restore
-   per-extension rejection wording via a path-aware line builder in
-   RenderEmail (conductor ruling 2026-08-31), port the pinned bats case,
-   exhaustive no-empty-Friendly test; T6 — archive/gate have ZERO tests
-   and were never reviewed (implementer died mid-task; T9's implementer
-   repaired the lint residue): write the T6 criteria tests (CD-quality
-   bats ports, corrupt-FLAC, traversal, caps, free-space-first) and
-   review against T6; T9 — fix the reviewer's two parity findings
-   (album-key derivation vs shell rel-path rule; could-not-move summary
-   branches); T11 — add the two missing tests (doctor report rendering,
-   bare/unknown `check` exits nonzero); then re-review T7/T8 (content
-   judged sound; escalations were red-gate context from T6). Spend:
-   ~3.2M of the 4M ceiling — T12–T14 (box tasks, Geoff-sanctioned) plus
-   consolidation will exceed it; Geoff decides overage vs split.
-2. Uploader plan drafted + twice adversarially reviewed, awaiting
-   Geoff's approval: `~/.dotfiles/docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
+1. The Go rewrite is CODE-COMPLETE through T11 (all tasks accepted;
+   consolidation landed at 4489c99: simplifier sweep, vale comment
+   gate, tidy-check; gate green). Remaining: T12–T14 per the plan —
+   T12's repo side (deploy.sh build-and-ship, dubplate-* check/backup
+   units, additive DUBPLATE_* env names) then Geoff-sanctioned box
+   flips; one green timer cycle (daily backup included) gates T13;
+   T14 renames the estate. Carries into T14's sweep:
+   `internal/beets` `subsonicClient = "musicbox"`. Spend ≈4.3M of the
+   approved 5.5M. Overage + per-step box sanction granted by Geoff
+   2026-08-31.
+2. Uploader plan APPROVED (Geoff 2026-08-31, two adversarial rounds):
+   `~/.dotfiles/docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
+   Gate 3 (iPad picker) already CLOSED documentarily — see the plan's
+   Gate outcomes; gates 1–2 run post-Pass-A against the real serve.
 3. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
 
 ## Open items (carried)

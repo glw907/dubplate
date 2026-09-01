@@ -2,7 +2,43 @@
 
 Per-pass ledger, newest first.
 
-## Bring-up runbook execution: seed, backup, monitoring truth (2026-08-31)
+## Go rewrite, repo phase T1–T11 (2026-08-31)
+
+The shell layer's replacement landed as one `dubplate` binary: sixteen
+internal packages plus cmd and an e2e harness with stub beet/rclone/
+sqlite3, all through the implementer/opus-diff-reviewer/gate chain via
+two pass-execute workflows (wf_edc843fb, wf_048446d1) plus follow-up
+dispatches. All eleven tasks accepted; consolidation added the
+code-simplifier sweep, poplar's vale comment-prose gate (vendored
+overlay, hard-fail), and tidy-check. Commits 6ec7aab → 4489c99. Spend
+≈4.3M of the raised 5.5M ceiling (original 4M overrun approved by Geoff
+at the 3.2M checkpoint); human interaction: plan approval (pre-session),
+one combined overage/SMTP question, one per-step-sanction standing
+grant. The chain caught real defects at every level: a config env-scan
+panic, a vacuous TLS assertion, ping-fail exit semantics, two importer
+shell-parity divergences, and a contract-wording regression (T5).
+
+What a later pass would be wrong to rediscover:
+
+- An implementer agent can DIE mid-task (API drop) leaving compiling but
+  untested, unreviewed code; the workflow journal records nothing for it
+  and neighbor tasks inherit red gates that look like their own
+  failures. Signature: a task with no journal record + innocent
+  escalations citing out-of-scope lint. Recovery: complete + review the
+  orphan task explicitly; re-review the neighbors after.
+- Dispatches carrying a reviewer's verbatim LOCATION/FINDING/FIX text as
+  acceptance criteria went through at zero fix rounds; paraphrased
+  criteria averaged one. Pre-extract findings, never summarize them.
+- Rejection wording is per-extension via a path-aware builder inside
+  RenderEmail (Friendly() cannot carry the extension; its signature is
+  contract). The shell's ungrammatical "an WAV" is pinned deliberately.
+- `internal/beets` carries `subsonicClient = "musicbox"` matching the
+  live shell; it flips in T14's rename sweep, never earlier.
+- review.Filer's dirs are direct destinations, not tree roots
+  (documented at review.go:22): importer builds two differently
+  configured Filers, one for filing, one for sweeping.
+- The e2e ENOTDIR blocked-path fixture (a plain file where a dir is
+  expected) is deliberate: chmod fixtures pass trivially under root.
 
 A separate agent executed the bring-up runbook against the live box; the
 close-out session verified steps 5–7 read-only from the box and committed
