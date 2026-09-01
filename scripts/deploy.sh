@@ -3,11 +3,16 @@ set -euo pipefail
 
 # Deploys musicbox to the box: rsyncs repo config, renders /etc/musicbox/env
 # from env/musicbox.env.template plus the workstation age-store values,
-# installs the Task 2 scripts and this task's systemd units to their fixed
-# paths, brings the compose stack up, and installs beets via uv as the
-# "music" user. Idempotent: re-running against an unchanged box is a no-op
-# diff (rsync's own reporting, plus the env-render and compose-up steps
-# being naturally idempotent).
+# cross-compiles and ships the dubplate Go binary, installs the Task 2
+# scripts and every systemd unit (shell-layer and dubplate-*) to their
+# fixed paths, brings the compose stack up, and installs beets via uv as
+# the "music" user. Idempotent: re-running against an unchanged box is a
+# no-op diff (rsync's own reporting, plus the env-render and compose-up
+# steps being naturally idempotent). Shipping a dubplate-* unit here does
+# not enable it -- see UNIT_FILES vs. TIMER_UNITS below -- flipping a job
+# from its shell predecessor to dubplate is a supervised step the rewrite
+# plan's box tasks run explicitly, never a side effect of a routine
+# deploy.
 #
 # Usage:
 #   deploy.sh [--check] [HOST]
@@ -38,13 +43,22 @@ SCRIPT_FILES=(
 )
 # One job per line, each service beside its own timer (the ping-failure
 # template has none), so a new job is added as a visible pair rather than
-# appended to a run-on line.
+# appended to a run-on line. The dubplate-* units (rewrite plan T12) ride
+# alongside their music-*/musicbox-* shell predecessors rather than
+# replacing them here: this array only ships unit FILES to the box, it
+# never enables one (see the TIMER_UNITS enable-now list below), so both
+# generations can sit on disk at once while the conductor's supervised
+# flip -- not a routine deploy -- decides which is live. The old units
+# leave this array only in T13, once every job has flipped.
 UNIT_FILES=(
   music-import.service music-import.timer
   music-backup.service music-backup.timer
   musicbox-ping-failure@.service
   musicbox-disk-check.service musicbox-disk-check.timer
   musicbox-navidrome-check.service musicbox-navidrome-check.timer
+  dubplate-backup.service dubplate-backup.timer
+  dubplate-disk-check.service dubplate-disk-check.timer
+  dubplate-navidrome-check.service dubplate-navidrome-check.timer
 )
 
 # ControlMaster/ControlPersist share one TCP+SSH handshake across this run's
@@ -206,6 +220,31 @@ else
   rsync -avz -e "$RSYNC_SSH" "${UNIT_FILES[@]/#/$REPO_ROOT/systemd/}" "$SSH_TARGET:/etc/systemd/system/"
 fi
 
+# --- dubplate binary -> /usr/local/bin/dubplate -------------------------
+# Cross-compiles via the Makefile's build-linux target (CGO_ENABLED=0
+# GOOS=linux GOARCH=amd64), the same artifact `make check` never ships
+# itself. The build runs under --check too: it only writes the gitignored
+# local binary (never touches the box), and running it is what lets
+# --check's rsync -n report a real diff instead of guessing from a stale
+# local copy.
+echo "== dubplate binary -> $SSH_TARGET:/usr/local/bin/dubplate =="
+make -C "$REPO_ROOT" build-linux
+DUBPLATE_BINARY="$REPO_ROOT/dubplate-linux-amd64"
+if $check_only; then
+  rsync -avzn -e "$RSYNC_SSH" "$DUBPLATE_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate" || true
+else
+  rsync -avz -e "$RSYNC_SSH" "$DUBPLATE_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate"
+  run_remote "chmod 0755 /usr/local/bin/dubplate"
+fi
+
+# Smoke test: a binary that rsynced and chmodded fine can still fail to
+# execute (wrong GOARCH, a missing dynamic dependency the box lacks); `set
+# -euo pipefail` makes a non-zero exit here abort the whole deploy rather
+# than leaving a broken binary in place undetected until the next timer
+# fires.
+echo "== smoke test: dubplate version =="
+run_remote "/usr/local/bin/dubplate version"
+
 # --- /etc/musicbox/env --------------------------------------------------
 # Not deploy_file: this content is assembled in memory from secrets and must
 # never touch local disk (see the usage note at the top of this file), so
@@ -267,9 +306,30 @@ run_remote "mkdir -p $STATE_DIRS && chown 2000:2000 $STATE_DIRS"
 # pre-created here rather than left to the scripts' own mkdir -p, which
 # only helps once the sandbox is already up. music:music matches the
 # scripts' own User=music.
+#
+# It is also DUBPLATE_STATE_DIR (rewrite plan T12): dubplate's own lock
+# files (internal/lock.Path, internal/backup's "backup.lock"), the import
+# run report, and the per-run tag log all live here too, unified under one
+# persistent directory rather than the shell layer's split between this
+# path (lock only) and /srv/music/state (everything else) -- so no
+# separate pre-create is needed for dubplate-backup.service's own
+# ReadWritePaths, this directory already covers it.
 MUSICBOX_LIB_DIR="/var/lib/musicbox"
 echo "== $MUSICBOX_LIB_DIR =="
 run_remote "mkdir -p $MUSICBOX_LIB_DIR && chown music:music $MUSICBOX_LIB_DIR"
+
+# --- /srv/music/state/backup-staging (dubplate-backup.service) ------------
+# internal/backup.Runner stages the sqlite3 snapshots here before syncing
+# them to R2, clearing this directory's CONTENTS (never the directory
+# itself) on every run, under ProtectSystem=strict with
+# ReadWritePaths=/srv/music/state/backup-staging;
+# same "must exist on the host before the unit starts" requirement as
+# /var/lib/musicbox above. Kept on the /srv/music volume (not
+# /var/lib/musicbox) since a large library's DB snapshots belong beside the
+# library's own disk budget, not the root filesystem's.
+DUBPLATE_BACKUP_STAGING_DIR="/srv/music/state/backup-staging"
+echo "== $DUBPLATE_BACKUP_STAGING_DIR =="
+run_remote "mkdir -p $DUBPLATE_BACKUP_STAGING_DIR && chown music:music $DUBPLATE_BACKUP_STAGING_DIR"
 
 # --- compose stack -------------------------------------------------------
 COMPOSE_CMD="docker compose --env-file $REMOTE_ENV -f $REMOTE_DIR/compose.yaml --project-directory $REMOTE_DIR up -d"
@@ -277,6 +337,10 @@ echo "== compose stack =="
 run_remote "$COMPOSE_CMD"
 
 # --- systemd timers --------------------------------------------------
+# Deliberately still the shell-layer timers only: daemon-reload above (via
+# the units rsync) makes systemd aware of the dubplate-* units too, but
+# enabling them is the rewrite plan's supervised per-job flip, not this
+# routine step -- see the UNIT_FILES comment above.
 echo "== systemd timers =="
 TIMER_UNITS="music-import.timer music-backup.timer musicbox-disk-check.timer musicbox-navidrome-check.timer"
 run_remote "systemctl daemon-reload && systemctl enable --now $TIMER_UNITS"

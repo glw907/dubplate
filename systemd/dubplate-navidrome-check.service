@@ -1,0 +1,25 @@
+[Unit]
+Description=dubplate: HTTP heartbeat against Navidrome's /rest/ping
+# Rewrite plan T12: the Go binary's replacement for
+# musicbox-navidrome-check.service, shipped alongside it (see
+# dubplate-backup.service's comment for the shared flip/OnFailure
+# doctrine). OnFailure still targets the shell musicbox-ping-failure@
+# template (MUSICBOX_HC_NAVIDROME_URL); belt and suspenders alongside
+# internal/checks.NavidromeChecker's own fail ping
+# (DUBPLATE_PING_NAVIDROME_URL), catching a crash before Run ever reaches
+# its own ping call.
+OnFailure=musicbox-ping-failure@navidrome.service
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/musicbox/env
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+# No ReadWritePaths: NavidromeChecker only issues an outbound HTTP GET and
+# sends an HTTP ping, matching musicbox-navidrome-check.service's own
+# no-writes shape.
+ExecStart=/usr/local/bin/dubplate check navidrome

@@ -1,0 +1,44 @@
+[Unit]
+Description=dubplate: nightly backup of the beets and Navidrome databases to R2
+# Rewrite plan T12: the Go binary's replacement for music-backup.service,
+# shipped alongside it rather than in place of it -- deploy.sh lists this
+# unit but does not enable it (see deploy.sh's UNIT_FILES/TIMER_UNITS
+# comments); the conductor's supervised flip enables this timer and
+# disables music-backup.timer in the same step.
+#
+# OnFailure still targets the EXISTING musicbox-ping-failure@ template
+# (the shell script, MUSICBOX_HC_BACKUP_URL) rather than `dubplate
+# ping-fail`: that flip is T13's, alongside music-import's. Belt and
+# suspenders alongside internal/backup's own success/fail ping (via
+# DUBPLATE_PING_BACKUP_URL): this catches a crash before Run ever reaches
+# its own ping call.
+OnFailure=musicbox-ping-failure@backup.service
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/musicbox/env
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+# /var/lib/musicbox (DUBPLATE_STATE_DIR) holds this run's backup.lock
+# (internal/backup's lockPath); /srv/music/state/backup-staging
+# (DUBPLATE_BACKUP_STAGING) is where it stages the sqlite3 .backup
+# snapshots before rclone syncs them to R2. LibraryDir and both source
+# databases are read-only under this unit -- ProtectSystem=strict leaves
+# the rest of the filesystem readable, just not writable -- so neither
+# needs a ReadWritePaths entry. Both paths are pre-created by deploy.sh
+# (music:music); ReadWritePaths requires the host path to already exist or
+# the unit fails to start with "Failed to set up mount namespacing".
+#
+# The grant on backup-staging is deliberately leaf-only, not its parent
+# /srv/music/state (which also holds Navidrome's live database and must
+# stay read-only to this unit). That is why internal/backup clears
+# backup-staging by removing its CONTENTS rather than the directory itself
+# on every run: rmdir-ing the directory would rewrite its parent's
+# entries, which sit outside this narrow grant, while each child lives
+# inside the writable bind mount and can be removed freely.
+ReadWritePaths=/var/lib/musicbox /srv/music/state/backup-staging
+ExecStart=/usr/local/bin/dubplate backup

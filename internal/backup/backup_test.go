@@ -222,6 +222,56 @@ func TestRunLockHeldPingsSuccessAndTouchesNothing(t *testing.T) {
 	}
 }
 
+func TestRunClearsStaleStagingContentsButKeepsDir(t *testing.T) {
+	r, cfg := newTestRunner(t, okScript, okScript)
+
+	if err := os.MkdirAll(cfg.Paths.BackupStaging, 0o755); err != nil {
+		t.Fatalf("mkdir backup staging: %v", err)
+	}
+	stalePath := filepath.Join(cfg.Paths.BackupStaging, "stale.db")
+	if err := os.WriteFile(stalePath, []byte("stale"), 0o644); err != nil {
+		t.Fatalf("write stale file: %v", err)
+	}
+	before, err := os.Stat(cfg.Paths.BackupStaging)
+	if err != nil {
+		t.Fatalf("stat backup staging before run: %v", err)
+	}
+
+	if err := r.Run(context.Background()); err != nil {
+		t.Fatalf("Run() unexpected error: %v", err)
+	}
+
+	if _, err := os.Stat(stalePath); !os.IsNotExist(err) {
+		t.Errorf("stat stale.db after Run() = %v, want IsNotExist", err)
+	}
+	after, err := os.Stat(cfg.Paths.BackupStaging)
+	if err != nil {
+		t.Fatalf("stat backup staging after run: %v", err)
+	}
+	if !os.SameFile(before, after) {
+		t.Error("backup staging directory was recreated rather than left in place")
+	}
+}
+
+func TestRunCreatesMissingStagingDir(t *testing.T) {
+	r, cfg := newTestRunner(t, okScript, okScript)
+	if _, err := os.Stat(cfg.Paths.BackupStaging); !os.IsNotExist(err) {
+		t.Fatalf("backup staging exists before run: %v", err)
+	}
+
+	if err := r.Run(context.Background()); err != nil {
+		t.Fatalf("Run() unexpected error: %v", err)
+	}
+
+	info, err := os.Stat(cfg.Paths.BackupStaging)
+	if err != nil {
+		t.Fatalf("stat backup staging after run: %v", err)
+	}
+	if !info.IsDir() {
+		t.Error("backup staging is not a directory")
+	}
+}
+
 func TestRunPingsSuccessOnCleanRun(t *testing.T) {
 	hits := 0
 	server := newPingTestServer(t, &hits)

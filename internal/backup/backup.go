@@ -83,11 +83,8 @@ func (r *Runner) Run(ctx context.Context) error {
 		return err
 	}
 
-	if err := os.RemoveAll(r.Cfg.Paths.BackupStaging); err != nil {
-		return fmt.Errorf("clear backup staging %s: %w", r.Cfg.Paths.BackupStaging, err)
-	}
-	if err := os.MkdirAll(r.Cfg.Paths.BackupStaging, 0o755); err != nil {
-		return fmt.Errorf("create backup staging %s: %w", r.Cfg.Paths.BackupStaging, err)
+	if err := clearStagingContents(r.Cfg.Paths.BackupStaging); err != nil {
+		return err
 	}
 
 	if err := r.snapshotDB(ctx, r.Cfg.BeetsDB, filepath.Join(r.Cfg.Paths.BackupStaging, "library.db")); err != nil {
@@ -132,6 +129,36 @@ func checkLibraryDir(dir string) error {
 	}
 	if len(entries) == 0 {
 		return fmt.Errorf("%s: %w", dir, ErrLibraryEmpty)
+	}
+	return nil
+}
+
+// clearStagingContents removes every entry inside dir, leaving dir's own
+// directory entry in place. That distinction matters under
+// ProtectSystem=strict: removing dir itself writes to dir's PARENT, which
+// sits outside the unit's ReadWritePaths grant on dir alone, while each
+// child lives inside that writable bind mount and can be removed freely.
+// A missing dir is created rather than reported as an error, for the
+// fresh-box case where this runs by hand before deploy.sh has pre-created
+// it; that is the one path where writing the parent is unavoidable, and
+// the unit never reaches it (systemd refuses to start with a
+// ReadWritePaths entry that does not exist).
+func clearStagingContents(dir string) error {
+	entries, err := os.ReadDir(dir)
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return fmt.Errorf("create backup staging %s: %w", dir, err)
+		}
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("read backup staging %s: %w", dir, err)
+	}
+	for _, entry := range entries {
+		path := filepath.Join(dir, entry.Name())
+		if err := os.RemoveAll(path); err != nil {
+			return fmt.Errorf("clear backup staging entry %s: %w", path, err)
+		}
 	}
 	return nil
 }

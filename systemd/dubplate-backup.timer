@@ -1,0 +1,15 @@
+[Unit]
+Description=dubplate: run dubplate-backup daily at 11:30 UTC
+
+[Timer]
+# Mirrors music-backup.timer's own schedule and jitter exactly: same job,
+# same rationale for both numbers (a small fraction of the 24-hour
+# interval avoids R2 uploads landing on the same wall-clock second every
+# day without meaningfully delaying the backup).
+OnCalendar=*-*-* 11:30:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=dubplate-backup.service
+
+[Install]
+WantedBy=timers.target

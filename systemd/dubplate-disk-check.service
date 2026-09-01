@@ -1,0 +1,24 @@
+[Unit]
+Description=dubplate: check /srv/music's filesystem for low free space
+# Rewrite plan T12: the Go binary's replacement for
+# musicbox-disk-check.service, shipped alongside it (see
+# dubplate-backup.service's comment for the shared flip/OnFailure
+# doctrine). OnFailure still targets the shell musicbox-ping-failure@
+# template (MUSICBOX_HC_DISK_URL); belt and suspenders alongside
+# internal/checks.DiskChecker's own fail ping (DUBPLATE_PING_DISK_URL),
+# catching a crash before Run ever reaches its own ping call.
+OnFailure=musicbox-ping-failure@disk.service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=music
+EnvironmentFile=/etc/musicbox/env
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+# No ReadWritePaths: DiskChecker only statfs(2)s LibraryDir's filesystem
+# and sends an HTTP ping, matching musicbox-disk-check.service's own
+# no-writes shape.
+ExecStart=/usr/local/bin/dubplate check disk
