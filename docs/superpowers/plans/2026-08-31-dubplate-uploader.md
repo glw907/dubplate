@@ -169,6 +169,15 @@ checkable from outside the flow, in-flight resumables listed); the
 roster-absent warm page. Device matrix per screen: desktop / iPad
 portrait (the steps-overflow case) / phone.
 
+**Design-language ruling (Geoff, 2026-08-31): the uploader uses
+Navidrome's basic design language** — its dark theme's near-black
+ground, Material blue as the service accent, uppercase action buttons,
+flat cards, system sans — so the page reads as the same service, not a
+sibling brand. DaisyUI theme tokens are configured to this palette in
+U9; the journey mockups (claude.ai artifact "Dubplate Uploader
+Mockups") are the reference for register and layout pending Geoff's
+taste pass.
+
 **P3 — Mockups and ratification.** Static mockups built directly in
 DaisyUI 5 markup (they double as the component vocabulary and prove the
 stock-components constraint); light and dark; the device matrix rendered
