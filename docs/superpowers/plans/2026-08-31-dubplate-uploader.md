@@ -175,8 +175,11 @@ ground, Material blue as the service accent, uppercase action buttons,
 flat cards, system sans — so the page reads as the same service, not a
 sibling brand. DaisyUI theme tokens are configured to this palette in
 U9; the journey mockups (claude.ai artifact "Dubplate Uploader
-Mockups") are the reference for register and layout pending Geoff's
-taste pass.
+Mockups") are the reference for register and layout — **RATIFIED by
+Geoff 2026-09-01 ("overall design language looks perfect") with one
+carried note: minor spacing-rhythm issues in the mockups; the build
+derives spacing from U9's theme scale rather than copying mockup
+paddings, and rhythm is a named focus for the reviewer fan-out.**
 
 **P3 — Mockups and ratification.** Static mockups built directly in
 DaisyUI 5 markup (they double as the component vocabulary and prove the
