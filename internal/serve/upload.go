@@ -120,6 +120,13 @@ func unavailableTagProbe(context.Context, string) (TagProbeResult, error) {
 	return TagProbeResult{}, ErrTagProbeUnavailable
 }
 
+// tagProbeTimeout bounds the tag-check probe [Engine.completeSession]
+// runs: the contributor is watching the Matching step live, so three
+// minutes is the ceiling before completeSession gives up on
+// MusicBrainz and falls back to the honest probe-unavailable state
+// rather than leaving the request hanging.
+const tagProbeTimeout = 3 * time.Minute
+
 // Engine is dubplate's upload engine: the tus protocol handler, the
 // in-flight session store, and the promotion logic that turns a
 // completed, passing session into an inbox directory the importer picks
@@ -605,7 +612,9 @@ func (e *Engine) completeSession(sess *Session) sessionOutcome {
 		return out
 	}
 
-	result, err := e.tagProbe(context.Background(), filepath.Join(e.cfg.Paths.UploadsDir, sess.ID))
+	ctx, cancel := context.WithTimeout(context.Background(), tagProbeTimeout)
+	defer cancel()
+	result, err := e.tagProbe(ctx, filepath.Join(e.cfg.Paths.UploadsDir, sess.ID))
 	switch {
 	case err != nil:
 		out.ProbeUnavailable = true

@@ -1007,6 +1007,43 @@ func TestTagProbe_UnavailableHoldsWithHonestState(t *testing.T) {
 	}
 }
 
+// TestTagProbe_ContextCarriesTimeoutDeadline proves completeSession
+// bounds the tag-check probe with [tagProbeTimeout] rather than handing
+// it a context that never expires: a stub probe captures the ctx it
+// receives, and the test asserts it carries a deadline within
+// tagProbeTimeout of the call.
+func TestTagProbe_ContextCarriesTimeoutDeadline(t *testing.T) {
+	var gotDeadline time.Time
+	var hadDeadline bool
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: func(ctx context.Context, dir string) (TagProbeResult, error) {
+			gotDeadline, hadDeadline = ctx.Deadline()
+			return TagProbeResult{Confident: true}, nil
+		},
+	})
+	sessID := te.createSession(t, "Deadline Check Album", "", 1)
+
+	before := time.Now()
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	after := time.Now()
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+
+	if !hadDeadline {
+		t.Fatal("probe ctx had no deadline, want one bounded by tagProbeTimeout")
+	}
+	earliest := before.Add(tagProbeTimeout)
+	latest := after.Add(tagProbeTimeout)
+	if gotDeadline.Before(earliest) || gotDeadline.After(latest) {
+		t.Fatalf("probe ctx deadline = %v, want within [%v, %v] (tagProbeTimeout from the call)", gotDeadline, earliest, latest)
+	}
+}
+
 // TestTagProbe_DefaultOptionsFailsClosed proves that with no
 // [Options.TagProbe] wired in at all -- production's state until U8's
 // probe is connected in cmd/dubplate/serve.go -- a main-lane session
