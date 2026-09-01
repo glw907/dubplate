@@ -22,13 +22,17 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
    evidence (backup fires ~11:37 UTC) confirms unattended operation;
    the dead-man checks alert if not. Then the pass post-mortem.
    Kept identifiers: README's list. Spend ≈5.0M of the approved 5.5M.
-2. Uploader Pass A is CODE-COMPLETE (2026-09-01): U1–U8 through the
-   chain plus a five-task fix wave, all accepted; the custody-policy
-   journey (spec Journey addendum) and Private Recordings lane are the
-   ratified design; design language, mockups, and pushed-back copy
-   ratified by Geoff. Remaining: U12a box sitting (Access app + AUD
-   mint + serve deploy + end-to-end verify), then gates 1–2 against
-   the live serve, then Pass B (web). Plan:
+2. Uploader Pass A is CLOSED (2026-09-01): U1–U8 through the chain,
+   the U12a box sitting done, and gates 1–2 PASSED against the live
+   serve through the real path (Access email-code login, tunnel);
+   outcomes recorded in the plan's Gate outcomes section. The uploader
+   lives at https://music.907.life/upload (path-scoped Access app
+   "dubplate uploader", family allow policy; AUD minted; serve unit
+   hardened at exposure 2.3, enabled, with the import-nudge path unit).
+   FileBrowser still runs at inbox.907.life until U12b. Next: Pass B
+   (U9–U11 web, U12b cutover, U13), standing inputs in the session
+   scratchpad (passb-stack-brief.md, passb-copy-deck.md; copy deck
+   carries 7 pre-U9 revision items). Plan:
    `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
 3. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
 
@@ -63,6 +67,6 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 FileBrowser (`gtstef/filebrowser 1.5.5-stable`) retires with the uploader.
 Re-verify pins before any fresh provision.
 
-**Next action**: verify overnight timer evidence, then the rewrite
-post-mortem. Uploader Pass A (U1-U8) is executing via pass-execute in
-this repo; gates 1-2 run against the deployed serve after U12a.
+**Next action**: Pass B (U9 first; fold in the copy deck's revision
+items and the Access login page's ASC default branding, which needs
+uploader-appropriate name/logo text). Rewrite post-mortem still owed.
