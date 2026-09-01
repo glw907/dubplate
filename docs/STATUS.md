@@ -30,9 +30,9 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
    "dubplate uploader", family allow policy; AUD minted; serve unit
    hardened at exposure 2.3, enabled, with the import-nudge path unit).
    FileBrowser still runs at inbox.907.life until U12b. Next: Pass B
-   (U9–U11 web, U12b cutover, U13), standing inputs in the session
-   scratchpad (passb-stack-brief.md, passb-copy-deck.md; copy deck
-   carries 7 pre-U9 revision items). Plan:
+   (U9–U11 web, U12b cutover, U13), standing inputs in
+   docs/superpowers/research/passb-{stack-brief,copy-deck}.md (the
+   copy deck carries 7 pre-U9 revision items). Plan:
    `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
 3. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
 

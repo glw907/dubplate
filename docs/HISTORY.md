@@ -2,6 +2,34 @@
 
 Per-pass ledger, newest first.
 
+## Uploader Pass A close: U12a live, gates 1–2 passed (2026-09-01)
+
+The uploader went live at https://music.907.life/upload behind a
+path-scoped Access app (Geoff relocated it mid-sitting from its own
+hostname; the AUD survived the domain edit, so the minted secret held).
+serve mounts its whole tree under /upload via StripPrefix with tusd's
+BasePath threaded through Options.TusBasePath, because tusd bakes the
+configured base verbatim into the absolute Location clients resume
+against. Gates 1–2 were measured through the full production path by
+logging in through Access with an emailed code read over JMAP and
+driving fetch from the authenticated page: SSE heartbeats at exact 15s
+cadence with no edge buffering, Last-Event-ID resume in 120ms, tus
+offset persistence through an aborted PATCH. The gate found one defect
+(tusd stamping http:// behind the tunnel; fixed same hour with
+RespectForwardedHeaders).
+
+What a later pass would be wrong to rediscover: Docker's host-gateway
+magic resolves to docker0's gateway, never a named bridge's, so the
+compose alias pins 172.30.0.1 literally; a compose network recreate
+reattaches live containers WITHOUT service aliases (502'd Navidrome
+until force-recreate; now a vps-conventions row); Access service tokens
+pass Access but die at serve's roster-gated JWT check by design, so
+machine verification goes through the email-code flow; the Access login
+page wears the ASC org's default branding (Pass B fixes the app's own
+name/logo). Pass B standing inputs live in
+docs/superpowers/research/passb-{stack-brief,copy-deck}.md; the copy
+deck carries seven pre-U9 revision items.
+
 ## Go rewrite close: box cutover and estate rename, T12–T14 (2026-08-31)
 
 Geoff's no-users ruling collapsed the plan's staged migration (additive
