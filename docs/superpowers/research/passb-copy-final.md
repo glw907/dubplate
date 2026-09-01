@@ -67,7 +67,8 @@ Collection picker (renders only when config lists more than one collection):
 ## 2. Uploading
 
 - Per-track chips: "looks good" (passed) / "sending" (in flight) / "waiting" (not yet
-  started)
+  started) / "stopped" (transfer failed, awaiting retry; ratified post-build
+  2026-09-01: a failed row must never read as not-yet-started)
 - Progress readout: "{acked_bytes} confirmed" / "of {total_bytes}"
 - Hint: "Switching away pauses the upload; coming back resumes it. If the page
   closes, pick it up from Your uploads." *(critic finding 2: a killed tab loses the
@@ -115,6 +116,8 @@ Collection picker (renders only when config lists more than one collection):
   sentence "Nothing has uploaded yet." Multi-file path retry re-sends only the failing
   files; ZIP path retry copy: "Retrying re-uploads the zip."
 - Primary button: "Try another album"
+- Fallback body when the wire carries no detail (ratified post-build 2026-09-01):
+  "The album didn't pass its checks."
 
 Chip labels (the new `label` field; authority is `internal/reject`):
 bad-extension "not FLAC" / symlink "shortcut file" / corrupt "damaged in transit" /
@@ -171,7 +174,13 @@ too-many-sessions "too many uploads"
   checking "checking" / matching "matching" / importing "adding now" / in-library
   "in library" / pushed-back "pushed back" / rejected "wrong format" / queued
   "waiting its turn" / stalled "slow going" *(critic finding 6: distinct at a glance
-  from importing's "adding now")*
+  from importing's "adding now")* / review "needs a look" *(ratified post-build
+  2026-09-01: admin-timer-path albums can still surface this ledger state in
+  history even though the uploader flow never files review)*
+- Empty state: "Nothing here yet."
+- Reachability note (ratified 2026-09-01): the shipped ledger has no `matching`
+  state (`tagging` renders as "adding now"), so the "matching" chip is reserved
+  vocabulary until the ledger carries it; not a defect.
 - In-flight resumables list first.
 
 ## Out of scope here

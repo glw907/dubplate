@@ -67,6 +67,12 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
 FileBrowser (`gtstef/filebrowser 1.5.5-stable`) retires with the uploader.
 Re-verify pins before any fresh provision.
 
-**Next action**: Pass B (U9 first; fold in the copy deck's revision
-items and the Access login page's ASC default branding, which needs
-uploader-appropriate name/logo text). Rewrite post-mortem still owed.
+**Next action**: Pass B in flight (checkpoint 2026-09-01): copy contract
+gated and committed (passb-copy-final.md); U9/U10/U11 landed via the
+pass-execute chain; the combined fix round is committed (restored after
+a power loss; restore-review verdict accept, deferred residue recorded
+under U13 in the plan). Next: U12b cutover + U13 verification. Batched
+for Geoff at U12b: box sanction, Access login branding, 1Password
+unlock to mint DUBPLATE_SERVE_SITE_NAME. Pass B spend ≈2.1M of the 5M
+shared ceiling. Rewrite post-mortem owed (prod-polish P6; plan
+committed).

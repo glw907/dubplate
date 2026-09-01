@@ -29,7 +29,7 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "== make check (Go) =="
+echo "== make check (Go + web) =="
 if ! make check; then
   status=1
 fi

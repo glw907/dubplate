@@ -9,13 +9,13 @@ const gibibyte = 1024 * 1024 * 1024;
 const mebibyte = 1024 * 1024;
 
 /**
- * Renders bytes as a one-decimal MiB or GiB figure ("512.0 MB" below
- * 1 GiB, "2.0 GB" at or above it), matching `internal/serve`'s own
+ * Renders bytes as a one-decimal MiB or GiB figure ("512.0 MiB" below
+ * 1 GiB, "2.0 GiB" at or above it), matching `internal/serve`'s own
  * `humanGiB` convention for the values that originate server-side.
  */
 export function formatBytes(bytes: number): string {
 	if (bytes >= gibibyte) {
-		return `${(bytes / gibibyte).toFixed(1)} GB`;
+		return `${(bytes / gibibyte).toFixed(1)} GiB`;
 	}
-	return `${(bytes / mebibyte).toFixed(1)} MB`;
+	return `${(bytes / mebibyte).toFixed(1)} MiB`;
 }

@@ -54,7 +54,7 @@
 				too. Cover art is optional; the library finds one if you don't include it.
 			</p>
 			<div class="card-actions">
-				<button type="button" class="btn btn-ghost btn-sm" onclick={() => detailSheet?.showModal()}>
+				<button type="button" class="btn btn-ghost" onclick={() => detailSheet?.showModal()}>
 					What can I upload?
 				</button>
 			</div>

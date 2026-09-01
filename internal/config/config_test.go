@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -49,10 +50,33 @@ func requiredEnv() map[string]string {
 	}
 }
 
-// setEnv sets every key in env via t.Setenv, which is unset automatically
-// when the test (or subtest) ends.
+// scrubEnv unsets every ambient DUBPLATE_* variable for the rest of the
+// test, restoring each at cleanup. Without it a shell that sourced the
+// workstation secrets file leaks the real deployment values into [Load],
+// refilling a key the test meant to leave unset.
+func scrubEnv(t *testing.T) {
+	t.Helper()
+	for _, kv := range os.Environ() {
+		k, v, _ := strings.Cut(kv, "=")
+		if !strings.HasPrefix(k, "DUBPLATE_") {
+			continue
+		}
+		if err := os.Unsetenv(k); err != nil {
+			t.Fatalf("unset %s: %v", k, err)
+		}
+		t.Cleanup(func() {
+			if err := os.Setenv(k, v); err != nil {
+				t.Errorf("restore %s: %v", k, err)
+			}
+		})
+	}
+}
+
+// setEnv scrubs the ambient DUBPLATE_* environment, then sets each key in
+// env via t.Setenv, which unsets it again when the test or subtest ends.
 func setEnv(t *testing.T, env map[string]string) {
 	t.Helper()
+	scrubEnv(t)
 	for k, v := range env {
 		t.Setenv(k, v)
 	}

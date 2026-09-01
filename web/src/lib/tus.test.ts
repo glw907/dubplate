@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chunkFloorBytes, classifyFailure, decideRetry, retryDelays, type RetryState } from './tus';
+import { chunkFloorBytes, classifyFailure, decideRetry, parseRejectReason, retryDelays, type RetryState } from './tus';
 
 describe('classifyFailure', () => {
 	it('classifies 401 as signed-out', () => {
@@ -10,10 +10,14 @@ describe('classifyFailure', () => {
 		expect(classifyFailure(200, 'text/html; charset=utf-8')).toBe('signed-out');
 	});
 
-	it('classifies a 5xx as retryable, including 507 (dubplate-no-space)', () => {
-		for (const status of [500, 502, 503, 504, 507, 524]) {
+	it('classifies a 5xx as retryable', () => {
+		for (const status of [500, 502, 503, 504, 524]) {
 			expect(classifyFailure(status, 'application/json')).toBe('retryable');
 		}
+	});
+
+	it('classifies 507 (dubplate-no-space) as rejected, not retryable: a terminal admission-control verdict', () => {
+		expect(classifyFailure(507, 'application/json')).toBe('rejected');
 	});
 
 	it('classifies any other 4xx as rejected', () => {
@@ -115,9 +119,49 @@ describe('decideRetry', () => {
 		expect(decision).toEqual({ action: 'rejected', delayMs: 0, chunkSizeBytes: state.chunkSizeBytes, downshifted: false });
 	});
 
+	it('rejects a 507 (dubplate-no-space) immediately, spending no retry budget on a space verdict that will not change', () => {
+		const state = freshState();
+		const decision = decideRetry(state, { status: 507, contentType: 'application/json', offset: 0 });
+		expect(decision).toEqual({ action: 'rejected', delayMs: 0, chunkSizeBytes: state.chunkSizeBytes, downshifted: false });
+	});
+
 	it('accepts a custom delay ladder and floor for testing the same policy at other scales', () => {
 		const state = freshState(4096);
 		const decision = decideRetry(state, { status: 502, contentType: null, offset: 0 }, [0, 1], 1024);
 		expect(decision.delayMs).toBe(0);
+	});
+});
+
+describe('parseRejectReason', () => {
+	const wireBody = JSON.stringify({
+		code: 'no-space',
+		friendly: "The library doesn't have enough free space to accept this upload right now.",
+		next_step: 'Try again in a little while, or let the admin know if this keeps happening.',
+		label: 'library is full',
+	});
+
+	it('parses a valid JSON wire body', () => {
+		expect(parseRejectReason('application/json', wireBody)).toEqual({
+			code: 'no-space',
+			friendly: "The library doesn't have enough free space to accept this upload right now.",
+			next_step: 'Try again in a little while, or let the admin know if this keeps happening.',
+			label: 'library is full',
+		});
+	});
+
+	it('accepts a charset suffix on the content type', () => {
+		expect(parseRejectReason('application/json; charset=utf-8', wireBody)).not.toBeNull();
+	});
+
+	it('falls back to null on malformed JSON rather than throwing', () => {
+		expect(parseRejectReason('application/json', '{not valid json')).toBeNull();
+	});
+
+	it('falls back to null for a non-JSON content type', () => {
+		expect(parseRejectReason('text/plain', wireBody)).toBeNull();
+	});
+
+	it('falls back to null when there is no content type at all', () => {
+		expect(parseRejectReason(null, wireBody)).toBeNull();
 	});
 });

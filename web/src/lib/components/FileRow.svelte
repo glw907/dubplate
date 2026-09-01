@@ -33,10 +33,11 @@
 
 	/**
 	 * A transport failure (`failureKind` `'connection'`) never reached
-	 * the content check, so it has no taxonomy label to show; the
-	 * batch-level "Upload stopped" state (passb-copy-final.md section 2)
-	 * carries that message, and this row just reads as still-in-flight
-	 * until retried.
+	 * the content check, so it has no taxonomy label to show; it chips
+	 * "stopped" instead (passb-copy-final.md section 2, ratified
+	 * post-build 2026-09-01) rather than "waiting", which the contract
+	 * reserves for a file that has not started -- a failed row must
+	 * never read as not-yet-started.
 	 */
 	function computeChipText(): string {
 		if (status === 'pending') {
@@ -48,7 +49,7 @@
 		if (status === 'ok') {
 			return variant === 'progress' ? 'looks good' : 'fine';
 		}
-		return (failureKind === 'rejected' ? verdict?.Reason.label : null) ?? 'waiting';
+		return (failureKind === 'rejected' ? verdict?.Reason.label : null) ?? 'stopped';
 	}
 
 	const chipText = $derived(computeChipText());
@@ -58,7 +59,7 @@
 	);
 </script>
 
-<div class="border-base-300 flex flex-col gap-1 border-b p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+<div class="border-base-300 flex flex-col gap-1 border-b p-3 md:flex-row md:items-center md:justify-between md:gap-4">
 	<div class="min-w-0 flex-1">
 		<p class="truncate">{name}</p>
 		<p class="text-base-content/60 text-xs">{formatBytes(size)}</p>

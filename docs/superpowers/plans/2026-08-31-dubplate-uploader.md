@@ -893,6 +893,28 @@ ledgers updated (STATUS, HISTORY, ROADMAP move). No inherited leftovers:
 anything the rewrite pass's close-out owed (vale-comments gate,
 tidy-check) is that pass's business and does not ride here.
 
+**Fix-round residue (deferred from the 2026-09-01 combined fix round's
+restore review; each is a named check for this task's reviewers, not a
+new task):**
+
+- FileRow: a rejection whose JSON body failed to parse (`failureKind
+  'rejected'`, `verdict null`) falls through to the "stopped" chip,
+  which the copy contract reserves for retryable transfer failures. A
+  terminal verdict needs its own chip label — a copy decision (deck
+  section 2), not a code-only fix.
+- `wakeLock.svelte.ts` has no test file (carried gap from the inline
+  Journey version, not new).
+- App's mobile register now keys on `isIOSSafari()` instead of the
+  `md:` breakpoint: narrow Android phones get the desktop register with
+  DropZone's drop hint hidden below `md`. Defensible per the contract's
+  "iPad / iPhone" naming, but untested — exercise it in the fidelity
+  chain's device matrix.
+- `Options.PrivateCollection` has no production caller (no config
+  field feeds it); decide at pass end whether a
+  `DUBPLATE_PRIVATE_COLLECTION` field is wanted or the default is the
+  contract. SpecCard/OutcomeAlert hardcode "Private Recordings" per
+  copy section 6 — the residue a rename would reconcile.
+
 ## Review provenance
 
 Adversarially reviewed at authoring (opus agent, 2026-08-31): 6 blockers,

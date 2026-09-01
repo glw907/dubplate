@@ -273,6 +273,28 @@ func requiredFieldsEnv() map[string]string {
 	}
 }
 
+// scrubEnv unsets every ambient DUBPLATE_* variable for the rest of the
+// test, restoring each at cleanup. It mirrors internal/config's own test
+// helper of the same name; both exist because a test that probes for a
+// missing field is only honest in an environment that never supplied it.
+func scrubEnv(t *testing.T) {
+	t.Helper()
+	for _, kv := range os.Environ() {
+		k, v, _ := strings.Cut(kv, "=")
+		if !strings.HasPrefix(k, "DUBPLATE_") {
+			continue
+		}
+		if err := os.Unsetenv(k); err != nil {
+			t.Fatalf("unset %s: %v", k, err)
+		}
+		t.Cleanup(func() {
+			if err := os.Setenv(k, v); err != nil {
+				t.Errorf("restore %s: %v", k, err)
+			}
+		})
+	}
+}
+
 // TestRequiredFieldsMirrorsConfig asserts requiredFields' own doc-comment
 // invariant: every name it lists is one [config.Load] actually requires.
 // Unsetting each name in turn, with every other required field
@@ -285,6 +307,10 @@ func TestRequiredFieldsMirrorsConfig(t *testing.T) {
 	if len(base) != len(requiredFields) {
 		t.Fatalf("requiredFieldsEnv has %d entries, requiredFields has %d -- keep them in sync", len(base), len(requiredFields))
 	}
+	// Scrub ambient DUBPLATE_* before any subtest runs: the invoking shell
+	// may source the workstation secrets file, which would refill the
+	// deleted key and turn the missing-field probe green.
+	scrubEnv(t)
 
 	for _, name := range requiredFields {
 		t.Run(name, func(t *testing.T) {

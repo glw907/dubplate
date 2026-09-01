@@ -27,8 +27,9 @@
 	import Journey from './lib/components/Journey.svelte';
 	import PickerButton from './lib/components/PickerButton.svelte';
 	import SpecCard from './lib/components/SpecCard.svelte';
+	import WakeLockBar from './lib/components/WakeLockBar.svelte';
 	import { LiveRegion } from './lib/announce';
-	import { supportsDirectorySelect } from './lib/platform';
+	import { isIOSSafari, supportsDirectorySelect } from './lib/platform';
 	import { isZipSelection, screenSelection, type PreflightVerdict } from './lib/preflight';
 	import {
 		sessionIdFromUploadURL,
@@ -36,13 +37,18 @@
 		type FileVerdict,
 		type HistoryRow,
 	} from './lib/store/upload.svelte';
+	import { WakeLock } from './lib/wakeLock.svelte';
 
 	/** The picker/drop accept list: extension-first per gate 3 (audio/* greys out FLAC on iOS Safari). */
 	const acceptExtensions = '.zip,.flac';
 
-	// A capability, not reactive state -- computed once rather than
-	// re-probed (a throwaway <input> element) on every render.
+	// Capabilities, not reactive state -- computed once rather than
+	// re-probed (a throwaway <input> element, `navigator.userAgent`) on
+	// every render. isIOS drives the copy switch off the real platform
+	// (gate 3's rulings) rather than a CSS breakpoint an iPad's wide
+	// viewport can slip past (Pass B review finding).
 	const supportsFolderSelect = supportsDirectorySelect();
+	const isIOS = isIOSSafari();
 
 	type Phase = 'idle' | 'preflight-rejected' | 'tagging' | 'uploading';
 	type View = 'upload' | 'history';
@@ -75,6 +81,11 @@
 	const announcer = new LiveRegion();
 	let liveRegionEl: HTMLDivElement | undefined = $state();
 
+	// The one shared wake-lock toggle: constructed once here so a lock
+	// requested during the in-flight transfer below survives the
+	// hand-off into Journey instead of dropping and re-arming.
+	const wakeLock = new WakeLock();
+
 	onMount(() => {
 		if (liveRegionEl) {
 			announcer.attach(liveRegionEl);
@@ -86,7 +97,9 @@
 		});
 	});
 
-	const collectionMode = $derived(isPrivateCollection(selectedCollection) ? 'private' : 'standard');
+	const collectionMode = $derived(
+		isPrivateCollection(selectedCollection, uploadStore.config?.privateCollection ?? '') ? 'private' : 'standard',
+	);
 
 	// The zip's own filename (minus extension) is the only album label a
 	// selection carries on the main lane -- there is no "album name" field
@@ -158,6 +171,10 @@
 		phase = 'idle';
 		pendingFiles = [];
 		preflightRejections = [];
+		// Journey's onDestroy releases the lock on the normal path, but a
+		// reset from the in-flight branch never mounts Journey, and the
+		// sentinel would otherwise outlive the upload it was armed for.
+		void wakeLock.release();
 	}
 
 	const currentFiles = $derived(uploadStore.files.filter((file) => uploadFileIds.includes(file.id)));
@@ -200,7 +217,11 @@
 
 	/** OutcomeAlert's "Upload to Private Recordings" action: the picked files are still held in memory, so a pushed-back album re-routes through the same tag form U10 already built rather than asking for a fresh pick. */
 	function retryAsPrivateCollection(): void {
-		const privateCollection = uploadStore.config?.collections.find((name) => isPrivateCollection(name));
+		const config = uploadStore.config;
+		if (!config) {
+			return;
+		}
+		const privateCollection = config.collections.find((name) => isPrivateCollection(name, config.privateCollection));
 		if (!privateCollection) {
 			return;
 		}
@@ -332,8 +353,10 @@
 				}}
 			/>
 		{:else if uploadStore.signedOut}
-			<div class="alert alert-warning" role="alert">
-				<span>Your sign-in has expired. Reload the page to sign in again.</span>
+			<div class="alert alert-warning flex-col items-start" role="alert">
+				<h3 class="font-semibold">Signed out</h3>
+				<p>Your sign-in expired. Reload to sign in again, then pick the upload back up from Your uploads.</p>
+				<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
 			</div>
 		{:else if uploadStore.config}
 			<p class="text-base-content/70 text-sm">
@@ -346,39 +369,37 @@
 				onSelect={(name) => (selectedCollection = name)}
 			/>
 
-			<div class="hidden md:block">
-				<SpecCard variant="desktop" {collectionMode} maxAlbumBytes={uploadStore.config.maxAlbumBytes} />
-			</div>
-			<div class="md:hidden">
-				<SpecCard variant="mobile" {collectionMode} maxAlbumBytes={uploadStore.config.maxAlbumBytes} />
-			</div>
+			<SpecCard variant={isIOS ? 'mobile' : 'desktop'} {collectionMode} maxAlbumBytes={uploadStore.config.maxAlbumBytes} />
 
 			{#if phase === 'idle'}
-				<div class="hidden md:block">
-					<DropZone onFiles={handleFilesPicked}>
-						<PickerButton label="Choose files" accept={acceptExtensions} onFiles={handleFilesPicked} />
-					</DropZone>
-					<p class="text-base-content/60 mt-2 text-center text-sm">One album at a time. Albums go in whole.</p>
-					{#if supportsFolderSelect}
-						<div class="mt-2">
-							<PickerButton
-								label="Choose a folder"
-								accept=""
-								webkitdirectory
-								emphasis="outline"
-								size="default"
-								onFiles={handleFilesPicked}
-							/>
-						</div>
-					{/if}
-				</div>
-				<div class="flex flex-col items-center gap-2 md:hidden">
-					<PickerButton label="Choose from Files" accept={acceptExtensions} onFiles={handleFilesPicked} />
-					<p class="text-base-content/60 text-center text-sm">
-						To pick several songs at once: tap <kbd class="kbd kbd-sm">⋯</kbd> in the picker, then
-						<strong>Select</strong>.
-					</p>
-				</div>
+				{#if isIOS}
+					<div class="flex flex-col items-center gap-2">
+						<PickerButton label="Choose from Files" accept={acceptExtensions} onFiles={handleFilesPicked} />
+						<p class="text-base-content/60 text-center text-sm">
+							To pick several songs at once: tap <kbd class="kbd kbd-sm">⋯</kbd> in the picker, then
+							<strong>Select</strong>.
+						</p>
+					</div>
+				{:else}
+					<div>
+						<DropZone onFiles={handleFilesPicked}>
+							<PickerButton label="Choose files" accept={acceptExtensions} onFiles={handleFilesPicked} />
+						</DropZone>
+						<p class="text-base-content/60 mt-2 text-center text-sm">One album at a time. Albums go in whole.</p>
+						{#if supportsFolderSelect}
+							<div class="mt-2">
+								<PickerButton
+									label="Choose a folder"
+									accept=""
+									webkitdirectory
+									emphasis="outline"
+									size="default"
+									onFiles={handleFilesPicked}
+								/>
+							</div>
+						{/if}
+					</div>
+				{/if}
 			{:else if phase === 'preflight-rejected'}
 				<div class="alert alert-error flex-col items-start" role="alert">
 					<h3 class="font-semibold">Couldn't add this album</h3>
@@ -389,7 +410,7 @@
 					<p class="text-sm">{reason.friendly} <strong>Next:</strong> {reason.next_step}</p>
 				{/each}
 				<ul class="border-base-300 divide-base-300 divide-y rounded border">
-					{#each pendingFiles as file (file.name)}
+					{#each pendingFiles as file, index (`${index}-${file.name}`)}
 						{@const verdict = preflightFileVerdict(file)}
 						<FileRow
 							name={file.name}
@@ -424,6 +445,7 @@
 						album={journeyAlbum}
 						totalFiles={currentFiles.length}
 						{announcer}
+						{wakeLock}
 						onUploadPrivate={retryAsPrivateCollection}
 						onFixNames={resetSelection}
 					/>
@@ -431,6 +453,7 @@
 					{#if isZipSelection(pendingFiles)}
 						<p class="text-base-content/70 text-sm">We check the tracks once the zip finishes uploading.</p>
 					{/if}
+					<WakeLockBar {wakeLock} />
 					{#if stalledFiles.length > 0}
 						<div class="alert alert-warning flex-col items-start" role="alert">
 							<h3 class="font-semibold">Upload stopped</h3>
@@ -438,7 +461,12 @@
 								It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it left
 								off.
 							</p>
-							<button type="button" class="btn btn-sm" onclick={retryStalled}>Retry</button>
+							<div class="flex items-center gap-2">
+								<button type="button" class="btn" onclick={retryStalled}>Retry</button>
+								{#if isZipSelection(pendingFiles)}
+									<span class="text-base-content/60 text-sm">Retrying re-uploads the zip.</span>
+								{/if}
+							</div>
 						</div>
 					{/if}
 					<ul class="border-base-300 divide-base-300 divide-y rounded border">

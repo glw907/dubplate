@@ -21,8 +21,10 @@
 	import { onDestroy, onMount } from 'svelte';
 	import JourneySteps, { type StepStatus } from './JourneySteps.svelte';
 	import OutcomeAlert from './OutcomeAlert.svelte';
+	import WakeLockBar from './WakeLockBar.svelte';
 	import { LiveRegion } from '../announce';
 	import { uploadStore, type FinishOutcome, type UploadStore } from '../store/upload.svelte';
+	import { WakeLock } from '../wakeLock.svelte';
 
 	interface Props {
 		sessionId: string;
@@ -31,6 +33,8 @@
 		store?: UploadStore;
 		/** The app's one shared live region; defaults to an unattached instance so this component still renders standalone (tests, Storybook-style isolation). */
 		announcer?: LiveRegion;
+		/** The app's one shared wake-lock toggle (App.svelte's in-flight branch renders the same instance); defaults to a fresh one so this component still renders standalone. */
+		wakeLock?: WakeLock;
 		onUploadPrivate?: () => void;
 		onFixNames?: () => void;
 	}
@@ -41,29 +45,13 @@
 		totalFiles,
 		store = uploadStore,
 		announcer = new LiveRegion(),
+		wakeLock = new WakeLock(),
 		onUploadPrivate = () => {},
 		onFixNames = () => {},
 	}: Props = $props();
 
 	let finishing = $state(true);
 	let outcome = $state<FinishOutcome | null>(null);
-	let wakeLockOn = $state(false);
-	let wakeLockSupported = $state(false);
-
-	// A structural fallback for the Screen Wake Lock API: some
-	// TypeScript lib.dom.d.ts versions ship it, some do not, and this
-	// component must build cleanly either way (U9's "no Node shims"
-	// production-build criterion extends to never depending on a DOM
-	// lib version this workstation happens to have).
-	interface WakeLockSentinelLike {
-		release(): Promise<void>;
-		addEventListener(type: 'release', listener: () => void): void;
-	}
-	interface NavigatorWithWakeLock {
-		wakeLock?: { request(type: 'screen'): Promise<WakeLockSentinelLike> };
-	}
-
-	let wakeLockSentinel: WakeLockSentinelLike | null = null;
 	let stopPolling: (() => void) | null = null;
 
 	const journey = $derived(store.journey);
@@ -130,13 +118,12 @@
 	const ownEarlierUpload = $derived(journey?.detail === 'waiting on your other upload');
 
 	onMount(() => {
-		wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
 		void runFinish();
 	});
 
 	onDestroy(() => {
 		stopPolling?.();
-		void releaseWakeLock();
+		void wakeLock.release();
 	});
 
 	async function runFinish(): Promise<void> {
@@ -193,34 +180,6 @@
 		}
 	});
 
-	async function toggleWakeLock(): Promise<void> {
-		const nav = navigator as Navigator & NavigatorWithWakeLock;
-		if (wakeLockOn) {
-			await releaseWakeLock();
-			return;
-		}
-		if (!nav.wakeLock) {
-			return;
-		}
-		try {
-			wakeLockSentinel = await nav.wakeLock.request('screen');
-			wakeLockOn = true;
-			wakeLockSentinel.addEventListener('release', () => {
-				wakeLockOn = false;
-			});
-		} catch {
-			wakeLockOn = false;
-		}
-	}
-
-	async function releaseWakeLock(): Promise<void> {
-		if (wakeLockSentinel) {
-			await wakeLockSentinel.release();
-			wakeLockSentinel = null;
-		}
-		wakeLockOn = false;
-	}
-
 	function retryFinish(): void {
 		void runFinish();
 	}
@@ -245,17 +204,7 @@
 		{/if}
 
 		{#if viewMode === 'finishing' || viewMode === 'matched'}
-			<div class="flex flex-wrap items-center justify-between gap-2">
-				<p class="text-base-content/60 text-sm">
-					Switching away pauses the upload; coming back resumes it. If the page closes, pick it up from Your
-					uploads.
-				</p>
-				{#if wakeLockSupported}
-					<button type="button" class="btn btn-outline btn-sm" aria-pressed={wakeLockOn} onclick={toggleWakeLock}>
-						Keep my screen awake
-					</button>
-				{/if}
-			</div>
+			<WakeLockBar {wakeLock} />
 		{/if}
 
 		{#if viewMode === 'pushed-back'}

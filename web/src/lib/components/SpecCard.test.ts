@@ -9,7 +9,7 @@ describe('SpecCard', () => {
 	it('renders the desktop format panel with the substituted max album size', () => {
 		render(SpecCard, { variant: 'desktop', collectionMode: 'standard', maxAlbumBytes: twoGiB });
 		expect(screen.getByText(/This library is/)).toBeInTheDocument();
-		expect(screen.getByText('2.0 GB')).toBeInTheDocument();
+		expect(screen.getByText('2.0 GiB')).toBeInTheDocument();
 	});
 
 	it('renders the mobile format panel and opens the detail sheet', async () => {

@@ -10,16 +10,16 @@
 -->
 <script lang="ts" module>
 	/**
-	 * `internal/serve/upload.go`'s `defaultPrivateCollection`, mirrored
-	 * here because the wire config carries only the collection name
-	 * list, never a flag marking which entry is the private lane --
-	 * "Private Recordings" is the documented default name and the
-	 * literal string the copy contract renders regardless of config.
+	 * Reports whether name is the private lane, against
+	 * privateCollectionName -- `/api/config`'s own `private_collection`
+	 * field (`internal/serve/upload.go`'s `Engine.PrivateCollection`),
+	 * never a hardcoded "Private Recordings" guess. The server default is
+	 * the only value production serves today; no config field feeds
+	 * `Options.PrivateCollection` yet, so this seam is what a rename
+	 * would ride, not a knob an operator can already turn.
 	 */
-	export const PRIVATE_COLLECTION_NAME = 'Private Recordings';
-
-	export function isPrivateCollection(name: string): boolean {
-		return name === PRIVATE_COLLECTION_NAME;
+	export function isPrivateCollection(name: string, privateCollectionName: string): boolean {
+		return name !== '' && name === privateCollectionName;
 	}
 </script>
 

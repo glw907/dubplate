@@ -272,6 +272,14 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 	return e, nil
 }
 
+// PrivateCollection returns the private lane's collection name: either
+// [Options.PrivateCollection] or the [defaultPrivateCollection] fallback
+// NewEngine applied. GET /api/config serves it so no client has to
+// re-derive that fallback from the collection list.
+func (e *Engine) PrivateCollection() string {
+	return e.privateCollection
+}
+
 // Handler returns the full mux Engine serves: the tus protocol under
 // /files/, and the session JSON API under /api/session.
 func (e *Engine) Handler() http.Handler {

@@ -383,6 +383,11 @@ type configResponse struct {
 	MaxSessionsPerUser int      `json:"max_sessions_per_user"`
 	ReviewClockDays    int      `json:"review_clock_days"`
 	FormatSpec         string   `json:"format_spec"`
+	// PrivateCollection names which entry of Collections is the private
+	// lane, so the client can tell it apart from a same-named ordinary
+	// collection instead of assuming the documented default
+	// (passb-copy-final.md's site-values-through-config rule).
+	PrivateCollection string `json:"private_collection"`
 }
 
 // handleConfig serves GET /api/config.
@@ -395,6 +400,7 @@ func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 		MaxSessionsPerUser: s.cfg.Upload.MaxSessionsPerUser,
 		ReviewClockDays:    s.cfg.Thresholds.RetentionDays,
 		FormatSpec:         formatSpecText(cdMinSampleRate, cdMinBitsPerSample, s.cfg.Upload.MaxAlbumBytes),
+		PrivateCollection:  s.engine.PrivateCollection(),
 	})
 }
 

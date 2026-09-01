@@ -520,13 +520,23 @@ func TestHumanGiB(t *testing.T) {
 	}
 }
 
-func TestHandleConfig(t *testing.T) {
-	s := &Server{cfg: &config.Config{
+// getConfig serves GET /api/config from a Server wrapping collections and
+// an Engine built with opts, then decodes the wire response. It is the one
+// place the fixture config below is spelled out.
+func getConfig(t *testing.T, collections []string, opts Options) configResponse {
+	t.Helper()
+	cfg := &config.Config{
 		Serve:       config.ServeConfig{SiteName: "dubplate"},
-		Collections: []string{"", "family"},
+		Collections: collections,
 		Upload:      config.UploadConfig{ChunkMB: 8, MaxAlbumBytes: 2 << 30, MaxSessionsPerUser: 3},
 		Thresholds:  config.Thresholds{RetentionDays: 60},
-	}}
+		Paths:       config.Paths{UploadsDir: t.TempDir()},
+	}
+	engine, err := NewEngine(cfg, buildTestRoster(t), opts)
+	if err != nil {
+		t.Fatalf("NewEngine: %v", err)
+	}
+	s := &Server{cfg: cfg, engine: engine}
 	w := httptest.NewRecorder()
 	s.handleConfig(w, httptest.NewRequest(http.MethodGet, "/api/config", nil))
 
@@ -537,6 +547,11 @@ func TestHandleConfig(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
 		t.Fatalf("unmarshal %q: %v", w.Body.String(), err)
 	}
+	return got
+}
+
+func TestHandleConfig(t *testing.T) {
+	got := getConfig(t, []string{"", "family"}, Options{})
 
 	if got.SiteName != "dubplate" {
 		t.Errorf("SiteName = %q, want dubplate", got.SiteName)
@@ -559,6 +574,35 @@ func TestHandleConfig(t *testing.T) {
 	wantSpec := "FLAC only, 44100 Hz / 16-bit or better, one album per upload, up to 2.0 GiB total."
 	if got.FormatSpec != wantSpec {
 		t.Errorf("FormatSpec = %q, want %q", got.FormatSpec, wantSpec)
+	}
+}
+
+// TestHandleConfig_PrivateCollection proves the wire field tracks an
+// operator's [Options.PrivateCollection] rather than always answering the
+// documented default: the client tells the private lane apart by this
+// field, never by matching the default name itself.
+func TestHandleConfig_PrivateCollection(t *testing.T) {
+	tests := []struct {
+		name        string
+		collections []string
+		opts        Options
+		want        string
+	}{
+		{"unset Options falls back to the default", []string{"", "family"}, Options{}, defaultPrivateCollection},
+		{
+			"operator override is served verbatim",
+			[]string{"", "Home Recordings"},
+			Options{PrivateCollection: "Home Recordings"},
+			"Home Recordings",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getConfig(t, tt.collections, tt.opts).PrivateCollection; got != tt.want {
+				t.Errorf("PrivateCollection = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 

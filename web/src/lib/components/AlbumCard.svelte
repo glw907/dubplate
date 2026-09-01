@@ -96,7 +96,7 @@
 		</div>
 
 		<ul class="flex flex-col gap-3">
-			{#each trackFilenames as filename, index (filename)}
+			{#each trackFilenames as filename, index (`${index}-${filename}`)}
 				<li class="fieldset">
 					<label class="fieldset-label" for={`track-title-${index}`}>{trackRowLabel(index)}</label>
 					<input

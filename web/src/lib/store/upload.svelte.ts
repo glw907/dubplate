@@ -13,6 +13,7 @@ import {
 	createTusDriver,
 	fetchJSON,
 	SignedOutError,
+	type RejectReason,
 	type TusDriver,
 	type TusUploadHandle,
 } from '../tus';
@@ -47,6 +48,8 @@ export interface ServerConfig {
 	maxSessionsPerUser: number;
 	reviewClockDays: number;
 	formatSpec: string;
+	/** Which {@link collections} entry is the private lane, per the operator's own naming. */
+	privateCollection: string;
 }
 
 interface configWire {
@@ -57,6 +60,7 @@ interface configWire {
 	max_sessions_per_user: number;
 	review_clock_days: number;
 	format_spec: string;
+	private_collection: string;
 }
 
 function fromConfigWire(wire: configWire): ServerConfig {
@@ -68,18 +72,16 @@ function fromConfigWire(wire: configWire): ServerConfig {
 		maxSessionsPerUser: wire.max_sessions_per_user,
 		reviewClockDays: wire.review_clock_days,
 		formatSpec: wire.format_spec,
+		privateCollection: wire.private_collection,
 	};
 }
 
 // --- the reject wire format (internal/reject.Reason's MarshalJSON) -------
 
-/** internal/reject.Reason's wire shape: verbatim server copy, no client lookup table. */
-export interface RejectReason {
-	code: string;
-	friendly: string;
-	next_step: string;
-	label: string;
-}
+// internal/reject.Reason's wire shape is defined once in ../tus, the layer
+// that first reads it off a rejected response; it is re-exported here so
+// components keep importing the whole API vocabulary from one module.
+export type { RejectReason };
 
 /**
  * intake.FileVerdict as it actually serializes: the Go struct carries no
@@ -493,9 +495,10 @@ export class UploadStore {
 					entry.failureKind = 'connection';
 					this.handles.delete(id);
 				},
-				onRejected: () => {
+				onRejected: (reason) => {
 					entry.status = 'failed';
 					entry.failureKind = 'rejected';
+					entry.verdict = reason ? { Name: entry.name, OK: false, Reason: reason } : null;
 					this.handles.delete(id);
 				},
 				onDownshift: (newChunkSizeBytes) => {

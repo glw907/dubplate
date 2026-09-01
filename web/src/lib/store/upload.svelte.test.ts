@@ -65,6 +65,7 @@ const config = {
 	max_sessions_per_user: 3,
 	review_clock_days: 60,
 	format_spec: 'FLAC only, 44100 Hz / 16-bit or better, one album per upload, up to 2.0 GiB total.',
+	private_collection: 'Private Recordings',
 };
 
 beforeEach(() => {
@@ -86,6 +87,7 @@ describe('loadConfig', () => {
 			maxSessionsPerUser: 3,
 			reviewClockDays: 60,
 			formatSpec: config.format_spec,
+			privateCollection: 'Private Recordings',
 		});
 	});
 
@@ -178,8 +180,32 @@ describe('addFile and startFile', () => {
 
 		const rejectedId = store.addFile(testFile('b.flac'));
 		store.startFile(rejectedId, {});
-		driver.lastHandlers().onRejected();
-		expect(store.files[1]).toMatchObject({ status: 'failed', failureKind: 'rejected' });
+		driver.lastHandlers().onRejected(null);
+		expect(store.files[1]).toMatchObject({ status: 'failed', failureKind: 'rejected', verdict: null });
+	});
+
+	it('stores the rejection wire payload as the file\'s verdict, for the row to render the real reason', async () => {
+		const { store, driver } = await readyStore();
+		const id = store.addFile(testFile('b.flac'));
+		store.startFile(id, {});
+
+		driver.lastHandlers().onRejected({
+			code: 'no-space',
+			friendly: "The library doesn't have enough free space to accept this upload right now.",
+			next_step: 'Try again in a little while, or let the admin know if this keeps happening.',
+			label: 'library is full',
+		});
+
+		expect(store.files[0].verdict).toEqual({
+			Name: 'b.flac',
+			OK: false,
+			Reason: {
+				code: 'no-space',
+				friendly: "The library doesn't have enough free space to accept this upload right now.",
+				next_step: 'Try again in a little while, or let the admin know if this keeps happening.',
+				label: 'library is full',
+			},
+		});
 	});
 
 	it('sets the store-level signedOut flag on a 401/HTML failure without marking the file failed', async () => {

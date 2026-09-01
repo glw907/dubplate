@@ -27,8 +27,8 @@ const downshiftStatuses = new Set([502, 504, 524]);
  * How {@link decideRetry} classifies one failed request: `signed-out`
  * for a 401 or an HTML body where JSON was expected (the session
  * expired and the client is looking at Access's own login page, not the
- * API); `rejected` for any other 4xx, which is a server verdict no
- * retry will change; `retryable` for a 5xx.
+ * API); `rejected` for any other 4xx, or a 507, which are server
+ * verdicts no retry will change; `retryable` for every other 5xx.
  */
 export type FailureKind = 'signed-out' | 'rejected' | 'retryable';
 
@@ -40,7 +40,11 @@ export type FailureKind = 'signed-out' | 'rejected' | 'retryable';
  * connection, `status: 0` from {@link responseDetails}) rather than a
  * server verdict, so it is retryable the same as a 5xx -- otherwise the
  * most common transient failure the ladder exists for would look like a
- * terminal server rejection.
+ * terminal server rejection. 507 is carved out of the general 5xx range
+ * ahead of that fallback: `internal/serve/upload.go` returns it only
+ * for `reject.ReasonNoSpace`, a terminal admission-control verdict, not
+ * a transient edge failure, so retrying it would spend budget on a
+ * result that will not change.
  */
 export function classifyFailure(status: number, contentType: string | null): FailureKind {
 	if (contentType !== null && contentType.toLowerCase().startsWith('text/html')) {
@@ -48,6 +52,9 @@ export function classifyFailure(status: number, contentType: string | null): Fai
 	}
 	if (status === 401) {
 		return 'signed-out';
+	}
+	if (status === 507) {
+		return 'rejected';
 	}
 	if (status < 400 || status >= 500) {
 		return 'retryable';
@@ -77,9 +84,9 @@ export interface RetryFailure {
  * `stalled` is the retry ladder's own budget running out on a retryable
  * (5xx) failure -- connection trouble, the honest state with manual
  * retry (passb-copy-final.md section 2's "Upload stopped"). `rejected`
- * is a terminal 4xx other than 401: a server verdict retrying will not
- * change, so it costs no retry budget at all rather than waiting out
- * the ladder first.
+ * is a terminal 4xx other than 401, or a 507: a server verdict retrying
+ * will not change, so it costs no retry budget at all rather than
+ * waiting out the ladder first.
  */
 export interface RetryDecision {
 	action: 'retry' | 'sign-out' | 'stalled' | 'rejected';
@@ -156,8 +163,13 @@ export interface TusUploadHandlers {
 	onSignedOut(): void;
 	/** The retry ladder ran out on a retryable failure: connection trouble, manual retry available. */
 	onStalled(): void;
-	/** A terminal 4xx other than 401: a server verdict, never retried. */
-	onRejected(): void;
+	/**
+	 * A terminal 4xx other than 401, or a 507: a server verdict, never
+	 * retried. `reason` carries admission control's own rejection wire
+	 * body when the response was JSON, so the store can render the real
+	 * reason instead of a generic failure.
+	 */
+	onRejected(reason: RejectReason | null): void;
 	onDownshift(chunkSizeBytes: number): void;
 }
 
@@ -175,19 +187,59 @@ export interface TusDriver {
 }
 
 /**
+ * `internal/reject.Reason`'s wire shape (`internal/reject.go`'s
+ * `reasonWire`), read verbatim off a rejected request's JSON body: no
+ * client-side copy of the friendly/next-step/label wording, ever. The
+ * upload store re-exports this as its own `RejectReason` so the whole app
+ * shares one definition of the shape.
+ */
+export interface RejectReason {
+	code: string;
+	friendly: string;
+	next_step: string;
+	label: string;
+}
+
+/** What one failed request tells {@link decideRetry} and the store about itself. */
+interface ResponseDetails {
+	status: number;
+	contentType: string | null;
+	reason: RejectReason | null;
+}
+
+/**
  * Reads the response status and content-type off a `tus-js-client`
  * {@link tus.DetailedError}'s attached response, when one is present. A
  * network-level failure (offline, DNS, a dropped connection) carries no
  * originalResponse and is treated as a retryable 0.
  */
-function responseDetails(error: Error): { status: number; contentType: string | null } {
+function responseDetails(error: Error): ResponseDetails {
 	if (!(error instanceof tus.DetailedError) || !error.originalResponse) {
-		return { status: 0, contentType: null };
+		return { status: 0, contentType: null, reason: null };
 	}
+	const contentType = error.originalResponse.getHeader('Content-Type') ?? null;
 	return {
 		status: error.originalResponse.getStatus(),
-		contentType: error.originalResponse.getHeader('Content-Type') ?? null,
+		contentType,
+		reason: parseRejectReason(contentType, error.originalResponse.getBody()),
 	};
+}
+
+/**
+ * Parses body as a {@link RejectReason} when contentType is JSON.
+ * Malformed JSON, or any other content type, yields null rather than
+ * throwing into the driver's `onError` handler -- a body the client
+ * can't read is no worse than one that was never sent.
+ */
+export function parseRejectReason(contentType: string | null, body: string): RejectReason | null {
+	if (contentType === null || !contentType.toLowerCase().startsWith('application/json')) {
+		return null;
+	}
+	try {
+		return JSON.parse(body) as RejectReason;
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -236,7 +288,7 @@ export function createTusDriver(): TusDriver {
 					if (aborted) {
 						return;
 					}
-					const { status, contentType } = responseDetails(error);
+					const { status, contentType, reason } = responseDetails(error);
 					const decision = decideRetry(state, { status, contentType, offset: lastProgressBytes });
 					state.lastFailedOffset = lastProgressBytes;
 
@@ -249,7 +301,7 @@ export function createTusDriver(): TusDriver {
 						return;
 					}
 					if (decision.action === 'rejected') {
-						handlers.onRejected();
+						handlers.onRejected(reason);
 						return;
 					}
 

@@ -49,8 +49,8 @@ describe('FileRow', () => {
 			progressBytes: 10 * 1024 * 1024,
 			ackedBytes: 8 * 1024 * 1024,
 		});
-		expect(screen.getByText('8.0 MB confirmed')).toBeInTheDocument();
-		expect(screen.getByText('of 30.0 MB')).toBeInTheDocument();
+		expect(screen.getByText('8.0 MiB confirmed')).toBeInTheDocument();
+		expect(screen.getByText('of 30.0 MiB')).toBeInTheDocument();
 	});
 
 	it('uses the progress variant\'s "looks good" word for a passed file', () => {
@@ -61,6 +61,12 @@ describe('FileRow', () => {
 	it('uses the verdict variant\'s "fine" word for a passed file', () => {
 		render(FileRow, { ...baseProps(), status: 'ok', variant: 'verdict' });
 		expect(screen.getByText('fine')).toBeInTheDocument();
+	});
+
+	it('chips "stopped" (never "waiting") for a transport failure awaiting retry', () => {
+		render(FileRow, { ...baseProps(), status: 'failed', failureKind: 'connection', verdict: null });
+		expect(screen.getByText('stopped')).toBeInTheDocument();
+		expect(screen.queryByText('waiting')).not.toBeInTheDocument();
 	});
 
 	it("shows the server verdict's own label for a rejected file in either variant", () => {
