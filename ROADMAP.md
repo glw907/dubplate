@@ -26,7 +26,9 @@ One pass, after the uploader closes: clear the carried production debris
 owed rewrite post-mortem, create the Navidrome family accounts, and fold in
 whatever live family use surfaces while the Go development runs. Intake for
 live findings: `/log-issue` → `BACKLOG.md` with `#project:prod-polish`.
-Related: #1, #2, #3, #4, #5, #6, #7
+Plan (committed 2026-09-01, ahead of need):
+`docs/superpowers/plans/2026-09-01-prod-polish.md`.
+Related: #1, #2, #3, #4, #5, #6, #7, #8
 
 ### dubplate as a music library organizer `dubplate-organizer`
 Extend dubplate into a batteries-included organizer that runs two ways on
