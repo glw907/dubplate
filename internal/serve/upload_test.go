@@ -867,6 +867,31 @@ func TestUploadExpiresHeaderStamped(t *testing.T) {
 	}
 }
 
+// TestOptions_TusBasePathOverride proves [Options.TusBasePath] reaches
+// tusd's own advertised BasePath (github.com/tus/tusd/v2/pkg/handler.
+// Config.BasePath), the value baked into the absolute Location URL a
+// tus client PATCHes back against -- U12a's production wiring
+// (cmd/dubplate/serve.go's NewServer) depends on this to advertise
+// "/upload/files/" rather than the bare "/files/" every other test in
+// this file gets from the zero value.
+func TestOptions_TusBasePathOverride(t *testing.T) {
+	const wantPrefix = "/upload/files/"
+	te := newTestEngineWithOptions(t, nil, Options{TusBasePath: wantPrefix})
+
+	createResp := te.tusCreate(t, testEmailAlice, int64(len(cdFlacFixture())), map[string]string{
+		"filename": "01 - one.flac", "session_id": te.createSession(t, "Base Path Album", "", 1),
+	})
+	defer func() { _ = createResp.Body.Close() }()
+	if createResp.StatusCode != http.StatusCreated {
+		t.Fatalf("create: status %d", createResp.StatusCode)
+	}
+
+	loc := createResp.Header.Get("Location")
+	if !strings.Contains(loc, wantPrefix) {
+		t.Fatalf("Location = %q, want it to contain %q", loc, wantPrefix)
+	}
+}
+
 // --- tag-check probe + private lane (custody policy) -----------------------
 
 // alwaysConfidentTagProbe is the default [Options.TagProbe] every test

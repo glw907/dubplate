@@ -60,6 +60,45 @@ type NewServerDeps struct {
 // it, both keyed to this same name.
 const nudgeTriggerSubdir = "nudge-triggers"
 
+// basePath is the path prefix serve owns end to end: every API route,
+// the SSE probe, the tus endpoints, and the embedded web app all live
+// under it (U12a amendment: the uploader has no hostname of its own --
+// it lives at https://music.907.life/upload, and cloudflared's
+// path-scoped ingress rule forwards the request with this prefix
+// intact, since cloudflared does not strip path prefixes). U9 must set
+// the web build's Vite `base` to "/upload/" so every emitted asset href
+// resolves under this same prefix; this file owns only the server-side
+// mount.
+const basePath = "/upload"
+
+// mountBasePath wraps next so every request must fall under [basePath]:
+// a bare "/upload" request (no trailing slash) redirects to "/upload/"
+// first, so relative asset hrefs and history.pushState reads all get
+// consistent directory semantics; [http.StripPrefix] then removes the
+// prefix for anything under "/upload/", so next (and everything it
+// wraps -- [enforceAccess], [Server.buildMux]) never has to know
+// basePath exists. The explicit boundary check below is required
+// because [http.StripPrefix] does a plain string trim, not a
+// path-segment-aware one: unguarded, a request to "/uploadfoo" would
+// trim to "foo" and pass straight through to next rather than 404 --
+// the same segment-boundary gap the sibling ingress-rule regex
+// (config/cloudflared-tunnel-config.json) is separately anchored
+// against.
+func mountBasePath(next http.Handler) http.Handler {
+	stripped := http.StripPrefix(basePath, next)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == basePath {
+			http.Redirect(w, r, basePath+"/", http.StatusMovedPermanently)
+			return
+		}
+		if !strings.HasPrefix(r.URL.Path, basePath+"/") {
+			http.NotFound(w, r)
+			return
+		}
+		stripped.ServeHTTP(w, r)
+	})
+}
+
 // NewServer builds a [Server] over cfg and roster: the upload engine, the
 // journey API, the Access verifier, and every route this file itself
 // owns, all behind [enforceAccess]. It refuses to start -- returning an
@@ -91,8 +130,9 @@ func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*S
 
 	triggerDir := filepath.Join(cfg.Paths.TriggerDir, nudgeTriggerSubdir)
 	engine, err := NewEngine(cfg, roster, Options{
-		Now:        deps.Now,
-		OnPromoted: func(sessionID, _ string) { writeNudgeTrigger(triggerDir, sessionID) },
+		Now:         deps.Now,
+		OnPromoted:  func(sessionID, _ string) { writeNudgeTrigger(triggerDir, sessionID) },
+		TusBasePath: basePath + filesBasePath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("serve: build upload engine: %w", err)
@@ -118,13 +158,13 @@ func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*S
 		cfg:    cfg,
 		engine: engine,
 	}
-	s.handler = enforceAccess(s.buildMux(engine, japi, assets), accessConfig{
+	s.handler = mountBasePath(enforceAccess(s.buildMux(engine, japi, assets), accessConfig{
 		verify:      verifier.Verify,
 		roster:      roster,
 		devIdentity: deps.DevIdentity,
 		adminEmail:  cfg.AdminEmail,
 		warmPage:    warmRosterAbsentPage(cfg.AdminEmail),
-	})
+	}))
 	return s, nil
 }
 

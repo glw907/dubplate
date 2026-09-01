@@ -248,9 +248,15 @@ ratified captures are the U13 reference set.
 - **Embedded asset caching**: hashed `/assets/*` get
   `Cache-Control: private, max-age=31536000, immutable` (responses ride
   an authenticated transport — never `public`); `index.html` gets
-  `no-cache`. Vite `base` stays `/`; embed home is `web/embed.go`
-  (`package web`, `//go:embed all:dist`) with a committed non-dot
-  `web/dist/placeholder.txt` so Pass A builds before Vite ever runs.
+  `no-cache`. Vite `base` is `/upload/`, not `/` — [PLAN CORRECTION,
+  conductor ruling 2026-09-01: U12a relocated the uploader from its own
+  hostname to a path-scoped mount at `music.907.life/upload`, which
+  `internal/serve`'s `basePath` constant owns server-side; every emitted
+  asset href must resolve under that same prefix, or the built page 404s
+  the instant it's reached through Access] — embed home is
+  `web/embed.go` (`package web`, `//go:embed all:dist`) with a committed
+  non-dot `web/dist/placeholder.txt` so Pass A builds before Vite ever
+  runs.
 - **Custody policy + tag check + private lane (brainstormed with
   Geoff 2026-09-01; the spec's Journey addendum is authoritative and
   SUPERSEDES the review path everywhere in this plan)**: the uploader
@@ -619,10 +625,17 @@ baseline PLUS `ProtectHome=yes`, `ProtectKernelTunables=yes`,
 `CapabilityBoundingSet=` (empty), `UMask=0027`,
 `RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX`,
 `ReadWritePaths=` exactly the uploads dir, trigger dir, state dir, inbox;
-`Restart=on-failure`, `RestartSec=5`, `StartLimitIntervalSec=0`,
-`After=docker.service` — boot resilience comes from U7's `IP_FREEBIND`
-listener (there is no such service directive as `IPFreeBind=`, N7; the
-restart settings are the documented backstop, not the fix);
+`Restart=on-failure`, `RestartSec=5`, `StartLimitIntervalSec=300`,
+`StartLimitBurst=30`, `OnFailure=dubplate-ping-fail@serve.service` (the
+sibling units' own literal-slug idiom) — [PLAN CORRECTION, conductor
+ruling 2026-09-01: was `StartLimitIntervalSec=0`; interval 0 means the
+unit never enters "failed", so a crash-looping user-facing surface would
+alert nobody, and `OnFailure=` above would never fire. 300s/30 restarts
+gives real transient failures generous room while still tripping, and
+alerting, on a genuine crash loop] `After=docker.service` — boot
+resilience comes from U7's `IP_FREEBIND` listener (there is no such
+service directive as `IPFreeBind=`, N7; the restart settings are the
+documented backstop, not the fix);
 `TimeoutStopSec=15` (a mid-PATCH SIGKILL is safe — tus resumes — say so
 in a comment). Gate on `systemd-analyze verify` AND
 `systemd-analyze security dubplate-serve.service` reporting the
@@ -653,10 +666,14 @@ and `ackedBytes` (server-confirmed tus offset) kept distinct. Consumes
 U7's `/api/config` and the tus endpoint at `/files/`.
 
 **Criteria:** Vite + Svelte 5 standalone builds to `web/dist` with
-`base: "/"`; the embed placeholder moves to `web/public/placeholder.txt`
-so every Vite build re-emits it into `dist` (N9 — Vite's default
-`emptyOutDir` would otherwise delete U7's committed copy and break the
-Go build); tus-js-client
+`base: "/upload/"` — [PLAN CORRECTION, conductor ruling 2026-09-01:
+was `base: "/"`; U12a relocated the uploader to a path-scoped mount at
+`music.907.life/upload` rather than a hostname of its own, so every
+emitted asset href must resolve under that prefix to match
+`internal/serve`'s own `basePath`] — the embed placeholder moves to
+`web/public/placeholder.txt` so every Vite build re-emits it into `dist`
+(N9 — Vite's default `emptyOutDir` would otherwise delete U7's committed
+copy and break the Go build); tus-js-client
 browser-entry/export-condition config proven by a production build with
 no Node shims; the gate gains `npm ci`, `svelte-check`, vitest, and the
 production build inside `make check`. The store is UI-free and fully

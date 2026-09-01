@@ -1,7 +1,12 @@
 {
-  "_comment": "Not consumed by compose.yaml or deploy.sh. cloudflared's compose service runs with TUNNEL_TOKEN, which makes it a remotely-managed tunnel: a local ingress config file is silently ignored by design (confirmed against cloudflare/cloudflared issues #633/#933/#1520 — ingress for a token-run tunnel must come from the Cloudflare API/dashboard, fetched at connect time). This file is the exact PUT body Task 5 (Cloudflare wiring) applies to the musicbox tunnel once it exists: PUT https://api.cloudflare.com/client/v4/accounts/120c269ad6d3dfbe6d63a0bb53758ca0/cfd_tunnel/<tunnel_id>/configurations, header 'Authorization: Bearer $CLOUDFLARE_API_TOKEN', this object as the JSON body.",
+  "_comment": "Not consumed by compose.yaml or deploy.sh. cloudflared's compose service runs with TUNNEL_TOKEN, which makes it a remotely-managed tunnel: a local ingress config file is silently ignored by design (confirmed against cloudflare/cloudflared issues #633/#933/#1520 — ingress for a token-run tunnel must come from the Cloudflare API/dashboard, fetched at connect time). This file is the exact PUT body Task 5 (Cloudflare wiring) applies to the musicbox tunnel once it exists: PUT https://api.cloudflare.com/client/v4/accounts/120c269ad6d3dfbe6d63a0bb53758ca0/cfd_tunnel/<tunnel_id>/configurations, header 'Authorization: Bearer $CLOUDFLARE_API_TOKEN', this object as the JSON body. U12a amendment: the uploader has no hostname of its own -- it lives at music.907.life/upload (path-scoped, internal/serve's own basePath constant owns the prefix server-side, since cloudflared forwards the request path intact). ORDERING IS LOAD-BEARING: cloudflared evaluates ingress rules top to bottom and stops at the first match, so the path-scoped music.907.life rule MUST precede the bare music.907.life rule below it -- swapping them would make the bare rule swallow every /upload request before the path rule ever ran. The path regex is anchored '^/upload(/|$)', not the bare '^/upload': an unanchored prefix would also match an unrelated future route sharing the string prefix (e.g. '/uploads-report'), leaking it to serve instead of Navidrome -- the same segment-boundary gap internal/serve's own mountBasePath is separately guarded against.",
   "config": {
     "ingress": [
+      {
+        "hostname": "music.907.life",
+        "path": "^/upload(/|$)",
+        "service": "http://host.docker.internal:8090"
+      },
       {
         "hostname": "music.907.life",
         "service": "http://navidrome:4533"

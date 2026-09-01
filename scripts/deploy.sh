@@ -43,12 +43,22 @@ UV_INSTALLER_SHA256="92e8554321e2bde08c9b1445dae47a65360f885274f31df51cdc2f9faa8
 # (/usr/local/bin/dubplate, shipped by its own step below) plus these
 # units -- there is no separate scripts-to-/usr/local/bin manifest left
 # now that the shell layer is gone.
+#
+# U12a adds the uploader's three units to this rsync+daemon-reload list --
+# dubplate-serve.service, and the nudge path/service pair -- but NOT to
+# TIMER_UNITS below: unlike every existing job, serve is the estate's one
+# user-facing surface and must not come up unattended before U12a's
+# Access/tunnel wiring is verified, so it (and its nudge path, which pairs
+# with it) is `systemctl enable --now` only in that box step, by hand,
+# under Geoff's sanction -- never by this script.
 UNIT_FILES=(
   dubplate-import.service dubplate-import.timer
   dubplate-backup.service dubplate-backup.timer
   dubplate-disk-check.service dubplate-disk-check.timer
   dubplate-navidrome-check.service dubplate-navidrome-check.timer
   "dubplate-ping-fail@.service"
+  dubplate-serve.service
+  dubplate-import-nudge.path dubplate-import-nudge.service
 )
 
 # ControlMaster/ControlPersist share one TCP+SSH handshake across this run's
@@ -204,6 +214,38 @@ else
   rsync -avz -e "$RSYNC_SSH" "${UNIT_FILES[@]/#/$REPO_ROOT/systemd/}" "$SSH_TARGET:/etc/systemd/system/"
 fi
 
+# --- tmpfiles fragment: the nudge trigger directory ---------------------
+# Installed and activated BEFORE any unit starts: dubplate-serve.service
+# writes nudge trigger files under /run/dubplate/nudge-triggers (U7) and
+# dubplate-import-nudge.path watches that same directory with
+# DirectoryNotEmpty= (U8) -- both fail outright if it does not already
+# exist, and /run is tmpfs, so it never survives a reboot on its own.
+# deploy_file installs the fragment itself; systemd-tmpfiles --create
+# then materializes the directories from it immediately (rather than
+# waiting for the next boot), matching what a fresh boot's own
+# systemd-tmpfiles-setup.service run would do. run_remote already prints
+# "would run: ..." under --check without executing anything.
+echo "== /etc/tmpfiles.d/dubplate.conf =="
+deploy_file "$REPO_ROOT/config/tmpfiles-dubplate.conf" /etc/tmpfiles.d/dubplate.conf 0644 root:root
+run_remote "systemd-tmpfiles --create /etc/tmpfiles.d/dubplate.conf"
+
+# Cheap, informational, non-fatal: under --check, report whether the
+# trigger directory already exists on the box (it survives until the
+# next reboot even though it is tmpfs, so a re-run of this script
+# usually finds it present) -- purely a visibility aid for reviewing a
+# --check run, never a pass/fail gate on its own.
+if $check_only; then
+  trigger_dir="/run/dubplate/nudge-triggers"
+  # shellcheck disable=SC2029
+  if ! remote_reachable; then
+    echo "  can't reach $SSH_TARGET to probe $trigger_dir"
+  elif ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "test -d $trigger_dir"; then
+    echo "  $trigger_dir: exists"
+  else
+    echo "  $trigger_dir: missing"
+  fi
+fi
+
 # --- dubplate binary -> /usr/local/bin/dubplate -------------------------
 # Cross-compiles via the Makefile's build-linux target (CGO_ENABLED=0
 # GOOS=linux GOARCH=amd64), the same artifact `make check` never ships
@@ -211,6 +253,11 @@ fi
 # local binary (never touches the box), and running it is what lets
 # --check's rsync -n report a real diff instead of guessing from a stale
 # local copy.
+#
+# The plan's "web build before Go cross-compile" ordering (so `go:embed`
+# picks up real Vite output, not just the placeholder) is U9's concern,
+# not this pass's -- no web/ build step exists yet for this line to order
+# against.
 echo "== dubplate binary -> $SSH_TARGET:/usr/local/bin/dubplate =="
 make -C "$REPO_ROOT" build-linux
 DUBPLATE_BINARY="$REPO_ROOT/dubplate-linux-amd64"
@@ -312,6 +359,23 @@ DUBPLATE_BACKUP_STAGING_DIR="/srv/music/state/backup-staging"
 echo "== $DUBPLATE_BACKUP_STAGING_DIR =="
 run_remote "mkdir -p $DUBPLATE_BACKUP_STAGING_DIR && chown music:music $DUBPLATE_BACKUP_STAGING_DIR"
 
+# --- /srv/music/uploads (DUBPLATE_UPLOADS_DIR, U12a) ---------------------
+# Not one of cloud-init's original `mkdir -p /srv/music/{library,inbox,
+# review,state,staging}` (a fresh re-provision only gets this directory
+# from THIS step, live remediation per vps-conventions -- cloud-init never
+# converges an already-running box, and this deploy step already runs
+# against every box including a fresh one, so no cloud-init edit is
+# needed to keep a new provision in sync). Same volume as InboxDir on
+# purpose: dubplate-serve.service's own startup check
+# (internal/serve.sameFilesystem) refuses to start unless UploadsDir and
+# InboxDir share a filesystem, since promotion is one atomic os.Rename.
+# dubplate-serve.service's own ReadWritePaths= requires this path to
+# already exist on the host before it starts, same as every directory
+# above.
+DUBPLATE_UPLOADS_DIR="/srv/music/uploads"
+echo "== $DUBPLATE_UPLOADS_DIR =="
+run_remote "mkdir -p $DUBPLATE_UPLOADS_DIR && chown music:music $DUBPLATE_UPLOADS_DIR"
+
 # --- compose stack -------------------------------------------------------
 COMPOSE_CMD="docker compose --env-file $REMOTE_ENV -f $REMOTE_DIR/compose.yaml --project-directory $REMOTE_DIR up -d"
 echo "== compose stack =="
@@ -320,7 +384,13 @@ run_remote "$COMPOSE_CMD"
 # --- systemd timers --------------------------------------------------
 # daemon-reload (via the units rsync just above) picks up every unit file,
 # including dubplate-ping-fail@.service, which is never enabled directly --
-# it only ever runs as an OnFailure= instance.
+# it only ever runs as an OnFailure= instance. TIMER_UNITS deliberately
+# does NOT include dubplate-serve.service or dubplate-import-nudge.path:
+# unlike every job below, serve is the estate's one user-facing surface,
+# so it (and its paired nudge path) is `systemctl enable --now` only by
+# hand, in U12a's own Geoff-sanctioned box step, once the Access
+# application and tunnel ingress are wired and verified -- never
+# unattended by this script.
 echo "== systemd timers =="
 TIMER_UNITS="dubplate-import.timer dubplate-backup.timer dubplate-disk-check.timer dubplate-navidrome-check.timer"
 run_remote "systemctl daemon-reload && systemctl enable --now $TIMER_UNITS"

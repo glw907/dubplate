@@ -44,6 +44,85 @@ func fakeVerify(email string, err error) func(context.Context, string) (string, 
 	return func(context.Context, string) (string, error) { return email, err }
 }
 
+// --- mountBasePath: the /upload prefix ----------------------------------
+
+func TestMountBasePath(t *testing.T) {
+	echo := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Echo-Path", r.URL.Path)
+		w.WriteHeader(http.StatusTeapot) // distinctive: proves next actually ran
+	})
+	h := mountBasePath(echo)
+
+	t.Run("bare /upload redirects to /upload/", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/upload", nil))
+
+		if w.Code != http.StatusMovedPermanently {
+			t.Fatalf("status = %d, want 301", w.Code)
+		}
+		if loc := w.Header().Get("Location"); loc != "/upload/" {
+			t.Fatalf("Location = %q, want /upload/", loc)
+		}
+	})
+
+	t.Run("prefixed API path reaches next with the prefix stripped", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/upload/api/config", nil))
+
+		if w.Code != http.StatusTeapot {
+			t.Fatalf("status = %d, want 418 (next ran)", w.Code)
+		}
+		if got := w.Header().Get("X-Echo-Path"); got != "/api/config" {
+			t.Fatalf("next saw path %q, want /api/config (prefix stripped)", got)
+		}
+	})
+
+	t.Run("prefixed asset root reaches next as /", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/upload/", nil))
+
+		if got := w.Header().Get("X-Echo-Path"); got != "/" {
+			t.Fatalf("next saw path %q, want /", got)
+		}
+	})
+
+	t.Run("unprefixed API path 404s, never reaches next", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/config", nil))
+
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("status = %d, want 404", w.Code)
+		}
+		if w.Header().Get("X-Echo-Path") != "" {
+			t.Fatal("next ran on an unprefixed /api/ path; it must not")
+		}
+	})
+
+	t.Run("unprefixed root 404s, never reaches next", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("status = %d, want 404", w.Code)
+		}
+	})
+
+	t.Run("a path merely starting with the prefix string 404s, never reaches next", func(t *testing.T) {
+		// "/uploadfoo" is not "/upload" plus a path segment -- a plain
+		// [http.StripPrefix] would trim the literal string "/upload" and
+		// pass "foo" straight through to next, which must not happen.
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/uploadfoo", nil))
+
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("status = %d, want 404", w.Code)
+		}
+		if w.Header().Get("X-Echo-Path") != "" {
+			t.Fatal("next ran on /uploadfoo; it must not")
+		}
+	})
+}
+
 // --- enforceAccess: per-surface failure shapes -------------------------
 
 func TestEnforceAccess(t *testing.T) {

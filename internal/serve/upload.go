@@ -58,8 +58,12 @@ const bytesPerGiB = 1 << 30
 // [validCollection] to admit a session created against it.
 const defaultPrivateCollection = "Private Recordings"
 
-// filesBasePath is where the tus protocol is mounted, agreed with U7's
-// routing and U9's dev proxy.
+// filesBasePath is where the tus protocol is mounted on Engine's own
+// mux, agreed with U9's dev proxy: the pattern [Engine.Handler]
+// registers and the prefix [http.StripPrefix] removes before the
+// request reaches tusd. It is relative to wherever Engine.Handler is
+// itself mounted; [Options.TusBasePath] is the absolute counterpart,
+// the path tusd advertises to clients.
 const filesBasePath = "/files/"
 
 // contextKey namespaces this package's context values.
@@ -148,8 +152,10 @@ type Engine struct {
 	privateCollection string
 }
 
-// Options overrides Engine's test seams; every field defaults to its
-// production behavior when left zero.
+// Options carries Engine's construction seams: the test seams (a clock,
+// a rename, a promotion hook, a tag probe) and the mount wiring
+// [NewServer] sets in production. Each field's own doc names what the
+// zero value falls back to.
 type Options struct {
 	// Now stands in for time.Now: session creation timestamps and the
 	// sweep's cutoff both read the clock through this seam.
@@ -177,6 +183,17 @@ type Options struct {
 	// value defaults to [defaultPrivateCollection], the documented
 	// default name.
 	PrivateCollection string
+	// TusBasePath sets tusd's own advertised BasePath
+	// (github.com/tus/tusd/v2/pkg/handler.Config.BasePath), the prefix
+	// of the absolute Location URL a tus client PATCHes back against.
+	// tusd bakes that string in verbatim rather than inferring it from
+	// the request, so it must name where [Engine.Handler]'s
+	// [filesBasePath] route is reachable from outside this process,
+	// mount prefix included. The zero value is [filesBasePath] itself,
+	// correct only for an Engine.Handler mounted at the process root
+	// (every test in this package). [NewServer] mounts it under
+	// [basePath] instead and sets this to basePath+filesBasePath.
+	TusBasePath string
 }
 
 // NewEngine builds an Engine backed by a tus filestore rooted at
@@ -196,6 +213,9 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 	}
 	if opts.PrivateCollection == "" {
 		opts.PrivateCollection = defaultPrivateCollection
+	}
+	if opts.TusBasePath == "" {
+		opts.TusBasePath = filesBasePath
 	}
 
 	store := filestore.New(cfg.Paths.UploadsDir)
@@ -224,7 +244,7 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 
 	tusCfg := thandler.Config{
 		StoreComposer: composer,
-		BasePath:      filesBasePath,
+		BasePath:      opts.TusBasePath,
 		// MaxSize bounds one tus resource: the whole album for a lone-ZIP
 		// session, or one member file for a multi-file session. It is not
 		// an aggregate cap across a multi-file session's several uploads;

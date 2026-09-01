@@ -81,15 +81,52 @@ services:
     # No local --config: a token-run tunnel is remotely managed, so a local
     # ingress file would be silently ignored (cloudflare/cloudflared issues
     # #633, #933, #1520). The real ingress rules (music.907.life ->
-    # navidrome:4533, inbox.907.life -> filebrowser:80, 404 catch-all) are
-    # applied against the Cloudflare API once the tunnel exists — see
-    # config/cloudflared-tunnel-config.json, applied by Task 5.
+    # navidrome:4533, inbox.907.life -> filebrowser:80, the uploader
+    # hostname -> http://host.docker.internal:<DUBPLATE_SERVE_PORT>, 404
+    # catch-all) are applied against the Cloudflare API once the tunnel
+    # exists — see config/cloudflared-tunnel-config.json, applied by Task 5
+    # and (for the uploader hostname) U12a.
     command: tunnel --no-autoupdate run
     environment:
       # Secret: minted when Task 5 creates the named tunnel via the
       # Cloudflare API. Renamed from MUSICBOX_TUNNEL_TOKEN to
       # DUBPLATE_TUNNEL_TOKEN at T13 (same secret value, new variable name).
       TUNNEL_TOKEN: ${DUBPLATE_TUNNEL_TOKEN}
+    # U12a (plan-time decision): `dubplate serve` runs on the host under
+    # systemd, not in this compose stack — it binds the pinned bridge
+    # gateway IP below via U7's IP_FREEBIND listener, never a container
+    # port. host.docker.internal is Docker Desktop's own convenience
+    # name and is NOT set automatically on Linux, so cloudflared's
+    # ingress config can still name the host binary as
+    # http://host.docker.internal:<port>. Deliberately a LITERAL pin
+    # here, not the `host-gateway` magic value: Docker's `host-gateway`
+    # resolves to the daemon's HostGatewayIP, which defaults to the
+    # DEFAULT bridge network's gateway (docker0, typically 172.17.0.1),
+    # not this project's own named bridge — using it here would silently
+    # point cloudflared at the wrong interface. The literal
+    # 172.30.0.1 below is the exact IP the networks.default.ipam block
+    # pins a few lines down; if that subnet ever changes (migration
+    # caution there), this line must change with it.
+    extra_hosts:
+      - "host.docker.internal:172.30.0.1"
     depends_on:
       - navidrome
       - filebrowser
+
+# U12a (plan-time decision): pins the compose bridge network's subnet so
+# its gateway IP is a stable, known value (172.30.0.1) rather than
+# whatever Docker's default allocator happens to assign — `dubplate
+# serve` binds this exact IP (alongside loopback) via U7's IP_FREEBIND
+# listener, and cloudflared's extra_hosts above resolves
+# host.docker.internal to it, so the tunnel can reach the host-side
+# serve binary without publishing a container port. MIGRATION CAUTION:
+# changing this subnet on a live stack forces Docker to recreate the
+# "musicbox_default" network (and reattach every container to it) —
+# a supervised box-side migration (stop the stack, apply, `compose up
+# -d` to recreate), never a routine config edit once the box is live.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
