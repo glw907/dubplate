@@ -892,6 +892,40 @@ func TestOptions_TusBasePathOverride(t *testing.T) {
 	}
 }
 
+// TestOptions_RespectsForwardedProto proves tusd's Config.
+// RespectForwardedHeaders is wired on: behind cloudflared, serve sees
+// plain HTTP, so without it tusd would stamp http:// into the absolute
+// Location header a tus client PATCHes back against, sending a
+// resuming client into an http->https redirect mid-protocol.
+func TestOptions_RespectsForwardedProto(t *testing.T) {
+	te := newTestEngine(t, nil)
+
+	req, err := http.NewRequest(http.MethodPost, te.server.URL+"/files/", http.NoBody)
+	if err != nil {
+		t.Fatalf("build create request: %v", err)
+	}
+	req.Header.Set("Tus-Resumable", tusResumable)
+	req.Header.Set("Upload-Length", strconv.FormatInt(int64(len(cdFlacFixture())), 10))
+	req.Header.Set("Upload-Metadata", encodeTusMetadata(map[string]string{
+		"filename": "01 - one.flac", "session_id": te.createSession(t, "Forwarded Proto Album", "", 1),
+	}))
+	req.Header.Set(testEmailHeader, testEmailAlice)
+	req.Header.Set("X-Forwarded-Proto", "https")
+	resp, err := te.client.Do(req)
+	if err != nil {
+		t.Fatalf("create upload: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("create: status %d", resp.StatusCode)
+	}
+
+	loc := resp.Header.Get("Location")
+	if !strings.HasPrefix(loc, "https://") {
+		t.Fatalf("Location = %q, want an https:// scheme", loc)
+	}
+}
+
 // --- tag-check probe + private lane (custody policy) -----------------------
 
 // alwaysConfidentTagProbe is the default [Options.TagProbe] every test

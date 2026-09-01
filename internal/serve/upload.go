@@ -251,9 +251,14 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 		// nothing in the tus protocol offers that hook, so the album-total
 		// cap for that path is enforced by Decide's callers rejecting an
 		// oversized member instead.
-		MaxSize:                    cfg.Upload.MaxAlbumBytes,
-		DisableDownload:            true,
-		DisableConcatenation:       true,
+		MaxSize:              cfg.Upload.MaxAlbumBytes,
+		DisableDownload:      true,
+		DisableConcatenation: true,
+		// serve sits behind cloudflared, which terminates TLS and forwards
+		// plain HTTP: without this, tusd stamps http:// into the absolute
+		// Location header it hands back, and a tus client's resume PATCH
+		// then hits an http->https redirect mid-protocol.
+		RespectForwardedHeaders:    true,
 		PreUploadCreateCallback:    e.preCreate,
 		PreFinishResponseCallback:  e.preFinish,
 		PreUploadTerminateCallback: e.preTerminate,
