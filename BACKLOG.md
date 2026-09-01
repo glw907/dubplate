@@ -30,6 +30,12 @@
 - [ ] #8 tus-js-client 5.0 watch item: 5.0.0-pre2 exists under the `next`
   dist-tag; re-check at the prod-polish pass and record the upgrade verdict
   #upload
+- [ ] #10 provision.sh refuses to run (even `--check`) when
+  `FIREWALL_SSH_CIDRS` is unset, but the SSH allowlist was DECLINED
+  2026-08-31 (no stable workstation IP), so a fresh provision is impossible
+  without setting a variable whose policy answer is "unrestricted".
+  Reconcile with a stated decision; do not drive-by edit the guard
+  #onboarding #project:prod-polish
 - [ ] #9 Geoff: review the two seed albums parked in
   `/srv/music/review/2026-08-31/geoff/` (Aim "Hinterland (Remastered)",
   illuminati hotties "POWER", plus a TV Girl zine PDF) #pipeline
