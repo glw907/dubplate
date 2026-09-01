@@ -9,7 +9,13 @@
   the current selection reaches `'ok'`, this shell hands off to U11's
   `Journey` for the post-upload steps spine, outcomes, and completion;
   a "Your uploads" link swaps the whole main region for U11's `History`
-  independently of upload phase.
+  independently of upload phase. This is also where U11's one shared
+  {@link LiveRegion} lives: the `aria-live` element renders unconditionally
+  in `<main>` from first paint (not only once `Journey` mounts), and an
+  effect announces the current selection's aggregate server-acknowledged
+  progress through it while `phase` is `'uploading'` -- a screen-reader
+  user hears progress during the transfer itself, not only after every
+  file lands.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -21,9 +27,15 @@
 	import Journey from './lib/components/Journey.svelte';
 	import PickerButton from './lib/components/PickerButton.svelte';
 	import SpecCard from './lib/components/SpecCard.svelte';
+	import { LiveRegion } from './lib/announce';
 	import { supportsDirectorySelect } from './lib/platform';
 	import { isZipSelection, screenSelection, type PreflightVerdict } from './lib/preflight';
-	import { sessionIdFromUploadURL, uploadStore, type FileVerdict } from './lib/store/upload.svelte';
+	import {
+		sessionIdFromUploadURL,
+		uploadStore,
+		type FileVerdict,
+		type HistoryRow,
+	} from './lib/store/upload.svelte';
 
 	/** The picker/drop accept list: extension-first per gate 3 (audio/* greys out FLAC on iOS Safari). */
 	const acceptExtensions = '.zip,.flac';
@@ -46,7 +58,27 @@
 	let tagYear = $state('');
 	let tagTrackTitles = $state<string[]>([]);
 
+	// A resume picked from History carries no File object (only its
+	// anchor's name/size/URL survive a page reload), so resuming re-opens
+	// a native picker scoped to that session and waits for a matching
+	// re-pick before calling the store's documented reselectFile/startFile
+	// path. resumeAlbum is journeyAlbum's fallback for a resumed session,
+	// which never goes through routeSelection/deriveAlbumLabel.
+	let resumingRow: HistoryRow | null = null;
+	let resumeAlbum = $state('');
+	let resumeInputEl: HTMLInputElement | undefined = $state();
+
+	// The one shared aria-live region (U11 criterion): constructed once
+	// here, attached to the element below that renders on every phase,
+	// and passed to Journey so its own state/completion announcements
+	// land in the same region rather than a second one.
+	const announcer = new LiveRegion();
+	let liveRegionEl: HTMLDivElement | undefined = $state();
+
 	onMount(() => {
+		if (liveRegionEl) {
+			announcer.attach(liveRegionEl);
+		}
 		void uploadStore.loadConfig().then(() => {
 			if (uploadStore.config && !selectedCollection) {
 				selectedCollection = uploadStore.config.collections[0] ?? '';
@@ -131,6 +163,25 @@
 	const currentFiles = $derived(uploadStore.files.filter((file) => uploadFileIds.includes(file.id)));
 	const stalledFiles = $derived(currentFiles.filter((file) => file.status === 'failed' && file.failureKind === 'connection'));
 
+	// The live region's progress voice: the aggregate server-acknowledged
+	// percentage across the current selection (never the raw transfer
+	// count -- the store's own honest-progress split), announced through
+	// the one shared region above as the store's onAcked callbacks land.
+	// shouldAnnounceProgress's own threshold silences everything below a
+	// 25-point delta, so this effect can run on every tick without
+	// spamming the region.
+	$effect(() => {
+		if (phase !== 'uploading' || currentFiles.length === 0) {
+			return;
+		}
+		const totalBytes = currentFiles.reduce((sum, file) => sum + file.size, 0);
+		if (totalBytes === 0) {
+			return;
+		}
+		const ackedBytes = currentFiles.reduce((sum, file) => sum + file.ackedBytes, 0);
+		announcer.announceProgress((ackedBytes / totalBytes) * 100);
+	});
+
 	// U11's Journey takes over once every file in the current selection
 	// has landed: a multi-file session already carries its own ID from
 	// createSession; a lone ZIP never calls that endpoint, so its
@@ -145,7 +196,7 @@
 		const zipURL = currentFiles[0]?.tusUploadURL;
 		return zipURL ? sessionIdFromUploadURL(zipURL) : null;
 	});
-	const journeyAlbum = $derived(uploadStore.session.album || deriveAlbumLabel(pendingFiles));
+	const journeyAlbum = $derived(uploadStore.session.album || resumeAlbum || deriveAlbumLabel(pendingFiles));
 
 	/** OutcomeAlert's "Upload to Private Recordings" action: the picked files are still held in memory, so a pushed-back album re-routes through the same tag form U10 already built rather than asking for a fresh pick. */
 	function retryAsPrivateCollection(): void {
@@ -159,11 +210,54 @@
 	}
 
 	function retryStalled(): void {
+		// journeySessionId also covers a resumed session, which never
+		// calls createSession and so never populates uploadStore.session.
 		const metadata: Record<string, string> = isZipSelection(pendingFiles)
 			? { album: deriveAlbumLabel(pendingFiles), collection: selectedCollection }
-			: { session_id: uploadStore.session.sessionId ?? '' };
+			: { session_id: uploadStore.session.sessionId ?? journeySessionId ?? '' };
 		for (const file of stalledFiles) {
 			uploadStore.retryFile(file.id, metadata);
+		}
+	}
+
+	/** History's "Resume" affordance: opens a native picker scoped to row's session, then hands the re-picked files to {@link handleResumeFilesPicked}. */
+	function handleResume(row: HistoryRow): void {
+		view = 'upload';
+		resumingRow = row;
+		resumeInputEl?.click();
+	}
+
+	/** The resume picker's change handler: re-attaches every re-picked file that matches one of row's resumable anchors via the store's documented reselectFile path, then starts each one. */
+	function handleResumeFilesPicked(): void {
+		const row = resumingRow;
+		const files = Array.from(resumeInputEl?.files ?? []);
+		if (resumeInputEl) {
+			resumeInputEl.value = '';
+		}
+		resumingRow = null;
+		if (!row || files.length === 0) {
+			return;
+		}
+
+		const anchors = uploadStore.resumableAnchors.filter(
+			(anchor) => sessionIdFromUploadURL(anchor.tusUploadURL) === row.sessionId,
+		);
+		const resumedIds: string[] = [];
+		for (const anchor of anchors) {
+			const file = files.find((f) => f.name === anchor.name && f.size === anchor.size);
+			const id = file ? uploadStore.reselectFile(anchor, file) : null;
+			if (id) {
+				resumedIds.push(id);
+			}
+		}
+		if (resumedIds.length === 0) {
+			return;
+		}
+		resumeAlbum = row.album;
+		uploadFileIds = resumedIds;
+		phase = 'uploading';
+		for (const id of resumedIds) {
+			uploadStore.startFile(id, { session_id: row.sessionId });
 		}
 	}
 
@@ -213,8 +307,21 @@
 	</header>
 
 	<main class="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+		<!-- U11's one shared aria-live region: exists empty from first render, across every phase, not only once Journey mounts. -->
+		<div bind:this={liveRegionEl} aria-live="polite" class="sr-only" role="status"></div>
+		<!-- The resume picker's hidden input: always mounted so handleResume can trigger it from History regardless of the current phase. -->
+		<input
+			bind:this={resumeInputEl}
+			type="file"
+			class="hidden"
+			accept={acceptExtensions}
+			multiple
+			onchange={handleResumeFilesPicked}
+		/>
+
 		{#if view === 'history'}
 			<History
+				onResume={handleResume}
 				onUploadPrivate={() => {
 					view = 'upload';
 					retryAsPrivateCollection();
@@ -316,6 +423,7 @@
 						sessionId={journeySessionId}
 						album={journeyAlbum}
 						totalFiles={currentFiles.length}
+						{announcer}
 						onUploadPrivate={retryAsPrivateCollection}
 						onFixNames={resetSelection}
 					/>

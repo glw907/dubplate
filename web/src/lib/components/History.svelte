@@ -12,6 +12,11 @@
   ledger; ledger `review` only exists for the importer's admin-timer
   orphans going forward) -- so this file gives it one plain, undramatic
   label rather than inventing prose the contract never ratified.
+  `probe-unavailable`'s "Try again" is this file's own concern, not a
+  reroute through `onFixNames`: the copy above it promises the album is
+  already uploaded and waiting, so retrying means re-issuing the same
+  finish probe (`store.finishSession`), never sending the caller back to
+  the idle picker.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -30,6 +35,12 @@
 	onMount(() => {
 		void store.loadHistory();
 	});
+
+	/** Re-probes row's session outcome in place and refreshes this list; never touches `onFixNames`, which stays scoped to the pushed-back re-pick path. */
+	async function retryProbe(row: HistoryRow): Promise<void> {
+		await store.finishSession(row.sessionId, row.album);
+		await store.loadHistory();
+	}
 
 	let expandedSessionId = $state<string | null>(null);
 
@@ -117,7 +128,7 @@
 								}}
 							/>
 						{:else}
-							<OutcomeAlert outcome={{ kind: 'probe-unavailable', onTryAgain: () => onFixNames(row) }} />
+							<OutcomeAlert outcome={{ kind: 'probe-unavailable', onTryAgain: () => void retryProbe(row) }} />
 						{/if}
 					{/if}
 				</li>

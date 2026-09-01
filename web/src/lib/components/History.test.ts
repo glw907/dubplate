@@ -101,6 +101,35 @@ describe('History', () => {
 		expect(onUploadPrivate).toHaveBeenCalledOnce();
 	});
 
+	it("re-probes the session (not onFixNames) when a probe-unavailable row's Try again is clicked", async () => {
+		const storage = memoryStorage();
+		storage.setItem(
+			'dubplate:upload:pushed-back',
+			JSON.stringify([{ sessionId: sessionA, album: 'Slow Service Album', kind: 'probe-unavailable' }]),
+		);
+		const fetchMock = vi.fn((input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.includes('/finish')) {
+				return Promise.resolve(jsonResponse({ promoted: true, files: [] }));
+			}
+			return Promise.resolve(jsonResponse([]));
+		});
+		vi.stubGlobal('fetch', fetchMock);
+		const onFixNames = vi.fn();
+		render(History, { store: new UploadStore(noopDriver, storage), onFixNames });
+
+		await waitFor(() => expect(screen.getByText('pushed back')).toBeInTheDocument());
+		await fireEvent.click(screen.getByText('Slow Service Album'));
+		expect(screen.getByText("Can't check MusicBrainz right now")).toBeInTheDocument();
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+		await waitFor(() =>
+			expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining(`/session/${sessionA}/finish`), expect.anything()),
+		);
+		expect(onFixNames).not.toHaveBeenCalled();
+	});
+
 	it('drops a locally-remembered pushed-back record once the ledger reports a newer event for the same session', async () => {
 		const storage = memoryStorage();
 		storage.setItem(

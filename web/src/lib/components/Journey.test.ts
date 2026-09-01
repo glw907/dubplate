@@ -2,6 +2,7 @@ import { waitFor } from '@testing-library/dom';
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Journey from './Journey.svelte';
+import { LiveRegion } from '../announce';
 import { UploadStore, type KeyValueStorage } from '../store/upload.svelte';
 
 function memoryStorage(): KeyValueStorage {
@@ -139,5 +140,23 @@ describe('Journey', () => {
 			'https://music.example.com/app/#/album?filter=x',
 		);
 		expect(journeyCalls).toBeGreaterThan(0);
+	});
+
+	it("announces state changes through a caller-supplied announcer, never a region of its own", async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				jsonResponse({ promoted: false, pushed_back: true, detail: 'no confident match', files: [] }),
+			),
+		);
+		const store = newStore();
+		const target = { textContent: '' };
+		const announcer = new LiveRegion();
+		announcer.attach(target);
+
+		render(Journey, { sessionId: 'a'.repeat(26), album: 'Unknown Album', totalFiles: 3, store, announcer });
+
+		await waitFor(() => expect(screen.getByText('No MusicBrainz match')).toBeInTheDocument());
+		expect(target.textContent).toBe('No MusicBrainz match for this album.');
 	});
 });

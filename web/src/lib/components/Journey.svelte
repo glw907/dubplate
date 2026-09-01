@@ -10,9 +10,12 @@
   -- starting it earlier would read the session's live state mid-decision,
   a transient window `internal/serve/api.go`'s own live-session switch
   does not cover (verified against the landed backend, not the plan's
-  earlier draft). The one polite aria-live region {@link announce}
-  owns exists empty from first render; every step and outcome change
-  announces through it once, and completion gets its own distinct call.
+  earlier draft). `announcer` is App.svelte's one shared {@link LiveRegion}
+  instance, already attached to the one aria-live element that exists
+  empty from first render (App.svelte's main region, mounted for every
+  upload phase, not only this one) -- every step and outcome change
+  announces through it once, and completion gets its own distinct call;
+  this component never owns the DOM region itself.
 -->
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
@@ -26,16 +29,24 @@
 		album: string;
 		totalFiles: number;
 		store?: UploadStore;
+		/** The app's one shared live region; defaults to an unattached instance so this component still renders standalone (tests, Storybook-style isolation). */
+		announcer?: LiveRegion;
 		onUploadPrivate?: () => void;
 		onFixNames?: () => void;
 	}
 
-	let { sessionId, album, totalFiles, store = uploadStore, onUploadPrivate = () => {}, onFixNames = () => {} }: Props =
-		$props();
+	let {
+		sessionId,
+		album,
+		totalFiles,
+		store = uploadStore,
+		announcer = new LiveRegion(),
+		onUploadPrivate = () => {},
+		onFixNames = () => {},
+	}: Props = $props();
 
 	let finishing = $state(true);
 	let outcome = $state<FinishOutcome | null>(null);
-	let liveRegionEl: HTMLDivElement | undefined = $state();
 	let wakeLockOn = $state(false);
 	let wakeLockSupported = $state(false);
 
@@ -53,7 +64,6 @@
 	}
 
 	let wakeLockSentinel: WakeLockSentinelLike | null = null;
-	const announcer = new LiveRegion();
 	let stopPolling: (() => void) | null = null;
 
 	const journey = $derived(store.journey);
@@ -120,16 +130,12 @@
 	const ownEarlierUpload = $derived(journey?.detail === 'waiting on your other upload');
 
 	onMount(() => {
-		if (liveRegionEl) {
-			announcer.attach(liveRegionEl);
-		}
 		wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
 		void runFinish();
 	});
 
 	onDestroy(() => {
 		stopPolling?.();
-		announcer.detach();
 		void releaseWakeLock();
 	});
 
@@ -221,8 +227,6 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<div bind:this={liveRegionEl} aria-live="polite" class="sr-only" role="status"></div>
-
 	{#if viewMode === 'in-library'}
 		<div class="alert alert-success flex-col items-start gap-3 motion-safe:transition-opacity" role="status">
 			<h3 class="font-semibold">In your library</h3>
