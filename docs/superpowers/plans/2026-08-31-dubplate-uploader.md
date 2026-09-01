@@ -167,7 +167,11 @@ checklist, one calm summary, honest retry per path; waiting — both copy
 variants, own-upload and library-busy); the history view (terminal states
 checkable from outside the flow, in-flight resumables listed); the
 roster-absent warm page. Device matrix per screen: desktop / iPad
-portrait (the steps-overflow case) / phone.
+portrait (the steps-overflow case) / phone / SMALL phone (Geoff,
+2026-09-01: fully responsive includes small phones — the floor is
+320px CSS width, iPhone SE class: no horizontal scroll, no clipped
+controls, touch targets hold 44px; U10/U11 verify at this width and
+the visual-verifier grades a 320px capture alongside the others).
 
 **Design-language ruling (Geoff, 2026-08-31): the uploader uses
 Navidrome's basic design language** — its dark theme's near-black
