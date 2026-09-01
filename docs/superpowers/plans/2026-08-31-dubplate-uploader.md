@@ -251,6 +251,22 @@ ratified captures are the U13 reference set.
   `no-cache`. Vite `base` stays `/`; embed home is `web/embed.go`
   (`package web`, `//go:embed all:dist`) with a committed non-dot
   `web/dist/placeholder.txt` so Pass A builds before Vite ever runs.
+- **Early MusicBrainz screen (Geoff, 2026-09-01: "check and reject as
+  soon as we don't find a match")**: after assembly and a passing
+  format verdict, BEFORE promotion, serve reads the batch's artist and
+  album tags (Vorbis comments; filename fallback) and runs one generous
+  MusicBrainz release search (direct HTTP, MB rate etiquette, short
+  timeout). ZERO candidates → the session enters the `unmatched` state,
+  unpromoted, and the user chooses via
+  `POST /api/session/<id>/decide {retry|send-anyway}`: retry discards
+  the session for an immediate fixed re-upload; send-anyway promotes
+  into the normal pipeline (beets, likely hand-tag review — homemade
+  and rare material stays first-class). ANY candidate → promote
+  normally; the screen is a zero-match tripwire, never a matcher —
+  beets outmatches any pre-check and ambiguity always flows through.
+  FAIL-OPEN: MusicBrainz unreachable → promote normally; a third-party
+  outage never blocks an upload. Undecided `unmatched` sessions expire
+  with PartialTTL and count against MaxSessionsPerUser until decided.
 - **Chunk default**: `UploadChunkMB` default 8 pending gate 2.
 
 ---
@@ -422,6 +438,13 @@ promotion into `inbox/<dirname>/<sessionid>__<albumslug>/`.
   would cross `FreeFloorGB`, and when the caller already has
   `MaxSessionsPerUser` in-flight sessions — with a `reject.Reason` and
   kind copy, not a bare 500.
+- **Early MusicBrainz screen:** per the plan-time decision above —
+  tag read (Vorbis comment artist/album, filename fallback), one
+  generous MB search, zero-candidate → `unmatched` unpromoted +
+  `/decide` endpoint (retry discards; send-anyway promotes), any
+  candidate or MB unreachable → promote. Tests: zero-match holds
+  promotion; decide/retry leaves no trace; decide/send-anyway promotes
+  atomically; MB timeout promotes (fail-open proven with a stub).
 - **Mechanics:** chunk size honors `Upload.ChunkMB`; `Upload-Expires`
   stamped; the sweep (frozen-clock seam) deletes expired partials on a
   ticker. HTTP timeouts: `ReadHeaderTimeout` on the tus routes,
@@ -721,7 +744,13 @@ supported, presented as exactly that. The stall state renders "taking
 longer than expected — the admin has been notified" — true because U6
 sends it. `History.svelte` renders `/api/history`: unambiguous terminal
 states checkable without an active flow; in-flight resumables first with
-a resume affordance; review items show who looks and the 60-day clock — and when the cause
+a resume affordance; review items show who looks and the 60-day clock; the `unmatched`
+state renders the choice screen (its copy names MusicBrainz, states
+both options plainly, and the buttons ARE the next step — this is the
+answer to "what does the user do": fix names and re-upload in minutes,
+or send it to Geoff as-is); NOTE: `unmatched` joins the ledger State
+vocabulary — if U3 landed before this amendment, extending the
+vocabulary is a named fix-wave item, not silent drift — and when the cause
 is a MusicBrainz no-match, the copy SAYS so by name with next steps
 (check artist/album naming; rare pressings get hand-tagged), per Geoff
 2026-09-01: the no-match failure must be clear, never a vague "under
