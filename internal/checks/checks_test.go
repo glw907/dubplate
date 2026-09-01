@@ -268,6 +268,7 @@ func requiredFieldsEnv() map[string]string {
 		"DUBPLATE_ACCESS_TEAM_DOMAIN":       "family.cloudflareaccess.com",
 		"DUBPLATE_ACCESS_AUD":               "aud-value",
 		"DUBPLATE_PUBLIC_NAVIDROME_URL":     "https://music.example.com",
+		"DUBPLATE_SERVE_SITE_NAME":          "dubplate",
 		"DUBPLATE_TRIGGER_DIR":              "/run/dubplate",
 	}
 }

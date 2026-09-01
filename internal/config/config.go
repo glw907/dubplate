@@ -87,6 +87,10 @@ type ServeConfig struct {
 	AccessTeamDomain   string
 	AccessAUD          string
 	PublicNavidromeURL string
+	// SiteName is the uploader page's masthead text, joining /api/config
+	// so the adopter goal holds: no site-identifying string is baked
+	// into the web build.
+	SiteName string
 }
 
 // UploadConfig holds the upload-path thresholds: chunk size, the
@@ -329,6 +333,7 @@ func Load() (*Config, error) {
 			AccessTeamDomain:   require("DUBPLATE_ACCESS_TEAM_DOMAIN"),
 			AccessAUD:          require("DUBPLATE_ACCESS_AUD"),
 			PublicNavidromeURL: require("DUBPLATE_PUBLIC_NAVIDROME_URL"),
+			SiteName:           require("DUBPLATE_SERVE_SITE_NAME"),
 		},
 		Upload:              loadUpload(&errs),
 		Contributors:        require("DUBPLATE_CONTRIBUTORS_FILE"),

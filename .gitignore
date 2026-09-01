@@ -6,3 +6,11 @@ env/rendered/
 # Go build output (make build / make build-linux).
 /dubplate
 /dubplate-linux-amd64
+
+# Web (web/README.md documents the build). node_modules is workstation
+# build-time only, never shipped; web/dist is Vite's build output, empty
+# on a fresh checkout except placeholder.txt (kept below so `go build`
+# stays green before anyone runs `npm run build`).
+/web/node_modules
+/web/dist/*
+!/web/dist/placeholder.txt

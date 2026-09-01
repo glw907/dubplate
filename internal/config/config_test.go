@@ -45,6 +45,7 @@ func requiredEnv() map[string]string {
 		"DUBPLATE_ACCESS_TEAM_DOMAIN":       "family.cloudflareaccess.com",
 		"DUBPLATE_ACCESS_AUD":               "aud-value",
 		"DUBPLATE_PUBLIC_NAVIDROME_URL":     "https://music.example.com",
+		"DUBPLATE_SERVE_SITE_NAME":          "dubplate",
 	}
 }
 
@@ -103,6 +104,9 @@ func TestLoad_allRequiredSet(t *testing.T) {
 	if cfg.Serve.PublicNavidromeURL != "https://music.example.com" {
 		t.Errorf("Serve.PublicNavidromeURL = %q, want https://music.example.com", cfg.Serve.PublicNavidromeURL)
 	}
+	if cfg.Serve.SiteName != "dubplate" {
+		t.Errorf("Serve.SiteName = %q, want dubplate", cfg.Serve.SiteName)
+	}
 }
 
 // --- Serve.BindAddrs list parsing --------------------------------------
@@ -155,9 +159,9 @@ func TestLoad_triggerDirMissingIsErrMissing(t *testing.T) {
 
 // TestLoad_newRequiredFieldsMissingAreNamed pins this pass's remaining new
 // required fields (Serve.Port/AccessTeamDomain/AccessAUD/
-// PublicNavidromeURL, Paths.UploadsDir): each unset field's env var name
-// appears in Load's joined error, exactly like every pre-existing required
-// field.
+// PublicNavidromeURL/SiteName, Paths.UploadsDir): each unset field's env
+// var name appears in Load's joined error, exactly like every
+// pre-existing required field.
 func TestLoad_newRequiredFieldsMissingAreNamed(t *testing.T) {
 	env := requiredEnv()
 	newFields := []string{
@@ -166,6 +170,7 @@ func TestLoad_newRequiredFieldsMissingAreNamed(t *testing.T) {
 		"DUBPLATE_ACCESS_AUD",
 		"DUBPLATE_PUBLIC_NAVIDROME_URL",
 		"DUBPLATE_UPLOADS_DIR",
+		"DUBPLATE_SERVE_SITE_NAME",
 	}
 	for _, name := range newFields {
 		delete(env, name)

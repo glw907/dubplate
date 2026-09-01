@@ -1,5 +1,8 @@
-This file exists only so `//go:embed all:dist` in embed.go has a
-non-empty directory to embed before U9's Vite build ever runs (a bare
-`dist/` with zero files fails go:embed at compile time). U9 replaces
-this directory's contents with Vite's real build output and must either
-keep a file here or change the embed pattern in the same change.
+This file exists so `go build` stays green even when `dist/` has just been
+emptied and rebuilt: Vite copies everything under public/ into dist/
+verbatim on every build (N9, docs/superpowers/plans/2026-08-31-dubplate-uploader.md),
+so this file rides along next to index.html and the hashed assets rather
+than being deleted by build.emptyOutDir. web/dist/placeholder.txt is the
+same content, committed separately so `//go:embed all:dist` in embed.go
+has a non-empty directory on a fresh checkout that has never run `npm run
+build`.

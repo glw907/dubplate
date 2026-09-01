@@ -1,8 +1,11 @@
 // Package web embeds the uploader's compiled static assets into the
-// dubplate binary. U9's Vite build writes index.html and a hashed
-// /assets/ directory into dist/; until then, dist/placeholder.txt is the
-// only file here, committed so this package builds before Vite ever
-// runs (a bare, empty dist/ fails //go:embed at compile time).
+// dubplate binary. `npm run build` in web/ writes index.html and a
+// hashed assets/ directory into dist/, plus a copy of
+// web/public/placeholder.txt (Vite copies public/ verbatim on every
+// build); dist/placeholder.txt is a second, separately committed copy
+// of that same file so this package still builds on a fresh checkout
+// that has never run the web build (a bare, empty dist/ fails
+// //go:embed at compile time).
 package web
 
 import "embed"

@@ -1,0 +1,47 @@
+/* Navidrome's basic design language (2026-09-01 ratification, plan
+   "Design-language ruling"): near-black dark ground, Material blue
+   service accent, flat cards. Colors are close reads of Navidrome's own
+   MUI theme files (ui/src/themes/{light,dark}.js), not a pixel-exact
+   port -- see docs/superpowers/research/passb-stack-brief.md section 5
+   for the provenance and the two fields still unconfirmed against a
+   live screenshot. Upgrade-resilient display code (plan's global
+   constraints): only DaisyUI's own theme tokens are set here, never a
+   DaisyUI internal class name. */
+@import 'tailwindcss';
+@plugin 'daisyui' {
+  themes: navidrome-light --default, navidrome-dark --prefersdark;
+}
+
+@plugin 'daisyui/theme' {
+  name: 'navidrome-light';
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(98% 0 0);
+  --color-base-300: oklch(94% 0 0);
+  --color-base-content: oklch(20% 0 0);
+  --color-primary: oklch(45% 0.19 265);
+  --color-primary-content: oklch(98% 0.01 265);
+  --color-secondary: oklch(55% 0.2 240);
+  --color-secondary-content: oklch(98% 0.01 240);
+  --color-neutral: oklch(30% 0.02 265);
+  --color-neutral-content: oklch(98% 0 0);
+}
+
+@plugin 'daisyui/theme' {
+  name: 'navidrome-dark';
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: oklch(26% 0 0);
+  --color-base-200: oklch(22% 0 0);
+  --color-base-300: oklch(18% 0 0);
+  --color-base-content: oklch(96% 0 0);
+  --color-primary: oklch(85% 0.08 240);
+  --color-primary-content: oklch(20% 0.02 240);
+  --color-secondary: oklch(55% 0.2 240);
+  --color-secondary-content: oklch(98% 0.01 240);
+  --color-neutral: oklch(90% 0 0);
+  --color-neutral-content: oklch(20% 0 0);
+}

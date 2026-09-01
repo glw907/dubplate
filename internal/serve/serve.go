@@ -376,6 +376,7 @@ func validateDevIdentity(devIdentity string, bindAddrs []string) error {
 // ever uploading a byte, none of it hand-duplicated from what the gate
 // and admission control actually enforce.
 type configResponse struct {
+	SiteName           string   `json:"site_name"`
 	Collections        []string `json:"collections"`
 	ChunkMB            int      `json:"chunk_mb"`
 	MaxAlbumBytes      int64    `json:"max_album_bytes"`
@@ -387,6 +388,7 @@ type configResponse struct {
 // handleConfig serves GET /api/config.
 func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, configResponse{
+		SiteName:           s.cfg.Serve.SiteName,
 		Collections:        s.cfg.Collections,
 		ChunkMB:            s.cfg.Upload.ChunkMB,
 		MaxAlbumBytes:      s.cfg.Upload.MaxAlbumBytes,

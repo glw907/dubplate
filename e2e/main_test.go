@@ -315,6 +315,7 @@ func newTestEnv(t *testing.T) *testEnv {
 		"DUBPLATE_ACCESS_TEAM_DOMAIN":       "test.cloudflareaccess.com",
 		"DUBPLATE_ACCESS_AUD":               "test-aud",
 		"DUBPLATE_PUBLIC_NAVIDROME_URL":     navidromeURL,
+		"DUBPLATE_SERVE_SITE_NAME":          "dubplate",
 		"DUBPLATE_FREE_FLOOR_GB":            "0",
 		"DUBPLATE_QUIESCENT_MINUTES":        "10",
 		"DUBPLATE_PING_IMPORT_URL":          pingURL,

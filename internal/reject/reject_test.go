@@ -39,7 +39,7 @@ func TestReasonFriendly(t *testing.T) {
 		{"corrupt", ReasonCorrupt, "This file didn't survive the upload intact. Uploading it again usually fixes this."},
 		{"below CD quality", ReasonBelowCDQuality, "This FLAC is below CD quality."},
 		{"too large", ReasonTooLarge, "This upload is larger than the library allows."},
-		{"unpack failed", ReasonUnpackFailed, "This archive couldn't be unpacked."},
+		{"unpack failed", ReasonUnpackFailed, "This archive wouldn't unpack as a ZIP."},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -47,6 +47,47 @@ func TestReasonFriendly(t *testing.T) {
 				t.Errorf("Friendly() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestReasonLabel pins each reason's chip string against
+// passb-copy-final.md section 4, the wording authority for U10's
+// per-track chips.
+func TestReasonLabel(t *testing.T) {
+	tests := []struct {
+		reason Reason
+		want   string
+	}{
+		{ReasonBadExtension, "not FLAC"},
+		{ReasonSymlink, "shortcut file"},
+		{ReasonCorrupt, "damaged in transit"},
+		{ReasonBelowCDQuality, "below CD quality"},
+		{ReasonTooLarge, "too big"},
+		{ReasonUnpackFailed, "wouldn't unpack"},
+		{ReasonUnsafePath, "unsafe file path"},
+		{ReasonNoSpace, "library is full"},
+		{ReasonTooManySessions, "too many uploads"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.want, func(t *testing.T) {
+			if got := tt.reason.Label(); got != tt.want {
+				t.Errorf("Label() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestLabelNeverEmpty mirrors TestFriendlyNeverEmpty for Label: every
+// reason a real rejection can carry has a non-empty chip string, and
+// ReasonNone (a passing verdict) does not.
+func TestLabelNeverEmpty(t *testing.T) {
+	for _, r := range allReasons {
+		if got := r.Label(); got == "" {
+			t.Errorf("Label() for reason %d = %q, want non-empty", r, got)
+		}
+	}
+	if got := ReasonNone.Label(); got != "" {
+		t.Errorf("Label() for ReasonNone = %q, want empty string, not a placeholder chip", got)
 	}
 }
 
@@ -94,6 +135,9 @@ func TestAllReasonsCoversEnum(t *testing.T) {
 	}
 	if got := next.NextStep(); got != "" {
 		t.Errorf("Reason %d (one past allReasons) has non-empty NextStep() = %q; add the new Reason to allReasons in reject_test.go", next, got)
+	}
+	if got := next.Label(); got != "" {
+		t.Errorf("Reason %d (one past allReasons) has non-empty Label() = %q; add the new Reason to allReasons in reject_test.go", next, got)
 	}
 	if got := next.code(); got != "none" {
 		t.Errorf("Reason %d (one past allReasons) has code() = %q, want %q; add the new Reason to allReasons in reject_test.go", next, got, "none")
@@ -265,7 +309,7 @@ func TestReasonMarshalJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
 	}
-	want := `{"code":"below-cd-quality","friendly":"This FLAC is below CD quality.","next_step":"Get a CD-quality or better FLAC and upload that instead."}`
+	want := `{"code":"below-cd-quality","friendly":"This FLAC is below CD quality.","next_step":"Get a CD-quality or better FLAC and upload that instead.","label":"below CD quality"}`
 	if string(got) != want {
 		t.Errorf("Marshal(ReasonBelowCDQuality) = %s, want %s", got, want)
 	}
@@ -300,13 +344,13 @@ func TestReasonUnmarshalJSONUnknownCode(t *testing.T) {
 	}
 }
 
-// TestReasonUnmarshalJSONIgnoresWireFriendlyAndNextStep proves Friendly
-// and NextStep are recomputed from the decoded code rather than trusted
-// off the wire: a decoder fed forged copy for a real code still lands on
-// this package's own wording.
+// TestReasonUnmarshalJSONIgnoresWireFriendlyAndNextStep proves Friendly,
+// NextStep, and Label are recomputed from the decoded code rather than
+// trusted off the wire: a decoder fed forged copy for a real code still
+// lands on this package's own wording.
 func TestReasonUnmarshalJSONIgnoresWireFriendlyAndNextStep(t *testing.T) {
 	var r Reason
-	forged := `{"code":"below-cd-quality","friendly":"forged text","next_step":"forged next step"}`
+	forged := `{"code":"below-cd-quality","friendly":"forged text","next_step":"forged next step","label":"forged label"}`
 	if err := json.Unmarshal([]byte(forged), &r); err != nil {
 		t.Fatalf("Unmarshal: %v", err)
 	}
@@ -315,6 +359,9 @@ func TestReasonUnmarshalJSONIgnoresWireFriendlyAndNextStep(t *testing.T) {
 	}
 	if r.Friendly() != ReasonBelowCDQuality.Friendly() {
 		t.Errorf("Friendly() = %q, want the package's own wording, not the wire's", r.Friendly())
+	}
+	if r.Label() != ReasonBelowCDQuality.Label() {
+		t.Errorf("Label() = %q, want the package's own wording, not the wire's", r.Label())
 	}
 }
 

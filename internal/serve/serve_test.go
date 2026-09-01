@@ -522,6 +522,7 @@ func TestHumanGiB(t *testing.T) {
 
 func TestHandleConfig(t *testing.T) {
 	s := &Server{cfg: &config.Config{
+		Serve:       config.ServeConfig{SiteName: "dubplate"},
 		Collections: []string{"", "family"},
 		Upload:      config.UploadConfig{ChunkMB: 8, MaxAlbumBytes: 2 << 30, MaxSessionsPerUser: 3},
 		Thresholds:  config.Thresholds{RetentionDays: 60},
@@ -537,6 +538,9 @@ func TestHandleConfig(t *testing.T) {
 		t.Fatalf("unmarshal %q: %v", w.Body.String(), err)
 	}
 
+	if got.SiteName != "dubplate" {
+		t.Errorf("SiteName = %q, want dubplate", got.SiteName)
+	}
 	if len(got.Collections) != 2 || got.Collections[0] != "" || got.Collections[1] != "family" {
 		t.Errorf("Collections = %v, want [\"\" \"family\"]", got.Collections)
 	}
