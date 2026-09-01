@@ -735,6 +735,17 @@ failed (polling-only shipped), this task also deletes `/api/stream/probe`
 
 ### U13: Pass-end verification and family exposure
 
+**Adversarial design + verbiage review (Geoff, 2026-09-01: required
+"once you have full prototypes"):** before the fidelity chain and
+Geoff's before/after, a fresh-context opus reviewer attacks the BUILT
+page as a critic, not a matcher — layout and spacing rhythm (the
+ratification's carried note), hierarchy, responsiveness down the 320px
+rung, interaction honesty — and every user-facing string is reviewed
+adversarially against the kind-copy register and the AI-tell catalogue
+(content-review's gates plus a register pass). Findings are folded
+before either downstream gate runs; this review's context must not be
+one that built any of the page.
+
 **Criteria:** reviewer fan-out (`svelte-reviewer`,
 `daisyui-a11y-reviewer` — the 44px and live-region criteria are named
 checks in its dispatch, `web-auth-security-reviewer` over U2/U5/U6/U7);
