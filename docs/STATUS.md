@@ -22,10 +22,14 @@ committed (`40fdfa7`). Remote: github.com/glw907/dubplate (private).
    evidence (backup fires ~11:37 UTC) confirms unattended operation;
    the dead-man checks alert if not. Then the pass post-mortem.
    Kept identifiers: README's list. Spend ≈5.0M of the approved 5.5M.
-2. Uploader plan APPROVED (Geoff 2026-08-31, two adversarial rounds):
+2. Uploader Pass A is CODE-COMPLETE (2026-09-01): U1–U8 through the
+   chain plus a five-task fix wave, all accepted; the custody-policy
+   journey (spec Journey addendum) and Private Recordings lane are the
+   ratified design; design language, mockups, and pushed-back copy
+   ratified by Geoff. Remaining: U12a box sitting (Access app + AUD
+   mint + serve deploy + end-to-end verify), then gates 1–2 against
+   the live serve, then Pass B (web). Plan:
    `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`.
-   Gate 3 (iPad picker) already CLOSED documentarily — see the plan's
-   Gate outcomes; gates 1–2 run post-Pass-A against the real serve.
 3. The uploader and packaging initiatives queue behind it — see ROADMAP.md.
 
 ## Open items (carried)
