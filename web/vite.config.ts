@@ -15,9 +15,15 @@ const basePath = '/upload/';
 // hardcoded on the Go side -- adjust here to match your own).
 const devBackend = 'http://localhost:8080';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: basePath,
   plugins: [svelte(), tailwindcss()],
+  // Under Vitest (which runs with mode "test") only: its default
+  // "node" resolution condition would otherwise pick Svelte's
+  // server-side runtime (`mount()` throws lifecycle_function_unavailable)
+  // instead of the client one component tests need. Scoped to test-only
+  // so the real production build keeps Vite's own default conditions.
+  resolve: mode === 'test' ? { conditions: ['browser'] } : undefined,
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -37,5 +43,6 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./src/setupTests.ts'],
   },
-});
+}));
