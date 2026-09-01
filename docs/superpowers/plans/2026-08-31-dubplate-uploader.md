@@ -742,7 +742,12 @@ page as a critic, not a matcher — layout and spacing rhythm (the
 ratification's carried note), hierarchy, responsiveness down the 320px
 rung, interaction honesty — and every user-facing string is reviewed
 adversarially against the kind-copy register and the AI-tell catalogue
-(content-review's gates plus a register pass). Findings are folded
+(content-review's gates plus a register pass). Register calibration
+from Geoff (2026-09-01): "This album couldn't be taken in" is the tell
+class — passive, institutionally gentle; the human version is active
+and plain: "Couldn't add this album." NOTE: that phrase is the SPEC's
+own state wording — spec journey-state names are engineering labels,
+never copy; the copy pipeline drafts fresh from intent. Findings are folded
 before either downstream gate runs; this review's context must not be
 one that built any of the page.
 
