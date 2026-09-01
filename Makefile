@@ -18,9 +18,13 @@ lint:
 install:
 	go install ./cmd/dubplate
 
-check: vet lint test
+tidy-check:
+	go mod tidy
+	git diff --exit-code -- go.mod go.sum
+
+check: vet lint test tidy-check
 
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install check clean
+.PHONY: build build-linux test vet lint install tidy-check check clean

@@ -4,10 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -24,7 +21,7 @@ func newRestoreCmd() *cobra.Command {
 		Short: "Pull the library and database snapshots back from R2 into a target tree",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			ctx, cancel := signalContext(cmd)
 			defer cancel()
 			return runRestore(ctx, cmd.OutOrStdout(), opts)
 		},

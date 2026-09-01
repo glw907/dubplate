@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -20,7 +17,7 @@ func newCheckCmd() *cobra.Command {
 		Short: "Run one health check and ping its result",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			ctx, cancel := signalContext(cmd)
 			defer cancel()
 			return runCheck(ctx, args[0])
 		},

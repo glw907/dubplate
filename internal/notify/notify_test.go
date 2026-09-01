@@ -154,7 +154,7 @@ func receive(t *testing.T, deliveries chan delivery) delivery {
 
 // assertParity checks the received message against the msmtp-parity
 // criteria: synthesized From/Date/Message-ID, an RFC 2047 subject, and a
-// quoted-printable body — decoded back to the exact bytes Send was
+// quoted-printable body -- decoded back to the exact bytes Send was
 // given, not merely "present".
 func assertParity(t *testing.T, d delivery, cfg config.SMTPConfig, to, wantSubject, wantBody string) {
 	t.Helper()
@@ -270,7 +270,7 @@ func TestSend_StartTLS587(t *testing.T) {
 
 // TestSend_StartTLSRequiredNotOffered proves the STARTTLS branch fails
 // closed rather than falling back to plaintext when the server offers no
-// TLS at all — the msmtp contract never sends credentials in the clear.
+// TLS at all -- the msmtp contract never sends credentials in the clear.
 func TestSend_StartTLSRequiredNotOffered(t *testing.T) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

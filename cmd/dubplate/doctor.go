@@ -6,11 +6,8 @@ import (
 	"fmt"
 	"io"
 	"maps"
-	"os"
-	"os/signal"
 	"slices"
 	"strings"
-	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -29,7 +26,7 @@ func newDoctorCmd() *cobra.Command {
 		Short: "Print every config field's resolution state and probe SMTP, R2, and Navidrome read-only",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			ctx, cancel := signalContext(cmd)
 			defer cancel()
 			return runDoctor(ctx, cmd.OutOrStdout())
 		},

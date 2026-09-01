@@ -15,6 +15,33 @@ func frozenNow() time.Time {
 	return time.Date(2026, 8, 31, 12, 0, 0, 0, time.UTC)
 }
 
+// stagedAlbum creates <root>/staging/<album>/<track> and returns the
+// album directory, the fixture every MoveToReview test starts from.
+func stagedAlbum(t *testing.T, root, album, track string) string {
+	t.Helper()
+	dir := filepath.Join(root, "staging", album)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, track), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
+// blockedDir writes a plain file at <root>/<name> and returns its path.
+// A file where a directory is expected blocks MkdirAll deterministically
+// (ENOTDIR), regardless of the test runner's privilege level -- a
+// permission-based fixture would pass trivially for a root test runner.
+func blockedDir(t *testing.T, root, name string) string {
+	t.Helper()
+	path := filepath.Join(root, name)
+	if err := os.WriteFile(path, []byte("not a directory"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
 func TestUniqueDestPath(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -66,13 +93,7 @@ func TestUniqueDestPath(t *testing.T) {
 
 func TestFilerMoveToReview_intoEmptyDestination(t *testing.T) {
 	root := t.TempDir()
-	staging := filepath.Join(root, "staging", "Good Album")
-	if err := os.MkdirAll(staging, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(staging, "one.flac"), []byte("track"), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	staging := stagedAlbum(t, root, "Good Album", "one.flac")
 
 	f := &Filer{ReviewDir: filepath.Join(root, "review"), QuarantineDir: filepath.Join(root, "quarantine"), Now: frozenNow}
 
@@ -95,13 +116,7 @@ func TestFilerMoveToReview_intoEmptyDestination(t *testing.T) {
 
 func TestFilerMoveToReview_disambiguatesOnCollision(t *testing.T) {
 	root := t.TempDir()
-	staging := filepath.Join(root, "staging", "Bad Album")
-	if err := os.MkdirAll(staging, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(staging, "new.flac"), []byte("second"), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	staging := stagedAlbum(t, root, "Bad Album", "new.flac")
 
 	existing := filepath.Join(root, "review", "Bad Album")
 	if err := os.MkdirAll(existing, 0o755); err != nil {
@@ -136,22 +151,8 @@ func TestFilerMoveToReview_disambiguatesOnCollision(t *testing.T) {
 
 func TestFilerMoveToReview_fallsBackToQuarantine(t *testing.T) {
 	root := t.TempDir()
-	staging := filepath.Join(root, "staging", "Bad Album")
-	if err := os.MkdirAll(staging, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(staging, "track1.flac"), []byte("x"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	// A plain file in place of the review directory blocks MkdirAll
-	// deterministically (ENOTDIR), regardless of the test runner's
-	// privilege level -- a permission-based fixture would pass
-	// trivially for a root test runner.
-	blockedReview := filepath.Join(root, "review-blocked")
-	if err := os.WriteFile(blockedReview, []byte("not a directory"), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	staging := stagedAlbum(t, root, "Bad Album", "track1.flac")
+	blockedReview := blockedDir(t, root, "review-blocked")
 
 	f := &Filer{ReviewDir: blockedReview, QuarantineDir: filepath.Join(root, "quarantine"), Now: frozenNow}
 
@@ -172,22 +173,9 @@ func TestFilerMoveToReview_fallsBackToQuarantine(t *testing.T) {
 
 func TestFilerMoveToReview_couldNotMoveByAnyMeans(t *testing.T) {
 	root := t.TempDir()
-	staging := filepath.Join(root, "staging", "Bad Album")
-	if err := os.MkdirAll(staging, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(staging, "track1.flac"), []byte("x"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	blockedReview := filepath.Join(root, "review-blocked")
-	blockedQuarantine := filepath.Join(root, "quarantine-blocked")
-	if err := os.WriteFile(blockedReview, []byte("not a directory"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(blockedQuarantine, []byte("not a directory"), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	staging := stagedAlbum(t, root, "Bad Album", "track1.flac")
+	blockedReview := blockedDir(t, root, "review-blocked")
+	blockedQuarantine := blockedDir(t, root, "quarantine-blocked")
 
 	f := &Filer{ReviewDir: blockedReview, QuarantineDir: blockedQuarantine, Now: frozenNow}
 

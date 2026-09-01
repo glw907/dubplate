@@ -339,7 +339,7 @@ func TestTriggerScan(t *testing.T) {
 func TestResolveLibraryPaths(t *testing.T) {
 	sqlitePath, err := exec.LookPath("sqlite3")
 	if err != nil {
-		t.Skip("sqlite3 not on PATH")
+		t.Fatalf("sqlite3 not on PATH: it is a required test dependency, install it")
 	}
 
 	dbPath := filepath.Join(t.TempDir(), "library.db")

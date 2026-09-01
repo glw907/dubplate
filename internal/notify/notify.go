@@ -1,5 +1,5 @@
-// Package notify sends dubplate's contributor-facing emails — review
-// rejections today, any future run notification later — over SMTP. It
+// Package notify sends dubplate's contributor-facing emails -- review
+// rejections today, any future run notification later -- over SMTP. It
 // replaces the shell layer's msmtp invocation with a native TLS client
 // that dials the server directly instead of shelling out to sendmail(1),
 // and honors the same msmtprc TLS contract: implicit TLS on port 465
@@ -18,7 +18,7 @@ import (
 
 // implicitTLSPort is msmtp's "tls on, tls_starttls off" port: the
 // connection is TLS from the first byte, no STARTTLS upgrade. Any other
-// port gets mandatory STARTTLS — the box's actual route as of
+// port gets mandatory STARTTLS -- the box's actual route as of
 // 2026-08-31, since Hetzner blocks outbound 465 by default and the
 // deployed msmtprc uses 587 with tls_starttls on.
 const implicitTLSPort = 465

@@ -69,6 +69,11 @@ if ! bats tests/; then
   status=1
 fi
 
+echo "== vale (Go comment prose) =="
+if ! scripts/vale-comments.sh; then
+  status=1
+fi
+
 echo "== docker compose config =="
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
   if ! docker compose -f compose.yaml config -q; then

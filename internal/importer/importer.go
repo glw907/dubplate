@@ -182,11 +182,11 @@ func (u *albumUnit) toReport() AlbumOutcome {
 // Run executes one import run. It writes a [RunReport] to the state
 // directory on every exit path via a deferred write, so a caller need
 // only inspect the returned error to decide main's exit code -- the
-// report itself is the operational record.
-func (im *Importer) Run(ctx context.Context) error {
+// report itself is the operational record. The return is named because
+// the deferred report write reads it.
+func (im *Importer) Run(ctx context.Context) (runErr error) {
 	started := im.Now()
 	report := &RunReport{Version: ReportVersion, StartedAt: started}
-	var runErr error
 	var units []*albumUnit
 
 	defer func() {
@@ -213,8 +213,7 @@ func (im *Importer) Run(ctx context.Context) error {
 		return nil
 	}
 	if err != nil {
-		runErr = fmt.Errorf("acquire import lock: %w", err)
-		return runErr
+		return fmt.Errorf("acquire import lock: %w", err)
 	}
 	defer func() {
 		if err := l.Release(); err != nil {
@@ -224,8 +223,7 @@ func (im *Importer) Run(ctx context.Context) error {
 
 	for _, dir := range []string{im.Cfg.Paths.StagingDir, im.Cfg.Paths.ReviewDir, im.Cfg.Paths.StateDir} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
-			runErr = fmt.Errorf("create directory %s: %w", dir, err)
-			return runErr
+			return fmt.Errorf("create directory %s: %w", dir, err)
 		}
 	}
 
@@ -233,27 +231,23 @@ func (im *Importer) Run(ctx context.Context) error {
 	// file is staged: staging can itself consume the last of the free
 	// space it is meant to guard.
 	if err := im.checkFreeSpace(); err != nil {
-		runErr = err
-		return runErr
+		return err
 	}
 
 	dateStr := started.Format("2006-01-02")
 
 	units, err = im.stageAllContributors(ctx)
 	if err != nil {
-		runErr = err
-		return runErr
+		return err
 	}
 
 	if err := im.gateAndQuarantine(ctx, &units, dateStr); err != nil {
-		runErr = err
-		return runErr
+		return err
 	}
 
 	if pending := pendingUnits(units); len(pending) > 0 {
 		if err := im.beetImportAndFileSkips(ctx, &units, pending, dateStr); err != nil {
-			runErr = err
-			return runErr
+			return err
 		}
 	}
 
@@ -659,7 +653,7 @@ func (im *Importer) beetImportAndFileSkips(ctx context.Context, units *[]*albumU
 		return fmt.Errorf("beet import %s: %w", im.Cfg.Paths.StagingDir, err)
 	}
 
-	skipUsers := im.fileSkips(ctx, units, pending, result.Skipped, dateStr)
+	skipUsers := im.fileSkips(units, pending, result.Skipped, dateStr)
 	if len(skipUsers) > 0 {
 		im.notifySkips(ctx, skipUsers, dateStr)
 	}
@@ -697,8 +691,9 @@ func (im *Importer) beetImportAndFileSkips(ctx context.Context, units *[]*albumU
 // outcome, and returns the set of affected uploaders. units is a pointer
 // because a skip matching no pending unit -- a leftover album staged in
 // an earlier run, per [Importer.deriveOrphanUnit] -- is appended to it
-// so the run report still carries the album's outcome.
-func (im *Importer) fileSkips(ctx context.Context, units *[]*albumUnit, pending []*albumUnit, skipped []string, dateStr string) map[string]bool {
+// so the run report still carries the album's outcome. Filing is local
+// I/O only, so this takes no context.
+func (im *Importer) fileSkips(units *[]*albumUnit, pending []*albumUnit, skipped []string, dateStr string) map[string]bool {
 	skipUsers := make(map[string]bool)
 	for _, path := range skipped {
 		u := findUnit(pending, path)
@@ -729,7 +724,6 @@ func (im *Importer) fileSkips(ctx context.Context, units *[]*albumUnit, pending 
 		}
 		skipUsers[u.uploader] = true
 	}
-	_ = ctx // reserved: filing is local I/O only, no context-bound call yet
 	return skipUsers
 }
 

@@ -61,17 +61,19 @@ func (c *DiskChecker) Run(ctx context.Context) error {
 		usagePct = statfsUsagePct
 	}
 
+	pingURL := c.Cfg.PingURLs[diskSlug]
 	dir := c.Cfg.Paths.LibraryDir
+
 	pct, err := usagePct(dir)
 	if err != nil {
-		pingResult(ctx, c.Ping, c.Cfg.PingURLs[diskSlug], false)
+		pingResult(ctx, c.Ping, pingURL, false)
 		return fmt.Errorf("disk usage %s: %w", dir, err)
 	}
 	if pct > c.Cfg.Thresholds.DiskPct {
-		pingResult(ctx, c.Ping, c.Cfg.PingURLs[diskSlug], false)
+		pingResult(ctx, c.Ping, pingURL, false)
 		return fmt.Errorf("%s is %d%% full, over the %d%% threshold", dir, pct, c.Cfg.Thresholds.DiskPct)
 	}
-	pingResult(ctx, c.Ping, c.Cfg.PingURLs[diskSlug], true)
+	pingResult(ctx, c.Ping, pingURL, true)
 	return nil
 }
 
@@ -118,11 +120,12 @@ func (c *NavidromeChecker) Run(ctx context.Context) error {
 		client = &http.Client{Timeout: probeTimeout}
 	}
 
+	pingURL := c.Cfg.PingURLs[navidromeSlug]
 	if err := navidromePing(ctx, client, c.Cfg.Navidrome.URL); err != nil {
-		pingResult(ctx, c.Ping, c.Cfg.PingURLs[navidromeSlug], false)
+		pingResult(ctx, c.Ping, pingURL, false)
 		return fmt.Errorf("navidrome check: %w", err)
 	}
-	pingResult(ctx, c.Ping, c.Cfg.PingURLs[navidromeSlug], true)
+	pingResult(ctx, c.Ping, pingURL, true)
 	return nil
 }
 

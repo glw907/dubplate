@@ -22,7 +22,7 @@ import (
 // --- fixture helpers -----------------------------------------------------
 
 // writeBadAlbum stages an album the quality gate must reject: a
-// genuinely valid FLAC beside a file carrying an .mp3 extension.
+// valid FLAC beside a file carrying an .mp3 extension.
 func (e *testEnv) writeBadAlbum(user, album string) {
 	e.t.Helper()
 	dir := filepath.Join(e.inboxDir, user, album)

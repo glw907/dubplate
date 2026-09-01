@@ -274,26 +274,46 @@ func testImporter(root string) *Importer {
 	}
 }
 
+// testUploader is the inbox directory name every fixture below stages
+// under; the tests assert their outcomes carry it back.
+const testUploader = "alice"
+
+// stagedTrack creates <root>/staging/alice/<album>/<track> and returns
+// the album directory and the track's own path.
+func stagedTrack(t *testing.T, root, album, track string) (albumDir, trackPath string) {
+	t.Helper()
+	albumDir = filepath.Join(root, "staging", testUploader, album)
+	if err := os.MkdirAll(albumDir, 0o755); err != nil {
+		t.Fatalf("mkdir album: %v", err)
+	}
+	trackPath = filepath.Join(albumDir, track)
+	if err := os.WriteFile(trackPath, []byte("x"), 0o644); err != nil {
+		t.Fatalf("write track: %v", err)
+	}
+	return albumDir, trackPath
+}
+
+// blockPath puts a plain file where a directory is expected, so MkdirAll
+// there (and therefore any move into it) fails with ENOTDIR regardless of
+// the test runner's privilege level -- a permission-based fixture would
+// pass trivially for a root test runner.
+func blockPath(t *testing.T, path string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte("not a directory"), 0o644); err != nil {
+		t.Fatalf("block %s: %v", path, err)
+	}
+}
+
 // TestGateAndQuarantineFallsBackToQuarantine proves quarantineOne's
 // outcome classification -- not just review.Filer's own fallback, which
 // internal/review already tests -- by driving it through a real,
 // unwritable ReviewDir.
 func TestGateAndQuarantineFallsBackToQuarantine(t *testing.T) {
 	root := t.TempDir()
-	albumDir := filepath.Join(root, "staging", "alice", "Bad Album")
-	if err := os.MkdirAll(albumDir, 0o755); err != nil {
-		t.Fatalf("mkdir album: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(albumDir, "track1.mp3"), []byte("x"), 0o644); err != nil {
-		t.Fatalf("write track: %v", err)
-	}
+	albumDir, _ := stagedTrack(t, root, "Bad Album", "track1.mp3")
 
 	im := testImporter(root)
-	// ReviewDir exists as a plain file, so MkdirAll (and therefore the
-	// primary move) can never succeed there.
-	if err := os.WriteFile(im.Cfg.Paths.ReviewDir, []byte("not a directory"), 0o644); err != nil {
-		t.Fatalf("block review dir: %v", err)
-	}
+	blockPath(t, im.Cfg.Paths.ReviewDir)
 
 	units := []*albumUnit{{uploader: "alice", stagedDir: albumDir}}
 	if err := im.gateAndQuarantine(context.Background(), &units, "2026-08-31"); err != nil {
@@ -318,21 +338,11 @@ func TestGateAndQuarantineFallsBackToQuarantine(t *testing.T) {
 // failure noted, rather than silently vanishing from the report.
 func TestGateAndQuarantineCouldNotMoveByAnyMeans(t *testing.T) {
 	root := t.TempDir()
-	albumDir := filepath.Join(root, "staging", "alice", "Bad Album")
-	if err := os.MkdirAll(albumDir, 0o755); err != nil {
-		t.Fatalf("mkdir album: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(albumDir, "track1.mp3"), []byte("x"), 0o644); err != nil {
-		t.Fatalf("write track: %v", err)
-	}
+	albumDir, _ := stagedTrack(t, root, "Bad Album", "track1.mp3")
 
 	im := testImporter(root)
-	if err := os.WriteFile(im.Cfg.Paths.ReviewDir, []byte("not a directory"), 0o644); err != nil {
-		t.Fatalf("block review dir: %v", err)
-	}
-	if err := os.WriteFile(im.Cfg.Paths.QuarantineDir, []byte("not a directory"), 0o644); err != nil {
-		t.Fatalf("block quarantine dir: %v", err)
-	}
+	blockPath(t, im.Cfg.Paths.ReviewDir)
+	blockPath(t, im.Cfg.Paths.QuarantineDir)
 
 	units := []*albumUnit{{uploader: "alice", stagedDir: albumDir}}
 	if err := im.gateAndQuarantine(context.Background(), &units, "2026-08-31"); err != nil {
@@ -379,24 +389,14 @@ func TestQuarantineOneEmitsShellCouldNotMoveWording(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			root := t.TempDir()
-			albumDir := filepath.Join(root, "staging", "alice", "Bad Album")
-			if err := os.MkdirAll(albumDir, 0o755); err != nil {
-				t.Fatalf("mkdir album: %v", err)
-			}
-			if err := os.WriteFile(filepath.Join(albumDir, "track1.mp3"), []byte("x"), 0o644); err != nil {
-				t.Fatalf("write track: %v", err)
-			}
+			albumDir, _ := stagedTrack(t, root, "Bad Album", "track1.mp3")
 
 			im := testImporter(root)
 			if tt.blockReview {
-				if err := os.WriteFile(im.Cfg.Paths.ReviewDir, []byte("x"), 0o644); err != nil {
-					t.Fatalf("block review dir: %v", err)
-				}
+				blockPath(t, im.Cfg.Paths.ReviewDir)
 			}
 			if tt.blockQuarantine {
-				if err := os.WriteFile(im.Cfg.Paths.QuarantineDir, []byte("x"), 0o644); err != nil {
-					t.Fatalf("block quarantine dir: %v", err)
-				}
+				blockPath(t, im.Cfg.Paths.QuarantineDir)
 			}
 
 			u := &albumUnit{uploader: "alice", stagedDir: albumDir}
@@ -423,13 +423,7 @@ func TestQuarantineOneEmitsShellCouldNotMoveWording(t *testing.T) {
 // getting ingested by whatever run comes next.
 func TestGateAndQuarantineFilesOrphanVerdict(t *testing.T) {
 	root := t.TempDir()
-	albumDir := filepath.Join(root, "staging", "alice", "Leftover Album")
-	if err := os.MkdirAll(albumDir, 0o755); err != nil {
-		t.Fatalf("mkdir album: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(albumDir, "track1.mp3"), []byte("x"), 0o644); err != nil {
-		t.Fatalf("write track: %v", err)
-	}
+	albumDir, _ := stagedTrack(t, root, "Leftover Album", "track1.mp3")
 
 	im := testImporter(root)
 	im.Cfg.Paths.InboxDir = filepath.Join(root, "inbox")
@@ -459,20 +453,13 @@ func TestGateAndQuarantineFilesOrphanVerdict(t *testing.T) {
 // TestGateAndQuarantineFilesOrphanVerdict for the beets-skip call site.
 func TestFileSkipsFilesOrphanSkip(t *testing.T) {
 	root := t.TempDir()
-	albumDir := filepath.Join(root, "staging", "alice", "Leftover Album")
-	if err := os.MkdirAll(albumDir, 0o755); err != nil {
-		t.Fatalf("mkdir album: %v", err)
-	}
-	trackPath := filepath.Join(albumDir, "track1.flac")
-	if err := os.WriteFile(trackPath, []byte("x"), 0o644); err != nil {
-		t.Fatalf("write track: %v", err)
-	}
+	_, trackPath := stagedTrack(t, root, "Leftover Album", "track1.flac")
 
 	im := testImporter(root)
 	im.Cfg.Paths.InboxDir = filepath.Join(root, "inbox")
 
 	var units []*albumUnit // nothing pending this run: the album is a leftover
-	skipUsers := im.fileSkips(context.Background(), &units, nil, []string{trackPath}, "2026-08-31")
+	skipUsers := im.fileSkips(&units, nil, []string{trackPath}, "2026-08-31")
 
 	if !skipUsers["alice"] {
 		t.Errorf("skipUsers = %v, want alice present", skipUsers)

@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -23,7 +20,7 @@ func newImportCmd() *cobra.Command {
 		Short: "Stage, gate, and beet-import each contributor's quiescent uploads",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			ctx, cancel := signalContext(cmd)
 			defer cancel()
 			return runImport(ctx)
 		},

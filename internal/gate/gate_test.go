@@ -164,7 +164,7 @@ func TestCheck_PassesValidFlacAndIgnoresNonAudioSiblings(t *testing.T) {
 
 // TestCheck_MetaflacPathIsATestSeam exercises the CD-quality floor against
 // a stub metaflac rather than a real encode, proving Policy.MetaflacPath is
-// genuinely substitutable and that Check's error handling (a nonzero exit,
+// substitutable and that Check's error handling (a nonzero exit,
 // unparsable output, or a short line count) all fall back to
 // ReasonBelowCDQuality rather than a bare error.
 func TestCheck_MetaflacPathIsATestSeam(t *testing.T) {

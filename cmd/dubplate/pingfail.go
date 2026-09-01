@@ -6,9 +6,7 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -21,7 +19,7 @@ func newPingFailCmd() *cobra.Command {
 		Short: "Report a failed run to slug's ping URL, from systemd's OnFailure= chain",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			ctx, cancel := signalContext(cmd)
 			defer cancel()
 			return runPingFail(ctx, args[0])
 		},

@@ -83,7 +83,7 @@ func TestPingFailUnreachableURLExitsZero(t *testing.T) {
 	e := newTestEnv(t)
 	// Well-formed but nothing listens on this port: connection refused,
 	// exhausted after the client's own retries. Delivery failure must not
-	// surface as a nonzero exit — only a malformed URL does that.
+	// surface as a nonzero exit -- only a malformed URL does that.
 	e.env["DUBPLATE_PING_UNREACHABLE_URL"] = "http://127.0.0.1:1/ping"
 
 	output, code := e.run("ping-fail", "unreachable")

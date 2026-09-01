@@ -30,7 +30,7 @@ func TestAcquireClearsFDCloexec(t *testing.T) {
 
 // TestAcquireContention proves flock's per-open-file-description exclusion
 // with a real flock, not a fake. Acquire opens the file itself, so two
-// calls on the same path produce two independent open file descriptions —
+// calls on the same path produce two independent open file descriptions --
 // exactly what two separate dubplate processes contending for the same
 // lock file would produce, since flock locks the open file description,
 // not the calling process.
@@ -64,7 +64,7 @@ func TestAcquireContention(t *testing.T) {
 // exclusion means AcquireBlocking can only succeed after held.Release()
 // runs, and close(released) runs immediately after it, so by the time
 // this test observes AcquireBlocking's return, released is already
-// closed — a causal guarantee, not a timing race.
+// closed -- a causal guarantee, not a timing race.
 func TestAcquireBlockingWaitsForRelease(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "test.lock")
 

@@ -1,6 +1,21 @@
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/spf13/cobra"
+)
+
+// signalContext derives cmd's context into one canceled on SIGINT or
+// SIGTERM, so a systemd stop or an operator's Ctrl-C reaches every
+// exec.CommandContext subprocess a run has open. Every subcommand that
+// does real work starts this way; the caller defers the cancel.
+func signalContext(cmd *cobra.Command) (context.Context, context.CancelFunc) {
+	return signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+}
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
