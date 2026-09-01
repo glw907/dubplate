@@ -217,3 +217,39 @@ Builds on the Go rewrite's packages and config wall; runs as the pass after
 the rewrite; packaging follows and inherits a finished intake. The rewrite
 plan is amended (same day) so T9's run report carries the provenance
 structure this spec depends on.
+
+
+## Journey addendum (brainstormed with Geoff, 2026-09-01; supersedes the
+## journey states and review path above)
+
+**Custody policy: the uploader accepts an album only when beets can
+properly tag it.** Anything less pushes back at the user immediately
+with the fix in their hands. The review path ("needs a human look", the
+60-day clock, hand-tagging) is ABOLISHED on the uploader surface; the
+timer-driven inbox path remains as the admin-only side door.
+
+Main lane, attended through the verdict: selection (format screen) →
+upload (per-file stream checks, album verdict) → **tag check**: the
+staged session runs the real beets matcher as a synchronous dry-run
+probe (seconds to a minute of MusicBrainz lookups, user present).
+Confident match → accepted; the page shows what it matched (info, not a
+gate), the user is released, and import/art/scan finish alone — "in
+your library" appears when the link is real. No confident match → the
+album never enters; the screen names the failure and offers fix paths
+as buttons: fix names/tags and re-upload; add the release to
+MusicBrainz (link + one-line how) then re-upload; or switch to the
+private lane below.
+
+**Private lane — the "Private Recordings" collection** (config-named;
+"Private Recordings" is the documented default): choosing it changes
+the contract, and the UI SAYS SO at selection time — no MusicBrainz
+matching; a minimal tag form (artist, album, year; track titles
+prefilled from filenames, editable); beets imports as-is with those
+tags into the collection's own subtree and Navidrome library. The main
+library stays exclusively MB-tagged; private material is honestly
+fenced, and the page states where it will appear before upload starts.
+
+Journey state vocabulary (final): uploading, checking, matching,
+importing, in-library, pushed-back, queued, stalled. Private-lane
+sessions skip `matching`. Rejection emails for uploader sessions die
+(the page carries every verdict); admin summaries stay.
