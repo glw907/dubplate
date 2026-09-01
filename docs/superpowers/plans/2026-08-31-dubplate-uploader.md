@@ -9,6 +9,9 @@ bespoke Svelte 5 / DaisyUI upload page replacing FileBrowser — with album-unit
 validation at upload, an honest journey to "in your library", a collections
 picker, and kind rejection copy, per the approved design spec.
 
+**Engine consultation:** no engine asks (dubplate builds no cairn-cms
+surface; enumeration run 2026-09-01 at Pass B start).
+
 **Spec:** `~/.dotfiles/docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md`
 (approved by Geoff 2026-08-31 after three adversarial reviews). The plan
 argues from the spec; executors read both.
@@ -668,6 +671,30 @@ dubplate-import-nudge.path` (a rolled-back binary has no `--session`
 flag, M16), ingress PUT back, tmpfiles fragment removal optional.
 
 ## Pass B — web (starts only after gates + ratification recorded)
+
+**Pass B conductor rulings (2026-09-01), argued in
+`docs/superpowers/research/passb-copy-final.md` (the string authority for
+U10/U11; drafted via content-draft, critic-passed, content-review-gated):**
+
+1. `Serve.SiteName` joins config and the `/api/config` payload (U1's
+   escalation rule fired: the ratified masthead needs a config-driven site
+   name and the inventory had none). Non-secret; env
+   `DUBPLATE_SERVE_SITE_NAME`; U12b renders it on the box. Lands in U9.
+2. The reject wire format gains `label`: a 1-to-3-word chip string per
+   reason (`internal/reject.Label()`, exhaustive non-empty test, added to
+   `reasonWire` and the goldens). Keeps U10's per-track chips API-fed
+   without a client lookup table. Lands in U9.
+3. Taxonomy amendment: `ReasonUnpackFailed.Friendly()` becomes "This
+   archive wouldn't unpack as a ZIP." (the shipped wording is the banned
+   passive shape). Email template rides via the existing cross-asset test.
+   Lands in U9.
+4. Copy-deck item 7: no fifth spine step; after a confident match, step 4
+   becomes current ("adding it now") and the 5s poll live-transitions the
+   page to the in-library card without reload.
+5. The mock's "closing pauses / resumes when you return" promise is
+   narrowed to the honest split: backgrounding auto-resumes; a killed tab
+   resumes through history plus file re-selection (the store's documented
+   re-select state). U11's backgrounding copy follows the contract file.
 
 ### U9: Web scaffold and upload store
 
