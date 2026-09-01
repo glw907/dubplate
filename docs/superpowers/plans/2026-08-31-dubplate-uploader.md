@@ -721,7 +721,14 @@ supported, presented as exactly that. The stall state renders "taking
 longer than expected — the admin has been notified" — true because U6
 sends it. `History.svelte` renders `/api/history`: unambiguous terminal
 states checkable without an active flow; in-flight resumables first with
-a resume affordance; review items show who looks and the 60-day clock;
+a resume affordance; review items show who looks and the 60-day clock — and when the cause
+is a MusicBrainz no-match, the copy SAYS so by name with next steps
+(check artist/album naming; rare pressings get hand-tagged), per Geoff
+2026-09-01: the no-match failure must be clear, never a vague "under
+review". Honest limit: beets' quiet mode does not always expose the
+skip cause; U8 surfaces what is known into the ledger event's Detail,
+and the copy degrades to the generic review wording only when the
+cause is genuinely unknown;
 queued shows the applicable copy variant. Every rejection string comes
 from the API. **Copy pipeline (Geoff, 2026-09-01: mockup wording read
 "very AI"):** every user-facing string in U10/U11 that is not already
