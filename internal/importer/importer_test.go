@@ -707,6 +707,66 @@ func TestStageSession(t *testing.T) {
 	}
 }
 
+// TestStageSessionFailedMoveLeavesSessionRetryable proves that a failed
+// review.Move never destroys the sidecar first: srcDir's session.json
+// must still be there, and readable, so a later retry of the same
+// session ID can succeed once whatever blocked the move is cleared.
+// Consuming the sidecar before the move (the pre-fix behavior) would
+// leave srcDir stranded in the inbox with ErrMissingSidecar on every
+// retry, forever.
+func TestStageSessionFailedMoveLeavesSessionRetryable(t *testing.T) {
+	root := t.TempDir()
+	im := testImporterForRun(root)
+	srcDir := stagePromotedSession(t, im.Cfg.Paths.InboxDir, "sess1", "Album A", "track.flac", "vinyl")
+
+	// Pre-create the destination stageSession will try to rename srcDir
+	// onto, as a plain file rather than a directory, so os.Rename fails
+	// for a reason other than EXDEV and review.Move returns the bare
+	// error instead of falling back to copy-and-remove.
+	destDir := filepath.Join(im.Cfg.Paths.StagingDir, "alice")
+	if err := os.MkdirAll(destDir, 0o755); err != nil {
+		t.Fatalf("mkdir staging dir: %v", err)
+	}
+	blocker := filepath.Join(destDir, filepath.Base(srcDir))
+	if err := os.WriteFile(blocker, []byte("x"), 0o644); err != nil {
+		t.Fatalf("write blocking file: %v", err)
+	}
+
+	if _, err := im.stageSession(srcDir, "sess1"); err == nil {
+		t.Fatal("stageSession(blocked move) error = nil, want the move failure")
+	}
+
+	sc, ok, err := readSidecar(srcDir)
+	if err != nil {
+		t.Fatalf("readSidecar after failed move: %v", err)
+	}
+	if !ok {
+		t.Fatal("session.json missing after failed move, want it intact for retry")
+	}
+	if sc.SessionID != "sess1" || sc.DirName != "alice" {
+		t.Errorf("sidecar after failed move = %+v, want the original fields", sc)
+	}
+	if _, err := os.Stat(filepath.Join(srcDir, "track.flac")); err != nil {
+		t.Errorf("track missing from srcDir after failed move: %v", err)
+	}
+
+	// Clear the blocker and retry: the same call must now succeed,
+	// proving srcDir was left in a retryable state.
+	if err := os.Remove(blocker); err != nil {
+		t.Fatalf("remove blocker: %v", err)
+	}
+	u, err := im.stageSession(srcDir, "sess1")
+	if err != nil {
+		t.Fatalf("stageSession(retry after clearing blocker): %v", err)
+	}
+	if u.sessionID != "sess1" {
+		t.Errorf("retried unit sessionID = %q, want sess1", u.sessionID)
+	}
+	if _, err := os.Stat(filepath.Join(u.stagedDir, sessionSidecarName)); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("sidecar survived in staged dir after a successful move: err = %v", err)
+	}
+}
+
 func TestAlbumFromStagedDir(t *testing.T) {
 	tests := []struct {
 		stagedDir string

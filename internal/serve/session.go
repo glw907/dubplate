@@ -221,11 +221,22 @@ func (sess *Session) waitOutcome(ctx context.Context) (sessionOutcome, error) {
 }
 
 // sessionOutcome is a session's completion result: the album verdict,
-// and whether it was promoted into the inbox.
+// whether it was promoted into the inbox, and -- for a main-lane session
+// that passed the format verdict -- the custody-policy tag-check probe's
+// result. PushedBack and ProbeUnavailable are mutually exclusive with
+// Promoted and with each other; MatchedArtist/MatchedAlbum/MatchedYear
+// are set only alongside Promoted for a main-lane session (a private-lane
+// promotion skips the probe and leaves them empty).
 type sessionOutcome struct {
-	Verdict  intake.AlbumVerdict
-	Promoted bool
-	Dest     string
+	Verdict          intake.AlbumVerdict
+	Promoted         bool
+	Dest             string
+	PushedBack       bool
+	ProbeUnavailable bool
+	Detail           string
+	MatchedArtist    string
+	MatchedAlbum     string
+	MatchedYear      string
 }
 
 // Store holds every in-flight [Session], keyed by ID. The zero Store is

@@ -213,9 +213,10 @@ type albumUnit struct {
 	stagedDir string // the entry's path under staging/<uploader>/
 
 	// sessionID and email come from the unit's session.json sidecar, read
-	// and consumed (removed from disk) the moment its staged directory is
-	// discovered -- readAndConsumeSidecar for the poll path's
-	// collectUnits, stageSession for a --session-targeted run. Both are
+	// once its staged directory is settled and the sidecar removed from
+	// disk -- readAndConsumeSidecar for the poll path's collectUnits,
+	// stageSession for a --session-targeted run (which removes it only
+	// after the move into staging has actually succeeded). Both are
 	// empty for a unit with no sidecar: a leftover staged before the
 	// uploader shipped, or a synthetic orphan from deriveOrphanUnit.
 	sessionID string
@@ -640,14 +641,11 @@ func albumFromStagedDir(stagedDir string) string {
 	return base
 }
 
-// readAndConsumeSidecar reads dir's session.json, if present, and
-// removes it: its only job is carrying the session's identity and
-// collection from serve into the importer, and it must not survive to
-// confuse [dirIsEmptyOrGone]'s "everything beets moved out" check or
-// beets' own directory walk. A missing sidecar is not an error -- a
-// leftover staged before the uploader shipped, or a directory
-// [Importer.deriveOrphanUnit] derived synthetically, carries none.
-func readAndConsumeSidecar(dir string) (sc sessionSidecar, ok bool, err error) {
+// readSidecar reads dir's session.json, if present, without removing
+// it. A missing sidecar is not an error -- a leftover staged before the
+// uploader shipped, or a directory [Importer.deriveOrphanUnit] derived
+// synthetically, carries none.
+func readSidecar(dir string) (sc sessionSidecar, ok bool, err error) {
 	path := filepath.Join(dir, sessionSidecarName)
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
@@ -659,6 +657,22 @@ func readAndConsumeSidecar(dir string) (sc sessionSidecar, ok bool, err error) {
 	if err := json.Unmarshal(data, &sc); err != nil {
 		return sessionSidecar{}, false, fmt.Errorf("parse session sidecar %s: %w", path, err)
 	}
+	return sc, true, nil
+}
+
+// readAndConsumeSidecar reads dir's session.json, if present, and
+// removes it: its only job is carrying the session's identity and
+// collection from serve into the importer, and it must not survive to
+// confuse [dirIsEmptyOrGone]'s "everything beets moved out" check or
+// beets' own directory walk. Only for a directory already staged in
+// place ([collectUnits]): a directory still mid-move must not have its
+// sidecar consumed before the move can be retried -- see [stageSession].
+func readAndConsumeSidecar(dir string) (sc sessionSidecar, ok bool, err error) {
+	sc, ok, err = readSidecar(dir)
+	if err != nil || !ok {
+		return sc, ok, err
+	}
+	path := filepath.Join(dir, sessionSidecarName)
 	if err := os.Remove(path); err != nil {
 		return sessionSidecar{}, false, fmt.Errorf("remove consumed session sidecar %s: %w", path, err)
 	}
@@ -712,15 +726,21 @@ func findSessionDir(inboxDir, sessionID string) (string, error) {
 }
 
 // stageSession moves srcDir -- the entry [findSessionDir] located --
-// from the inbox into staging, consuming its session.json sidecar
-// first, and returns the resulting [albumUnit]. Unlike stageUser, a
-// promoted session directory is never an archive: [Engine.promote]
-// (internal/serve) always renames a real, already-assembled directory
-// into place, so no extraction step applies here. A missing sidecar is
-// [ErrMissingSidecar]: every session [Engine.promote] creates carries
-// one, so its absence means srcDir did not come from the uploader.
+// from the inbox into staging and returns the resulting [albumUnit].
+// The sidecar is only read here, then moved along with the rest of
+// srcDir by [review.Move] and removed from its destination once the
+// move has actually succeeded: consuming it before the move (as
+// [readAndConsumeSidecar] does for a directory already staged in
+// place) would leave a failed move's srcDir permanently unrecoverable
+// -- present in the inbox but missing the sidecar every retry needs.
+// Unlike stageUser, a promoted session directory is never an archive:
+// [Engine.promote] (internal/serve) always renames a real,
+// already-assembled directory into place, so no extraction step
+// applies here. A missing sidecar is [ErrMissingSidecar]: every
+// session [Engine.promote] creates carries one, so its absence means
+// srcDir did not come from the uploader.
 func (im *Importer) stageSession(srcDir, sessionID string) (*albumUnit, error) {
-	sc, ok, err := readAndConsumeSidecar(srcDir)
+	sc, ok, err := readSidecar(srcDir)
 	if err != nil {
 		return nil, fmt.Errorf("read session sidecar for %s: %w", sessionID, err)
 	}
@@ -735,6 +755,10 @@ func (im *Importer) stageSession(srcDir, sessionID string) (*albumUnit, error) {
 	dest := filepath.Join(destDir, filepath.Base(srcDir))
 	if err := review.Move(srcDir, dest); err != nil {
 		return nil, fmt.Errorf("stage session %s: %w", sessionID, err)
+	}
+	sidecarPath := filepath.Join(dest, sessionSidecarName)
+	if err := os.Remove(sidecarPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("remove consumed session sidecar %s: %w", sidecarPath, err)
 	}
 
 	return &albumUnit{

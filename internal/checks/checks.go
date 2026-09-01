@@ -202,7 +202,6 @@ var requiredFields = []string{
 	"DUBPLATE_INBOX_DIR",
 	"DUBPLATE_STAGING_DIR",
 	"DUBPLATE_STATE_DIR",
-	"DUBPLATE_RUN_DIR",
 	"DUBPLATE_REVIEW_DIR",
 	"DUBPLATE_QUARANTINE_DIR",
 	"DUBPLATE_BACKUP_STAGING",
@@ -212,6 +211,7 @@ var requiredFields = []string{
 	"DUBPLATE_ACCESS_TEAM_DOMAIN",
 	"DUBPLATE_ACCESS_AUD",
 	"DUBPLATE_PUBLIC_NAVIDROME_URL",
+	"DUBPLATE_TRIGGER_DIR",
 }
 
 // FieldStatuses reports every field [config.Load] requires and whether

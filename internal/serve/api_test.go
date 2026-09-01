@@ -212,6 +212,54 @@ func TestHandleJourney_OwnLedgerSessionResolves(t *testing.T) {
 	}
 }
 
+// TestHandleJourney_WireKeysAreSnakeCase proves the handler actually
+// emits journey.Journey's snake_case JSON tags on the wire, rather than
+// only being provable by decoding back into the same tagged struct: it
+// decodes the raw response into map[string]any and asserts the key set
+// directly.
+func TestHandleJourney_WireKeysAreSnakeCase(t *testing.T) {
+	tj := newTestJourneyAPI(t)
+	if err := tj.l.Append(ledger.Event{
+		SessionID: "alicegenericsessionxxxxxxx", Email: testEmailAlice, Album: "Loveless",
+		State: ledger.StateReview, At: tj.now, Detail: "needs a human look",
+	}); err != nil {
+		t.Fatalf("Append: %v", err)
+	}
+
+	resp := tj.getJourney(t, testEmailAlice, "alicegenericsessionxxxxxxx")
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+
+	var raw map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
+		t.Fatalf("decode raw journey: %v", err)
+	}
+	if raw["session_id"] != "alicegenericsessionxxxxxxx" {
+		t.Errorf(`raw["session_id"] = %v, want "alicegenericsessionxxxxxxx"`, raw["session_id"])
+	}
+	if raw["state"] != string(ledger.StateReview) {
+		t.Errorf(`raw["state"] = %v, want %q`, raw["state"], ledger.StateReview)
+	}
+	if raw["detail"] != "needs a human look" {
+		t.Errorf(`raw["detail"] = %v, want "needs a human look"`, raw["detail"])
+	}
+	if raw["album"] != "Loveless" {
+		t.Errorf(`raw["album"] = %v, want "Loveless"`, raw["album"])
+	}
+	if _, present := raw["SessionID"]; present {
+		t.Error(`raw["SessionID"] present, want only the snake_case key`)
+	}
+	if _, present := raw["library_link"]; present {
+		t.Error(`raw["library_link"] present for a review-state journey, want it omitted`)
+	}
+	if _, present := raw["files"]; present {
+		t.Error(`raw["files"] present for a journey with no live files, want it omitted`)
+	}
+}
+
 // --- live state -------------------------------------------------------
 
 // TestHandleJourney_LiveUploadingState proves an in-flight, not-yet-

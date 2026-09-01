@@ -51,12 +51,12 @@ type LiveSet map[string]LiveSession
 // Journey is one session's current state as [Resolve] composes it: the
 // one shape both GET /api/journey/<id> and GET /api/history render.
 type Journey struct {
-	SessionID   string
-	State       ledger.State
-	Detail      string
-	Album       string
-	LibraryLink string
-	Files       []intake.FileVerdict
+	SessionID   string               `json:"session_id"`
+	State       ledger.State         `json:"state"`
+	Detail      string               `json:"detail,omitempty"`
+	Album       string               `json:"album,omitempty"`
+	LibraryLink string               `json:"library_link,omitempty"`
+	Files       []intake.FileVerdict `json:"files,omitempty"`
 }
 
 // ErrNotFound marks a session absent from both the ledger and live: the

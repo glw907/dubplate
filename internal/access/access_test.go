@@ -206,6 +206,9 @@ func TestVerifierRejectsAlgNone(t *testing.T) {
 	if _, err := v.Verify(context.Background(), tok); err == nil {
 		t.Fatal("Verify: want error for alg=none, got nil")
 	}
+	if got := js.requests.Load(); got != 0 {
+		t.Errorf("jwks requests = %d, want 0: a rejected alg must never reach key lookup", got)
+	}
 }
 
 // TestVerifierRejectsHS256 proves the RS256-only allowlist blocks the
@@ -223,6 +226,9 @@ func TestVerifierRejectsHS256(t *testing.T) {
 
 	if _, err := v.Verify(context.Background(), tok); err == nil {
 		t.Fatal("Verify: want error for HS256, got nil")
+	}
+	if got := js.requests.Load(); got != 0 {
+		t.Errorf("jwks requests = %d, want 0: a rejected alg must never reach key lookup", got)
 	}
 }
 

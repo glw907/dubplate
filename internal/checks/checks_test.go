@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math/big"
 	"net"
 	"net/http"
@@ -227,6 +228,79 @@ func TestFieldStatusesNilErrorAllResolved(t *testing.T) {
 		if s.Missing {
 			t.Errorf("field %s reported missing when cfgErr is nil", s.Name)
 		}
+	}
+}
+
+// requiredFieldsEnv returns a valid value for every env var name in
+// requiredFields, so [TestRequiredFieldsMirrorsConfig] can unset one name
+// at a time and still leave every other required field satisfied.
+func requiredFieldsEnv() map[string]string {
+	return map[string]string{
+		"DUBPLATE_ADMIN_EMAIL":              "admin@example.com",
+		"DUBPLATE_SMTP_HOST":                "smtp.example.com",
+		"DUBPLATE_SMTP_PORT":                "465",
+		"DUBPLATE_SMTP_USER":                "smtp-user",
+		"DUBPLATE_SMTP_PASSWORD":            "smtp-pass",
+		"DUBPLATE_SMTP_FROM":                "dubplate@example.com",
+		"DUBPLATE_R2_ACCOUNT_ID":            "account-id",
+		"DUBPLATE_R2_BUCKET":                "bucket",
+		"DUBPLATE_R2_REMOTE":                "r2",
+		"DUBPLATE_R2_ACCESS_KEY_ID":         "access-key",
+		"DUBPLATE_R2_SECRET_ACCESS_KEY":     "secret-key",
+		"DUBPLATE_NAVIDROME_URL":            "http://localhost:4533",
+		"DUBPLATE_NAVIDROME_ADMIN_USER":     "nd-admin",
+		"DUBPLATE_NAVIDROME_ADMIN_PASSWORD": "nd-pass",
+		"DUBPLATE_CONTRIBUTORS_FILE":        "/etc/dubplate/contributors.yaml",
+		"DUBPLATE_REJECT_EMAIL_TEMPLATE":    "/opt/dubplate/config/reject-email.txt",
+		"DUBPLATE_BEETS_CONFIG":             "/etc/dubplate/beets-config.yaml",
+		"DUBPLATE_BEETS_DB":                 "/srv/music/state/library.db",
+		"DUBPLATE_NAVIDROME_DB":             "/srv/music/state/navidrome/navidrome.db",
+		"DUBPLATE_LIBRARY_DIR":              "/srv/music/library",
+		"DUBPLATE_INBOX_DIR":                "/srv/music/inbox",
+		"DUBPLATE_STAGING_DIR":              "/srv/music/staging",
+		"DUBPLATE_STATE_DIR":                "/srv/music/state",
+		"DUBPLATE_REVIEW_DIR":               "/srv/music/review",
+		"DUBPLATE_QUARANTINE_DIR":           "/srv/music/quarantine",
+		"DUBPLATE_BACKUP_STAGING":           "/srv/music/state/backup-staging",
+		"DUBPLATE_UPLOADS_DIR":              "/srv/music/uploads",
+		"DUBPLATE_SERVE_BIND_ADDRS":         "127.0.0.1",
+		"DUBPLATE_SERVE_PORT":               "8080",
+		"DUBPLATE_ACCESS_TEAM_DOMAIN":       "family.cloudflareaccess.com",
+		"DUBPLATE_ACCESS_AUD":               "aud-value",
+		"DUBPLATE_PUBLIC_NAVIDROME_URL":     "https://music.example.com",
+		"DUBPLATE_TRIGGER_DIR":              "/run/dubplate",
+	}
+}
+
+// TestRequiredFieldsMirrorsConfig asserts requiredFields' own doc-comment
+// invariant: every name it lists is one [config.Load] actually requires.
+// Unsetting each name in turn, with every other required field
+// satisfied, must produce a [config.ErrMissing] naming it -- a name added,
+// renamed, or dropped on one side only (requiredFields vs. config.go's
+// require() calls) fails here instead of silently mis-listing doctor's
+// field report.
+func TestRequiredFieldsMirrorsConfig(t *testing.T) {
+	base := requiredFieldsEnv()
+	if len(base) != len(requiredFields) {
+		t.Fatalf("requiredFieldsEnv has %d entries, requiredFields has %d -- keep them in sync", len(base), len(requiredFields))
+	}
+
+	for _, name := range requiredFields {
+		t.Run(name, func(t *testing.T) {
+			if _, ok := base[name]; !ok {
+				t.Fatalf("requiredFieldsEnv has no value for %s", name)
+			}
+			env := maps.Clone(base)
+			delete(env, name)
+			for k, v := range env {
+				t.Setenv(k, v)
+			}
+
+			_, err := config.Load()
+			if err == nil || !errors.Is(err, config.ErrMissing) || !strings.Contains(err.Error(), name) {
+				t.Errorf("config.Load() with %s unset = %v, want ErrMissing naming %s", name, err, name)
+			}
+		})
 	}
 }
 

@@ -14,6 +14,7 @@ package serve
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -49,6 +50,14 @@ const (
 // bytesPerGiB converts a [config.Thresholds.FreeFloorGB] value to bytes.
 const bytesPerGiB = 1 << 30
 
+// defaultPrivateCollection is the "Private Recordings" collection name
+// the custody-policy decision documents as the private lane's default:
+// an operator who never sets [Options.PrivateCollection] still gets a
+// working, config-named private lane rather than a silently absent one.
+// It must also appear in [config.Config.Collections] for
+// [validCollection] to admit a session created against it.
+const defaultPrivateCollection = "Private Recordings"
+
 // filesBasePath is where the tus protocol is mounted, agreed with U7's
 // routing and U9's dev proxy.
 const filesBasePath = "/files/"
@@ -73,6 +82,44 @@ func EmailFromContext(ctx context.Context) (string, bool) {
 	return email, ok
 }
 
+// TagProbeResult is what a tag-check probe reports about a staged,
+// format-passing session, per the custody-policy decision: a beets
+// matcher dry run against the session's assembled directory.
+// [Engine.completeSession] promotes only when Confident is true; Artist,
+// Album, and Year carry the matched metadata for the journey, and Detail
+// carries the probe's best guess when it is not.
+type TagProbeResult struct {
+	Confident bool
+	Artist    string
+	Album     string
+	Year      string
+	Detail    string
+}
+
+// ErrTagProbeUnavailable is the error the zero-value [Options.TagProbe]
+// always returns: until U8's beets matcher probe is wired in (production
+// wiring is cmd/dubplate/serve.go's job, not this package's), every
+// main-lane session completion holds unpromoted rather than promoting an
+// unconfirmed match -- the custody policy's fail-closed default, not a
+// bug to work around with a permissive stub.
+var ErrTagProbeUnavailable = errors.New("serve: tag-check probe not configured")
+
+// TagProbeFunc runs the custody-policy tag-check probe against a staged
+// session's assembled directory (U8's beets-matcher PROBE mode) and
+// reports whether it found a confident match. ctx bounds the probe's
+// MusicBrainz lookups. A non-nil error means the probe itself could not
+// run at all (MusicBrainz unreachable, for example) -- distinct from a
+// clean not-confident result, since [Engine.completeSession] holds a
+// probe-unavailable session with an honest retry-later state rather than
+// treating it the same as a considered rejection.
+type TagProbeFunc func(ctx context.Context, dir string) (TagProbeResult, error)
+
+// unavailableTagProbe is the zero-value [Options.TagProbe]: see
+// [ErrTagProbeUnavailable].
+func unavailableTagProbe(context.Context, string) (TagProbeResult, error) {
+	return TagProbeResult{}, ErrTagProbeUnavailable
+}
+
 // Engine is dubplate's upload engine: the tus protocol handler, the
 // in-flight session store, and the promotion logic that turns a
 // completed, passing session into an inbox directory the importer picks
@@ -87,9 +134,11 @@ type Engine struct {
 
 	checkPolicy gate.Policy
 
-	now        func() time.Time
-	rename     func(oldpath, newpath string) error
-	onPromoted func(sessionID, dest string)
+	now               func() time.Time
+	rename            func(oldpath, newpath string) error
+	onPromoted        func(sessionID, dest string)
+	tagProbe          TagProbeFunc
+	privateCollection string
 }
 
 // Options overrides Engine's test seams; every field defaults to its
@@ -109,6 +158,18 @@ type Options struct {
 	// no-op, which every test in this package other than the nudge's own
 	// wants.
 	OnPromoted func(sessionID, dest string)
+	// TagProbe runs the custody-policy tag-check probe (U8's beets
+	// matcher PROBE mode) that every main-lane session must pass before
+	// promotion. The zero value is [unavailableTagProbe], which always
+	// fails closed with [ErrTagProbeUnavailable] -- production wiring of
+	// the real probe is cmd/dubplate/serve.go's job, not NewEngine's.
+	TagProbe TagProbeFunc
+	// PrivateCollection names the private lane's collection (the
+	// custody-policy decision's "Private Recordings" lane): a session
+	// created against it skips [Options.TagProbe] entirely. The zero
+	// value defaults to [defaultPrivateCollection], the documented
+	// default name.
+	PrivateCollection string
 }
 
 // NewEngine builds an Engine backed by a tus filestore rooted at
@@ -122,6 +183,12 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 	}
 	if opts.Rename == nil {
 		opts.Rename = os.Rename
+	}
+	if opts.TagProbe == nil {
+		opts.TagProbe = unavailableTagProbe
+	}
+	if opts.PrivateCollection == "" {
+		opts.PrivateCollection = defaultPrivateCollection
 	}
 
 	store := filestore.New(cfg.Paths.UploadsDir)
@@ -141,9 +208,11 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 			MinSampleRate:    cdMinSampleRate,
 			MinBitsPerSample: cdMinBitsPerSample,
 		},
-		now:        opts.Now,
-		rename:     opts.Rename,
-		onPromoted: opts.OnPromoted,
+		now:               opts.Now,
+		rename:            opts.Rename,
+		onPromoted:        opts.OnPromoted,
+		tagProbe:          opts.TagProbe,
+		privateCollection: opts.PrivateCollection,
 	}
 
 	tusCfg := thandler.Config{
@@ -500,8 +569,19 @@ func (e *Engine) assembleUpload(ctx context.Context, sess *Session, info thandle
 // no matter how many callers race to trigger it (the count-reaching-
 // ExpectedFiles path in [Engine.preFinish] and an explicit /finish call
 // via [Engine.handleFinish]): the first caller through
-// [Session.completeOnce] decides and promotes or discards; every other
-// caller reads back the same outcome via [Session.waitOutcome].
+// [Session.completeOnce] decides and promotes, holds, or discards; every
+// other caller reads back the same outcome via [Session.waitOutcome].
+//
+// A session that fails its format verdict is discarded outright -- its
+// audio itself was rejected, so nothing about a retry would change. A
+// session that passes the format verdict but is a private-lane session
+// (sess.Collection equals e.privateCollection) skips the tag-check probe
+// entirely and promotes as-is. Every other passing session runs the
+// custody-policy tag-check probe first: a confident match promotes; an
+// unconfident or unavailable probe leaves the session staged and
+// unpromoted rather than discarding it, since the audio passed and the
+// contributor's fix path (re-upload, MusicBrainz edit, or a switch to
+// the private lane) does not require re-sending it.
 func (e *Engine) completeSession(sess *Session) sessionOutcome {
 	if !sess.completeOnce() {
 		out, err := sess.waitOutcome(context.Background())
@@ -513,29 +593,54 @@ func (e *Engine) completeSession(sess *Session) sessionOutcome {
 
 	verdict := intake.Decide(sess.verdictsSnapshot())
 	out := sessionOutcome{Verdict: verdict}
-	switch {
-	case verdict.OK:
-		dest, err := e.promote(sess)
-		if err != nil {
-			// A mechanical promotion failure (a bad rename, a permissions
-			// fault) is not a content rejection: the staged directory is
-			// left in place for a retry or manual recovery rather than
-			// discarded, since throwing away a fully validated upload
-			// because promotion's plumbing hiccuped would be a worse
-			// outcome than leaving it staged.
-			slog.Error("promote session", "session_id", sess.ID, "err", err)
-		} else {
-			out.Promoted = true
-			out.Dest = dest
-			if e.onPromoted != nil {
-				e.onPromoted(sess.ID, dest)
-			}
-		}
-	default:
+	if !verdict.OK {
 		e.discard(sess)
+		sess.setOutcome(out)
+		return out
+	}
+
+	if sess.Collection == e.privateCollection {
+		e.promoteInto(sess, &out, TagProbeResult{})
+		sess.setOutcome(out)
+		return out
+	}
+
+	result, err := e.tagProbe(context.Background(), filepath.Join(e.cfg.Paths.UploadsDir, sess.ID))
+	switch {
+	case err != nil:
+		out.ProbeUnavailable = true
+		slog.Error("tag-check probe unavailable", "session_id", sess.ID, "err", err)
+	case !result.Confident:
+		out.PushedBack = true
+		out.Detail = result.Detail
+	default:
+		e.promoteInto(sess, &out, result)
 	}
 	sess.setOutcome(out)
 	return out
+}
+
+// promoteInto runs [Engine.promote] and folds its result into out,
+// carrying match's metadata forward when the promotion succeeds. A
+// mechanical promotion failure (a bad rename, a permissions fault) is
+// not a content rejection: the staged directory is left in place for a
+// retry or manual recovery rather than discarded, since throwing away a
+// fully validated, tag-confirmed upload because promotion's plumbing
+// hiccuped would be a worse outcome than leaving it staged.
+func (e *Engine) promoteInto(sess *Session, out *sessionOutcome, match TagProbeResult) {
+	dest, err := e.promote(sess)
+	if err != nil {
+		slog.Error("promote session", "session_id", sess.ID, "err", err)
+		return
+	}
+	out.Promoted = true
+	out.Dest = dest
+	out.MatchedArtist = match.Artist
+	out.MatchedAlbum = match.Album
+	out.MatchedYear = match.Year
+	if e.onPromoted != nil {
+		e.onPromoted(sess.ID, dest)
+	}
 }
 
 // sessionSidecar is session.json's on-disk shape: the collection's
@@ -666,16 +771,34 @@ func (e *Engine) RunSweep(ctx context.Context, interval time.Duration) {
 
 // finishResponse is the JSON body both POST /api/session/<id>/finish and
 // a lone ZIP's completing PATCH return: the same shape either way, so a
-// client never special-cases which path completed its session.
+// client never special-cases which path completed its session. Promoted,
+// PushedBack, and ProbeUnavailable are mutually exclusive; Detail and the
+// Matched* fields are populated only alongside the outcome that sets
+// them (see [sessionOutcome]).
 type finishResponse struct {
-	Promoted bool                 `json:"promoted"`
-	Files    []intake.FileVerdict `json:"files"`
+	Promoted         bool                 `json:"promoted"`
+	PushedBack       bool                 `json:"pushed_back,omitempty"`
+	ProbeUnavailable bool                 `json:"probe_unavailable,omitempty"`
+	Detail           string               `json:"detail,omitempty"`
+	MatchedArtist    string               `json:"matched_artist,omitempty"`
+	MatchedAlbum     string               `json:"matched_album,omitempty"`
+	MatchedYear      string               `json:"matched_year,omitempty"`
+	Files            []intake.FileVerdict `json:"files"`
 }
 
 // finishHTTPResponse renders out as the tus-hook HTTPResponse a
 // completing PATCH returns.
 func finishHTTPResponse(out sessionOutcome) thandler.HTTPResponse {
-	body, err := json.Marshal(finishResponse{Promoted: out.Promoted, Files: out.Verdict.Files})
+	body, err := json.Marshal(finishResponse{
+		Promoted:         out.Promoted,
+		PushedBack:       out.PushedBack,
+		ProbeUnavailable: out.ProbeUnavailable,
+		Detail:           out.Detail,
+		MatchedArtist:    out.MatchedArtist,
+		MatchedAlbum:     out.MatchedAlbum,
+		MatchedYear:      out.MatchedYear,
+		Files:            out.Verdict.Files,
+	})
 	if err != nil {
 		body = []byte(`{}`)
 	}

@@ -3,9 +3,11 @@ package serve
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -104,7 +106,7 @@ func newTestEngine(t *testing.T, mutate func(cfg *config.Config)) *testEngine {
 	}
 
 	now := time.Now()
-	e, err := NewEngine(cfg, roster, Options{Now: func() time.Time { return now }})
+	e, err := NewEngine(cfg, roster, Options{Now: func() time.Time { return now }, TagProbe: alwaysConfidentTagProbe})
 	if err != nil {
 		t.Fatalf("NewEngine: %v", err)
 	}
@@ -865,6 +867,228 @@ func TestUploadExpiresHeaderStamped(t *testing.T) {
 	}
 }
 
+// --- tag-check probe + private lane (custody policy) -----------------------
+
+// alwaysConfidentTagProbe is the default [Options.TagProbe] every test
+// helper in this file wires in except where a test is deliberately
+// exercising probe behavior: it lets every pre-existing promotion test
+// reach [Engine.promote] without knowing the custody policy exists, the
+// same way a real, working U8 probe would for a well-tagged fixture
+// album.
+func alwaysConfidentTagProbe(context.Context, string) (TagProbeResult, error) {
+	return TagProbeResult{Confident: true}, nil
+}
+
+// stubTagProbe returns a fixed [TagProbeResult]/error pair and records
+// the directory it was called with, so a test can both drive a specific
+// probe outcome and assert on what Engine handed it.
+func stubTagProbe(result TagProbeResult, err error, calledWith *string) TagProbeFunc {
+	return func(_ context.Context, dir string) (TagProbeResult, error) {
+		*calledWith = dir
+		return result, err
+	}
+}
+
+// TestTagProbe_ConfidentMatchPromotesAndCapturesMetadata proves a
+// confident probe result promotes the session and carries the matched
+// artist/album/year into the finish response, and that the probe ran
+// against the session's own assembled directory under UploadsDir.
+func TestTagProbe_ConfidentMatchPromotesAndCapturesMetadata(t *testing.T) {
+	var probedDir string
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: stubTagProbe(TagProbeResult{Confident: true, Artist: "The Beatles", Album: "Abbey Road", Year: "1969"}, nil, &probedDir),
+	})
+	sessID := te.createSession(t, "Abbey Road", "", 1)
+
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+
+	var fin finishResponse
+	if err := json.Unmarshal(body, &fin); err != nil {
+		t.Fatalf("unmarshal finish response %q: %v", body, err)
+	}
+	if !fin.Promoted || fin.PushedBack || fin.ProbeUnavailable {
+		t.Fatalf("finish response = %+v, want Promoted only", fin)
+	}
+	if fin.MatchedArtist != "The Beatles" || fin.MatchedAlbum != "Abbey Road" || fin.MatchedYear != "1969" {
+		t.Fatalf("finish response = %+v, want the stub probe's matched metadata", fin)
+	}
+
+	wantDir := filepath.Join(te.uploadsDir, sessID)
+	if probedDir != wantDir {
+		t.Fatalf("probe called with dir %q, want %q", probedDir, wantDir)
+	}
+
+	dest := filepath.Join(te.inboxDir, testDirAlice, sessID+"__abbey-road")
+	assertPromoted(t, dest, []string{"01 - one.flac"})
+}
+
+// TestTagProbe_NotConfidentNeverPromotes proves an unconfident probe
+// result never promotes the session -- no trace under the inbox -- and
+// that it holds the staged content rather than discarding it: the audio
+// passed its own format verdict, so a fix path (re-upload, a MusicBrainz
+// edit, or switching to the private lane) does not require sending it
+// again.
+func TestTagProbe_NotConfidentNeverPromotes(t *testing.T) {
+	var probedDir string
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: stubTagProbe(TagProbeResult{Confident: false, Detail: "closest guess: a 1969 bootleg, not confident enough"}, nil, &probedDir),
+	})
+	sessID := te.createSession(t, "Uncertain Album", "", 1)
+
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+
+	var fin finishResponse
+	if err := json.Unmarshal(body, &fin); err != nil {
+		t.Fatalf("unmarshal finish response %q: %v", body, err)
+	}
+	if fin.Promoted {
+		t.Fatalf("finish response = %+v, want Promoted false", fin)
+	}
+	if !fin.PushedBack || fin.Detail == "" {
+		t.Fatalf("finish response = %+v, want PushedBack with the probe's detail", fin)
+	}
+
+	assertNoInboxTrace(t, te.inboxDir)
+	if _, err := os.Stat(filepath.Join(te.uploadsDir, sessID)); err != nil {
+		t.Fatalf("staged session directory lost on a not-confident probe (should be held): %v", err)
+	}
+}
+
+// TestTagProbe_UnavailableHoldsWithHonestState proves a probe that
+// cannot run at all (MusicBrainz unreachable, modeled by an error
+// return) never promotes, reports ProbeUnavailable rather than
+// PushedBack (the two are distinct honest states), and likewise holds
+// the staged content for a retry.
+func TestTagProbe_UnavailableHoldsWithHonestState(t *testing.T) {
+	var probedDir string
+	stubErr := errors.New("musicbrainz unreachable")
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: stubTagProbe(TagProbeResult{}, stubErr, &probedDir),
+	})
+	sessID := te.createSession(t, "Retry Later Album", "", 1)
+
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+
+	var fin finishResponse
+	if err := json.Unmarshal(body, &fin); err != nil {
+		t.Fatalf("unmarshal finish response %q: %v", body, err)
+	}
+	if fin.Promoted || fin.PushedBack {
+		t.Fatalf("finish response = %+v, want neither Promoted nor PushedBack", fin)
+	}
+	if !fin.ProbeUnavailable {
+		t.Fatalf("finish response = %+v, want ProbeUnavailable", fin)
+	}
+
+	assertNoInboxTrace(t, te.inboxDir)
+	if _, err := os.Stat(filepath.Join(te.uploadsDir, sessID)); err != nil {
+		t.Fatalf("staged session directory lost on a probe-unavailable outcome (should be held): %v", err)
+	}
+}
+
+// TestTagProbe_DefaultOptionsFailsClosed proves that with no
+// [Options.TagProbe] wired in at all -- production's state until U8's
+// probe is connected in cmd/dubplate/serve.go -- a main-lane session
+// never promotes untagged; it holds as ProbeUnavailable instead of
+// silently succeeding. It builds NewEngine directly with a bare
+// Options{Now: ...}, deliberately bypassing this file's own test
+// helpers, which all default TagProbe to [alwaysConfidentTagProbe] so
+// the rest of the suite can promote without knowing the probe exists.
+func TestTagProbe_DefaultOptionsFailsClosed(t *testing.T) {
+	base := newTestEngineNoServer(t, nil)
+	e, err := NewEngine(base.cfg, base.engine.roster, Options{Now: func() time.Time { return base.now }})
+	if err != nil {
+		t.Fatalf("NewEngine: %v", err)
+	}
+	srv := httptest.NewServer(withTestAuth(e.Handler()))
+	t.Cleanup(srv.Close)
+	te := &testEngine{engine: e, cfg: base.cfg, server: srv, client: srv.Client(), uploadsDir: base.uploadsDir, inboxDir: base.inboxDir, now: base.now}
+
+	sessID := te.createSession(t, "No Probe Wired Album", "", 1)
+
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+
+	var fin finishResponse
+	if err := json.Unmarshal(body, &fin); err != nil {
+		t.Fatalf("unmarshal finish response %q: %v", body, err)
+	}
+	if fin.Promoted || !fin.ProbeUnavailable {
+		t.Fatalf("finish response = %+v, want ProbeUnavailable and not Promoted with no probe wired in", fin)
+	}
+	assertNoInboxTrace(t, te.inboxDir)
+}
+
+// TestTagProbe_PrivateLaneBypassesProbe proves a session created against
+// [Options.PrivateCollection] promotes without ever calling the probe,
+// and carries no matched metadata (the private lane's tag-form values,
+// not a MusicBrainz match, are what the importer applies).
+func TestTagProbe_PrivateLaneBypassesProbe(t *testing.T) {
+	called := false
+	te := newTestEngineWithOptions(t, func(cfg *config.Config) {
+		cfg.Collections = append(cfg.Collections, defaultPrivateCollection)
+	}, Options{
+		TagProbe: func(context.Context, string) (TagProbeResult, error) {
+			called = true
+			return TagProbeResult{}, errors.New("the probe must never run for a private-lane session")
+		},
+	})
+	sessID := te.createSession(t, "Home Recording", defaultPrivateCollection, 1)
+
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, body %q", resp.StatusCode, body)
+	}
+	if called {
+		t.Fatal("TagProbe was called for a private-lane session")
+	}
+
+	var fin finishResponse
+	if err := json.Unmarshal(body, &fin); err != nil {
+		t.Fatalf("unmarshal finish response %q: %v", body, err)
+	}
+	if !fin.Promoted {
+		t.Fatalf("finish response = %+v, want Promoted", fin)
+	}
+	if fin.MatchedArtist != "" || fin.MatchedAlbum != "" || fin.MatchedYear != "" {
+		t.Fatalf("finish response = %+v, want no matched metadata on the private lane", fin)
+	}
+
+	dest := filepath.Join(te.inboxDir, testDirAlice, sessID+"__home-recording")
+	assertPromoted(t, dest, []string{"01 - one.flac"})
+}
+
 // --- mechanics: timeouts (M13 mechanics bullet) ---------------------------
 
 // TestSlowPATCHNotCutByServerTimeouts proves a trickling PATCH is never
@@ -971,6 +1195,9 @@ func newTestEngineWithOptions(t *testing.T, mutate func(cfg *config.Config), opt
 	if opts.Now == nil {
 		opts.Now = func() time.Time { return now }
 	}
+	if opts.TagProbe == nil {
+		opts.TagProbe = alwaysConfidentTagProbe
+	}
 
 	roster := te.engine.roster
 	e, err := NewEngine(te.cfg, roster, opts)
@@ -1031,7 +1258,7 @@ func newTestEngineNoServer(t *testing.T, mutate func(cfg *config.Config)) *testE
 	}
 
 	now := time.Now()
-	e, err := NewEngine(cfg, roster, Options{Now: func() time.Time { return now }})
+	e, err := NewEngine(cfg, roster, Options{Now: func() time.Time { return now }, TagProbe: alwaysConfidentTagProbe})
 	if err != nil {
 		t.Fatalf("NewEngine: %v", err)
 	}

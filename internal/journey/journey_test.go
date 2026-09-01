@@ -387,9 +387,10 @@ func TestBuildLibraryLink(t *testing.T) {
 }
 
 // TestReasonRoundTripsThroughJourneyFiles proves a rejected verdict's
-// friendly wording survives being carried on a Journey.Files entry --
-// the same reject.Reason wire format U4 golden-tests, exercised here
-// through the type journey actually threads it through.
+// reject.Reason survives being carried on a Journey.Files entry all the
+// way onto the wire: it marshals the resolved Journey and asserts the
+// emitted Files[0].reason object, not just a Go-side method call, so a
+// broken MarshalJSON on the threaded-through field would fail this test.
 func TestReasonRoundTripsThroughJourneyFiles(t *testing.T) {
 	live := LiveSet{"sess-1": {
 		SessionID: "sess-1", Email: "alice@example.com", State: ledger.StateRejected,
@@ -401,7 +402,31 @@ func TestReasonRoundTripsThroughJourneyFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Resolve: %v", err)
 	}
-	if j.Files[0].Reason.Friendly() == "" {
-		t.Error("Files[0].Reason.Friendly() is empty, want the below-CD-quality wording")
+
+	body, err := json.Marshal(j)
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	var decoded struct {
+		Files []struct {
+			Reason struct {
+				Code     string `json:"code"`
+				Friendly string `json:"friendly"`
+				NextStep string `json:"next_step"`
+			} `json:"reason"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal(body, &decoded); err != nil {
+		t.Fatalf("Unmarshal: %v (body: %s)", err, body)
+	}
+	if len(decoded.Files) != 1 {
+		t.Fatalf("files = %+v, want exactly one entry", decoded.Files)
+	}
+	got := decoded.Files[0].Reason
+	wantFriendly := "This FLAC is below CD quality."
+	wantNextStep := "Get a CD-quality or better FLAC and upload that instead."
+	if got.Code != "below-cd-quality" || got.Friendly != wantFriendly || got.NextStep != wantNextStep {
+		t.Errorf("Files[0].reason = %+v, want {code: below-cd-quality, friendly: %q, next_step: %q}",
+			got, wantFriendly, wantNextStep)
 	}
 }

@@ -32,7 +32,7 @@ ProtectSystem=strict
 # /run/dubplate/nudge-triggers matches config/tmpfiles-dubplate.conf's
 # own path exactly (U8's plan-time decision: that fragment is the one
 # place this literal is authored; deploy.sh's rendered
-# DUBPLATE_RUN_DIR must agree with it). The rest mirrors
+# DUBPLATE_TRIGGER_DIR must agree with it). The rest mirrors
 # dubplate-import.service's own grant exactly -- `dubplate
 # nudge-consume` runs the same importer.Importer pipeline
 # (internal/importer/importer.go) against the same paths, see that

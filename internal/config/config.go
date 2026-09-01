@@ -106,11 +106,13 @@ type Paths struct {
 	InboxDir   string
 	StagingDir string
 	StateDir   string
-	// RunDir is the systemd RuntimeDirectory dubplate's serve and nudge
-	// units share; it never survives a reboot, so nothing here may be a
-	// durable state file (that is StateDir's job). serve derives the
-	// nudge trigger directory from it.
-	RunDir        string
+	// TriggerDir is the nudge trigger queue directory
+	// (config/tmpfiles-dubplate.conf creates it at boot via
+	// systemd-tmpfiles), backed by tmpfs under /run and so never a home
+	// for durable state (that is StateDir's job). serve writes a
+	// trigger file here per promoted session; nudge-consume reads and
+	// deletes them.
+	TriggerDir    string
 	ReviewDir     string
 	QuarantineDir string
 	BackupStaging string
@@ -293,7 +295,7 @@ func Load() (*Config, error) {
 		InboxDir:      require("DUBPLATE_INBOX_DIR"),
 		StagingDir:    require("DUBPLATE_STAGING_DIR"),
 		StateDir:      require("DUBPLATE_STATE_DIR"),
-		RunDir:        require("DUBPLATE_RUN_DIR"),
+		TriggerDir:    require("DUBPLATE_TRIGGER_DIR"),
 		ReviewDir:     require("DUBPLATE_REVIEW_DIR"),
 		QuarantineDir: require("DUBPLATE_QUARANTINE_DIR"),
 		BackupStaging: require("DUBPLATE_BACKUP_STAGING"),

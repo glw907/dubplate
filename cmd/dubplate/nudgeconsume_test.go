@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -80,12 +81,34 @@ func writeTrigger(t *testing.T, triggerDir, sessionID string) {
 	}
 }
 
+// stageSessionFixtureBadSidecar writes
+// <inboxDir>/<dirName>/<sessionID>__<album>/session.json as
+// unparseable JSON, so [importer.Importer.ImportSessionLocked] fails
+// with a genuine, non-sentinel error (not [importer.ErrMissingSidecar]
+// -- the sidecar is present, just malformed) that a retry could still
+// resolve once the file is fixed by hand.
+func stageSessionFixtureBadSidecar(t *testing.T, inboxDir, sessionID, dirName, album string) {
+	t.Helper()
+	dir := filepath.Join(inboxDir, dirName, sessionID+"__"+album)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatalf("mkdir session dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "session.json"), []byte("not json"), 0o644); err != nil {
+		t.Fatalf("write malformed sidecar: %v", err)
+	}
+}
+
 // TestRunNudgeConsumeDeletesTriggerOnlyAfterSuccess proves the
-// delete-ordering contract: a trigger whose import succeeds is removed,
-// and a trigger whose import fails for a real reason (no matching
-// promoted directory) survives for the path unit's re-arm or the timer
-// backstop to retry -- and the batch itself still reports the failure
-// rather than swallowing it.
+// delete-ordering contract across all three outcomes a triggered
+// import can have: a trigger whose import succeeds is removed; a
+// trigger whose import fails with a real, retryable error (a
+// malformed sidecar) survives for the path unit's re-arm or the timer
+// backstop to retry, and the batch reports the failure rather than
+// swallowing it; and a trigger whose import fails with the terminal
+// [importer.ErrSessionNotFound] sentinel (no matching promoted
+// directory -- the timer backstop already settled it) is retired --
+// deleted without being joined into the batch's error, since nothing
+// about retrying it could ever succeed.
 func TestRunNudgeConsumeDeletesTriggerOnlyAfterSuccess(t *testing.T) {
 	root := t.TempDir()
 	im := testNudgeImporter(root)
@@ -94,26 +117,34 @@ func TestRunNudgeConsumeDeletesTriggerOnlyAfterSuccess(t *testing.T) {
 	}
 
 	stageSessionFixture(t, im.Cfg.Paths.InboxDir, "sessOK", "alice", "Album A")
+	stageSessionFixtureBadSidecar(t, im.Cfg.Paths.InboxDir, "sessBadSidecar", "alice", "Album B")
 	// sessMissing has a trigger file but no matching promoted directory
 	// under InboxDir, so its import fails with ErrSessionNotFound.
 
 	triggerDir := filepath.Join(root, "run", "nudge-triggers")
 	writeTrigger(t, triggerDir, "sessOK")
+	writeTrigger(t, triggerDir, "sessBadSidecar")
 	writeTrigger(t, triggerDir, "sessMissing")
 
 	err := runNudgeConsume(context.Background(), im, triggerDir, lock.Path(im.Cfg.Paths.StateDir), 5*time.Second)
 	if err == nil {
-		t.Fatal("runNudgeConsume error = nil, want the sessMissing failure surfaced")
+		t.Fatal("runNudgeConsume error = nil, want the sessBadSidecar failure surfaced")
 	}
-	if !errors.Is(err, importer.ErrSessionNotFound) {
-		t.Errorf("runNudgeConsume error = %v, want it to wrap ErrSessionNotFound", err)
+	if errors.Is(err, importer.ErrSessionNotFound) {
+		t.Errorf("runNudgeConsume error = %v, want the stale ErrSessionNotFound trigger excluded from the joined error", err)
+	}
+	if !strings.Contains(err.Error(), "sessBadSidecar") {
+		t.Errorf("runNudgeConsume error = %v, want it to mention sessBadSidecar", err)
 	}
 
 	if _, err := os.Stat(filepath.Join(triggerDir, "sessOK")); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("successful session's trigger survived: err = %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(triggerDir, "sessMissing")); err != nil {
-		t.Errorf("failed session's trigger was deleted despite the import failing: err = %v", err)
+	if _, err := os.Stat(filepath.Join(triggerDir, "sessBadSidecar")); err != nil {
+		t.Errorf("retryable failure's trigger was deleted despite the import failing: err = %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(triggerDir, "sessMissing")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("stale ErrSessionNotFound trigger survived, want it retired: err = %v", err)
 	}
 }
 

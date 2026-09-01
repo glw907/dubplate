@@ -35,7 +35,7 @@ func requiredEnv() map[string]string {
 		"DUBPLATE_INBOX_DIR":                "/srv/music/inbox",
 		"DUBPLATE_STAGING_DIR":              "/srv/music/staging",
 		"DUBPLATE_STATE_DIR":                "/srv/music/state",
-		"DUBPLATE_RUN_DIR":                  "/run/dubplate",
+		"DUBPLATE_TRIGGER_DIR":              "/run/dubplate",
 		"DUBPLATE_REVIEW_DIR":               "/srv/music/review",
 		"DUBPLATE_QUARANTINE_DIR":           "/srv/music/quarantine",
 		"DUBPLATE_BACKUP_STAGING":           "/srv/music/state/backup-staging",
@@ -132,6 +132,24 @@ func TestLoad_bindAddrsMissingIsErrMissing(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "DUBPLATE_SERVE_BIND_ADDRS") {
 		t.Errorf("Load() error %q missing DUBPLATE_SERVE_BIND_ADDRS", err.Error())
+	}
+}
+
+// TestLoad_triggerDirMissingIsErrMissing pins Paths.TriggerDir, the
+// purpose-named replacement for the retired RunDir field: unset
+// DUBPLATE_TRIGGER_DIR joins the ErrMissing list exactly like every
+// other required path.
+func TestLoad_triggerDirMissingIsErrMissing(t *testing.T) {
+	env := requiredEnv()
+	delete(env, "DUBPLATE_TRIGGER_DIR")
+	setEnv(t, env)
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want non-nil")
+	}
+	if !errors.Is(err, ErrMissing) || !strings.Contains(err.Error(), "DUBPLATE_TRIGGER_DIR") {
+		t.Errorf("Load() error = %v, want ErrMissing naming DUBPLATE_TRIGGER_DIR", err)
 	}
 }
 

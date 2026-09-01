@@ -54,8 +54,8 @@ type NewServerDeps struct {
 	Now func() time.Time
 }
 
-// nudgeTriggerSubdir is the directory under [config.Paths.RunDir] serve
-// writes nudge trigger files into; U8's dubplate-import-nudge.path
+// nudgeTriggerSubdir is the directory under [config.Paths.TriggerDir]
+// serve writes nudge trigger files into; U8's dubplate-import-nudge.path
 // watches it with DirectoryNotEmpty= and U8's tmpfiles fragment creates
 // it, both keyed to this same name.
 const nudgeTriggerSubdir = "nudge-triggers"
@@ -89,7 +89,7 @@ func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*S
 		return nil, fmt.Errorf("serve: open ledger: %w", err)
 	}
 
-	triggerDir := filepath.Join(cfg.Paths.RunDir, nudgeTriggerSubdir)
+	triggerDir := filepath.Join(cfg.Paths.TriggerDir, nudgeTriggerSubdir)
 	engine, err := NewEngine(cfg, roster, Options{
 		Now:        deps.Now,
 		OnPromoted: func(sessionID, _ string) { writeNudgeTrigger(triggerDir, sessionID) },

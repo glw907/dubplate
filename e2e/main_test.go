@@ -305,7 +305,7 @@ func newTestEnv(t *testing.T) *testEnv {
 		"DUBPLATE_INBOX_DIR":                e.inboxDir,
 		"DUBPLATE_STAGING_DIR":              e.stagingDir,
 		"DUBPLATE_STATE_DIR":                e.stateDir,
-		"DUBPLATE_RUN_DIR":                  filepath.Join(root, "run"),
+		"DUBPLATE_TRIGGER_DIR":              filepath.Join(root, "run"),
 		"DUBPLATE_REVIEW_DIR":               e.reviewDir,
 		"DUBPLATE_QUARANTINE_DIR":           e.quarantineDir,
 		"DUBPLATE_BACKUP_STAGING":           filepath.Join(root, "backup-staging"),

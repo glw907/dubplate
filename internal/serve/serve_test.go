@@ -322,7 +322,7 @@ func minimalTestConfig(t *testing.T) *config.Config {
 		Paths: config.Paths{
 			UploadsDir: dirs["uploads"],
 			InboxDir:   dirs["inbox"],
-			RunDir:     dirs["run"],
+			TriggerDir: dirs["run"],
 			StateDir:   dirs["state"],
 		},
 		LedgerPath:  filepath.Join(dirs["state"], "contributions.jsonl"),
