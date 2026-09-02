@@ -27,10 +27,11 @@ box swap, interim retirement) and close-out (rung 17). Launch bar: the
 complete server, Go matcher past the two-tier conformance bar, a clean
 shadow record, layout parity. Old code is salvage tier, frozen at the
 `pre-greenfield` tag under `_salvage/`. Server before TUI is a hard
-boundary: rung 10 (two-binary split, local TUI) and the remote-TUI half
-of rung 11 move past launch. Rung 1 (foundation: the repo pivot, the
-config core, `check`/`doctor` scaffolds) landed 2026-09-02. Next: rung
-2's plan (corpus and harness).
+boundary: the organizer spec's rung 10 (two-binary split, local TUI) and
+the remote-TUI half of its rung 11 move past launch, unscheduled on the
+new ladder. Rung 1 (foundation: the repo pivot, the config core,
+`check`/`doctor` scaffolds) landed 2026-09-02. Next: rung 2's plan
+(corpus and harness).
 
 Folded from the organizer spec's "Roadmap revisions this spec carries"
 (2026-09-01-dubplate-organizer-design.md):

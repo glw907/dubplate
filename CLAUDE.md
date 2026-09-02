@@ -32,11 +32,12 @@ user-path page before any attended ask (`see-it-before-geoff-tests-it`).
 
 ## Gate
 
-`bash scripts/check.sh` before every commit — `make check` (build, vet,
-golangci-lint, test, tidy-check) over the one Go package
-`cmd/dubplate-server`, shellcheck over `scripts/*`, vale (Go comment
-prose, `_salvage/` excluded), `docker compose config` (skipped when
-Docker isn't present), and a pattern-filtered `systemd-analyze verify`.
+`bash scripts/check.sh` before every commit — `make check` (vet,
+golangci-lint, test, tidy-check) over the whole module (`./...`, today
+`cmd/dubplate-server` and `internal/config`; `_salvage/` is invisible to
+the go tool), shellcheck over `scripts/*`, vale (Go comment prose,
+`_salvage/` excluded), `docker compose config` (skipped when Docker
+isn't present), and a pattern-filtered `systemd-analyze verify`.
 The `web/` leg rejoins at rung 7, when `web/` is rebuilt against the
 greenfield server. A check either gates or does not exist; never guard
 one with `command -v || skip`. Never commit red.
