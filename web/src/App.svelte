@@ -20,6 +20,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import AlbumCard, { deriveTitleFromFilename } from './lib/components/AlbumCard.svelte';
+	import AlertCard from './lib/components/AlertCard.svelte';
 	import CollectionPicker, { isPrivateCollection } from './lib/components/CollectionPicker.svelte';
 	import DropZone from './lib/components/DropZone.svelte';
 	import FileRow from './lib/components/FileRow.svelte';
@@ -474,20 +475,32 @@
 
 	<!-- U13 fold F5.5/F5.6: the section-4 "Couldn't add this album" block, shared by the at-selection pre-flight, a mid-upload server rejection, and a failed session creation so the three paths can never drift on wording. preUpload adds the "Nothing has uploaded yet." line the contract reserves for the pre-flight case alone. perTrack gates the count-aware composed sentence (section 4), which only makes sense for a set of per-track verdicts -- a failed session creation carries one session-level reason, not a track verdict, so composing "One track is..." over it is nonsense (U13 fold F5.6 review fix). -->
 	{#snippet rejectedAlert(reasons: (RejectReason | null)[], preUpload: boolean, perTrack: boolean)}
-		<div class="alert alert-error alert-soft" role="alert">
-			<div class="flex flex-col items-start gap-2">
-				<h2 class="text-base-content font-semibold">Couldn't add this album</h2>
-				{#if perTrack}
-					<p class="text-base-content/80">{composeAlertBody(reasons)}</p>
-				{/if}
-				{#if preUpload}
-					<p class="text-base-content/80">Nothing has uploaded yet.</p>
-				{/if}
-			</div>
-		</div>
+		<AlertCard tone="error" title="Couldn't add this album">
+			{#if perTrack}
+				<p class="text-base-content/80">{composeAlertBody(reasons)}</p>
+			{/if}
+			{#if preUpload}
+				<p class="text-base-content/80">Nothing has uploaded yet.</p>
+			{/if}
+		</AlertCard>
 		{#each distinctReasons(reasons) as reason (reason.code)}
 			<p class="text-sm">{reason.friendly} <strong>Next:</strong> {reason.next_step}</p>
 		{/each}
+	{/snippet}
+
+	<!-- Section 2's "it stopped moving, but nothing is lost" copy, shared by the two ways an upload stalls: a failed POST /api/session before any byte moves, and a connection failure mid-transfer. The zip hint rides along only on the second, where the retry re-sends a whole archive rather than resuming. -->
+	{#snippet stoppedAlert(onRetry: () => void, zipHint: boolean)}
+		<AlertCard tone="warning" title="Upload stopped">
+			<p class="text-base-content/80">
+				It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it left off.
+			</p>
+			<div class="flex items-center gap-2">
+				<button type="button" class="btn min-h-11" onclick={onRetry}>Retry</button>
+				{#if zipHint}
+					<span class="text-base-content/60 text-sm">Retrying re-uploads the zip.</span>
+				{/if}
+			</div>
+		</AlertCard>
 	{/snippet}
 
 	<main bind:this={mainEl} tabindex="-1" class="mx-auto flex max-w-2xl flex-col gap-4 p-4">
@@ -529,23 +542,17 @@
 				}}
 			/>
 		{:else if uploadStore.signedOut}
-			<div class="alert alert-warning alert-soft" role="alert">
-				<div class="flex flex-col items-start gap-2">
-					<h2 class="text-base-content font-semibold">Signed out</h2>
-					<p class="text-base-content/80">
-						Your sign-in expired. Reload to sign in again, then pick the upload back up from Your uploads.
-					</p>
-					<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
-				</div>
-			</div>
+			<AlertCard tone="warning" title="Signed out">
+				<p class="text-base-content/80">
+					Your sign-in expired. Reload to sign in again, then pick the upload back up from Your uploads.
+				</p>
+				<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
+			</AlertCard>
 		{:else if configState === 'failed'}
-			<div class="alert alert-error alert-soft" role="alert">
-				<div class="flex flex-col items-start gap-2">
-					<h2 class="text-base-content font-semibold">Couldn't load the uploader</h2>
-					<p class="text-base-content/80">Something went wrong loading this page's setup. Reload to try again.</p>
-					<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
-				</div>
-			</div>
+			<AlertCard tone="error" title="Couldn't load the uploader">
+				<p class="text-base-content/80">Something went wrong loading this page's setup. Reload to try again.</p>
+				<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
+			</AlertCard>
 		{:else if uploadStore.config}
 			<CollectionPicker
 				collections={uploadStore.config.collections}
@@ -621,16 +628,7 @@
 			{:else if phase === 'uploading'}
 				{#if sessionCreateError}
 					{#if sessionCreateError === 'network'}
-						<div class="alert alert-warning alert-soft" role="alert">
-							<div class="flex flex-col items-start gap-2">
-								<h2 class="text-base-content font-semibold">Upload stopped</h2>
-								<p class="text-base-content/80">
-									It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it
-									left off.
-								</p>
-								<button type="button" class="btn min-h-11" onclick={retrySessionCreate}>Retry</button>
-							</div>
-						</div>
+						{@render stoppedAlert(retrySessionCreate, false)}
 					{:else}
 						{@render rejectedAlert([sessionCreateError], false, false)}
 						<button type="button" class="btn min-h-11" onclick={resetSelection}>Try another album</button>
@@ -660,21 +658,7 @@
 						<button type="button" class="btn min-h-11" onclick={resetSelection}>Try another album</button>
 					{/if}
 					{#if stalledFiles.length > 0}
-						<div class="alert alert-warning alert-soft" role="alert">
-							<div class="flex flex-col items-start gap-2">
-								<h2 class="text-base-content font-semibold">Upload stopped</h2>
-								<p class="text-base-content/80">
-									It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it
-									left off.
-								</p>
-								<div class="flex items-center gap-2">
-									<button type="button" class="btn min-h-11" onclick={retryStalled}>Retry</button>
-									{#if isZipSelection(pendingFiles)}
-										<span class="text-base-content/60 text-sm">Retrying re-uploads the zip.</span>
-									{/if}
-								</div>
-							</div>
-						</div>
+						{@render stoppedAlert(retryStalled, isZipSelection(pendingFiles))}
 					{/if}
 					<ul class="border-base-300 divide-base-300 divide-y rounded border">
 						{#each currentFiles as file (file.id)}

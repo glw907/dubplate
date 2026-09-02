@@ -393,87 +393,103 @@ func (e *Engine) enforceUploadOwnership(next http.Handler) http.Handler {
 	})
 }
 
-// preCreate is tusd's PreUploadCreateCallback: it stamps the verified
-// email into the upload's metadata, resolves or mints the upload's
-// session, and enforces every pre-create acceptance rule -- session
-// ownership, album and collection validity, the ExpectedFiles slot
-// count, and free-space admission -- before tusd ever creates the
-// upload resource.
+// preCreate is tusd's PreUploadCreateCallback. It never sends a response
+// body of its own, so the whole decision lives in [Engine.admitUpload]
+// and this adapter only widens that verdict to the three values tusd's
+// hook signature takes.
 func (e *Engine) preCreate(hook thandler.HookEvent) (thandler.HTTPResponse, thandler.FileInfoChanges, error) {
+	changes, err := e.admitUpload(hook)
+	return thandler.HTTPResponse{}, changes, err
+}
+
+// admitUpload stamps the verified email into the upload's metadata,
+// resolves or mints the upload's session, and enforces every pre-create
+// acceptance rule -- session ownership, album and collection validity,
+// the ExpectedFiles slot count, and free-space admission -- before tusd
+// ever creates the upload resource. A non-nil error refuses the upload
+// with that error's own status and body.
+func (e *Engine) admitUpload(hook thandler.HookEvent) (thandler.FileInfoChanges, error) {
 	email, ok := EmailFromContext(hook.Context)
 	if !ok {
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-unauthenticated", "no verified identity", http.StatusUnauthorized)
+		return thandler.FileInfoChanges{}, thandler.NewError("dubplate-unauthenticated", "no verified identity", http.StatusUnauthorized)
 	}
 	if hook.Upload.SizeIsDeferred {
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-deferred-length", "deferred-length uploads are not supported", http.StatusBadRequest)
+		return thandler.FileInfoChanges{}, thandler.NewError("dubplate-deferred-length", "deferred-length uploads are not supported", http.StatusBadRequest)
 	}
 
 	meta := hook.Upload.MetaData
 	filename := sanitizeFilename(meta["filename"])
-	sessionID := meta["session_id"]
 
-	var sess *Session
-	switch {
-	case sessionID != "":
-		if !validSessionID(sessionID) {
-			return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.ErrNotFound
-		}
-		found, ok := e.sessions.get(sessionID)
-		if !ok || found.Email != email {
-			// Unknown and cross-user both answer 404: an existence oracle
-			// would let a prober enumerate other contributors' sessions.
-			return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.ErrNotFound
-		}
-		sess = found
-
-	case isZipName(filename):
-		album, err := slugifyAlbum(meta["album"])
-		if err != nil {
-			return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-bad-album", err.Error(), http.StatusBadRequest)
-		}
-		collection := meta["collection"]
-		if !validCollection(collection, e.cfg.Collections) {
-			return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-bad-collection", "unknown collection", http.StatusBadRequest)
-		}
-		if e.sessions.countActive(email) >= e.cfg.Upload.MaxSessionsPerUser {
-			return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, reasonError(reject.ReasonTooManySessions, http.StatusTooManyRequests)
-		}
-		created, err := e.sessions.create(email, album, collection, 1, e.cfg.Collections, e.now())
-		if err != nil {
-			return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, fmt.Errorf("create implicit session: %w", err)
-		}
-		sess = created
-
-	default:
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-session-required", "a standalone upload must be a ZIP, or must name an existing session", http.StatusBadRequest)
+	sess, err := e.sessionForUpload(email, filename, meta)
+	if err != nil {
+		return thandler.FileInfoChanges{}, err
 	}
 
 	slot, err := sess.reserve(hook.Upload.Size, e.cfg.Upload.MaxAlbumBytes)
 	switch {
 	case errors.Is(err, errAlbumTooLarge):
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, reasonError(reject.ReasonTooLarge, http.StatusRequestEntityTooLarge)
+		return thandler.FileInfoChanges{}, reasonError(reject.ReasonTooLarge, http.StatusRequestEntityTooLarge)
 	case err != nil:
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-session-full", "session already has its expected number of files", http.StatusConflict)
+		return thandler.FileInfoChanges{}, thandler.NewError("dubplate-session-full", "session already has its expected number of files", http.StatusConflict)
 	}
 
 	avail, err := archive.FreeSpace(e.cfg.Paths.UploadsDir)
 	if err != nil {
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, fmt.Errorf("check free space: %w", err)
+		return thandler.FileInfoChanges{}, fmt.Errorf("check free space: %w", err)
 	}
 	floor := int64(e.cfg.Thresholds.FreeFloorGB) * bytesPerGiB
 	if avail-hook.Upload.Size < floor {
-		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, reasonError(reject.ReasonNoSpace, http.StatusInsufficientStorage)
+		return thandler.FileInfoChanges{}, reasonError(reject.ReasonNoSpace, http.StatusInsufficientStorage)
 	}
 
-	changes := thandler.FileInfoChanges{
+	return thandler.FileInfoChanges{
 		ID: sess.ID + "-" + strconv.Itoa(slot),
 		MetaData: thandler.MetaData{
 			"email":      email,
 			"session_id": sess.ID,
 			"filename":   filename,
 		},
+	}, nil
+}
+
+// sessionForUpload resolves the session a pre-create belongs to: the
+// existing one meta names, or -- for the lone-ZIP path, which never
+// calls POST /api/session -- a fresh implicit one minted here. An upload
+// that is neither answers a 400, since it has no album to join.
+func (e *Engine) sessionForUpload(email, filename string, meta map[string]string) (*Session, error) {
+	if sessionID := meta["session_id"]; sessionID != "" {
+		if !validSessionID(sessionID) {
+			return nil, thandler.ErrNotFound
+		}
+		sess, ok := e.sessions.get(sessionID)
+		if !ok || sess.Email != email {
+			// Unknown and cross-user both answer 404: an existence oracle
+			// would let a prober enumerate other contributors' sessions.
+			return nil, thandler.ErrNotFound
+		}
+		return sess, nil
 	}
-	return thandler.HTTPResponse{}, changes, nil
+
+	if !isZipName(filename) {
+		return nil, thandler.NewError("dubplate-session-required", "a standalone upload must be a ZIP, or must name an existing session", http.StatusBadRequest)
+	}
+
+	album, err := slugifyAlbum(meta["album"])
+	if err != nil {
+		return nil, thandler.NewError("dubplate-bad-album", err.Error(), http.StatusBadRequest)
+	}
+	collection := meta["collection"]
+	if !validCollection(collection, e.cfg.Collections) {
+		return nil, thandler.NewError("dubplate-bad-collection", "unknown collection", http.StatusBadRequest)
+	}
+	if e.sessions.countActive(email) >= e.cfg.Upload.MaxSessionsPerUser {
+		return nil, reasonError(reject.ReasonTooManySessions, http.StatusTooManyRequests)
+	}
+	sess, err := e.sessions.create(email, album, collection, 1, e.cfg.Collections, e.now())
+	if err != nil {
+		return nil, fmt.Errorf("create implicit session: %w", err)
+	}
+	return sess, nil
 }
 
 // preFinish is tusd's PreFinishResponseCallback: it fires once for every

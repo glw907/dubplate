@@ -196,6 +196,16 @@ func (sess *Session) doneCount() int {
 	return sess.doneUploads
 }
 
+// completion reports whether sess has completed and, if it has, when
+// [Session.setOutcome] recorded its outcome. Both fields are read under
+// sess's own lock in one pass, so [Store]'s scans filter on them without
+// each hand-rolling the same lock, read, unlock.
+func (sess *Session) completion() (done bool, at time.Time) {
+	sess.mu.Lock()
+	defer sess.mu.Unlock()
+	return sess.completed, sess.completedAt
+}
+
 // verdictsSnapshot returns a copy of sess's accumulated verdicts, safe
 // for [intake.Decide] to range over without racing a concurrent
 // [Session.uploadDone].
@@ -334,6 +344,20 @@ func (s *Store) delete(id string) {
 	delete(s.sessions, id)
 }
 
+// forEmail returns every session belonging to email, completed or not.
+// Order is unspecified.
+func (s *Store) forEmail(email string) []*Session {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var out []*Session
+	for _, sess := range s.sessions {
+		if sess.Email == email {
+			out = append(out, sess)
+		}
+	}
+	return out
+}
+
 // countActive reports how many of email's sessions have not yet
 // completed -- the count [config.UploadConfig.MaxSessionsPerUser] bounds.
 func (s *Store) countActive(email string) int {
@@ -344,10 +368,7 @@ func (s *Store) countActive(email string) int {
 		if sess.Email != email {
 			continue
 		}
-		sess.mu.Lock()
-		done := sess.completed
-		sess.mu.Unlock()
-		if !done {
+		if done, _ := sess.completion(); !done {
 			n++
 		}
 	}
@@ -361,10 +382,7 @@ func (s *Store) expired(cutoff time.Time) []*Session {
 	defer s.mu.Unlock()
 	var out []*Session
 	for _, sess := range s.sessions {
-		sess.mu.Lock()
-		done := sess.completed
-		sess.mu.Unlock()
-		if !done && sess.createdAt.Before(cutoff) {
+		if done, _ := sess.completion(); !done && sess.createdAt.Before(cutoff) {
 			out = append(out, sess)
 		}
 	}
@@ -384,11 +402,7 @@ func (s *Store) settled(cutoff time.Time) []*Session {
 	defer s.mu.Unlock()
 	var out []*Session
 	for _, sess := range s.sessions {
-		sess.mu.Lock()
-		done := sess.completed
-		completedAt := sess.completedAt
-		sess.mu.Unlock()
-		if done && completedAt.Before(cutoff) {
+		if done, completedAt := sess.completion(); done && completedAt.Before(cutoff) {
 			out = append(out, sess)
 		}
 	}

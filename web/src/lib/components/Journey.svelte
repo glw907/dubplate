@@ -27,6 +27,7 @@
 -->
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
+	import AlertCard from './AlertCard.svelte';
 	import FileRow from './FileRow.svelte';
 	import JourneySteps, { type StepStatus } from './JourneySteps.svelte';
 	import OutcomeAlert from './OutcomeAlert.svelte';
@@ -273,20 +274,23 @@
 
 <div class="flex flex-col gap-4">
 	{#if viewMode === 'in-library'}
-		<div class="alert alert-success alert-soft motion-safe:transition-opacity" role="status">
-			<div class="flex flex-col items-start gap-3">
-				<h2 class="text-base-content font-semibold">In your library</h2>
-				<p class="text-base-content/80">{inLibraryTitle} is ready.</p>
-				<div class="flex flex-wrap gap-2">
-					{#if journey?.libraryLink}
-						<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
-							Open in Navidrome
-						</a>
-					{/if}
-					<button type="button" class="btn btn-outline" onclick={onUploadAnother}>Upload another album</button>
-				</div>
+		<AlertCard
+			tone="success"
+			title="In your library"
+			role="status"
+			spacing="roomy"
+			class="motion-safe:transition-opacity"
+		>
+			<p class="text-base-content/80">{inLibraryTitle} is ready.</p>
+			<div class="flex flex-wrap gap-2">
+				{#if journey?.libraryLink}
+					<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
+						Open in Navidrome
+					</a>
+				{/if}
+				<button type="button" class="btn btn-outline" onclick={onUploadAnother}>Upload another album</button>
 			</div>
-		</div>
+		</AlertCard>
 	{:else}
 		<JourneySteps {totalFiles} {statuses} />
 
@@ -307,26 +311,20 @@
 		{:else if viewMode === 'stalled'}
 			<OutcomeAlert outcome={{ kind: 'stalled' }} />
 		{:else if viewMode === 'finish-failed'}
-			<div class="alert alert-error alert-soft" role="alert">
-				<div class="flex flex-col items-start gap-3">
-					<h2 class="text-base-content font-semibold">Couldn't finish checking</h2>
-					<p class="text-base-content/80">
-						Something went wrong finishing the check. Your album is already uploaded and waiting; no need to send it
-						again.
-					</p>
-					<button type="button" class="btn btn-primary" onclick={retryFinish}>Try again</button>
-				</div>
-			</div>
+			<AlertCard tone="error" title="Couldn't finish checking" spacing="roomy">
+				<p class="text-base-content/80">
+					Something went wrong finishing the check. Your album is already uploaded and waiting; no need to send it
+					again.
+				</p>
+				<button type="button" class="btn btn-primary" onclick={retryFinish}>Try again</button>
+			</AlertCard>
 		{:else if viewMode === 'format-rejected'}
 			{@const verdictFiles = outcome?.files ?? []}
-			<div class="alert alert-error alert-soft" role="alert">
-				<div class="flex flex-col items-start gap-2">
-					<h2 class="text-base-content font-semibold">Couldn't add this album</h2>
-					<p class="text-base-content/80">
-						{verdictFiles.length > 0 ? composeAlertBody(verdictFiles) : "The album didn't pass its checks."}
-					</p>
-				</div>
-			</div>
+			<AlertCard tone="error" title="Couldn't add this album">
+				<p class="text-base-content/80">
+					{verdictFiles.length > 0 ? composeAlertBody(verdictFiles) : "The album didn't pass its checks."}
+				</p>
+			</AlertCard>
 			{#if verdictFiles.length > 0}
 				<ul class="border-base-300 divide-base-300 divide-y rounded border">
 					{#each verdictFiles as file (file.Name)}

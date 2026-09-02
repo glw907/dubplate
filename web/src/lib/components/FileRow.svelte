@@ -76,13 +76,15 @@
 
 	const chipText = $derived(computeChipText());
 
-	const chipClass = $derived(
-		status === 'ok'
-			? 'badge-soft badge-success'
-			: status === 'failed' && failureKind === 'rejected'
-				? 'badge-soft badge-error'
-				: 'badge-ghost',
-	);
+	const chipClass = $derived.by(() => {
+		if (status === 'ok') {
+			return 'badge-soft badge-success';
+		}
+		if (status === 'failed' && failureKind === 'rejected') {
+			return 'badge-soft badge-error';
+		}
+		return 'badge-ghost';
+	});
 </script>
 
 <li class="flex flex-col gap-1 p-3 md:flex-row md:items-center md:justify-between md:gap-4">

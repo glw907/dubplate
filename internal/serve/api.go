@@ -341,13 +341,5 @@ func (sess *Session) snapshot() (completed bool, doneUploads int, outcome sessio
 // sessionsForEmail returns every session in e's live store belonging to
 // owner. Order is unspecified.
 func (e *Engine) sessionsForEmail(owner string) []*Session {
-	e.sessions.mu.Lock()
-	defer e.sessions.mu.Unlock()
-	var out []*Session
-	for _, sess := range e.sessions.sessions {
-		if sess.Email == owner {
-			out = append(out, sess)
-		}
-	}
-	return out
+	return e.sessions.forEmail(owner)
 }

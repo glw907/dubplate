@@ -31,6 +31,8 @@
 
 	let { label, accept, multiple = true, webkitdirectory = false, emphasis = 'primary', onFiles }: Props = $props();
 
+	const emphasisClass = $derived(emphasis === 'primary' ? 'btn-primary' : 'btn-outline');
+
 	let inputEl: HTMLInputElement | undefined = $state();
 
 	function handleChange(): void {
@@ -46,9 +48,7 @@
 </script>
 
 <label
-	class="btn btn-lg {emphasis === 'primary'
-		? 'btn-primary'
-		: 'btn-outline'} focus-within:outline-primary relative w-full uppercase tracking-wide focus-within:outline-2 focus-within:outline-offset-2"
+	class="btn btn-lg {emphasisClass} focus-within:outline-primary relative w-full uppercase tracking-wide focus-within:outline-2 focus-within:outline-offset-2"
 >
 	<input
 		bind:this={inputEl}

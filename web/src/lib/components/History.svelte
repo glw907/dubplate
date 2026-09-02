@@ -26,6 +26,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import AlertCard from './AlertCard.svelte';
 	import OutcomeAlert from './OutcomeAlert.svelte';
 	import { uploadStore, type HistoryRow, type HistoryState, type UploadStore } from '../store/upload.svelte';
 
@@ -117,13 +118,10 @@
 	<h2 class="text-lg font-semibold">Your uploads</h2>
 
 	{#if loadFailed}
-		<div class="alert alert-error alert-soft" role="alert">
-			<div class="flex flex-col items-start gap-2">
-				<h3 class="text-base-content font-semibold">Couldn't load your uploads</h3>
-				<p class="text-base-content/80">Something went wrong checking your uploads. Reload to try again.</p>
-				<button type="button" class="btn min-h-11" onclick={() => location.reload()}>Reload</button>
-			</div>
-		</div>
+		<AlertCard tone="error" title="Couldn't load your uploads" headingLevel={3}>
+			<p class="text-base-content/80">Something went wrong checking your uploads. Reload to try again.</p>
+			<button type="button" class="btn min-h-11" onclick={() => location.reload()}>Reload</button>
+		</AlertCard>
 	{:else if store.history.length === 0}
 		<p class="text-base-content/60 text-sm">Nothing here yet.</p>
 	{:else}
