@@ -45,8 +45,10 @@
 			<button type="button" class="btn btn-primary" onclick={outcome.onUploadPrivate}>
 				Upload to Private Recordings
 			</button>
-			<button type="button" class="btn btn-ghost" onclick={outcome.onFixNames}> Fix the names and retry </button>
-			<a class="btn btn-ghost" href="https://musicbrainz.org/release/add" target="_blank" rel="noopener noreferrer">
+			<button type="button" class="btn btn-outline" onclick={outcome.onFixNames}>
+				Fix the names and retry
+			</button>
+			<a class="btn btn-outline" href="https://musicbrainz.org/release/add" target="_blank" rel="noopener noreferrer">
 				Add it to MusicBrainz
 			</a>
 		</div>

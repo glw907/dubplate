@@ -6,7 +6,17 @@
    for the provenance and the two fields still unconfirmed against a
    live screenshot. Upgrade-resilient display code (plan's global
    constraints): only DaisyUI's own theme tokens are set here, never a
-   DaisyUI internal class name. */
+   DaisyUI internal class name.
+
+   Semantic colors (error/success/warning/info) are read from the same
+   MUI palette family (red/green/amber/light-blue) rather than left at
+   DaisyUI's defaults (U13 fold F4.1/F4.4): a missing token makes
+   DaisyUI's alert/badge/step color modifiers fall back to base-200,
+   which paints a rejected album the same gray as an accepted one. Each
+   pair clears WCAG AA against its own surface (>=4.5:1 for -content)
+   and against base-100 (>=3:1 for the surface itself); the dark
+   theme's values are lightened well past the light theme's Material
+   reads so they still read against the near-black ground. */
 @import 'tailwindcss';
 @plugin 'daisyui' {
   themes: navidrome-light --default, navidrome-dark --prefersdark;
@@ -27,6 +37,14 @@
   --color-secondary-content: oklch(98% 0.01 240);
   --color-neutral: oklch(30% 0.02 265);
   --color-neutral-content: oklch(98% 0 0);
+  --color-error: oklch(57% 0.2 26);
+  --color-error-content: oklch(98% 0.02 26);
+  --color-warning: oklch(68% 0.183 48);
+  --color-warning-content: oklch(20% 0.02 48);
+  --color-info: oklch(60% 0.147 243);
+  --color-info-content: oklch(20% 0.02 243);
+  --color-success: oklch(52% 0.135 144);
+  --color-success-content: oklch(98% 0.02 144);
 }
 
 @plugin 'daisyui/theme' {
@@ -44,4 +62,12 @@
   --color-secondary-content: oklch(98% 0.01 240);
   --color-neutral: oklch(90% 0 0);
   --color-neutral-content: oklch(20% 0 0);
+  --color-error: oklch(69% 0.142 21);
+  --color-error-content: oklch(20% 0.02 21);
+  --color-warning: oklch(83% 0.145 74);
+  --color-warning-content: oklch(20% 0.02 74);
+  --color-info: oklch(77% 0.127 231);
+  --color-info-content: oklch(20% 0.02 231);
+  --color-success: oklch(72% 0.142 145);
+  --color-success-content: oklch(20% 0.02 145);
 }

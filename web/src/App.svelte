@@ -322,7 +322,7 @@
 		<span class="text-xl font-semibold uppercase tracking-wide">
 			{collectionMode === 'private' ? 'Private Recordings' : (uploadStore.config?.siteName ?? 'dubplate')}
 		</span>
-		<button type="button" class="btn btn-ghost btn-sm" onclick={() => (view = view === 'upload' ? 'history' : 'upload')}>
+		<button type="button" class="btn btn-outline btn-sm" onclick={() => (view = view === 'upload' ? 'history' : 'upload')}>
 			{view === 'upload' ? 'Your uploads' : 'Back to upload'}
 		</button>
 	</header>
