@@ -508,9 +508,16 @@ are marked [E].
    boundary is flagged, because strict-versus-inclusive comparisons
    admit no epsilon); the known-oracle-bug ledger (U1, pending Open
    ruling 2) seeded with the study's known-defect patterns as
-   adversarial cases; and the component-test derivation tooling that
+   adversarial cases; the component-test derivation tooling that
    turns beets' own distance tests into per-component expected
-   values. The registered MusicBrainz application identity and
+   values; and two U8 requirements on the fixture format itself:
+   the cassette request-matching rule is stated explicitly, because
+   MusicBrainz query construction is conformance surface, and the
+   format admits recall-extension cases from day one (fixtures for
+   lookups beets never issued, conformance still checked on the
+   shared candidate subset), so a post-launch candidate-retrieval
+   improvement is graded by the same harness rather than escaping
+   it. The registered MusicBrainz application identity and
    User-Agent land here, and the quarterly re-capture chore is
    documented here. Strata per the research report: roughly 150 to
    300 cases, about 40% structural, 50% real catalog, 10%

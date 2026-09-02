@@ -410,6 +410,24 @@ a named rung.
   update and an adjudication pass, never a harness rewrite.
   Falsifiable: when the differential is pointed at a beets 3.x, only
   the adapter package should need edits.
+- **U8, additive candidate recall as the sanctioned divergence lane
+  (rung 2 fixture format; post-launch improvement policy).** The
+  highest-leverage open deficiencies in beets today (section 7) widen
+  candidate retrieval rather than change scoring: seeding candidates
+  from embedded MBIDs, release-group lookup, better search queries.
+  An improvement of that shape adds candidates and leaves the
+  beets-equivalent subset's scores untouched, which makes its
+  divergence risk auditable in a way a scoring change never is. Two
+  implications. First, the MB query construction is itself conformance
+  surface: cassette replay matches on requests, so rung 3 must build
+  the same lookups pinned beets builds, and rung 2's plan states the
+  request-matching rule. Second, the corpus format should support
+  recall-extension cases from day one: a case may carry fixtures for
+  lookups beets never issued, with conformance still checked on the
+  shared candidate subset, so a post-launch recall improvement can be
+  graded by the same harness instead of escaping it. Falsifiable: an
+  MBID-seeded candidate addition should be expressible as a corpus
+  case without changing the fixture schema.
 
 One meta-lesson needs no rung: beets' worst defects were invisible to
 its own tests for years (eleven releases of lock timeouts, sixteen
@@ -491,6 +509,143 @@ project" post by the current maintainer was found; the maintainer's
 priorities here are inferred from milestones, labels, code TODOs, and
 shipped-release patterns rather than from a stated manifesto.
 
+## 7. Open tagging issues and improvement candidates
+
+A survey of beets' open issues (2026-09-02, `gh` keyword and label
+searches over beetbox/beets and beetbox/mediafile; config-support
+noise and unrelated feature requests excluded; the higher-signal
+issues read individually). Each class carries a disposition under the
+two-phase discipline: (a) conform-and-inherit, the defect rides the
+port and queues post-launch; (b) known-oracle-bug ledger candidate,
+adjudicated pre-launch under U1; (c) post-launch improvement
+candidate, a deliberate divergence.
+
+**Candidate recall from search queries.** The single loudest open
+deficiency. beets builds its MB search from artist and album strings,
+and the correct release is often simply absent from the candidate
+list even when the files are well tagged: #4882 (2023, open, ripper
+tags correct, perfect match appears only when the user pastes the
+release ID), #6610 (2026, "hardly getting above 60% matches" with
+clean tags), #190 (open since 2013: use embedded MB track-ID tags to
+search), #189 (2013: accept release-group IDs at the ID prompt),
+#3038 (2018: look up all pre-NGS album IDs for multi-disc matches).
+No design mechanism improves recall; the custody policy and appeal
+route the resulting misses kindly. Disposition: (a) for the port,
+because reproducing beets' lookups is what makes cassette replay
+work, then the top-ranked (c). U8 states the corpus-format
+implication.
+
+**Forced total track assignment.** The assignment solve maps every
+input track onto some candidate track with no per-pair rejection:
+#2981 (2018, open: same track count with different titles yields
+confidently wrong per-track titles), #6078 (2025: tracks detected in
+wrong order). Wrong-but-plausible track tags inside an accepted album
+match sit adjacent to the unforgivable class, since the album verdict
+is confident while individual tracks are misassigned. Disposition:
+(a) for the port; (c) after launch (a per-pair distance cap allowing
+unmatched pairs); and rung 2 should carry adversarial cases of the
+#2981 shape (equal track counts, divergent titles) to measure how
+often pinned beets confidently misassigns, with any case where that
+produces a wrong-release match graded under (b).
+
+**String-heuristic discounts erasing differentiators.** #5868 (2025,
+open): "Song (Mix Name)" titles rarely match the right candidate
+because the parenthetical discount (SD_PATTERNS weight 0.3) erases
+exactly the part that distinguishes remixes. The same table produced
+the sixteen-year "ft" bug (section 1). Disposition: (b) where a
+crafted case shows pinned beets scoring a wrong release
+near-identical, (a) otherwise; remix-title near-duplicates belong in
+the adversarial stratum. Post-launch (c): treat parenthetical
+content as distinguishing when both strings carry parentheticals.
+
+**Alias and non-Latin artist selection.** #6358 (2026: locale
+aliases ignored after an mbsync, suspected side effect of dropping
+musicbrainzngs, which would place the defect inside pinned 2.13.1),
+#2378 (2017: use the alias closest to the tags), #3737 (2020:
+artist-credit fallback), #1916 (2016: romaji). Disposition: verify
+#6358 against pinned beets during rung 2 capture work; if confirmed
+it is a textbook (b) ledger entry, since conforming to it would
+degrade the estate's own non-Latin material. The rest is (a) then
+(c). The corpus's non-Latin stratum should include alias-selection
+cases, which the migrator's non-Latin estate content already
+motivates.
+
+**Cross-source ID hygiene.** #604 (2014, twelve years open: Discogs
+IDs written into `mb_albumid`), #4797 (2023: non-MB sources
+overwrite `mb_*` fields). Avoided by scope at launch (MusicBrainz is
+the only source), and the store rung should still namespace source
+IDs in the schema (a U4-adjacent detail) so the class cannot be born
+when a second source ever arrives. No corpus weight needed.
+
+**Threshold boundary semantics.** #5458 (2024: `strong_rec_thresh:
+0` cannot mean exact-only because the comparison is strict). Small,
+and a reminder that the comparison operators at the threshold
+boundary are conformance surface: rung 2 should include cases whose
+distance lands exactly on a threshold, which also serves the stated
+numeric-epsilon acceptance. Disposition: (a); the exact-only
+semantics is a trivial (c).
+
+**Confidence transparency.** #6096 (2025, 17 comments): quiet-mode
+imports skip with no actionable reason shown. Already designed out:
+decision records serialize candidates, distances, and penalty
+breakdowns, and the reject copy contract puts the reason in every
+payload. A corroboration, not a candidate.
+
+**Client robustness and custody edges.** #6960 (2026: MB plugin
+crashes when the site is down), #2575 (2017: no retry choice on
+server error), #4518 (2022: MB host/rate-limit config ignored,
+U5's class), #6930 (2026: symlinked music dir causes wrong duplicate
+prompts and data loss on reimport), #4537 (2022: flexible attributes
+lost on reimport). Designed out by the driver seam, the job model,
+the one-gate custody claim, and U3's path discipline; #6930 adds one
+concrete note to U3's implication, that intake and store canonicalize
+symlinks once, at the boundary.
+
+**Metadata modeling gaps.** #3176 (2019, 33 comments: a "primary
+artist" field), #1547 (2015: extra MB fields), #507 (2014:
+classical tags), #870 (2014: work language), #357 (2013:
+release-group types). A decade of demand for fields that live in MB
+responses beets never stored. Corroborates U6: capture maximal
+responses so post-launch enrichment reads existing fixtures. All (c).
+
+On mediafile: the extracted tag-I/O library's open issues are mostly
+outside the server's FLAC-only scope (ID3v2.3 separators #21, TXXX
+case #62, iTunes mappings #15), which quantifies how much quirk
+surface the FLAC-only decision sheds. One is directly instructive:
+"Make file operations atomic" has been open since 2021 (#57), so
+beets tag writes are still not atomic; dubplate's tag-I/O rung
+inheriting the atomicfile discipline is a real differentiator already
+priced by the settled forks.
+
+**Ranked improvement candidates** (tagging quality per unit of
+divergence risk, all post-launch, all graded through the corpus and
+the known-acceptable-divergence artifact):
+
+1. MBID-seeded and release-group candidate recall (#4882, #6610,
+   #190, #189, #3038). Largest quality gain; risk bounded because it
+   adds candidates without rescoring the beets-equivalent set; U8
+   makes it harness-gradable.
+2. Per-pair track-assignment rejection (#2981, #6078). Prevents
+   plausible-wrong per-track tags; moderate risk since penalties and
+   verdicts shift; needs its adversarial stratum first.
+3. String-heuristic repair for remix titles (#5868, plus the
+   upstream featuring fixes). Small surface, targeted cases, overlaps
+   the U1 ledger.
+4. Alias-selection policy for non-Latin artists (#6358, #2378,
+   #3737). Medium leverage, high for this estate's material;
+   contingent on the #6358 verification.
+5. Threshold-boundary exact-only semantics (#5458). Near-zero risk,
+   small gain, a config nicety.
+6. Response-field enrichment (works, artist credits, release-group
+   types; #3176, #507, #870, #357). Rides U6; leverage concentrated
+   in the classical stratum.
+
+Boundary: `gh search issues` silently ignored some flag and
+positional-query combinations, so the survey ran through the search
+API with explicit qualifiers; classification rests on titles plus a
+read of the fourteen highest-signal issues, and the mediafile repo
+was surveyed by title only.
+
 ## Sources
 
 Repository evidence (clone at
@@ -545,6 +700,19 @@ Roadmap section (section 6):
   #1715, #3246, #5318, #5361, #6920.
 - github.com/beetbox/beets/wiki/Refactoring (last edited April 2018).
 - docs/team.rst at master.
+
+Open-issue survey (section 7, all github.com/beetbox/beets unless
+noted, state open as of 2026-09-02):
+
+- Candidate recall: #189, #190, #3038, #4882, #6610.
+- Track assignment: #2981, #6078.
+- String heuristics: #5868.
+- Aliases and non-Latin: #1916, #2378, #3737, #6358.
+- Cross-source IDs: #604, #4797.
+- Thresholds: #5458; transparency: #6096.
+- Robustness and custody: #2575, #4518, #4537, #6930, #6960.
+- Modeling gaps: #357, #507, #870, #1547, #3176.
+- beetbox/mediafile: #15, #21, #57, #62.
 
 Web:
 
