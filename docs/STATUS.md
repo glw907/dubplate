@@ -21,14 +21,11 @@ Remote: github.com/glw907/dubplate (private).
    "Build process" section: one session per arc, no clears inside
    one, plans just-in-time, workflow mode a standing grant.
 3. Governing architecture: the ratified build spec
-   (docs/superpowers/specs/2026-09-02-greenfield-server-build.md,
-   revision 2.1) owns the 17-rung ladder and supersedes the organizer
-   spec's own build order; the organizer spec
-   (2026-09-01-dubplate-organizer-design.md) still governs purview, API
-   shape, and the ops seam. The login spec
-   (2026-09-02-magic-link-login-design.md) is source material; its two
-   reviews (research/2026-09-02-login-spec-reviews/) are auth birth
-   requirements.
+   (specs/2026-09-02-greenfield-server-build.md, revision 2.1) owns
+   the 17-rung ladder; the organizer spec still governs purview, API
+   shape, and the ops seam. The login spec is source material; its
+   two reviews (research/2026-09-02-login-spec-reviews/) are auth
+   birth requirements, and the build spec wins every conflict.
 4. Process rule (Geoff, 2026-09-02): specs go to Geoff for review
    BEFORE any adversarial review round or plan.
 5. The box is production for Geoff's own listening; quiet-box check
@@ -51,10 +48,12 @@ Remote: github.com/glw907/dubplate (private).
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` |
 
-### Next action
+### Next action (evidence-arc session)
 
-Rung 1 is closed. Write rung 2's plan (corpus and harness) via
-writing-plans, against the build spec's ladder entry 2. Settled (do not
-re-brainstorm): the rulings doc, approach A, launch bar, universality,
-exemplary Go, reuse stance, auth birth requirements, the 17-rung
-ladder, all three review-round rulings.
+Rung 1 is closed; this session runs the evidence arc (rungs 2-4), no
+clears inside it. Start: execute pass 2a via pass-execute from
+docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md
+(revision 2, adversarially reviewed and folded), guard armed; plan
+pass 2b just-in-time in its shadow. Task 5 is blocked on the pass
+input DUBPLATE_HARNESS_CONTACT (the batched MusicBrainz ask to
+Geoff: contact value plus register-vs-anonymous).

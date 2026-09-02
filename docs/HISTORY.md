@@ -39,6 +39,23 @@ mechanism that lets rung 1 land without any box write, and every rung
 before the launch cutover (rung 16) must preserve it. No box access
 occurred this rung, per the spec's box-safety section.
 
+Post-close fix trail: task 4's review escalated a silent-error defect
+(SilenceErrors set with no stderr print in main). Three commits closed
+it under review—a531d69 (main prints the error once; check stops
+double-printing), 1f3ef3f (doctor returns "configuration is
+incomplete" instead of writing the raw load error), baac9f4 (the
+no-usage-block contract gains a live test, mutation-proved)—and
+db3d11b landed the conductor-dispatched code-simplifier pass. Two more
+lessons for later rungs: cobra's usage writer falls back to os.Stderr
+when only SetErr is wired, so command tests must wire SetOut to
+observe a leaked usage block; and doctor's row expectations must
+derive from config's own tables (owned, reserved, Thresholds()),
+never a literal count. Budget: about 1.0M subagent tokens for the
+workflow (12 agents, five tasks) plus about 0.3M across the fix and
+verify dispatches, against the 5M ceiling; zero attended interactions
+during execution. Verdict trail: T1-T3 accept first-pass; T5 accept
+after one fix round; T4 escalate plus two fix rounds.
+
 ## Uploader Pass B close + the greenfield pivot (2026-09-01/02)
 
 Pass B built and hardened the uploader web app end to end, then Geoff
