@@ -39,10 +39,12 @@ UV_INSTALLER_SHA256="92e8554321e2bde08c9b1445dae47a65360f885274f31df51cdc2f9faa8
 
 # One job per line, each service beside its own timer (the ping-fail
 # template has none), so a new job is added as a visible pair rather than
-# appended to a run-on line. dubplate is a single static binary
-# (/usr/local/bin/dubplate, shipped by its own step below) plus these
-# units -- there is no separate scripts-to-/usr/local/bin manifest left
-# now that the shell layer is gone.
+# appended to a run-on line. Every unit below execs the frozen incumbent
+# binary at /usr/local/bin/dubplate, shipped once before rung 1 and never
+# touched by this script again (the boundary comment at the
+# dubplate-server binary step below has the detail) -- there is no
+# separate scripts-to-/usr/local/bin manifest left now that the shell
+# layer is gone.
 #
 # U12a adds the uploader's three units to this rsync+daemon-reload list --
 # dubplate-serve.service, and the nudge path/service pair -- but NOT to
@@ -246,7 +248,17 @@ if $check_only; then
   fi
 fi
 
-# --- dubplate binary -> /usr/local/bin/dubplate -------------------------
+# --- dubplate-server binary -> /usr/local/bin/dubplate-server -----------
+# Boundary (rung 1, additive deploy path): the incumbent
+# /usr/local/bin/dubplate is frozen -- its source is the pre-greenfield
+# tag -- and this script never writes to it again. The four guardian
+# units (dubplate-import, dubplate-backup, dubplate-disk-check,
+# dubplate-navidrome-check) exec that frozen path directly, so they are
+# unaffected by any future run of this script. Greenfield units start
+# exec-ing /usr/local/bin/dubplate-server from rung 4; the incumbent
+# binary and its step retire together at rung 16, once every unit has
+# moved over.
+#
 # Cross-compiles via the Makefile's build-linux target (CGO_ENABLED=0
 # GOOS=linux GOARCH=amd64), the same artifact `make check` never ships
 # itself. The build runs under --check too: it only writes the gitignored
@@ -258,14 +270,14 @@ fi
 # picks up real Vite output, not just the placeholder) is U9's concern,
 # not this pass's -- no web/ build step exists yet for this line to order
 # against.
-echo "== dubplate binary -> $SSH_TARGET:/usr/local/bin/dubplate =="
+echo "== dubplate-server binary -> $SSH_TARGET:/usr/local/bin/dubplate-server =="
 make -C "$REPO_ROOT" build-linux
-DUBPLATE_BINARY="$REPO_ROOT/dubplate-linux-amd64"
+DUBPLATE_SERVER_BINARY="$REPO_ROOT/dubplate-server-linux-amd64"
 if $check_only; then
-  rsync -avzn -e "$RSYNC_SSH" "$DUBPLATE_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate" || true
+  rsync -avzn -e "$RSYNC_SSH" "$DUBPLATE_SERVER_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate-server" || true
 else
-  rsync -avz -e "$RSYNC_SSH" "$DUBPLATE_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate"
-  run_remote "chmod 0755 /usr/local/bin/dubplate"
+  rsync -avz -e "$RSYNC_SSH" "$DUBPLATE_SERVER_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate-server"
+  run_remote "chmod 0755 /usr/local/bin/dubplate-server"
 fi
 
 # Smoke test: a binary that rsynced and chmodded fine can still fail to
@@ -273,8 +285,8 @@ fi
 # -euo pipefail` makes a non-zero exit here abort the whole deploy rather
 # than leaving a broken binary in place undetected until the next timer
 # fires.
-echo "== smoke test: dubplate version =="
-run_remote "/usr/local/bin/dubplate version"
+echo "== smoke test: dubplate-server version =="
+run_remote "/usr/local/bin/dubplate-server version"
 
 # --- /etc/dubplate/env --------------------------------------------------
 # Not deploy_file: this content is assembled in memory from secrets and must
