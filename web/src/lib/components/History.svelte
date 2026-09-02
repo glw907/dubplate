@@ -119,8 +119,8 @@
 	{#if loadFailed}
 		<div class="alert alert-error alert-soft" role="alert">
 			<div class="flex flex-col items-start gap-2">
-				<h3 class="font-semibold">Couldn't load your uploads</h3>
-				<p>Something went wrong checking your uploads. Reload to try again.</p>
+				<h3 class="text-base-content font-semibold">Couldn't load your uploads</h3>
+				<p class="text-base-content/80">Something went wrong checking your uploads. Reload to try again.</p>
 				<button type="button" class="btn min-h-11" onclick={() => location.reload()}>Reload</button>
 			</div>
 		</div>

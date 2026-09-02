@@ -476,12 +476,12 @@
 	{#snippet rejectedAlert(reasons: (RejectReason | null)[], preUpload: boolean, perTrack: boolean)}
 		<div class="alert alert-error alert-soft" role="alert">
 			<div class="flex flex-col items-start gap-2">
-				<h2 class="font-semibold">Couldn't add this album</h2>
+				<h2 class="text-base-content font-semibold">Couldn't add this album</h2>
 				{#if perTrack}
-					<p>{composeAlertBody(reasons)}</p>
+					<p class="text-base-content/80">{composeAlertBody(reasons)}</p>
 				{/if}
 				{#if preUpload}
-					<p>Nothing has uploaded yet.</p>
+					<p class="text-base-content/80">Nothing has uploaded yet.</p>
 				{/if}
 			</div>
 		</div>
@@ -531,16 +531,18 @@
 		{:else if uploadStore.signedOut}
 			<div class="alert alert-warning alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-2">
-					<h2 class="font-semibold">Signed out</h2>
-					<p>Your sign-in expired. Reload to sign in again, then pick the upload back up from Your uploads.</p>
+					<h2 class="text-base-content font-semibold">Signed out</h2>
+					<p class="text-base-content/80">
+						Your sign-in expired. Reload to sign in again, then pick the upload back up from Your uploads.
+					</p>
 					<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
 				</div>
 			</div>
 		{:else if configState === 'failed'}
 			<div class="alert alert-error alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-2">
-					<h2 class="font-semibold">Couldn't load the uploader</h2>
-					<p>Something went wrong loading this page's setup. Reload to try again.</p>
+					<h2 class="text-base-content font-semibold">Couldn't load the uploader</h2>
+					<p class="text-base-content/80">Something went wrong loading this page's setup. Reload to try again.</p>
 					<button type="button" class="btn" onclick={() => location.reload()}>Reload</button>
 				</div>
 			</div>
@@ -621,8 +623,8 @@
 					{#if sessionCreateError === 'network'}
 						<div class="alert alert-warning alert-soft" role="alert">
 							<div class="flex flex-col items-start gap-2">
-								<h2 class="font-semibold">Upload stopped</h2>
-								<p>
+								<h2 class="text-base-content font-semibold">Upload stopped</h2>
+								<p class="text-base-content/80">
 									It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it
 									left off.
 								</p>
@@ -660,8 +662,8 @@
 					{#if stalledFiles.length > 0}
 						<div class="alert alert-warning alert-soft" role="alert">
 							<div class="flex flex-col items-start gap-2">
-								<h2 class="font-semibold">Upload stopped</h2>
-								<p>
+								<h2 class="text-base-content font-semibold">Upload stopped</h2>
+								<p class="text-base-content/80">
 									It stopped moving, but nothing is lost. Check your connection and try again; it picks up where it
 									left off.
 								</p>

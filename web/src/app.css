@@ -27,7 +27,24 @@
    pastel. primary's white content clears WCAG's >=3:1 UI-component/
    large-text tier, matching the ratified mockup's exact sample
    (rgb(35,136,228)-rgb(33,150,243)) -- a stricter 4.5:1 blue would drift
-   dark enough to leave the mockup's range. */
+   dark enough to leave the mockup's range.
+
+   U13 fold F8.1: F7's dark-theme error/success/info still read as
+   MUI-600/700 mid-saturation values, which DaisyUI 5's -soft modifier uses
+   AS the text color itself (`.alert-soft{color:var(--alert-color)}`,
+   `.badge-soft` the same) rather than through -content -- against the
+   near-black ground that measured 2.2-2.9:1, not the 4.5:1 state text
+   needs. The dark theme's error/success/info move one MUI step lighter
+   (the 400 family: red 400 #f87171, green 400 #66bb6a, light-blue 400
+   #29b6f6, each converted from its hex), which brings soft text to >=5:1.
+   Their -content pairs flip to dark (matching warning's own pattern)
+   since a solid disc or badge now sits on a lighter, higher-luminance
+   base -- light content there would invert the same problem for the
+   disc glyph, which is decorative in every case that matters here (the
+   adjacent step/chip label already carries the state, per
+   JourneySteps/FileRow). The light theme is untouched: a light ground
+   wants the darker 600/700 values it already has, so the two theme
+   blocks now differ on purpose. */
 @import 'tailwindcss';
 @plugin 'daisyui' {
   themes: navidrome-light --default, navidrome-dark --prefersdark;
@@ -83,12 +100,12 @@
   --color-secondary-content: oklch(98% 0.01 240);
   --color-neutral: oklch(90% 0 0);
   --color-neutral-content: oklch(20% 0 0);
-  --color-error: oklch(57% 0.2 26);
-  --color-error-content: oklch(98% 0.02 26);
+  --color-error: oklch(71% 0.166 22);
+  --color-error-content: oklch(20% 0.02 22);
   --color-warning: oklch(78% 0.172 68);
   --color-warning-content: oklch(20% 0.02 68);
-  --color-info: oklch(55% 0.139 245);
-  --color-info-content: oklch(98% 0.01 245);
-  --color-success: oklch(52% 0.135 144);
-  --color-success-content: oklch(98% 0.02 144);
+  --color-info: oklch(73% 0.145 235);
+  --color-info-content: oklch(20% 0.02 235);
+  --color-success: oklch(72% 0.142 145);
+  --color-success-content: oklch(20% 0.02 145);
 }

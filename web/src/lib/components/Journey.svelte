@@ -275,8 +275,8 @@
 	{#if viewMode === 'in-library'}
 		<div class="alert alert-success alert-soft motion-safe:transition-opacity" role="status">
 			<div class="flex flex-col items-start gap-3">
-				<h2 class="font-semibold">In your library</h2>
-				<p>{inLibraryTitle} is ready.</p>
+				<h2 class="text-base-content font-semibold">In your library</h2>
+				<p class="text-base-content/80">{inLibraryTitle} is ready.</p>
 				<div class="flex flex-wrap gap-2">
 					{#if journey?.libraryLink}
 						<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
@@ -309,8 +309,8 @@
 		{:else if viewMode === 'finish-failed'}
 			<div class="alert alert-error alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-3">
-					<h2 class="font-semibold">Couldn't finish checking</h2>
-					<p>
+					<h2 class="text-base-content font-semibold">Couldn't finish checking</h2>
+					<p class="text-base-content/80">
 						Something went wrong finishing the check. Your album is already uploaded and waiting; no need to send it
 						again.
 					</p>
@@ -321,8 +321,10 @@
 			{@const verdictFiles = outcome?.files ?? []}
 			<div class="alert alert-error alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-2">
-					<h2 class="font-semibold">Couldn't add this album</h2>
-					<p>{verdictFiles.length > 0 ? composeAlertBody(verdictFiles) : "The album didn't pass its checks."}</p>
+					<h2 class="text-base-content font-semibold">Couldn't add this album</h2>
+					<p class="text-base-content/80">
+						{verdictFiles.length > 0 ? composeAlertBody(verdictFiles) : "The album didn't pass its checks."}
+					</p>
 				</div>
 			</div>
 			{#if verdictFiles.length > 0}
@@ -343,6 +345,9 @@
 					<p class="text-sm">{reason.friendly} <strong>Next:</strong> {reason.next_step}</p>
 				{/each}
 			{/if}
+			<button type="button" class="btn btn-primary min-h-11 w-full" onclick={onUploadAnother}>
+				Try another album
+			</button>
 		{/if}
 	{/if}
 </div>

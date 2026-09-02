@@ -230,6 +230,28 @@ describe('Journey', () => {
 		expect(screen.getByText(reason.friendly, { exact: false })).toBeInTheDocument();
 	});
 
+	it('offers a full-width "Try another album" retry on a post-upload format rejection, wired to the caller\'s own reset (U13 fold F8.2)', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				jsonResponse({
+					promoted: false,
+					files: [{ Name: '02 Summer Song.mp3', OK: false, Reason: { code: 'bad-extension', friendly: 'x', next_step: 'y', label: 'not FLAC' } }],
+				}),
+			),
+		);
+		const store = newStore();
+		const onUploadAnother = vi.fn();
+
+		render(Journey, { sessionId: 'a'.repeat(26), album: 'Some Album', totalFiles: 1, store, onUploadAnother });
+
+		await waitFor(() => expect(screen.getByText("Couldn't add this album")).toBeInTheDocument());
+		const retry = screen.getByRole('button', { name: 'Try another album' });
+		expect(retry).toHaveClass('btn-primary', 'w-full');
+		await fireEvent.click(retry);
+		expect(onUploadAnother).toHaveBeenCalledOnce();
+	});
+
 	it('offers "Upload another album" on the in-library card, wired to the caller\'s own callback (U13 fold F6.11)', async () => {
 		const fetchMock = vi.fn((input: RequestInfo | URL) => {
 			const url = String(input);
