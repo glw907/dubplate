@@ -9,6 +9,14 @@
   onto the label itself. Fires `onFiles` with the picked files and
   never calls fetch or tus; the caller decides what happens next
   (pre-flight screening, then the store).
+
+  Always full width (U13 fold F5.1): the ratified mockup's idle screen
+  never shows this button snapping to a content-sized chip at a wider
+  viewport, and the caller constrains the column's own max width
+  instead. Always `lg`-sized and uppercase to match Navidrome's own
+  Material button convention (app.css's design-language note) -- every
+  picker on the idle screen, primary or secondary, reads at the same
+  weight rather than one at 48px and the other at 40px.
 -->
 <script lang="ts">
 	interface Props {
@@ -17,20 +25,11 @@
 		accept: string;
 		multiple?: boolean;
 		webkitdirectory?: boolean;
-		size?: 'default' | 'lg';
 		emphasis?: 'primary' | 'outline';
 		onFiles: (files: File[]) => void;
 	}
 
-	let {
-		label,
-		accept,
-		multiple = true,
-		webkitdirectory = false,
-		size = 'lg',
-		emphasis = 'primary',
-		onFiles,
-	}: Props = $props();
+	let { label, accept, multiple = true, webkitdirectory = false, emphasis = 'primary', onFiles }: Props = $props();
 
 	let inputEl: HTMLInputElement | undefined = $state();
 
@@ -47,9 +46,9 @@
 </script>
 
 <label
-	class="btn {emphasis === 'primary' ? 'btn-primary' : 'btn-outline'} {size === 'lg'
-		? 'btn-lg'
-		: ''} focus-within:outline-primary relative w-full focus-within:outline-2 focus-within:outline-offset-2 sm:w-auto"
+	class="btn btn-lg {emphasis === 'primary'
+		? 'btn-primary'
+		: 'btn-outline'} focus-within:outline-primary relative w-full uppercase tracking-wide focus-within:outline-2 focus-within:outline-offset-2"
 >
 	<input
 		bind:this={inputEl}

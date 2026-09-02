@@ -70,4 +70,18 @@ describe('AlbumCard', () => {
 		render(AlbumCard, { ...baseProps(), submitDisabled: true });
 		expect(screen.getByRole('button', { name: 'Upload to Private Recordings' })).toBeDisabled();
 	});
+
+	it('offers no cancel action when the caller supplies none', () => {
+		render(AlbumCard, baseProps());
+		expect(screen.queryByRole('button', { name: 'Choose a different album' })).not.toBeInTheDocument();
+	});
+
+	it('calls onCancel via the escape-hatch action when the caller supplies one (U13 fold F5.4)', async () => {
+		const onCancel = vi.fn();
+		render(AlbumCard, { ...baseProps(), onCancel });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Choose a different album' }));
+
+		expect(onCancel).toHaveBeenCalledOnce();
+	});
 });

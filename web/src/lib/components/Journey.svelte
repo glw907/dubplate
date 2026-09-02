@@ -188,7 +188,7 @@
 <div class="flex flex-col gap-4">
 	{#if viewMode === 'in-library'}
 		<div class="alert alert-success flex-col items-start gap-3 motion-safe:transition-opacity" role="status">
-			<h3 class="font-semibold">In your library</h3>
+			<h2 class="font-semibold">In your library</h2>
 			<p>{inLibraryTitle} is ready.</p>
 			{#if journey?.libraryLink}
 				<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
@@ -217,7 +217,7 @@
 			<OutcomeAlert outcome={{ kind: 'stalled' }} />
 		{:else if viewMode === 'format-rejected'}
 			<div class="alert alert-error flex-col items-start" role="alert">
-				<h3 class="font-semibold">Couldn't add this album</h3>
+				<h2 class="font-semibold">Couldn't add this album</h2>
 				<p>{outcome?.detail || "The album didn't pass its checks."}</p>
 			</div>
 		{/if}

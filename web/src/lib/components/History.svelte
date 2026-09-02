@@ -32,14 +32,32 @@
 
 	let { store = uploadStore, onResume = () => {}, onUploadPrivate = () => {}, onFixNames = () => {} }: Props = $props();
 
+	// U13 fold F5.14: a genuine loadHistory failure (never a signed-out
+	// one -- the store already handles that by setting store.signedOut)
+	// used to be an unhandled rejection that left "Nothing here yet."
+	// rendered, actively lying about the caller's uploads.
+	let loadFailed = $state(false);
+
 	onMount(() => {
-		void store.loadHistory();
+		void store.loadHistory().catch(() => {
+			loadFailed = true;
+		});
 	});
+
+	// Set to the row whose retry just failed (U13 fold F5.14): "Try
+	// again" otherwise silently does nothing on a rejection, with no
+	// feedback that the attempt even happened.
+	let retryFailedSessionId = $state<string | null>(null);
 
 	/** Re-probes row's session outcome in place and refreshes this list; never touches `onFixNames`, which stays scoped to the pushed-back re-pick path. */
 	async function retryProbe(row: HistoryRow): Promise<void> {
-		await store.finishSession(row.sessionId, row.album);
-		await store.loadHistory();
+		retryFailedSessionId = null;
+		try {
+			await store.finishSession(row.sessionId, row.album);
+			await store.loadHistory();
+		} catch {
+			retryFailedSessionId = row.sessionId;
+		}
 	}
 
 	let expandedSessionId = $state<string | null>(null);
@@ -92,7 +110,13 @@
 <section class="flex flex-col gap-3">
 	<h2 class="text-lg font-semibold">Your uploads</h2>
 
-	{#if store.history.length === 0}
+	{#if loadFailed}
+		<div class="alert alert-error flex-col items-start" role="alert">
+			<h3 class="font-semibold">Couldn't load your uploads</h3>
+			<p>Something went wrong checking your uploads. Reload to try again.</p>
+			<button type="button" class="btn min-h-11" onclick={() => location.reload()}>Reload</button>
+		</div>
+	{:else if store.history.length === 0}
 		<p class="text-base-content/60 text-sm">Nothing here yet.</p>
 	{:else}
 		<ul class="border-base-300 divide-base-300 divide-y rounded border">
@@ -101,7 +125,7 @@
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<button
 							type="button"
-							class="min-w-0 flex-1 truncate text-left {isPushedBack(row.state) ? 'link' : ''}"
+							class="min-h-11 flex min-w-0 flex-1 items-center truncate text-left {isPushedBack(row.state) ? 'link' : ''}"
 							onclick={() => isPushedBack(row.state) && toggleExpanded(row)}
 							disabled={!isPushedBack(row.state)}
 						>
@@ -109,10 +133,10 @@
 						</button>
 						<span class="badge {chipClass(row.state)} shrink-0">{chipForRow(row)}</span>
 						{#if row.resumable}
-							<button type="button" class="btn btn-sm" onclick={() => onResume(row)}>Resume</button>
+							<button type="button" class="btn btn-sm min-h-11" onclick={() => onResume(row)}>Resume</button>
 						{/if}
 						{#if row.state === 'in-library' && row.libraryLink}
-							<a class="btn btn-sm" href={row.libraryLink} target="_blank" rel="noopener noreferrer">
+							<a class="btn btn-sm min-h-11" href={row.libraryLink} target="_blank" rel="noopener noreferrer">
 								Open in Navidrome
 							</a>
 						{/if}
@@ -129,6 +153,9 @@
 							/>
 						{:else}
 							<OutcomeAlert outcome={{ kind: 'probe-unavailable', onTryAgain: () => void retryProbe(row) }} />
+							{#if retryFailedSessionId === row.sessionId}
+								<p class="text-error text-sm" role="alert">That didn't go through. Check your connection and try again.</p>
+							{/if}
 						{/if}
 					{/if}
 				</li>

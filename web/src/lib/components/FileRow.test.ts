@@ -33,6 +33,11 @@ describe('FileRow', () => {
 		expect(screen.getByText('track01.flac')).toBeInTheDocument();
 	});
 
+	it('renders its root as a list item, so a caller\'s <ul> stays valid (U13 fold F5.11)', () => {
+		render(FileRow, baseProps());
+		expect(screen.getByRole('listitem')).toBeInTheDocument();
+	});
+
 	it('chips "waiting" for a pending file and "sending" for one in flight', () => {
 		const { unmount } = render(FileRow, baseProps());
 		expect(screen.getByText('waiting')).toBeInTheDocument();

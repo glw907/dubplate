@@ -346,11 +346,32 @@ export class SignedOutError extends Error {
 }
 
 /**
+ * Thrown by {@link fetchJSON} for any other non-ok response: `reason`
+ * carries the body parsed as the same {@link RejectReason} wire shape a
+ * rejected tus PATCH carries, when the server sent a JSON body (U13 fold
+ * F5.6 -- POST /api/session's 429 for `maxSessionsPerUser` is exactly
+ * this shape); null when the body was empty, plain text, or malformed,
+ * so the caller can still fall back to a generic failure message.
+ */
+export class FetchRejectedError extends Error {
+	readonly status: number;
+	readonly reason: RejectReason | null;
+
+	constructor(status: number, reason: RejectReason | null) {
+		super(`fetch rejected: ${status}`);
+		this.name = 'FetchRejectedError';
+		this.status = status;
+		this.reason = reason;
+	}
+}
+
+/**
  * Fetches path and decodes its JSON body, throwing {@link SignedOutError}
  * for a 401 or an HTML content-type -- the same classification
  * {@link decideRetry} applies to tus PATCHes, so `/api/config`,
  * `/api/session`, and friends render the identical reload-to-sign-in
- * state the upload path does.
+ * state the upload path does -- or {@link FetchRejectedError} for any
+ * other non-ok response.
  */
 export async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
 	const res = await fetch(path, init);
@@ -359,7 +380,7 @@ export async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T>
 		throw new SignedOutError();
 	}
 	if (!res.ok) {
-		throw new Error(`fetch ${path}: ${res.status}`);
+		throw new FetchRejectedError(res.status, parseRejectReason(contentType, await res.text()));
 	}
 	return (await res.json()) as T;
 }

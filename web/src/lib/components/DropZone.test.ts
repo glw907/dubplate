@@ -26,6 +26,13 @@ describe('DropZone', () => {
 		expect(screen.getByRole('button', { name: 'Choose files' })).toBeInTheDocument();
 	});
 
+	it('shows the drop panel at rest, not only once a drag starts (U13 fold F5.1)', () => {
+		// DropOverlay (the drag-active cue with the same sentence) never
+		// mounts at dragDepth 0, so one plain text match is unambiguous.
+		render(DropZone, { onFiles: vi.fn(), ...childButton() });
+		expect(screen.getByText('Drop an album anywhere on this page')).toBeInTheDocument();
+	});
+
 	it('shows the overlay while a file drag is over the window and hides it on drop', async () => {
 		const onFiles = vi.fn();
 		render(DropZone, { onFiles, ...childButton() });

@@ -31,7 +31,7 @@
 
 {#if outcome.kind === 'pushed-back'}
 	<div class="alert alert-warning flex-col items-start gap-3" role="alert">
-		<h3 class="font-semibold">No MusicBrainz match</h3>
+		<h2 class="font-semibold">No MusicBrainz match</h2>
 		<p>
 			MusicBrainz didn't find a match for this album, so it didn't go into the main library. You can
 			upload it to <strong>Private Recordings</strong> instead. That collection is for music
@@ -55,7 +55,7 @@
 	</div>
 {:else if outcome.kind === 'probe-unavailable'}
 	<div class="alert alert-warning flex-col items-start gap-3" role="alert">
-		<h3 class="font-semibold">Can't check MusicBrainz right now</h3>
+		<h2 class="font-semibold">Can't check MusicBrainz right now</h2>
 		<p>
 			The matching service isn't answering. Your album is already uploaded and waiting; no need to
 			send it again. Try again in a little while.
@@ -64,7 +64,7 @@
 	</div>
 {:else if outcome.kind === 'queued'}
 	<div class="alert alert-info flex-col items-start gap-2" role="status">
-		<h3 class="font-semibold">Waiting its turn</h3>
+		<h2 class="font-semibold">Waiting its turn</h2>
 		<p>
 			{outcome.ownEarlierUpload
 				? 'Your earlier album is still importing. This one starts as soon as it finishes.'
@@ -73,7 +73,7 @@
 	</div>
 {:else}
 	<div class="alert alert-warning flex-col items-start gap-2" role="status">
-		<h3 class="font-semibold">Taking longer than it should</h3>
+		<h2 class="font-semibold">Taking longer than it should</h2>
 		<p>
 			Something behind the scenes is slow. The admin gets notified automatically when this happens,
 			and this page keeps checking on its own. Nothing needs to be redone.

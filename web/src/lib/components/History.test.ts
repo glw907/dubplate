@@ -130,6 +130,40 @@ describe('History', () => {
 		expect(onFixNames).not.toHaveBeenCalled();
 	});
 
+	it('shows a recoverable error, never the lying "Nothing here yet.", when loadHistory fails (U13 fold F5.14)', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })));
+		render(History, { store: new UploadStore(noopDriver, memoryStorage()) });
+
+		await waitFor(() => expect(screen.getByRole('heading', { name: "Couldn't load your uploads" })).toBeInTheDocument());
+		expect(screen.getByRole('button', { name: 'Reload' })).toBeInTheDocument();
+		expect(screen.queryByText('Nothing here yet.')).not.toBeInTheDocument();
+	});
+
+	it("shows a visible message, not a silent no-op, when a probe-unavailable row's Try again fails (U13 fold F5.14)", async () => {
+		const storage = memoryStorage();
+		storage.setItem(
+			'dubplate:upload:pushed-back',
+			JSON.stringify([{ sessionId: sessionA, album: 'Slow Service Album', kind: 'probe-unavailable' }]),
+		);
+		const fetchMock = vi.fn((input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.includes('/finish')) {
+				return Promise.resolve(new Response('', { status: 500 }));
+			}
+			return Promise.resolve(jsonResponse([]));
+		});
+		vi.stubGlobal('fetch', fetchMock);
+		render(History, { store: new UploadStore(noopDriver, storage) });
+
+		await waitFor(() => expect(screen.getByText('pushed back')).toBeInTheDocument());
+		await fireEvent.click(screen.getByText('Slow Service Album'));
+		await fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+		await waitFor(() =>
+			expect(screen.getByText("That didn't go through. Check your connection and try again.")).toBeInTheDocument(),
+		);
+	});
+
 	it('drops a locally-remembered pushed-back record once the ledger reports a newer event for the same session', async () => {
 		const storage = memoryStorage();
 		storage.setItem(

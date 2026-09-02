@@ -13,6 +13,12 @@
   the plan's honest-retry copy differs by upload path (multi-file
   resends only failing files; a ZIP resends the archive), a decision
   this row has no path context to make.
+
+  Root is `<li>`, always rendered inside a caller's own `<ul>` (U13
+  fold F5.11): a `<div>` root here made every caller's list an invalid
+  `<ul>`/non-`<li>` nesting that a screen reader repairs by dropping
+  the list semantics entirely. Separators are the parent `<ul>`'s own
+  `divide-y`, not this row's -- a border here would double every rule.
 -->
 <script lang="ts">
 	import { formatBytes } from '../format';
@@ -59,7 +65,7 @@
 	);
 </script>
 
-<div class="border-base-300 flex flex-col gap-1 border-b p-3 md:flex-row md:items-center md:justify-between md:gap-4">
+<li class="flex flex-col gap-1 p-3 md:flex-row md:items-center md:justify-between md:gap-4">
 	<div class="min-w-0 flex-1">
 		<p class="truncate">{name}</p>
 		<p class="text-base-content/60 text-xs">{formatBytes(size)}</p>
@@ -71,4 +77,4 @@
 		{/if}
 	</div>
 	<span class="badge {chipClass} shrink-0">{chipText}</span>
-</div>
+</li>

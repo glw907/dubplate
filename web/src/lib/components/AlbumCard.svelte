@@ -40,6 +40,8 @@
 		onTrackTitleInput: (index: number, value: string) => void;
 		onSubmit: () => void;
 		submitDisabled?: boolean;
+		/** The escape hatch a tag form otherwise lacks (U13 fold F5.4): back to the idle picker, no bytes moved yet. Optional so a standalone render (a test, a future non-cancelable use) still works without wiring it. */
+		onCancel?: () => void;
 	}
 
 	let {
@@ -54,6 +56,7 @@
 		onTrackTitleInput,
 		onSubmit,
 		submitDisabled = false,
+		onCancel,
 	}: Props = $props();
 </script>
 
@@ -114,6 +117,9 @@
 			<button type="button" class="btn btn-primary" disabled={submitDisabled} onclick={onSubmit}>
 				Upload to Private Recordings
 			</button>
+			{#if onCancel}
+				<button type="button" class="btn btn-outline" onclick={onCancel}>Choose a different album</button>
+			{/if}
 		</div>
 	</div>
 </div>

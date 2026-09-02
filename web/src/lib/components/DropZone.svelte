@@ -8,6 +8,12 @@
   button from rendering on touch platforms where these events simply
   never fire. Renders {@link DropOverlay} on top of everything while a
   drag is in progress.
+
+  The dashed panel below is visible at rest, not only while dragging
+  (U13 fold F5.1's ratified-mockup layout authority): a drop target a
+  user only discovers mid-drag is not discoverable at all. Hidden below
+  `md` -- drag-and-drop needs a pointer, so a touch viewport gets only
+  the picker button beneath it.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -102,10 +108,10 @@
 	});
 </script>
 
-<div class="relative">
-	<div class="mb-4 hidden flex-col items-center gap-2 md:flex">
+<div class="flex w-full flex-col items-center gap-3">
+	<div class="border-base-300 hidden w-full flex-col items-center gap-1 rounded-box border-2 border-dashed p-6 text-center md:flex">
 		<p class="text-base-content/70 text-sm">Drop an album anywhere on this page</p>
-		<div class="divider w-full max-w-xs self-center">or</div>
+		<div class="divider w-full max-w-xs my-0">or</div>
 	</div>
 	{@render children()}
 </div>

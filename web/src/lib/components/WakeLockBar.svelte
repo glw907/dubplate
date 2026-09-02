@@ -25,7 +25,12 @@
 		uploads.
 	</p>
 	{#if wakeLock.supported}
-		<button type="button" class="btn btn-outline btn-sm" aria-pressed={wakeLock.on} onclick={() => wakeLock.toggle()}>
+		<button
+			type="button"
+			class="btn btn-outline btn-sm min-h-11"
+			aria-pressed={wakeLock.on}
+			onclick={() => wakeLock.toggle()}
+		>
 			Keep my screen awake
 		</button>
 	{/if}

@@ -419,6 +419,22 @@ export class UploadStore {
 		}
 	}
 
+	/**
+	 * Clears {@link session}, {@link journey}, and {@link journeyOutcome}
+	 * back to a fresh upload's defaults and stops any running journey
+	 * poll (U13 fold F5.7): without this, a session id, album, or
+	 * `in-library` journey state from a finished upload outlives it and
+	 * leaks into the next selection's polling, metadata, and outcome
+	 * display. Call at the start of every new selection, never only at
+	 * the end of one.
+	 */
+	resetSession(): void {
+		this.stopJourneyPolling();
+		this.session = { sessionId: null, album: '', collection: '', state: 'uploading', detail: '' };
+		this.journey = null;
+		this.journeyOutcome = null;
+	}
+
 	/** Adds file as a pending row and returns its local id; does not start the upload. */
 	addFile(file: File): string {
 		const id = newFileId();

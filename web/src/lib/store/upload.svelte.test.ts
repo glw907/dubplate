@@ -392,6 +392,44 @@ describe('createSession', () => {
 	});
 });
 
+describe('resetSession', () => {
+	it('clears session/journey/journeyOutcome and stops any running journey poll (U13 fold F5.7)', async () => {
+		vi.useFakeTimers();
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ session_id: sessionA, state: 'uploaded', files: [] }));
+		vi.stubGlobal('fetch', fetchMock);
+		const store = new UploadStore(new FakeTusDriver(), memoryStorage());
+		store.session = { sessionId: sessionA, album: 'Album A', collection: 'family', state: 'uploading', detail: '' };
+		store.journeyOutcome = {
+			promoted: true,
+			pushedBack: false,
+			probeUnavailable: false,
+			detail: '',
+			matchedArtist: '',
+			matchedAlbum: '',
+			matchedYear: '',
+			files: [],
+		};
+		store.startJourneyPolling(sessionA, 1000);
+		await vi.advanceTimersByTimeAsync(0);
+		expect(store.journey).not.toBeNull();
+
+		store.resetSession();
+
+		expect(store.session).toEqual({ sessionId: null, album: '', collection: '', state: 'uploading', detail: '' });
+		expect(store.journey).toBeNull();
+		expect(store.journeyOutcome).toBeNull();
+
+		// A second album's poll must never land against the first
+		// album's interval: if resetSession left the timer running, this
+		// would still tick and repopulate store.journey.
+		fetchMock.mockClear();
+		await vi.advanceTimersByTimeAsync(5000);
+		expect(fetchMock).not.toHaveBeenCalled();
+		expect(store.journey).toBeNull();
+		vi.useRealTimers();
+	});
+});
+
 const sessionA = 'a2b2c2d2e2f2g2h2i2j2k2l2m2'; // 26 lowercase base32 characters
 const sessionB = 'n2o2p2q2r2s2t2u2v2w2x2y2z2'; // a second, distinct 26-character id
 

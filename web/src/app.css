@@ -27,6 +27,13 @@
   default: true;
   color-scheme: light;
 
+  /* U13 fold F5.3/F5.9: DaisyUI's 0.25rem default puts a plain .btn at
+     40px, under the 44px touch-target floor every AlbumCard/
+     CollectionPicker input already meets via an explicit min-h-11.
+     0.275rem lands .btn (10x) at exactly 44px; .btn-sm (8x) still needs
+     its own min-h-11 override, added at each call site. */
+  --size-field: 0.275rem;
+
   --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(98% 0 0);
   --color-base-300: oklch(94% 0 0);
@@ -51,6 +58,9 @@
   name: 'navidrome-dark';
   prefersdark: true;
   color-scheme: dark;
+
+  /* U13 fold F5.3/F5.9: see the light theme's identical note. */
+  --size-field: 0.275rem;
 
   --color-base-100: oklch(26% 0 0);
   --color-base-200: oklch(22% 0 0);
