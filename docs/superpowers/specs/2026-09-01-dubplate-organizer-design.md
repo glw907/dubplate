@@ -63,7 +63,10 @@ subprocess, plus a built-in set covering the work the estate's most-used
 beets plugins do today.
 
 The server rungs deliver first, because the estate has immediate use for
-them and the local organizer has none yet. Those rungs retire risk for
+them and the local organizer has none yet. **Amended (Geoff, 2026-09-02):
+the boundary is hard. The TUI and the local binary wait until the
+server is fully formed; every server rung, the admin API spine's
+server half included, completes before any local or TUI work begins.** Those rungs retire risk for
 the box rather than improving it. The first box-visible improvement is
 the swap, and the local organizer follows. One exception is deliberate:
 the admin API spine may advance ahead of the two-binary split if remote
