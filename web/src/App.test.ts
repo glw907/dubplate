@@ -105,6 +105,69 @@ describe('App: session creation failure', () => {
 		// The rows this session's files were added as never get a chance
 		// to render at all in this branch, so "waiting" cannot appear.
 		expect(screen.queryByText('waiting')).not.toBeInTheDocument();
+		// A failed session creation carries one session-level reason, not
+		// a per-track verdict, so the count-aware composed sentence
+		// (section 4) must not render here (U13 fold F5.6 review fix).
+		expect(screen.queryByText('One track is too many uploads, and albums go in whole.')).not.toBeInTheDocument();
+	});
+});
+
+describe('App: mid-upload server rejection (U13 fold F5.5)', () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	/** internal/reject.ReasonNoSpace's wire shape verbatim, per internal/reject/reject.go. */
+	const noSpaceReason = {
+		code: 'no-space',
+		friendly: "The library doesn't have enough free space to accept this upload right now.",
+		next_step: 'Try again in a little while, or let the admin know if this keeps happening.',
+		label: 'library is full',
+	};
+
+	function stubFetch(sessionId: string): void {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn((input: RequestInfo | URL) => {
+				const url = String(input);
+				if (url.includes('/api/config')) {
+					return Promise.resolve(jsonResponse(configWire));
+				}
+				if (url.includes('/api/session')) {
+					return Promise.resolve(jsonResponse({ session_id: sessionId }));
+				}
+				return Promise.resolve(jsonResponse([]));
+			}),
+		);
+	}
+
+	it("renders the section-4 rejected-album copy for a file the server rejects mid-transfer, not a silently stuck row", async () => {
+		const sessionId = 'b'.repeat(26);
+		stubFetch(sessionId);
+		// A real startFile would open an actual tus upload against the
+		// fetch-stubbed endpoint; this test only needs the store's own
+		// mid-upload rejection state, which it drives directly below.
+		vi.spyOn(uploadStore, 'startFile').mockImplementation(() => {});
+
+		render(App);
+
+		const input = await waitFor(
+			() => screen.getByLabelText('Choose files', { selector: 'input' }) as HTMLInputElement,
+		);
+		const files = [new File([], 'track01.flac'), new File([], 'track02.flac')];
+		Object.defineProperty(input, 'files', { value: files, configurable: true });
+		await fireEvent.change(input);
+
+		await waitFor(() => expect(uploadStore.files).toHaveLength(2));
+		const rejected = uploadStore.files[0];
+		rejected.status = 'failed';
+		rejected.failureKind = 'rejected';
+		rejected.verdict = { Name: rejected.name, OK: false, Reason: noSpaceReason };
+
+		await waitFor(() => expect(screen.getByRole('heading', { name: "Couldn't add this album" })).toBeInTheDocument());
+		expect(screen.getByText(new RegExp(noSpaceReason.friendly))).toBeInTheDocument();
+		expect(screen.getByText(new RegExp(noSpaceReason.next_step))).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Try another album' })).toBeInTheDocument();
 	});
 });
 

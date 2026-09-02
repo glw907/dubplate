@@ -403,6 +403,12 @@
 		// U13 fold F5.7: clears any session/journey state the previous
 		// selection left behind before this one adopts row's own id.
 		uploadStore.resetSession();
+		// U13 fold F5.6 review fix: a failed session creation from the
+		// selection just abandoned must not survive into the resumed
+		// selection's own uploading phase -- without this, resuming here
+		// renders the previous album's "Couldn't add this album" alert
+		// over this album's rows.
+		sessionCreateError = null;
 		resumeAlbum = row.album;
 		uploadFileIds = resumedIds;
 		currentSessionId = row.sessionId;
@@ -466,11 +472,13 @@
 		</button>
 	</header>
 
-	<!-- U13 fold F5.5/F5.6: the section-4 "Couldn't add this album" block, shared by the at-selection pre-flight, a mid-upload server rejection, and a failed session creation so the three paths can never drift on wording. preUpload adds the "Nothing has uploaded yet." line the contract reserves for the pre-flight case alone. -->
-	{#snippet rejectedAlert(reasons: (RejectReason | null)[], preUpload: boolean)}
+	<!-- U13 fold F5.5/F5.6: the section-4 "Couldn't add this album" block, shared by the at-selection pre-flight, a mid-upload server rejection, and a failed session creation so the three paths can never drift on wording. preUpload adds the "Nothing has uploaded yet." line the contract reserves for the pre-flight case alone. perTrack gates the count-aware composed sentence (section 4), which only makes sense for a set of per-track verdicts -- a failed session creation carries one session-level reason, not a track verdict, so composing "One track is..." over it is nonsense (U13 fold F5.6 review fix). -->
+	{#snippet rejectedAlert(reasons: (RejectReason | null)[], preUpload: boolean, perTrack: boolean)}
 		<div class="alert alert-error flex-col items-start" role="alert">
 			<h2 class="font-semibold">Couldn't add this album</h2>
-			<p>{composeAlertBody(reasons)}</p>
+			{#if perTrack}
+				<p>{composeAlertBody(reasons)}</p>
+			{/if}
 			{#if preUpload}
 				<p>Nothing has uploaded yet.</p>
 			{/if}
@@ -494,17 +502,17 @@
 			oncancel={handleResumeFilesPicked}
 		/>
 
-		{#if view === 'upload'}
-			<!-- The content column's own title (U13 fold F5.2/F5.12): the masthead's site name is a navbar label, not a heading, so without this the document carries no h1 at all and the outline opens on whatever alert happens to render first. -->
-			<div>
-				<h1 class="text-2xl font-bold">
-					{collectionMode === 'private' ? 'Private Recordings' : (uploadStore.config?.siteName ?? 'dubplate')}
-				</h1>
+		<!-- The content column's own title (U13 fold F5.2/F5.12): the masthead's site name is a navbar label, not a heading, so without this the document carries no h1 at all and the outline opens on whatever alert happens to render first. Rendered on every view (review fix) so the history view also opens on an h1, not directly on History's own h2. The eyebrow line is upload-only copy, so it stays gated. -->
+		<div>
+			<h1 class="text-2xl font-bold">
+				{collectionMode === 'private' ? 'Private Recordings' : (uploadStore.config?.siteName ?? 'dubplate')}
+			</h1>
+			{#if view === 'upload'}
 				<p class="text-primary text-sm font-semibold uppercase tracking-wide">
 					{collectionMode === 'private' ? 'your tags, its own section' : 'add music to the library'}
 				</p>
-			</div>
-		{/if}
+			{/if}
+		</div>
 
 		{#if view === 'history'}
 			<History
@@ -570,6 +578,7 @@
 				{@render rejectedAlert(
 					preflightRejections.map((verdict) => verdict.reason),
 					true,
+					true,
 				)}
 				<ul class="border-base-300 divide-base-300 divide-y rounded border">
 					{#each pendingFiles as file, index (`${index}-${file.name}`)}
@@ -613,7 +622,7 @@
 							<button type="button" class="btn min-h-11" onclick={retrySessionCreate}>Retry</button>
 						</div>
 					{:else}
-						{@render rejectedAlert([sessionCreateError], false)}
+						{@render rejectedAlert([sessionCreateError], false, false)}
 						<button type="button" class="btn min-h-11" onclick={resetSelection}>Try another album</button>
 					{/if}
 				{:else if allFilesLanded && journeySessionId}
@@ -635,6 +644,7 @@
 						{@render rejectedAlert(
 							rejectedFiles.map((file) => file.verdict?.Reason ?? null),
 							false,
+							true,
 						)}
 						<button type="button" class="btn min-h-11" onclick={resetSelection}>Try another album</button>
 					{/if}
