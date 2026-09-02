@@ -33,8 +33,10 @@ github.com/glw907/dubplate (private).
 
 ## Open items (carried)
 
-- Organizer spec awaits Geoff's ratification read (fold into the
-  greenfield spec read). Rewrite post-mortem still owed.
+- The greenfield build spec
+  (docs/superpowers/specs/2026-09-02-greenfield-server-build.md)
+  awaits Geoff's review; the organizer spec's ratification read folds
+  into it. Rewrite post-mortem still owed.
 - Two albums in /srv/music/review/2026-08-31/geoff/ await manual review.
 - Age store: FILEBROWSER_ADMIN_PASSWORD orphaned (delete at next sweep);
   DUBPLATE_SERVE_SITE_NAME ("907 Music") stays minted for the new server.
@@ -48,15 +50,10 @@ github.com/glw907/dubplate (private).
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` |
 
-### Next starter prompt (greenfield spec session)
+### Next action
 
-> **Goal.** Write the greenfield dubplate-server build spec and take it
-> through Geoff's review to rung 1's plan.
->
-> **Settled (do not re-brainstorm):** everything in the rulings doc --
-> approach A, launch bar, universality, exemplary Go, reuse stance,
-> auth birth requirements.
->
-> **Approach.** Read the rulings doc, the organizer spec, and the login
-> spec + reviews. Write the spec. Present to Geoff BEFORE any review
-> round. Then adversarial reviews, fold, and writing-plans for rung 1.
+The greenfield build spec is written and awaits Geoff's review. On
+his read: fold his rulings, then the adversarial review round, the
+fold, and rung 1's plan via writing-plans. Settled inputs (do not
+re-brainstorm): the rulings doc, approach A, launch bar, universality,
+exemplary Go, reuse stance, auth birth requirements.
