@@ -1029,7 +1029,7 @@ func (im *Importer) quarantineOne(ctx context.Context, u *albumUnit, failed []ga
 	case !hasName:
 		slog.Info("importer: no contributor name on file for uploader; skipping their quality-gate notice", "uploader", u.uploader)
 	default:
-		body, err := reject.RenderEmail(im.Cfg.RejectEmailTemplate, firstName, filepath.Base(u.stagedDir), rejections)
+		body, err := reject.RenderEmail(im.Cfg.RejectEmailTemplate, firstName, filepath.Base(u.stagedDir), im.Cfg.AdminEmail, rejections)
 		if err != nil {
 			slog.Warn("importer: render reject email", "uploader", u.uploader, "err", err)
 			return

@@ -49,7 +49,7 @@ func (r Reason) Friendly() string {
 	case ReasonBadExtension:
 		return "This isn't a FLAC file, and the library keeps lossless FLAC."
 	case ReasonSymlink:
-		return "This looks like a symlink or shortcut rather than a real file, and the library only accepts real files."
+		return "This is a shortcut, not the music file itself."
 	case ReasonCorrupt:
 		return "This file didn't survive the upload intact. Uploading it again usually fixes this."
 	case ReasonBelowCDQuality:
@@ -75,7 +75,7 @@ func (r Reason) Friendly() string {
 func (r Reason) NextStep() string {
 	switch r {
 	case ReasonBadExtension:
-		return "Convert it to FLAC and upload it again."
+		return "Download this album as FLAC and upload that instead."
 	case ReasonSymlink:
 		return "Replace it with the real file and upload it again."
 	case ReasonCorrupt:
@@ -83,7 +83,7 @@ func (r Reason) NextStep() string {
 	case ReasonBelowCDQuality:
 		return "Get a CD-quality or better FLAC and upload that instead."
 	case ReasonTooLarge:
-		return "Split it into smaller uploads, or ask the admin to add it by hand."
+		return "Ask the admin to add this one by hand."
 	case ReasonUnpackFailed:
 		return "Repack it as a standard ZIP file and upload it again."
 	case ReasonUnsafePath:
@@ -248,14 +248,17 @@ func friendlyLine(rj Rejection) string {
 }
 
 // RenderEmail fills the rejection-email template at templatePath and
-// returns the rendered body. The template carries three literal
-// placeholders -- "{first name}", "{album or file name}", and "{one reason
-// line per file, from the mapping below}" -- which RenderEmail replaces
-// with firstName, albumName, and one "<basename>: <friendly reason> <next
-// step>" line per rejection, in the order given, so the email carries the
-// same Friendly and NextStep wording the API JSON does. Geoff owns the
-// copy in the template; RenderEmail never rewords it.
-func RenderEmail(templatePath, firstName, albumName string, rejections []Rejection) (string, error) {
+// returns the rendered body. The template carries four literal
+// placeholders -- "{first name}", "{album or file name}", "{one reason
+// line per file, from the mapping below}", and "{admin}" -- which
+// RenderEmail replaces with firstName, albumName, one "<basename>:
+// <friendly reason> <next step>" line per rejection in the order given,
+// and adminEmail, so the email carries the same Friendly and NextStep
+// wording the API JSON does and never a site-specific name hardcoded into
+// the template (adminEmail is the only admin identity this package will
+// ever hold; no site's real name belongs in config/reject-email.txt).
+// Geoff owns the copy in the template; RenderEmail never rewords it.
+func RenderEmail(templatePath, firstName, albumName, adminEmail string, rejections []Rejection) (string, error) {
 	data, err := os.ReadFile(templatePath)
 	if err != nil {
 		return "", fmt.Errorf("read reject email template %s: %w", templatePath, err)
@@ -270,5 +273,6 @@ func RenderEmail(templatePath, firstName, albumName string, rejections []Rejecti
 	body = strings.ReplaceAll(body, "{first name}", firstName)
 	body = strings.ReplaceAll(body, "{album or file name}", albumName)
 	body = strings.ReplaceAll(body, "{one reason line per file, from the mapping below}", strings.Join(lines, "\n"))
+	body = strings.ReplaceAll(body, "{admin}", adminEmail)
 	return body, nil
 }

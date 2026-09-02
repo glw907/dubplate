@@ -7,7 +7,7 @@ Thanks for adding to the family music library! One upload couldn't go in automat
 
 The library keeps everything in FLAC, a lossless format, so music sounds its best on every speaker in the house. Most stores offer it: on Bandcamp, pick "FLAC" from the download format menu.
 
-To fix it, download the album again as FLAC and upload it the same way as before. If FLAC isn't available for this one, no problem: Geoff has what you sent and can add it by hand.
+To fix it, download the album again as FLAC and upload it the same way as before. If FLAC isn't available for this one, no problem: the admin ({admin}) has what you sent and can add it by hand.
 
 Happy listening,
 The music library

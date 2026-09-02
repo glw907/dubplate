@@ -22,7 +22,7 @@ import type { RejectReason } from './store/upload.svelte';
 export const badExtensionReason: RejectReason = {
 	code: 'bad-extension',
 	friendly: "This isn't a FLAC file, and the library keeps lossless FLAC.",
-	next_step: 'Convert it to FLAC and upload it again.',
+	next_step: 'Download this album as FLAC and upload that instead.',
 	label: 'not FLAC',
 };
 

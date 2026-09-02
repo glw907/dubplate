@@ -35,7 +35,7 @@ func TestReasonFriendly(t *testing.T) {
 	}{
 		{"none", ReasonNone, ""},
 		{"bad extension", ReasonBadExtension, "This isn't a FLAC file, and the library keeps lossless FLAC."},
-		{"symlink", ReasonSymlink, "This looks like a symlink or shortcut rather than a real file, and the library only accepts real files."},
+		{"symlink", ReasonSymlink, "This is a shortcut, not the music file itself."},
 		{"corrupt", ReasonCorrupt, "This file didn't survive the upload intact. Uploading it again usually fixes this."},
 		{"below CD quality", ReasonBelowCDQuality, "This FLAC is below CD quality."},
 		{"too large", ReasonTooLarge, "This upload is larger than the library allows."},
@@ -144,12 +144,12 @@ func TestAllReasonsCoversEnum(t *testing.T) {
 	}
 }
 
-// writeTemplate writes a template file with the three real placeholders,
+// writeTemplate writes a template file with the four real placeholders,
 // mirroring config/reject-email.txt's shape without depending on its exact
 // prose.
 func writeTemplate(t *testing.T) string {
 	t.Helper()
-	const tmpl = "Hi {first name},\n\n{album or file name}\n{one reason line per file, from the mapping below}\n\nBye.\n"
+	const tmpl = "Hi {first name},\n\n{album or file name}\n{one reason line per file, from the mapping below}\n\nAsk {admin}.\n\nBye.\n"
 	path := filepath.Join(t.TempDir(), "reject-email.txt")
 	if err := os.WriteFile(path, []byte(tmpl), 0o644); err != nil {
 		t.Fatalf("write template: %v", err)
@@ -158,9 +158,9 @@ func writeTemplate(t *testing.T) string {
 }
 
 func TestRenderEmail(t *testing.T) {
-	t.Run("fills all three placeholders", func(t *testing.T) {
+	t.Run("fills all four placeholders", func(t *testing.T) {
 		path := writeTemplate(t)
-		got, err := RenderEmail(path, "Alice", "Bad Album", []Rejection{
+		got, err := RenderEmail(path, "Alice", "Bad Album", "admin@example.com", []Rejection{
 			{Path: "alice/Bad Album/track2.mp3", Reason: ReasonBadExtension},
 		})
 		if err != nil {
@@ -170,20 +170,21 @@ func TestRenderEmail(t *testing.T) {
 			"Hi Alice,",
 			"Bad Album",
 			"track2.mp3: This is an MP3 file, and the library keeps lossless FLAC.",
+			"Ask admin@example.com.",
 		} {
 			if !strings.Contains(got, want) {
 				t.Errorf("output missing %q; got %q", want, got)
 			}
 		}
 		if strings.Contains(got, "{first name}") || strings.Contains(got, "{album or file name}") ||
-			strings.Contains(got, "{one reason line per file, from the mapping below}") {
+			strings.Contains(got, "{one reason line per file, from the mapping below}") || strings.Contains(got, "{admin}") {
 			t.Errorf("a placeholder survived unfilled: %q", got)
 		}
 	})
 
 	t.Run("multiple rejections render one line each in order", func(t *testing.T) {
 		path := writeTemplate(t)
-		got, err := RenderEmail(path, "Alice", "Bad Album", []Rejection{
+		got, err := RenderEmail(path, "Alice", "Bad Album", "admin@example.com", []Rejection{
 			{Path: "alice/Bad Album/track1.flac", Reason: ReasonBelowCDQuality},
 			{Path: "alice/Bad Album/track2.mp3", Reason: ReasonBadExtension},
 		})
@@ -204,7 +205,7 @@ func TestRenderEmail(t *testing.T) {
 	// of RenderEmail can't reintroduce it.
 	t.Run("an ampersand in the album name renders literally", func(t *testing.T) {
 		path := writeTemplate(t)
-		got, err := RenderEmail(path, "Alice", "Sturm & Drang", nil)
+		got, err := RenderEmail(path, "Alice", "Sturm & Drang", "admin@example.com", nil)
 		if err != nil {
 			t.Fatalf("RenderEmail: %v", err)
 		}
@@ -218,7 +219,7 @@ func TestRenderEmail(t *testing.T) {
 
 	t.Run("no rejections renders an empty reason block", func(t *testing.T) {
 		path := writeTemplate(t)
-		got, err := RenderEmail(path, "Alice", "Bad Album", nil)
+		got, err := RenderEmail(path, "Alice", "Bad Album", "admin@example.com", nil)
 		if err != nil {
 			t.Fatalf("RenderEmail: %v", err)
 		}
@@ -228,7 +229,7 @@ func TestRenderEmail(t *testing.T) {
 	})
 
 	t.Run("missing template returns a wrapped not-exist error", func(t *testing.T) {
-		_, err := RenderEmail(filepath.Join(t.TempDir(), "does-not-exist.txt"), "Alice", "Bad Album", nil)
+		_, err := RenderEmail(filepath.Join(t.TempDir(), "does-not-exist.txt"), "Alice", "Bad Album", "admin@example.com", nil)
 		if err == nil {
 			t.Fatal("RenderEmail: want error, got nil")
 		}
@@ -238,16 +239,19 @@ func TestRenderEmail(t *testing.T) {
 	})
 
 	t.Run("renders the real deployed template", func(t *testing.T) {
-		got, err := RenderEmail("../../config/reject-email.txt", "Alice", "Bad Album", []Rejection{
+		got, err := RenderEmail("../../config/reject-email.txt", "Alice", "Bad Album", "admin@example.com", []Rejection{
 			{Path: "track2.mp3", Reason: ReasonBadExtension},
 		})
 		if err != nil {
 			t.Fatalf("RenderEmail: %v", err)
 		}
-		for _, want := range []string{"Hi Alice,", "Bad Album", "track2.mp3: This is an MP3 file"} {
+		for _, want := range []string{"Hi Alice,", "Bad Album", "track2.mp3: This is an MP3 file", "the admin (admin@example.com)"} {
 			if !strings.Contains(got, want) {
 				t.Errorf("output missing %q; got %q", want, got)
 			}
+		}
+		if strings.Contains(got, "{admin}") {
+			t.Errorf("admin placeholder survived unfilled: %q", got)
 		}
 	})
 
@@ -257,7 +261,7 @@ func TestRenderEmail(t *testing.T) {
 	// phrasing.
 	t.Run("bad-extension line names the actual extension", func(t *testing.T) {
 		path := writeTemplate(t)
-		got, err := RenderEmail(path, "alice", "Bad Album", []Rejection{
+		got, err := RenderEmail(path, "alice", "Bad Album", "admin@example.com", []Rejection{
 			{Path: "alice/Bad Album/track2.mp3", Reason: ReasonBadExtension},
 		})
 		if err != nil {
@@ -288,7 +292,7 @@ func TestRenderEmail(t *testing.T) {
 		}
 		for _, tt := range tests {
 			path := writeTemplate(t)
-			got, err := RenderEmail(path, "Alice", "Bad Album", []Rejection{{Path: tt.path, Reason: ReasonBadExtension}})
+			got, err := RenderEmail(path, "Alice", "Bad Album", "admin@example.com", []Rejection{{Path: tt.path, Reason: ReasonBadExtension}})
 			if err != nil {
 				t.Fatalf("RenderEmail(%s): %v", tt.path, err)
 			}
@@ -376,7 +380,7 @@ func TestEmailAndJSONCarryIdenticalStrings(t *testing.T) {
 	path := writeTemplate(t)
 	rj := Rejection{Path: "alice/Bad Album/track1.flac", Reason: ReasonBelowCDQuality}
 
-	email, err := RenderEmail(path, "Alice", "Bad Album", []Rejection{rj})
+	email, err := RenderEmail(path, "Alice", "Bad Album", "admin@example.com", []Rejection{rj})
 	if err != nil {
 		t.Fatalf("RenderEmail: %v", err)
 	}
