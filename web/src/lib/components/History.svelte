@@ -98,15 +98,15 @@
 	function chipClass(state: HistoryState): string {
 		switch (state) {
 			case 'in-library':
-				return 'badge-success';
+				return 'badge-soft badge-success';
 			case 'rejected':
-				return 'badge-error';
+				return 'badge-soft badge-error';
 			case 'queued':
 			case 'stalled':
 			case 'pushed-back':
 			case 'probe-unavailable':
 			case 'review':
-				return 'badge-warning';
+				return 'badge-soft badge-warning';
 			default:
 				return 'badge-ghost';
 		}
@@ -117,7 +117,7 @@
 	<h2 class="text-lg font-semibold">Your uploads</h2>
 
 	{#if loadFailed}
-		<div class="alert alert-error" role="alert">
+		<div class="alert alert-error alert-soft" role="alert">
 			<div class="flex flex-col items-start gap-2">
 				<h3 class="font-semibold">Couldn't load your uploads</h3>
 				<p>Something went wrong checking your uploads. Reload to try again.</p>

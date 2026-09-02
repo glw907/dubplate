@@ -78,7 +78,7 @@ describe('FileRow', () => {
 		render(FileRow, { ...baseProps(), status: 'failed', failureKind: 'rejected', verdict: null });
 		expect(screen.getByText("didn't pass")).toBeInTheDocument();
 		expect(screen.queryByText('stopped')).not.toBeInTheDocument();
-		expect(screen.getByText("didn't pass")).toHaveClass('badge-error');
+		expect(screen.getByText("didn't pass")).toHaveClass('badge-error', 'badge-soft');
 	});
 
 	it("shows the server verdict's own label for a rejected file in either variant", () => {

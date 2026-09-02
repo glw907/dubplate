@@ -56,6 +56,8 @@ describe('History', () => {
 
 		await waitFor(() => expect(screen.getByText('in library')).toBeInTheDocument());
 		expect(screen.getByText('waiting its turn')).toBeInTheDocument();
+		expect(screen.getByText('in library')).toHaveClass('badge-success', 'badge-soft');
+		expect(screen.getByText('waiting its turn')).toHaveClass('badge-warning', 'badge-soft');
 	});
 
 	it('sorts a resumable in-flight row before the rest', async () => {

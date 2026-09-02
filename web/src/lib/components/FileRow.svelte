@@ -77,7 +77,11 @@
 	const chipText = $derived(computeChipText());
 
 	const chipClass = $derived(
-		status === 'ok' ? 'badge-success' : status === 'failed' && failureKind === 'rejected' ? 'badge-error' : 'badge-ghost',
+		status === 'ok'
+			? 'badge-soft badge-success'
+			: status === 'failed' && failureKind === 'rejected'
+				? 'badge-soft badge-error'
+				: 'badge-ghost',
 	);
 </script>
 

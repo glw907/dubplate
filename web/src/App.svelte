@@ -474,7 +474,7 @@
 
 	<!-- U13 fold F5.5/F5.6: the section-4 "Couldn't add this album" block, shared by the at-selection pre-flight, a mid-upload server rejection, and a failed session creation so the three paths can never drift on wording. preUpload adds the "Nothing has uploaded yet." line the contract reserves for the pre-flight case alone. perTrack gates the count-aware composed sentence (section 4), which only makes sense for a set of per-track verdicts -- a failed session creation carries one session-level reason, not a track verdict, so composing "One track is..." over it is nonsense (U13 fold F5.6 review fix). -->
 	{#snippet rejectedAlert(reasons: (RejectReason | null)[], preUpload: boolean, perTrack: boolean)}
-		<div class="alert alert-error" role="alert">
+		<div class="alert alert-error alert-soft" role="alert">
 			<div class="flex flex-col items-start gap-2">
 				<h2 class="font-semibold">Couldn't add this album</h2>
 				{#if perTrack}
@@ -529,7 +529,7 @@
 				}}
 			/>
 		{:else if uploadStore.signedOut}
-			<div class="alert alert-warning" role="alert">
+			<div class="alert alert-warning alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-2">
 					<h2 class="font-semibold">Signed out</h2>
 					<p>Your sign-in expired. Reload to sign in again, then pick the upload back up from Your uploads.</p>
@@ -537,7 +537,7 @@
 				</div>
 			</div>
 		{:else if configState === 'failed'}
-			<div class="alert alert-error" role="alert">
+			<div class="alert alert-error alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-2">
 					<h2 class="font-semibold">Couldn't load the uploader</h2>
 					<p>Something went wrong loading this page's setup. Reload to try again.</p>
@@ -619,7 +619,7 @@
 			{:else if phase === 'uploading'}
 				{#if sessionCreateError}
 					{#if sessionCreateError === 'network'}
-						<div class="alert alert-warning" role="alert">
+						<div class="alert alert-warning alert-soft" role="alert">
 							<div class="flex flex-col items-start gap-2">
 								<h2 class="font-semibold">Upload stopped</h2>
 								<p>
@@ -658,7 +658,7 @@
 						<button type="button" class="btn min-h-11" onclick={resetSelection}>Try another album</button>
 					{/if}
 					{#if stalledFiles.length > 0}
-						<div class="alert alert-warning" role="alert">
+						<div class="alert alert-warning alert-soft" role="alert">
 							<div class="flex flex-col items-start gap-2">
 								<h2 class="font-semibold">Upload stopped</h2>
 								<p>

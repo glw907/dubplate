@@ -65,6 +65,12 @@ describe('DropZone', () => {
 		expect(onFiles).toHaveBeenCalledWith([file]);
 	});
 
+	it('gives the idle dashed panel the blue accent, not gray (U13 fold F7)', () => {
+		render(DropZone, { onFiles: vi.fn(), ...childButton() });
+		const panel = screen.getByText('Drop an album anywhere on this page').closest('div');
+		expect(panel).toHaveClass('border-primary');
+	});
+
 	it('ignores a drag that carries no files', async () => {
 		render(DropZone, { onFiles: vi.fn(), ...childButton() });
 

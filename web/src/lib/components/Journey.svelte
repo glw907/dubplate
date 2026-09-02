@@ -273,7 +273,7 @@
 
 <div class="flex flex-col gap-4">
 	{#if viewMode === 'in-library'}
-		<div class="alert alert-success motion-safe:transition-opacity" role="status">
+		<div class="alert alert-success alert-soft motion-safe:transition-opacity" role="status">
 			<div class="flex flex-col items-start gap-3">
 				<h2 class="font-semibold">In your library</h2>
 				<p>{inLibraryTitle} is ready.</p>
@@ -307,7 +307,7 @@
 		{:else if viewMode === 'stalled'}
 			<OutcomeAlert outcome={{ kind: 'stalled' }} />
 		{:else if viewMode === 'finish-failed'}
-			<div class="alert alert-error" role="alert">
+			<div class="alert alert-error alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-3">
 					<h2 class="font-semibold">Couldn't finish checking</h2>
 					<p>
@@ -319,7 +319,7 @@
 			</div>
 		{:else if viewMode === 'format-rejected'}
 			{@const verdictFiles = outcome?.files ?? []}
-			<div class="alert alert-error" role="alert">
+			<div class="alert alert-error alert-soft" role="alert">
 				<div class="flex flex-col items-start gap-2">
 					<h2 class="font-semibold">Couldn't add this album</h2>
 					<p>{verdictFiles.length > 0 ? composeAlertBody(verdictFiles) : "The album didn't pass its checks."}</p>

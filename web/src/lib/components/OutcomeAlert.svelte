@@ -38,7 +38,7 @@
 </script>
 
 {#if outcome.kind === 'pushed-back'}
-	<div class="alert alert-warning" role="alert">
+	<div class="alert alert-warning alert-soft" role="alert">
 		<div class="flex flex-col items-start gap-3">
 			<h2 class="font-semibold">No MusicBrainz match</h2>
 			<p>
@@ -64,7 +64,7 @@
 		</div>
 	</div>
 {:else if outcome.kind === 'probe-unavailable'}
-	<div class="alert alert-warning" role="alert">
+	<div class="alert alert-warning alert-soft" role="alert">
 		<div class="flex flex-col items-start gap-3">
 			<h2 class="font-semibold">Can't check MusicBrainz right now</h2>
 			<p>
@@ -75,7 +75,7 @@
 		</div>
 	</div>
 {:else if outcome.kind === 'queued'}
-	<div class="alert alert-info" role="status">
+	<div class="alert alert-info alert-soft" role="status">
 		<div class="flex flex-col items-start gap-2">
 			<h2 class="font-semibold">Waiting its turn</h2>
 			<p>
@@ -86,7 +86,7 @@
 		</div>
 	</div>
 {:else}
-	<div class="alert alert-warning" role="status">
+	<div class="alert alert-warning alert-soft" role="status">
 		<div class="flex flex-col items-start gap-2">
 			<h2 class="font-semibold">Taking longer than it should</h2>
 			<p>

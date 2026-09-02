@@ -115,7 +115,7 @@
 </script>
 
 <div
-	class="border-base-300 flex w-full flex-col items-center gap-3 rounded-box md:border-2 md:border-dashed md:p-6 md:text-center"
+	class="border-primary flex w-full flex-col items-center gap-3 rounded-box md:border-2 md:border-dashed md:p-6 md:text-center"
 >
 	<p class="text-base-content/70 hidden text-sm md:block">Drop an album anywhere on this page</p>
 	<div class="divider my-0 hidden w-full max-w-xs md:flex">or</div>

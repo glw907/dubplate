@@ -11,6 +11,7 @@ describe('OutcomeAlert', () => {
 
 		expect(screen.getByText('No MusicBrainz match')).toBeInTheDocument();
 		expect(screen.getByText('Private Recordings', { selector: 'strong' })).toBeInTheDocument();
+		expect(screen.getByRole('alert')).toHaveClass('alert-warning', 'alert-soft');
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Upload to Private Recordings' }));
 		expect(onUploadPrivate).toHaveBeenCalledOnce();
