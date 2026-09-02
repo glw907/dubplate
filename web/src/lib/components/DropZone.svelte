@@ -11,9 +11,15 @@
 
   The dashed panel below is visible at rest, not only while dragging
   (U13 fold F5.1's ratified-mockup layout authority): a drop target a
-  user only discovers mid-drag is not discoverable at all. Hidden below
-  `md` -- drag-and-drop needs a pointer, so a touch viewport gets only
-  the picker button beneath it.
+  user only discovers mid-drag is not discoverable at all. It wraps the
+  slotted picker button too (U13 fold F6.5), the way the mockup does --
+  a bordered target with nothing inside it, and its button sitting
+  outside the border, is not a real bounded target. The border, hint
+  text, and divider are `md`-only styling on one always-rendered wrapper
+  rather than a separately hidden block around the slot, so the picker
+  button renders exactly once regardless of viewport: drag-and-drop
+  needs a pointer, so a touch viewport gets only the plain, unbordered
+  button.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -108,11 +114,11 @@
 	});
 </script>
 
-<div class="flex w-full flex-col items-center gap-3">
-	<div class="border-base-300 hidden w-full flex-col items-center gap-1 rounded-box border-2 border-dashed p-6 text-center md:flex">
-		<p class="text-base-content/70 text-sm">Drop an album anywhere on this page</p>
-		<div class="divider w-full max-w-xs my-0">or</div>
-	</div>
+<div
+	class="border-base-300 flex w-full flex-col items-center gap-3 rounded-box md:border-2 md:border-dashed md:p-6 md:text-center"
+>
+	<p class="text-base-content/70 hidden text-sm md:block">Drop an album anywhere on this page</p>
+	<div class="divider my-0 hidden w-full max-w-xs md:flex">or</div>
 	{@render children()}
 </div>
 

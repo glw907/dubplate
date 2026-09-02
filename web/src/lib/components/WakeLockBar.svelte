@@ -8,6 +8,9 @@
   the copy has a single home rather than two that can drift. The toggle
   disappears entirely on a browser without the Screen Wake Lock API;
   the note stands on its own, since backgrounding still pauses there.
+  The toggle's class swaps with `wakeLock.on` (U13 fold F6.3): before
+  this fix `aria-pressed` was the only thing that ever changed, so a
+  sighted user pressing it got no visual confirmation either way.
 -->
 <script lang="ts">
 	import type { WakeLock } from '../wakeLock.svelte';
@@ -27,7 +30,7 @@
 	{#if wakeLock.supported}
 		<button
 			type="button"
-			class="btn btn-outline btn-sm min-h-11"
+			class="btn btn-sm min-h-11 {wakeLock.on ? 'btn-primary' : 'btn-outline'}"
 			aria-pressed={wakeLock.on}
 			onclick={() => wakeLock.toggle()}
 		>

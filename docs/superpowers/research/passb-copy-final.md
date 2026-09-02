@@ -67,8 +67,11 @@ Collection picker (renders only when config lists more than one collection):
 ## 2. Uploading
 
 - Per-track chips: "looks good" (passed) / "sending" (in flight) / "waiting" (not yet
-  started) / "stopped" (transfer failed, awaiting retry; ratified post-build
-  2026-09-01: a failed row must never read as not-yet-started)
+  started) / "stopped" (a connection failure only, transfer failed, awaiting retry;
+  ratified post-build 2026-09-01: a failed row must never read as not-yet-started). A
+  server-side rejection with no parseable reason chips section 4's own label fallback,
+  "didn't pass", instead of "stopped" (ratified post-build 2026-09-01, U13 fold F6.8): a
+  permanently refused file must never read as a paused one.
 - Progress readout: "{acked_bytes} confirmed" / "of {total_bytes}"
 - Hint: "Switching away pauses the upload; coming back resumes it. If the page
   closes, pick it up from Your uploads." *(critic finding 2: a killed tab loses the
@@ -99,8 +102,14 @@ Collection picker (renders only when config lists more than one collection):
 - On confident match, below the spine: "Matched: {artist} - {album} ({year}). You can
   close this page now."
 - In-library card (live transition, no reload): heading "In your library"; body
-  "{artist} - {album} is ready."; primary button "Open in Navidrome".
+  "{artist} - {album} is ready."; primary button "Open in Navidrome"; secondary button
+  "Upload another album" (ratified post-build 2026-09-01, U13 fold F6.11).
 - ZIP-path checking sublabel (step 2 current): "unpacking and checking the tracks"
+- If checking itself fails to finish -- a network drop or server error probing the
+  outcome, distinct from a MusicBrainz-specific "no match" -- (ratified post-build
+  2026-09-01, U13 fold F6.9): heading "Couldn't finish checking"; body "Something went
+  wrong finishing the check. Your album is already uploaded and waiting; no need to
+  send it again." Button: "Try again".
 
 ## 4. Rejected (format failure)
 
@@ -118,6 +127,8 @@ Collection picker (renders only when config lists more than one collection):
 - Primary button: "Try another album"
 - Fallback body when the wire carries no detail (ratified post-build 2026-09-01):
   "The album didn't pass its checks."
+- Label fallback when a file's own wire verdict carries no `label` at all (ratified
+  post-build 2026-09-01, U13 fold F6.8): "didn't pass", `badge-error`.
 
 Chip labels (the new `label` field; authority is `internal/reject`):
 bad-extension "not FLAC" / symlink "shortcut file" / corrupt "damaged in transit" /

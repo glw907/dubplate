@@ -15,15 +15,31 @@
   empty from first render (App.svelte's main region, mounted for every
   upload phase, not only this one) -- every step and outcome change
   announces through it once, and completion gets its own distinct call;
-  this component never owns the DOM region itself.
+  this component never owns the DOM region itself. Journey polling is
+  driven by an `$effect` keyed on `outcome?.promoted` and `sessionId`,
+  not a variable assigned from `runFinish`'s `finally` (U13 fold
+  F6.10): `finally` runs after `finishSession`'s server-blocking await
+  resolves, which can be well after this component unmounts, so a
+  stop function assigned there could arrive too late for `onDestroy`
+  to find it and this component would leak a 5s poll for the rest of
+  the page's life. An effect's own returned teardown is guaranteed by
+  Svelte to run on unmount regardless of when it started.
 -->
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
+	import FileRow from './FileRow.svelte';
 	import JourneySteps, { type StepStatus } from './JourneySteps.svelte';
 	import OutcomeAlert from './OutcomeAlert.svelte';
 	import WakeLockBar from './WakeLockBar.svelte';
 	import { LiveRegion } from '../announce';
-	import { uploadStore, type FinishOutcome, type UploadStore } from '../store/upload.svelte';
+	import { SignedOutError } from '../tus';
+	import {
+		uploadStore,
+		type FileVerdict,
+		type FinishOutcome,
+		type RejectReason,
+		type UploadStore,
+	} from '../store/upload.svelte';
 	import { WakeLock } from '../wakeLock.svelte';
 
 	interface Props {
@@ -37,6 +53,8 @@
 		wakeLock?: WakeLock;
 		onUploadPrivate?: () => void;
 		onFixNames?: () => void;
+		/** The in-library card's "Upload another album" action (U13 fold F6.11); App.svelte wires this to the same reset the pushed-back/rejected paths already use. */
+		onUploadAnother?: () => void;
 	}
 
 	let {
@@ -48,17 +66,36 @@
 		wakeLock = new WakeLock(),
 		onUploadPrivate = () => {},
 		onFixNames = () => {},
+		onUploadAnother = () => {},
 	}: Props = $props();
 
 	let finishing = $state(true);
 	let outcome = $state<FinishOutcome | null>(null);
-	let stopPolling: (() => void) | null = null;
+	// Set in runFinish's catch on anything but a signed-out rejection (U13
+	// fold F6.9): finishSession rethrows on a network drop, a 500, or a
+	// non-JSON body, and without this outcome simply stays null forever,
+	// which viewMode below used to read as the ordinary still-resolving
+	// case -- freezing the spine on "Matching" with no error and no way
+	// to retry short of a page reload.
+	let finishError = $state(false);
 
 	const journey = $derived(store.journey);
 
-	type ViewMode = 'finishing' | 'matched' | 'queued' | 'stalled' | 'in-library' | 'pushed-back' | 'probe-unavailable' | 'format-rejected';
+	type ViewMode =
+		| 'finishing'
+		| 'matched'
+		| 'queued'
+		| 'stalled'
+		| 'in-library'
+		| 'pushed-back'
+		| 'probe-unavailable'
+		| 'format-rejected'
+		| 'finish-failed';
 
 	const viewMode = $derived.by((): ViewMode => {
+		if (finishError) {
+			return 'finish-failed';
+		}
 		if (finishing || !outcome) {
 			return 'finishing';
 		}
@@ -89,6 +126,7 @@
 				return ['complete', 'complete', 'current', 'upcoming'];
 			case 'pushed-back':
 			case 'probe-unavailable':
+			case 'finish-failed':
 				return ['complete', 'complete', 'error', 'upcoming'];
 			case 'format-rejected':
 				return ['complete', 'error', 'upcoming', 'upcoming'];
@@ -100,6 +138,36 @@
 				return ['complete', 'complete', 'complete', 'current'];
 		}
 	});
+
+	// passb-copy-final.md section 4: mirrors App.svelte's composeAlertBody
+	// over a finished session's own per-file verdicts (U13 fold F6.2/F6.7),
+	// so a post-upload rejection composes the same count-aware sentence an
+	// at-selection one does, rather than the section-4 fallback that used
+	// to fire 100% of the time here (outcome.detail is only ever populated
+	// on the pushed-back path).
+	function composeAlertBody(files: FileVerdict[]): string {
+		const failed = files.filter((f) => !f.OK);
+		const labels = new Set(failed.map((f) => f.Reason.label));
+		const n = failed.length;
+		if (labels.size === 1) {
+			const label = failed[0]?.Reason.label ?? '';
+			return n === 1 ? `One track is ${label}, and albums go in whole.` : `${n} tracks are ${label}, and albums go in whole.`;
+		}
+		return `${n} tracks didn't pass the checks, and albums go in whole.`;
+	}
+
+	/** One reason hint per distinct failing reason code (Pass B conductor ruling 5), not one per flagged row. */
+	function distinctReasons(files: FileVerdict[]): RejectReason[] {
+		const seen = new Set<string>();
+		const out: RejectReason[] = [];
+		for (const f of files) {
+			if (!f.OK && !seen.has(f.Reason.code)) {
+				seen.add(f.Reason.code);
+				out.push(f.Reason);
+			}
+		}
+		return out;
+	}
 
 	/** passb-copy-final.md section 3's "Matched:" line, shown only for a main-lane confident match -- a private-lane promotion carries no matched metadata (internal/serve's own doc comment on sessionOutcome). */
 	const matchedLine = $derived(
@@ -122,24 +190,39 @@
 	});
 
 	onDestroy(() => {
-		stopPolling?.();
 		void wakeLock.release();
+	});
+
+	// Drives the 5s journey poll off outcome/sessionId rather than a
+	// variable runFinish's own finally assigns (U13 fold F6.10): Svelte
+	// guarantees an effect's returned teardown runs on unmount even
+	// though the effect itself started asynchronously, which a manual
+	// onDestroy-reads-a-maybe-still-null-closure could not.
+	$effect(() => {
+		if (!outcome?.promoted) {
+			return;
+		}
+		const stop = store.startJourneyPolling(sessionId);
+		return () => stop();
 	});
 
 	async function runFinish(): Promise<void> {
 		finishing = true;
+		finishError = false;
 		try {
 			const result = await store.finishSession(sessionId, album);
 			outcome = result;
-		} catch {
-			// store.signedOut already carries the reload-to-sign-in state;
-			// there is nothing further for this view to do.
+		} catch (err) {
+			// store.signedOut already carries the reload-to-sign-in state
+			// (App.svelte swaps this component out entirely for that
+			// state) -- anything else is a genuine failure to finish,
+			// with a retry the user can act on.
+			if (!(err instanceof SignedOutError)) {
+				finishError = true;
+			}
 		} finally {
 			finishing = false;
 			announceForViewMode();
-			if (outcome?.promoted) {
-				stopPolling = store.startJourneyPolling(sessionId);
-			}
 		}
 	}
 
@@ -156,6 +239,9 @@
 				break;
 			case 'format-rejected':
 				announcer.announceState("Couldn't add this album.");
+				break;
+			case 'finish-failed':
+				announcer.announceState("Couldn't finish checking this album.");
 				break;
 			default:
 				break;
@@ -187,14 +273,19 @@
 
 <div class="flex flex-col gap-4">
 	{#if viewMode === 'in-library'}
-		<div class="alert alert-success flex-col items-start gap-3 motion-safe:transition-opacity" role="status">
-			<h2 class="font-semibold">In your library</h2>
-			<p>{inLibraryTitle} is ready.</p>
-			{#if journey?.libraryLink}
-				<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
-					Open in Navidrome
-				</a>
-			{/if}
+		<div class="alert alert-success motion-safe:transition-opacity" role="status">
+			<div class="flex flex-col items-start gap-3">
+				<h2 class="font-semibold">In your library</h2>
+				<p>{inLibraryTitle} is ready.</p>
+				<div class="flex flex-wrap gap-2">
+					{#if journey?.libraryLink}
+						<a class="btn btn-primary" href={journey.libraryLink} target="_blank" rel="noopener noreferrer">
+							Open in Navidrome
+						</a>
+					{/if}
+					<button type="button" class="btn btn-outline" onclick={onUploadAnother}>Upload another album</button>
+				</div>
+			</div>
 		</div>
 	{:else}
 		<JourneySteps {totalFiles} {statuses} />
@@ -215,11 +306,43 @@
 			<OutcomeAlert outcome={{ kind: 'queued', ownEarlierUpload }} />
 		{:else if viewMode === 'stalled'}
 			<OutcomeAlert outcome={{ kind: 'stalled' }} />
-		{:else if viewMode === 'format-rejected'}
-			<div class="alert alert-error flex-col items-start" role="alert">
-				<h2 class="font-semibold">Couldn't add this album</h2>
-				<p>{outcome?.detail || "The album didn't pass its checks."}</p>
+		{:else if viewMode === 'finish-failed'}
+			<div class="alert alert-error" role="alert">
+				<div class="flex flex-col items-start gap-3">
+					<h2 class="font-semibold">Couldn't finish checking</h2>
+					<p>
+						Something went wrong finishing the check. Your album is already uploaded and waiting; no need to send it
+						again.
+					</p>
+					<button type="button" class="btn btn-primary" onclick={retryFinish}>Try again</button>
+				</div>
 			</div>
+		{:else if viewMode === 'format-rejected'}
+			{@const verdictFiles = outcome?.files ?? []}
+			<div class="alert alert-error" role="alert">
+				<div class="flex flex-col items-start gap-2">
+					<h2 class="font-semibold">Couldn't add this album</h2>
+					<p>{verdictFiles.length > 0 ? composeAlertBody(verdictFiles) : "The album didn't pass its checks."}</p>
+				</div>
+			</div>
+			{#if verdictFiles.length > 0}
+				<ul class="border-base-300 divide-base-300 divide-y rounded border">
+					{#each verdictFiles as file (file.Name)}
+						<FileRow
+							name={file.Name}
+							status={file.OK ? 'ok' : 'failed'}
+							progressBytes={0}
+							ackedBytes={0}
+							verdict={file.OK ? null : file}
+							failureKind={file.OK ? null : 'rejected'}
+							variant="verdict"
+						/>
+					{/each}
+				</ul>
+				{#each distinctReasons(verdictFiles) as reason (reason.code)}
+					<p class="text-sm">{reason.friendly} <strong>Next:</strong> {reason.next_step}</p>
+				{/each}
+			{/if}
 		{/if}
 	{/if}
 </div>

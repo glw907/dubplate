@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/dom';
+import { fireEvent, waitFor } from '@testing-library/dom';
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Journey from './Journey.svelte';
@@ -158,5 +158,96 @@ describe('Journey', () => {
 
 		await waitFor(() => expect(screen.getByText('No MusicBrainz match')).toBeInTheDocument());
 		expect(target.textContent).toBe('No MusicBrainz match for this album.');
+	});
+
+	it('shows a retry control (never freezing on Matching forever) when finishSession itself fails (U13 fold F6.9)', async () => {
+		const fetchMock = vi.fn((): Promise<Response> => Promise.reject(new TypeError('network drop')));
+		vi.stubGlobal('fetch', fetchMock);
+		const store = newStore();
+
+		render(Journey, { sessionId: 'a'.repeat(26), album: 'Loveless', totalFiles: 11, store });
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument());
+		const matching = screen.getByText('Matching').closest('li');
+		expect(matching).toHaveClass('step-error');
+
+		fetchMock.mockResolvedValue(jsonResponse({ promoted: true, files: [] }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+		await waitFor(() => expect(screen.queryByText('adding it now')).toBeInTheDocument());
+	});
+
+	it('stops journey polling once unmounted, even when finishSession resolves after unmount (U13 fold F6.10)', async () => {
+		const deferred: { resolve: (res: Response) => void } = { resolve: () => {} };
+		let journeyCalls = 0;
+		const fetchMock = vi.fn((input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.includes('/finish')) {
+				return new Promise<Response>((resolve) => (deferred.resolve = resolve));
+			}
+			journeyCalls += 1;
+			return Promise.resolve(jsonResponse({ session_id: 'a'.repeat(26), state: 'tagging', files: [] }));
+		});
+		vi.stubGlobal('fetch', fetchMock);
+		const store = newStore();
+
+		const { unmount } = render(Journey, { sessionId: 'a'.repeat(26), album: 'Loveless', totalFiles: 11, store });
+		unmount();
+		deferred.resolve(jsonResponse({ promoted: true, files: [] }));
+		await Promise.resolve();
+		await Promise.resolve();
+
+		expect(journeyCalls).toBe(0);
+	});
+
+	it('composes the section-4 rejection sentence and renders the per-file verdict list on a post-upload format rejection (U13 fold F6.2/F6.7)', async () => {
+		const reason = {
+			code: 'below-cd-quality',
+			friendly: "This isn't CD quality, and the library keeps lossless FLAC.",
+			next_step: 'Upload the CD-quality FLAC files instead.',
+			label: 'below CD quality',
+		};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				jsonResponse({
+					promoted: false,
+					files: [
+						{ Name: '01 Intro.flac', OK: true },
+						{ Name: '02 Summer Song.mp3', OK: false, Reason: reason },
+					],
+				}),
+			),
+		);
+		const store = newStore();
+
+		render(Journey, { sessionId: 'a'.repeat(26), album: 'Some Album', totalFiles: 2, store });
+
+		await waitFor(() => expect(screen.getByText("Couldn't add this album")).toBeInTheDocument());
+		expect(screen.getByText('One track is below CD quality, and albums go in whole.')).toBeInTheDocument();
+		expect(screen.getByText('01 Intro.flac')).toBeInTheDocument();
+		expect(screen.getByText('fine')).toBeInTheDocument();
+		expect(screen.getByText('below CD quality')).toBeInTheDocument();
+		expect(screen.getByText(reason.friendly, { exact: false })).toBeInTheDocument();
+	});
+
+	it('offers "Upload another album" on the in-library card, wired to the caller\'s own callback (U13 fold F6.11)', async () => {
+		const fetchMock = vi.fn((input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.includes('/finish')) {
+				return Promise.resolve(jsonResponse({ promoted: true, files: [] }));
+			}
+			return Promise.resolve(
+				jsonResponse({ session_id: 'a'.repeat(26), state: 'in-library', album: 'Loveless', files: [] }),
+			);
+		});
+		vi.stubGlobal('fetch', fetchMock);
+		const store = newStore();
+		const onUploadAnother = vi.fn();
+
+		render(Journey, { sessionId: 'a'.repeat(26), album: 'Loveless', totalFiles: 11, store, onUploadAnother });
+
+		await waitFor(() => expect(screen.getByText('Loveless is ready.')).toBeInTheDocument());
+		await fireEvent.click(screen.getByRole('button', { name: 'Upload another album' }));
+		expect(onUploadAnother).toHaveBeenCalledOnce();
 	});
 });

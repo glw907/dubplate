@@ -62,12 +62,21 @@ describe('JourneySteps', () => {
 		expect(errored).toHaveClass('step-error');
 	});
 
-	it('uses the DaisyUI responsive spine classes', () => {
+	it('uses the DaisyUI responsive spine classes, holding the vertical spine until lg (U13 fold F6.4)', () => {
 		render(JourneySteps, {
 			totalFiles: 3,
 			statuses: ['current', 'upcoming', 'upcoming', 'upcoming'] as [StepStatus, StepStatus, StepStatus, StepStatus],
 		});
 		const list = screen.getByRole('list');
-		expect(list).toHaveClass('steps', 'steps-vertical', 'sm:steps-horizontal');
+		expect(list).toHaveClass('steps', 'steps-vertical', 'lg:steps-horizontal');
+	});
+
+	it("anchors every step's content to the top of its cell, so a wrapped sublabel cannot lift its own label off the shared baseline (U13 fold F6.4)", () => {
+		render(JourneySteps, {
+			totalFiles: 3,
+			statuses: ['current', 'upcoming', 'upcoming', 'upcoming'] as [StepStatus, StepStatus, StepStatus, StepStatus],
+		});
+		const labelBlock = screen.getByText('Uploaded').parentElement;
+		expect(labelBlock).toHaveClass('self-start', 'items-start');
 	});
 });

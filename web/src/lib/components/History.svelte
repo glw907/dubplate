@@ -16,7 +16,13 @@
   reroute through `onFixNames`: the copy above it promises the album is
   already uploaded and waiting, so retrying means re-issuing the same
   finish probe (`store.finishSession`), never sending the caller back to
-  the idle picker.
+  the idle picker. The title only renders as a `<button>` for a
+  pushed-back/probe-unavailable row, with `aria-expanded`/`aria-controls`
+  pointing at the revealed detail div; every other row's title is a plain
+  `<span>` (U13 fold F6.12/F6.15) -- a `disabled` button here used to
+  read to a screen reader as an unavailable control over the row's own
+  primary content, and the enabled case carried no expanded/collapsed
+  state at all.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -111,10 +117,12 @@
 	<h2 class="text-lg font-semibold">Your uploads</h2>
 
 	{#if loadFailed}
-		<div class="alert alert-error flex-col items-start" role="alert">
-			<h3 class="font-semibold">Couldn't load your uploads</h3>
-			<p>Something went wrong checking your uploads. Reload to try again.</p>
-			<button type="button" class="btn min-h-11" onclick={() => location.reload()}>Reload</button>
+		<div class="alert alert-error" role="alert">
+			<div class="flex flex-col items-start gap-2">
+				<h3 class="font-semibold">Couldn't load your uploads</h3>
+				<p>Something went wrong checking your uploads. Reload to try again.</p>
+				<button type="button" class="btn min-h-11" onclick={() => location.reload()}>Reload</button>
+			</div>
 		</div>
 	{:else if store.history.length === 0}
 		<p class="text-base-content/60 text-sm">Nothing here yet.</p>
@@ -123,14 +131,19 @@
 			{#each store.history as row (row.sessionId)}
 				<li class="flex flex-col gap-2 p-3">
 					<div class="flex flex-wrap items-center justify-between gap-2">
-						<button
-							type="button"
-							class="min-h-11 flex min-w-0 flex-1 items-center truncate text-left {isPushedBack(row.state) ? 'link' : ''}"
-							onclick={() => isPushedBack(row.state) && toggleExpanded(row)}
-							disabled={!isPushedBack(row.state)}
-						>
-							{row.album || 'Untitled album'}
-						</button>
+						{#if isPushedBack(row.state)}
+							<button
+								type="button"
+								class="link min-h-11 flex min-w-0 flex-1 items-center truncate text-left"
+								onclick={() => toggleExpanded(row)}
+								aria-expanded={expandedSessionId === row.sessionId}
+								aria-controls={`history-detail-${row.sessionId}`}
+							>
+								{row.album || 'Untitled album'}
+							</button>
+						{:else}
+							<span class="min-w-0 flex-1 truncate">{row.album || 'Untitled album'}</span>
+						{/if}
 						<span class="badge {chipClass(row.state)} shrink-0">{chipForRow(row)}</span>
 						{#if row.resumable}
 							<button type="button" class="btn btn-sm min-h-11" onclick={() => onResume(row)}>Resume</button>
@@ -143,20 +156,22 @@
 					</div>
 
 					{#if isPushedBack(row.state) && expandedSessionId === row.sessionId}
-						{#if row.state === 'pushed-back'}
-							<OutcomeAlert
-								outcome={{
-									kind: 'pushed-back',
-									onUploadPrivate: () => onUploadPrivate(row),
-									onFixNames: () => onFixNames(row),
-								}}
-							/>
-						{:else}
-							<OutcomeAlert outcome={{ kind: 'probe-unavailable', onTryAgain: () => void retryProbe(row) }} />
-							{#if retryFailedSessionId === row.sessionId}
-								<p class="text-error text-sm" role="alert">That didn't go through. Check your connection and try again.</p>
+						<div id={`history-detail-${row.sessionId}`}>
+							{#if row.state === 'pushed-back'}
+								<OutcomeAlert
+									outcome={{
+										kind: 'pushed-back',
+										onUploadPrivate: () => onUploadPrivate(row),
+										onFixNames: () => onFixNames(row),
+									}}
+								/>
+							{:else}
+								<OutcomeAlert outcome={{ kind: 'probe-unavailable', onTryAgain: () => void retryProbe(row) }} />
+								{#if retryFailedSessionId === row.sessionId}
+									<p class="text-error text-sm" role="alert">That didn't go through. Check your connection and try again.</p>
+								{/if}
 							{/if}
-						{/if}
+						</div>
 					{/if}
 				</li>
 			{/each}

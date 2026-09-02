@@ -634,6 +634,7 @@
 						{wakeLock}
 						onUploadPrivate={retryAsPrivateCollection}
 						onFixNames={resetSelection}
+						onUploadAnother={resetSelection}
 					/>
 				{:else}
 					{#if isZipSelection(pendingFiles)}

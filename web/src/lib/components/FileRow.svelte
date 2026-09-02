@@ -8,7 +8,14 @@
   for a finished batch's summary list section 4 describes ("fine").
   A failed row always shows its own verdict's `{label}` rather than a
   generic word -- the taxonomy strings are the API's, never a client
-  table (U4's reject wire format). Display-only: no fetch, no tus,
+  table (U4's reject wire format). A rejected file whose refusal body
+  carried no parseable reason (a plain-text tusd error, U13 fold F6.8)
+  chips "didn't pass" rather than "stopped": "stopped" is reserved for
+  a connection failure awaiting retry, and a permanently refused file
+  must never read as merely paused. `size` is optional so a caller
+  rendering a finished session's own verdict list -- which carries no
+  byte counts -- can still reuse this row (U13 fold F6.2/F6.7).
+  Display-only: no fetch, no tus,
   no retry action of its own -- retry is a batch-level control, since
   the plan's honest-retry copy differs by upload path (multi-file
   resends only failing files; a ZIP resends the archive), a decision
@@ -26,7 +33,8 @@
 
 	interface Props {
 		name: string;
-		size: number;
+		/** Byte size, when known -- omitted for a row rendered from a finished session's own verdict list, which carries no byte counts. */
+		size?: number;
 		status: FileStatus;
 		progressBytes: number;
 		ackedBytes: number;
@@ -43,7 +51,12 @@
 	 * "stopped" instead (passb-copy-final.md section 2, ratified
 	 * post-build 2026-09-01) rather than "waiting", which the contract
 	 * reserves for a file that has not started -- a failed row must
-	 * never read as not-yet-started.
+	 * never read as not-yet-started. A rejection (`failureKind`
+	 * `'rejected'`) whose body carried no parseable reason -- every
+	 * plain-text tusd error preCreate can answer -- chips "didn't pass"
+	 * instead (passb-copy-final.md section 4's label fallback, ratified
+	 * post-build 2026-09-01, U13 fold F6.8): "stopped" is connection-only
+	 * now, so a permanently refused file never reads as merely paused.
 	 */
 	function computeChipText(): string {
 		if (status === 'pending') {
@@ -55,7 +68,10 @@
 		if (status === 'ok') {
 			return variant === 'progress' ? 'looks good' : 'fine';
 		}
-		return (failureKind === 'rejected' ? verdict?.Reason.label : null) ?? 'stopped';
+		if (failureKind === 'rejected') {
+			return verdict?.Reason.label ?? "didn't pass";
+		}
+		return 'stopped';
 	}
 
 	const chipText = $derived(computeChipText());
@@ -68,12 +84,20 @@
 <li class="flex flex-col gap-1 p-3 md:flex-row md:items-center md:justify-between md:gap-4">
 	<div class="min-w-0 flex-1">
 		<p class="truncate">{name}</p>
-		<p class="text-base-content/60 text-xs">{formatBytes(size)}</p>
-		{#if status === 'uploading'}
+		{#if size !== undefined}
+			<p class="text-base-content/60 text-xs">{formatBytes(size)}</p>
+		{/if}
+		{#if status === 'uploading' && size !== undefined}
 			<p class="text-base-content/60 text-xs">
-				{formatBytes(ackedBytes)} confirmed <span class="opacity-70">of {formatBytes(size)}</span>
+				{formatBytes(ackedBytes)} confirmed <span>of {formatBytes(size)}</span>
 			</p>
-			<progress class="progress progress-primary w-full" value={progressBytes} max={size}></progress>
+			<progress
+				class="progress progress-primary w-full"
+				value={progressBytes}
+				max={size}
+				aria-label={`Upload progress for ${name}`}
+				aria-valuetext={`${formatBytes(ackedBytes)} confirmed of ${formatBytes(size)}`}
+			></progress>
 		{/if}
 	</div>
 	<span class="badge {chipClass} shrink-0">{chipText}</span>
