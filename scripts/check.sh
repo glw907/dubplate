@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# check.sh: the repo gate. `make check` covers the Go module (build, vet,
-# golangci-lint, test) and the web module (npm ci, svelte-check, vitest,
-# the production Vite build); shellcheck still covers the scripts that
-# remain (deploy.sh, check.sh itself, vale-comments.sh, provision.sh).
-# Exits nonzero on any failure so it can be wired into CI or a pre-push
-# hook unmodified.
+# check.sh: the repo gate. `make check` covers the Go module (build,
+# vet, golangci-lint, test, tidy-check); the web leg rejoins at rung 7,
+# when web/ is rebuilt against the greenfield server. shellcheck still
+# covers the scripts that remain (deploy.sh, check.sh itself,
+# vale-comments.sh, provision.sh). Exits nonzero on any failure so it
+# can be wired into CI or a pre-push hook unmodified.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -24,12 +24,8 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   echo "check.sh: shellcheck not found; install it (brew install shellcheck)." >&2
   exit 1
 fi
-if ! command -v npm >/dev/null 2>&1; then
-  echo "check.sh: npm not found; install Node (the web/ gate needs it)." >&2
-  exit 1
-fi
 
-echo "== make check (Go + web) =="
+echo "== make check (Go) =="
 if ! make check; then
   status=1
 fi

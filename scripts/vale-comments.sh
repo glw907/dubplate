@@ -46,8 +46,13 @@ if [ "$check_vendor" -eq 1 ]; then
   "$vendor" "$PWD" || exit 1
 fi
 
+# _salvage/ is read-only reference material: it is frozen at the
+# pre-greenfield tag and excluded from every gate leg that walks files,
+# this one included, or all 76 salvage Go files re-enter the scan (git's
+# '*.go' pathspec matches at any depth).
 mapfile -t files < <(
-  { git ls-files '*.go'; git ls-files --others --exclude-standard '*.go'; } | sort -u
+  { git ls-files '*.go'; git ls-files --others --exclude-standard '*.go'; } |
+    grep -v '^_salvage/' | sort -u
 )
 [ "${#files[@]}" -gt 0 ] || { echo "vale-comments: no Go files"; exit 0; }
 
