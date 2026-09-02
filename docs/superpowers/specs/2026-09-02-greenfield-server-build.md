@@ -1,14 +1,15 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2, 2026-09-02. Revision 1 was drafted from the
-ratified rulings
+Status: revision 2.1, ratified 2026-09-02. Revision 1 was drafted
+from the ratified rulings
 (`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`),
 read by Geoff, and then put through two adversarial reviews
 (`research/2026-09-02-greenfield-spec-reviews/architecture.md` and
-`universality.md`). This revision folds both reviews, the session
-fold notes, and the beets research program. Three decisions are
-marked "pending ruling" in the Open rulings section; everything else
-is settled here.
+`universality.md`). Revision 2 folded both reviews, the session fold
+notes, and the beets research program; revision 2.1 records Geoff's
+resolutions of the review round's three open rulings (the "Rulings on
+the review round" section). The spec is settled; rung plans build
+from it.
 
 Sources folded: the organizer spec
 (`2026-09-01-dubplate-organizer-design.md`, amended through
@@ -60,15 +61,14 @@ server. The launch gate has four parts, and all four hold at once:
    holds over the conformance corpus: zero false confident matches
    (tier one, no adjudication available), and zero unadjudicated
    cases where beets is right and Go is wrong (tier two). Both tiers
-   count cases, never percentages. Two refinements, both pending
-   ruling: tier one is measured against release truth rather than
-   against the oracle where the oracle is known-defective (Open
-   ruling 2), and tier one additionally holds over the stock-config
-   stratum, not only the estate config (Open ruling 3).
+   count cases, never percentages. Two refinements, ruled 2026-09-02:
+   tier one is measured against release truth rather than against the
+   oracle where the oracle is known-defective (ruling 2), and tier
+   one additionally holds over the stock-config stratum, not only the
+   estate config (ruling 3).
 3. **A clean shadow record.** The shadow run defined below is clean:
    zero unadjudicated divergences and zero false confident matches
-   against live beets decisions, over the floor Open ruling 1
-   settles.
+   against live beets decisions, over the floor ruling 1 defines.
 4. **Layout parity.** A dry-run diff proves the new pipeline's
    computed paths equal the on-disk layout of the live library before
    anything writes. This part has its own evidence machinery (rung
@@ -102,7 +102,7 @@ Improving on beets is in scope, on one discipline (Geoff,
 copy; an improvement is a deliberate divergence, adjudicated and
 recorded with written reasoning in the same artifacts the corpus
 uses. Known oracle defects are the first improvement class and enter
-pre-launch through the known-oracle-bug ledger (Open ruling 2);
+pre-launch through the known-oracle-bug ledger (ruling 2);
 everything else queues as post-launch candidates, fed by the corpus,
 the evolution study's recurring-pain classes, and the open-issues
 survey. The component model and the corpus are what make this safe:
@@ -233,8 +233,11 @@ contributor intake path, so what feeds the interim import timer is
 what Geoff adds for his own listening, and nothing else. The shadow
 window is therefore long and thin—more calendar time than the
 organizer's 30-day window, over owner-curated rather than contributor
-material. The floor the launch gate applies, and what compensates for
-the thinness, is Open ruling 1.
+material. Per ruling 1, the floor is a configurable duration
+threshold with a 30-day default, every divergence that arrives is
+adjudicated, and the observed album count is reported at the launch
+gate rather than gated; the corpus's real-catalog and adversarial
+strata carry the evidentiary weight a thin shadow cannot.
 
 The oracle is also coarser than a full verdict stream: the box
 imports with `beet import -q` and `quiet_fallback: skip`, so live
@@ -678,34 +681,32 @@ are marked [E].
     reconcile, and the initiative's post-mortem and ledger entries
     land.
 
-## Open rulings
+## Rulings on the review round
 
-Three decisions from the review round belong to Geoff. The spec
-carries a proposed resolution for each; the proposal stands unless
-overruled, and the affected rungs plan against the ruling.
+All three resolved by Geoff, 2026-09-02.
 
-1. **Shadow material and the floor.** The wind-down means shadow
-   material is Geoff's own additions, so the organizer's "20 real
-   contributor albums" floor has no source. Proposed: keep the 30-day
-   time floor, replace the album floor with "the albums that actually
-   arrive, all adjudicated," and let the corpus's real-catalog and
-   adversarial strata carry the evidentiary weight the thin shadow
-   cannot. Alternatives: hand-feed twenty albums (a second curated
-   corpus with worse provenance), or re-open a contribution path
-   early (contradicts the wind-down).
-2. **Oracle-bug policy (U1).** Pinned beets contains known matching
-   defects, so perfect conformance can reproduce a false confident
-   match. Proposed: tier one is measured against release truth; where
-   the oracle is known-defective, the case enters the known-oracle-bug
-   ledger with an adjudicated expected verdict, and reproducing the
-   oracle's defect fails the gate. Conformance is to beets' behavior
-   except where beets is documented wrong.
-3. **Stock-config gating.** The corpus's primary oracle is the estate
-   config; the stock-config stratum is what speaks for a stranger
-   adopter. Proposed: tier one (zero false confident matches) must
-   also hold over the stock-config stratum; tier two remains
-   estate-scoped. The launch claim is then honest for both audiences
-   without doubling the adjudication load.
+1. **Shadow floor, ruled through the universal-adopter lens.**
+   Geoff's ruling asked what most users of the system would want, and
+   the answer dissolves the estate-shaped floor. What every user
+   inherits is the corpus: it ships with the product and is the
+   matcher's standing guarantee. Shadow is the local confidence tool
+   an adopter runs against their own live beets before trusting the
+   swap, sized by their own material, which makes a fixed album count
+   estate idiosyncrasy where a tunable belongs. Resolution: the
+   shadow window is a configurable duration floor, default 30 days;
+   every divergence that arrives is adjudicated; the observed album
+   count is reported at the launch gate, not gated; the corpus's
+   real-catalog and adversarial strata carry the evidentiary weight.
+2. **Oracle-bug policy (U1), accepted as proposed.** Tier one is
+   measured against release truth; where the oracle is
+   known-defective, the case enters the known-oracle-bug ledger with
+   an adjudicated expected verdict, and reproducing the oracle's
+   defect fails the gate. Conformance is to beets' behavior except
+   where beets is documented wrong.
+3. **Stock-config gating, accepted as proposed.** Tier one (zero
+   false confident matches) also holds over the stock-config stratum;
+   tier two remains estate-scoped. The launch claim is honest for
+   both audiences without doubling the adjudication load.
 
 ## What this spec supersedes
 
@@ -720,7 +721,7 @@ Against the organizer spec, which otherwise governs:
   playback while the family launch waits.
 - The `beet` passthrough and its retirement condition are moot on the
   new server. The repair verbs are launch-bar surface.
-- The shadow window is superseded per Open ruling 1.
+- The shadow window is superseded per ruling 1.
 - The header's preconditions (uploader ships, prod-polish completes)
   are superseded by the pivot.
 - "Cloudflare Access is the reference implementation" of the
