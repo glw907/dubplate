@@ -45,6 +45,7 @@ func TestDoctorCmd(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			cmd := newDoctorCmd(tt.environ, &stdout, &stderr)
+			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
 			if tt.wantErr {
@@ -94,8 +95,20 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			for _, th := range config.Thresholds() {
+				want := thresholdStatus(tt.environ, th)
+				if li >= len(lines) {
+					t.Fatalf("stdout ran out of lines before threshold row %s", th.Key)
+				}
+				wantPrefix := fmt.Sprintf("%-32s %s", th.Key, want)
+				if !strings.HasPrefix(lines[li], wantPrefix) {
+					t.Errorf("threshold row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+				}
+				li++
+			}
+
 			if li != len(lines) {
-				t.Errorf("stdout has %d extra line(s) beyond owned+reserved rows: %v", len(lines)-li, lines[li:])
+				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold rows: %v", len(lines)-li, lines[li:])
 			}
 		})
 	}

@@ -57,6 +57,7 @@ func TestCheckCmd(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			cmd := newCheckCmd(tt.environ, &stdout, &stderr)
+			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
 			if tt.wantOK {
@@ -89,8 +90,8 @@ func TestCheckCmd(t *testing.T) {
 					t.Errorf("error = %q, want it to contain %q", err.Error(), sub)
 				}
 			}
-			if strings.Contains(err.Error(), "Usage:") {
-				t.Errorf("error = %q, want no usage block", err.Error())
+			if strings.Contains(stdout.String(), "Usage:") {
+				t.Errorf("stdout = %q, want no usage block", stdout.String())
 			}
 		})
 	}
@@ -110,6 +111,7 @@ func TestCheckCmd_EmptyEnvironment(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newCheckCmd(nil, &stdout, &stderr)
+	cmd.SetOut(&stdout)
 	err := cmd.Execute()
 
 	if err == nil {
