@@ -2,6 +2,43 @@
 
 Per-pass ledger, newest first.
 
+## Rung 1 (Foundation): the repo pivot, config core, check/doctor (2026-09-02)
+
+The greenfield build's first rung, run under the pass-execute workflow
+(implementer/diff-reviewer/gate chain per task, owner opt-in). Landed
+against `docs/superpowers/plans/2026-09-02-rung-1-foundation.md` and the
+ratified build spec (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`,
+revision 2.1): the three Open rulings that spec's review round raised
+(shadow floor, oracle-bug policy, stock-config gating) were all resolved
+by Geoff the same day, closing the item STATUS carried as "Open rulings
+1-3 await Geoff."
+
+Five tasks: the pivot commit tagged `pre-greenfield` and moved `cmd/`,
+`internal/`, `web/`, and `e2e/` under `_salvage/`, freezing them
+read-only, and stood up `cmd/dubplate-server` as the module's only Go
+package; the ops audit removed `config/filebrowser.yaml` as an orphan
+and made `scripts/deploy.sh`'s binary step additive (rsyncs to the new
+`/usr/local/bin/dubplate-server` path, never touching the incumbent
+`/usr/local/bin/dubplate` the four guardian units still exec); the
+config core (`internal/config`) implemented the derived wall as code:
+owned, reserved-for-a-rung, and superseded key classes, plus a
+threshold registry, all contract-tested from a stub before
+implementation; `check`
+and `doctor` scaffolds gave the wall an observable surface with a pinned
+line format; this ledger close reconciled ROADMAP, CLAUDE.md, and
+`.claude/settings.json` against the pivoted tree.
+
+What the gates caught and a later rung must not rediscover:
+`scripts/vale-comments.sh`'s file-list union needed an explicit
+`_salvage/` exclusion, because git's `*.go` pathspec matches at any
+depth and would otherwise re-admit all 76 salvage Go files into the
+prose-comment scan; `go mod tidy` pruned the module to cobra's set once
+the salvage tree's other dependencies left the build; the additive
+deploy boundary (new path beside the untouched incumbent binary) is the
+mechanism that lets rung 1 land without any box write, and every rung
+before the launch cutover (rung 16) must preserve it. No box access
+occurred this rung, per the spec's box-safety section.
+
 ## Uploader Pass B close + the greenfield pivot (2026-09-01/02)
 
 Pass B built and hardened the uploader web app end to end, then Geoff

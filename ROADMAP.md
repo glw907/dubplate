@@ -11,19 +11,48 @@
 ## Active
 
 ### Greenfield dubplate-server `dubplate-organizer`
-The universal shared-library server, built fresh and foundation-first per
-the organizer spec (docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md,
-amended through 2026-09-02) and the ratified rulings
-(docs/superpowers/research/2026-09-02-greenfield-server-rulings.md).
-Approach A: an architecture spine (config core, magic-link auth to the
-hardened birth requirements, ops seam + store, intake, pipeline, streamer
-drivers/SSO, decision queue, versioned API) plus an independent evidence
-track (corpus/harness, Go matcher, shadow against the running estate as
-oracle), meeting at integration and closing with the launch cutover
-(beets DB migration, box swap, interim retirement). Launch bar: the
-complete server, Go matcher past the two-tier conformance bar. Old code
-is salvage tier. Server before TUI is a hard boundary. Next: the fresh
-session writes the greenfield build spec from the rulings doc.
+The universal shared-library server, built fresh and foundation-first on
+a 17-rung ladder per the ratified build spec
+(docs/superpowers/specs/2026-09-02-greenfield-server-build.md, revision
+2.1), which supersedes the organizer spec's own build order while the
+organizer spec continues to govern purview, API shape, and the ops seam
+(docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md, amended
+through 2026-09-02, folded per "Roadmap revisions this spec carries"
+below). Two tracks dependency-merge at rung 15: the architecture spine
+(foundation, auth, ops seam + store, intake, pipeline, streamer
+drivers/SSO, decision queue, versioned API) and an independent evidence
+track (corpus/harness, Go matcher, shadow against the live estate as
+oracle), closing with the launch cutover (rung 16: beets DB migration,
+box swap, interim retirement) and close-out (rung 17). Launch bar: the
+complete server, Go matcher past the two-tier conformance bar, a clean
+shadow record, layout parity. Old code is salvage tier, frozen at the
+`pre-greenfield` tag under `_salvage/`. Server before TUI is a hard
+boundary: rung 10 (two-binary split, local TUI) and the remote-TUI half
+of rung 11 move past launch. Rung 1 (foundation: the repo pivot, the
+config core, `check`/`doctor` scaffolds) landed 2026-09-02. Next: rung
+2's plan (corpus and harness).
+
+Folded from the organizer spec's "Roadmap revisions this spec carries"
+(2026-09-01-dubplate-organizer-design.md):
+- Streamer integration ships with the Navidrome reference driver only
+  (rung 12); Jellyfin and Subsonic drivers are supported by design and
+  built on demand. Navidrome is the reference driver, not "the bonus
+  only dubplate can offer": this page's product-essence line already
+  reads generically ("a shared music server") and needs no further
+  edit.
+- The built-ins roster is set by policy and probe-backed demotions
+  (rung 11), superseding any fixed plugin roster or adoption-band
+  ship criterion; the survey backing it is
+  `docs/superpowers/research/2026-08-31-beets-plugin-usage.md`.
+- The API carries no client assumptions by requirement.
+- Sync between rungs is publish-only; mirror and two-way sync are out
+  of scope.
+- Publish (per-album, through intake) and backup/restore (bulk and
+  admin) are separate paths; migration between rungs is not
+  backup/restore-only.
+- Auth generalizes to a verify-identity seam (rung 5); magic-link is
+  the reference implementation, Cloudflare Access an optional
+  forward-auth front (rung 12).
 
 ## Planned
 

@@ -8,33 +8,38 @@ primary product goal: no site-specific value, path, or identity default
 outside `internal/config`.
 
 **The active initiative (2026-09-02) is the greenfield dubplate-server
-build**: a fresh, universal, foundation-first build per
-`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md`, governed
-by the rulings in
+build**: a fresh, universal, foundation-first build on a 17-rung ladder
+per `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+(revision 2.1, ratified), governed by the rulings in
 `docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`. The
-existing `internal/` + `web/` code is SALVAGE TIER: it stays in-tree as
-adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte bars)
-and retires at launch. The family system is not live; the box runs only
-Navidrome + guardian timers until the new server launches complete (Go
-matcher included). Two standing bars, from memory: exemplary Go
-(`idiomatic-beautiful-go`) and render-and-read every user-path page before
-any attended ask (`see-it-before-geoff-tests-it`).
+pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees are frozen under
+`_salvage/` (git tag `pre-greenfield`) as SALVAGE TIER: read-only
+adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte
+bars), never imported, and retired at launch. The family system is not
+live; the box runs only Navidrome + guardian timers until the new server
+launches complete (Go matcher included). Two standing bars, from memory:
+exemplary Go (`idiomatic-beautiful-go`) and render-and-read every
+user-path page before any attended ask (`see-it-before-geoff-tests-it`).
 
 ## Ledgers
 
 - `docs/STATUS.md` — read in full at session start; present tense only.
 - `docs/HISTORY.md` — per-pass ledger, read on demand.
-- `ROADMAP.md` — initiative queue. Current: Go rewrite → uploader →
-  packaging (specs and plans live in `docs/superpowers/`, migrated into the
-  repo at T14; the dotfiles copies are pointers only).
+- `ROADMAP.md` — initiative queue. Current: the greenfield dubplate-server
+  build (17-rung ladder) → packaging (specs and plans live in
+  `docs/superpowers/`, migrated into the repo at T14; the dotfiles copies
+  are pointers only).
 
 ## Gate
 
 `bash scripts/check.sh` before every commit — `make check` (build, vet,
-golangci-lint, test, tidy-check), shellcheck, vale (Go comment prose),
-compose config, systemd-analyze verify. The `web/` build joins when the
-uploader lands. A check either gates or does not exist; never guard one
-with `command -v || skip`. Never commit red.
+golangci-lint, test, tidy-check) over the one Go package
+`cmd/dubplate-server`, shellcheck over `scripts/*`, vale (Go comment
+prose, `_salvage/` excluded), `docker compose config` (skipped when
+Docker isn't present), and a pattern-filtered `systemd-analyze verify`.
+The `web/` leg rejoins at rung 7, when `web/` is rebuilt against the
+greenfield server. A check either gates or does not exist; never guard
+one with `command -v || skip`. Never commit red.
 
 ## Stack rules (mandatory skills by area)
 
@@ -45,10 +50,10 @@ with `command -v || skip`. Never commit red.
   `internal/atomicfile`, table-driven tests under the assertion-discipline
   rules (no silent-success fakes, no vacuous assertions — prove tests can
   fail).
-- **Shell** (`scripts/`, migration window only): behavior is pinned by
-  `tests/*.bats`; `lib.sh` is the shared layer; shellcheck clean. The shell
-  layer is being replaced per-subcommand — never add capability to it, only
-  port-parity fixes.
+- **Shell** (`scripts/`): ops tooling only (`deploy.sh`, `provision.sh`,
+  `check.sh`, `vale-comments.sh`), shellcheck clean, no behavior tests
+  of its own. The box-side import/backup shell layer is fully retired
+  (Go rewrite, 2026-08-31); never add subcommand logic here.
 - **Web** (`web/`): Svelte 5 runes, standalone (NO SvelteKit), DaisyUI 5,
   Vite to static assets embedded via `go:embed`. Invoke `svelte-conventions`
   and `ts-conventions` before writing components or TS. `tus-js-client`
@@ -103,8 +108,9 @@ screenshots, fresh-context `visual-verifier`, Geoff's before/after).
   executors (`pgrep -f Projects/dubplate`, `git status` for warm changes
   you did not author). The box (`5.78.148.42`) is production — no writes
   without a quiet-box check; read-only ssh only during reviews.
-- Never commit secrets, `.env` values, or `~/.local/secrets` content. The
-  gate runs gitleaks.
+- Never commit secrets, `.env` values, or `~/.local/secrets` content.
+  No mechanism in the gate scans for them; review a diff by eye before
+  staging anything that might carry one.
 - Deploys go through `scripts/deploy.sh` (idempotent, `--check` first for
   anything risky). Never edit the box by hand and call it done — the repo
   is the source of truth.

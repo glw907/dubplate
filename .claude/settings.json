@@ -2,7 +2,6 @@
   "permissions": {
     "allow": [
       "Bash(bash scripts/check.sh)",
-      "Bash(bats tests/*)",
       "Bash(shellcheck *)",
       "Bash(go build*)",
       "Bash(go test*)",
@@ -10,8 +9,6 @@
       "Bash(golangci-lint *)",
       "Bash(make check)",
       "Bash(make build*)",
-      "Bash(npm run build*)",
-      "Bash(npx vite build*)",
       "Bash(systemd-analyze verify *)",
       "Bash(docker compose config*)",
       "Bash(git status*)",
