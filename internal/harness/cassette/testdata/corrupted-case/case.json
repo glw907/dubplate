@@ -1,0 +1,19 @@
+{
+  "id": "corrupted-case",
+  "input": {
+    "items": [
+      {
+        "title": "Corrupted Fixture Track"
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "release/00000000-0000-0000-0000-000000000000?fmt=json",
+      "response": "responses/001.json"
+    }
+  ]
+}
