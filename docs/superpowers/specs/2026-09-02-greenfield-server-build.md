@@ -106,6 +106,20 @@ awkward-but-working code. The organizer spec's split between gated
 properties and judgment properties applies as written, including its
 bounded adjacency rule.
 
+One priority ordering inside the engine is explicit (Geoff,
+2026-09-02): matching rules are structured to be as easy as possible
+to alter, even at the expense of raw speed. Speed and efficiency
+matter, and they are secondary to code that is easy to evolve. The
+structural consequence for rung 3: the distance model is a set of
+small, named penalty components with declared weights, each carrying
+its own unit tests, composed by a scoring core that treats them
+uniformly, so changing a rule touches one component and its cases
+rather than a fused loop. This ordering is what keeps the
+evolve-with-beets commitment cheap: an adjudicated upstream
+improvement lands as a component change, not a rewrite. The scale
+supports the trade, since matching cost is dominated by rate-limited
+MusicBrainz lookups, not CPU.
+
 Server before TUI is a hard boundary. No TUI and no local-binary work
 until the server is fully formed. The ops seam is still designed for
 two implementations from day one, because retrofitting the job model
