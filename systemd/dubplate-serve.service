@@ -84,6 +84,13 @@ TimeoutStopSec=15
 # No StagingDir, ReviewDir, or QuarantineDir: those are the importer's
 # territory (dubplate-import.service, dubplate-import-nudge.service),
 # never written by internal/serve.
+# The tag-check probe (internal/beets.Runner.Probe, U13) needs no path
+# beyond these: it creates its scratch directory -- the throwaway beets
+# library, the staged config, the tag log -- under StateDir, the same
+# /var/lib/musicbox already granted above, and removes it before
+# returning. It only reads /srv/music/.config/beets/config.yaml and the
+# staged session under /srv/music/uploads, and it runs beets with copy,
+# move, link, and write all off, so nothing it touches is written.
 ReadWritePaths=/var/lib/musicbox /srv/music/uploads /srv/music/inbox /run/dubplate/nudge-triggers
 
 # --- hardening (U8's baseline plus the full U12a set; see U8's
@@ -106,7 +113,16 @@ SystemCallArchitectures=native
 AmbientCapabilities=
 CapabilityBoundingSet=
 UMask=0027
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# AF_NETLINK joins the U12a set for the tag-check probe (U13): the probe
+# runs beets, a CPython program, and glibc's getaddrinfo opens a
+# NETLINK_ROUTE socket to enumerate local addresses before it resolves
+# musicbrainz.org. Denying the family does not fail the lookup outright
+# -- glibc falls back to assuming both address families are usable -- but
+# the fallback is a degraded path to leave a MusicBrainz-dependent
+# subprocess on, and netlink grants no new egress: the socket only reads
+# this host's own routing table. The Go process itself never needed it,
+# since Go's own resolver has its own fallback.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
 
 [Install]
 WantedBy=multi-user.target

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/glw907/dubplate/internal/beets"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/web"
@@ -44,9 +45,37 @@ func runServe(ctx context.Context, devIdentity string) error {
 	srv, err := serve.NewServer(cfg, roster, serve.NewServerDeps{
 		Assets:      web.Assets,
 		DevIdentity: devIdentity,
+		TagProbe:    newTagProbe(cfg),
 	})
 	if err != nil {
 		return fmt.Errorf("build server: %w", err)
 	}
 	return srv.Run(ctx)
+}
+
+// newTagProbe builds the custody-policy tag-check probe serve runs
+// against every main-lane session before promoting it: a dry
+// [beets.Runner.Probe] run over the same beets binary, config, and
+// state directory `dubplate import`'s own beet import uses
+// ([newImporter]), so a probe's confidence means what the import that
+// follows will mean.
+func newTagProbe(cfg *config.Config) serve.TagProbeFunc {
+	runner := &beets.Runner{
+		BeetPath:   "beet",
+		ConfigPath: cfg.BeetsConfig,
+		StateDir:   cfg.Paths.StateDir,
+	}
+	return func(ctx context.Context, dir string) (serve.TagProbeResult, error) {
+		result, err := runner.Probe(ctx, dir)
+		if err != nil {
+			return serve.TagProbeResult{}, err
+		}
+		return serve.TagProbeResult{
+			Confident: result.Confident,
+			Artist:    result.Artist,
+			Album:     result.Album,
+			Year:      result.Year,
+			Detail:    result.Detail,
+		}, nil
+	}
 }

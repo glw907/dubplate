@@ -411,10 +411,12 @@ func minimalTestConfig(t *testing.T) *config.Config {
 }
 
 func TestNewServer_StartupPreconditions(t *testing.T) {
+	probe := stubTagProbe(TagProbeResult{Confident: true}, nil, new(string))
+
 	t.Run("succeeds when uploads and inbox share a filesystem", func(t *testing.T) {
 		cfg := minimalTestConfig(t)
 		roster := buildTestRoster(t)
-		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t)}); err != nil {
+		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t), TagProbe: probe}); err != nil {
 			t.Fatalf("NewServer: %v", err)
 		}
 	})
@@ -423,7 +425,7 @@ func TestNewServer_StartupPreconditions(t *testing.T) {
 		cfg := minimalTestConfig(t)
 		cfg.Paths.InboxDir = filepath.Join(cfg.Paths.InboxDir, "does-not-exist")
 		roster := buildTestRoster(t)
-		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t)}); err == nil {
+		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t), TagProbe: probe}); err == nil {
 			t.Fatal("want an error when the same-filesystem precondition cannot even be checked")
 		}
 	})
@@ -432,8 +434,43 @@ func TestNewServer_StartupPreconditions(t *testing.T) {
 		cfg := minimalTestConfig(t)
 		cfg.Serve.BindAddrs = []string{"127.0.0.1", "10.89.0.1"}
 		roster := buildTestRoster(t)
-		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t), DevIdentity: testEmailAlice}); err == nil {
+		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t), DevIdentity: testEmailAlice, TagProbe: probe}); err == nil {
 			t.Fatal("want an error for a non-loopback bind address under --dev-identity")
+		}
+	})
+
+	// A Server built on NewEngine's fail-closed default would hold every
+	// main-lane upload unpromoted forever, staged directory and all, with
+	// no retry that could ever succeed. Refusing to start is the only
+	// honest answer.
+	t.Run("refuses to start without a tag-check probe", func(t *testing.T) {
+		cfg := minimalTestConfig(t)
+		roster := buildTestRoster(t)
+		if _, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t)}); err == nil {
+			t.Fatal("want an error when no tag-check probe was supplied")
+		}
+	})
+
+	t.Run("hands the supplied probe to the upload engine", func(t *testing.T) {
+		cfg := minimalTestConfig(t)
+		roster := buildTestRoster(t)
+		const wiredAlbum = "the wired probe ran"
+		var probedDir string
+		wired := stubTagProbe(TagProbeResult{Confident: true, Album: wiredAlbum}, nil, &probedDir)
+
+		srv, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t), TagProbe: wired})
+		if err != nil {
+			t.Fatalf("NewServer: %v", err)
+		}
+		got, err := srv.engine.tagProbe(t.Context(), cfg.Paths.UploadsDir)
+		if err != nil {
+			t.Fatalf("engine tag probe: %v", err)
+		}
+		if !got.Confident || got.Album != wiredAlbum {
+			t.Errorf("engine tag probe = %+v, want the supplied probe's confident match for %q", got, wiredAlbum)
+		}
+		if probedDir != cfg.Paths.UploadsDir {
+			t.Errorf("engine tag probe ran against %q, want %q", probedDir, cfg.Paths.UploadsDir)
 		}
 	})
 }

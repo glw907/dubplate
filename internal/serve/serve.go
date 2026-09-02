@@ -52,6 +52,13 @@ type NewServerDeps struct {
 	DevIdentity string
 	// Now stands in for time.Now; the zero value uses the real clock.
 	Now func() time.Time
+	// TagProbe is the custody-policy tag-check probe every main-lane
+	// session must pass before promotion (see [TagProbeFunc]).
+	// cmd/dubplate/serve.go builds it over
+	// [github.com/glw907/dubplate/internal/beets.Runner.Probe].
+	// [NewServer] requires it: unlike [NewEngine], a composition root
+	// has no business falling back to a probe that can only ever fail.
+	TagProbe TagProbeFunc
 }
 
 // nudgeTriggerSubdir is the directory under [config.Paths.TriggerDir]
@@ -104,12 +111,20 @@ func mountBasePath(next http.Handler) http.Handler {
 // owns, all behind [enforceAccess]. It refuses to start -- returning an
 // error rather than a partially built Server -- when --dev-identity is
 // set against a non-loopback bind address (N/A in production, real in a
-// misconfigured dev run) or when UploadsDir and InboxDir do not share a
+// misconfigured dev run), when UploadsDir and InboxDir do not share a
 // filesystem (the atomic-promotion precondition promote's doc comment
-// depends on).
+// depends on), or when no [NewServerDeps.TagProbe] was supplied. That
+// last refusal is what keeps a real deployment off [NewEngine]'s
+// fail-closed [unavailableTagProbe] default: a server running on it
+// would take every main-lane upload, hold it unpromoted forever, and
+// leave its staged directory behind, with no retry that could ever
+// succeed.
 func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*Server, error) {
 	if err := validateDevIdentity(deps.DevIdentity, cfg.Serve.BindAddrs); err != nil {
 		return nil, err
+	}
+	if deps.TagProbe == nil {
+		return nil, errors.New("serve startup: no tag-check probe configured")
 	}
 	if err := sameFilesystem(cfg.Paths.UploadsDir, cfg.Paths.InboxDir); err != nil {
 		return nil, fmt.Errorf("serve startup: uploads and inbox must share a filesystem: %w", err)
@@ -132,6 +147,7 @@ func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*S
 	engine, err := NewEngine(cfg, roster, Options{
 		Now:         deps.Now,
 		OnPromoted:  func(sessionID, _ string) { writeNudgeTrigger(triggerDir, sessionID) },
+		TagProbe:    deps.TagProbe,
 		TusBasePath: basePath + filesBasePath,
 	})
 	if err != nil {

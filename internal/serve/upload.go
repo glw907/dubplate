@@ -101,18 +101,20 @@ type TagProbeResult struct {
 }
 
 // ErrTagProbeUnavailable is the error the zero-value [Options.TagProbe]
-// always returns: until U8's beets matcher probe is wired in (production
-// wiring is cmd/dubplate/serve.go's job, not this package's), every
-// main-lane session completion holds unpromoted rather than promoting an
-// unconfirmed match -- the custody policy's fail-closed default, not a
-// bug to work around with a permissive stub.
+// always returns: an Engine built without a probe holds every main-lane
+// session unpromoted rather than promoting an unconfirmed match -- the
+// custody policy's fail-closed default, not a bug to work around with a
+// permissive stub. It is a default for a test that does not care about
+// the probe, never a production state: [NewServer] refuses to build a
+// Server at all without a real [NewServerDeps.TagProbe].
 var ErrTagProbeUnavailable = errors.New("serve: tag-check probe not configured")
 
 // TagProbeFunc runs the custody-policy tag-check probe against a staged
-// session's assembled directory (U8's beets-matcher PROBE mode) and
-// reports whether it found a confident match. ctx bounds the probe's
-// MusicBrainz lookups. A non-nil error means the probe itself could not
-// run at all (MusicBrainz unreachable, for example) -- distinct from a
+// session's assembled directory: a dry beets matcher run
+// ([github.com/glw907/dubplate/internal/beets.Runner.Probe]) that
+// reports whether MusicBrainz confidently matched the album. ctx bounds
+// the probe's lookups. A non-nil error means the probe itself could not
+// run at all (MusicBrainz unreachable, beet missing) -- distinct from a
 // clean not-confident result, since [Engine.completeSession] holds a
 // probe-unavailable session with an honest retry-later state rather than
 // treating it the same as a considered rejection.
@@ -171,11 +173,13 @@ type Options struct {
 	// no-op, which every test in this package other than the nudge's own
 	// wants.
 	OnPromoted func(sessionID, dest string)
-	// TagProbe runs the custody-policy tag-check probe (U8's beets
-	// matcher PROBE mode) that every main-lane session must pass before
+	// TagProbe runs the custody-policy tag-check probe (the dry beets
+	// matcher run) that every main-lane session must pass before
 	// promotion. The zero value is [unavailableTagProbe], which always
-	// fails closed with [ErrTagProbeUnavailable] -- production wiring of
-	// the real probe is cmd/dubplate/serve.go's job, not NewEngine's.
+	// fails closed with [ErrTagProbeUnavailable] -- correct for a test
+	// exercising some other path, never for production, where
+	// [NewServer] requires a real probe before it will build a Server at
+	// all.
 	TagProbe TagProbeFunc
 	// PrivateCollection names the private lane's collection (the
 	// custody-policy decision's "Private Recordings" lane): a session
