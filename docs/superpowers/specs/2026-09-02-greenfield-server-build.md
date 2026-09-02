@@ -792,3 +792,16 @@ rather than as it occurs. An unadjudicated divergence blocks the
 launch gate, so adjudication batches are part of the critical path
 and are kept small and regular. Everything else that needs Geoff is
 batched questions at checkpoints.
+
+Sessions run in arcs (Geoff's process ruling, 2026-09-02, folded
+after rung 1): foundation (rung 1), evidence (2-4), spine (5-9),
+surfaces (10-14), launch (15-17), one session per arc with no clears
+or re-brainstorms inside one and a close-out (post-mortem, STATUS
+handoff) between. Plans stay just-in-time and are drafted and
+adversarially reviewed in the shadow of the previous rung's
+execution; front-loading plans is refused on the evidence that plan
+staleness was the review rounds' dominant defect class. Workflow mode
+is a standing grant for execution and prep across the whole build,
+with human questions batched and unblocked work continuing when the
+owner is unavailable. CLAUDE.md's "Build process" section carries the
+operational form every session and subagent loads.

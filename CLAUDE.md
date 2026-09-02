@@ -30,6 +30,37 @@ user-path page before any attended ask (`see-it-before-geoff-tests-it`).
   `docs/superpowers/`, migrated into the repo at T14; the dotfiles copies
   are pointers only).
 
+## Build process (greenfield initiative; ratified 2026-09-02)
+
+The build runs in session-scale ARCS, never one session per rung:
+foundation (rung 1), evidence (2-4), spine (5-9), surfaces (10-14),
+launch (15-17). Inside an arc: no session clears, no re-brainstorm.
+Between arcs: close the session, post-mortem, STATUS handoff.
+Canonical record: the build spec's Process section.
+
+**Standing grants (Geoff, 2026-09-02):** workflow mode for the whole
+build, execution and prep both; batch human questions into checkpoint
+bundles; when Geoff is unavailable, continue unblocked work rather
+than idling.
+
+**The conducting loop, per rung:** execute via the pass-execute chain
+with the runaway guard armed; prep the next rung's plan in a workflow
+only against a quiet tree (never launch agents into a mid-execution
+tree); land queued repo edits in one batch after the executor
+finishes; plans are just-in-time, never front-loaded (plan staleness
+is the proven dominant defect class). Review scales to rung risk:
+mechanical rungs ride the in-chain diff-reviewer; auth (5),
+streamer/SSO (12), and cutover (16) keep the full fresh-context
+adversarial cycle. Subagents cannot dispatch agents: never instruct
+an implementer to run `code-simplifier`; the conductor owns that
+dispatch.
+
+**Expected owner touchpoints, and only these:** rung-spec rulings
+(known ahead: rung 9's concurrency model), corpus and shadow
+adjudication batches (small and regular; an unadjudicated divergence
+blocks the launch gate), the rung 7 uploader before/after, and the
+rung 16 cutover sitting.
+
 ## Gate
 
 `bash scripts/check.sh` before every commit — `make check` (vet,

@@ -15,11 +15,12 @@ Remote: github.com/glw907/dubplate (private).
 
 ## Rules for a new session in this repo
 
-1. Read the rulings doc before anything: it carries the ratified
-   rulings (fresh build, universal, exemplary Go, launch bar,
-   server-before-TUI), approach A (spine + evidence tracks), the
-   reuse stance, and the input list for the spec.
-2. Governing architecture: the ratified build spec
+1. The rulings doc (research/2026-09-02-greenfield-server-rulings.md)
+   carries the ratified rulings and approach A; read it first.
+2. Process: the build runs in session-scale arcs per CLAUDE.md's
+   "Build process" section: one session per arc, no clears inside
+   one, plans just-in-time, workflow mode a standing grant.
+3. Governing architecture: the ratified build spec
    (docs/superpowers/specs/2026-09-02-greenfield-server-build.md,
    revision 2.1) owns the 17-rung ladder and supersedes the organizer
    spec's own build order; the organizer spec
@@ -28,9 +29,9 @@ Remote: github.com/glw907/dubplate (private).
    (2026-09-02-magic-link-login-design.md) is source material; its two
    reviews (research/2026-09-02-login-spec-reviews/) are auth birth
    requirements.
-3. Process rule (Geoff, 2026-09-02): specs go to Geoff for review
+4. Process rule (Geoff, 2026-09-02): specs go to Geoff for review
    BEFORE any adversarial review round or plan.
-4. The box is production for Geoff's own listening; quiet-box check
+5. The box is production for Geoff's own listening; quiet-box check
    before writes; the library and beets DB stay protected by the
    timers and R2 backups throughout the build.
 
