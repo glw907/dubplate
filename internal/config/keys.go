@@ -26,7 +26,18 @@ var ownedWall = []WallRow{
 
 // OwnedWall returns the owned wall's rows in table order.
 func OwnedWall() []WallRow {
-	return clone(ownedWall)
+	return slices.Clone(ownedWall)
+}
+
+// ownedNow reports whether name is an owned row [Load] requires now,
+// as opposed to a row still carrying a Pending status.
+func ownedNow(name string) bool {
+	for _, row := range ownedWall {
+		if row.Name == name {
+			return row.Pending == ""
+		}
+	}
+	return false
 }
 
 // ReservedClass is one named class of configuration the wall
@@ -132,7 +143,7 @@ var reservedClasses = []ReservedClass{
 
 // ReservedClasses returns the reserved classes in table order.
 func ReservedClasses() []ReservedClass {
-	return clone(reservedClasses)
+	return slices.Clone(reservedClasses)
 }
 
 // reservedClassOf reports the class name belongs to, if any.

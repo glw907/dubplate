@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 )
 
@@ -30,7 +31,7 @@ func Register(t Threshold) {
 
 // Thresholds returns the registered tunables in registration order.
 func Thresholds() []Threshold {
-	return clone(registeredThresholds)
+	return slices.Clone(registeredThresholds)
 }
 
 // ParseInt resolves t as an integer against environ: t.Default's own

@@ -45,9 +45,11 @@ func newRootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	cmd.AddCommand(newVersionCmd())
-	cmd.AddCommand(newCheckCmd(os.Environ(), os.Stdout, os.Stderr))
-	cmd.AddCommand(newDoctorCmd(os.Environ(), os.Stdout, os.Stderr))
+	cmd.AddCommand(
+		newVersionCmd(),
+		newCheckCmd(os.Environ(), os.Stdout, os.Stderr),
+		newDoctorCmd(os.Environ(), os.Stdout, os.Stderr),
+	)
 	return cmd
 }
 

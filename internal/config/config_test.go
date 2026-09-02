@@ -198,15 +198,8 @@ func TestLoad_TemplateKeysClassified(t *testing.T) {
 		t.Fatal("templateKeys found no DUBPLATE_* names; template path or format changed")
 	}
 
-	owned := make(map[string]bool, len(ownedWall))
-	for _, row := range ownedWall {
-		if row.Pending == "" {
-			owned[row.Name] = true
-		}
-	}
-
 	for _, name := range names {
-		if owned[name] {
+		if ownedNow(name) {
 			continue
 		}
 		if _, ok := reservedClassOf(name); ok {

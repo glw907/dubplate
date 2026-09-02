@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"io"
@@ -26,36 +27,30 @@ func newDoctorCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(*cobra.Command, []string) error {
-			_, err := config.Load(environ)
-			statuses := rowStatuses(err)
+			_, loadErr := config.Load(environ)
+			statuses := rowStatuses(loadErr)
 
 			for _, row := range config.OwnedWall() {
-				status := "ok"
-				switch {
-				case row.Pending != "":
-					status = row.Pending
-				case statuses[row.Name] != "":
-					status = statuses[row.Name]
-				}
-				if werr := printRow(stdout, row.Name, status); werr != nil {
-					return werr
+				status := cmp.Or(row.Pending, statuses[row.Name], "ok")
+				if err := printRow(stdout, row.Name, status); err != nil {
+					return err
 				}
 			}
 
 			for _, class := range config.ReservedClasses() {
 				status := fmt.Sprintf("disabled (arrives at rung %d)", class.Rung)
-				if werr := printRow(stdout, class.Name, status); werr != nil {
-					return werr
+				if err := printRow(stdout, class.Name, status); err != nil {
+					return err
 				}
 			}
 
 			for _, th := range config.Thresholds() {
-				if werr := printRow(stdout, th.Key, thresholdStatus(environ, th)); werr != nil {
-					return werr
+				if err := printRow(stdout, th.Key, thresholdStatus(environ, th)); err != nil {
+					return err
 				}
 			}
 
-			if err != nil {
+			if loadErr != nil {
 				return errors.New("configuration is incomplete")
 			}
 			return nil

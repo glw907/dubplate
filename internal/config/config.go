@@ -44,12 +44,6 @@ import (
 	"strings"
 )
 
-// clone returns a copy of s, so an accessor can hand out a package
-// table without letting the caller mutate the backing array.
-func clone[T any](s []T) []T {
-	return append([]T(nil), s...)
-}
-
 // ErrMissing marks a required wall row Load found unset. Load wraps it
 // once per missing row and joins every wrap with [errors.Join], so a
 // caller such as the doctor subcommand can report the complete list
@@ -137,15 +131,8 @@ func (w *wall) requireEmail(name string) string {
 // unknown. Owned rows are validated by their own require calls, not
 // here, so a valid owned value is never flagged.
 func (w *wall) rejectNamespace() {
-	owned := make(map[string]bool, len(ownedWall))
-	for _, row := range ownedWall {
-		if row.Pending == "" {
-			owned[row.Name] = true
-		}
-	}
-
 	for name := range w.env {
-		if !strings.HasPrefix(name, "DUBPLATE_") || owned[name] {
+		if !strings.HasPrefix(name, "DUBPLATE_") || ownedNow(name) {
 			continue
 		}
 		if _, ok := w.get(name); !ok {
