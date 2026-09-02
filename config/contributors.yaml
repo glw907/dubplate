@@ -1,7 +1,6 @@
-# Family members of the dubplate library. Drives FileBrowser accounts
-# (pass 1), the Access allow-list, Navidrome accounts, and the
-# quality-gate notification map. Names and emails are config, not
-# secrets; passwords never live here.
+# Family members of the dubplate library. Drives the Access allow-list,
+# Navidrome accounts, and the quality-gate notification map. Names and
+# emails are config, not secrets; passwords never live here.
 #
 # `name` IS the contributor's inbox directory name (inbox/<name>/) —
 # dubplate's roster matching (internal/config.Roster) matches them as equal

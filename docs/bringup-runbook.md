@@ -65,8 +65,8 @@ read `.claude/instructions/api-access.md` for which token covers which
 call. `$CF_ZT_TOKEN` and `$CLOUDFLARE_API_TOKEN` are both sourced from
 `~/.local/secrets`; account id `120c269ad6d3dfbe6d63a0bb53758ca0`, zone
 `907.life`. Goal: `dubplate serve` reachable through Access at a real
-hostname, `/api/*` verified end to end, FileBrowser still up (it retires
-in U12b, not here).
+hostname, `/api/*` verified end to end. (At the time of this step the
+interim file-manager inbox was still up; U12b retired it.)
 
 **Live estate facts (decided, not operator choices):** the uploader has
 no hostname of its own — it lives at `https://music.907.life/upload`,
@@ -256,10 +256,10 @@ below gives the creation recipe for a genuine rebuild only).
    curl -N -X POST https://music.907.life/upload/api/stream/probe \
      -H "Cf-Access-Jwt-Assertion: <token from the browser session>"
    ```
-8. **FileBrowser stays up.** Nothing about its compose service,
-   `inbox.907.life`'s Access app, or its env vars changes in this step —
-   U12b retires it later, once Pass B ships and Geoff has verified the
-   real page on his own devices.
+8. **Interim inbox unchanged in this step.** The file-manager compose
+   service, `inbox.907.life`'s Access app, and its env vars were left
+   alone here; U12b retired all three once Pass B shipped and Geoff
+   verified the real page on his own devices.
 9. **Ledgers.** Update `docs/STATUS.md` (serve deployed and reachable
    through Access at `music.907.life/upload`, port `8090`, JSON API
    verified) and `docs/HISTORY.md` with this step's outcome; commit with

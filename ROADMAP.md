@@ -11,7 +11,8 @@
 
 ### Uploader `uploader`
 The estate's one user-facing surface: `dubplate serve` + a bespoke Svelte 5 /
-DaisyUI page replacing FileBrowser — album-unit validation at upload, an honest
+DaisyUI page replacing the interim file-manager inbox (retired at U12b) —
+album-unit validation at upload, an honest
 journey to "in your library", a collections picker, kind rejection copy. Spec:
 `docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md`; plan:
 `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`. Pass A (backend)

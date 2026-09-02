@@ -12,10 +12,6 @@
         "service": "http://navidrome:4533"
       },
       {
-        "hostname": "inbox.907.life",
-        "service": "http://filebrowser:80"
-      },
-      {
         "service": "http_status:404"
       }
     ]

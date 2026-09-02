@@ -316,12 +316,12 @@ echo "== /etc/dubplate/contributors.yaml =="
 deploy_file "$REPO_ROOT/config/contributors.yaml" /etc/dubplate/contributors.yaml 0640 root:music
 
 # --- state directories for bind-mounted volumes -------------------------
-# Docker creates a missing bind-mount source itself, but as root:root; both
-# navidrome and filebrowser run as 2000:2000 (compose.yaml) and would then be
-# unable to write their own databases on first start. Pre-creating with the
-# right ownership makes the first `up -d` on a fresh box work the same as
+# Docker creates a missing bind-mount source itself, but as root:root;
+# navidrome runs as 2000:2000 (compose.yaml) and would then be unable to
+# write its own database on first start. Pre-creating with the right
+# ownership makes the first `up -d` on a fresh box work the same as
 # every later one.
-STATE_DIRS="/srv/music/state/navidrome /srv/music/state/filebrowser"
+STATE_DIRS="/srv/music/state/navidrome"
 echo "== state directories ($STATE_DIRS) =="
 run_remote "mkdir -p $STATE_DIRS && chown 2000:2000 $STATE_DIRS"
 

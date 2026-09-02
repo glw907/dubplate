@@ -1,6 +1,6 @@
-# dubplate service stack: Navidrome (streaming), FileBrowser Quantum (the
-# upload inbox), and cloudflared (the only way either is reachable from the
-# internet — neither service publishes a host port). Every image tag below
+# dubplate service stack: Navidrome (streaming) and cloudflared (the only
+# way it is reachable from the internet — Navidrome publishes no host
+# port beyond loopback). Every image tag below
 # is pinned to a real release, looked up and dated in docs/STATUS.md; no
 # `latest`, no auto-updater. Every bind mount carries the SELinux `:Z`
 # relabel the box's enforcing SELinux requires (global constraint).
@@ -58,34 +58,17 @@ services:
     ports:
       - "127.0.0.1:4533:4533"
 
-  filebrowser:
-    image: gtstef/filebrowser:1.5.5-stable
-    restart: unless-stopped
-    user: "2000:2000"
-    environment:
-      # Secret: FileBrowser's first-run admin bootstrap password. Without it
-      # the built-in default fails our own auth.methods.password.minLength: 8
-      # policy (config/filebrowser.yaml) and the container crash-loops. Task 8
-      # replaces it with per-contributor accounts.
-      FILEBROWSER_ADMIN_PASSWORD: ${FILEBROWSER_ADMIN_PASSWORD}
-    volumes:
-      - /srv/music/inbox:/srv/music/inbox:Z
-      - /srv/music/state/filebrowser:/home/filebrowser/data:Z
-      - ./config/filebrowser.yaml:/home/filebrowser/data/config.yaml:ro,Z
-    expose:
-      - "80"
-
   cloudflared:
     image: cloudflare/cloudflared:2026.8.2
     restart: unless-stopped
     # No local --config: a token-run tunnel is remotely managed, so a local
     # ingress file would be silently ignored (cloudflare/cloudflared issues
-    # #633, #933, #1520). The real ingress rules (music.907.life ->
-    # navidrome:4533, inbox.907.life -> filebrowser:80, the uploader
-    # hostname -> http://host.docker.internal:<DUBPLATE_SERVE_PORT>, 404
-    # catch-all) are applied against the Cloudflare API once the tunnel
-    # exists — see config/cloudflared-tunnel-config.json, applied by Task 5
-    # and (for the uploader hostname) U12a.
+    # #633, #933, #1520). The real ingress rules (the path-scoped uploader
+    # rule -> http://host.docker.internal:<DUBPLATE_SERVE_PORT>,
+    # music.907.life -> navidrome:4533, 404 catch-all) are applied against
+    # the Cloudflare API — see config/cloudflared-tunnel-config.json,
+    # applied by Task 5, U12a (uploader path rule), and U12b (inbox
+    # hostname retired with the interim file-manager inbox).
     command: tunnel --no-autoupdate run
     environment:
       # Secret: minted when Task 5 creates the named tunnel via the
@@ -111,7 +94,6 @@ services:
       - "host.docker.internal:172.30.0.1"
     depends_on:
       - navidrome
-      - filebrowser
 
 # U12a (plan-time decision): pins the compose bridge network's subnet so
 # its gateway IP is a stable, known value (172.30.0.1) rather than

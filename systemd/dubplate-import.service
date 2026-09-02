@@ -46,8 +46,8 @@ ProtectSystem=strict
 # a file actually needs quarantining -- so a narrower per-subtree
 # ReadWritePaths would need deploy.sh to pre-create a directory the design
 # intentionally leaves absent, which is out of this change's scope. This
-# does grant write access to /srv/music/state/navidrome and .../filebrowser
-# too, which import never touches; that is a wider blast radius than
+# does grant write access to /srv/music/state/navidrome too, which import
+# never touches; that is a wider blast radius than
 # dubplate-backup.service's leaf-only grant, but it is not a regression --
 # music-import.service granted the identical /srv/music before it. Narrowing
 # this is a follow-up, not a T13 requirement.
