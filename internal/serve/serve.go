@@ -129,22 +129,34 @@ func securityHeaders(next http.Handler) http.Handler {
 
 // requireSameOrigin wraps next with dubplate serve's CSRF defense: any
 // request whose method can change state (anything but GET/HEAD) must
-// carry a same-origin signal, or it never reaches next. Origin is
-// checked first (compared against r.Host, so this works identically in
-// dev and behind the real hostname, with no separate configured-origin
-// value to keep in sync); a request with no Origin header falls back to
-// Sec-Fetch-Site, honored only when it reads exactly "same-origin". A
-// request bearing neither is refused too: a real same-origin fetch or
-// form POST from any browser recent enough to matter here always sends
-// at least one of the two, so a request with neither has nothing this
-// check could ever have verified. See the OWASP CSRF Prevention Cheat
-// Sheet's "Verifying Origin With Standard Headers" section; this is not
-// a substitute for the Access assertion enforceAccess still requires on
-// every request, only the missing check for the assertion's own cookie
-// riding along uninvited.
+// carry a same-origin signal, or it never reaches next. Sec-Fetch-Site is
+// checked first, and honored on its own whenever it reads exactly
+// "same-origin": the browser sets it relative to the page that initiated
+// the request, so it stays correct through web/vite.config.ts's dev
+// proxy, which rewrites Host (changeOrigin: true) but never touches this
+// header or Origin. A request with no Sec-Fetch-Site (an older browser,
+// or a same-origin form POST, which does not send it) falls back to
+// Origin compared against r.Host -- correct behind the real hostname,
+// where nothing rewrites Host, but this is also why Sec-Fetch-Site must
+// be checked first: through the dev proxy, Origin still names the Vite
+// dev server (http://localhost:5173) while r.Host has already been
+// rewritten to the proxied backend, so an Origin-only check would 403
+// every dev POST/PATCH. A request bearing neither header is refused too:
+// a real same-origin fetch or form POST from any browser recent enough
+// to matter here always sends at least one of the two, so a request with
+// neither has nothing this check could ever have verified. See the OWASP
+// CSRF Prevention Cheat Sheet's "Verifying Origin With Standard Headers"
+// section; this is not a substitute for the Access assertion
+// enforceAccess still requires on every request, only the missing check
+// for the assertion's own cookie riding along uninvited.
 func requireSameOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet || r.Method == http.MethodHead {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if r.Header.Get("Sec-Fetch-Site") == "same-origin" {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -155,11 +167,6 @@ func requireSameOrigin(next http.Handler) http.Handler {
 				http.Error(w, "cross-origin request refused", http.StatusForbidden)
 				return
 			}
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		if r.Header.Get("Sec-Fetch-Site") == "same-origin" {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -211,6 +218,7 @@ func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*S
 		OnPromoted:  func(sessionID, _ string) { writeNudgeTrigger(triggerDir, sessionID) },
 		TagProbe:    deps.TagProbe,
 		TusBasePath: basePath + filesBasePath,
+		Ledger:      l,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("serve: build upload engine: %w", err)

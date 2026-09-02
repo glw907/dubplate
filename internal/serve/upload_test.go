@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/ledger"
 )
 
 const (
@@ -370,9 +371,17 @@ func TestOwnership_CrossUserTerminateDenied404(t *testing.T) {
 // of its own, so a path shaped like "..%2f<name>" survives Go's
 // ServeMux and http.StripPrefix (neither is path-segment aware over the
 // already-decoded r.URL.Path) all the way to enforceUploadOwnership
-// unless this layer's own shape check stops it.
+// unless this layer's own shape check stops it. It plants a real tusd
+// ".info" file one directory above te.uploadsDir -- exactly where
+// filestore's own filepath.Join(store.Path, id+".info") lands for
+// id="../zzprobe" -- naming testEmailAlice as the upload's owner, so a
+// 404 here can only be uploadIDPattern's own shape check running before
+// the store is ever consulted; without a real target planted there, a
+// 404 would just as easily mean GetUpload failing on a path nothing
+// occupies, proving nothing about the guard.
 func TestOwnership_TraversalUploadIDRejected404(t *testing.T) {
 	te := newTestEngine(t, nil)
+	plantTraversalPoCUpload(t, te)
 
 	paths := []string{
 		te.server.URL + "/files/..%2fzzprobe",
@@ -394,6 +403,39 @@ func TestOwnership_TraversalUploadIDRejected404(t *testing.T) {
 		if resp.StatusCode != http.StatusNotFound {
 			t.Fatalf("HEAD %s: status = %d, want 404", p, resp.StatusCode)
 		}
+	}
+}
+
+// plantTraversalPoCUpload writes a real, syntactically valid tusd
+// filestore upload (an ".info" JSON file plus its backing blob) one
+// directory above te.uploadsDir, owned by testEmailAlice: the target
+// [TestOwnership_TraversalUploadIDRejected404]'s "..%2fzzprobe" and
+// "%2e%2e%2fzzprobe" paths decode to once http.StripPrefix and
+// enforceUploadOwnership's own strings.Trim have run. "Path" is
+// filestore.StorageKeyPath's wire value, not imported here to avoid
+// pulling the filestore package into this test file for one string
+// constant.
+func plantTraversalPoCUpload(t *testing.T, te *testEngine) {
+	t.Helper()
+
+	blobPath := filepath.Join(te.uploadsDir, "zzprobe-blob")
+	if err := os.WriteFile(blobPath, []byte("poc"), 0o644); err != nil {
+		t.Fatalf("write poc blob: %v", err)
+	}
+	info := map[string]any{
+		"ID":       "zzprobe-blob",
+		"Size":     3,
+		"Offset":   0,
+		"MetaData": map[string]string{"email": testEmailAlice},
+		"Storage":  map[string]string{"Path": blobPath},
+	}
+	data, err := json.Marshal(info)
+	if err != nil {
+		t.Fatalf("marshal poc info: %v", err)
+	}
+	infoPath := filepath.Join(filepath.Dir(te.uploadsDir), "zzprobe.info")
+	if err := os.WriteFile(infoPath, data, 0o644); err != nil {
+		t.Fatalf("write poc info: %v", err)
 	}
 }
 
@@ -766,15 +808,16 @@ func TestSweepOnce_FreshSessionSurvives(t *testing.T) {
 	}
 }
 
-// TestSweepOnce_ReclaimsCompletedSessionFromStoreAndDisk proves F2.3's
-// fix on both halves: a completed session's Store entry is forgotten
-// once settleGrace has passed even though it is not "expired" in
-// [Store.expired]'s sense, and its leftover on-disk directory (here, a
-// pushed-back album -- the tag-check probe wasn't confident, so the
-// content is held rather than discarded) survives until it clears
-// PartialTTL, then is reclaimed by the same filesystem-driven pass that
-// makes [Engine.sweepOrphans] restart-safe.
-func TestSweepOnce_ReclaimsCompletedSessionFromStoreAndDisk(t *testing.T) {
+// TestSweepOnce_PushedBackSessionSurvivesSettleGraceUntilPartialTTL
+// proves F2.3's fix's slow half: a pushed-back session (the tag-check
+// probe wasn't confident, so the content is held rather than discarded)
+// never reaches the importer, so no ledger event for it will ever exist.
+// Its Store entry must therefore survive settleGrace -- api.go:284's "a
+// poll that lands after the tab reloads" promise depends on it -- and is
+// forgotten only once it clears PartialTTL, the same backstop an
+// abandoned session gets. Its on-disk directory follows the same
+// PartialTTL-then-sweepOrphans path either way.
+func TestSweepOnce_PushedBackSessionSurvivesSettleGraceUntilPartialTTL(t *testing.T) {
 	te := newTestEngineWithOptions(t, nil, Options{
 		TagProbe: alwaysUnconfidentTagProbe,
 	})
@@ -791,21 +834,76 @@ func TestSweepOnce_ReclaimsCompletedSessionFromStoreAndDisk(t *testing.T) {
 		t.Fatalf("pushed-back session directory missing before sweep: %v", err)
 	}
 
-	// Just past settleGrace, well inside PartialTTL: the Store entry is
-	// forgotten, but the directory is untouched -- it is not yet old
-	// enough for sweepOrphans' own, much longer retention window.
+	// Just past settleGrace, well inside PartialTTL: with no ledger event
+	// ever coming for a pushed-back session, both the Store entry and the
+	// directory survive.
 	te.engine.SweepOnce(te.now.Add(settleGrace + time.Second))
-	if _, ok := te.engine.sessions.get(sessID); ok {
-		t.Fatal("completed session still present in the store past settleGrace")
+	if _, ok := te.engine.sessions.get(sessID); !ok {
+		t.Fatal("pushed-back session forgotten from the store before it had a ledger event or cleared PartialTTL")
 	}
 	if _, err := os.Stat(sessDir); err != nil {
 		t.Fatalf("pushed-back directory swept before it cleared PartialTTL: %v", err)
 	}
 
-	// Past PartialTTL: sweepOrphans reclaims the now-unclaimed directory.
+	// Past PartialTTL: the Store entry is forgotten unconditionally, and
+	// sweepOrphans reclaims the now-unclaimed directory.
 	te.engine.SweepOnce(te.now.Add(te.cfg.Upload.PartialTTL + time.Minute))
+	if _, ok := te.engine.sessions.get(sessID); ok {
+		t.Fatal("pushed-back session still present in the store past PartialTTL")
+	}
 	if _, err := os.Stat(sessDir); !os.IsNotExist(err) {
 		t.Fatalf("pushed-back directory still present past PartialTTL: err=%v", err)
+	}
+}
+
+// TestSweepOnce_ReclaimsSettledSessionEarlyOnceLedgerConfirms proves
+// F2.3's fix's fast half: once the importer's own ledger carries a
+// terminal event for a completed session, [Engine.settledInLedger]
+// confirms it and the Store entry is forgotten past settleGrace, well
+// before PartialTTL -- the reclaim [TestSweepOnce_PushedBackSessionSurvivesSettleGraceUntilPartialTTL]'s
+// pushed-back session is denied because no ledger event ever comes for
+// it.
+func TestSweepOnce_ReclaimsSettledSessionEarlyOnceLedgerConfirms(t *testing.T) {
+	l, err := ledger.Open(filepath.Join(t.TempDir(), "contributions.jsonl"))
+	if err != nil {
+		t.Fatalf("ledger.Open: %v", err)
+	}
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: alwaysConfidentTagProbe,
+		Ledger:   l,
+	})
+	sessID := te.createSession(t, "Promoted Album", "", 1)
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("upload: status %d", resp.StatusCode)
+	}
+
+	// Just past settleGrace, well inside PartialTTL: with no ledger event
+	// yet, the entry survives exactly like the pushed-back case.
+	te.engine.SweepOnce(te.now.Add(settleGrace + time.Second))
+	if _, ok := te.engine.sessions.get(sessID); !ok {
+		t.Fatal("promoted session forgotten before it had a terminal ledger event")
+	}
+
+	// The importer appends its own terminal event once it reviews the
+	// promoted directory; SweepOnce now confirms it and forgets the entry
+	// well before PartialTTL.
+	if err := l.Append(ledger.Event{
+		SessionID: sessID,
+		Email:     testEmailAlice,
+		Album:     "Promoted Album",
+		State:     ledger.StateReview,
+		At:        te.now,
+	}); err != nil {
+		t.Fatalf("append ledger event: %v", err)
+	}
+
+	te.engine.SweepOnce(te.now.Add(settleGrace + 2*time.Second))
+	if _, ok := te.engine.sessions.get(sessID); ok {
+		t.Fatal("promoted session still present in the store once the ledger confirmed it settled")
 	}
 }
 

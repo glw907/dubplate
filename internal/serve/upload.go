@@ -34,6 +34,8 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/gate"
 	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/journey"
+	"github.com/glw907/dubplate/internal/ledger"
 	"github.com/glw907/dubplate/internal/reject"
 )
 
@@ -153,6 +155,7 @@ type Engine struct {
 	onPromoted        func(sessionID, dest string)
 	tagProbe          TagProbeFunc
 	privateCollection string
+	ledger            *ledger.Ledger
 }
 
 // Options carries Engine's construction seams: the test seams (a clock,
@@ -199,6 +202,17 @@ type Options struct {
 	// (every test in this package). [NewServer] mounts it under
 	// [basePath] instead and sets this to basePath+filesBasePath.
 	TusBasePath string
+	// Ledger is the same contributions ledger [JourneyDeps.Ledger] reads:
+	// [Engine.SweepOnce] queries it to tell a session the importer has
+	// already settled (a terminal event exists) from one it never will
+	// (rejected, pushed back, or probe-unavailable -- none of which ever
+	// reach the importer). The zero value is nil, which
+	// [Engine.settledInLedger] treats as "never settled": every completed
+	// session then waits out [config.UploadConfig.PartialTTL] before its
+	// Store entry is forgotten, safe for a test that does not exercise
+	// this path but wrong for production, where [NewServer] always wires
+	// the real ledger.
+	Ledger *ledger.Ledger
 }
 
 // NewEngine builds an Engine backed by a tus filestore rooted at
@@ -245,6 +259,7 @@ func NewEngine(cfg *config.Config, roster config.Roster, opts Options) (*Engine,
 		onPromoted:        opts.OnPromoted,
 		tagProbe:          opts.TagProbe,
 		privateCollection: opts.PrivateCollection,
+		ledger:            opts.Ledger,
 	}
 
 	tusCfg := thandler.Config{
@@ -791,29 +806,55 @@ func (e *Engine) discard(sess *Session) {
 	}
 }
 
-// settleGrace bounds how long a completed session's [Store] entry
-// survives after [Engine.completeSession] sets its outcome: long enough
-// for the contributor's 5s journey poll (api.go) to read the final state
-// back at least once, short enough that a completed session is never
-// permanently resident the way F2.3 found it was. Reclaiming any
-// leftover on-disk directory a completed session left behind (pushed-
-// back, probe-unavailable, or a failed promote) is [sweepOrphans]'
-// separate, much longer job, keyed to [config.UploadConfig.PartialTTL]
-// like every other partial-upload retention decision.
+// settleGrace bounds how long a completed session's [Store] entry can be
+// forgotten early, past its usual [config.UploadConfig.PartialTTL] wait:
+// long enough for the contributor's 5s journey poll (api.go) to read the
+// final state back at least once, once [Engine.settledInLedger] confirms
+// the importer has already recorded that same final state durably. A
+// session settledInLedger will never confirm -- rejected, pushed back,
+// or probe-unavailable, none of which ever reach the importer -- gets no
+// early reprieve: api.go:284's "a poll that lands after the tab reloads"
+// promise depends on the live Store, the only place those three outcomes
+// are ever recorded, surviving until [SweepOnce]'s PartialTTL fallback
+// instead. Reclaiming any leftover on-disk directory a completed session
+// left behind is [sweepOrphans]' separate, much longer job either way.
 const settleGrace = 2 * time.Minute
+
+// settledInLedger reports whether sessionID already carries a terminal
+// ledger event (see [journey.Terminal]): the importer's own durable
+// settlement record, once it exists, is what lets [SweepOnce] forget the
+// session's live [Store] entry after [settleGrace] instead of waiting
+// out the full PartialTTL fallback. A nil ledger (no test in this
+// package wires one unless it targets this path) reports false, the safe
+// default -- [SweepOnce] then only ever forgets the session through the
+// PartialTTL fallback, same as before this method existed.
+func (e *Engine) settledInLedger(sessionID string) bool {
+	if e.ledger == nil {
+		return false
+	}
+	events, err := e.ledger.Session(sessionID)
+	if err != nil {
+		slog.Error("sweep: read ledger for settled session", "session_id", sessionID, "err", err)
+		return false
+	}
+	return len(events) > 0 && journey.Terminal(events[0].State)
+}
 
 // SweepOnce reclaims every session past its retention window, in two
 // passes. First, the live [Store]: an abandoned, never-completed session
-// older than [config.UploadConfig.PartialTTL] is forgotten entirely, and
-// a completed session past [settleGrace] is forgotten from the map (its
-// own disk content, if any survives it, is the second pass's job, not
-// this one's). Second, [Engine.sweepOrphans] scans UploadsDir directly
-// rather than the map, so it also reclaims what no map entry could ever
-// point it to: a completed session's leftover directory once it clears
-// PartialTTL, and -- the only version of this sweep that is correct
-// across a restart -- anything a prior process's Store forgot the moment
-// it exited. It returns how many sessions the first, map-driven pass
-// swept.
+// older than [config.UploadConfig.PartialTTL] is forgotten entirely; a
+// completed session past [settleGrace] is forgotten early only once
+// [Engine.settledInLedger] confirms the importer has durably recorded its
+// outcome, and every completed session -- settled in the ledger or not --
+// is forgotten unconditionally once it too clears PartialTTL, the same
+// backstop an abandoned session gets (its own disk content, if any
+// survives it, is the second pass's job, not this one's). Second,
+// [Engine.sweepOrphans] scans UploadsDir directly rather than the map, so
+// it also reclaims what no map entry could ever point it to: a completed
+// session's leftover directory once it clears PartialTTL, and -- the only
+// version of this sweep that is correct across a restart -- anything a
+// prior process's Store forgot the moment it exited. It returns how many
+// sessions the first, map-driven pass swept for abandonment.
 func (e *Engine) SweepOnce(now time.Time) int {
 	cutoff := now.Add(-e.cfg.Upload.PartialTTL)
 
@@ -822,6 +863,11 @@ func (e *Engine) SweepOnce(now time.Time) int {
 		e.sessions.delete(sess.ID)
 	}
 	for _, sess := range e.sessions.settled(now.Add(-settleGrace)) {
+		if e.settledInLedger(sess.ID) {
+			e.sessions.delete(sess.ID)
+		}
+	}
+	for _, sess := range e.sessions.settled(cutoff) {
 		e.sessions.delete(sess.ID)
 	}
 

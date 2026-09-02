@@ -202,6 +202,19 @@ func TestRequireSameOrigin(t *testing.T) {
 			http.StatusForbidden,
 		},
 		{
+			// web/vite.config.ts's dev proxy runs with changeOrigin: true,
+			// which rewrites Host to the proxied backend but leaves Origin
+			// naming the Vite dev server and Sec-Fetch-Site untouched --
+			// exactly this shape. F2.6's fix checks Sec-Fetch-Site first so
+			// this still passes instead of 403ing every dev POST/PATCH.
+			"POST through the dev proxy: Sec-Fetch-Site same-origin passes despite a mismatched Origin",
+			newReq(http.MethodPost, "localhost:8080", func(r *http.Request) {
+				r.Header.Set("Origin", "http://localhost:5173")
+				r.Header.Set("Sec-Fetch-Site", "same-origin")
+			}),
+			http.StatusTeapot,
+		},
+		{
 			"POST with neither header is refused",
 			newReq(http.MethodPost, "music.example.com", nil),
 			http.StatusForbidden,
