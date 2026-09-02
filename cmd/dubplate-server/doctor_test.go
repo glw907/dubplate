@@ -1,0 +1,116 @@
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/glw907/dubplate/internal/config"
+)
+
+func TestDoctorCmd(t *testing.T) {
+	tests := []struct {
+		name         string
+		environ      []string
+		wantErr      bool
+		rowOverrides map[string]string // owned row name -> expected status, overriding "ok"
+	}{
+		{
+			name:    "full valid wall",
+			environ: baseEnviron(),
+			wantErr: false,
+		},
+		{
+			name:    "missing two keys",
+			environ: dropKey(dropKey(baseEnviron(), "DUBPLATE_LIBRARY_ROOT"), "DUBPLATE_SITE_NAME"),
+			wantErr: true,
+			rowOverrides: map[string]string{
+				"DUBPLATE_LIBRARY_ROOT": "missing",
+				"DUBPLATE_SITE_NAME":    "missing",
+			},
+		},
+		{
+			name: "bad ADMIN_EMAIL",
+			environ: append(dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
+				"DUBPLATE_ADMIN_EMAIL=not-an-address"),
+			wantErr: true,
+			rowOverrides: map[string]string{
+				"DUBPLATE_ADMIN_EMAIL": "invalid: ",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(tt.environ, &stdout, &stderr)
+			err := cmd.Execute()
+
+			if tt.wantErr && err == nil {
+				t.Fatal("Execute() error = nil, want error")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("Execute() error = %v, want nil", err)
+			}
+
+			lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
+			li := 0
+
+			for _, row := range config.OwnedWall() {
+				want := "ok"
+				switch {
+				case row.Pending != "":
+					want = row.Pending
+				case tt.rowOverrides[row.Name] != "":
+					want = tt.rowOverrides[row.Name]
+				}
+				if li >= len(lines) {
+					t.Fatalf("stdout ran out of lines before owned row %s", row.Name)
+				}
+				gotLine := lines[li]
+				wantPrefix := fmt.Sprintf("%-32s %s", row.Name, want)
+				if !strings.HasPrefix(gotLine, wantPrefix) {
+					t.Errorf("owned row %d = %q, want prefix %q", li, gotLine, wantPrefix)
+				}
+				li++
+			}
+
+			for _, class := range config.ReservedClasses() {
+				wantLine := fmt.Sprintf("%-32s disabled (arrives at rung %d)", class.Name, class.Rung)
+				if li >= len(lines) {
+					t.Fatalf("stdout ran out of lines before reserved class %s", class.Name)
+				}
+				if lines[li] != wantLine {
+					t.Errorf("reserved row %d = %q, want %q", li, lines[li], wantLine)
+				}
+				li++
+			}
+
+			if li != len(lines) {
+				t.Errorf("stdout has %d extra line(s) beyond owned+reserved rows: %v", len(lines)-li, lines[li:])
+			}
+		})
+	}
+}
+
+// TestDoctorCmd_LiteralSpotCheck hard-codes two known lines so the
+// table-driven test above cannot go vacuous if OwnedWall ever returned
+// an empty table.
+func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(baseEnviron(), &stdout, &stderr)
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+
+	want := fmt.Sprintf("%-32s %s\n", "DUBPLATE_ADMIN_EMAIL", "ok")
+	if !strings.Contains(stdout.String(), want) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), want)
+	}
+
+	wantIdentity := fmt.Sprintf("%-32s %s\n", "identity source", "pending (arrives at rung 5)")
+	if !strings.Contains(stdout.String(), wantIdentity) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantIdentity)
+	}
+}

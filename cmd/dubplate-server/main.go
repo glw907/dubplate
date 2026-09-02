@@ -33,17 +33,20 @@ var version = "dev"
 func main() {
 	cmd := newRootCmd()
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "dubplate-server",
-		Short: "organizes and serves one shared music library",
+		Use:           "dubplate-server",
+		Short:         "organizes and serves one shared music library",
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 	cmd.AddCommand(newVersionCmd())
+	cmd.AddCommand(newCheckCmd(os.Environ(), os.Stdout, os.Stderr))
+	cmd.AddCommand(newDoctorCmd(os.Environ(), os.Stdout, os.Stderr))
 	return cmd
 }
 
