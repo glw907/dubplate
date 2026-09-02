@@ -1,7 +1,15 @@
 # Magic-link login and streamer SSO: design
 
-Status: brainstormed and ratified in session 2026-09-02 (Geoff +
-Claude). Blocks the family launch: Pass B's uploader is deployed but
+Status: SUPERSEDED as design, 2026-09-02. This document is source
+material for the greenfield build spec
+(2026-09-02-greenfield-server-build.md), whose auth birth
+requirements win on every conflict with the design below (nonce
+durability, revocation, routing rule 2, the trusted source, the
+wire identity, enumeration behavior, and the build order among
+them). Read it for intent and topology, never as requirements.
+
+Original status: brainstormed and ratified in session 2026-09-02
+(Geoff + Claude). Blocks the family launch: Pass B's uploader is deployed but
 the URL goes to no family member until this ships. Supersedes
 Cloudflare Access on the family path. Files three amendments against
 the organizer spec (2026-09-01-dubplate-organizer-design.md), listed

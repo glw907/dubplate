@@ -33,10 +33,9 @@ github.com/glw907/dubplate (private).
 
 ## Open items (carried)
 
-- The greenfield build spec
-  (docs/superpowers/specs/2026-09-02-greenfield-server-build.md)
-  awaits Geoff's review; the organizer spec's ratification read folds
-  into it. Rewrite post-mortem still owed.
+- The greenfield build spec is at revision 2 (reviews folded);
+  Open rulings 1-3 in the spec await Geoff: shadow floor, oracle-bug
+  policy, stock-config gating. Rewrite post-mortem still owed.
 - Two albums in /srv/music/review/2026-08-31/geoff/ await manual review.
 - Age store: FILEBROWSER_ADMIN_PASSWORD orphaned (delete at next sweep);
   DUBPLATE_SERVE_SITE_NAME ("907 Music") stays minted for the new server.
@@ -52,8 +51,9 @@ github.com/glw907/dubplate (private).
 
 ### Next action
 
-The greenfield build spec is written and awaits Geoff's review. On
-his read: fold his rulings, then the adversarial review round, the
-fold, and rung 1's plan via writing-plans. Settled inputs (do not
-re-brainstorm): the rulings doc, approach A, launch bar, universality,
-exemplary Go, reuse stance, auth birth requirements.
+Spec revision 2 folds both adversarial reviews, the beets research
+program (mechanics, evolution + roadmap, U1-U7), and the fold notes.
+Geoff answers Open rulings 1-3; then rung 1's plan via
+writing-plans. Settled (do not re-brainstorm): the rulings doc,
+approach A, launch bar, universality, exemplary Go, reuse stance,
+auth birth requirements, the 17-rung ladder.

@@ -29,3 +29,8 @@ spec alongside the review findings, not before.
    classes beets tests heavily are classes that burned them; use the
    suite's emphasis as a weighting prior when sizing the adversarial
    stratum at rung 2. Minor; planning input only.
+
+Disposition, 2026-09-02: all three folded into spec revision 2
+(item 1 into rung 2's derivation tooling, item 2 into the corpus
+case shape and rung 8, item 3 as a rung 2 planning input). This file
+is a record, not a queue.
