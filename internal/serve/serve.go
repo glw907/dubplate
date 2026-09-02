@@ -1,8 +1,8 @@
 // serve.go is dubplate serve's composition root: it builds the Engine
-// (upload.go), the JourneyAPI (api.go), and the config/stream-probe
-// endpoints this file owns, wires them behind one Cloudflare Access
-// enforcement layer, and runs the whole thing over exactly
-// Serve.BindAddrs until the caller's context is done.
+// (upload.go), the JourneyAPI (api.go), and the /api/config endpoint this
+// file owns, wires them behind Cloudflare Access enforcement, baseline
+// security headers, and a same-origin check, and runs the whole thing
+// over exactly Serve.BindAddrs until the caller's context is done.
 package serve
 
 import (
@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -68,8 +69,8 @@ type NewServerDeps struct {
 const nudgeTriggerSubdir = "nudge-triggers"
 
 // basePath is the path prefix serve owns end to end: every API route,
-// the SSE probe, the tus endpoints, and the embedded web app all live
-// under it (U12a amendment: the uploader has no hostname of its own --
+// the tus endpoints, and the embedded web app all live under it (U12a
+// amendment: the uploader has no hostname of its own --
 // it lives at https://music.907.life/upload, and cloudflared's
 // path-scoped ingress rule forwards the request with this prefix
 // intact, since cloudflared does not strip path prefixes). U9 must set
@@ -103,6 +104,67 @@ func mountBasePath(next http.Handler) http.Handler {
 			return
 		}
 		stripped.ServeHTTP(w, r)
+	})
+}
+
+// securityHeaders wraps next with the baseline response headers this
+// package otherwise sets on nothing: [staticHandler] sets only
+// Cache-Control and writeJSON sets only Content-Type, so without this
+// every response -- the app document included -- shipped with none of
+// them. The app is a static Vite bundle with no third-party origins to
+// allow, so a tight CSP costs it nothing. HSTS is a Cloudflare edge
+// setting, not set here, since this process only ever speaks plain HTTP
+// behind cloudflared (see [Options.TusBasePath]'s RespectForwardedHeaders
+// note).
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Referrer-Policy", "no-referrer")
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'")
+		next.ServeHTTP(w, r)
+	})
+}
+
+// requireSameOrigin wraps next with dubplate serve's CSRF defense: any
+// request whose method can change state (anything but GET/HEAD) must
+// carry a same-origin signal, or it never reaches next. Origin is
+// checked first (compared against r.Host, so this works identically in
+// dev and behind the real hostname, with no separate configured-origin
+// value to keep in sync); a request with no Origin header falls back to
+// Sec-Fetch-Site, honored only when it reads exactly "same-origin". A
+// request bearing neither is refused too: a real same-origin fetch or
+// form POST from any browser recent enough to matter here always sends
+// at least one of the two, so a request with neither has nothing this
+// check could ever have verified. See the OWASP CSRF Prevention Cheat
+// Sheet's "Verifying Origin With Standard Headers" section; this is not
+// a substitute for the Access assertion enforceAccess still requires on
+// every request, only the missing check for the assertion's own cookie
+// riding along uninvited.
+func requireSameOrigin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet || r.Method == http.MethodHead {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if origin := r.Header.Get("Origin"); origin != "" {
+			u, err := url.Parse(origin)
+			if err != nil || !strings.EqualFold(u.Host, r.Host) {
+				http.Error(w, "cross-origin request refused", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if r.Header.Get("Sec-Fetch-Site") == "same-origin" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		http.Error(w, "cross-origin request refused", http.StatusForbidden)
 	})
 }
 
@@ -174,22 +236,23 @@ func NewServer(cfg *config.Config, roster config.Roster, deps NewServerDeps) (*S
 		cfg:    cfg,
 		engine: engine,
 	}
-	s.handler = mountBasePath(enforceAccess(s.buildMux(engine, japi, assets), accessConfig{
+	mux := enforceAccess(s.buildMux(engine, japi, assets), accessConfig{
 		verify:      verifier.Verify,
 		roster:      roster,
 		devIdentity: deps.DevIdentity,
 		adminEmail:  cfg.AdminEmail,
 		warmPage:    warmRosterAbsentPage(cfg.AdminEmail),
-	}))
+	})
+	s.handler = securityHeaders(mountBasePath(requireSameOrigin(mux)))
 	return s, nil
 }
 
 // buildMux assembles s's full route table: the tus and session API
 // (engine's own mux, mounted at the same absolute paths it registers
 // internally), the journey polling API (japi's own mux, same reasoning),
-// this file's own /api/config and /api/stream/probe, and the embedded
-// static app at "/" -- one index.html, one asset dir, no SPA-fallback
-// routing (the spec's development-shape ruling).
+// this file's own /api/config, and the embedded static app at "/" -- one
+// index.html, one asset dir, no SPA-fallback routing (the spec's
+// development-shape ruling).
 func (s *Server) buildMux(engine *Engine, japi *JourneyAPI, assets fs.FS) http.Handler {
 	eh := engine.Handler()
 	jh := japi.Handler()
@@ -201,7 +264,6 @@ func (s *Server) buildMux(engine *Engine, japi *JourneyAPI, assets fs.FS) http.H
 	mux.Handle("GET /api/journey/{id}", jh)
 	mux.Handle("GET /api/history", jh)
 	mux.HandleFunc("GET /api/config", s.handleConfig)
-	mux.HandleFunc("POST /api/stream/probe", s.handleStreamProbe)
 	mux.Handle("/", staticHandler(assets))
 	return mux
 }
@@ -432,78 +494,6 @@ func formatSpecText(minSampleRate, minBitsPerSample int, maxAlbumBytes int64) st
 // humanGiB renders n bytes as a one-decimal GiB figure ("2.0 GiB").
 func humanGiB(n int64) string {
 	return strconv.FormatFloat(float64(n)/(1<<30), 'f', 1, 64) + " GiB"
-}
-
-// --- POST /api/stream/probe -----------------------------------------
-
-// probeHeartbeatInterval is gate 1's mitigation-set heartbeat cadence
-// (the plan's Gates section): well under cloudflared's documented ~100s
-// idle cut, and under the spec's 20s ceiling.
-const probeHeartbeatInterval = 15 * time.Second
-
-// handleStreamProbe serves POST /api/stream/probe (gate 1's dedicated
-// measurement target, deployed by U12a): a deliberately minimal
-// text/event-stream endpoint carrying no journey semantics, existing
-// solely to prove -- through the real tunnel and Access -- that
-// cloudflared delivers bytes incrementally as they are flushed rather
-// than buffering until the connection closes, and that it forwards
-// Last-Event-ID on reconnect. It is POST-opened per the gate's mitigation
-// set (a GET-opened stream is the buffering cloudflared#1449 hits).
-// Every tick is both the required heartbeat and a numbered event a
-// client can watch arrive in real time; there is no real backlog to
-// replay, so honoring Last-Event-ID means resuming the count, not
-// resending history.
-func (s *Server) handleStreamProbe(w http.ResponseWriter, r *http.Request) {
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "streaming unsupported", http.StatusInternalServerError)
-		return
-	}
-
-	seq := 0
-	if last := r.Header.Get("Last-Event-ID"); last != "" {
-		if n, err := strconv.Atoi(last); err == nil {
-			seq = n + 1
-		}
-	}
-
-	// A long-lived stream must not be cut by the server's ordinary
-	// Read/WriteTimeout (set for the API's short JSON routes); tusd's own
-	// clearBodyDeadlines makes the same call for /files/.
-	rc := http.NewResponseController(w)
-	_ = rc.SetWriteDeadline(time.Time{})
-
-	h := w.Header()
-	h.Set("Content-Type", "text/event-stream")
-	h.Set("Cache-Control", "no-cache, no-transform")
-	h.Set("X-Accel-Buffering", "no")
-	w.WriteHeader(http.StatusOK)
-
-	writeEvent := func(id int) bool {
-		_, err := fmt.Fprintf(w, "id: %d\ndata: probe\n\n", id)
-		if err != nil {
-			return false
-		}
-		flusher.Flush()
-		return true
-	}
-	if !writeEvent(seq) {
-		return
-	}
-
-	ticker := time.NewTicker(probeHeartbeatInterval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-r.Context().Done():
-			return
-		case <-ticker.C:
-			seq++
-			if !writeEvent(seq) {
-				return
-			}
-		}
-	}
 }
 
 // --- startup preconditions -------------------------------------------

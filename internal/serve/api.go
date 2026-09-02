@@ -68,7 +68,11 @@ func (j *JourneyAPI) Handler() http.Handler {
 // handleJourney serves GET /api/journey/{id}: the 5s polling contract a
 // contributor's browser reads while their upload works its way to the
 // library. A session that exists but belongs to someone else answers
-// 404, identically to an unknown ID -- no existence oracle.
+// 404, identically to an unknown ID -- no existence oracle. Ownership is
+// checked before [JourneyAPI.advance] ever runs: advance is not a pure
+// read (it can append a ledger event and email the admin), so it must
+// never fire against a session this request is not authorized to see, or
+// its very presence in the ledger's timing would leak past the 404.
 func (j *JourneyAPI) handleJourney(w http.ResponseWriter, r *http.Request) {
 	email, ok := EmailFromContext(r.Context())
 	if !ok {
@@ -81,11 +85,6 @@ func (j *JourneyAPI) handleJourney(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := j.deps.Now()
-	if err := j.advance(r.Context(), id, now); err != nil {
-		slog.Error("journey: advance session", "session_id", id, "err", err)
-	}
-
 	lb := j.buildLive(email)
 	authorized, err := j.authorize(id, email, lb)
 	if err != nil {
@@ -95,6 +94,11 @@ func (j *JourneyAPI) handleJourney(w http.ResponseWriter, r *http.Request) {
 	if !authorized {
 		http.NotFound(w, r)
 		return
+	}
+
+	now := j.deps.Now()
+	if err := j.advance(r.Context(), id, now); err != nil {
+		slog.Error("journey: advance session", "session_id", id, "err", err)
 	}
 
 	jrn, err := journey.Resolve(id, j.deps.Ledger, lb.set)

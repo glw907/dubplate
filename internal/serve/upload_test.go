@@ -364,6 +364,39 @@ func TestOwnership_CrossUserTerminateDenied404(t *testing.T) {
 	}
 }
 
+// TestOwnership_TraversalUploadIDRejected404 proves a percent-encoded
+// traversal segment in the /files/ path never reaches the store's
+// filepath.Join: F2.2 found tusd's filestore performs no ID validation
+// of its own, so a path shaped like "..%2f<name>" survives Go's
+// ServeMux and http.StripPrefix (neither is path-segment aware over the
+// already-decoded r.URL.Path) all the way to enforceUploadOwnership
+// unless this layer's own shape check stops it.
+func TestOwnership_TraversalUploadIDRejected404(t *testing.T) {
+	te := newTestEngine(t, nil)
+
+	paths := []string{
+		te.server.URL + "/files/..%2fzzprobe",
+		te.server.URL + "/files/%2e%2e%2fzzprobe",
+		te.server.URL + "/files/not-a-valid-shape-at-all",
+	}
+	for _, p := range paths {
+		req, err := http.NewRequest(http.MethodHead, p, http.NoBody)
+		if err != nil {
+			t.Fatalf("build request for %s: %v", p, err)
+		}
+		req.Header.Set("Tus-Resumable", tusResumable)
+		req.Header.Set(testEmailHeader, testEmailAlice)
+		resp, err := te.client.Do(req)
+		if err != nil {
+			t.Fatalf("request %s: %v", p, err)
+		}
+		_ = resp.Body.Close()
+		if resp.StatusCode != http.StatusNotFound {
+			t.Fatalf("HEAD %s: status = %d, want 404", p, resp.StatusCode)
+		}
+	}
+}
+
 // --- input sanitization (B4) --------------------------------------------
 
 func TestHandleCreateSession_HostileInputsRejected(t *testing.T) {
@@ -398,11 +431,23 @@ func TestHandleCreateSession_HostileInputsRejected(t *testing.T) {
 				return
 			}
 
-			status, _ := te.tryCreateSession(t, testEmailAlice, tt.album, tt.collection, 1)
+			status, _ := te.tryCreateSession(t, tt.album, tt.collection, 1)
 			if status != http.StatusBadRequest {
 				t.Fatalf("status = %d, want 400 for %+v", status, tt)
 			}
 		})
+	}
+}
+
+// TestHandleCreateSession_TooManyExpectedFilesRejected proves
+// expected_files is bounded: an unbounded value could pin an unbounded
+// number of Session.verdicts slots regardless of the aggregate byte cap
+// admission control separately enforces (F2.5).
+func TestHandleCreateSession_TooManyExpectedFilesRejected(t *testing.T) {
+	te := newTestEngine(t, nil)
+	status, body := te.tryCreateSession(t, "Huge Box Set", "", maxExpectedFiles+1)
+	if status != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400, body %q", status, body)
 	}
 }
 
@@ -412,7 +457,7 @@ func TestHandleCreateSession_HostileInputsRejected(t *testing.T) {
 // only need the resulting session ID.
 func (te *testEngine) createSession(t *testing.T, album, collection string, expectedFiles int) string {
 	t.Helper()
-	status, body := te.tryCreateSession(t, testEmailAlice, album, collection, expectedFiles)
+	status, body := te.tryCreateSession(t, album, collection, expectedFiles)
 	if status != http.StatusCreated {
 		t.Fatalf("create session: status %d, body %q", status, body)
 	}
@@ -423,7 +468,11 @@ func (te *testEngine) createSession(t *testing.T, album, collection string, expe
 	return resp.SessionID
 }
 
-func (te *testEngine) tryCreateSession(t *testing.T, email, album, collection string, expectedFiles int) (int, string) {
+// tryCreateSession always authenticates as [testEmailAlice]: every test
+// that needs a different (or absent) identity on POST /api/session
+// builds its own request rather than adding an email parameter no
+// caller here would ever vary.
+func (te *testEngine) tryCreateSession(t *testing.T, album, collection string, expectedFiles int) (int, string) {
 	t.Helper()
 	payload, err := json.Marshal(createSessionRequest{Album: album, Collection: collection, ExpectedFiles: expectedFiles})
 	if err != nil {
@@ -433,9 +482,7 @@ func (te *testEngine) tryCreateSession(t *testing.T, email, album, collection st
 	if err != nil {
 		t.Fatalf("build create-session request: %v", err)
 	}
-	if email != "" {
-		req.Header.Set(testEmailHeader, email)
-	}
+	req.Header.Set(testEmailHeader, testEmailAlice)
 	resp, err := te.client.Do(req)
 	if err != nil {
 		t.Fatalf("create-session request: %v", err)
@@ -719,6 +766,89 @@ func TestSweepOnce_FreshSessionSurvives(t *testing.T) {
 	}
 }
 
+// TestSweepOnce_ReclaimsCompletedSessionFromStoreAndDisk proves F2.3's
+// fix on both halves: a completed session's Store entry is forgotten
+// once settleGrace has passed even though it is not "expired" in
+// [Store.expired]'s sense, and its leftover on-disk directory (here, a
+// pushed-back album -- the tag-check probe wasn't confident, so the
+// content is held rather than discarded) survives until it clears
+// PartialTTL, then is reclaimed by the same filesystem-driven pass that
+// makes [Engine.sweepOrphans] restart-safe.
+func TestSweepOnce_ReclaimsCompletedSessionFromStoreAndDisk(t *testing.T) {
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: alwaysUnconfidentTagProbe,
+	})
+	sessID := te.createSession(t, "Pushed Back Album", "", 1)
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("upload: status %d", resp.StatusCode)
+	}
+	sessDir := filepath.Join(te.uploadsDir, sessID)
+	if _, err := os.Stat(sessDir); err != nil {
+		t.Fatalf("pushed-back session directory missing before sweep: %v", err)
+	}
+
+	// Just past settleGrace, well inside PartialTTL: the Store entry is
+	// forgotten, but the directory is untouched -- it is not yet old
+	// enough for sweepOrphans' own, much longer retention window.
+	te.engine.SweepOnce(te.now.Add(settleGrace + time.Second))
+	if _, ok := te.engine.sessions.get(sessID); ok {
+		t.Fatal("completed session still present in the store past settleGrace")
+	}
+	if _, err := os.Stat(sessDir); err != nil {
+		t.Fatalf("pushed-back directory swept before it cleared PartialTTL: %v", err)
+	}
+
+	// Past PartialTTL: sweepOrphans reclaims the now-unclaimed directory.
+	te.engine.SweepOnce(te.now.Add(te.cfg.Upload.PartialTTL + time.Minute))
+	if _, err := os.Stat(sessDir); !os.IsNotExist(err) {
+		t.Fatalf("pushed-back directory still present past PartialTTL: err=%v", err)
+	}
+}
+
+// TestSweepOnce_ReclaimsRestartOrphanFromDisk proves F2.4's fix: a
+// directory a session left behind (here, one pushed back by the
+// tag-check probe) is reclaimed by a second Engine built over the same
+// UploadsDir whose Store never held that session at all -- exactly what
+// every serve restart looks like from the sweep's point of view, since
+// the Store is in-memory only.
+func TestSweepOnce_ReclaimsRestartOrphanFromDisk(t *testing.T) {
+	te := newTestEngineWithOptions(t, nil, Options{
+		TagProbe: alwaysUnconfidentTagProbe,
+	})
+	sessID := te.createSession(t, "Orphaned After Restart", "", 1)
+	resp := te.uploadWhole(t, cdFlacFixture(), map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("upload: status %d", resp.StatusCode)
+	}
+	sessDir := filepath.Join(te.uploadsDir, sessID)
+	if _, err := os.Stat(sessDir); err != nil {
+		t.Fatalf("pushed-back session directory missing before restart: %v", err)
+	}
+
+	restarted, err := NewEngine(te.cfg, te.engine.roster, Options{
+		Now:      func() time.Time { return te.now },
+		TagProbe: alwaysUnconfidentTagProbe,
+	})
+	if err != nil {
+		t.Fatalf("NewEngine (simulated restart): %v", err)
+	}
+	if _, ok := restarted.sessions.get(sessID); ok {
+		t.Fatal("the restarted engine's fresh Store already knows about the old session")
+	}
+
+	restarted.SweepOnce(te.now.Add(te.cfg.Upload.PartialTTL + time.Minute))
+	if _, err := os.Stat(sessDir); !os.IsNotExist(err) {
+		t.Fatalf("orphaned directory survived a restart-simulated sweep: err=%v", err)
+	}
+}
+
 // --- atomic promotion (M9, B6) --------------------------------------------
 
 // TestPromotion_RenameFailureLeavesNoPartialInbox proves that when the
@@ -784,7 +914,7 @@ func TestAdmissionControl_TooManySessions(t *testing.T) {
 	})
 	te.createSession(t, "First Album", "", 1)
 
-	status, body := te.tryCreateSession(t, testEmailAlice, "Second Album", "", 1)
+	status, body := te.tryCreateSession(t, "Second Album", "", 1)
 	if status != http.StatusTooManyRequests {
 		t.Fatalf("status = %d, want 429, body %q", status, body)
 	}
@@ -832,6 +962,40 @@ func TestAdmissionControl_TooManySessionsOnImplicitZipPreCreate(t *testing.T) {
 	}
 	if !strings.Contains(string(body), "too-many-sessions") {
 		t.Fatalf("body = %q, want the too-many-sessions reject.Reason wire code", body)
+	}
+}
+
+// TestAdmissionControl_AggregateAlbumBytesOnMultiFilePreCreate proves a
+// multi-file session's aggregate size is bounded by MaxAlbumBytes, not
+// only each individual tus resource: F2.5 found nothing enforced the
+// album total on this path, so a session declaring a generous
+// expected_files count could otherwise admit as many MaxAlbumBytes-sized
+// uploads as free space allowed.
+func TestAdmissionControl_AggregateAlbumBytesOnMultiFilePreCreate(t *testing.T) {
+	te := newTestEngine(t, func(cfg *config.Config) {
+		cfg.Upload.MaxAlbumBytes = 1000
+	})
+	sessID := te.createSession(t, "Aggregate Cap Album", "", 2)
+
+	first := te.tusCreate(t, testEmailAlice, 600, map[string]string{
+		"filename": "01 - one.flac", "session_id": sessID,
+	})
+	defer func() { _ = first.Body.Close() }()
+	if first.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(first.Body)
+		t.Fatalf("first create: status %d, body %q", first.StatusCode, body)
+	}
+
+	second := te.tusCreate(t, testEmailAlice, 500, map[string]string{
+		"filename": "02 - two.flac", "session_id": sessID,
+	})
+	defer func() { _ = second.Body.Close() }()
+	body, _ := io.ReadAll(second.Body)
+	if second.StatusCode != http.StatusRequestEntityTooLarge {
+		t.Fatalf("second create: status %d, want 413, body %q", second.StatusCode, body)
+	}
+	if !strings.Contains(string(body), "too-large") {
+		t.Fatalf("body = %q, want the too-large reject.Reason wire code", body)
 	}
 }
 
@@ -936,6 +1100,13 @@ func TestOptions_RespectsForwardedProto(t *testing.T) {
 // album.
 func alwaysConfidentTagProbe(context.Context, string) (TagProbeResult, error) {
 	return TagProbeResult{Confident: true}, nil
+}
+
+// alwaysUnconfidentTagProbe reports a clean, considered not-confident
+// result: [Engine.completeSession] holds the session's staged content
+// (PushedBack) rather than promoting or discarding it.
+func alwaysUnconfidentTagProbe(context.Context, string) (TagProbeResult, error) {
+	return TagProbeResult{Confident: false, Detail: "not confident enough"}, nil
 }
 
 // stubTagProbe returns a fixed [TagProbeResult]/error pair and records

@@ -123,6 +123,101 @@ func TestMountBasePath(t *testing.T) {
 	})
 }
 
+// --- securityHeaders: baseline response headers (F2.7) ------------------
+
+func TestSecurityHeaders(t *testing.T) {
+	echo := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusTeapot) })
+	h := securityHeaders(echo)
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if w.Code != http.StatusTeapot {
+		t.Fatalf("status = %d, want the wrapped handler to run", w.Code)
+	}
+	tests := map[string]string{
+		"X-Content-Type-Options":  "nosniff",
+		"Referrer-Policy":         "no-referrer",
+		"X-Frame-Options":         "DENY",
+		"Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+	}
+	for header, want := range tests {
+		if got := w.Header().Get(header); got != want {
+			t.Errorf("%s = %q, want %q", header, got, want)
+		}
+	}
+}
+
+// --- requireSameOrigin: CSRF defense on state-changing requests (F2.6) --
+
+func TestRequireSameOrigin(t *testing.T) {
+	echo := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusTeapot) })
+	h := requireSameOrigin(echo)
+
+	newReq := func(method, host string, setHeaders func(*http.Request)) *http.Request {
+		r := httptest.NewRequest(method, "/api/session", nil)
+		r.Host = host
+		if setHeaders != nil {
+			setHeaders(r)
+		}
+		return r
+	}
+
+	tests := []struct {
+		name string
+		req  *http.Request
+		want int
+	}{
+		{
+			"GET passes through with no headers at all",
+			newReq(http.MethodGet, "music.example.com", nil),
+			http.StatusTeapot,
+		},
+		{
+			"POST with a matching Origin passes",
+			newReq(http.MethodPost, "music.example.com", func(r *http.Request) {
+				r.Header.Set("Origin", "https://music.example.com")
+			}),
+			http.StatusTeapot,
+		},
+		{
+			"POST with a cross-origin Origin is refused",
+			newReq(http.MethodPost, "music.example.com", func(r *http.Request) {
+				r.Header.Set("Origin", "https://evil.example")
+			}),
+			http.StatusForbidden,
+		},
+		{
+			"POST with no Origin but Sec-Fetch-Site: same-origin passes",
+			newReq(http.MethodPost, "music.example.com", func(r *http.Request) {
+				r.Header.Set("Sec-Fetch-Site", "same-origin")
+			}),
+			http.StatusTeapot,
+		},
+		{
+			"POST with Sec-Fetch-Site: cross-site is refused",
+			newReq(http.MethodPost, "music.example.com", func(r *http.Request) {
+				r.Header.Set("Sec-Fetch-Site", "cross-site")
+			}),
+			http.StatusForbidden,
+		},
+		{
+			"POST with neither header is refused",
+			newReq(http.MethodPost, "music.example.com", nil),
+			http.StatusForbidden,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, tt.req)
+			if w.Code != tt.want {
+				t.Errorf("status = %d, want %d", w.Code, tt.want)
+			}
+		})
+	}
+}
+
 // --- enforceAccess: per-surface failure shapes -------------------------
 
 func TestEnforceAccess(t *testing.T) {
@@ -475,6 +570,59 @@ func TestNewServer_StartupPreconditions(t *testing.T) {
 	})
 }
 
+// TestNewServer_FullStackAppliesSecurityAndCSRF proves securityHeaders
+// and requireSameOrigin are actually wired into the handler NewServer
+// builds, not only unit-tested in isolation: a real request through
+// s.handler carries the baseline headers, and a forged cross-origin POST
+// to /upload/api/session is refused before it ever reaches the session
+// store.
+func TestNewServer_FullStackAppliesSecurityAndCSRF(t *testing.T) {
+	cfg := minimalTestConfig(t)
+	roster := buildTestRoster(t)
+	probe := stubTagProbe(TagProbeResult{Confident: true}, nil, new(string))
+
+	srv, err := NewServer(cfg, roster, NewServerDeps{Assets: emptyDistFS(t), DevIdentity: testEmailAlice, TagProbe: probe})
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
+	}
+
+	loopbackReq := func(method, path string, setHeaders func(*http.Request)) *http.Request {
+		r := httptest.NewRequest(method, path, nil)
+		r.RemoteAddr = "127.0.0.1:9999" // required for the --dev-identity bypass
+		if setHeaders != nil {
+			setHeaders(r)
+		}
+		return r
+	}
+
+	t.Run("a plain GET carries the baseline security headers", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		srv.handler.ServeHTTP(w, loopbackReq(http.MethodGet, "/upload/api/config", nil))
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200", w.Code)
+		}
+		if got := w.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+			t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
+		}
+		if got := w.Header().Get("X-Frame-Options"); got != "DENY" {
+			t.Errorf("X-Frame-Options = %q, want DENY", got)
+		}
+	})
+
+	t.Run("a forged cross-origin POST to /api/session is refused", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		srv.handler.ServeHTTP(w, loopbackReq(http.MethodPost, "/upload/api/session", func(r *http.Request) {
+			r.Header.Set("Origin", "https://evil.example")
+			r.Header.Set("Content-Type", "application/json")
+		}))
+
+		if w.Code != http.StatusForbidden {
+			t.Fatalf("status = %d, want 403 (refused before it ever reached the session store)", w.Code)
+		}
+	})
+}
+
 // emptyDistFS returns a minimal fs.FS holding just "dist/index.html", the
 // shape [NewServer] expects from web.Assets (still rooted at "dist").
 func emptyDistFS(t *testing.T) fs.FS {
@@ -640,74 +788,6 @@ func TestHandleConfig_PrivateCollection(t *testing.T) {
 				t.Errorf("PrivateCollection = %q, want %q", got, tt.want)
 			}
 		})
-	}
-}
-
-// --- POST /api/stream/probe -----------------------------------------------
-
-// runProbeUntilCancel runs handleStreamProbe against a fresh recorder,
-// canceling its request context shortly after the handler has had time
-// to write its headers and first event -- proving the shape of what it
-// sends without ever waiting out a real [probeHeartbeatInterval] tick.
-func runProbeUntilCancel(t *testing.T, lastEventID string) *httptest.ResponseRecorder {
-	t.Helper()
-	s := &Server{}
-	ctx, cancel := context.WithCancel(context.Background())
-	r := httptest.NewRequest(http.MethodPost, "/api/stream/probe", nil).WithContext(ctx)
-	if lastEventID != "" {
-		r.Header.Set("Last-Event-ID", lastEventID)
-	}
-	w := httptest.NewRecorder()
-
-	done := make(chan struct{})
-	go func() {
-		s.handleStreamProbe(w, r)
-		close(done)
-	}()
-
-	time.Sleep(20 * time.Millisecond)
-	cancel()
-
-	select {
-	case <-done:
-	case <-time.After(time.Second):
-		t.Fatal("handleStreamProbe did not return after its context was canceled")
-	}
-	return w
-}
-
-func TestHandleStreamProbe_Headers(t *testing.T) {
-	w := runProbeUntilCancel(t, "")
-
-	if ct := w.Header().Get("Content-Type"); ct != "text/event-stream" {
-		t.Errorf("Content-Type = %q, want text/event-stream", ct)
-	}
-	if cc := w.Header().Get("Cache-Control"); cc != "no-cache, no-transform" {
-		t.Errorf("Cache-Control = %q, want no-cache, no-transform", cc)
-	}
-	if xb := w.Header().Get("X-Accel-Buffering"); xb != "no" {
-		t.Errorf("X-Accel-Buffering = %q, want no", xb)
-	}
-}
-
-func TestHandleStreamProbe_FirstEventStartsAtZero(t *testing.T) {
-	w := runProbeUntilCancel(t, "")
-	if !strings.Contains(w.Body.String(), "id: 0\ndata: probe\n\n") {
-		t.Fatalf("body = %q, want a first event with id 0", w.Body.String())
-	}
-}
-
-func TestHandleStreamProbe_LastEventIDReplayResumesCount(t *testing.T) {
-	w := runProbeUntilCancel(t, "5")
-	if !strings.Contains(w.Body.String(), "id: 6\ndata: probe\n\n") {
-		t.Fatalf("body = %q, want the sequence to resume at id 6 after Last-Event-ID: 5", w.Body.String())
-	}
-}
-
-func TestHandleStreamProbe_MalformedLastEventIDStartsAtZero(t *testing.T) {
-	w := runProbeUntilCancel(t, "not-a-number")
-	if !strings.Contains(w.Body.String(), "id: 0\ndata: probe\n\n") {
-		t.Fatalf("body = %q, want id 0 for a malformed Last-Event-ID", w.Body.String())
 	}
 }
 

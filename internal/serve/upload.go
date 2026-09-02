@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -317,6 +318,17 @@ func clearBodyDeadlines(next http.Handler) http.Handler {
 	})
 }
 
+// uploadIDPattern is the shape [Engine.preCreate] actually mints for a
+// tus upload ID (sess.ID + "-" + slot): the only shape
+// [Engine.enforceUploadOwnership] may hand to the store, since tusd's
+// filestore performs no ID validation of its own and joins the ID
+// straight onto its storage root with filepath.Join. A percent-encoded
+// "../" survives Go's ServeMux (which canonicalizes only the escaped
+// path) and StripPrefix (a plain string trim) to reach here still
+// decoded in r.URL.Path, so this check -- not tusd's -- is what stops it
+// from ever reaching a filesystem join.
+var uploadIDPattern = regexp.MustCompile(`^[a-z2-7]{26}-[0-9]+$`)
+
 // enforceUploadOwnership rejects any /files/ request against an upload
 // whose stamped owner (set at pre-create) differs from the request's
 // verified email, and any request from a caller with no verified
@@ -330,6 +342,10 @@ func (e *Engine) enforceUploadOwnership(next http.Handler) http.Handler {
 		id := strings.Trim(r.URL.Path, "/")
 		if id == "" {
 			next.ServeHTTP(w, r)
+			return
+		}
+		if !uploadIDPattern.MatchString(id) {
+			http.NotFound(w, r)
 			return
 		}
 
@@ -417,8 +433,11 @@ func (e *Engine) preCreate(hook thandler.HookEvent) (thandler.HTTPResponse, than
 		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-session-required", "a standalone upload must be a ZIP, or must name an existing session", http.StatusBadRequest)
 	}
 
-	slot, ok := sess.reserve()
-	if !ok {
+	slot, err := sess.reserve(hook.Upload.Size, e.cfg.Upload.MaxAlbumBytes)
+	switch {
+	case errors.Is(err, errAlbumTooLarge):
+		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, reasonError(reject.ReasonTooLarge, http.StatusRequestEntityTooLarge)
+	case err != nil:
 		return thandler.HTTPResponse{}, thandler.FileInfoChanges{}, thandler.NewError("dubplate-session-full", "session already has its expected number of files", http.StatusConflict)
 	}
 
@@ -454,7 +473,16 @@ func (e *Engine) preFinish(hook thandler.HookEvent) (thandler.HTTPResponse, erro
 	sessionID := hook.Upload.MetaData["session_id"]
 	sess, ok := e.sessions.get(sessionID)
 	if !ok {
-		return thandler.HTTPResponse{}, fmt.Errorf("serve: session %s vanished before finish", sessionID)
+		// The Store is in-memory only, so a session a prior process still
+		// tracked at PATCH time is gone here after a restart between that
+		// PATCH and this finishing one: 410, not a bare 500, so a resuming
+		// client can tell "start this album over" from "something broke."
+		// True mid-restart resume needs sess reconstructed from persisted
+		// metadata this package does not yet keep (F2.4's disk-orphan sweep,
+		// [Engine.sweepOrphans], is the reclaim half of that finding; this is
+		// the honest-failure half, not a fix for the resume gap itself).
+		return thandler.HTTPResponse{}, thandler.NewError("dubplate-session-vanished",
+			"this upload's session is no longer available; start the album over", http.StatusGone)
 	}
 
 	verdicts, err := e.assembleUpload(hook.Context, sess, hook.Upload)
@@ -639,13 +667,13 @@ func (e *Engine) completeSession(sess *Session) sessionOutcome {
 	out := sessionOutcome{Verdict: verdict}
 	if !verdict.OK {
 		e.discard(sess)
-		sess.setOutcome(out)
+		sess.setOutcome(out, e.now())
 		return out
 	}
 
 	if sess.Collection == e.privateCollection {
 		e.promoteInto(sess, &out, TagProbeResult{})
-		sess.setOutcome(out)
+		sess.setOutcome(out, e.now())
 		return out
 	}
 
@@ -662,7 +690,7 @@ func (e *Engine) completeSession(sess *Session) sessionOutcome {
 	default:
 		e.promoteInto(sess, &out, result)
 	}
-	sess.setOutcome(out)
+	sess.setOutcome(out, e.now())
 	return out
 }
 
@@ -763,38 +791,96 @@ func (e *Engine) discard(sess *Session) {
 	}
 }
 
-// SweepOnce removes every session created before now minus
-// [config.UploadConfig.PartialTTL] that never completed: its assembled
-// session directory (if any files had already landed) and every raw,
-// still-in-flight tus blob its reserved slots produced (named
-// "<session-id>-<slot>" by [Engine.preCreate], which is what makes a
-// glob by that prefix find them). It returns how many sessions it swept.
+// settleGrace bounds how long a completed session's [Store] entry
+// survives after [Engine.completeSession] sets its outcome: long enough
+// for the contributor's 5s journey poll (api.go) to read the final state
+// back at least once, short enough that a completed session is never
+// permanently resident the way F2.3 found it was. Reclaiming any
+// leftover on-disk directory a completed session left behind (pushed-
+// back, probe-unavailable, or a failed promote) is [sweepOrphans]'
+// separate, much longer job, keyed to [config.UploadConfig.PartialTTL]
+// like every other partial-upload retention decision.
+const settleGrace = 2 * time.Minute
+
+// SweepOnce reclaims every session past its retention window, in two
+// passes. First, the live [Store]: an abandoned, never-completed session
+// older than [config.UploadConfig.PartialTTL] is forgotten entirely, and
+// a completed session past [settleGrace] is forgotten from the map (its
+// own disk content, if any survives it, is the second pass's job, not
+// this one's). Second, [Engine.sweepOrphans] scans UploadsDir directly
+// rather than the map, so it also reclaims what no map entry could ever
+// point it to: a completed session's leftover directory once it clears
+// PartialTTL, and -- the only version of this sweep that is correct
+// across a restart -- anything a prior process's Store forgot the moment
+// it exited. It returns how many sessions the first, map-driven pass
+// swept.
 func (e *Engine) SweepOnce(now time.Time) int {
 	cutoff := now.Add(-e.cfg.Upload.PartialTTL)
+
 	targets := e.sessions.expired(cutoff)
 	for _, sess := range targets {
-		e.sweepOne(sess)
 		e.sessions.delete(sess.ID)
 	}
+	for _, sess := range e.sessions.settled(now.Add(-settleGrace)) {
+		e.sessions.delete(sess.ID)
+	}
+
+	e.sweepOrphans(cutoff)
 	return len(targets)
 }
 
-func (e *Engine) sweepOne(sess *Session) {
-	dir := filepath.Join(e.cfg.Paths.UploadsDir, sess.ID)
-	if err := os.RemoveAll(dir); err != nil {
-		slog.Error("sweep session directory", "session_id", sess.ID, "err", err)
-	}
-
-	matches, err := filepath.Glob(filepath.Join(e.cfg.Paths.UploadsDir, sess.ID+"-*"))
+// sweepOrphans removes every UploadsDir entry older than cutoff that the
+// live session map no longer claims: a session directory, a raw
+// still-in-flight tus blob, or that blob's ".info" sidecar (the shapes
+// [orphanSessionID] recognizes, all of them named for the session that
+// produced them). Driving this from the filesystem rather than the map
+// is what makes it correct across a restart -- the map is empty right
+// after one, so every surviving entry looks unclaimed here regardless of
+// why, and cutoff (not process memory) is what protects anything still
+// in flight.
+func (e *Engine) sweepOrphans(cutoff time.Time) {
+	entries, err := os.ReadDir(e.cfg.Paths.UploadsDir)
 	if err != nil {
-		slog.Error("sweep glob stray uploads", "session_id", sess.ID, "err", err)
+		slog.Error("sweep read uploads dir", "err", err)
 		return
 	}
-	for _, m := range matches {
-		if err := os.RemoveAll(m); err != nil {
-			slog.Error("sweep stray upload", "path", m, "err", err)
+	for _, entry := range entries {
+		id := orphanSessionID(entry.Name())
+		if id == "" {
+			continue
+		}
+		if _, live := e.sessions.get(id); live {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		if info.ModTime().After(cutoff) {
+			continue
+		}
+		path := filepath.Join(e.cfg.Paths.UploadsDir, entry.Name())
+		if err := os.RemoveAll(path); err != nil {
+			slog.Error("sweep orphaned upload path", "path", path, "err", err)
 		}
 	}
+}
+
+// orphanSessionID extracts the session ID a raw UploadsDir entry belongs
+// to: the bare session directory itself, or a "<session-id>-<slot>" raw
+// tus blob or its ".info" sidecar, the two shapes [Engine.preCreate]
+// mints. Anything else -- session.json lives inside a session directory,
+// never at UploadsDir's top level, so it never reaches this function --
+// reports "".
+func orphanSessionID(name string) string {
+	base := strings.TrimSuffix(name, ".info")
+	if validSessionID(base) {
+		return base
+	}
+	if i := strings.LastIndexByte(base, '-'); i > 0 && validSessionID(base[:i]) {
+		return base[:i]
+	}
+	return ""
 }
 
 // RunSweep calls [Engine.SweepOnce] every interval until ctx is done.

@@ -191,6 +191,38 @@ func TestHandleJourney_ForeignSessionDenied404(t *testing.T) {
 	}
 }
 
+// TestHandleJourney_ForeignSessionNeverMutatesLedger proves the F2.1 fix:
+// a poll against a session that belongs to someone else never runs
+// [JourneyAPI.advance] at all, so it can never append the de-duping
+// stalled event or send the admin the stall email a real owner's poll
+// would have -- both would otherwise fire before the 404 the requester
+// actually sees, an unauthenticated-relative-to-the-resource mutation a
+// stranger who merely learns a session ID could trigger.
+func TestHandleJourney_ForeignSessionNeverMutatesLedger(t *testing.T) {
+	tj := newTestJourneyAPI(t)
+	uploadedAt := tj.now.Add(-time.Hour) // well past the 30-minute stall floor
+	if err := tj.l.Append(ledger.Event{
+		SessionID: "alicegenericsessionxxxxxxx", Email: testEmailAlice, Album: "Loveless",
+		State: ledger.StateUploaded, At: uploadedAt,
+	}); err != nil {
+		t.Fatalf("Append: %v", err)
+	}
+
+	resp := tj.getJourney(t, testEmailBob, "alicegenericsessionxxxxxxx")
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404 for a session belonging to another email", resp.StatusCode)
+	}
+
+	events, err := tj.l.Session("alicegenericsessionxxxxxxx")
+	if err != nil {
+		t.Fatalf("Session: %v", err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("session has %d ledger events after a foreign poll, want exactly the original 1 (advance must never have run)", len(events))
+	}
+}
+
 func TestHandleJourney_OwnLedgerSessionResolves(t *testing.T) {
 	tj := newTestJourneyAPI(t)
 	if err := tj.l.Append(ledger.Event{

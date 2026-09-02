@@ -50,6 +50,15 @@ func validSessionID(id string) bool {
 // filesystem name-length limits.
 const maxAlbumSlugLen = 100
 
+// maxExpectedFiles bounds a session's declared expected_files: with no
+// cap, a session could reserve an unbounded number of upload slots
+// (each pinning a Session.verdicts entry) regardless of the aggregate
+// byte cap [Session.reserve] separately enforces. A few hundred is well
+// above any real multi-disc box set; intake's own maxZipEntries (2000,
+// for a single ZIP's central directory) is a sibling constant, not a
+// bound this path needs to match.
+const maxExpectedFiles = 300
+
 // ErrInvalidAlbum marks an album name that [slugifyAlbum] could not
 // reduce to a non-empty slug.
 var ErrInvalidAlbum = errors.New("serve: invalid album name")
@@ -117,14 +126,27 @@ type Session struct {
 
 	createdAt time.Time
 
-	mu          sync.Mutex
-	reserved    int // upload slots admitted at pre-create
-	doneUploads int // individual tus uploads that have finished
-	verdicts    []intake.FileVerdict
-	completed   bool
-	outcome     sessionOutcome
-	doneCh      chan struct{}
+	mu            sync.Mutex
+	reserved      int   // upload slots admitted at pre-create
+	admittedBytes int64 // declared sizes of every admitted slot, summed
+	doneUploads   int   // individual tus uploads that have finished
+	verdicts      []intake.FileVerdict
+	completed     bool
+	completedAt   time.Time
+	outcome       sessionOutcome
+	doneCh        chan struct{}
 }
+
+// errSessionFull marks a [Session.reserve] refusal because every
+// declared expected_files slot is already reserved.
+var errSessionFull = errors.New("serve: session already has its expected number of files")
+
+// errAlbumTooLarge marks a [Session.reserve] refusal because admitting
+// size bytes would push the session's running total past maxBytes: the
+// aggregate cap the tus protocol has no native hook for, enforced here
+// instead since [Store.create]'s expected_files check alone bounds slot
+// count, not bytes.
+var errAlbumTooLarge = errors.New("serve: album exceeds the aggregate byte cap")
 
 // expiresAt reports when sess becomes eligible for the partial-upload
 // sweep, ttl after it was created.
@@ -132,18 +154,25 @@ func (sess *Session) expiresAt(ttl time.Duration) time.Time {
 	return sess.createdAt.Add(ttl)
 }
 
-// reserve admits one more upload slot on sess, returning the slot index
-// and true, unless every [Session.ExpectedFiles] slot is already
-// reserved -- the N+1st upload's pre-create rejection point.
-func (sess *Session) reserve() (int, bool) {
+// reserve admits one more upload slot on sess, returning the slot index,
+// unless every [Session.ExpectedFiles] slot is already reserved
+// ([errSessionFull], the N+1st upload's pre-create rejection point) or
+// admitting size bytes would push the session's running total past
+// maxBytes ([errAlbumTooLarge], the aggregate album-total cap the
+// multi-file path otherwise never enforces).
+func (sess *Session) reserve(size, maxBytes int64) (int, error) {
 	sess.mu.Lock()
 	defer sess.mu.Unlock()
 	if sess.reserved >= sess.ExpectedFiles {
-		return 0, false
+		return 0, errSessionFull
 	}
+	if sess.admittedBytes+size > maxBytes {
+		return 0, errAlbumTooLarge
+	}
+	sess.admittedBytes += size
 	slot := sess.reserved
 	sess.reserved++
-	return slot, true
+	return slot, nil
 }
 
 // uploadDone records that one individual tus upload finished, appending
@@ -193,11 +222,14 @@ func (sess *Session) completeOnce() bool {
 	return true
 }
 
-// setOutcome records sess's final outcome and wakes every caller
-// blocked in [Session.waitOutcome].
-func (sess *Session) setOutcome(out sessionOutcome) {
+// setOutcome records sess's final outcome as of now and wakes every
+// caller blocked in [Session.waitOutcome]. now is the sweep's own clock
+// seam ([Engine.now]), not [time.Now] directly, so [Store.settled] stays
+// controllable from a test the same way [Store.expired] already is.
+func (sess *Session) setOutcome(out sessionOutcome, now time.Time) {
 	sess.mu.Lock()
 	sess.outcome = out
+	sess.completedAt = now
 	ch := sess.doneCh
 	sess.mu.Unlock()
 	close(ch)
@@ -256,6 +288,9 @@ func newStore() *Store {
 func (s *Store) create(email, rawAlbum, collection string, expectedFiles int, collections []string, now time.Time) (*Session, error) {
 	if expectedFiles < 1 {
 		return nil, fmt.Errorf("serve: expected_files must be at least 1, got %d", expectedFiles)
+	}
+	if expectedFiles > maxExpectedFiles {
+		return nil, fmt.Errorf("serve: expected_files must be at most %d, got %d", maxExpectedFiles, expectedFiles)
 	}
 	if !validCollection(collection, collections) {
 		return nil, fmt.Errorf("%w: %q", ErrUnknownCollection, collection)
@@ -330,6 +365,30 @@ func (s *Store) expired(cutoff time.Time) []*Session {
 		done := sess.completed
 		sess.mu.Unlock()
 		if !done && sess.createdAt.Before(cutoff) {
+			out = append(out, sess)
+		}
+	}
+	return out
+}
+
+// settled returns every completed session whose outcome was set before
+// cutoff: entries the sweep can now forget from the map, since the
+// contributor's journey poll has long since had the chance to read the
+// final state back. Unlike [Store.expired], a settled session's own
+// on-disk content (if any survives it -- a pushed-back, probe-
+// unavailable, or failed-promote directory) is not this method's or its
+// caller's map-only deletion to remove; [Engine.sweepOrphans] reclaims
+// that directly from UploadsDir once it is unclaimed here and old enough.
+func (s *Store) settled(cutoff time.Time) []*Session {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var out []*Session
+	for _, sess := range s.sessions {
+		sess.mu.Lock()
+		done := sess.completed
+		completedAt := sess.completedAt
+		sess.mu.Unlock()
+		if done && completedAt.Before(cutoff) {
 			out = append(out, sess)
 		}
 	}

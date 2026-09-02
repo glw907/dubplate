@@ -155,6 +155,17 @@ func TestStoreCreateRejectsZeroExpectedFiles(t *testing.T) {
 	}
 }
 
+// TestStoreCreateRejectsTooManyExpectedFiles proves create bounds
+// expected_files: with no cap, a session could reserve an unbounded
+// number of upload slots regardless of the aggregate byte cap
+// [Session.reserve] separately enforces.
+func TestStoreCreateRejectsTooManyExpectedFiles(t *testing.T) {
+	s := newStore()
+	if _, err := s.create("a@example.com", "Huge Box Set", "", maxExpectedFiles+1, []string{""}, time.Now()); err == nil {
+		t.Fatalf("create() with expected_files=%d succeeded, want error", maxExpectedFiles+1)
+	}
+}
+
 func TestStoreCountActive(t *testing.T) {
 	s := newStore()
 	now := time.Now()
@@ -183,7 +194,7 @@ func TestStoreCountActive(t *testing.T) {
 	if !sess1.completeOnce() {
 		t.Fatal("completeOnce() = false on a fresh session")
 	}
-	sess1.setOutcome(sessionOutcome{Promoted: true})
+	sess1.setOutcome(sessionOutcome{Promoted: true}, time.Now())
 	if got := s.countActive("a@example.com"); got != 1 {
 		t.Fatalf("countActive(a) after completion = %d, want 1", got)
 	}
@@ -196,16 +207,41 @@ func TestSessionReserveBoundsAtExpectedFiles(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	slot0, ok := sess.reserve()
-	if !ok || slot0 != 0 {
-		t.Fatalf("reserve() #1 = (%d, %v), want (0, true)", slot0, ok)
+	const maxBytes = 1 << 30
+	slot0, err := sess.reserve(1024, maxBytes)
+	if err != nil || slot0 != 0 {
+		t.Fatalf("reserve() #1 = (%d, %v), want (0, nil)", slot0, err)
 	}
-	slot1, ok := sess.reserve()
-	if !ok || slot1 != 1 {
-		t.Fatalf("reserve() #2 = (%d, %v), want (1, true)", slot1, ok)
+	slot1, err := sess.reserve(1024, maxBytes)
+	if err != nil || slot1 != 1 {
+		t.Fatalf("reserve() #2 = (%d, %v), want (1, nil)", slot1, err)
 	}
-	if _, ok := sess.reserve(); ok {
-		t.Fatal("reserve() #3 (the N+1st) succeeded, want rejection")
+	if _, err := sess.reserve(1024, maxBytes); !errors.Is(err, errSessionFull) {
+		t.Fatalf("reserve() #3 (the N+1st) error = %v, want errSessionFull", err)
+	}
+}
+
+// TestSessionReserveBoundsAggregateBytes proves reserve refuses a slot
+// once the session's running total would exceed maxBytes, independent of
+// [Session.ExpectedFiles]: the aggregate album-total cap F2.5 found the
+// multi-file path never enforced.
+func TestSessionReserveBoundsAggregateBytes(t *testing.T) {
+	s := newStore()
+	sess, err := s.create("a@example.com", "Album", "", 5, []string{""}, time.Now())
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	const maxBytes = 1000
+	if _, err := sess.reserve(600, maxBytes); err != nil {
+		t.Fatalf("reserve() #1 (600 of 1000) = %v, want nil", err)
+	}
+	if _, err := sess.reserve(500, maxBytes); !errors.Is(err, errAlbumTooLarge) {
+		t.Fatalf("reserve() #2 (600+500 over 1000) error = %v, want errAlbumTooLarge", err)
+	}
+	// A slot that still fits within what's left is admitted.
+	if _, err := sess.reserve(300, maxBytes); err != nil {
+		t.Fatalf("reserve() #3 (600+300 of 1000) = %v, want nil", err)
 	}
 }
 
@@ -277,7 +313,7 @@ func TestSessionWaitOutcomeBlocksUntilSet(t *testing.T) {
 	}()
 
 	want := sessionOutcome{Promoted: true, Dest: "/inbox/x"}
-	sess.setOutcome(want)
+	sess.setOutcome(want, time.Now())
 
 	select {
 	case got := <-done:
@@ -323,9 +359,41 @@ func TestStoreExpired(t *testing.T) {
 
 	// A completed session is never reported expired, even if it is old.
 	stale.completeOnce()
-	stale.setOutcome(sessionOutcome{Promoted: true})
+	stale.setOutcome(sessionOutcome{Promoted: true}, time.Now())
 	if got := s.expired(cutoff); len(got) != 0 {
 		t.Fatalf("expired(%v) after completion = %v, want none", cutoff, ids(got))
+	}
+}
+
+// TestStoreSettled proves settled reports a completed session only once
+// its own outcome-set time (not its creation time) has crossed cutoff,
+// and never reports one still in flight.
+func TestStoreSettled(t *testing.T) {
+	s := newStore()
+	now := time.Now()
+
+	if _, err := s.create("a@example.com", "Still Uploading", "", 2, []string{""}, now); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	longSettled, err := s.create("a@example.com", "Long Settled", "", 1, []string{""}, now)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	longSettled.completeOnce()
+	longSettled.setOutcome(sessionOutcome{Promoted: true}, now.Add(-time.Hour))
+
+	justSettled, err := s.create("a@example.com", "Just Settled", "", 1, []string{""}, now)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	justSettled.completeOnce()
+	justSettled.setOutcome(sessionOutcome{Promoted: true}, now)
+
+	cutoff := now.Add(-time.Minute)
+	got := s.settled(cutoff)
+	if len(got) != 1 || got[0].ID != longSettled.ID {
+		t.Fatalf("settled(%v) = %v, want only %s", cutoff, ids(got), longSettled.ID)
 	}
 }
 
