@@ -35,10 +35,10 @@ func dropKey(environ []string, name string) []string {
 
 func TestCheckCmd(t *testing.T) {
 	tests := []struct {
-		name      string
-		environ   []string
-		wantOK    bool
-		stderrHas []string
+		name    string
+		environ []string
+		wantOK  bool
+		errHas  []string
 	}{
 		{
 			name:    "full valid wall",
@@ -46,10 +46,10 @@ func TestCheckCmd(t *testing.T) {
 			wantOK:  true,
 		},
 		{
-			name:      "missing STATE_DIR",
-			environ:   dropKey(baseEnviron(), "DUBPLATE_STATE_DIR"),
-			wantOK:    false,
-			stderrHas: []string{"DUBPLATE_STATE_DIR"},
+			name:    "missing STATE_DIR",
+			environ: dropKey(baseEnviron(), "DUBPLATE_STATE_DIR"),
+			wantOK:  false,
+			errHas:  []string{"DUBPLATE_STATE_DIR"},
 		},
 	}
 
@@ -78,21 +78,30 @@ func TestCheckCmd(t *testing.T) {
 			if stdout.Len() != 0 {
 				t.Errorf("stdout = %q, want empty on failure", stdout.String())
 			}
-			for _, sub := range tt.stderrHas {
-				if !strings.Contains(stderr.String(), sub) {
-					t.Errorf("stderr = %q, want it to contain %q", stderr.String(), sub)
+			// check itself must not print the load error: main is the
+			// sole stderr writer, so this command's own stderr stays
+			// empty and the error surfaces only through the return value.
+			if stderr.Len() != 0 {
+				t.Errorf("stderr = %q, want empty; check must not print its own error", stderr.String())
+			}
+			for _, sub := range tt.errHas {
+				if !strings.Contains(err.Error(), sub) {
+					t.Errorf("error = %q, want it to contain %q", err.Error(), sub)
 				}
 			}
-			if strings.Contains(stderr.String(), "Usage:") {
-				t.Errorf("stderr = %q, want no usage block", stderr.String())
+			if strings.Contains(err.Error(), "Usage:") {
+				t.Errorf("error = %q, want no usage block", err.Error())
 			}
 		})
 	}
 }
 
 // TestCheckCmd_EmptyEnvironment proves the acceptance criterion pinned
-// in the rung 1 plan word for word: an empty environment prints only
-// the load error, with no usage block, and a nonzero exit.
+// in the rung 1 plan word for word: an empty environment yields the
+// load error alone, with no usage block, printed by main exactly
+// once (proved separately by TestRootCmd_UnknownSubcommand in
+// main_test.go and the build-and-run probe); check's own stdout and
+// stderr stay empty.
 func TestCheckCmd_EmptyEnvironment(t *testing.T) {
 	_, loadErr := config.Load(nil)
 	if loadErr == nil {
@@ -106,10 +115,13 @@ func TestCheckCmd_EmptyEnvironment(t *testing.T) {
 	if err == nil {
 		t.Fatal("Execute() error = nil, want error")
 	}
+	if err.Error() != loadErr.Error() {
+		t.Errorf("Execute() error = %q, want %q", err.Error(), loadErr.Error())
+	}
 	if stdout.Len() != 0 {
 		t.Errorf("stdout = %q, want empty", stdout.String())
 	}
-	if want := loadErr.Error() + "\n"; stderr.String() != want {
-		t.Errorf("stderr = %q, want only the load error %q", stderr.String(), want)
+	if stderr.Len() != 0 {
+		t.Errorf("stderr = %q, want empty; check must not print its own error", stderr.String())
 	}
 }
