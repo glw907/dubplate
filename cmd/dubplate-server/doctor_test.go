@@ -47,11 +47,18 @@ func TestDoctorCmd(t *testing.T) {
 			cmd := newDoctorCmd(tt.environ, &stdout, &stderr)
 			err := cmd.Execute()
 
-			if tt.wantErr && err == nil {
-				t.Fatal("Execute() error = nil, want error")
-			}
-			if !tt.wantErr && err != nil {
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("Execute() error = nil, want error")
+				}
+				if got := err.Error(); got != "configuration is incomplete" {
+					t.Errorf("Execute() error = %q, want %q", got, "configuration is incomplete")
+				}
+			} else if err != nil {
 				t.Fatalf("Execute() error = %v, want nil", err)
+			}
+			if got := stderr.String(); got != "" {
+				t.Errorf("stderr = %q, want empty: doctor's table is stdout-only, main prints the returned error", got)
 			}
 
 			lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")

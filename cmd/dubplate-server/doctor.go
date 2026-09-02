@@ -14,11 +14,13 @@ import (
 // newDoctorCmd builds the doctor subcommand: it reports the config
 // wall's owned rows, reserved classes, and registered thresholds, one
 // line each in "%-32s %s" form, deriving every row from
-// internal/config's own tables so no rung hard-codes a count. Exit
-// status follows [config.Load]'s own verdict on environ: 0 when the
-// owned wall is satisfied, 1 otherwise.
+// internal/config's own tables so no rung hard-codes a count. That
+// table is the command's human output; on an unsatisfied wall RunE
+// returns a single short error, leaving main as the sole stderr
+// writer. Exit status follows [config.Load]'s own verdict on
+// environ: 0 when the owned wall is satisfied, 1 otherwise.
 func newDoctorCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:           "doctor",
 		Short:         "Report the configuration wall",
 		SilenceUsage:  true,
@@ -54,11 +56,13 @@ func newDoctorCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
 			}
 
 			if err != nil {
-				_, _ = fmt.Fprintln(stderr, err)
+				return errors.New("configuration is incomplete")
 			}
-			return err
+			return nil
 		},
 	}
+	cmd.SetErr(stderr)
+	return cmd
 }
 
 // printRow writes one doctor line in the pinned "%-32s %s" form.
