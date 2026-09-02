@@ -393,6 +393,23 @@ a named rung.
   practical `inc=` response per release rather than the minimal
   matcher view, and the fixture format stores the raw response so
   fixture readers, never the fixtures, decide which fields exist.
+- **U7, beets-3.0 break resilience in the differential job (rung 2,
+  harness).** beets' one active plan is v3.0.0, a
+  compatibility-shedding release: the legacy plugin layer is
+  TODO-marked for removal (beets/plugins.py, metadata_plugins.py),
+  docs promise "Legacy support will be removed in beets v3.0.0"
+  (docs/dev/plugins/autotagger.rst), and the matcher's orchestration
+  is still moving (the 2026 Source refactor, open matcher-internal
+  refactor issues). The standing version-bump differential job drives
+  pinned beets as a subprocess with an estate config; a major version
+  that sheds compatibility can break the invocation contract (config
+  keys, plugin enablement, CLI behavior) independently of any verdict
+  change. Implication: the harness rung isolates everything that
+  knows how to invoke beets (config rendering, process entry, output
+  parsing) behind one adapter, so a beets major bump costs an adapter
+  update and an adjudication pass, never a harness rewrite.
+  Falsifiable: when the differential is pointed at a beets 3.x, only
+  the adapter package should need edits.
 
 One meta-lesson needs no rung: beets' worst defects were invisible to
 its own tests for years (eleven releases of lock timeouts, sixteen
@@ -400,6 +417,79 @@ years of the "ft" discount) and surfaced only through environmental
 diversity and adversarial accident. The shadow rung is dubplate's
 manufactured version of that accident, and the calendar time it
 accumulates is the cheapest evidence the initiative buys.
+
+## 6. Roadmap and stated future plans
+
+beets has no roadmap artifact. There is no ROADMAP, GOALS, or vision
+file in the repo, `docs/dev/` is developer reference only, CONTRIBUTING
+names no priorities, the blog's last post is a 2022 walkthrough, and
+the changelog's Unreleased section at master is an ordinary dev
+changelog (a `duplicate_action: upgrade` feature, bug fixes), not a
+plan. What planning exists lives in four scattered artifacts of very
+different freshness.
+
+**The one live plan: v3.0.0 as a compatibility-shedding release.** The
+3.0.0 milestone is the only actively updated one (June 2026), and its
+contents are deprecation removals: retiring the deprecated
+acousticbrainz, absubmit, and beatport plugins (PR #6778), removing
+`format_raw_length` (#6018), and dropping a mediafile shim (PR #6016).
+The code carries matching intent: `beets/plugins.py` marks its legacy
+plugin compatibility layer "TODO: Remove in v3.0.0" in three places,
+`metadata_plugins.py` plans a strict `MetadataSourcePlugin` isinstance
+check for 3.0, and the plugin-developer docs state that "Legacy
+support will be removed in **beets v3.0.0**"
+(docs/dev/plugins/autotagger.rst). Read together, the maintainers'
+own stated priority is finishing the metadata-source decoupling and
+shedding the compatibility shims it required, which is a direct
+self-diagnosis that the legacy plugin surface is the project's
+heaviest debt. That corroborates the plugin-sprawl finding in section
+3 and the settled extensibility fork, and it is what motivates U7:
+dubplate's differential harness will meet this planned break.
+
+**Stale milestones as capacity evidence.** The other three open
+milestones are wishlists whose contents predate the current
+maintainership: "MediaFile++" holds tag-mapping and custom-field
+issues filed 2013-2017 (#350, #572, #656, #2621); "Modularise beets"
+holds a single 2015 Sampson issue, "Finish disentangling dbcore from
+beets globals" (#1531), untouched since 2019; "Modern MPD support" is
+a 2019 batch of bpd protocol items. The `refactor` label runs the
+same way: "Use pathlib everywhere" (#1409, 2015), "Replace optparse
+with Click" (#1442, 2015), "Refactor ImportTask" (#704, 2014) all
+remain open, alongside newer maintainer-filed items (pytest
+migration #5361 and SQL-only sorting #5318 from 2024, matcher-internal
+cleanup #6920 from August 2026). A decade-old open refactor list is
+intent outliving capacity, the same signal as the 1.6.0 quarterly
+release promise (section 3), and it argues that dubplate should trust
+beets' shipped behavior, never its stated direction, when deciding
+what to conform to.
+
+**The 2018 wiki page as the last architectural self-assessment.** The
+GitHub wiki's Refactoring page, last edited by Sampson in April 2018,
+names the pains the founder saw: album-level field consistency under
+`update`, weak typing on Item fields ("confusing None values",
+`modify` failing on non-string fields via SQLite's coercions),
+importer-prompt complexity, and, farthest out, "asynchronous import
+decisions" to decouple indexing from user choices. Two map directly
+onto dubplate decisions. The weak-typing complaint corroborates U4:
+beets' own maintainers flagged the untyped-attribute path as a pain,
+which weighs the U4 choice toward typed columns via migration. The
+async-import-decisions idea is beets' own unbuilt sketch of the
+decision queue the organizer spec ratified; the field's most
+experienced maintainer wanted the feature dubplate is building, and
+never got the architecture room to build it against a synchronous
+prompt-driven importer.
+
+**Governance statement.** docs/team.rst is a knowledge-owner roster
+("Beets is a huge project and not everyone involved, knows
+everything") that routes questions per plugin and subsystem. It is the
+maintainers' own admission that the surface exceeds any one person's
+comprehension, the end state the built-ins-only fork exists to avoid.
+
+Boundary: GitHub Projects boards, if any exist, were unreadable (the
+available token lacks the `read:project` scope), and no "state of the
+project" post by the current maintainer was found; the maintainer's
+priorities here are inferred from milestones, labels, code TODOs, and
+shipped-release patterns rather than from a stated manifesto.
 
 ## Sources
 
@@ -439,6 +529,22 @@ Issues and discussions (github.com/beetbox/beets):
   #6351 (custom-client packaging), #6561 (path migration), #6728
   (scraper throttling), discussion #4660 (musicbrainzngs
   replacement).
+
+Roadmap section (section 6):
+
+- GitHub milestones via `gh api repos/beetbox/beets/milestones`:
+  3.0.0 (updated 2026-06), MediaFile++ (#350, #572, #656, #2621),
+  Modularise beets (#1531), Modern MPD support; closed milestones
+  1.1 through "Python 3.10 support".
+- 3.0.0 milestone contents: PR #6778, #6018, PR #6016.
+- In-repo v3.0.0 intent: beets/plugins.py (three "Remove in v3.0.0"
+  TODOs), beets/metadata_plugins.py, beets/ui/__init__.py,
+  docs/dev/plugins/autotagger.rst ("Legacy support will be removed in
+  beets v3.0.0").
+- `refactor`-labeled open issues: #704, #842, #1409, #1442, #1531,
+  #1715, #3246, #5318, #5361, #6920.
+- github.com/beetbox/beets/wiki/Refactoring (last edited April 2018).
+- docs/team.rst at master.
 
 Web:
 
