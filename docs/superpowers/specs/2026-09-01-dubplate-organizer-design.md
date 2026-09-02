@@ -370,6 +370,12 @@ the roster. Two policies fix now:
 
 ## Beauty and cleanliness
 
+**The Go bar is exemplary, not conforming (Geoff, 2026-09-02):** the
+tools aim for truly idiomatic, architecturally beautiful Go. Stdlib
+idiom is the default vocabulary, exported surfaces read like stdlib
+APIs, and the ops seam is the in-repo shape to imitate. Reviewers may
+fail awkward-but-working code on this dimension.
+
 Design quality is an architectural property of this initiative. The
 spec separates what a gate can fail from what a person judges.
 
