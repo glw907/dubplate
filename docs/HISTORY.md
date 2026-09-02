@@ -2,6 +2,52 @@
 
 Per-pass ledger, newest first.
 
+## Uploader Pass B close + the greenfield pivot (2026-09-01/02)
+
+Pass B built and hardened the uploader web app end to end, then Geoff
+superseded its launch with the greenfield dubplate-server ruling. What
+landed in code (all on master, salvage tier): U9-U11 web app; the U13
+review workflow (57 agents, 45 confirmed serious findings from 5
+reviewers with adversarial verification) and its complete fold F1-F8
+(TagProbe built and wired -- the probe never existed and no main-lane
+upload could reach the library; serve security majors; reject-copy
+contract; semantic theme tokens; App.svelte structure; component fixes;
+saturated palette + soft surfaces; state-text lightness + rejected
+CTA); a three-round visual-fidelity chain ending PASS; code-simplifier
+consolidation (AlertCard, Store access discipline). Deployed to the box
+2026-09-02 with "907 Music" minted, then wound down the same day.
+
+What the gates caught that later work must not rediscover: DaisyUI 5
+theme blocks define NO semantic color defaults for custom themes
+(navidrome-* themes shipped without --color-error et al. and every
+status surface rendered gray); DaisyUI 5 .alert is display:grid (flex
+utilities are inert; single wrapper child required); -soft variants
+color text with the raw token, so dark themes need Material-400-class
+state tokens; the beets probe cannot use --pretend (it skips MusicBrainz
+entirely) -- the real dry-run shape is in internal/beets/probe.go; the
+box serve unit needed AF_NETLINK debate but not the family (glibc falls
+back); find -newermt with a bare relative string fails silently in
+guard scripts (use -mmin).
+
+The pivot: Geoff's device check hit the shared-Access-org ASC branding
+on the login page (a page never rendered before asking him -- now the
+see-it-before-geoff-tests-it memory). The fix path escalated by
+ruling into: magic-link login + Navidrome SSO (spec
+2026-09-02-magic-link-login-design.md; two adversarial reviews in
+docs/superpowers/research/2026-09-02-login-spec-reviews/ found 6
+security blockers + 3 universality criticals -- all now birth
+requirements), then the full greenfield ruling set
+(docs/superpowers/research/2026-09-02-greenfield-server-rulings.md).
+Interim estate wound down 2026-09-02: FileBrowser gone (container,
+compose, env, DNS, Access app), uploader serve + nudge units disabled,
+uploader tunnel rule + both Access apps deleted; box runs Navidrome +
+cloudflared + guardian timers only. The 37 deferred U13 minors live in
+docs/superpowers/research/2026-09-01-u13-findings.json and matter only
+to salvaged components. The dubplate-organizer initiative spec was
+brainstormed and four-review hardened the same nights (80f0f5f + later
+amendments); the organizer spec + rulings doc are the greenfield
+build's inputs.
+
 ## Uploader Pass A close: U12a live, gates 1–2 passed (2026-09-01)
 
 The uploader went live at https://music.907.life/upload behind a

@@ -1,11 +1,24 @@
 # dubplate
 
 A group of family or friends building a well-organized library for a shared
-Navidrome server. This repo is the whole estate: the `dubplate` Go binary
-(pipeline, checks, serve), the VPS provisioning (cloud-init, compose,
-systemd), and the uploader web app. The pings Worker lives in
-`~/Projects/pings`. Ease of setup by a stranger is a primary product goal:
-no site-specific value, path, or identity default outside `internal/config`.
+music server. This repo is the whole estate: the `dubplate` Go binary,
+the VPS provisioning (cloud-init, compose, systemd), and the web app. The
+pings Worker lives in `~/Projects/pings`. Ease of setup by a stranger is a
+primary product goal: no site-specific value, path, or identity default
+outside `internal/config`.
+
+**The active initiative (2026-09-02) is the greenfield dubplate-server
+build**: a fresh, universal, foundation-first build per
+`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md`, governed
+by the rulings in
+`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`. The
+existing `internal/` + `web/` code is SALVAGE TIER: it stays in-tree as
+adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte bars)
+and retires at launch. The family system is not live; the box runs only
+Navidrome + guardian timers until the new server launches complete (Go
+matcher included). Two standing bars, from memory: exemplary Go
+(`idiomatic-beautiful-go`) and render-and-read every user-path page before
+any attended ask (`see-it-before-geoff-tests-it`).
 
 ## Ledgers
 
