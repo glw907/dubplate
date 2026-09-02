@@ -33,15 +33,12 @@ github.com/glw907/dubplate (private).
 
 ## Open items (carried)
 
-- Organizer spec awaits Geoff's ratification read (committed 80f0f5f
-  plus amendments; he may fold it into the greenfield spec read).
-- Rewrite post-mortem still owed (prod-polish residue).
+- Organizer spec awaits Geoff's ratification read (fold into the
+  greenfield spec read). Rewrite post-mortem still owed.
 - Two albums in /srv/music/review/2026-08-31/geoff/ await manual review.
-- FILEBROWSER_ADMIN_PASSWORD orphaned in the age store; delete at the
-  next registry sweep. DUBPLATE_SERVE_SITE_NAME ("907 Music") stays
-  minted for the new server.
-- Stale musicbox-ping-failure@ failed units on the box; cosmetic;
-  `systemctl reset-failed` clears.
+- Age store: FILEBROWSER_ADMIN_PASSWORD orphaned (delete at next sweep);
+  DUBPLATE_SERVE_SITE_NAME ("907 Music") stays minted for the new server.
+- Stale failed units on the box; cosmetic; `systemctl reset-failed`.
 
 ## Pinned versions (looked up 2026-08-30)
 
