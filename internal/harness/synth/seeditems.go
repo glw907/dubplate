@@ -102,16 +102,40 @@ func (p *flexPosition) UnmarshalJSON(data []byte) error {
 }
 
 // capturedRelease is the WS/2 release document decode shape
-// [ProjectItems] reads: only the fields a baseline item set needs, so
-// unknown keys (aliases, genres, cover-art-archive, and every other
-// field a maximal `inc=` lookup returns) are simply ignored by
-// encoding/json rather than modeled here.
+// [ProjectItems] and [ExtractFacts] both read: the fields a baseline
+// item set needs plus the structural facts Task 3's fact-verified axes
+// confirm (Status, ReleaseGroup, Aliases). Every other field a maximal
+// `inc=` lookup returns (genres, cover-art-archive, tags, ...) is
+// simply ignored by encoding/json rather than modeled here.
 type capturedRelease struct {
-	ID           string           `json:"id"`
-	Title        string           `json:"title"`
-	Date         string           `json:"date"`
-	ArtistCredit []capturedCredit `json:"artist-credit"`
-	Media        []capturedMedium `json:"media"`
+	ID           string               `json:"id"`
+	Title        string               `json:"title"`
+	Date         string               `json:"date"`
+	Status       string               `json:"status"`
+	ArtistCredit []capturedCredit     `json:"artist-credit"`
+	Media        []capturedMedium     `json:"media"`
+	ReleaseGroup capturedReleaseGroup `json:"release-group"`
+	Aliases      []capturedAlias      `json:"aliases"`
+}
+
+// capturedReleaseGroup is a release's parent release-group, read for
+// its own first-release-date: absent an `original_date` override, a
+// release's year and its group's first-release-date agree, and a
+// year-penalty case's whole point is the two diverging
+// (corpus/README.md, "The synth tool").
+type capturedReleaseGroup struct {
+	FirstReleaseDate string `json:"first-release-date"`
+}
+
+// capturedAlias is one documented alias, on either a release itself
+// (rare; a release's own top-level `aliases`) or an artist-credit
+// entry's artist. Type and Locale decode to "" when the document
+// carries a JSON null for either, matching a real WS/2 document's own
+// shape for an alias the API has not classified.
+type capturedAlias struct {
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Locale string `json:"locale"`
 }
 
 // capturedCredit is one artist-credit entry: a display name, and the
@@ -126,7 +150,8 @@ type capturedCredit struct {
 
 // capturedArtist is one artist-credit entry's artist object.
 type capturedArtist struct {
-	ID string `json:"id"`
+	ID      string          `json:"id"`
+	Aliases []capturedAlias `json:"aliases"`
 }
 
 // capturedMedium is one disc's track list.
@@ -186,4 +211,156 @@ func trackArtist(tr capturedTrack, fallback string) string {
 		return name
 	}
 	return fallback
+}
+
+// Facts is the structural fact set a captured release document
+// carries that Task 3's fact-verified axes (reissue/remaster,
+// multi-disc/box-set, non-Latin, two-release) confirm through
+// `harness seed-items --facts` rather than by reading responses/
+// directly (corpus/README.md, "The seed-items tool"; the plan's
+// Global Constraints).
+type Facts struct {
+	Date                  string
+	ReleaseGroupFirstDate string
+	Status                string
+	DiscTrackCounts       []int
+	ReleaseAliases        []FactAlias
+	ArtistCreditAliases   []ArtistAliases
+}
+
+// ArtistAliases is one artist-credit entry's own documented aliases,
+// under the entry's display name. [ExtractFacts] omits an entry whose
+// artist carries none, so every entry in this slice has at least one
+// alias to report.
+type ArtistAliases struct {
+	Artist  string
+	Aliases []FactAlias
+}
+
+// FactAlias is one documented alias: a name plus its type and locale,
+// when the release document carries them ("" otherwise).
+type FactAlias struct {
+	Name   string
+	Type   string
+	Locale string
+}
+
+// ExtractFacts reads doc, a captured release document's raw bytes, and
+// returns its structural facts: the release date, its release-group's
+// own first-release-date, its status, each disc's track count, and its
+// documented aliases (the release's own top-level aliases plus each
+// artist-credit entry's artist aliases, where the document carries
+// either). ExtractFacts is the read-only half of the seed-items reader
+// ([ProjectItems] is the write half): both parse the same captured
+// document, but ExtractFacts never touches Input.Items, so
+// `harness seed-items --facts` can run against a case whose items are
+// already projected without perturbing it.
+func ExtractFacts(doc []byte) (*Facts, error) {
+	var rel capturedRelease
+	if err := json.Unmarshal(doc, &rel); err != nil {
+		return nil, fmt.Errorf("synth: seed-items: parse release document: %w", err)
+	}
+
+	discs := make([]int, len(rel.Media))
+	for i, m := range rel.Media {
+		discs[i] = len(m.Tracks)
+	}
+
+	var artistAliases []ArtistAliases
+	for _, c := range rel.ArtistCredit {
+		if len(c.Artist.Aliases) == 0 {
+			continue
+		}
+		artistAliases = append(artistAliases, ArtistAliases{
+			Artist:  c.Name,
+			Aliases: convertAliases(c.Artist.Aliases),
+		})
+	}
+
+	return &Facts{
+		Date:                  rel.Date,
+		ReleaseGroupFirstDate: rel.ReleaseGroup.FirstReleaseDate,
+		Status:                rel.Status,
+		DiscTrackCounts:       discs,
+		ReleaseAliases:        convertAliases(rel.Aliases),
+		ArtistCreditAliases:   artistAliases,
+	}, nil
+}
+
+// convertAliases converts a decoded document's own alias shape into
+// [FactAlias], the facts-package's stable, format-ready shape.
+func convertAliases(aliases []capturedAlias) []FactAlias {
+	out := make([]FactAlias, len(aliases))
+	for i, a := range aliases {
+		out[i] = FactAlias(a)
+	}
+	return out
+}
+
+// FormatFacts renders f as the deterministic text `harness seed-items
+// --facts` prints to stdout. Every fact prints on its own line so a
+// golden-file diff isolates exactly which fact changed; "aliases: none"
+// prints as an explicit single line rather than an omitted section,
+// so a document that documents no alias at all is never
+// indistinguishable from one ExtractFacts failed to read.
+func FormatFacts(f *Facts) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "release date: %s\n", f.Date)
+	fmt.Fprintf(&b, "release-group first-release-date: %s\n", f.ReleaseGroupFirstDate)
+	fmt.Fprintf(&b, "release status: %s\n", f.Status)
+	fmt.Fprintf(&b, "discs: %d\n", len(f.DiscTrackCounts))
+	for i, n := range f.DiscTrackCounts {
+		fmt.Fprintf(&b, "  disc %d: %d tracks\n", i+1, n)
+	}
+	writeAliases(&b, f)
+	return b.String()
+}
+
+// writeAliases writes f's aliases section: a single "aliases: none"
+// line when the document documents no alias at all (neither the
+// release itself nor any artist-credit entry), else a header followed
+// by the release's own alias list (or "none") and one indented block
+// per artist-credit entry that carries at least one alias.
+func writeAliases(b *strings.Builder, f *Facts) {
+	if len(f.ReleaseAliases) == 0 && len(f.ArtistCreditAliases) == 0 {
+		b.WriteString("aliases: none\n")
+		return
+	}
+
+	b.WriteString("aliases:\n")
+	b.WriteString("  release:\n")
+	writeAliasList(b, "    ", f.ReleaseAliases)
+	for _, ac := range f.ArtistCreditAliases {
+		fmt.Fprintf(b, "  artist-credit %q:\n", ac.Artist)
+		writeAliasList(b, "    ", ac.Aliases)
+	}
+}
+
+// writeAliasList writes one alias per line at indent, each carrying
+// its type and/or locale in parentheses when the document names them;
+// an empty list writes a single "none" line rather than nothing, the
+// same explicit-absence rule [writeAliases] applies at the section
+// level.
+func writeAliasList(b *strings.Builder, indent string, aliases []FactAlias) {
+	if len(aliases) == 0 {
+		fmt.Fprintf(b, "%snone\n", indent)
+		return
+	}
+	for _, a := range aliases {
+		b.WriteString(indent)
+		b.WriteString(a.Name)
+		var parts []string
+		if a.Type != "" {
+			parts = append(parts, "type: "+a.Type)
+		}
+		if a.Locale != "" {
+			parts = append(parts, "locale: "+a.Locale)
+		}
+		if len(parts) > 0 {
+			b.WriteString(" (")
+			b.WriteString(strings.Join(parts, ", "))
+			b.WriteString(")")
+		}
+		b.WriteString("\n")
+	}
 }

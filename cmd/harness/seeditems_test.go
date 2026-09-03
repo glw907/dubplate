@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -153,5 +155,100 @@ func TestSeedItemsCmdRequiresCaseFlag(t *testing.T) {
 	cmd.SetArgs(nil)
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("seed-items with no --case: got nil error, want one")
+	}
+}
+
+// caseDirSnapshot captures dir's own files' mtimes and content, so a
+// test can prove a run left the directory byte-for-byte and
+// stat-for-stat untouched: `--facts` is read-only by contract, and a
+// fixed-in-place mtime is stronger evidence of that than a content
+// diff alone (a rewrite that reproduces identical bytes would still
+// touch mtime).
+type caseDirSnapshot struct {
+	modTime map[string]int64
+	content map[string][]byte
+}
+
+func snapshotCaseDir(t *testing.T, dir string) caseDirSnapshot {
+	t.Helper()
+	snap := caseDirSnapshot{modTime: map[string]int64{}, content: map[string][]byte{}}
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		data, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+		snap.modTime[path] = info.ModTime().UnixNano()
+		snap.content[path] = data
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("snapshot case dir: %v", err)
+	}
+	return snap
+}
+
+func TestRunSeedItemsFactsWritesNothing(t *testing.T) {
+	dir := writeScratchCase(t)
+	if _, err := runSeedItems(dir, ""); err != nil {
+		t.Fatalf("runSeedItems (seeding items before the facts run): %v", err)
+	}
+	before := snapshotCaseDir(t, dir)
+
+	if _, err := runSeedItemsFacts(dir); err != nil {
+		t.Fatalf("runSeedItemsFacts: %v", err)
+	}
+
+	after := snapshotCaseDir(t, dir)
+	if !reflect.DeepEqual(before.content, after.content) {
+		t.Errorf("runSeedItemsFacts changed case dir content: before %v, after %v", before.content, after.content)
+	}
+	if !reflect.DeepEqual(before.modTime, after.modTime) {
+		t.Errorf("runSeedItemsFacts touched a case dir file's mtime: before %v, after %v", before.modTime, after.modTime)
+	}
+}
+
+func TestRunSeedItemsFactsReturnsTheFormattedFacts(t *testing.T) {
+	dir := writeScratchCase(t)
+
+	out, err := runSeedItemsFacts(dir)
+	if err != nil {
+		t.Fatalf("runSeedItemsFacts: %v", err)
+	}
+	if !strings.Contains(out, "release date: 1999-03-02") {
+		t.Errorf("facts output %q does not carry the release date", out)
+	}
+	if !strings.Contains(out, "aliases: none") {
+		t.Errorf("facts output %q does not print an explicit aliases: none line", out)
+	}
+}
+
+func TestSeedItemsCmdFactsRejectsOverrides(t *testing.T) {
+	dir := writeScratchCase(t)
+
+	cmd := newSeedItemsCmd()
+	cmd.SetArgs([]string{"--case", dir, "--facts", "--overrides", filepath.Join(t.TempDir(), "overrides.json")})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("seed-items --facts with --overrides: got nil error, want one")
+	}
+}
+
+func TestSeedItemsCmdFactsPrintsToStdout(t *testing.T) {
+	dir := writeScratchCase(t)
+
+	cmd := newSeedItemsCmd()
+	var stdout bytes.Buffer
+	cmd.SetOut(&stdout)
+	cmd.SetArgs([]string{"--case", dir, "--facts"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("seed-items --facts: %v", err)
+	}
+	if !strings.Contains(stdout.String(), "release date: 1999-03-02") {
+		t.Errorf("stdout %q does not carry the release date", stdout.String())
 	}
 }

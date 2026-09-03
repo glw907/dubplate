@@ -276,3 +276,119 @@ func TestProjectItemsFencesMBAlbumIDOverride(t *testing.T) {
 		t.Errorf("error %q does not explain the mb_albumid fence", err)
 	}
 }
+
+// wantYearPenaltyFacts is year-penalty's response document's own
+// structural facts, transcribed by hand from responses/001.json (its
+// release-group's first-release-date agrees with the release's own
+// date, 1991-09-24; the override that diverges Input.Items' year to
+// 1978 lives in case.json, not the captured document): a diff against
+// this literal, not against FormatFacts' own output, is what proves
+// the format matches the document rather than merely itself.
+const wantYearPenaltyFacts = `release date: 1991-09-24
+release-group first-release-date: 1991-09-24
+release status: Official
+discs: 1
+  disc 1: 12 tracks
+aliases:
+  release:
+    none
+  artist-credit "Nirvana":
+    Nirvana (type: Artist name, locale: en)
+    Nirvana US
+    ニルヴァーナ (type: Artist name, locale: ja)
+`
+
+func TestFormatFactsMatchesYearPenalty(t *testing.T) {
+	root := seedItemsRepoRoot(t)
+	doc, _ := readCommittedCase(t, root, "year-penalty")
+
+	facts, err := ExtractFacts(doc)
+	if err != nil {
+		t.Fatalf("ExtractFacts: %v", err)
+	}
+	got := FormatFacts(facts)
+	if got != wantYearPenaltyFacts {
+		t.Errorf("FormatFacts(year-penalty) =\n%s\nwant\n%s", got, wantYearPenaltyFacts)
+	}
+}
+
+// wantMultiDiscFacts is multi-disc's response document's own
+// structural facts (The Wall, two 13-track CDs; a release-group
+// first-release-date of 1979-11-30 against the release's own
+// 1984-09), transcribed by hand for the same reason
+// wantYearPenaltyFacts is.
+const wantMultiDiscFacts = `release date: 1984-09
+release-group first-release-date: 1979-11-30
+release status: Official
+discs: 2
+  disc 1: 13 tracks
+  disc 2: 13 tracks
+aliases:
+  release:
+    none
+  artist-credit "Pink Floyd":
+    Floyd (type: Search hint)
+    Pink Floid (type: Search hint)
+    Pink Floyd (type: Artist name, locale: en)
+    The Pink Floyd (type: Search hint)
+    ピンク・フロイド (type: Artist name, locale: ja)
+    핑크 플로이드 (type: Artist name, locale: ko)
+`
+
+func TestFormatFactsMatchesMultiDisc(t *testing.T) {
+	root := seedItemsRepoRoot(t)
+	doc, _ := readCommittedCase(t, root, "multi-disc")
+
+	facts, err := ExtractFacts(doc)
+	if err != nil {
+		t.Fatalf("ExtractFacts: %v", err)
+	}
+	got := FormatFacts(facts)
+	if got != wantMultiDiscFacts {
+		t.Errorf("FormatFacts(multi-disc) =\n%s\nwant\n%s", got, wantMultiDiscFacts)
+	}
+}
+
+// noAliasesDoc is a hand-written release document that documents no
+// alias at all: no top-level `aliases` entries and no artist-credit
+// entry carrying an `aliases` array, the shape a `harness synth`-built
+// document always has (marshalRelease never writes an aliases field).
+const noAliasesDoc = `{
+  "id": "aaaaaaaa-1111-2222-3333-444444444444",
+  "title": "No Aliases",
+  "date": "2000-01-01",
+  "status": "Official",
+  "release-group": {"first-release-date": "2000-01-01"},
+  "artist-credit": [{"name": "Solo Artist", "artist": {"id": "bbbbbbbb-1111-2222-3333-444444444444"}}],
+  "media": [{"tracks": [{"position": 1, "title": "Only Track", "length": 100000, "recording": {"id": "cccccccc-1111-2222-3333-444444444444"}}]}]
+}`
+
+// wantNoAliasesFacts is noAliasesDoc's structural facts: an explicit
+// "aliases: none" line, never an omitted section, so a document that
+// documents no alias is never indistinguishable from a formatting bug
+// that silently dropped a populated aliases section.
+const wantNoAliasesFacts = `release date: 2000-01-01
+release-group first-release-date: 2000-01-01
+release status: Official
+discs: 1
+  disc 1: 1 tracks
+aliases: none
+`
+
+func TestFormatFactsPrintsExplicitNoneForADocumentWithNoAliases(t *testing.T) {
+	facts, err := ExtractFacts([]byte(noAliasesDoc))
+	if err != nil {
+		t.Fatalf("ExtractFacts: %v", err)
+	}
+	got := FormatFacts(facts)
+	if got != wantNoAliasesFacts {
+		t.Errorf("FormatFacts(no-aliases) =\n%s\nwant\n%s", got, wantNoAliasesFacts)
+	}
+}
+
+func TestExtractFactsRejectsMalformedJSON(t *testing.T) {
+	_, err := ExtractFacts([]byte("not json"))
+	if err == nil {
+		t.Fatal("ExtractFacts against malformed JSON: got nil error, want one")
+	}
+}

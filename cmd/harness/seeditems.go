@@ -18,9 +18,16 @@ import (
 // real-catalog case's items (corpus/README.md, "The seed-items tool";
 // B1 in the rung 2c plan review). --overrides applies the same
 // field/missing/extra vocabulary `harness synth` already carries, for
-// the mistagged and partial-rip axes.
+// the mistagged and partial-rip axes. --facts switches to a read-only
+// mode: it prints the case's structural facts (release date,
+// release-group first-release-date, disc/track counts, status,
+// documented aliases) to stdout and writes nothing, the sanctioned
+// confirmation channel for Task 3's fact-verified axes
+// (corpus/README.md, "The seed-items tool"; the plan's Global
+// Constraints).
 func newSeedItemsCmd() *cobra.Command {
 	var caseDir, overridesPath string
+	var facts bool
 
 	cmd := &cobra.Command{
 		Use:           "seed-items",
@@ -30,6 +37,17 @@ func newSeedItemsCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if caseDir == "" {
 				return errors.New("--case is required")
+			}
+			if facts {
+				if overridesPath != "" {
+					return errors.New("--facts is read-only and does not accept --overrides")
+				}
+				out, err := runSeedItemsFacts(caseDir)
+				if err != nil {
+					return err
+				}
+				_, err = fmt.Fprint(cmd.OutOrStdout(), out)
+				return err
 			}
 			n, err := runSeedItems(caseDir, overridesPath)
 			if err != nil {
@@ -42,6 +60,7 @@ func newSeedItemsCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&caseDir, "case", "", "staged or committed case directory to project items into")
 	cmd.Flags().StringVar(&overridesPath, "overrides", "", "JSON file of synth.Override entries to perturb the projected baseline")
+	cmd.Flags().BoolVar(&facts, "facts", false, "print the case's structural facts to stdout and write nothing")
 	return cmd
 }
 
@@ -81,6 +100,33 @@ func runSeedItems(dir, overridesPath string) (int, error) {
 		return 0, fmt.Errorf("write case: %w", err)
 	}
 	return len(items), nil
+}
+
+// runSeedItemsFacts loads the case at dir and returns its structural
+// facts, deterministically formatted, read from the same primary
+// response runSeedItems projects Input.Items from. It never calls
+// cassette.Case.Write: --facts is read-only by design, so it may run
+// against a case whose Input.Items are already projected without
+// perturbing the case directory at all.
+func runSeedItemsFacts(dir string) (string, error) {
+	c, err := cassette.LoadCase(dir)
+	if err != nil {
+		return "", fmt.Errorf("load case: %w", err)
+	}
+	if len(c.Requests) == 0 {
+		return "", fmt.Errorf("seed-items: %s: case carries no requests to read facts from", dir)
+	}
+
+	doc, err := os.ReadFile(filepath.Join(dir, c.Requests[0].Response))
+	if err != nil {
+		return "", fmt.Errorf("read response: %w", err)
+	}
+
+	facts, err := synth.ExtractFacts(doc)
+	if err != nil {
+		return "", fmt.Errorf("extract facts: %w", err)
+	}
+	return synth.FormatFacts(facts), nil
 }
 
 // loadOverrides reads path as a JSON array of synth.Override entries,

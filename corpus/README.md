@@ -1037,6 +1037,30 @@ comment), which is also why `--case` must already resolve through
 `cassette.LoadCase`: a directory missing either field fails to load
 before `seed-items` ever gets to project anything into it.
 
+**`--facts` is the sanctioned confirmation channel for a fact-verified
+axis.** `harness seed-items --case <dir> --facts` reads the case's own
+primary captured response, exactly as the item-projection mode does,
+but never calls `cassette.Case.Write`: it prints the document's own
+structural facts to stdout, deterministically formatted, and touches
+nothing on disk. The fact-verified axes (reissue/remaster, multi-disc/
+box-set, non-Latin, two-release) confirm a candidate release through
+this mode rather than by opening `responses/*.json` directly, per the
+"one sanctioned door" rule: seed the candidate via `harness capture
+--mbid <mbid> --out corpus/staging/<tentative-id>`, then run
+`--facts` against it to read the release date, the release-group's
+own first-release-date (a year-penalty reissue's divergence point),
+the release status, each disc's track count, and the release's
+documented aliases (its own top-level `aliases` array plus each
+artist-credit entry's own artist aliases, each with its type and
+locale when the document carries them). A document that documents no
+alias at all prints an explicit `aliases: none` line rather than
+omitting the section, so a genuinely alias-free release is never
+indistinguishable from a broken read. `--facts` may run against a case
+whose `Input.Items` are already projected (it reads the same response
+`seed-items`' item-projection mode does, never `Input.Items` itself),
+and it rejects `--overrides` outright, since overrides only ever
+perturb a projected item baseline and have no facts-mode meaning.
+
 ### Authoring a captured case
 
 1. **Seed:** `harness capture --mbid <release> --out
