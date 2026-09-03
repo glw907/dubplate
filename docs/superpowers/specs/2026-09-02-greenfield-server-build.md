@@ -599,7 +599,11 @@ are marked [E].
    at serve time (no Node, no rebuild, per universality), and an
    optional operator CSS file served after the bundle. User-supplied
    components or template overrides stay ruled out (ruling 8's
-   no-plugin-ABI fork).
+   no-plugin-ABI fork). Starting theme roster (Geoff, 2026-09-03; a
+   starting roster, revisable cheaply until the picker ships): dark
+   (estate default) and light as the system-following pair, dim,
+   night, black (the high-contrast dark), nord, coffee, retro (the
+   one personality pick).
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
