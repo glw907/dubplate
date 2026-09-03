@@ -29,11 +29,12 @@ Geoff's word.
 
 ## Lane registry
 
-- lane-1 (code, main tree): IDLE. Next: 2c tasks 16-17 (adversarial
-  strata probing the four pending bug hypotheses), 18 (locale +
-  #6358), 19a/19b (stock-config), 20 (close + Geoff's MARKDOWN
-  adjudication batch); all sequential (corpus-ledger contention).
-  Then 2d (plans/2026-09-03-rung-2d-file-level.md rev 2, ready).
+- lane-1 (code, main tree): EXECUTING 2c tasks 16-17 (adversarial
+  strata, one sequential pass-execute workflow, launched
+  2026-09-03). Next after: 18 (locale + #6358), 19a/19b
+  (stock-config), 20 (close + Geoff's adjudication batch); all
+  sequential (corpus-ledger contention). Then 2d
+  (plans/2026-09-03-rung-2d-file-level.md rev 2, ready).
 - lane-2 (code, worktree): BLOCKED until Phase 0a (fifteen
   reverse-edge cells, research dispatch), 0b (rung 1b config
   wall-row registry, own small plan), 0c (theme-variable contract +
