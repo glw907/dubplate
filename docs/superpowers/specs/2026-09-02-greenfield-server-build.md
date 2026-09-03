@@ -621,7 +621,12 @@ are marked [E].
     is legible; layout-parity fixtures proving the beets path-format
     DSL and query-prefixed collection routing reproduce the estate's
     computed paths—engine work, because any beets-migrating
-    adopter faces the same question; and the first read-only no-move
+    adopter faces the same question; a corpus-driven path-parity
+    fixture (carried in 2026-09-02, Geoff): render the path formats
+    over rung 2's corpus AppliedFields records through pinned beets
+    and through the new engine, and diff the renderings
+    case-for-case, so organization parity is evidence rather than
+    review; and the first read-only no-move
     diff against the live library (read-only listing access, R2
     snapshots as the alternative source). A non-empty diff here is a
     rung 9 defect found cheap; the same assertion re-runs at rung 16
