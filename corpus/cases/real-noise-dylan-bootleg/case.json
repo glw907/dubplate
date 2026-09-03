@@ -1,0 +1,3016 @@
+{
+  "id": "real-noise-dylan-bootleg",
+  "input": {
+    "items": [
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 103.266,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "323c571f-717f-4370-9fb4-9508757fef6e",
+        "title": "You're No Good",
+        "track": 1,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 202.36,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "d23c1459-2240-44d9-a711-b1e6deaa95b8",
+        "title": "Talkin' New York",
+        "track": 2,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 161.8,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "750b475a-59f7-4a5b-bc62-f46d4e948670",
+        "title": "In My Time of Dyin'",
+        "track": 3,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 142.293,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "d1cd3bc8-ab20-49ca-9333-6ac4cb315026",
+        "title": "Fixin' to Die",
+        "track": 5,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 205.866,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "2c256d03-e4d4-4b3c-a198-47c55a518dce",
+        "title": "Pretty Peggy-O",
+        "track": 6,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 170.6,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "c1754a43-14cb-4487-9cd8-a4a04a2e66ce",
+        "title": "Highway 51",
+        "track": 7,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 107.506,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "f8378fec-6078-46dc-b02b-b4a345c0b7bf",
+        "title": "Gospel Plow",
+        "track": 8,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 157.333,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "8983c30c-492b-4b96-89c0-3d4c73a652b0",
+        "title": "Baby, Let Me Follow You Down",
+        "track": 9,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 140.933,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "24f9caf5-608a-43da-9a6d-a7beedc2a18f",
+        "title": "Freight Train Blues",
+        "track": 11,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 164.306,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "71db328e-d823-45d9-8f3b-201865ca24a9",
+        "title": "Song to Woody",
+        "track": 12,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 164.133,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "1e547b82-3be5-4c4e-9bad-2f306c79dd2c",
+        "title": "See That My Grave Is Kept Clean",
+        "track": 13,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 249.56,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "f7b77056-5dba-46c3-bba0-891b49bebd61",
+        "title": "House Carpenter",
+        "track": 14,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 242.133,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "2c3f5d20-81f1-436c-8991-627f5f318afc",
+        "title": "He Was a Friend of Mine",
+        "track": 15,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 94.666,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "fbafbba0-9d7f-4be5-af55-5908c0643bbb",
+        "title": "Man on the Street",
+        "track": 17,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 224.466,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "0a56fbfe-9ea7-4d91-8695-3b247abe70cb",
+        "title": "Talkin' Bear Mountain Picnic Massacre Blues",
+        "track": 18,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 160.733,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "ce1b5f71-06d7-4436-8dce-603962054962",
+        "title": "Standing on the Highway",
+        "track": 19,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 183.466,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "e6495c78-6293-4037-9db4-9b5aadbf9e73",
+        "title": "Poor Boy Blues",
+        "track": 20,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 144.96,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "cf7afc0b-baf1-4b36-8cd9-971eb9a20240",
+        "title": "Ballad for a Friend",
+        "track": 21,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 171.706,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "947b3a1c-5028-41e5-927c-eb26aecc3dc1",
+        "title": "Milk Cow's Calf Blues",
+        "track": 23,
+        "year": 1995
+      },
+      {
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 187.6,
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_trackid": "1eaafcdc-6727-4506-a3db-6ef593bffa0b",
+        "title": "Wichita Blues",
+        "track": 24,
+        "year": 1995
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/df215f20-28d7-4455-894e-52d913c58d04?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28bob+dylan+%5C-+the+bootleg%29+artist%3A%28bob+dylan%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/185d65e1-d57e-42e2-8281-19dae8916648?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/6fcca92e-8be3-410a-9591-bf49019a0759?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/23d75509-482c-4042-8397-b56a3259b023?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/99d9f3d0-c0bd-4710-a362-22d533b0038b?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "df215f20-28d7-4455-894e-52d913c58d04",
+        "distance": 0.06474820143884892,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "missing_tracks": 0.06474820143884892,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "23d75509-482c-4042-8397-b56a3259b023",
+        "distance": 0.5388070631663173,
+        "penalties": {
+          "album": 0.03949447077409163,
+          "album_id": 0.11848341232227487,
+          "artist": 0,
+          "tracks": 0.27760050708416883,
+          "unmatched_tracks": 0.0995260663507109,
+          "year": 0.0037026066350710897
+        },
+        "tracks": [
+          0.45454545454545453,
+          0.45454545454545453,
+          0,
+          0.7751196172248804,
+          0,
+          0.45454545454545453,
+          0.551948051948052,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.893939393939394,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "6fcca92e-8be3-410a-9591-bf49019a0759",
+        "distance": 0.5848540256824741,
+        "penalties": {
+          "album": 0.03949447077409163,
+          "album_id": 0.11848341232227487,
+          "artist": 0,
+          "tracks": 0.3206853842922688,
+          "unmatched_tracks": 0.0995260663507109,
+          "year": 0.0066646919431279615
+        },
+        "tracks": [
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.7751196172248804,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.551948051948052,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.893939393939394,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "99d9f3d0-c0bd-4710-a362-22d533b0038b",
+        "distance": 0.6050280925173808,
+        "penalties": {
+          "album": 0.029036004645760744,
+          "album_id": 0.08710801393728224,
+          "artist": 0,
+          "missing_tracks": 0.09407665505226481,
+          "tracks": 0.38963538055454683,
+          "year": 0.005172038327526132
+        },
+        "tracks": [
+          0.45454545454545453,
+          0.45454545454545453,
+          0.8355644553644553,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.8506493506493507,
+          0.8636363636363636,
+          0,
+          0.7724357256778309,
+          0,
+          0.45454545454545453,
+          0.7316121212121213,
+          0.7792207792207791,
+          0.743801652892562,
+          0.7647058823529412,
+          0.75
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "185d65e1-d57e-42e2-8281-19dae8916648",
+        "distance": 0.6381178392749939,
+        "penalties": {
+          "album": 0.029036004645760744,
+          "album_id": 0.08710801393728224,
+          "artist": 0,
+          "missing_tracks": 0.09407665505226481,
+          "tracks": 0.4219084896814979,
+          "year": 0.0059886759581881535
+        },
+        "tracks": [
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.45454545454545453,
+          0.8506493506493507,
+          0.8636363636363636,
+          0.7942583732057416,
+          0.8355644553644553,
+          0.7067272727272728,
+          0.7577774104683196,
+          0.7647058823529412,
+          0.75,
+          0.7854545454545455
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 12,
+      "11": 13,
+      "12": 14,
+      "13": 16,
+      "14": 17,
+      "15": 18,
+      "16": 19,
+      "17": 20,
+      "18": 22,
+      "19": 23,
+      "2": 2,
+      "3": 4,
+      "4": 5,
+      "5": 6,
+      "6": 7,
+      "7": 8,
+      "8": 10,
+      "9": 11
+    },
+    "extra_items": [],
+    "extra_tracks": [
+      3,
+      9,
+      15,
+      21
+    ],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Fuller, Jesse",
+        "composers": [
+          "Jesse Fuller"
+        ],
+        "composers_ids": [
+          "e148154d-e1fb-4da4-8db2-d54bf9a894b8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 103.266,
+        "lyricists": [
+          "Jesse Fuller"
+        ],
+        "lyricists_ids": [
+          "e148154d-e1fb-4da4-8db2-d54bf9a894b8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "4cb3b7f6-1a6b-3f3a-b911-4403428de1d5",
+        "mb_trackid": "323c571f-717f-4370-9fb4-9508757fef6e",
+        "mb_workid": "50214f6e-87fd-4067-9a5f-b3e8e1b748c5",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "You're No Good",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "You’re No Good",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 202.36,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "107ad6dd-f8c7-3c3a-8b8b-5d78010d30ec",
+        "mb_trackid": "d23c1459-2240-44d9-a711-b1e6deaa95b8",
+        "mb_workid": "b391eba1-24bc-3d4b-9510-e36f4ad0e4f5",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Talkin' New York",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Talkin' New York",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jefferson, Blind Lemon",
+        "composers": [
+          "Blind Lemon Jefferson"
+        ],
+        "composers_ids": [
+          "9481010a-db23-469d-87df-b04118850efb"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 164.133,
+        "lyricists": [
+          "Blind Lemon Jefferson"
+        ],
+        "lyricists_ids": [
+          "9481010a-db23-469d-87df-b04118850efb"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "630c3c35-36e5-30b8-bb16-19dcbacf0c2f",
+        "mb_trackid": "1e547b82-3be5-4c4e-9bad-2f306c79dd2c",
+        "mb_workid": "88bc04a1-7f5f-3607-8855-56cfa1cfe6dc",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "See That My Grave Is Kept Clean",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "See That My Grave Is Kept Clean",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16200157",
+        "label": "",
+        "language": "eng",
+        "length": 249.56,
+        "lyricists": [
+          "[traditional]"
+        ],
+        "lyricists_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "6a291f5a-ada7-33ba-af9f-c65415076044",
+        "mb_trackid": "f7b77056-5dba-46c3-bba0-891b49bebd61",
+        "mb_workid": "eee27c47-bc72-46e1-8246-11e07147c2ee",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "House Carpenter",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "House Carpenter",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional], [traditional]",
+        "composers": [
+          "[traditional]",
+          "[traditional]"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41",
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16100143",
+        "label": "",
+        "language": "eng",
+        "length": 242.133,
+        "lyricists": [
+          "[traditional]",
+          "[traditional]"
+        ],
+        "lyricists_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41",
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "5953df2f-e15a-3329-ac97-fb10075a394a",
+        "mb_trackid": "2c3f5d20-81f1-436c-8991-627f5f318afc",
+        "mb_workid": "a9c6d1dc-b0e9-3740-8a38-bf3f2b10497a",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "He Was a Friend of Mine",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "He Was a Friend of Mine",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 94.666,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "754319b5-5cac-3e94-9710-f9c87ee962d9",
+        "mb_trackid": "fbafbba0-9d7f-4be5-af55-5908c0643bbb",
+        "mb_workid": "bae75dc5-8c6c-3746-bfa7-219c063ffb49",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Man on the Street",
+        "track": 17,
+        "track_alt": "17",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Man on the Street",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 224.466,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "a19d3190-deb2-3ee7-99f7-2a4fe1b76dbd",
+        "mb_trackid": "0a56fbfe-9ea7-4d91-8695-3b247abe70cb",
+        "mb_workid": "6a9ae9c3-a021-45ea-bd87-f7e986588bdf",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Talkin' Bear Mountain Picnic Massacre Blues",
+        "track": 18,
+        "track_alt": "18",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Talking Bear Mountain Picnic Massacre Blues",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 160.733,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "3a52c571-d938-3884-8138-15fdeb73b810",
+        "mb_trackid": "ce1b5f71-06d7-4436-8dce-603962054962",
+        "mb_workid": "c1c5c162-d1eb-40a4-837e-7b0b1783b4eb",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Standing on the Highway",
+        "track": 19,
+        "track_alt": "19",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Standing on the Highway",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "16": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 183.466,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "a12ce9b6-9ae0-33c1-88cd-561aad50cc0c",
+        "mb_trackid": "e6495c78-6293-4037-9db4-9b5aadbf9e73",
+        "mb_workid": "1b3a4ac9-e277-42c5-b4af-4ba13ff61af5",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Poor Boy Blues",
+        "track": 20,
+        "track_alt": "20",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Poor Boy Blues",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "17": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 144.96,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "484ce94a-1fd3-3931-8d68-1cf434b86687",
+        "mb_trackid": "cf7afc0b-baf1-4b36-8cd9-971eb9a20240",
+        "mb_workid": "fbd88512-a414-4320-8ace-ac921665037d",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Ballad for a Friend",
+        "track": 21,
+        "track_alt": "21",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Ballad for a Friend",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "18": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Johnson, Robert",
+        "composers": [
+          "Robert Johnson"
+        ],
+        "composers_ids": [
+          "8a8bbba6-72f7-4900-a306-c40b94f2631b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 171.706,
+        "lyricists": [
+          "Robert Johnson"
+        ],
+        "lyricists_ids": [
+          "8a8bbba6-72f7-4900-a306-c40b94f2631b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "b23c8bc5-86d6-3ee8-9f25-bb0806f081a2",
+        "mb_trackid": "947b3a1c-5028-41e5-927c-eb26aecc3dc1",
+        "mb_workid": "f4e63dd0-d926-319c-9f7a-053fd127da9c",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Milk Cow's Calf Blues",
+        "track": 23,
+        "track_alt": "23",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Milkcow’s Calf Blues",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "19": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 187.6,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "48b177fb-abb0-3dfa-9c7f-e286b2ca3334",
+        "mb_trackid": "1eaafcdc-6727-4506-a3db-6ef593bffa0b",
+        "mb_workid": "67d84cb7-dc0b-4c97-8ed8-bd9632e878a7",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wichita Blues",
+        "track": 24,
+        "track_alt": "24",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Wichita (Going to Louisiana)",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional]",
+        "composers": [
+          "[traditional]"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "UKPFB1893780;USSM16101362",
+        "label": "",
+        "language": "eng",
+        "length": 161.8,
+        "lyricists": [
+          "[traditional]"
+        ],
+        "lyricists_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "d6d6c1f9-a20b-303a-b168-911f5ca66109",
+        "mb_trackid": "750b475a-59f7-4a5b-bc62-f46d4e948670",
+        "mb_workid": "0845e3dc-783d-40e8-a8ae-ba0289b98694",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "In My Time of Dyin'",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "officially released stereo studio recording",
+        "tracktotal": 24,
+        "work": "In My Time of Dyin'",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "White, Bukka",
+        "composers": [
+          "Bukka White"
+        ],
+        "composers_ids": [
+          "882af819-887e-4691-a4af-b14613058942"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "UKPFB1893782;USSM16101364",
+        "label": "",
+        "language": "eng",
+        "length": 142.293,
+        "lyricists": [
+          "Bukka White"
+        ],
+        "lyricists_ids": [
+          "882af819-887e-4691-a4af-b14613058942"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "d22b25ba-f378-38dc-857e-e3196aaa7c4c",
+        "mb_trackid": "d1cd3bc8-ab20-49ca-9333-6ac4cb315026",
+        "mb_workid": "402405c8-acbd-3de4-9f8d-2bbaa595826e",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fixin' to Die",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "officially released stereo studio recording",
+        "tracktotal": 24,
+        "work": "Fixin’ to Die Blues",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 205.866,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "1977033a-b193-3697-bafa-fa8892ac956d",
+        "mb_trackid": "2c256d03-e4d4-4b3c-a198-47c55a518dce",
+        "mb_workid": "52089277-3826-33bc-9bd5-606365451cf9",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pretty Peggy-O",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Pretty Peggy-O",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "McClennan, Tommy",
+        "composers": [
+          "Tommy McClennan"
+        ],
+        "composers_ids": [
+          "a171ead8-b70c-4284-9445-5e46cf8f233b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 170.6,
+        "lyricists": [
+          "Bob Dylan",
+          "Tommy McClennan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8",
+          "a171ead8-b70c-4284-9445-5e46cf8f233b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "9a8957d8-9d86-33f4-9616-bc3fd922e086",
+        "mb_trackid": "c1754a43-14cb-4487-9cd8-a4a04a2e66ce",
+        "mb_workid": "773e1fea-7af8-3d05-bcf3-276b387f4c4d",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Highway 51",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Highway 51",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 107.506,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "d4004400-24d1-331c-a1c3-fb9ae37ff31f",
+        "mb_trackid": "f8378fec-6078-46dc-b02b-b4a345c0b7bf",
+        "mb_workid": "0ee749bc-fa4b-3e68-af25-686a5aab69e5",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Gospel Plow",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Gospel Plow (Hold on)",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional], Davis, Gary, Reverend, Von Schmidt, Eric",
+        "composers": [
+          "[traditional]",
+          "Reverend Gary Davis",
+          "Eric Von Schmidt"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41",
+          "f66eefea-ff87-46b5-947d-b595a4bac5c9",
+          "f6639920-db09-4e37-a6d9-f036a37e095c"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 157.333,
+        "lyricists": [
+          "Bob Dylan",
+          "Blind Boy Fuller"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8",
+          "d9109c45-ddf6-4481-89ee-d6bee8306db3"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "f175ed0e-9332-3503-8c5d-16fac9ad0350",
+        "mb_trackid": "8983c30c-492b-4b96-89c0-3d4c73a652b0",
+        "mb_workid": "5cee6e58-87c3-4183-b7b0-e2fa908e9240",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Baby, Let Me Follow You Down",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Baby, Let Me Follow You Down",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 140.933,
+        "lyricists": [
+          "John Lair"
+        ],
+        "lyricists_ids": [
+          "bc75172c-359b-4d31-8c49-6ad95507e9ad"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "491890e7-0f91-3edb-8e1b-9b66588d767f",
+        "mb_trackid": "24f9caf5-608a-43da-9a6d-a7beedc2a18f",
+        "mb_workid": "2f3b19e4-14a3-3756-bad2-0f000c920a25",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Freight Train Blues",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Freight Train Blues",
+        "work_disambig": "",
+        "year": 1995
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bob Dylan - The Bootleg",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 164.306,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "275228d0-9150-3f94-875c-28019478f71f",
+        "mb_trackid": "71db328e-d823-45d9-8f3b-201865ca24a9",
+        "mb_workid": "c35e6be5-57c8-3467-a779-64aef4d6c415",
+        "media": "",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1995,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bob Dylan - The Bootleg",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Song to Woody",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 24,
+        "work": "Song to Woody",
+        "work_disambig": "",
+        "year": 1995
+      }
+    }
+  }
+}

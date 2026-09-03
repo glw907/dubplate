@@ -1,0 +1,2315 @@
+{
+  "id": "real-reissue-thriller-25",
+  "input": {
+    "items": [
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 362.373,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "2460a241-6ff4-49f1-80f9-36051534e9ae",
+        "title": "Wanna Be Startin’ Somethin’",
+        "track": 1,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 260.186,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "170f236a-f9e5-4632-8543-dd0142eaf242",
+        "title": "Baby Be Mine",
+        "track": 2,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson with Paul McCartney",
+        "length": 222.04,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "bdc55bab-f300-42f9-b2dc-10f035e536a9",
+        "title": "The Girl Is Mine",
+        "track": 3,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 357.266,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "8403caf8-3714-46da-934c-1fe91a049540",
+        "title": "Thriller",
+        "track": 4,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 258.04,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "de798de6-70fc-49f6-b580-339cd2e62052",
+        "title": "Beat It",
+        "track": 5,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 293.826,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "f980fc14-e29b-481d-ad3a-5ed9b4ab6340",
+        "title": "Billie Jean",
+        "track": 6,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 245.56,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "40a43f5e-d4f4-4253-a42d-364d47208c64",
+        "title": "Human Nature",
+        "track": 7,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 238.733,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "7e82e767-94a3-4b72-8d79-4623aa4ac584",
+        "title": "P.Y.T. (Pretty Young Thing)",
+        "track": 8,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 298.8,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "2bff76c1-0b98-4643-9ed3-063511ef9383",
+        "title": "The Lady in My Life",
+        "track": 9,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Vincent Price",
+        "length": 24.453,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "811a5565-9392-45ab-b0f0-aa657e81659c",
+        "title": "Voice‐Over Session from “Thriller”",
+        "track": 10,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson with will.i.am",
+        "length": 191.68,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "770ea81f-7598-4707-b564-add8e31d39df",
+        "title": "The Girl Is Mine 2008",
+        "track": 11,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson with will.i.am",
+        "length": 261.133,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "730797df-592c-4cb3-ba55-bdfce9e39700",
+        "title": "P.Y.T. (Pretty Young Thing) 2008",
+        "track": 12,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson with Akon",
+        "length": 254.12,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "d210e17e-f41e-429f-b33f-cb39497c4e3a",
+        "title": "Wanna Be Startin’ Somethin’ 2008",
+        "track": 13,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson with Fergie",
+        "length": 252.48,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "9e5ae664-07b3-4fe9-85fd-44722e2dbbe1",
+        "title": "Beat It 2008",
+        "track": 14,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 277.706,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "956e247f-771c-46b5-b0e5-e3b26e2d5636",
+        "title": "Billie Jean 2008 (Kanye West mix)",
+        "track": 15,
+        "year": 2008
+      },
+      {
+        "album": "Thriller 25",
+        "albumartist": "Michael Jackson",
+        "artist": "Michael Jackson",
+        "length": 243.853,
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_trackid": "78d1d5cd-163e-4ef5-8339-bea73b8bae1b",
+        "title": "For All Time",
+        "track": 16,
+        "year": 2008
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/7a9ba230-8207-3d50-93bf-11fd3f33901a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jackson, Michael",
+        "composers": [
+          "Michael Jackson"
+        ],
+        "composers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM18200005;USSM19902986",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 362.373,
+        "lyricists": [
+          "Michael Jackson"
+        ],
+        "lyricists_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "3f02a13f-c959-4cc5-b2c1-b19f259645f9",
+        "mb_trackid": "2460a241-6ff4-49f1-80f9-36051534e9ae",
+        "mb_workid": "afec4a5d-5ac6-309a-be7c-ee4f919730c3",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wanna Be Startin’ Somethin’",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Wanna Be Startin’ Somethin’",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Temperton, Rod",
+        "composers": [
+          "Rod Temperton"
+        ],
+        "composers_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19902987",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 260.186,
+        "lyricists": [
+          "Rod Temperton"
+        ],
+        "lyricists_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "a5ff2e26-2105-4a10-8b08-dd9265c5d15a",
+        "mb_trackid": "170f236a-f9e5-4632-8543-dd0142eaf242",
+        "mb_workid": "793d07f4-4502-382f-8619-0172d1fddc76",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Baby Be Mine",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "album version",
+        "tracktotal": 16,
+        "work": "Baby Be Mine",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson with will.i.am",
+        "artist_credit": "Michael Jackson with will.i.am",
+        "artist_sort": "Jackson, Michael with will.i.am",
+        "artists": [
+          "Michael Jackson",
+          "will.i.am"
+        ],
+        "artists_credit": [
+          "Michael Jackson",
+          "will.i.am"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael",
+          "will.i.am"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705880",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 191.68,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "d574c9bd-46f6-440a-8d6a-8412a283eeb1"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "52ae0bea-e900-45fd-8fb9-5b596ff97711",
+        "mb_trackid": "770ea81f-7598-4707-b564-add8e31d39df",
+        "mb_workid": "6a72cc30-674e-47ef-9f3b-d443c864ad7c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Girl Is Mine 2008",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "The Girl Is Mine 2008",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson with will.i.am",
+        "artist_credit": "Michael Jackson with will.i.am",
+        "artist_sort": "Jackson, Michael with will.i.am",
+        "artists": [
+          "Michael Jackson",
+          "will.i.am"
+        ],
+        "artists_credit": [
+          "Michael Jackson",
+          "will.i.am"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael",
+          "will.i.am"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705928",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 261.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "d574c9bd-46f6-440a-8d6a-8412a283eeb1"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "8ccb64a3-ddea-4a56-824a-53269a1af01f",
+        "mb_trackid": "730797df-592c-4cb3-ba55-bdfce9e39700",
+        "mb_workid": "0ed5dfdf-c093-43e0-b203-f86926d6e91a",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "P.Y.T. (Pretty Young Thing) 2008",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "P.Y.T. (Pretty Young Thing) 2008",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson with Akon",
+        "artist_credit": "Michael Jackson with Akon",
+        "artist_sort": "Jackson, Michael with Akon",
+        "artists": [
+          "Michael Jackson",
+          "Akon"
+        ],
+        "artists_credit": [
+          "Michael Jackson",
+          "Akon"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael",
+          "Akon"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jackson, Michael",
+        "composers": [
+          "Michael Jackson"
+        ],
+        "composers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705929",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 254.12,
+        "lyricists": [
+          "Michael Jackson"
+        ],
+        "lyricists_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "1138a764-2212-4d0a-b02d-0dc14df91e08"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "45d38af3-93c5-43a0-b3f0-2e18b0ea660c",
+        "mb_trackid": "d210e17e-f41e-429f-b33f-cb39497c4e3a",
+        "mb_workid": "9cec0b9e-5377-448c-83e0-79c0904b947e",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wanna Be Startin’ Somethin’ 2008",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Wanna Be Startin’ Somethin’ 2008",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson with Fergie",
+        "artist_credit": "Michael Jackson with Fergie",
+        "artist_sort": "Jackson, Michael with Fergie",
+        "artists": [
+          "Michael Jackson",
+          "Fergie"
+        ],
+        "artists_credit": [
+          "Michael Jackson",
+          "Fergie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael",
+          "Fergie"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705930",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 252.48,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "1c46e82f-4764-4d82-a33b-5d5aee5e2881"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "7475e35f-3129-4d2e-9da8-7fbe9e9835ea",
+        "mb_trackid": "9e5ae664-07b3-4fe9-85fd-44722e2dbbe1",
+        "mb_workid": "3d22b97a-4c7e-4827-8e4d-518e0485483d",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Beat It 2008",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Beat It 2008",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jackson, Michael",
+        "composers": [
+          "Michael Jackson"
+        ],
+        "composers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705931",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 277.706,
+        "lyricists": [
+          "Michael Jackson"
+        ],
+        "lyricists_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "17eb64c8-3df6-41f6-a27f-e1e2ad861779",
+        "mb_trackid": "956e247f-771c-46b5-b0e5-e3b26e2d5636",
+        "mb_workid": "6744b77a-a61d-4380-944f-e28a719a97c7",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Billie Jean 2008 (Kanye West mix)",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Billie Jean 2008",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705932",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 243.853,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "3fb7e67b-f9e4-45a1-bc68-522eadd3563e",
+        "mb_trackid": "78d1d5cd-163e-4ef5-8339-bea73b8bae1b",
+        "mb_workid": "df7f45db-0f2c-4ec1-8bbf-6b0c448b064c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "For All Time",
+        "track": 16,
+        "track_alt": "16",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "For All Time",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Michael Jackson",
+          "Quincy Jones"
+        ],
+        "arrangers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "5803c81e-739a-4057-9a5c-cf84e55db630"
+        ],
+        "artist": "Michael Jackson with Paul McCartney",
+        "artist_credit": "Michael Jackson with Paul McCartney",
+        "artist_sort": "Jackson, Michael with McCartney, Paul",
+        "artists": [
+          "Michael Jackson",
+          "Paul McCartney"
+        ],
+        "artists_credit": [
+          "Michael Jackson",
+          "Paul McCartney"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael",
+          "McCartney, Paul"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jackson, Michael",
+        "composers": [
+          "Michael Jackson"
+        ],
+        "composers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM18200004;USSM19902988",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 222.04,
+        "lyricists": [
+          "Michael Jackson"
+        ],
+        "lyricists_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "ba550d0e-adac-4864-b88b-407cab5e76af"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "4ff20277-d96a-48c4-9371-c452cbaed793",
+        "mb_trackid": "bdc55bab-f300-42f9-b2dc-10f035e536a9",
+        "mb_workid": "8140a4c8-41e1-3872-af15-5d4c4baa2b77",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Girl Is Mine",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "The Girl Is Mine",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Temperton, Rod",
+        "composers": [
+          "Rod Temperton"
+        ],
+        "composers_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM18200002;USSM19902989",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 357.266,
+        "lyricists": [
+          "Rod Temperton"
+        ],
+        "lyricists_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "730b0d1e-a7e7-4250-9ba0-0bb571e53263",
+        "mb_trackid": "8403caf8-3714-46da-934c-1fe91a049540",
+        "mb_workid": "9e9bccf9-41d6-33b8-b2da-6a5c418b3132",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Thriller",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "album version",
+        "tracktotal": 16,
+        "work": "Thriller",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Rod Temperton"
+        ],
+        "arrangers_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jackson, Michael",
+        "composers": [
+          "Michael Jackson"
+        ],
+        "composers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM18200003;USSM18200197;USSM19902990",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 258.04,
+        "lyricists": [
+          "Michael Jackson"
+        ],
+        "lyricists_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "ef8e4807-a7a6-4e75-b5cb-cecf7a0d8869",
+        "mb_trackid": "de798de6-70fc-49f6-b580-339cd2e62052",
+        "mb_workid": "8fc1410a-81ac-342b-ae0a-66b9102c141a",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Beat It",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Beat It",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jackson, Michael",
+        "composers": [
+          "Michael Jackson"
+        ],
+        "composers_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM18200001;USSM18200612;USSM19902991",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 293.826,
+        "lyricists": [
+          "Michael Jackson"
+        ],
+        "lyricists_ids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "56323638-b171-4297-9718-84008b52b7ea",
+        "mb_trackid": "f980fc14-e29b-481d-ad3a-5ed9b4ab6340",
+        "mb_workid": "19fff9d4-5a0b-3afd-ba7b-eb59d5f09d08",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Billie Jean",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "album / single version",
+        "tracktotal": 16,
+        "work": "Billie Jean",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Steve Lukather",
+          "David Paich",
+          "Steve Porcaro"
+        ],
+        "arrangers_ids": [
+          "bd268536-b428-4e8f-b358-77b0622b62ff",
+          "7cb00709-0f07-4a90-bcbe-f7ad5d57d8fd",
+          "7d7944f5-b803-472b-a3e8-f507bc12156f"
+        ],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Porcaro, Steve",
+        "composers": [
+          "Steve Porcaro"
+        ],
+        "composers_ids": [
+          "7d7944f5-b803-472b-a3e8-f507bc12156f"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM18200399;USSM19902992",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 245.56,
+        "lyricists": [
+          "John Bettis"
+        ],
+        "lyricists_ids": [
+          "3241363a-f7c0-4d3d-b154-d0b7132067b4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "7756e236-0728-463b-95e3-59bf2d7f24a9",
+        "mb_trackid": "40a43f5e-d4f4-4253-a42d-364d47208c64",
+        "mb_workid": "9c0e7ae1-775f-3e71-b430-4e7e82b52edc",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Human Nature",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "album version",
+        "tracktotal": 16,
+        "work": "Human Nature",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Ingram",
+          "Quincy Jones"
+        ],
+        "arrangers_ids": [
+          "1c9d555e-d20a-46d9-93a3-bf7e0d263ece",
+          "5803c81e-739a-4057-9a5c-cf84e55db630"
+        ],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19902993",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 238.733,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "659cee22-7441-4f01-9319-31372602eb42",
+        "mb_trackid": "7e82e767-94a3-4b72-8d79-4623aa4ac584",
+        "mb_workid": "5e7be0b3-ae9b-37b2-b75c-5e37853d7c2e",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "P.Y.T. (Pretty Young Thing)",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "P.Y.T. (Pretty Young Thing)",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Rod Temperton"
+        ],
+        "arrangers_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "artist": "Michael Jackson",
+        "artist_credit": "Michael Jackson",
+        "artist_sort": "Jackson, Michael",
+        "artists": [
+          "Michael Jackson"
+        ],
+        "artists_credit": [
+          "Michael Jackson"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jackson, Michael"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Temperton, Rod",
+        "composers": [
+          "Rod Temperton"
+        ],
+        "composers_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM12210587;USSM18200398;USSM19902994",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 298.8,
+        "lyricists": [
+          "Rod Temperton"
+        ],
+        "lyricists_ids": [
+          "ac6cc156-eb47-4c98-9b04-b57ece512950"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_artistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "0a185e34-0780-4e54-8546-fe8154fbc817",
+        "mb_trackid": "2bff76c1-0b98-4643-9ed3-063511ef9383",
+        "mb_workid": "acfd6bd3-9444-30d2-945b-fbe068d999f3",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Lady in My Life",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "The Lady in My Life",
+        "work_disambig": "",
+        "year": 1982
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Thriller 25",
+        "album_id": null,
+        "albumartist": "Michael Jackson",
+        "albumartist_credit": "Michael Jackson",
+        "albumartist_sort": "Jackson, Michael",
+        "albumartists": [
+          "Michael Jackson"
+        ],
+        "albumartists_credit": [
+          "Michael Jackson"
+        ],
+        "albumartists_sort": [
+          "Jackson, Michael"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vincent Price",
+        "artist_credit": "Vincent Price",
+        "artist_sort": "Price, Vincent",
+        "artists": [
+          "Vincent Price"
+        ],
+        "artists_credit": [
+          "Vincent Price"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Price, Vincent"
+        ],
+        "asin": "B001041JKU",
+        "barcode": "886971798722",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697 17987 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10705937",
+        "label": "Legacy",
+        "language": "eng",
+        "length": 24.453,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+        "mb_albumartistids": [
+          "f27ec8db-af05-4f36-916e-3d57f91ecf5e"
+        ],
+        "mb_albumid": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+        "mb_artistid": "bed74675-5a1e-4320-9621-efda4d8f66f9",
+        "mb_artistids": [
+          "bed74675-5a1e-4320-9621-efda4d8f66f9"
+        ],
+        "mb_releasegroupid": "f32fab67-77dd-3937-addc-9062e28e4c37",
+        "mb_releasetrackid": "5f30ed8f-ddf4-4617-918b-8c2226233dc8",
+        "mb_trackid": "811a5565-9392-45ab-b0f0-aa657e81659c",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1982,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Thriller",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Voice‐Over Session from “Thriller”",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "",
+        "work_disambig": "",
+        "year": 1982
+      }
+    }
+  }
+}

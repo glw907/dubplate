@@ -226,6 +226,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-dylan-bootleg-1-3",
+      "album_id": "1a6fdee5-5250-4d6a-ad39-6cd9721862d7",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.325108695652174,
+      "difference": 1.325108695652174,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-mahler-complete",
       "album_id": "e8bc073a-ca7f-4ffc-b3c6-635450d85491",
       "optimal_cost": 0,
@@ -266,6 +274,14 @@
       "unique": true
     },
     {
+      "case_id": "real-decoy-mozart-requiem",
+      "album_id": "a67b8f8d-c524-4634-9473-9a1d75519bf8",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1875,
+      "difference": 1.1875,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-bb-king-live-regal",
       "album_id": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
       "optimal_cost": 0,
@@ -282,11 +298,27 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-daft-punk-discovery",
+      "album_id": "44e85a85-77d7-3e2e-8416-65a27d2aef68",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4659090909090908,
+      "difference": 1.4659090909090908,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-fela-kuti-zombie",
       "album_id": "c59b62ef-32a4-410d-a9cf-8629cb9cb10d",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.7333333333333334,
       "difference": 1.7333333333333334,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-johnny-cash-folsom-prison",
+      "album_id": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4265734265734267,
+      "difference": 1.4265734265734267,
       "unique": true
     },
     {
@@ -322,6 +354,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-dylan-bootleg",
+      "album_id": "df215f20-28d7-4455-894e-52d913c58d04",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.7518427518427518,
+      "difference": 0.7518427518427518,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-hendrix-gb1996",
       "album_id": "8421d976-12b2-47bb-88e8-9b2746283554",
       "optimal_cost": 0,
@@ -335,6 +375,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5064935064935063,
       "difference": 1.5064935064935063,
+      "unique": true
+    },
+    {
+      "case_id": "real-noise-zappa-cucamonga",
+      "album_id": "90bee536-450c-4120-b3b1-b11a116375ed",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.7150413223140496,
+      "difference": 0.7150413223140496,
       "unique": true
     },
     {
@@ -359,6 +407,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.2054545454545453,
       "difference": 1.2054545454545453,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-x-japan-art-of-life",
+      "album_id": "4a56da85-22d2-4ba9-b834-1b736a21ae97",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1000000,
+      "difference": 1000000,
       "unique": true
     },
     {
@@ -399,6 +455,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.0580645161290323,
       "difference": 1.0580645161290323,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-thriller-25",
+      "album_id": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.309090909090909,
+      "difference": 1.309090909090909,
       "unique": true
     },
     {

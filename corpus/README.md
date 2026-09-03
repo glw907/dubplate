@@ -729,6 +729,38 @@ sole reserve (`real-decoy-mozart-piano-concerto-21`) was already spent
 by Task 4's own attempt, so **Task 6 delivers 7 cases instead of 8**
 with no reserve remaining behind any later two-release row.
 
+### Task 7 (batch 4)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-dylan-bootleg-1-3` | VA/box-set | `1a6fdee5-5250-4d6a-ad39-6cd9721862d7` | yes | no | Bob Dylan, *The Bootleg Series, Volumes 1-3* (3 discs, 58 tracks); capture-confirmed 3 discs; a clean zero-distance match. |
+| `real-decoy-mozart-requiem` | two-release sub-axis | `a67b8f8d-c524-4634-9473-9a1d75519bf8` | no | no | Bach Choir and Orchestra of the Netherlands, *Requiem Mozart*; items authored ambiguously (`album`/`artist` stripped to "Mozart Requiem" / "Mozart") to force beets' own text-search fallback. See the finding below: unlike Tasks 4 and 6, this row's named decoy actually surfaced inside the 5-result search window, and the matcher still correctly picked its own captured source (`medium`, `skip`, distance `0.0939`, nonzero `album` and `artist` penalties). |
+| `real-genre-daft-punk-discovery` | genre/era spread | `44e85a85-77d7-3e2e-8416-65a27d2aef68` | no | no | Daft Punk, *Discovery* (GB 2001 CD; electronic/house); a clean zero-distance match. |
+| `real-genre-johnny-cash-folsom-prison` | genre/era spread | `89efce77-e3a9-4a7d-8be7-0eadfbdfa28e` | no | no | Johnny Cash, *At Folsom Prison* (US 1968 original vinyl; country, live); a clean zero-distance match. |
+| `real-noise-dylan-bootleg` | MB-noise | `df215f20-28d7-4455-894e-52d913c58d04` | no | yes | Bob Dylan, *The Bootleg* (DE 1995); MB Status: Bootleg. Authored as a partial rip (4 of 24 tracks dropped via `--overrides`); matched its own correct source at `medium` on a nonzero `missing_tracks` penalty (`0.0647`). A file-tag subject for pass 2d. |
+| `real-noise-zappa-cucamonga` | MB-noise | `90bee536-450c-4120-b3b1-b11a116375ed` | no | no | Frank Zappa, *Frank Zappa: Cucamonga* (US 2004 archival compilation). Authored as a partial rip (3 of 17 tracks dropped via `--overrides`); matched its own correct source at `medium` on a nonzero `missing_tracks` penalty (`0.0632`). |
+| `real-nonlatin-x-japan-art-of-life` | non-Latin | `4a56da85-22d2-4ba9-b834-1b736a21ae97` | no | no | X JAPAN, *Art of Life* (Japanese; a single 29-minute track; artist-credit carries a documented `locale=ja_JP` alias); a clean zero-distance match. |
+| `real-reissue-thriller-25` | reissue/remaster | `7a9ba230-8207-3d50-93bf-11fd3f33901a` | yes | no | Michael Jackson, *Thriller 25* (2008 CD reissue); capture-confirmed release date 2008-02-12 against the release-group's own first-release-date 1982-11-30; a clean zero-distance match. |
+
+All eight rows above matched their own captured source (`apply`, either
+recommendation): five land `strong`, and `real-decoy-mozart-requiem`,
+`real-noise-dylan-bootleg`, and `real-noise-zappa-cucamonga` land
+`medium` per their own rows above. No confident wrong match appeared,
+so this batch owes no `adjudications.json` row. **Task 7 delivers all 8
+dossier rows**; no reserve substitution was needed.
+
+**The two-release sub-axis finding (Task 7).** The dossier's Task 7 row
+for this axis, `real-decoy-mozart-requiem`
+(`a67b8f8d-c524-4634-9473-9a1d75519bf8`, decoy
+`d13bdf72-34e4-4a48-ac49-5d6ce5d38c0b`), is the axis's first row to
+actually surface its named decoy inside beets' own 5-result WS/2 search
+window, unlike Tasks 4 and 6's attempts. The decoy landed as one of six
+candidates at distance `0.7215`, far behind the case's own correct
+source at `0.0939`; the matcher never came close to preferring it. This
+axis's sole reserve was already spent by Task 4, so this row's own
+success means the axis closes at its full 6-primary quota with no
+reserve left unused behind it.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
