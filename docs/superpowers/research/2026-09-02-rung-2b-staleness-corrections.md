@@ -22,6 +22,21 @@ document disagree on these specific points, this document wins.
    first freeze, and the case's README inventory row names the edit.
    Tasks 6, 8, and 10 use this route where their sections need it.
 
+## Mid-sweep conductor rulings (2026-09-02, overnight)
+
+4. Family 2's "combined" shape (nonzero extra_items AND extra_tracks
+   from one assign_items call) is unexpressible - the lapjv leftover
+   set is one-sided, verified against pinned source by the reviewer.
+   The two combined-with-scrambled-order cases stand; the exclusivity
+   argument lives in the README. Task accepted.
+5. Family 3's misflag case (nonva-va-artists-misflag): the pinned
+   source proves match.py:453's va_likely has NO record-level
+   observable under the empty-search convention; its witness is the
+   frozen request log's arid: query, which make derive mechanically
+   enforces (a wrong query would miss the stub and go red). Accepted
+   with the request-log witness in place of a claims.json field; the
+   family-10-only non-empty-search convention stands.
+
 ## Corrections folded into every case-task dispatch (4-13)
 
 - **Promotion ordering** (plan's stated order is impossible as
