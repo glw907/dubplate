@@ -49,13 +49,14 @@ Remote: github.com/glw907/dubplate (private).
 
 ### Next action (evidence-arc session)
 
-Pass 2a is closed (HISTORY has the ledger): corpus machinery proven,
-seven live smoke cases re-derivable from the tree, spend ≈1.75M of 5M.
-DUBPLATE_HARNESS_CONTACT is minted (~/.bashrc, dotfiles 3a1c551);
-anonymous 1 req/s stands. Next: plan pass 2b just-in-time on the quiet
-tree (structural stratum from beets' test scenario shapes, ~60-120
-cases; component-test derivation from test_distance.py; assignment-tie
-detector; threshold-proximity flag), fold the carried 2b/2c items from
-HISTORY's pass 2a entry, then execute via pass-execute. Pass 2c
-follows (real-catalog + adversarial strata, stock-config stratum,
-file-level applied tags, first adjudication batch to Geoff).
+Pass 2b is executing from its plan (revision 2, committed 415c4d9;
+14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
+ruling: machinery tasks 1-3 first, then a staleness check of case
+tasks 4-13 against the shipped machinery before dispatching them.
+Task 2b-1 is accepted (cec3c12): hardenings, thresholds/weights echo
+(schema v2, all seven records re-frozen), harness freeze with
+Options.Dir. Next: task 2b-2 (synth builder) via pass-execute,
+carrying three nb findings (validate weights like thresholds; drop
+the fakeshim curl dep; document DUBPLATE_ORACLE_VENV in README);
+then 2b-3 on opus. Spend: 2a closed at ≈1.75M/5M; 2b ≈0.9M of 6M so
+far (planning workflow + task 1). Simplifier batches after 2b-3.
