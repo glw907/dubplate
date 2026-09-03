@@ -53,10 +53,11 @@ Pass 2b is executing from its plan (revision 2, committed 415c4d9;
 14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
 ruling: machinery tasks 1-3 first, then a staleness check of case
 tasks 4-13 against the shipped machinery before dispatching them.
-Task 2b-1 is accepted (cec3c12): hardenings, thresholds/weights echo
-(schema v2, all seven records re-frozen), harness freeze with
-Options.Dir. Next: task 2b-2 (synth builder) via pass-execute,
-carrying three nb findings (validate weights like thresholds; drop
-the fakeshim curl dep; document DUBPLATE_ORACLE_VENV in README);
-then 2b-3 on opus. Spend: 2a closed at ≈1.75M/5M; 2b ≈0.9M of 6M so
-far (planning workflow + task 1). Simplifier batches after 2b-3.
+Accepted: 2b-1 (cec3c12; echo, freeze verb, schema v2 re-freeze) and
+2b-2 (6090b6c + 182a5b4, one fix round; synth builder, authoring
+loop, weights validation). Next: 2b-3 on opus (tie detector,
+proximity flag, claims checker, component tool; plan sanctions a
+3a/3b split if it grows). Then the batched simplifier (explicitly:
+consolidate maximalReleaseInclude and canonicalizeQuery duplicated
+across synth/capture), then the staleness check of case tasks 4-13.
+Spend: 2a closed ≈1.75M/5M; 2b ≈1.35M of 6M.
