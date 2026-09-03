@@ -1,0 +1,249 @@
+{
+  "id": "648b3393-a733-457f-ae1b-59b9aaf8e844",
+  "title": "Even Keel",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2017-03-02",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Cordage Low",
+      "joinphrase": "",
+      "artist": {
+        "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+        "name": "Cordage Low",
+        "sort-name": "Cordage Low",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "832627b2-5ee2-3d0d-4ce4-7b97af180569",
+    "title": "Even Keel",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2017-03-02",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2017-03-02",
+      "area": {
+        "id": "ae7350e1-2e6c-3f42-16b5-0dbdeefc7d1d",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "a8801bca-f232-d577-57bf-73cda4e1f922",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 183000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4d185521-1d97-cdcb-eca3-64b8131cf760",
+            "title": "Windward",
+            "length": 183000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cordage Low",
+                "joinphrase": "",
+                "artist": {
+                  "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+                  "name": "Cordage Low",
+                  "sort-name": "Cordage Low",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "55bf718f-ac8c-279a-297c-0bb8ba5affe1",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 201000,
+          "artist-credit": null,
+          "recording": {
+            "id": "81b0b41e-bbcd-6eb2-bad0-1df090d9bf81",
+            "title": "Leeward",
+            "length": 201000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cordage Low",
+                "joinphrase": "",
+                "artist": {
+                  "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+                  "name": "Cordage Low",
+                  "sort-name": "Cordage Low",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "19dc11d8-4bb4-34de-1713-f978e59a3d5b",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 176000,
+          "artist-credit": null,
+          "recording": {
+            "id": "89e997dc-192a-b33d-a12b-4aef95b373b6",
+            "title": "Slack Tide",
+            "length": 176000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cordage Low",
+                "joinphrase": "",
+                "artist": {
+                  "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+                  "name": "Cordage Low",
+                  "sort-name": "Cordage Low",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "bf4aaeb8-f59f-10bd-528b-9b940a1e9f3c",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 215000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a018ee2b-607f-f2c2-549d-d577f28bc6c7",
+            "title": "Flood Line",
+            "length": 215000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cordage Low",
+                "joinphrase": "",
+                "artist": {
+                  "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+                  "name": "Cordage Low",
+                  "sort-name": "Cordage Low",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a92908d4-178f-69ab-fb56-10a817961fef",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 192000,
+          "artist-credit": null,
+          "recording": {
+            "id": "1ebad49e-4a5b-3b3d-3d4a-a3cbee277d39",
+            "title": "Ebb Line",
+            "length": 192000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cordage Low",
+                "joinphrase": "",
+                "artist": {
+                  "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+                  "name": "Cordage Low",
+                  "sort-name": "Cordage Low",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "3093d373-e82e-fdc2-2cb4-d9b74f1b8ac0",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 168000,
+          "artist-credit": null,
+          "recording": {
+            "id": "130d4691-e76b-3426-7283-b9838c5aebc0",
+            "title": "Still Water",
+            "length": 168000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cordage Low",
+                "joinphrase": "",
+                "artist": {
+                  "id": "952b5edc-60c3-2a13-0d99-6f091e4a2789",
+                  "name": "Cordage Low",
+                  "sort-name": "Cordage Low",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

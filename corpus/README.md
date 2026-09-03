@@ -468,6 +468,62 @@ length at the same 0 the candidate side carries.
 | `track-length-beyond-max` | the same shape with a 45-second offset: `diff = 45 - 10 = 35`, bound at `track_length_max` (30), `track_length: 1.0` on the perturbed track, `tracks: 0.037`, the ceiling this one-of-three-tracks shape can reach and still just inside strong (0.037 < 0.04). | none |
 | `track-length-candidate-absent` | the candidate's first track carries `length: 0` (the spec's only way to emit an absent WS/2 length) while the item's own `length` override restores a normal value: `track_info.length` is falsy, so `track_distance` never adds `track_length` at all for that track, distinct from the within-grace case's key present at 0; `tracks: 0`, distance 0, strong. | none |
 
+### Family 12: `track_index` per-disc-vs-absolute tolerance
+
+`track-index-*`, 3 cases. `distance.py:376-380`'s `track_index_changed`
+(`item.track not in (track_info.medium_index, track_info.index)`) and
+its own guard at `distance.py:412-414` (`if track_info.index and
+item.track:`), exercising `track_distance`'s tolerance for either a
+release-absolute or a per-disc track number, and the guard that makes
+an absent item-side track number a different code path from a
+mismatched one rather than a zero-diff variant of it. The inventory's
+own row names four shapes (absolute matches, per-disc matches,
+mismatch, index absent) but budgets three: `track-index-mismatch-
+and-absent` covers the last two together (staleness-corrections Task
+12 note), a candidate whose items include both a track with an absent
+index and a track with a mismatched one. Every case is a two-medium,
+3-tracks-per-disc release (family 12's first two cases) or a single-
+disc, 3-track release (the third), with no `disctotal`/`media`
+overrides at all, so `mediums`/`media` never fire and the `tracks`
+penalty isolates `track_index` cleanly, the same discipline family 6
+uses for its own per-track `medium` case. No case in this family
+hand-edits a generated response; the mismatch-and-absent case's
+routine empty-search fallback never fires at all, since its ID-lookup
+candidate still scores strong.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `track-index-absolute-matches` | a two-medium, 3-tracks-per-disc release whose second disc's three items have their `track` override set to the release-absolute index (4, 5, 6) rather than the per-medium default (1, 2, 3): `item.track` matches `track_info.index` but not `track_info.medium_index`, proving the tolerance's absolute branch alone is what saves it; `track_index` reads 0 wherever checked, distance 0, strong. | none |
+| `track-index-per-disc-matches` | the same two-medium release with no overrides at all: `harness synth`'s own default sets every item's `track` to its per-medium position, so the second disc's items carry `track` 1-3 against `track_info.index` 4-6 and `track_info.medium_index` 1-3, matching only the per-disc member of the tuple; `track_index` reads 0 wherever checked, distance 0, strong. | none |
+| `track-index-mismatch-and-absent` | a single-disc, 3-track release with the first item's `track` overridden to 99 (matching neither tuple member) and the second item's `track` overridden to 0 (the spec's only way to emit an absent item-side track number, staleness-corrections Task 12): the first item's `track_index` fires (folded into `tracks: 0.0185`), the second item's guard (`item.track` falsy) skips the component entirely rather than adding it at 0, and the third item is untouched; still comfortably strong (0.0185 < 0.04). | none |
+
+### Family 13: `track_id` component
+
+`track-id-*`, 2 cases. `distance.py:416-418`'s `track_id` branch (`if
+item.mb_trackid: dist.add_expr("track_id", item.mb_trackid !=
+track_info.track_id)`), exercising a component neither case in the
+corpus so far has touched: `harness synth` never sets a derived item's
+own `mb_trackid`, so the guard is falsy by default and every prior
+case's `track_id` component is silently absent, not merely zero.
+**Binding staleness note**: `TrackInfo.track_id` is the RECORDING id
+(`beetsplug/musicbrainz.py`'s `track_info`, `track_id=recording["id"]`),
+not the WS/2 track's own `id`; a "matched" case copies
+`media[].tracks[].recording.id` out of the generated
+`responses/001.json` into the item's `mb_trackid` override by hand,
+after a first synth pass with no override to read the value off (there
+is no way to compute it without generating the release first, since
+`harness synth` derives every id deterministically from the spec but
+prints none of them). Both cases are a single-disc, 3-track release
+with the override on the first item alone, the same one-item-diverges
+shape families 8, 9, and 11 use to isolate a component cleanly; items
+1 and 2 carry no `mb_trackid` at all, so `track_id` is absent for them
+in both cases, not present at 0.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `track-id-matched` | the first item's `mb_trackid` overridden to its own candidate track's `recording.id`, copied verbatim out of the generated response before the first freeze: `track_id` reads 0 for that item, `tracks: 0`, distance 0, strong. | none |
+| `track-id-mismatched` | the same shape with the first item's `mb_trackid` overridden to an unrelated, well-formed id instead: `track_id` fires at full weight relative to the item's other three active components (`track_title`, `track_length`, `track_index`), `track_id: 0.4545` on that item alone, folding into `tracks: 0.0505`, crossing out of strong (the search fallback returns empty, the routine default), medium, skip. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

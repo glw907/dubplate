@@ -325,6 +325,46 @@
       "unique": true
     },
     {
+      "case_id": "track-id-matched",
+      "album_id": "42a9f6f5-38da-4925-a997-74b3a44b8e04",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.447382920110193,
+      "difference": 1.447382920110193,
+      "unique": true
+    },
+    {
+      "case_id": "track-id-mismatched",
+      "album_id": "fceb53ab-c98f-4336-abbe-05a29449c118",
+      "optimal_cost": 0.45454545454545453,
+      "best_forbidden_cost": 1.46455463728191,
+      "difference": 1.0100091827364555,
+      "unique": true
+    },
+    {
+      "case_id": "track-index-absolute-matches",
+      "album_id": "348a468f-50c3-4234-bd2f-a6229aa95ae0",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.6943722943722943,
+      "difference": 0.6943722943722943,
+      "unique": true
+    },
+    {
+      "case_id": "track-index-mismatch-and-absent",
+      "album_id": "8cca234a-5051-4926-bf64-7932cb676614",
+      "optimal_cost": 0.16666666666666666,
+      "best_forbidden_cost": 1.0666666666666667,
+      "difference": 0.9,
+      "unique": true
+    },
+    {
+      "case_id": "track-index-per-disc-matches",
+      "album_id": "648b3393-a733-457f-ae1b-59b9aaf8e844",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.8666666666666666,
+      "difference": 0.8666666666666666,
+      "unique": true
+    },
+    {
       "case_id": "track-length-beyond-grace-under-max",
       "album_id": "e8419e85-d1ce-49a3-a9a0-f56d70c996c6",
       "optimal_cost": 0.1111111111111111,

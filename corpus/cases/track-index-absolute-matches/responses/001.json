@@ -1,0 +1,249 @@
+{
+  "id": "348a468f-50c3-4234-bd2f-a6229aa95ae0",
+  "title": "Split Horizon",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2016-05-14",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Halyard Green",
+      "joinphrase": "",
+      "artist": {
+        "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+        "name": "Halyard Green",
+        "sort-name": "Halyard Green",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "447227bc-74e1-8363-509a-fbe10d79140d",
+    "title": "Split Horizon",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-05-14",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-05-14",
+      "area": {
+        "id": "36fc85fa-ac95-95e8-8d38-dd45c5f86d1e",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "2982e89f-f5da-08c4-d969-5874b92687cb",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "792ada29-309e-e933-1704-096fc093c251",
+            "title": "First Light",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halyard Green",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+                  "name": "Halyard Green",
+                  "sort-name": "Halyard Green",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "dc5577ab-39c1-813c-1ac2-a4570dd91778",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e40fc800-217e-ae27-c49e-32e88b337a08",
+            "title": "Second Wind",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halyard Green",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+                  "name": "Halyard Green",
+                  "sort-name": "Halyard Green",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "2b6aa325-fa8e-caaf-aae0-415be5c7b5ca",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 172000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f4e3f0eb-b1df-3a2f-fceb-2c0f95b2929f",
+            "title": "Third Rail",
+            "length": 172000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halyard Green",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+                  "name": "Halyard Green",
+                  "sort-name": "Halyard Green",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "e7acfcc2-4f88-fc59-ac50-a2c3e3fda8a2",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "c35d66ed-a899-a082-aa31-e77bd554cd65",
+            "title": "Fourth Wall",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halyard Green",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+                  "name": "Halyard Green",
+                  "sort-name": "Halyard Green",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d2f16ee6-2833-ed86-17e5-6661a22d7085",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "cfcf0fd5-4677-923d-827d-752862063e37",
+            "title": "Fifth Season",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halyard Green",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+                  "name": "Halyard Green",
+                  "sort-name": "Halyard Green",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "475cfcb6-5f3f-1d99-7eca-e5b6235604f1",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 199000,
+          "artist-credit": null,
+          "recording": {
+            "id": "16c2109c-31aa-d024-8472-7e2641aaa15a",
+            "title": "Sixth Sense",
+            "length": 199000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halyard Green",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b87f2c1-5c13-e41a-0ddc-c1ea0ea1121d",
+                  "name": "Halyard Green",
+                  "sort-name": "Halyard Green",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

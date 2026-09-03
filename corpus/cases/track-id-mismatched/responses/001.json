@@ -1,0 +1,151 @@
+{
+  "id": "fceb53ab-c98f-4336-abbe-05a29449c118",
+  "title": "Slow Anchor",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2019-02-23",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Tallow Bright",
+      "joinphrase": "",
+      "artist": {
+        "id": "025b1308-e6b1-7410-4cc6-35873c5bfce2",
+        "name": "Tallow Bright",
+        "sort-name": "Tallow Bright",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "b389d8ed-ebef-40aa-d66f-3248a61a8138",
+    "title": "Slow Anchor",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2019-02-23",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2019-02-23",
+      "area": {
+        "id": "5df81682-1bc7-3174-fb94-594203ddb603",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "fb26ee60-8d1e-af66-1742-a02cf0ee2ba7",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "769a1096-8c5e-41fa-a6cf-ba66d1038b20",
+            "title": "Riverbed",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Tallow Bright",
+                "joinphrase": "",
+                "artist": {
+                  "id": "025b1308-e6b1-7410-4cc6-35873c5bfce2",
+                  "name": "Tallow Bright",
+                  "sort-name": "Tallow Bright",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "26faf6a5-1bb2-aa96-ea8b-8dc6038de2e0",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 214000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f7fd8335-285c-02c7-0e62-f41332a9ad92",
+            "title": "Anchor Chain",
+            "length": 214000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Tallow Bright",
+                "joinphrase": "",
+                "artist": {
+                  "id": "025b1308-e6b1-7410-4cc6-35873c5bfce2",
+                  "name": "Tallow Bright",
+                  "sort-name": "Tallow Bright",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b0a70ad7-72ae-528c-8f9f-9f9edc41092d",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 183000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9d3d5fcb-3a9d-6eaf-38ba-ae793347ff56",
+            "title": "Low Tide Hymn",
+            "length": 183000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Tallow Bright",
+                "joinphrase": "",
+                "artist": {
+                  "id": "025b1308-e6b1-7410-4cc6-35873c5bfce2",
+                  "name": "Tallow Bright",
+                  "sort-name": "Tallow Bright",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

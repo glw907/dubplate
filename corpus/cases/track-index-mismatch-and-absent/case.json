@@ -1,0 +1,468 @@
+{
+  "id": "track-index-mismatch-and-absent",
+  "input": {
+    "items": [
+      {
+        "album": "Faultline Choir",
+        "albumartist": "Vesper Kiln",
+        "artist": "Vesper Kiln",
+        "length": 201,
+        "mb_albumid": "8cca234a-5051-4926-bf64-7932cb676614",
+        "title": "Fracture",
+        "track": 99,
+        "year": 2014
+      },
+      {
+        "album": "Faultline Choir",
+        "albumartist": "Vesper Kiln",
+        "artist": "Vesper Kiln",
+        "length": 189,
+        "mb_albumid": "8cca234a-5051-4926-bf64-7932cb676614",
+        "title": "Aftershock",
+        "track": 0,
+        "year": 2014
+      },
+      {
+        "album": "Faultline Choir",
+        "albumartist": "Vesper Kiln",
+        "artist": "Vesper Kiln",
+        "length": 176,
+        "mb_albumid": "8cca234a-5051-4926-bf64-7932cb676614",
+        "title": "Bedrock",
+        "track": 3,
+        "year": 2014
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/8cca234a-5051-4926-bf64-7932cb676614?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "8cca234a-5051-4926-bf64-7932cb676614",
+        "distance": 0.018518518518518517,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0.018518518518518517,
+          "year": 0
+        },
+        "tracks": [
+          0.16666666666666666,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Faultline Choir",
+        "album_id": null,
+        "albumartist": "Vesper Kiln",
+        "albumartist_credit": "Vesper Kiln",
+        "albumartist_sort": "Vesper Kiln",
+        "albumartists": [
+          "Vesper Kiln"
+        ],
+        "albumartists_credit": [
+          "Vesper Kiln"
+        ],
+        "albumartists_sort": [
+          "Vesper Kiln"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vesper Kiln",
+        "artist_credit": "Vesper Kiln",
+        "artist_sort": "Vesper Kiln",
+        "artists": [
+          "Vesper Kiln"
+        ],
+        "artists_credit": [
+          "Vesper Kiln"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vesper Kiln"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 19,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 201,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "312e1e61-0686-3b8b-cecc-de51f6e55557",
+        "mb_albumartistids": [
+          "312e1e61-0686-3b8b-cecc-de51f6e55557"
+        ],
+        "mb_albumid": "8cca234a-5051-4926-bf64-7932cb676614",
+        "mb_artistid": "312e1e61-0686-3b8b-cecc-de51f6e55557",
+        "mb_artistids": [
+          "312e1e61-0686-3b8b-cecc-de51f6e55557"
+        ],
+        "mb_releasegroupid": "15a8d293-5f7a-84c6-4946-404db6d6aef6",
+        "mb_releasetrackid": "f0693126-cd5e-005c-94c9-88088bf45624",
+        "mb_trackid": "34529e4c-4aa2-d890-d1b9-4da854dd48ea",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 19,
+        "original_month": 8,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Faultline Choir",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fracture",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Faultline Choir",
+        "album_id": null,
+        "albumartist": "Vesper Kiln",
+        "albumartist_credit": "Vesper Kiln",
+        "albumartist_sort": "Vesper Kiln",
+        "albumartists": [
+          "Vesper Kiln"
+        ],
+        "albumartists_credit": [
+          "Vesper Kiln"
+        ],
+        "albumartists_sort": [
+          "Vesper Kiln"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vesper Kiln",
+        "artist_credit": "Vesper Kiln",
+        "artist_sort": "Vesper Kiln",
+        "artists": [
+          "Vesper Kiln"
+        ],
+        "artists_credit": [
+          "Vesper Kiln"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vesper Kiln"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 19,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 189,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "312e1e61-0686-3b8b-cecc-de51f6e55557",
+        "mb_albumartistids": [
+          "312e1e61-0686-3b8b-cecc-de51f6e55557"
+        ],
+        "mb_albumid": "8cca234a-5051-4926-bf64-7932cb676614",
+        "mb_artistid": "312e1e61-0686-3b8b-cecc-de51f6e55557",
+        "mb_artistids": [
+          "312e1e61-0686-3b8b-cecc-de51f6e55557"
+        ],
+        "mb_releasegroupid": "15a8d293-5f7a-84c6-4946-404db6d6aef6",
+        "mb_releasetrackid": "cc345d51-49ab-36fb-c10b-4318ee9555f9",
+        "mb_trackid": "7aa3128d-9008-ca93-a9ee-de002ccbf629",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 19,
+        "original_month": 8,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Faultline Choir",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Aftershock",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Faultline Choir",
+        "album_id": null,
+        "albumartist": "Vesper Kiln",
+        "albumartist_credit": "Vesper Kiln",
+        "albumartist_sort": "Vesper Kiln",
+        "albumartists": [
+          "Vesper Kiln"
+        ],
+        "albumartists_credit": [
+          "Vesper Kiln"
+        ],
+        "albumartists_sort": [
+          "Vesper Kiln"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vesper Kiln",
+        "artist_credit": "Vesper Kiln",
+        "artist_sort": "Vesper Kiln",
+        "artists": [
+          "Vesper Kiln"
+        ],
+        "artists_credit": [
+          "Vesper Kiln"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vesper Kiln"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 19,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 176,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "312e1e61-0686-3b8b-cecc-de51f6e55557",
+        "mb_albumartistids": [
+          "312e1e61-0686-3b8b-cecc-de51f6e55557"
+        ],
+        "mb_albumid": "8cca234a-5051-4926-bf64-7932cb676614",
+        "mb_artistid": "312e1e61-0686-3b8b-cecc-de51f6e55557",
+        "mb_artistids": [
+          "312e1e61-0686-3b8b-cecc-de51f6e55557"
+        ],
+        "mb_releasegroupid": "15a8d293-5f7a-84c6-4946-404db6d6aef6",
+        "mb_releasetrackid": "03d3a506-6ff4-51cc-7678-ddaf5652308c",
+        "mb_trackid": "0c53568a-9b33-9786-a7a4-194b300516a6",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 19,
+        "original_month": 8,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Faultline Choir",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Bedrock",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      }
+    }
+  }
+}

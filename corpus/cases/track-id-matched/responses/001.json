@@ -1,0 +1,151 @@
+{
+  "id": "42a9f6f5-38da-4925-a997-74b3a44b8e04",
+  "title": "Quiet Ledger",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2018-11-09",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Amber Ridge",
+      "joinphrase": "",
+      "artist": {
+        "id": "53035b46-ba6c-3b5d-a115-270fa59b66b5",
+        "name": "Amber Ridge",
+        "sort-name": "Amber Ridge",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "56422eff-9799-95c0-5ff6-23866928bca6",
+    "title": "Quiet Ledger",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2018-11-09",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2018-11-09",
+      "area": {
+        "id": "4c33b5a9-2730-5299-ebf8-6fbc7277ad1c",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "bdecbe68-7524-8587-c3a2-4190a558f326",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 194000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f88b2819-eb90-ab3e-64d6-c37b195a349a",
+            "title": "Ink and Paper",
+            "length": 194000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "53035b46-ba6c-3b5d-a115-270fa59b66b5",
+                  "name": "Amber Ridge",
+                  "sort-name": "Amber Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "33a69d8e-a9e1-757c-deb4-a7b517d5084f",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9c80fef8-199a-17b2-554d-f9ae69113ed2",
+            "title": "Cellar Door",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "53035b46-ba6c-3b5d-a115-270fa59b66b5",
+                  "name": "Amber Ridge",
+                  "sort-name": "Amber Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "f728112c-f699-bcff-1d7b-a3df55ef91fb",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 178000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e718a2fc-8dcf-148f-6ff5-ced156df4b28",
+            "title": "Last Ledger",
+            "length": 178000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "53035b46-ba6c-3b5d-a115-270fa59b66b5",
+                  "name": "Amber Ridge",
+                  "sort-name": "Amber Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
