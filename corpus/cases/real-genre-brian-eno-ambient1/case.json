@@ -1,0 +1,623 @@
+{
+  "id": "real-genre-brian-eno-ambient1",
+  "input": {
+    "items": [
+      {
+        "album": "Ambient 1: Music for Airports",
+        "albumartist": "Brian Eno",
+        "artist": "Brian Eno",
+        "length": 1045.093,
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_trackid": "b3735d1c-86b3-4f51-bc78-c624b549080b",
+        "title": "1/1",
+        "track": 1,
+        "year": 2004
+      },
+      {
+        "album": "Ambient 1: Music for Airports",
+        "albumartist": "Brian Eno",
+        "artist": "Brian Eno",
+        "length": 534.24,
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_trackid": "5f949e7c-cf3d-40b7-8cab-49e6212406d4",
+        "title": "2/1",
+        "track": 2,
+        "year": 2004
+      },
+      {
+        "album": "Ambient 1: Music for Airports",
+        "albumartist": "Brian Eno",
+        "artist": "Brian Eno",
+        "length": 725.533,
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_trackid": "f47637a2-489e-4675-af52-bf6b3b0a5e1c",
+        "title": "1/2",
+        "track": 3,
+        "year": 2004
+      },
+      {
+        "album": "Ambient 1: Music for Airports",
+        "albumartist": "Brian Eno",
+        "artist": "Brian Eno",
+        "length": 608.76,
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_trackid": "1bbb487c-a552-473b-b226-c3be70105d8b",
+        "title": "2/2",
+        "track": 4,
+        "year": 2004
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/c52fda08-edf6-3949-8405-074ea605262d?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "c52fda08-edf6-3949-8405-074ea605262d",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ambient 1: Music for Airports",
+        "album_id": null,
+        "albumartist": "Brian Eno",
+        "albumartist_credit": "Brian Eno",
+        "albumartist_sort": "Eno, Brian",
+        "albumartists": [
+          "Brian Eno"
+        ],
+        "albumartists_credit": [
+          "Brian Eno"
+        ],
+        "albumartists_sort": [
+          "Eno, Brian"
+        ],
+        "albumdisambig": "Original Masters Series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Brian Eno",
+        "artist_credit": "Brian Eno",
+        "artist_sort": "Eno, Brian",
+        "artists": [
+          "Brian Eno"
+        ],
+        "artists_credit": [
+          "Brian Eno"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Eno, Brian"
+        ],
+        "asin": "B0002PZVH0",
+        "barcode": "0724386649522",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "66495",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Davies, Rhett, Eno, Brian, Wyatt, Robert",
+        "composers": [
+          "Rhett Davies",
+          "Brian Eno",
+          "Robert Wyatt"
+        ],
+        "composers_ids": [
+          "825f2ba1-87ff-4ddf-a169-7f9e849d6c4b",
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+          "9f041c61-f382-4048-a1f1-33105124bb99"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAA0400426",
+        "label": "Virgin",
+        "language": "eng",
+        "length": 1045.093,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_albumartistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_artistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_artistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_releasegroupid": "5fdd6ba8-83c1-3a87-b378-d5f61dec5ddd",
+        "mb_releasetrackid": "bd0acc8c-f475-3a2b-9223-13b19097b458",
+        "mb_trackid": "b3735d1c-86b3-4f51-bc78-c624b549080b",
+        "mb_workid": "c3630f30-b9df-31ac-9a72-2ed1d4a1149b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ambient 1: Music for Airports",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "1/1",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "1/1",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ambient 1: Music for Airports",
+        "album_id": null,
+        "albumartist": "Brian Eno",
+        "albumartist_credit": "Brian Eno",
+        "albumartist_sort": "Eno, Brian",
+        "albumartists": [
+          "Brian Eno"
+        ],
+        "albumartists_credit": [
+          "Brian Eno"
+        ],
+        "albumartists_sort": [
+          "Eno, Brian"
+        ],
+        "albumdisambig": "Original Masters Series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Brian Eno",
+        "artist_credit": "Brian Eno",
+        "artist_sort": "Eno, Brian",
+        "artists": [
+          "Brian Eno"
+        ],
+        "artists_credit": [
+          "Brian Eno"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Eno, Brian"
+        ],
+        "asin": "B0002PZVH0",
+        "barcode": "0724386649522",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "66495",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Eno, Brian",
+        "composers": [
+          "Brian Eno"
+        ],
+        "composers_ids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAA0400427",
+        "label": "Virgin",
+        "language": "eng",
+        "length": 534.24,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_albumartistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_artistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_artistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_releasegroupid": "5fdd6ba8-83c1-3a87-b378-d5f61dec5ddd",
+        "mb_releasetrackid": "d070ba3e-f5be-35b6-b29e-9eb2a087f85d",
+        "mb_trackid": "5f949e7c-cf3d-40b7-8cab-49e6212406d4",
+        "mb_workid": "28a55074-9b18-39af-9888-66cffc23c02e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ambient 1: Music for Airports",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "2/1",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "2/1",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ambient 1: Music for Airports",
+        "album_id": null,
+        "albumartist": "Brian Eno",
+        "albumartist_credit": "Brian Eno",
+        "albumartist_sort": "Eno, Brian",
+        "albumartists": [
+          "Brian Eno"
+        ],
+        "albumartists_credit": [
+          "Brian Eno"
+        ],
+        "albumartists_sort": [
+          "Eno, Brian"
+        ],
+        "albumdisambig": "Original Masters Series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Brian Eno",
+        "artist_credit": "Brian Eno",
+        "artist_sort": "Eno, Brian",
+        "artists": [
+          "Brian Eno"
+        ],
+        "artists_credit": [
+          "Brian Eno"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Eno, Brian"
+        ],
+        "asin": "B0002PZVH0",
+        "barcode": "0724386649522",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "66495",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Eno, Brian",
+        "composers": [
+          "Brian Eno"
+        ],
+        "composers_ids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAA0400428",
+        "label": "Virgin",
+        "language": "eng",
+        "length": 725.533,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_albumartistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_artistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_artistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_releasegroupid": "5fdd6ba8-83c1-3a87-b378-d5f61dec5ddd",
+        "mb_releasetrackid": "7a1d9b37-6d4f-3a65-aff0-77fb4620bd55",
+        "mb_trackid": "f47637a2-489e-4675-af52-bf6b3b0a5e1c",
+        "mb_workid": "b49c8556-c93c-3c5b-871c-80eff7c54cc2",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ambient 1: Music for Airports",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "1/2",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "1/2",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ambient 1: Music for Airports",
+        "album_id": null,
+        "albumartist": "Brian Eno",
+        "albumartist_credit": "Brian Eno",
+        "albumartist_sort": "Eno, Brian",
+        "albumartists": [
+          "Brian Eno"
+        ],
+        "albumartists_credit": [
+          "Brian Eno"
+        ],
+        "albumartists_sort": [
+          "Eno, Brian"
+        ],
+        "albumdisambig": "Original Masters Series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Brian Eno",
+        "artist_credit": "Brian Eno",
+        "artist_sort": "Eno, Brian",
+        "artists": [
+          "Brian Eno"
+        ],
+        "artists_credit": [
+          "Brian Eno"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Eno, Brian"
+        ],
+        "asin": "B0002PZVH0",
+        "barcode": "0724386649522",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "66495",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Eno, Brian",
+        "composers": [
+          "Brian Eno"
+        ],
+        "composers_ids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAA0400429",
+        "label": "Virgin",
+        "language": "eng",
+        "length": 608.76,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_albumartistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_albumid": "c52fda08-edf6-3949-8405-074ea605262d",
+        "mb_artistid": "ff95eb47-41c4-4f7f-a104-cdc30f02e872",
+        "mb_artistids": [
+          "ff95eb47-41c4-4f7f-a104-cdc30f02e872"
+        ],
+        "mb_releasegroupid": "5fdd6ba8-83c1-3a87-b378-d5f61dec5ddd",
+        "mb_releasetrackid": "e38cae3b-503d-3c9e-b1a3-6b502cdfaa4f",
+        "mb_trackid": "1bbb487c-a552-473b-b226-c3be70105d8b",
+        "mb_workid": "0e07caa2-7184-3069-96e0-1b075df9e344",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ambient 1: Music for Airports",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "2/2",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "2/2",
+        "work_disambig": "",
+        "year": 1978
+      }
+    }
+  }
+}

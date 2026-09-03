@@ -970,6 +970,50 @@ named decoy surfaced inside beets' own 5-result search window unaided,
 no same-release-group re-sourcing was needed for this row, disposing of
 the decoy sub-axis re-sourcing ruling (`docs/STATUS.md`) for Task 13.
 
+### Task 14 (batch 11)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-james-brown-star-time` | VA/box-set | `248e85fc-894d-42b0-a4ff-2c96b9f1e384` | yes | yes | James Brown, *Star Time* (4 discs, 71 tracks); capture-confirmed 4 discs; a clean zero-distance match. |
+| `real-decoy-tchaikovsky-swan-lake` | two-release sub-axis | `19bbaf85-3aef-469b-95b6-1de1a4802683` | no | no | Tchaikovsky, *Swan Lake* (GB 2013); items authored ambiguously (`albumartist` shortened to the generic `Tchaikovsky`) to force beets' own text-search fallback. See the finding below: the named decoy surfaced inside the 5-result search window, and the matcher still correctly picked its own captured source (`medium`, `skip`, distance `0.0414`, a nonzero `artist` penalty alone). |
+| `real-genre-brian-eno-ambient1` | genre/era spread | `c52fda08-edf6-3949-8405-074ea605262d` | no | no | Brian Eno, *Ambient 1: Music for Airports* (US 2004 CD; ambient, 4 tracks); a clean zero-distance match. |
+| `real-genre-celia-cruz-johnny` | genre/era spread | `3f2098af-362e-4bcf-870b-d462cb754642` | no | no | Celia Cruz & Johnny Pacheco, *Celia & Johnny* (US 1988 CD; salsa, 10 tracks); a clean zero-distance match. |
+| `real-genre-joao-gilberto-chega-de-saudade` | genre/era spread | `835940cc-3a91-4c5a-910a-ff5306ae6287` | no | no | João Gilberto, *Chega de Saudade* (BR 1959 original vinyl; bossa nova, 12 tracks); a clean zero-distance match. |
+| `real-noise-prince-unreleased-mixes` | MB-noise | `0453f5d0-e693-4635-95b4-e2d25bbe4890` | no | no | Prince, *The Unreleased Mixes* (MB Status: Bootleg, 10 tracks); a clean zero-distance match. The release carries no parseable date, so `year` is absent from the record rather than present at zero, the same shape `real-nonlatin-vandi` (Task 4) exercises. |
+| `real-nonlatin-zemfira` | non-Latin | `41bbc503-6f3c-4ef0-894e-b7d05d8df7d4` | no | no | Zemfira, *Zemfira* (Russian, Cyrillic; artist-credit is natively the Cyrillic form Земфира itself, with a documented `locale=en` alias "Zemfira"); a Pseudo-Release whose backward `transl-tracklisting` follow-up the seed capture fetches automatically, giving the axis a second pseudo-release shape alongside the smoke corpus's `non-latin-pseudo-release` case; a clean zero-distance match. `year` is absent from the record for the same no-parseable-date reason as the noise row above. |
+| `real-reissue-doolittle-2008` | reissue/remaster | `5b446655-d10c-3639-ac3e-bc689efce811` | yes | no | Pixies, *Doolittle* (2008 hybrid SACD reissue, 2 discs, 30 tracks); capture-confirmed release date 2008 against the release-group's own first-release-date 1989-04-17; a clean zero-distance match. |
+
+Seven of the eight rows above matched their own captured source and
+land `strong`/`apply`; `real-decoy-tchaikovsky-swan-lake` also matched
+its own captured source but lands `medium`/`skip` per its own row
+above (a nonzero `artist` penalty alone -- not a wrong match). No
+confident wrong match appeared, so this batch owes no
+`adjudications.json` row; no threshold-proximity flag (the decoy row's
+own distance, `0.04135`, clears `ProximityEpsilon`'s tight band around
+`strong_rec_thresh`); ties.json's re-derive shows every new assignment
+unique. **Task 14 delivers all 8 dossier rows**; no reserve
+substitution was needed.
+
+**The two-release sub-axis finding (Task 14).** The dossier's Task 14
+row for this axis, `real-decoy-tchaikovsky-swan-lake`
+(`19bbaf85-3aef-469b-95b6-1de1a4802683`, decoy
+`f3b20090-9a4b-4e9f-80f6-993edce380d6`, Charles Dutoit / Montreal
+Symphony), was authored ambiguously by shortening `albumartist` to the
+generic `Tchaikovsky` while leaving `artist` at its full credited form,
+which was enough to force beets' own text-search fallback on the
+identical release title alone. The named decoy surfaced inside the
+5-result window, alongside three other *Swan Lake* pressings the
+search also named. The matcher still correctly picked its own captured
+source (`medium`, `skip`, distance `0.0414`) over all four: the named
+decoy sat at distance `0.8127`, and the other three ranged from
+`0.7022` to `0.8448`, none remotely competitive. This is the third
+two-release row to actually surface its named decoy (after Task 7's
+`real-decoy-mozart-requiem` and Task 13's
+`real-decoy-beethoven-symphony-9-choral`) and the third to confirm the
+matcher rejects it correctly. Converged over three capture rounds: the
+primary ID lookup (already seeded by Task 3), then a search-fallback
+round (`limit=5`) and its four named-candidate release lookups.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

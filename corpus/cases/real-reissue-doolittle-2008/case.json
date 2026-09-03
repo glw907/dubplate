@@ -1,0 +1,4313 @@
+{
+  "id": "real-reissue-doolittle-2008",
+  "input": {
+    "items": [
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 173.04,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "f920f155-0864-4e7d-b310-6fe88ddfa8aa",
+        "title": "Debaser",
+        "track": 1,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 115.266,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "dac6aecc-fbf7-418b-9bdc-1107469b7768",
+        "title": "Tame",
+        "track": 2,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 126.026,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "62721352-9eb6-45cf-93c4-9e5ecb178116",
+        "title": "Wave of Mutilation",
+        "track": 3,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 155.56,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "bef9dc6e-49d0-41e5-95f7-73fe9babf7b3",
+        "title": "I Bleed",
+        "track": 4,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 201.92,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "cbec6fa8-a950-471d-b92e-f0c39255f488",
+        "title": "Here Comes Your Man",
+        "track": 5,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 141.28,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "e675d6a8-a959-4021-8acf-677d522f2bf1",
+        "title": "Dead",
+        "track": 6,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 175.666,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "7e4bcb1b-ebc2-4a26-905b-5303e54e6f3e",
+        "title": "Monkey Gone to Heaven",
+        "track": 7,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 125.88,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "8365d142-fbba-4c26-b00e-4f0f58db5bb0",
+        "title": "Mr. Grieves",
+        "track": 8,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 83.786,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "40916596-c216-4d3d-b84c-ce6560cde96d",
+        "title": "Crackity Jones",
+        "track": 9,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 163.72,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "7c098bab-ad13-440c-ab7a-5cb8f6a4deec",
+        "title": "La La Love You",
+        "track": 10,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 231.133,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "22394ab7-22d9-4d85-92a3-a2bf504ebb90",
+        "title": "No. 13 Baby",
+        "track": 11,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 109.92,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "93ad0c24-860c-4fd4-82a4-88a584aea09e",
+        "title": "There Goes My Gun",
+        "track": 12,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 210.64,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "367f977e-21e6-4c94-8b56-d3647af67988",
+        "title": "Hey",
+        "track": 13,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 144.76,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "ca3e4947-0699-4654-b52a-fb4ef95d63da",
+        "title": "Silver",
+        "track": 14,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 1,
+        "length": 169,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "1f8f65bf-c289-454d-a46c-700b393ea3bf",
+        "title": "Gouge Away",
+        "track": 15,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 172.466,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "f920f155-0864-4e7d-b310-6fe88ddfa8aa",
+        "title": "Debaser",
+        "track": 1,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 115.706,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "dac6aecc-fbf7-418b-9bdc-1107469b7768",
+        "title": "Tame",
+        "track": 2,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 124.8,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "62721352-9eb6-45cf-93c4-9e5ecb178116",
+        "title": "Wave of Mutilation",
+        "track": 3,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 154.76,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "bef9dc6e-49d0-41e5-95f7-73fe9babf7b3",
+        "title": "I Bleed",
+        "track": 4,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 201.706,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "cbec6fa8-a950-471d-b92e-f0c39255f488",
+        "title": "Here Comes Your Man",
+        "track": 5,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 141.36,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "e675d6a8-a959-4021-8acf-677d522f2bf1",
+        "title": "Dead",
+        "track": 6,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 176.466,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "7e4bcb1b-ebc2-4a26-905b-5303e54e6f3e",
+        "title": "Monkey Gone to Heaven",
+        "track": 7,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 125.773,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "8365d142-fbba-4c26-b00e-4f0f58db5bb0",
+        "title": "Mr. Grieves",
+        "track": 8,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 84.2,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "40916596-c216-4d3d-b84c-ce6560cde96d",
+        "title": "Crackity Jones",
+        "track": 9,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 163.666,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "7c098bab-ad13-440c-ab7a-5cb8f6a4deec",
+        "title": "La La Love You",
+        "track": 10,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 231.6,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "22394ab7-22d9-4d85-92a3-a2bf504ebb90",
+        "title": "No. 13 Baby",
+        "track": 11,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 109.533,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "93ad0c24-860c-4fd4-82a4-88a584aea09e",
+        "title": "There Goes My Gun",
+        "track": 12,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 211.466,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "367f977e-21e6-4c94-8b56-d3647af67988",
+        "title": "Hey",
+        "track": 13,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 145.226,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "ca3e4947-0699-4654-b52a-fb4ef95d63da",
+        "title": "Silver",
+        "track": 14,
+        "year": 2008
+      },
+      {
+        "album": "Doolittle",
+        "albumartist": "Pixies",
+        "artist": "Pixies",
+        "disc": 2,
+        "length": 164.906,
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_trackid": "1f8f65bf-c289-454d-a46c-700b393ea3bf",
+        "title": "Gouge Away",
+        "track": 15,
+        "year": 2008
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/5b446655-d10c-3639-ac3e-bc689efce811?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "16": 16,
+      "17": 17,
+      "18": 18,
+      "19": 19,
+      "2": 2,
+      "20": 20,
+      "21": 21,
+      "22": 22,
+      "23": 23,
+      "24": 24,
+      "25": 25,
+      "26": 26,
+      "27": 27,
+      "28": 28,
+      "29": 29,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700091",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 173.04,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "e07596a7-f35f-3a18-81d4-e011157960c8",
+        "mb_trackid": "f920f155-0864-4e7d-b310-6fe88ddfa8aa",
+        "mb_workid": "bba1da16-6a0d-3299-aacf-042f8e13b0b7",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Debaser",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Debaser",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700089",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 115.266,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "fbeee67f-0bb2-35d5-b351-28415dee9fe2",
+        "mb_trackid": "dac6aecc-fbf7-418b-9bdc-1107469b7768",
+        "mb_workid": "8c3d6249-1246-3d92-8c17-4f86f433fa8d",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tame",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Tame",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900015",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 231.133,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "fff98ff8-4d9c-3b13-bf7f-72406c11f5b4",
+        "mb_trackid": "22394ab7-22d9-4d85-92a3-a2bf504ebb90",
+        "mb_workid": "8d30cedc-8413-39f8-bd8e-1f13194ef9f0",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "No. 13 Baby",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "No. 13 Baby",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900016",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 109.92,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "1dc3e408-2f44-3be1-9ecc-4ffa5d57d09d",
+        "mb_trackid": "93ad0c24-860c-4fd4-82a4-88a584aea09e",
+        "mb_workid": "bd1a9e34-7751-334b-bffc-b4acb2be73b1",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "There Goes My Gun",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "There Goes My Gun",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900017",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 210.64,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "78d5038d-4fac-3363-8c80-362efe4f2f71",
+        "mb_trackid": "367f977e-21e6-4c94-8b56-d3647af67988",
+        "mb_workid": "58052a8c-e774-3a6b-9afd-10292e1e28f0",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hey",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Hey",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis, Deal, Kim",
+        "composers": [
+          "Black Francis",
+          "Kim Deal"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d",
+          "760e4df4-e851-46c8-b34d-afa2e9706831"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900018",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 144.76,
+        "lyricists": [
+          "Black Francis",
+          "Kim Deal"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d",
+          "760e4df4-e851-46c8-b34d-afa2e9706831"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "41e5e4b6-119d-3369-b8d4-72c7cb617947",
+        "mb_trackid": "ca3e4947-0699-4654-b52a-fb4ef95d63da",
+        "mb_workid": "3cfd71b8-4d3c-3c29-b3e0-4b328ac8a256",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Silver",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Silver",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700102",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 169,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "b4ab036f-befb-3c6c-b0e7-11d71c72f5c8",
+        "mb_trackid": "1f8f65bf-c289-454d-a46c-700b393ea3bf",
+        "mb_workid": "0cbd68bc-41b7-32ec-b4ea-5d408b130fbd",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Gouge Away",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Gouge Away",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700091",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 172.466,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "67b1eb69-e181-4953-bbad-bc2912ecc1f6",
+        "mb_trackid": "f920f155-0864-4e7d-b310-6fe88ddfa8aa",
+        "mb_workid": "bba1da16-6a0d-3299-aacf-042f8e13b0b7",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Debaser",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Debaser",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "16": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700089",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 115.706,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "9e06a102-b66a-4972-909c-4801d2bc6e38",
+        "mb_trackid": "dac6aecc-fbf7-418b-9bdc-1107469b7768",
+        "mb_workid": "8c3d6249-1246-3d92-8c17-4f86f433fa8d",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tame",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Tame",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "17": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700092",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 124.8,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "613fc1b5-476b-4ab3-bfa6-ae3088d27c2f",
+        "mb_trackid": "62721352-9eb6-45cf-93c4-9e5ecb178116",
+        "mb_workid": "b0cc9f16-c653-348c-97fb-79ce96562780",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wave of Mutilation",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Wave of Mutilation",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "18": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900010",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 154.76,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "01110231-b696-4d15-bf56-4b61bf842ac1",
+        "mb_trackid": "bef9dc6e-49d0-41e5-95f7-73fe9babf7b3",
+        "mb_workid": "2fa3df13-931c-35c5-9652-7301c39f3d5c",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Bleed",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "I Bleed",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "19": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB2878900010;GBAFL9700090",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 201.706,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "caaf0e57-3a1e-4cd5-82c9-91dd5c90141f",
+        "mb_trackid": "cbec6fa8-a950-471d-b92e-f0c39255f488",
+        "mb_workid": "d3af2e49-cb10-3abf-930a-4e23e070f5f0",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Here Comes Your Man",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Here Comes Your Man",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700092",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 126.026,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "be3c3d78-eb1c-3331-a65a-e8db717cd541",
+        "mb_trackid": "62721352-9eb6-45cf-93c4-9e5ecb178116",
+        "mb_workid": "b0cc9f16-c653-348c-97fb-79ce96562780",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wave of Mutilation",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Wave of Mutilation",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "20": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900011",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 141.36,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "189b34fa-5b94-441f-a49b-26ad0282185b",
+        "mb_trackid": "e675d6a8-a959-4021-8acf-677d522f2bf1",
+        "mb_workid": "9e6a36fc-b66d-3dd5-aeb4-21f6d90251c5",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dead",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Dead",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "21": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700103",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 176.466,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "d187e2ed-a682-4792-aff3-f9f6837d2639",
+        "mb_trackid": "7e4bcb1b-ebc2-4a26-905b-5303e54e6f3e",
+        "mb_workid": "c8ec8aa6-2bbb-3cd0-9f6f-6ab34bb7aca7",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Monkey Gone to Heaven",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Monkey Gone to Heaven",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "22": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900012",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 125.773,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "bbde3237-8070-49ca-9710-0a3a41764578",
+        "mb_trackid": "8365d142-fbba-4c26-b00e-4f0f58db5bb0",
+        "mb_workid": "48b331c6-600f-34d7-955f-bc1cd04bb0dd",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mr. Grieves",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Mr. Grieves",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "23": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900013",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 84.2,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "100c1b81-0fba-41f5-bc6f-6d02be2276d9",
+        "mb_trackid": "40916596-c216-4d3d-b84c-ce6560cde96d",
+        "mb_workid": "d4c163b2-c9d1-35f8-86e7-b3273fac8af0",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Crackity Jones",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Crackity Jones",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "24": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900014",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 163.666,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "c5f06d5a-5e8f-489b-9e56-16b482532aec",
+        "mb_trackid": "7c098bab-ad13-440c-ab7a-5cb8f6a4deec",
+        "mb_workid": "1523a3a0-0406-31a8-ad98-5395c5641b63",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "La La Love You",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "La La Love You",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "25": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900015",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 231.6,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "9fb2444b-d456-456a-906b-fe7fc8b9b152",
+        "mb_trackid": "22394ab7-22d9-4d85-92a3-a2bf504ebb90",
+        "mb_workid": "8d30cedc-8413-39f8-bd8e-1f13194ef9f0",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "No. 13 Baby",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "No. 13 Baby",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "26": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900016",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 109.533,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "1f220277-299f-4db0-8e07-5e5d49dde301",
+        "mb_trackid": "93ad0c24-860c-4fd4-82a4-88a584aea09e",
+        "mb_workid": "bd1a9e34-7751-334b-bffc-b4acb2be73b1",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "There Goes My Gun",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "There Goes My Gun",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "27": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900017",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 211.466,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "66fe3172-ce56-4ec4-852b-91c6ed4bc445",
+        "mb_trackid": "367f977e-21e6-4c94-8b56-d3647af67988",
+        "mb_workid": "58052a8c-e774-3a6b-9afd-10292e1e28f0",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hey",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Hey",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "28": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis, Deal, Kim",
+        "composers": [
+          "Black Francis",
+          "Kim Deal"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d",
+          "760e4df4-e851-46c8-b34d-afa2e9706831"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900018",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 145.226,
+        "lyricists": [
+          "Black Francis",
+          "Kim Deal"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d",
+          "760e4df4-e851-46c8-b34d-afa2e9706831"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "485bddf0-87ca-4f29-ac42-3b764fe7028e",
+        "mb_trackid": "ca3e4947-0699-4654-b52a-fb4ef95d63da",
+        "mb_workid": "3cfd71b8-4d3c-3c29-b3e0-4b328ac8a256",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Silver",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Silver",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "29": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700102",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 164.906,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "e1d7671d-f5cf-4e5b-b1c2-e5a6b36836e3",
+        "mb_trackid": "1f8f65bf-c289-454d-a46c-700b393ea3bf",
+        "mb_workid": "0cbd68bc-41b7-32ec-b4ea-5d408b130fbd",
+        "media": "Hybrid SACD (SACD layer, 2 channels)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Gouge Away",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Gouge Away",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900010",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 155.56,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "ebfaaeba-89d9-3566-a194-090f93011fbd",
+        "mb_trackid": "bef9dc6e-49d0-41e5-95f7-73fe9babf7b3",
+        "mb_workid": "2fa3df13-931c-35c5-9652-7301c39f3d5c",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Bleed",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "I Bleed",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB2878900010;GBAFL9700090",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 201.92,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "b09e5113-6cba-30c7-97ba-2ce245437a62",
+        "mb_trackid": "cbec6fa8-a950-471d-b92e-f0c39255f488",
+        "mb_workid": "d3af2e49-cb10-3abf-930a-4e23e070f5f0",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Here Comes Your Man",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Here Comes Your Man",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900011",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 141.28,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "a1af368e-5e17-3736-9a3e-3d78c508e38b",
+        "mb_trackid": "e675d6a8-a959-4021-8acf-677d522f2bf1",
+        "mb_workid": "9e6a36fc-b66d-3dd5-aeb4-21f6d90251c5",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dead",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Dead",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL9700103",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 175.666,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "586d43ee-1df8-3cd3-abc0-d91fa278a74e",
+        "mb_trackid": "7e4bcb1b-ebc2-4a26-905b-5303e54e6f3e",
+        "mb_workid": "c8ec8aa6-2bbb-3cd0-9f6f-6ab34bb7aca7",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Monkey Gone to Heaven",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Monkey Gone to Heaven",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900012",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 125.88,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "426a541c-1db1-346a-963f-f7a92989a2bd",
+        "mb_trackid": "8365d142-fbba-4c26-b00e-4f0f58db5bb0",
+        "mb_workid": "48b331c6-600f-34d7-955f-bc1cd04bb0dd",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mr. Grieves",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Mr. Grieves",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900013",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 83.786,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "0974bcbc-34ad-3220-9020-8db1a8e0fc52",
+        "mb_trackid": "40916596-c216-4d3d-b84c-ce6560cde96d",
+        "mb_workid": "d4c163b2-c9d1-35f8-86e7-b3273fac8af0",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Crackity Jones",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Crackity Jones",
+        "work_disambig": "",
+        "year": 1989
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Doolittle",
+        "album_id": null,
+        "albumartist": "Pixies",
+        "albumartist_credit": "Pixies",
+        "albumartist_sort": "Pixies",
+        "albumartists": [
+          "Pixies"
+        ],
+        "albumartists_credit": [
+          "Pixies"
+        ],
+        "albumartists_sort": [
+          "Pixies"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pixies",
+        "artist_credit": "Pixies",
+        "artist_sort": "Pixies",
+        "artists": [
+          "Pixies"
+        ],
+        "artists_credit": [
+          "Pixies"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pixies"
+        ],
+        "asin": "B001641ZZS",
+        "barcode": "821797203364",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UDSACD 2033",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Black Francis",
+        "composers": [
+          "Black Francis"
+        ],
+        "composers_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 17,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAFL8900014",
+        "label": "Mobile Fidelity Sound Lab",
+        "language": "eng",
+        "length": 163.72,
+        "lyricists": [
+          "Black Francis"
+        ],
+        "lyricists_ids": [
+          "789f6768-5830-4b08-8b4f-f38566b2eb1d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_albumartistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_albumid": "5b446655-d10c-3639-ac3e-bc689efce811",
+        "mb_artistid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+        "mb_artistids": [
+          "b6b2bb8d-54a9-491f-9607-7b546023b433"
+        ],
+        "mb_releasegroupid": "1aa41b19-5a72-341b-bd91-4cf61d1dab6b",
+        "mb_releasetrackid": "2a871ae7-a261-3e4f-aebe-77aba151303c",
+        "mb_trackid": "7c098bab-ad13-440c-ab7a-5cb8f6a4deec",
+        "mb_workid": "1523a3a0-0406-31a8-ad98-5395c5641b63",
+        "media": "Hybrid SACD (CD layer)",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 17,
+        "original_month": 4,
+        "original_year": 1989,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Doolittle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "La La Love You",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "La La Love You",
+        "work_disambig": "",
+        "year": 1989
+      }
+    }
+  }
+}

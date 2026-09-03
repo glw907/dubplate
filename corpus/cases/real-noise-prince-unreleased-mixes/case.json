@@ -1,0 +1,1476 @@
+{
+  "id": "real-noise-prince-unreleased-mixes",
+  "input": {
+    "items": [
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 340,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "6ce2d88f-f1b9-4506-bd2a-bd30c9ad01a9",
+        "title": "Controversy (New York City mix)",
+        "track": 1,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 419,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "47c54d90-5b54-45e2-ba45-58fb05f369a1",
+        "title": "Kiss (Paisley Park mix)",
+        "track": 2,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 437,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "021da03a-2127-4fe1-88e5-59b0dc5423a1",
+        "title": "Gett Off (23 Positions version)",
+        "track": 3,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 487,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "6f574a36-4bca-48ae-a68f-99ff3b795c53",
+        "title": "Time (Far Out version)",
+        "track": 4,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 507,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "f2223863-a9f3-48f3-a722-67032841d769",
+        "title": "When Doves Cry (Wild version)",
+        "track": 5,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 398,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "9737b022-0fe3-4637-bd6f-da4523d356f5",
+        "title": "I Feel for You (Skyline mix)",
+        "track": 6,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 361,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "de4ffe2a-8272-4672-9ab0-f10715ea69fa",
+        "title": "1999 (Dive With the Whales version)",
+        "track": 7,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 526,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "ea7cb463-ef23-498a-97b9-23a39b87b822",
+        "title": "Sexy MF (Ultimate version)",
+        "track": 8,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 433,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "71dbfbfd-72ff-41bb-be70-ef65b175285d",
+        "title": "Alphabet Street (Illiterate mix)",
+        "track": 9,
+        "year": 0
+      },
+      {
+        "album": "The Unreleased Mixes",
+        "albumartist": "Prince",
+        "artist": "Prince",
+        "length": 452,
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_trackid": "c11dadfb-f58e-4987-b962-43d989b7a6a5",
+        "title": "Nothing Compares 2 U (Atmosphere mix)",
+        "track": 10,
+        "year": 0
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/0453f5d0-e693-4635-95b4-e2d25bbe4890?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 340,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "2bdbb61b-fbba-38ab-8959-c6c72cfafd41",
+        "mb_trackid": "6ce2d88f-f1b9-4506-bd2a-bd30c9ad01a9",
+        "mb_workid": "a7cdcdd8-f942-33cd-9f6a-24af71911ec2",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Controversy (New York City mix)",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Controversy",
+        "work_disambig": "",
+        "year": 0
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 419,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "3ef66db0-14cb-38c2-b525-8a8ef2a81040",
+        "mb_trackid": "47c54d90-5b54-45e2-ba45-58fb05f369a1",
+        "mb_workid": "5611a41a-6822-30b3-ba06-8c756de9aaa3",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Kiss (Paisley Park mix)",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Kiss",
+        "work_disambig": "",
+        "year": 0
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 437,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "721f25ad-9a9d-391c-866d-c83efc3ac7a0",
+        "mb_trackid": "021da03a-2127-4fe1-88e5-59b0dc5423a1",
+        "mb_workid": "f76a942b-092b-3918-bd9f-71da2b36fe41",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Gett Off (23 Positions version)",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Gett Off",
+        "work_disambig": "",
+        "year": 0
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 487,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "d52cf809-f566-3557-98a3-11ec0ea45be1",
+        "mb_trackid": "6f574a36-4bca-48ae-a68f-99ff3b795c53",
+        "mb_workid": "8d05fc4c-9741-4567-ad12-7bd92b02e101",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Time (Far Out version)",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Time",
+        "work_disambig": "",
+        "year": 0
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 507,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "f20eea8a-3acf-3d27-bd8f-cf768ebed7af",
+        "mb_trackid": "f2223863-a9f3-48f3-a722-67032841d769",
+        "mb_workid": "dbfa37dc-ccd9-3833-88a5-abee1d011499",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "When Doves Cry (Wild version)",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "When Doves Cry",
+        "work_disambig": "",
+        "year": 0
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 398,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "60b188ef-4d73-30b2-934f-f44b4d9fb04b",
+        "mb_trackid": "9737b022-0fe3-4637-bd6f-da4523d356f5",
+        "mb_workid": "852e100b-a1d1-3fed-8805-d8061207aee8",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Feel for You (Skyline mix)",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "I Feel for You",
+        "work_disambig": "",
+        "year": 0
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 361,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "2b3fffdd-79f6-37d3-a6dd-44825691de96",
+        "mb_trackid": "de4ffe2a-8272-4672-9ab0-f10715ea69fa",
+        "mb_workid": "15fe7352-dfea-3452-90a4-1412c93386e2",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "1999 (Dive With the Whales version)",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "1999",
+        "work_disambig": "",
+        "year": 0
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 526,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "d5bfb71e-3b89-3bc1-95d0-f89d9e3d1c25",
+        "mb_trackid": "ea7cb463-ef23-498a-97b9-23a39b87b822",
+        "mb_workid": "a25fa9e2-7c0a-344a-bd51-5dc82c7f2074",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sexy MF (Ultimate version)",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Sexy M.F.",
+        "work_disambig": "",
+        "year": 0
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 433,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "76ce8964-11f0-3506-9cbf-1b5a8a47dd3e",
+        "mb_trackid": "71dbfbfd-72ff-41bb-be70-ef65b175285d",
+        "mb_workid": "68e3cf2c-ed38-3c37-b7e7-ea647b444b11",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Alphabet Street (Illiterate mix)",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Alphabet St.",
+        "work_disambig": "",
+        "year": 0
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Unreleased Mixes",
+        "album_id": null,
+        "albumartist": "Prince",
+        "albumartist_credit": "Prince",
+        "albumartist_sort": "Prince",
+        "albumartists": [
+          "Prince"
+        ],
+        "albumartists_credit": [
+          "Prince"
+        ],
+        "albumartists_sort": [
+          "Prince"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "remix"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Prince",
+        "artist_credit": "Prince",
+        "artist_sort": "Prince",
+        "artists": [
+          "Prince"
+        ],
+        "artists_credit": [
+          "Prince"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Prince"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Prince",
+        "composers": [
+          "Prince"
+        ],
+        "composers_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 452,
+        "lyricists": [
+          "Prince"
+        ],
+        "lyricists_ids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_albumartistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_albumid": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+        "mb_artistid": "070d193a-845c-479f-980e-bef15710653e",
+        "mb_artistids": [
+          "070d193a-845c-479f-980e-bef15710653e"
+        ],
+        "mb_releasegroupid": "57e8580c-87e7-3586-a120-24008249983e",
+        "mb_releasetrackid": "87273bd6-bffb-33bf-a4e8-8fc84c812e0c",
+        "mb_trackid": "c11dadfb-f58e-4987-b962-43d989b7a6a5",
+        "mb_workid": "5a5d9d29-6e63-3699-8445-b5c6dc4f1fda",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Unreleased Mixes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Nothing Compares 2 U (Atmosphere mix)",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Nothing Compares 2 U",
+        "work_disambig": "",
+        "year": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,1989 @@
+{
+  "id": "real-decoy-tchaikovsky-swan-lake",
+  "input": {
+    "items": [
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 193,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "7b128440-63a1-4088-8b7b-52ea634c1815",
+        "title": "Swan Lake, op. 20: Scene (Act I)",
+        "track": 1,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 390,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "d6f0b934-072a-4f68-a317-70dea337a5d0",
+        "title": "Swan Lake, op. 20: Waltz (Act I)",
+        "track": 2,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 99,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "1ba6d48f-a52a-41a5-87d6-9a815b1a15e6",
+        "title": "Swan Lake, op. 20: Dance of the Little Swans (Act II)",
+        "track": 3,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 397,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "28ed47cd-fd0b-4f1a-9986-8ac5b33ef57a",
+        "title": "Swan Lake, op. 20: Scene (Act II)",
+        "track": 4,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 211,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "1de330a5-8c18-462f-8a09-d300214b9d34",
+        "title": "Swan Lake, op. 20: Hungarian Dance (Act III)",
+        "track": 5,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 147,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "fb0625cb-2f7c-4853-bc8e-7126b89dd2de",
+        "title": "Swan Lake, op. 20: Spanish Dance (Act III)",
+        "track": 6,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 134,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "e5888d8d-9cb8-4750-b56c-1c15d855ba3e",
+        "title": "Swan Lake, op. 20: Neapolitan Dance (Act III)",
+        "track": 7,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 274,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "f00038f5-623d-47f1-8ab2-a77cfe8acf70",
+        "title": "Swan Lake, op. 20: Mazurka (Act III)",
+        "track": 8,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 321,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "dda4c582-794b-4043-895a-feab21bb0f1b",
+        "title": "The Sleeping Beauty, op. 66: Introduction: The Lilac Fairy (Act I)",
+        "track": 9,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 389,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "c0e23532-a600-4b5d-850f-b294f2119e88",
+        "title": "The Sleeping Beauty, op. 66: Pas d’action. Adagio (Act I)",
+        "track": 10,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 98,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "0cb76c4b-0caa-4a44-b6cc-12f7b0855c93",
+        "title": "The Sleeping Beauty, op. 66: Pas de caractere: Puss-in-Boots and the White Cat (Act III)",
+        "track": 11,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 206,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "29e6a9c7-8d06-4703-a25b-b003c8dd2435",
+        "title": "The Sleeping Beauty, op. 66: Panorama (Act II)",
+        "track": 12,
+        "year": 2013
+      },
+      {
+        "album": "Swan Lake",
+        "albumartist": "Tchaikovsky",
+        "artist": "Pyotr Ilyich Tchaikovsky",
+        "length": 245,
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_trackid": "29130c08-ee45-4f91-92c5-3d4946ae7f8e",
+        "title": "The Sleeping Beauty, op. 66: Waltz (Act I)",
+        "track": 13,
+        "year": 2013
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/19bbaf85-3aef-469b-95b6-1de1a4802683?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28swan+lake%29+artist%3A%28tchaikovsky%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/6a2c8587-1826-4543-ba7c-46d795fff84f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/f80ce440-80e8-447f-a99b-5107d19e1c4a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/b6d844f0-b254-4555-bd44-f4d89ca50c8a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/f3b20090-9a4b-4e9f-80f6-993edce380d6?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "distance": 0.04135338345864662,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0.04135338345864662,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "f80ce440-80e8-447f-a99b-5107d19e1c4a",
+        "distance": 0.7022315482753799,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.154320987654321,
+          "artist": 0.04850088183421518,
+          "tracks": 0.4116181835879412,
+          "unmatched_tracks": 0.07407407407407407,
+          "year": 0.013717421124828532
+        },
+        "tracks": [
+          0.8,
+          0.7982954545454546,
+          0.7849628359062322,
+          0.7397909577053962,
+          0.6318181818181818,
+          0.7087500000000001,
+          0.7082767978290366,
+          0.7281385281385281,
+          0.7681818181818181
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "f3b20090-9a4b-4e9f-80f6-993edce380d6",
+        "distance": 0.812691261108344,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.09380863039399626,
+          "artist": 0.04661116322701689,
+          "missing_tracks": 0.28705440900562856,
+          "tracks": 0.3736289335506792,
+          "year": 0.011588124931023068
+        },
+        "tracks": [
+          0.8682864450127877,
+          0.7881818181818182,
+          0.847107438016529,
+          0.6652892561983471,
+          0.7645305514157973,
+          0.7736692021341799,
+          0.6818181818181818,
+          0.721227904040404,
+          0.7771228771228771,
+          0.7910006379585327,
+          0.7581818181818182,
+          0.7366412998765939,
+          0.7841536491677339
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "6a2c8587-1826-4543-ba7c-46d795fff84f",
+        "distance": 0.8348562841306891,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.06925207756232686,
+          "artist": 0.02856648199445983,
+          "missing_tracks": 0.4736842105263158,
+          "tracks": 0.2559336485944801,
+          "year": 0.00741986545310645
+        },
+        "tracks": [
+          0.7518981302385558,
+          0.6558139534883721,
+          0.7575,
+          0.7772727272727273,
+          0.7195357833655707,
+          0.7363636363636363,
+          0.7691699604743083,
+          0.6124401913875598,
+          0.6560525415965058,
+          0.7134050156739813,
+          0.7166302447552447,
+          0.666403162055336,
+          0.7067193675889327
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "b6d844f0-b254-4555-bd44-f4d89ca50c8a",
+        "distance": 0.8447518416363016,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.06596306068601582,
+          "artist": 0.027209762532981525,
+          "missing_tracks": 0.49868073878627966,
+          "tracks": 0.2518428706600483,
+          "year": 0.0010554089709762533
+        },
+        "tracks": [
+          0.8183600713012478,
+          0.6574866310160428,
+          0.8425720620842573,
+          0.8013678916827852,
+          0.780874768756729,
+          0.6921030303030302,
+          0.6473817163228929,
+          0.7516629711751664,
+          0.6909363397655499,
+          0.652892561983471,
+          0.6663636363636364,
+          0.7687760765550238,
+          0.7740670407059992
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400945",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 193,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "85b6b638-a5a2-48a7-b1f9-9848badbad80",
+        "mb_trackid": "7b128440-63a1-4088-8b7b-52ea634c1815",
+        "mb_workid": "3b8a46af-749e-484d-93c3-cb67166663b6",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Scene (Act I)",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: I. Scène",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400947",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 390,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "ef0f2d9b-9a0a-4362-9182-05ae3fed1e9c",
+        "mb_trackid": "d6f0b934-072a-4f68-a317-70dea337a5d0",
+        "mb_workid": "bb3e1076-d8dd-4389-91e7-b740fb0fa07e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Waltz (Act I)",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: II. Valse",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400870",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 98,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "c146f298-79ed-42a1-b874-3bfce6b33841",
+        "mb_trackid": "0cb76c4b-0caa-4a44-b6cc-12f7b0855c93",
+        "mb_workid": "7fb9fb40-1561-345e-8019-87422c1535e9",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Sleeping Beauty, op. 66: Pas de caractere: Puss-in-Boots and the White Cat (Act III)",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Sleeping Beauty Suite, op. 66a: III. Pas de caractère",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400871",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 206,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "4c89376c-d4da-4671-a5e6-f9fc5ffc9099",
+        "mb_trackid": "29e6a9c7-8d06-4703-a25b-b003c8dd2435",
+        "mb_workid": "28cb4c8e-7b86-38b4-ac87-a2c1c7c76448",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Sleeping Beauty, op. 66: Panorama (Act II)",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Sleeping Beauty Suite, op. 66a: IV. Panorama",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400872",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 245,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "746a277e-63e9-4c67-80c8-372abfc04420",
+        "mb_trackid": "29130c08-ee45-4f91-92c5-3d4946ae7f8e",
+        "mb_workid": "24ee0366-0a56-3961-b4c8-dbb58fedcd42",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Sleeping Beauty, op. 66: Waltz (Act I)",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Sleeping Beauty Suite, op. 66a: V. Valse",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400949",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 99,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "2cdb139e-8243-41e2-9fd0-7662697a6eb9",
+        "mb_trackid": "1ba6d48f-a52a-41a5-87d6-9a815b1a15e6",
+        "mb_workid": "7c12ba63-bd80-485c-b8df-32c2611d7c82",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Dance of the Little Swans (Act II)",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: III. Danse des cygnes",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400950",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 397,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "ba0b04b7-cc8d-47e2-8374-32de4c92d69d",
+        "mb_trackid": "28ed47cd-fd0b-4f1a-9986-8ac5b33ef57a",
+        "mb_workid": "ca393bf5-9c20-46ed-ad1f-1bec6d133a43",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Scene (Act II)",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: IV. Scène",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400952",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 211,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "02026be1-9b51-4496-a5d5-430da5030860",
+        "mb_trackid": "1de330a5-8c18-462f-8a09-d300214b9d34",
+        "mb_workid": "558b3a4c-6e0d-4ba9-a237-40d500b0d1ee",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Hungarian Dance (Act III)",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: V. Czardas: Danse hongroise",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400953",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 147,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "25394755-c1d8-4aff-98cc-8e2802b87951",
+        "mb_trackid": "fb0625cb-2f7c-4853-bc8e-7126b89dd2de",
+        "mb_workid": "37d29478-246e-4435-9029-e721b3d0be52",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Spanish Dance (Act III)",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: VI. Danse espagnole",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400954",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 134,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "77f0d52c-3f5e-4e6b-8ece-cc61c26e41d1",
+        "mb_trackid": "e5888d8d-9cb8-4750-b56c-1c15d855ba3e",
+        "mb_workid": "651972ca-3d8f-4412-a79e-a3c52e38ea1f",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Neapolitan Dance (Act III)",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: VII. Danse napolitaine",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400955",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 274,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "2d2ba81c-a82f-4645-84ae-d97e2af788a0",
+        "mb_trackid": "f00038f5-623d-47f1-8ab2-a77cfe8acf70",
+        "mb_workid": "d4c8b98a-ef01-4510-9306-8f3aecc91c96",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Swan Lake, op. 20: Mazurka (Act III)",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Swan Lake (suite from the ballet), op. 20a: VIII. Mazurka",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400868",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 321,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "bbeef262-66e3-4d08-8779-ab37319e1aca",
+        "mb_trackid": "dda4c582-794b-4043-895a-feab21bb0f1b",
+        "mb_workid": "be9d47ff-f6c9-3be9-b262-921bf3cd0a8c",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Sleeping Beauty, op. 66: Introduction: The Lilac Fairy (Act I)",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Sleeping Beauty Suite, op. 66a: I. Introduction. La Fée des Lilas",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Swan Lake",
+        "album_id": null,
+        "albumartist": "Пётр Ильич Чайковский",
+        "albumartist_credit": "Tchaikovsky",
+        "albumartist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "albumartists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "albumartists_credit": [
+          "Tchaikovsky"
+        ],
+        "albumartists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Promotion",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Пётр Ильич Чайковский",
+        "artist_credit": "Pyotr Ilyich Tchaikovsky",
+        "artist_sort": "Tchaikovsky, Pyotr Ilyich",
+        "artists": [
+          "Пётр Ильич Чайковский"
+        ],
+        "artists_credit": [
+          "Pyotr Ilyich Tchaikovsky"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tchaikovsky, Pyotr Ilyich"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "UPCCTCH001",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tchaikovsky, Pyotr Ilyich",
+        "composers": [
+          "Пётр Ильич Чайковский"
+        ],
+        "composers_ids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAYC8400869",
+        "label": "Daily Mail",
+        "language": "eng",
+        "length": 389,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_albumartistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_albumid": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+        "mb_artistid": "9ddd7abc-9e1b-471d-8031-583bc6bc8be9",
+        "mb_artistids": [
+          "9ddd7abc-9e1b-471d-8031-583bc6bc8be9"
+        ],
+        "mb_releasegroupid": "93c3c44b-b115-47ca-bae8-a002c55b121f",
+        "mb_releasetrackid": "a56614dc-09a1-4c60-8814-bf9702907f9c",
+        "mb_trackid": "c0e23532-a600-4b5d-850f-b294f2119e88",
+        "mb_workid": "775ccd27-dfe4-3fb1-884a-bdc7ca274190",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Swan Lake - highlights / Sleeping Beauty - highlights",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Sleeping Beauty, op. 66: Pas d’action. Adagio (Act I)",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Sleeping Beauty Suite, op. 66a: II. Adagio. Pas d'action",
+        "work_disambig": "",
+        "year": 1984
+      }
+    }
+  }
+}

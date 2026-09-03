@@ -250,6 +250,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-james-brown-star-time",
+      "album_id": "248e85fc-894d-42b0-a4ff-2c96b9f1e384",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1842105263157894,
+      "difference": 1.1842105263157894,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-mahler-complete",
       "album_id": "e8bc073a-ca7f-4ffc-b3c6-635450d85491",
       "optimal_cost": 0,
@@ -418,6 +426,14 @@
       "unique": true
     },
     {
+      "case_id": "real-decoy-tchaikovsky-swan-lake",
+      "album_id": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2396694214876034,
+      "difference": 1.2396694214876034,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-aphex-twin-saw85-92",
       "album_id": "f5538f56-309a-3322-92bb-54b829c14934",
       "optimal_cost": 0,
@@ -458,11 +474,27 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-brian-eno-ambient1",
+      "album_id": "c52fda08-edf6-3949-8405-074ea605262d",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.7272727272727273,
+      "difference": 1.7272727272727273,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-buena-vista-social-club",
       "album_id": "2e18e017-0a62-4c50-a708-b6fbea29612e",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4848484848484846,
       "difference": 1.4848484848484846,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-celia-cruz-johnny",
+      "album_id": "3f2098af-362e-4bcf-870b-d462cb754642",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4805194805194803,
+      "difference": 1.4805194805194803,
       "unique": true
     },
     {
@@ -511,6 +543,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.7333333333333334,
       "difference": 1.7333333333333334,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-joao-gilberto-chega-de-saudade",
+      "album_id": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4415584415584417,
+      "difference": 1.4415584415584417,
       "unique": true
     },
     {
@@ -658,6 +698,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-prince-unreleased-mixes",
+      "album_id": "0453f5d0-e693-4635-95b4-e2d25bbe4890",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5303030303030305,
+      "difference": 1.5303030303030305,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-velvet-underground-us1986",
       "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
       "optimal_cost": 0,
@@ -754,6 +802,14 @@
       "unique": true
     },
     {
+      "case_id": "real-nonlatin-zemfira",
+      "album_id": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4126060606060606,
+      "difference": 1.4126060606060606,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-abbey-road-2019",
       "album_id": "9fcd541a-a9ab-41c0-a6aa-13979c93301d",
       "optimal_cost": 0,
@@ -791,6 +847,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5340909090909092,
       "difference": 1.5340909090909092,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-doolittle-2008",
+      "album_id": "5b446655-d10c-3639-ac3e-bc689efce811",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.16666666666666666,
+      "difference": 0.16666666666666666,
       "unique": true
     },
     {

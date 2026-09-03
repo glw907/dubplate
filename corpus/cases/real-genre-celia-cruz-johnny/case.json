@@ -1,0 +1,1555 @@
+{
+  "id": "real-genre-celia-cruz-johnny",
+  "input": {
+    "items": [
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 291.493,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "27e69fa6-5a6d-4d43-88ad-0efbec1434b2",
+        "title": "Quimbara",
+        "track": 1,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 342.533,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "0093b1ac-a63c-4409-becf-6a41b7a316fb",
+        "title": "Toro mata",
+        "track": 2,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 195.533,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "b6c7ac34-a67e-4c6f-91d8-cee4e8d7003b",
+        "title": "Vieja luna",
+        "track": 3,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 283.706,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "c3a23b39-465e-4485-b891-2cedbc08a2ac",
+        "title": "El paso del mulo",
+        "track": 4,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 303.76,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "75d4e15e-93a0-4756-bf78-66eed262f9ff",
+        "title": "Tengo el idde",
+        "track": 5,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 195.64,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "341a9585-2665-41b9-b15a-3f3a3608972f",
+        "title": "Lo tuyo es mental",
+        "track": 6,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 332.826,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "70ae2e78-3ff3-4159-8a42-56e8ccd0d46d",
+        "title": "Canto a la Habana",
+        "track": 7,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 258.64,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "813222e7-e8a0-48aa-8fcf-0ca987ee412a",
+        "title": "No Mercedes",
+        "track": 8,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 294.2,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "9f36dd98-810d-420c-b746-6cdee7a63a52",
+        "title": "El tumbao y Celia",
+        "track": 9,
+        "year": 1988
+      },
+      {
+        "album": "Celia \u0026 Johnny",
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "length": 303.066,
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_trackid": "8d455fb4-0c3f-4a54-a76e-58f5afc22999",
+        "title": "El pregón del pescador",
+        "track": 10,
+        "year": 1988
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/3f2098af-362e-4bcf-870b-d462cb754642?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cepeda, Junior",
+        "composers": [
+          "Junior Cepeda"
+        ],
+        "composers_ids": [
+          "92b9a756-e170-4212-be48-c6ab6a42e0cc"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USDBB0600020",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 291.493,
+        "lyricists": [
+          "Junior Cepeda"
+        ],
+        "lyricists_ids": [
+          "92b9a756-e170-4212-be48-c6ab6a42e0cc"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "b636311f-8ff5-3a08-bf56-6336ffe1def8",
+        "mb_trackid": "27e69fa6-5a6d-4d43-88ad-0efbec1434b2",
+        "mb_workid": "e57d45c3-06a8-4fa8-be17-0638d50da4b9",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Quimbara",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Químbara",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "de la Colina, Carlos \"Caitro\" Soto",
+        "composers": [
+          "Carlos \"Caitro\" Soto de la Colina"
+        ],
+        "composers_ids": [
+          "c0cc312d-424f-4dd2-bc2d-db288f3d8884"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 342.533,
+        "lyricists": [
+          "Carlos \"Caitro\" Soto de la Colina"
+        ],
+        "lyricists_ids": [
+          "c0cc312d-424f-4dd2-bc2d-db288f3d8884"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "4e6a7b97-ac4f-3dc8-94a9-a91af10a68e5",
+        "mb_trackid": "0093b1ac-a63c-4409-becf-6a41b7a316fb",
+        "mb_workid": "fd052a75-318d-44ff-97e4-12bde9692b81",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Toro mata",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Toro mata",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "De La Rosa, Orlando",
+        "composers": [
+          "Orlando de La Rosa"
+        ],
+        "composers_ids": [
+          "da9fcd24-f0ee-40d4-a90c-d6e8b722b67c"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 195.533,
+        "lyricists": [
+          "Orlando de La Rosa"
+        ],
+        "lyricists_ids": [
+          "da9fcd24-f0ee-40d4-a90c-d6e8b722b67c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "a36a1ee3-64aa-340f-9a1f-bf30dfd99a0a",
+        "mb_trackid": "b6c7ac34-a67e-4c6f-91d8-cee4e8d7003b",
+        "mb_workid": "bcf3ce95-670a-4d60-8184-8f6b287b91f2",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Vieja luna",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Vieja luna",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Calvet, Rey Díaz",
+        "composers": [
+          "Rey Díaz Calvet"
+        ],
+        "composers_ids": [
+          "1c5b47b8-59e0-4ebf-8943-03a470de22ee"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 283.706,
+        "lyricists": [
+          "Rey Díaz Calvet"
+        ],
+        "lyricists_ids": [
+          "1c5b47b8-59e0-4ebf-8943-03a470de22ee"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "4f55b455-a593-3f05-a243-cb31f01afa29",
+        "mb_trackid": "c3a23b39-465e-4485-b891-2cedbc08a2ac",
+        "mb_workid": "760af756-0709-47c2-8511-1a956144804b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "El paso del mulo",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "El paso del mulo",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Alonso, Tite Curet",
+        "composers": [
+          "Tite Curet Alonso"
+        ],
+        "composers_ids": [
+          "4d818ac8-437e-4042-9ac0-7bc6097c2c5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 303.76,
+        "lyricists": [
+          "Tite Curet Alonso"
+        ],
+        "lyricists_ids": [
+          "4d818ac8-437e-4042-9ac0-7bc6097c2c5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "2ed59721-d8b1-389a-bf73-d4829950fd4d",
+        "mb_trackid": "75d4e15e-93a0-4756-bf78-66eed262f9ff",
+        "mb_workid": "788ba001-deb3-48e6-b538-5f96efde298d",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tengo el idde",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Tengo el idde",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Munar, Anam",
+        "composers": [
+          "Anam Munar"
+        ],
+        "composers_ids": [
+          "2f3105b7-eb37-48da-8700-fe8719d43f9c"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USDBB0600025",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 195.64,
+        "lyricists": [
+          "Anam Munar"
+        ],
+        "lyricists_ids": [
+          "2f3105b7-eb37-48da-8700-fe8719d43f9c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "598ee6cb-3753-341b-a2be-93b6c98941ed",
+        "mb_trackid": "341a9585-2665-41b9-b15a-3f3a3608972f",
+        "mb_workid": "36bb52f4-319b-45f8-b964-868f173fe91f",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Lo tuyo es mental",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Lo tuyo es mental",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Castillo, Alberto",
+        "composers": [
+          "Alberto Castillo"
+        ],
+        "composers_ids": [
+          "c67f5072-35db-46a0-b7be-de46f31c8eac"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 332.826,
+        "lyricists": [
+          "Alberto Castillo"
+        ],
+        "lyricists_ids": [
+          "c67f5072-35db-46a0-b7be-de46f31c8eac"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "db30c00f-2a34-3982-8bf0-f431557208e9",
+        "mb_trackid": "70ae2e78-3ff3-4159-8a42-56e8ccd0d46d",
+        "mb_workid": "2603b427-b87d-40c4-aec0-57808ae8e9e2",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Canto a la Habana",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Canto a La Habana",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Alonso, Tite Curet",
+        "composers": [
+          "Tite Curet Alonso"
+        ],
+        "composers_ids": [
+          "4d818ac8-437e-4042-9ac0-7bc6097c2c5e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USDBB0600027",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 258.64,
+        "lyricists": [
+          "Tite Curet Alonso"
+        ],
+        "lyricists_ids": [
+          "4d818ac8-437e-4042-9ac0-7bc6097c2c5e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "f013ce32-7f1b-31e0-9394-03abeafa31b5",
+        "mb_trackid": "813222e7-e8a0-48aa-8fcf-0ca987ee412a",
+        "mb_workid": "c6012579-b5f4-4dda-8e4c-a09bf6cba4ac",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "No Mercedes",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "No Mercedes",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Pacheco, Johnny",
+        "composers": [
+          "Johnny Pacheco"
+        ],
+        "composers_ids": [
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 294.2,
+        "lyricists": [
+          "Johnny Pacheco"
+        ],
+        "lyricists_ids": [
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "afe8bfd4-28ff-35dc-be85-b338fbca47b5",
+        "mb_trackid": "9f36dd98-810d-420c-b746-6cdee7a63a52",
+        "mb_workid": "140a25a7-2f21-4093-b474-8861c68a9d53",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "El tumbao y Celia",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "El tumbao y Celia",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Celia \u0026 Johnny",
+        "album_id": null,
+        "albumartist": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "albumartist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "albumartists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "albumartists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_credit": "Celia Cruz \u0026 Johnny Pacheco",
+        "artist_sort": "Cruz, Celia \u0026 Pacheco, Johnny",
+        "artists": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_credit": [
+          "Celia Cruz",
+          "Johnny Pacheco"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cruz, Celia",
+          "Pacheco, Johnny"
+        ],
+        "asin": "B000EMGK1C",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "VS-31",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Barcelata, Lorenzo",
+        "composers": [
+          "Lorenzo Barcelata"
+        ],
+        "composers_ids": [
+          "19d37616-a75c-4ec3-babf-f9d08f2b22a7"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Vaya",
+        "language": "spa",
+        "length": 303.066,
+        "lyricists": [
+          "Lorenzo Barcelata"
+        ],
+        "lyricists_ids": [
+          "19d37616-a75c-4ec3-babf-f9d08f2b22a7"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_albumartistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_albumid": "3f2098af-362e-4bcf-870b-d462cb754642",
+        "mb_artistid": "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+        "mb_artistids": [
+          "7b8e1188-9ca4-4aa5-8393-172de6fa04de",
+          "13f53407-3b0f-426b-8ca9-935456362412"
+        ],
+        "mb_releasegroupid": "88023147-226e-37c6-8c9f-c4cca9d024d1",
+        "mb_releasetrackid": "ceb4a8ec-fdc8-32b8-a93f-8018b0b0f5b1",
+        "mb_trackid": "8d455fb4-0c3f-4a54-a76e-58f5afc22999",
+        "mb_workid": "36b2e305-96bc-452f-bdbe-ab6c5947edbd",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Celia \u0026 Johnny",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "El pregón del pescador",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "El pregón del pescador",
+        "work_disambig": "",
+        "year": 1974
+      }
+    }
+  }
+}

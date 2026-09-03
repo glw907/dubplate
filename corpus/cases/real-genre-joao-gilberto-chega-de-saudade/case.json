@@ -1,0 +1,1729 @@
+{
+  "id": "real-genre-joao-gilberto-chega-de-saudade",
+  "input": {
+    "items": [
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 122,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "52ce00f1-0edc-4ad4-bcfd-116b214fb4be",
+        "title": "Chega de saudade",
+        "track": 1,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 80,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "2fef71dd-117b-4ed9-99c1-c654b63f356b",
+        "title": "Lobo bobo",
+        "track": 2,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 125,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "149aeae9-2c27-466d-a560-ab07ffeb3e18",
+        "title": "Brigas nunca mais",
+        "track": 3,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 136,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "7f0f5494-33f5-4a21-87e6-ffba6f3e8c92",
+        "title": "Hô-Ba-La-lá",
+        "track": 4,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 108,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "93a5de79-1a28-499a-ab87-b7beac5ec74c",
+        "title": "Saudade fez um samba",
+        "track": 5,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 142,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "e65cf2f6-a52d-4366-a880-4569cc7fe827",
+        "title": "Maria ninguém",
+        "track": 6,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 118,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "b1210053-7dc0-4bc9-8968-b89692cca6de",
+        "title": "Desafinado",
+        "track": 7,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 124,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "769a7e62-1c5a-41e6-b750-18198673dc52",
+        "title": "Rosa morena",
+        "track": 8,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 119,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "cad93c97-8310-45ed-86ed-6e9502806ab2",
+        "title": "Morena boca de ouro",
+        "track": 9,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 93,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "0ba96d05-3d24-448e-810e-3dfd541b45de",
+        "title": "Aos pés da cruz",
+        "track": 10,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 75,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "e5e804dc-04a5-4047-a1ae-e5cd622ef169",
+        "title": "Bim bom",
+        "track": 11,
+        "year": 1959
+      },
+      {
+        "album": "Chega de saudade",
+        "albumartist": "João Gilberto",
+        "artist": "João Gilberto",
+        "length": 115,
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_trackid": "4ec480f5-f687-41e3-b32c-a1c943bd0ed7",
+        "title": "É luxo só",
+        "track": 12,
+        "year": 1959
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/835940cc-3a91-4c5a-910a-ff5306ae6287?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jobim, Antônio Carlos",
+        "composers": [
+          "Antônio Carlos Jobim"
+        ],
+        "composers_ids": [
+          "7a8dbe84-f4c0-4457-bfa3-edced1f8cde0"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 122,
+        "lyricists": [
+          "Vinicius de Moraes"
+        ],
+        "lyricists_ids": [
+          "1c01cf84-07c7-408a-b5a8-7dae0b1312fc"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "28b2073f-c9df-3ad5-be77-39f1d239013b",
+        "mb_trackid": "52ce00f1-0edc-4ad4-bcfd-116b214fb4be",
+        "mb_workid": "768cf901-2e16-36ee-8e5a-f8de66f4a00c",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Chega de saudade",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Chega de saudade",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bôscoli, Ronaldo, Lyra, Carlos",
+        "composers": [
+          "Ronaldo Bôscoli",
+          "Carlos Lyra"
+        ],
+        "composers_ids": [
+          "b101aaf1-3420-4247-a3fd-ffaf3b9be34f",
+          "2674d9a0-7647-4220-8c10-6d8d0c9677d9"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 80,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "6e5c2297-b676-37ee-b5ef-0d9e8f06a9af",
+        "mb_trackid": "2fef71dd-117b-4ed9-99c1-c654b63f356b",
+        "mb_workid": "dee88233-5068-4035-9582-29c3232c9ea9",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Lobo bobo",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Lobo bobo",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilberto, João",
+        "composers": [
+          "João Gilberto"
+        ],
+        "composers_ids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 75,
+        "lyricists": [
+          "João Gilberto"
+        ],
+        "lyricists_ids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "b8c03651-3ce0-350d-a1c4-3f64dad7f2f3",
+        "mb_trackid": "e5e804dc-04a5-4047-a1ae-e5cd622ef169",
+        "mb_workid": "821dc942-eafa-3f1c-961c-85a08ad1a5fb",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Bim bom",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Bim bom",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 115,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "fa6408d3-56e5-32c2-ada9-b109944e0766",
+        "mb_trackid": "4ec480f5-f687-41e3-b32c-a1c943bd0ed7",
+        "mb_workid": "936d5b44-874a-444d-9ff2-00ad0f8ba2ff",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "É luxo só",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "É luxo só",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Elias, Eliane, Jobim, Antônio Carlos",
+        "composers": [
+          "Eliane Elias",
+          "Antônio Carlos Jobim"
+        ],
+        "composers_ids": [
+          "9974cbc1-6a00-4a97-8a36-e4a25bfe0293",
+          "7a8dbe84-f4c0-4457-bfa3-edced1f8cde0"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 125,
+        "lyricists": [
+          "Vinicius de Moraes"
+        ],
+        "lyricists_ids": [
+          "1c01cf84-07c7-408a-b5a8-7dae0b1312fc"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "ff70dfa3-baa3-3352-9303-5ffd4f18f9ed",
+        "mb_trackid": "149aeae9-2c27-466d-a560-ab07ffeb3e18",
+        "mb_workid": "22adf5ba-3780-3c2c-a380-4a4d29d1c4b0",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Brigas nunca mais",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Brigas nunca mais",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilberto, João",
+        "composers": [
+          "João Gilberto"
+        ],
+        "composers_ids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 136,
+        "lyricists": [
+          "João Gilberto"
+        ],
+        "lyricists_ids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "6146fd4b-ab97-3494-9ef0-145abeb29048",
+        "mb_trackid": "7f0f5494-33f5-4a21-87e6-ffba6f3e8c92",
+        "mb_workid": "2c76a941-1acc-428b-bbd9-3401e4975883",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hô-Ba-La-lá",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Hô-bá-lá-lá",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 108,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "7993cacd-c4ca-350f-b1db-93006fc221e1",
+        "mb_trackid": "93a5de79-1a28-499a-ab87-b7beac5ec74c",
+        "mb_workid": "9609aaa8-6629-467a-8b18-f7f18d6ae9d1",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Saudade fez um samba",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Saudade fez um samba",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Lyra, Carlos",
+        "composers": [
+          "Carlos Lyra"
+        ],
+        "composers_ids": [
+          "2674d9a0-7647-4220-8c10-6d8d0c9677d9"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 142,
+        "lyricists": [
+          "Carlos Lyra"
+        ],
+        "lyricists_ids": [
+          "2674d9a0-7647-4220-8c10-6d8d0c9677d9"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "1f39d8f9-abca-30b4-a592-d1c12e7021f3",
+        "mb_trackid": "e65cf2f6-a52d-4366-a880-4569cc7fe827",
+        "mb_workid": "1344d827-0b66-4bde-a45e-94c0f4d16007",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Maria ninguém",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Maria Ninguém",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Jobim, Antônio Carlos",
+        "composers": [
+          "Antônio Carlos Jobim"
+        ],
+        "composers_ids": [
+          "7a8dbe84-f4c0-4457-bfa3-edced1f8cde0"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 118,
+        "lyricists": [
+          "Newton Mendonça"
+        ],
+        "lyricists_ids": [
+          "30a67440-bf0f-4460-999d-8c056c18ff0e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "2c1d3e14-8803-3d9c-bed9-cdf2748d5a51",
+        "mb_trackid": "b1210053-7dc0-4bc9-8968-b89692cca6de",
+        "mb_workid": "807b8169-cb39-30c7-a9e2-d8491fc97651",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Desafinado",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Desafinado",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 124,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "03538a69-f628-3fbb-9d19-731c1c9d231b",
+        "mb_trackid": "769a7e62-1c5a-41e6-b750-18198673dc52",
+        "mb_workid": "5c29a328-c427-4354-8cdf-bc2cc0f6d97d",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Rosa morena",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Rosa morena",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Barroso, Ary",
+        "composers": [
+          "Ary Barroso"
+        ],
+        "composers_ids": [
+          "1e6a38d6-6939-4a0f-8cdc-7866a114aff7"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 119,
+        "lyricists": [
+          "Ary Barroso"
+        ],
+        "lyricists_ids": [
+          "1e6a38d6-6939-4a0f-8cdc-7866a114aff7"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "f3ef8f9c-24d6-34d7-a0da-b2aeb41644db",
+        "mb_trackid": "cad93c97-8310-45ed-86ed-6e9502806ab2",
+        "mb_workid": "9caca4d0-4b9b-450c-b31b-2f214f43bac4",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Morena boca de ouro",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Morena boca de ouro",
+        "work_disambig": "",
+        "year": 1959
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Chega de saudade",
+        "album_id": null,
+        "albumartist": "João Gilberto",
+        "albumartist_credit": "João Gilberto",
+        "albumartist_sort": "Gilberto, João",
+        "albumartists": [
+          "João Gilberto"
+        ],
+        "albumartists_credit": [
+          "João Gilberto"
+        ],
+        "albumartists_sort": [
+          "Gilberto, João"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "João Gilberto",
+        "artist_credit": "João Gilberto",
+        "artist_sort": "Gilberto, João",
+        "artists": [
+          "João Gilberto"
+        ],
+        "artists_credit": [
+          "João Gilberto"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gilberto, João"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MOFB 3073",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Pinto, Marino, Zé da Zilda",
+        "composers": [
+          "Marino Pinto",
+          "Zé da Zilda"
+        ],
+        "composers_ids": [
+          "e7a26541-efe9-4d75-b339-1a2f5a22f8e7",
+          "cd91d35c-7474-4afb-b5bd-90e9c8ff6801"
+        ],
+        "country": "BR",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Odeon",
+        "language": "por",
+        "length": 93,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_albumartistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_albumid": "835940cc-3a91-4c5a-910a-ff5306ae6287",
+        "mb_artistid": "286ec4c2-b5ca-4f85-b331-280a6d73dd14",
+        "mb_artistids": [
+          "286ec4c2-b5ca-4f85-b331-280a6d73dd14"
+        ],
+        "mb_releasegroupid": "9e4072b4-11c3-3fe6-be4f-4a607bbb94f9",
+        "mb_releasetrackid": "0ea9ba95-b109-39d2-a6d1-b406466ab561",
+        "mb_trackid": "0ba96d05-3d24-448e-810e-3dfd541b45de",
+        "mb_workid": "a6a100c3-1d5a-4e81-83dc-e78be2c22c2f",
+        "media": "Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1959,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Chega de saudade",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Aos pés da cruz",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Aos pés da cruz",
+        "work_disambig": "",
+        "year": 1959
+      }
+    }
+  }
+}
