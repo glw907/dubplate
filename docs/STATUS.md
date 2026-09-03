@@ -53,15 +53,16 @@ Pass 2b is executing from its plan (revision 2, committed 415c4d9;
 14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
 ruling: machinery tasks 1-3 first, then a staleness check of case
 tasks 4-13 against the shipped machinery before dispatching them.
-Machinery tasks 2b-1..3 all accepted (cec3c12, 6090b6c+182a5b4,
-4c99825): echo + freeze verb + schema v2; synth builder + authoring
-loop; proximity flag, tie detector, claims checker, component table
-(72 rows). Finding: clean-match + multi-disc have genuinely tied
-assignments, pinned; rung 3's solver must mirror lapjv tie-breaking.
-Next: batched simplifier (consolidate maximalReleaseInclude +
-canonicalizeQuery synth/capture dupes), then the staleness check of
-case tasks 4-13. Named Task 13 inputs: family 14's zero-candidate
-case wedges BOTH ties.json (needs a skip row shape) and the claims
-checker (LoadClaims rejects empty best_album_id); derive_ties.py
-should self-enforce PYTHONHASHSEED like derive_oracle.py.
-Spend: 2a closed ≈1.75M/5M; 2b ≈1.7M of 6M.
+Machinery complete: 2b-1..3 accepted, simplifier landed (c1b8c05,
+mbrequest package), staleness review of case tasks 4-14 done, its
+five blockers resolved via pre-task 2b-3b (324428a + 72df002 +
+834c4b7: ties skip rows, claims min_candidates:0 mode,
+ReleaseSpec.original_date, hash-seed check). Conductor rulings and
+per-task dispatch corrections: committed in
+research/2026-09-02-rung-2b-staleness-corrections.md (dispatches
+fold it; it wins over the plan on its named points). Notable: two
+smoke cases genuinely tied, pinned; rung 3's solver must mirror
+lapjv tie-breaking. Next: case tasks 4-13 via pass-execute in
+batches of three with STATUS between batches (named deviation from
+per-task checkpoints; compaction risk low), then Task 14 closes.
+Spend: 2a ≈1.75M/5M; 2b ≈2.6M of 6M.
