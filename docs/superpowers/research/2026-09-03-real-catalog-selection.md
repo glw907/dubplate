@@ -236,8 +236,8 @@ axis's reserve pool it backs up).
 
 ## Capture batch assignment (Tasks 4 through 15)
 
-Re-dealt (fix pass, see the note at the end of this section) so a batch
-failure never wipes out one whole axis, per the plan's own contract: the
+Re-dealt (fix pass) so a batch failure never wipes out one whole axis,
+per the plan's own contract: the
 largest axis, genre/era spread (26 rows), is spread across all twelve
 batches at 2 rows per batch for ten batches and 3 rows for the last two
 (Task 14, Task 15), where its own supply runs out; every batch also
@@ -287,12 +287,14 @@ One: `real-nonlatin-ddt` (`767f2ed1-2f70-4847-84a9-dacc802bf4b5`, DDT -
 DDT). Its original rationale claimed a "Russian rock band" case whose
 credited string is Latin but whose genre and origin are Cyrillic-locale,
 carrying a documented alias. `harness seed-items --case
-corpus/staging/real-nonlatin-ddt --facts` showed otherwise: text
+corpus/staging/real-nonlatin-ddt --facts` showed its one artist-credit
+alias ("Demonios de Tasmania") carries no locale at all -- alone
+sufficient grounds for rejection under the axis's stated fact.
+musicbrainz.org's release page for the entity confirms why: text
 representation `Latn`, language `spa`, country `AR` (the band is
-Argentine, not Russian), and its one artist-credit alias
-("Demonios de Tasmania") carries no locale at all. The candidate does not
-serve the non-Latin axis; its staging directory was deleted before this
-task ends. Its replacement, `real-nonlatin-vandi`
+Argentine, not Russian). The candidate does not serve the non-Latin
+axis; its staging directory was deleted before this task ends. Its
+replacement, `real-nonlatin-vandi`
 (`aa3a7756-b8ac-4a53-ba92-ac6d6700a0ad`, Despina Vandi - Despina Vandi),
 was seeded and confirmed via `--facts`: a native Greek artist-credit
 (Δέσποινα Βανδή) carrying a documented `locale=el` alias and a documented
@@ -318,21 +320,18 @@ so no other MBID was abandoned mid-verification.
 ## Token spend
 
 The plan asks Task 3 to report its own actual token spend, since the
-ceiling re-derivation point moves here (M9). This implementer dispatch
-(the fix pass that produced the non-Latin correction and the batch
-re-deal above) has no local mechanism to introspect its own cumulative
-token usage: there is no `ccusage`-style CLI on the workstation, no
-per-dispatch usage log under `~/.claude/telemetry/`, and the
-implementer's own session transcript under
-`~/.claude/projects/-var-home-glw907-Projects-dubplate/` is not
-addressable from inside the dispatch (Claude models are not
-self-aware of their running token count). **The conductor's own
-Task-dispatch return value (or `/cost`) is the authoritative source**
-per CLAUDE.md's "Score both budgets at pass end" convention, and is
-where the actual figure for this task, and the original Task 3
-attempt this fix pass followed, should be recorded once read back from
-the dispatch layer. This gap is reported to the conductor as a
-`couldNotDo` item rather than a fabricated number.
+ceiling re-derivation point moves here (M9). No implementer dispatch has
+a local mechanism to introspect its own cumulative token usage: there is
+no `ccusage`-style CLI on the workstation, no per-dispatch usage log
+under `~/.claude/telemetry/`, and an implementer's own session
+transcript under `~/.claude/projects/-var-home-glw907-Projects-dubplate/`
+is not addressable from inside its own dispatch (Claude models are not
+self-aware of their running token count). Per CLAUDE.md's "Score both
+budgets at pass end" convention, the conductor's own Task-dispatch usage
+records are the authoritative source, and read back: the Task 3 chain
+(both implementer rounds and both reviews, including the fix pass that
+produced the non-Latin correction and the batch re-deal above) spent
+678,353 subagent tokens.
 
 ## Status for Tasks 4 through 15
 
