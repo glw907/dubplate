@@ -603,8 +603,16 @@ are marked [E].
    starting roster, revisable cheaply until the picker ships): dark
    (the shipped default for adopters) and light as the
    system-following pair, dim, night, black (the high-contrast
-   dark), nord, coffee, retro (the one personality pick, and the
-   estate's own configured default per Geoff, 2026-09-03).
+   dark), nord, coffee, retro (the personality pick), plus a custom
+   gruvbox theme authored from the published Gruvbox palette
+   standard - the estate's configured default, chosen to pair
+   exactly with Navidrome's built-in Gruvbox Dark (Geoff,
+   2026-09-03). Standing principle from the same ruling: custom
+   themes are a variable block by design, so the roster grows a
+   MATCHING theme for each streamer a driver ships (nord and
+   dracula already exist as shared standards on both sides;
+   future drivers bring their pairing on demand), keeping any
+   estate visually coherent from uploader to player.
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
@@ -666,12 +674,12 @@ are marked [E].
     because the rung carries the initiative's densest security
     surface, including three carried blockers from the login
     security review. Estate theming note (Geoff, 2026-09-03): set
-    Navidrome's default UI theme via its config to the closest
-    warm/retro built-in, chosen with eyes on it at this rung's
-    attended pass (Navidrome ships a fixed theme set with no custom
-    CSS hook; literal parity with the estate's DaisyUI retro theme
-    is out of scope, and proxy-side CSS injection is refused as
-    fragile).
+    Navidrome's default UI theme to its built-in Gruvbox Dark via
+    config, pairing with the estate's custom DaisyUI gruvbox theme
+    (ladder entry 7); verified against v0.63.2's shipped theme
+    roster. Navidrome has no custom CSS hook and proxy-side CSS
+    injection stays refused as fragile; the shared published
+    palette standard is what makes the pair exact.
 13. **Decision and review queues** (M). Persisted decision records
     serializing candidates, distances, and penalty breakdowns; the
     queue verbs (`list pending`, `answer`, `defer`) with a minimal
