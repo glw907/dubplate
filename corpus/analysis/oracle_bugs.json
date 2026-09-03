@@ -52,11 +52,13 @@
       "id": "bug-threshold-boundary",
       "bug_class": "threshold-boundary strictness (strong_rec_thresh: 0 cannot mean exact-only, since match.py's own comparison is a strict \"<\")",
       "citation": "#5458 (2024)",
-      "probe_case_ids": ["rec-strong-medium-boundary"],
+      "probe_case_ids": [
+        "rec-strong-medium-boundary"
+      ],
       "reproduced": "no",
-      "disposition": "pending-adjudication",
-      "reason": "pass 2b's rec-strong-medium-boundary case already parks a derived record on the strong/medium boundary, and proximity.json's ledger already tracks the strict-vs-inclusive comparison risk by construction; this hypothesis needs no new adversarial case, only this row carrying the pointer forward. Never oracle-correct directly (M6) even though the reasoning is already legible; disposition is owner-only.",
-      "adjudicator": "agent",
+      "disposition": "oracle-correct",
+      "reason": "Adjudicated by the owner: the probe case rec-strong-medium-boundary shows expected recommendation behavior at pinned beets 2.13.1; the reported boundary strictness (#5458) is not reproduced. Ruling taken in-session 2026-09-03, recorded by the conductor.",
+      "adjudicator": "Geoff",
       "date": "2026-09-03"
     }
   ]
