@@ -7,15 +7,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
+	"github.com/glw907/dubplate/internal/harness/mbrequest"
 	"github.com/glw907/dubplate/internal/harness/stub"
 	"github.com/spf13/cobra"
 )
@@ -40,14 +39,6 @@ const mbAPIRoot = "https://musicbrainz.org"
 // 10s default (mechanics study Q5), generous enough for the maximal
 // inc= release lookups this tool issues.
 const liveFetchTimeout = 30 * time.Second
-
-// maximalReleaseInclude is the release lookup's inc= parameter,
-// mirroring beets' own RELEASE_INCLUDES (mechanics study Q5) so a
-// captured case never forces a re-capture the first time a future
-// matcher improvement wants a field this run already fetched (U6).
-const maximalReleaseInclude = "artists+media+recordings+release-groups+labels+" +
-	"artist-credits+aliases+recording-level-rels+work-rels+work-level-rels+" +
-	"artist-rels+isrcs+url-rels+release-rels+genres+tags"
 
 // missFileName matches internal/harness/oracle's own constant; the
 // two packages agree on it through the file format documented in
@@ -285,30 +276,10 @@ func writeResponse(dir string, n int, body []byte) (string, error) {
 // release lookup: fmt=json forced, inc= carrying beets' own full
 // RELEASE_INCLUDES list.
 func releaseRequest(mbid string) string {
-	return canonicalizeQuery("/ws/2/release/"+mbid, map[string]string{
+	return mbrequest.CanonicalizeQuery("/ws/2/release/"+mbid, map[string]string{
 		"fmt": "json",
-		"inc": maximalReleaseInclude,
+		"inc": mbrequest.MaximalReleaseInclude,
 	})
-}
-
-// canonicalizeQuery joins path with params sorted byte-wise by their
-// "key=value" pair, matching the cassette package's own
-// canonicalization rule (corpus/README.md): each value is percent-
-// encoded with url.QueryEscape before joining, the same encoding
-// Python's requests library applies when beets' MusicBrainz client
-// builds its own query string (a bare "+" joining inc= values becomes
-// "%2B" on the wire, never a literal "+"; a capture that stored the
-// literal form would never match what pinned beets actually requests
-// during derivation). Duplicated here rather than called from cassette
-// because Task 1's cassette package ships frozen and keeps the rule
-// unexported.
-func canonicalizeQuery(path string, params map[string]string) string {
-	pairs := make([]string, 0, len(params))
-	for k, v := range params {
-		pairs = append(pairs, url.QueryEscape(k)+"="+url.QueryEscape(v))
-	}
-	slices.Sort(pairs)
-	return path + "?" + strings.Join(pairs, "&")
 }
 
 // pseudoReleaseFollowUp reports the actual release id a Pseudo-Release

@@ -14,7 +14,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -123,47 +122,27 @@ func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expe
 	if exp.ConfigHash == "" {
 		return nil, fmt.Errorf("oracle: derive %s: shim omitted its config hash", c.ID)
 	}
-	if err := validateThresholdsPresent(raw); err != nil {
+	if err := validateFieldPresent(raw, "thresholds"); err != nil {
 		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
 	}
-	if err := validateWeightsPresent(raw); err != nil {
+	if err := validateFieldPresent(raw, "weights"); err != nil {
 		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
 	}
 	return &exp, nil
 }
 
-// validateThresholdsPresent proves raw's document carried a
-// "thresholds" key at all. cassette.Thresholds decodes to its zero
-// value whether the shim omitted the key or reported every threshold
-// as zero, so presence is checked against the raw document rather
-// than the decoded struct.
-func validateThresholdsPresent(raw []byte) error {
-	var probe struct {
-		Thresholds json.RawMessage `json:"thresholds"`
-	}
+// validateFieldPresent proves raw's document carried a top-level key
+// named field at all. Both [cassette.Expected].Thresholds and .Weights
+// decode to their zero value whether the shim omitted the key or
+// reported it empty, so presence is checked against the raw document
+// rather than the decoded struct.
+func validateFieldPresent(raw []byte, field string) error {
+	var probe map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &probe); err != nil {
 		return fmt.Errorf("decode shim output: %w", err)
 	}
-	if len(probe.Thresholds) == 0 {
-		return errors.New("shim omitted its thresholds")
-	}
-	return nil
-}
-
-// validateWeightsPresent proves raw's document carried a "weights" key
-// at all, the same presence check validateThresholdsPresent runs: a
-// map decodes to nil whether the shim omitted the key or emitted an
-// empty object, so presence is checked against the raw document rather
-// than the decoded map.
-func validateWeightsPresent(raw []byte) error {
-	var probe struct {
-		Weights json.RawMessage `json:"weights"`
-	}
-	if err := json.Unmarshal(raw, &probe); err != nil {
-		return fmt.Errorf("decode shim output: %w", err)
-	}
-	if len(probe.Weights) == 0 {
-		return errors.New("shim omitted its weights")
+	if len(probe[field]) == 0 {
+		return fmt.Errorf("shim omitted its %s", field)
 	}
 	return nil
 }

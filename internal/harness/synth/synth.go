@@ -4,26 +4,12 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
-	"net/url"
-	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
+	"github.com/glw907/dubplate/internal/harness/mbrequest"
 )
-
-// maximalReleaseInclude mirrors cmd/harness/capture.go's own constant
-// (beets' RELEASE_INCLUDES, mechanics study Q5): every ID-lookup case
-// pinned beets issues, live-captured or synthetic, requests the same
-// maximal inc= set, so a synthetic case never forces a re-capture the
-// first time a future matcher improvement wants a field this run
-// already carries (U6). Duplicated here for the same reason
-// cmd/harness's own copy is duplicated from cassette: the two tools
-// have no shared internal package to hold it without giving either one
-// an import the plan does not ask for.
-const maximalReleaseInclude = "artists+media+recordings+release-groups+labels+" +
-	"artist-credits+aliases+recording-level-rels+work-rels+work-level-rels+" +
-	"artist-rels+isrcs+url-rels+release-rels+genres+tags"
 
 // Build derives a complete case from spec: the pinned item set (from
 // spec.Media plus spec.Overrides, or spec.Items verbatim), the
@@ -52,9 +38,9 @@ func Build(id string, spec *ReleaseSpec) (*cassette.Case, []byte, error) {
 		return nil, nil, err
 	}
 
-	pathQuery := canonicalizeQuery("/ws/2/release/"+spec.MBAlbumID, map[string]string{
+	pathQuery := mbrequest.CanonicalizeQuery("/ws/2/release/"+spec.MBAlbumID, map[string]string{
 		"fmt": "json",
-		"inc": maximalReleaseInclude,
+		"inc": mbrequest.MaximalReleaseInclude,
 	})
 
 	c := &cassette.Case{
@@ -180,24 +166,4 @@ func applyOverrides(items []cassette.ItemFields, overrides []Override, albumID s
 	}
 	result = append(result, extras...)
 	return result, nil
-}
-
-// canonicalizeQuery joins path with params sorted byte-wise by their
-// "key=value" pair, matching the cassette package's own
-// canonicalization rule (corpus/README.md): each value is percent-
-// encoded with url.QueryEscape before joining, the same encoding
-// Python's requests library applies when beets' MusicBrainz client
-// builds its own query string (a bare "+" joining inc= values becomes
-// "%2B" on the wire, never a literal "+"). Duplicated from
-// cmd/harness/capture.go's identical helper because cassette ships
-// frozen and keeps its own canonicalization unexported (Task 1); the
-// round-trip test proves this copy produces exactly what
-// cassette.LoadCase accepts.
-func canonicalizeQuery(path string, params map[string]string) string {
-	pairs := make([]string, 0, len(params))
-	for k, v := range params {
-		pairs = append(pairs, url.QueryEscape(k)+"="+url.QueryEscape(v))
-	}
-	slices.Sort(pairs)
-	return path + "?" + strings.Join(pairs, "&")
 }

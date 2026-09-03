@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 // variousArtistsMBID is MusicBrainz's own well-known Various Artists
@@ -191,7 +192,7 @@ func buildRelease(spec *ReleaseSpec) *wsRelease {
 			}
 			recordingID := pseudoUUID(fmt.Sprintf("%s|recording|%d|%d", spec.MBAlbumID, mi, tr.Position))
 			trackID := pseudoUUID(fmt.Sprintf("%s|track|%d|%d", spec.MBAlbumID, mi, tr.Position))
-			pos := fmt.Sprintf("%d", tr.Position)
+			pos := strconv.Itoa(tr.Position)
 			tracks[ti] = wsTrack{
 				ID:           trackID,
 				Position:     pos,
