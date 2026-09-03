@@ -631,7 +631,16 @@ are marked [E].
    matched themes match the streamer's typography where its
    fonts are open (Navidrome: Roboto; Jellyfin: Noto Sans).
    Motion stays global and prefers-reduced-motion-aware, not
-   per-theme.
+   per-theme. Config model (Geoff, 2026-09-03): theming is TWO
+   orthogonal picks, the system MATCH (the structural layer:
+   typography, radii, depth, sizing - navidrome, jellyfin, or
+   dubplate's own) and the color PALETTE - composed at runtime
+   as separate variable layers (palette blocks set only color
+   variables, match blocks only structural ones), so the axes
+   multiply without multiplying authored themes. Estate config:
+   match navidrome, palette gruvbox. How DaisyUI's bundled
+   built-ins reconcile into the two-axis model is a rung 7
+   design detail.
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the

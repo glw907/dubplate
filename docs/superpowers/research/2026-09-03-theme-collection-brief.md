@@ -293,3 +293,16 @@ The default-match themes match typography where the streamer's fonts
 are open: Roboto for Navidrome (Material UI), Noto Sans for Jellyfin.
 Motion is global and honors prefers-reduced-motion; it is not a
 per-theme axis.
+
+## Addendum 3: the two-axis config model (Geoff, 2026-09-03)
+
+Theming decomposes into two orthogonal user picks rather than one
+flat theme list: the system MATCH (structural layer: fonts, radii,
+depth, sizing - `navidrome`, `jellyfin`, or dubplate's own) and the
+color PALETTE (gruvbox, nord, dracula, catppuccin, the basics). The
+layers compose at runtime as separate variable sets - palette blocks
+set only color variables, match blocks only structural ones - so the
+axes multiply without multiplying authored blocks. Estate config:
+match `navidrome`, palette `gruvbox`. Open rung 7 design detail: how
+DaisyUI's bundled built-in themes (which mix both layers in one
+block) reconcile into the two-axis model.
