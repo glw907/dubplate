@@ -278,3 +278,18 @@ gruvbox, derived from the apps' own theme sources at their pinned
 versions. Final rung 7 roster: dark, light, dim, night, black, nord,
 coffee, retro, gruvbox (estate default), catppuccin, navidrome-dark
 match, jellyfin-dark match.
+
+## Addendum 2: beyond color (Geoff, 2026-09-03)
+
+A theme is the full DaisyUI 5 variable block, not the palette alone:
+radii (`--radius-box/field/selector`), border weight, `--depth`,
+`--noise`, and sizing all belong to each theme's authored block, and
+the crib sources above cover only color, so authoring fills the rest
+deliberately (retro and gruvbox read soft and warm; a default-match
+theme copies its streamer's corner and elevation style too). Each
+theme also declares a font pairing through the Tailwind 4 font
+variables; fonts ship embedded as woff2 via go:embed, never a CDN.
+The default-match themes match typography where the streamer's fonts
+are open: Roboto for Navidrome (Material UI), Noto Sans for Jellyfin.
+Motion is global and honors prefers-reduced-motion; it is not a
+per-theme axis.

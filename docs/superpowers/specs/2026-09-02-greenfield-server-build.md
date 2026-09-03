@@ -623,7 +623,15 @@ are marked [E].
    adopter never re-themes the streamer - one matching
    Navidrome's Dark (its verified default) and one matching
    Jellyfin's dark, both extracted from the apps' own open
-   theme sources as variable blocks.
+   theme sources as variable blocks. Theming is more than color
+   (Geoff, 2026-09-03): a theme is the FULL DaisyUI variable
+   block (palette, radii, border weight, depth, noise, sizing)
+   plus a declared font pairing; fonts ship embedded (woff2 via
+   go:embed, never a CDN, per universality and offline use), and
+   matched themes match the streamer's typography where its
+   fonts are open (Navidrome: Roboto; Jellyfin: Noto Sans).
+   Motion stays global and prefers-reduced-motion-aware, not
+   per-theme.
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
