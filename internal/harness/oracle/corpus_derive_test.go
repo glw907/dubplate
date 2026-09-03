@@ -48,12 +48,14 @@ func TestCorpusReDerivesToItsCommittedRecords(t *testing.T) {
 		t.Fatalf("read corpus/cases: %v", err)
 	}
 
-	dirs := 0
+	// derived counts cases actually re-derived, not directories walked:
+	// a corpus whose every case skips for want of a committed record
+	// would otherwise report green with nothing proven.
+	derived := 0
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue
 		}
-		dirs++
 		id := e.Name()
 		t.Run(id, func(t *testing.T) {
 			dir := filepath.Join(casesRoot, id)
@@ -69,14 +71,15 @@ func TestCorpusReDerivesToItsCommittedRecords(t *testing.T) {
 			if err != nil {
 				t.Fatalf("re-derive %s: %v", id, err)
 			}
+			derived++
 			if !reflect.DeepEqual(got, c.Expected) {
 				t.Errorf("re-derivation diverges from the committed record for %s:\nwant: %s\ngot:  %s",
 					id, mustJSON(t, c.Expected), mustJSON(t, got))
 			}
 		})
 	}
-	if dirs == 0 {
-		t.Fatal("corpus/cases has no case directories; nothing was re-derived")
+	if derived == 0 {
+		t.Fatal("no corpus case was actually re-derived; every case skipped for want of a committed record")
 	}
 }
 
@@ -118,6 +121,12 @@ func TestPinnedDateMovesTheRealYearPenalty(t *testing.T) {
 		t.Fatalf("derive at %s: %v", far.EvalDate, err)
 	}
 
+	if len(nearExp.Candidates) == 0 {
+		t.Fatalf("derivation at %s produced no candidates", nearDate)
+	}
+	if len(farExp.Candidates) == 0 {
+		t.Fatalf("derivation at %s produced no candidates", far.EvalDate)
+	}
 	nearYear, ok := nearExp.Candidates[0].Penalties["year"]
 	if !ok {
 		t.Fatalf("derivation at %s carries no year penalty", nearDate)
@@ -126,13 +135,10 @@ func TestPinnedDateMovesTheRealYearPenalty(t *testing.T) {
 	if !ok {
 		t.Fatalf("derivation at %s carries no year penalty", far.EvalDate)
 	}
-	if nearYear == farYear {
-		t.Errorf("year penalty at %s (%v) equals year penalty at %s (%v): the pinned date should be causally in the verdict",
-			nearDate, nearYear, far.EvalDate, farYear)
-	}
 	// beets divides the year penalty's diff by the span from the
 	// original year to today: a later pinned date widens that span, so
 	// a fixed tag/release mismatch scores a smaller penalty later on.
+	// The directional check below subsumes a plain equality check.
 	if nearYear <= farYear {
 		t.Errorf("year penalty at %s (%v) should exceed year penalty at %s (%v): a later eval date widens the year penalty's span denominator",
 			nearDate, nearYear, far.EvalDate, farYear)

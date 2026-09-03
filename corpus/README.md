@@ -130,6 +130,15 @@ A profile edit, or a beets/dependency version bump, is a
 corpus-revalidation event exactly like any other pin change: whatever
 in the manifest disagrees with the new venv is what `Reconcile` names.
 
+`schema_version` moved from `1` to `2` in rung 2, pass 2b's Task 1:
+`cassette.Expected` gained plain `weights` and `thresholds` fields
+echoing the shim's `match.distance_weights` table and its
+recommendation-boundary config, closing a gap where
+`oracle.Derive`'s `json.Unmarshal` silently dropped both. The bump
+forced a re-derivation of every committed record through the new
+`harness freeze` verb (below); `internal/harness/corpus_test.go`'s
+`wantManifestSchemaVersion` moved with it.
+
 ## Config profiles
 
 `corpus/profiles/estate.yaml` derives from `config/beets-config.yaml`,
@@ -237,6 +246,29 @@ derivation. `harness capture --case <dir>` reads that same file and
 is what makes the file the load-bearing handoff between a derivation
 and the next capture, rather than scaffolding a human has to
 transcribe by hand.
+
+## The freeze tool
+
+`harness freeze --case <dir>` is the capture-derive loop's other half:
+it derives the case at `<dir>` and writes the returned record back
+through `cassette.Case.Write`, the repeatable path a case moves from
+`corpus/staging/<id>/` (or an already-committed `corpus/cases/<id>/`)
+to a frozen record. It is the only place in this repository that
+writes a case's `expected` field; every committed record, including
+the seven-case smoke corpus, is written by it and never hand-edited.
+
+`--case` is authoritative for any directory: `oracle.Derive`'s
+`Options.Dir`, when set, overrides its own `corpus/cases/<ID>`
+default, so freeze works the same way against a staging case that has
+never been committed and against an already-frozen one being
+re-derived after a schema or profile change. Freeze refuses to write
+when the derivation leaves `misses.json` behind: an unanswered
+request means the case is only half-derived, and freezing it would
+commit a record its own request log cannot reproduce. Freezing an
+already-normalized case twice in a row changes nothing but its
+`expected` field: `cassette.Case.Write` re-marshals `Input`
+deterministically, so the second freeze's `id`, `input`, `profile`,
+`eval_date`, `requests`, and `extra` bytes match the first's exactly.
 
 ### A recorded fixed point, not a stable request set
 

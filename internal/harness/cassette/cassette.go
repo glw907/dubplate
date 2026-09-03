@@ -67,15 +67,29 @@ type Request struct {
 
 // Expected is the oracle record the shim emits, decoded.
 type Expected struct {
-	Recommendation string         `json:"recommendation"` // strong | medium | low | none
-	Action         string         `json:"action"`         // apply | skip; executed via beets' own quiet-mode mapping
-	EchoedDate     string         `json:"echoed_date"`    // the date the shim observed; must equal EvalDate
-	ConfigHash     string         `json:"config_hash"`    // hash of the shim's effective config
-	Candidates     []Candidate    `json:"candidates"`     // in beets' final order
-	Assignment     map[int]int    `json:"assignment"`     // item index -> track index, best candidate
-	ExtraItems     []int          `json:"extra_items"`    // unmatched item indexes, in beets' sort order
-	ExtraTracks    []int          `json:"extra_tracks"`   // unmatched track indexes, in beets' sort order
-	AppliedFields  map[string]any `json:"applied_fields"` // post-apply in-memory item fields, best candidate
+	Recommendation string             `json:"recommendation"` // strong | medium | low | none
+	Action         string             `json:"action"`         // apply | skip; executed via beets' own quiet-mode mapping
+	EchoedDate     string             `json:"echoed_date"`    // the date the shim observed; must equal EvalDate
+	ConfigHash     string             `json:"config_hash"`    // hash of the shim's effective config
+	Weights        map[string]float64 `json:"weights"`        // match.distance_weights the run scored under
+	Thresholds     Thresholds         `json:"thresholds"`     // match.*_thresh and max_rec the run scored under
+	Candidates     []Candidate        `json:"candidates"`     // in beets' final order
+	Assignment     map[int]int        `json:"assignment"`     // item index -> track index, best candidate
+	ExtraItems     []int              `json:"extra_items"`    // unmatched item indexes, in beets' sort order
+	ExtraTracks    []int              `json:"extra_tracks"`   // unmatched track indexes, in beets' sort order
+	AppliedFields  map[string]any     `json:"applied_fields"` // post-apply in-memory item fields, best candidate
+}
+
+// Thresholds is match's recommendation-boundary config, echoed
+// verbatim by the shim. MaxRec is not uniformly numeric like the three
+// *_thresh fields: it maps a penalty-key name to the recommendation
+// level it caps a match at (for example "missing_tracks": "medium"),
+// so a flat map[string]float64 cannot decode it.
+type Thresholds struct {
+	StrongRecThresh float64           `json:"strong_rec_thresh"`
+	MediumRecThresh float64           `json:"medium_rec_thresh"`
+	RecGapThresh    float64           `json:"rec_gap_thresh"`
+	MaxRec          map[string]string `json:"max_rec"`
 }
 
 // Candidate is one scored release candidate.

@@ -9,6 +9,9 @@
 //     actual release too, at beets' own maximal inc= (U6).
 //   - capture --case <dir>: fetches exactly the requests a
 //     derivation's stub could not answer, appending each to the case.
+//   - freeze --case <dir>: derives a case and writes its expected
+//     record back to case.json, refusing to do so when the
+//     derivation leaves the case half-derived.
 //
 // Every live request carries the identified User-Agent
 // corpus/README.md documents; the tool refuses to run at all when
@@ -43,5 +46,6 @@ func newRootCmd() *cobra.Command {
 		SilenceErrors: true,
 	}
 	cmd.AddCommand(newCaptureCmd(os.Environ(), version))
+	cmd.AddCommand(newFreezeCmd())
 	return cmd
 }

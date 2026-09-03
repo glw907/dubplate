@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -29,6 +30,7 @@ import (
 type Options struct {
 	Venv string // path to the pinned uv venv; unused when Shim is set
 	Shim string // shim executable path; empty means the package's own shim
+	Dir  string // case directory to derive against, overriding the corpus/cases/<ID> default; authoritative for any directory, staging or committed
 }
 
 // missFileName is the file Derive writes into a case's own directory
@@ -102,8 +104,8 @@ func repoRoot() (string, error) {
 //
 // Derive fails loudly, never silently, when the shim's echoed
 // evaluation date disagrees with c.EvalDate, when the shim omits its
-// config hash, or when the rendered profile does not load exactly
-// one metadata-source plugin.
+// config hash or its thresholds document, or when the rendered
+// profile does not load exactly one metadata-source plugin.
 func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expected, error) {
 	raw, err := deriveRaw(ctx, c, opts)
 	if err != nil {
@@ -120,16 +122,41 @@ func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expe
 	if exp.ConfigHash == "" {
 		return nil, fmt.Errorf("oracle: derive %s: shim omitted its config hash", c.ID)
 	}
+	if err := validateThresholdsPresent(raw); err != nil {
+		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
+	}
 	return &exp, nil
+}
+
+// validateThresholdsPresent proves raw's document carried a
+// "thresholds" key at all. cassette.Thresholds decodes to its zero
+// value whether the shim omitted the key or reported every threshold
+// as zero, so presence is checked against the raw document rather
+// than the decoded struct.
+func validateThresholdsPresent(raw []byte) error {
+	var probe struct {
+		Thresholds json.RawMessage `json:"thresholds"`
+	}
+	if err := json.Unmarshal(raw, &probe); err != nil {
+		return fmt.Errorf("decode shim output: %w", err)
+	}
+	if len(probe.Thresholds) == 0 {
+		return errors.New("shim omitted its thresholds")
+	}
+	return nil
 }
 
 // deriveRaw runs one shim process for c and returns its stdout
 // unparsed, which is what the determinism proof diffs: a Go-decoded
 // record would hide Python-side key ordering or float formatting drift.
 func deriveRaw(ctx context.Context, c *cassette.Case, opts Options) ([]byte, error) {
-	dir, err := caseDir(c)
-	if err != nil {
-		return nil, err
+	dir := opts.Dir
+	if dir == "" {
+		var err error
+		dir, err = caseDir(c)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	srv, err := stub.New(c, dir)

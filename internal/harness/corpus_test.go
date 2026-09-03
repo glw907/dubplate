@@ -156,7 +156,7 @@ func TestEveryResponseFileIsConsumed(t *testing.T) {
 // this constant is what makes an un-updated manifest fail loudly here
 // instead of silently loading under an assumption the corpus no
 // longer meets.
-const wantManifestSchemaVersion = "1"
+const wantManifestSchemaVersion = "2"
 
 // TestManifestParsesAndMatchesSchemaVersion proves corpus/manifest.json
 // itself is a valid Manifest and carries the schema version this

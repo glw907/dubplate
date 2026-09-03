@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 # fakeshim: stands in for pass 2a Task 3's real derive_oracle.py so
 # internal/harness/oracle's tests can prove the Go adapter's contract
-# without a Python venv. It ignores the config and input file paths
-# it is invoked with (argv $1, $2) and emits one fixed, well-formed
-# oracle JSON document to stdout, matching cassette.Expected exactly.
+# without a Python venv. It ignores the input file path it is invoked
+# with (argv $2) and emits one fixed, well-formed oracle JSON document
+# to stdout, matching cassette.Expected exactly.
 #
-# Three environment variables let a test bend that fixed document
-# just enough to fire each of Derive's own validations, without
-# turning this into a second shim:
-#   FAKESHIM_DATE       overrides echoed_date (default 2024-01-15)
-#   FAKESHIM_OMIT_HASH  when set, drops config_hash from the document
-#   FAKESHIM_CALL_LOG   when set, this invocation appends one line to
-#                        it, so a test can prove exactly one process ran
-#   FAKESHIM_ENV_LOG     when set, this invocation writes
-#                        PYTHONHASHSEED's value to it, so a test can
-#                        prove the adapter set it
+# Environment variables let a test bend that fixed document just
+# enough to fire each of Derive's own validations, without turning
+# this into a second shim:
+#   FAKESHIM_DATE              overrides echoed_date (default 2024-01-15)
+#   FAKESHIM_OMIT_HASH         when set, drops config_hash from the document
+#   FAKESHIM_OMIT_THRESHOLDS   when set, drops thresholds from the document
+#   FAKESHIM_TRIGGER_MISS      when set, GETs an unlogged path from the
+#                                rendered config's musicbrainz.host (argv
+#                                $1) before printing, so the replay stub
+#                                records a genuine miss
+#   FAKESHIM_CALL_LOG          when set, this invocation appends one line to
+#                                it, so a test can prove exactly one process ran
+#   FAKESHIM_ENV_LOG            when set, this invocation writes
+#                                PYTHONHASHSEED's value to it, so a test can
+#                                prove the adapter set it
 set -euo pipefail
 
 if [ -n "${FAKESHIM_CALL_LOG:-}" ]; then
@@ -22,6 +27,12 @@ if [ -n "${FAKESHIM_CALL_LOG:-}" ]; then
 fi
 if [ -n "${FAKESHIM_ENV_LOG:-}" ]; then
   echo "${PYTHONHASHSEED:-}" >"$FAKESHIM_ENV_LOG"
+fi
+if [ -n "${FAKESHIM_TRIGGER_MISS:-}" ]; then
+  host=$(sed -n 's/^[[:space:]]*host: "\(.*\)"/\1/p' "$1" | tail -n1)
+  if [ -n "$host" ]; then
+    curl -s -o /dev/null "http://${host}/ws/2/nonexistent-miss-trigger?fmt=json" || true
+  fi
 fi
 
 date="${FAKESHIM_DATE:-2024-01-15}"
@@ -31,12 +42,19 @@ if [ -z "${FAKESHIM_OMIT_HASH:-}" ]; then
   config_hash_field='"config_hash": "fakeshim-deadbeef",'
 fi
 
+thresholds_field=""
+if [ -z "${FAKESHIM_OMIT_THRESHOLDS:-}" ]; then
+  thresholds_field='"thresholds": {"strong_rec_thresh": 0.04, "medium_rec_thresh": 0.25, "rec_gap_thresh": 0.25, "max_rec": {"missing_tracks": "medium", "unmatched_tracks": "medium"}},'
+fi
+
 cat <<EOF
 {
   "recommendation": "strong",
   "action": "apply",
   "echoed_date": "${date}",
   ${config_hash_field}
+  "weights": {"source": 2.0, "artist": 3.0, "album": 3.0, "year": 1.0},
+  ${thresholds_field}
   "candidates": [
     {
       "source": "MusicBrainz",

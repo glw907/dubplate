@@ -29,9 +29,12 @@ check: vet lint test tidy-check
 # derive runs the oracle-tagged tests, the only ones that launch the
 # real Python shim and so the only ones needing the uv venv
 # (tools/venv/README.md). Deliberately outside check: the gate protects
-# the frozen corpus records and never touches Python.
+# the frozen corpus records and never touches Python. cmd/harness/...
+# is named explicitly because its own oracle-tagged tests (harness
+# freeze's real-venv coverage, and future case-authoring tools) sit
+# outside package oracle.
 derive:
-	go test -tags oracle ./internal/harness/oracle/...
+	go test -tags oracle ./internal/harness/... ./cmd/harness/...
 
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64

@@ -70,6 +70,13 @@ func baseCase() *Case {
 			Action:         "apply",
 			EchoedDate:     "2020-06-15",
 			ConfigHash:     "deadbeef",
+			Weights:        map[string]float64{"album": 3, "artist": 3, "year": 1},
+			Thresholds: Thresholds{
+				StrongRecThresh: 0.04,
+				MediumRecThresh: 0.25,
+				RecGapThresh:    0.25,
+				MaxRec:          map[string]string{"missing_tracks": "medium", "unmatched_tracks": "medium"},
+			},
 			Candidates: []Candidate{
 				{
 					Source:    "MusicBrainz",

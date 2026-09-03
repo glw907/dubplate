@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"context"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -71,6 +72,50 @@ func TestDeriveHitDecodesExpected(t *testing.T) {
 	}
 	if len(exp.Candidates) != 1 || exp.Candidates[0].Source != "MusicBrainz" {
 		t.Errorf("Candidates = %+v, want one MusicBrainz candidate", exp.Candidates)
+	}
+}
+
+// TestDeriveDecodesWeightsAndThresholds proves the echo fields decode
+// against the fake shim's actual output, including the max_rec hazard
+// (a mapping of penalty-key name to recommendation name beside three
+// plain floats) that a flat map[string]float64 cannot represent.
+func TestDeriveDecodesWeightsAndThresholds(t *testing.T) {
+	c := testCase(t, "2024-01-15")
+	exp, err := Derive(context.Background(), c, Options{Shim: fakeShim(t)})
+	if err != nil {
+		t.Fatalf("Derive: %v", err)
+	}
+
+	if got := exp.Weights["source"]; got != 2.0 {
+		t.Errorf("Weights[source] = %v, want 2.0", got)
+	}
+	if got := exp.Weights["album"]; got != 3.0 {
+		t.Errorf("Weights[album] = %v, want 3.0", got)
+	}
+	if exp.Thresholds.StrongRecThresh != 0.04 {
+		t.Errorf("Thresholds.StrongRecThresh = %v, want 0.04", exp.Thresholds.StrongRecThresh)
+	}
+	if exp.Thresholds.MediumRecThresh != 0.25 {
+		t.Errorf("Thresholds.MediumRecThresh = %v, want 0.25", exp.Thresholds.MediumRecThresh)
+	}
+	if exp.Thresholds.RecGapThresh != 0.25 {
+		t.Errorf("Thresholds.RecGapThresh = %v, want 0.25", exp.Thresholds.RecGapThresh)
+	}
+	wantMaxRec := map[string]string{"missing_tracks": "medium", "unmatched_tracks": "medium"}
+	if !maps.Equal(exp.Thresholds.MaxRec, wantMaxRec) {
+		t.Errorf("Thresholds.MaxRec = %v, want %v", exp.Thresholds.MaxRec, wantMaxRec)
+	}
+}
+
+func TestDeriveRejectsMissingThresholds(t *testing.T) {
+	c := testCase(t, "2024-01-15")
+	t.Setenv("FAKESHIM_OMIT_THRESHOLDS", "1")
+	_, err := Derive(context.Background(), c, Options{Shim: fakeShim(t)})
+	if err == nil {
+		t.Fatal("Derive with a shim that omits thresholds: got nil error, want one")
+	}
+	if !strings.Contains(err.Error(), "thresholds") {
+		t.Errorf("error %q does not name the missing thresholds", err)
 	}
 }
 
