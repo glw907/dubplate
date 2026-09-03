@@ -483,7 +483,15 @@ from that configuration, and no second ad-hoc URL enters the wall.
 
 ## The ladder
 
-Rungs are sequential with one executor and no overlap. Magnitude
+Rungs are numbered by dependency, not by schedule (Geoff, ratified
+2026-09-03). The dependency graph is
+`research/2026-09-03-rung-dependency-analysis.md` and the execution
+model reading it is `specs/2026-09-03-parallel-build-approach.md`,
+revision 2, which carries the full model. A rung whose inbound edges
+are satisfied may run concurrently with any other such rung, subject
+to that document's two-code-lane cap, its contested-surface ownership
+table, and its lane-launch checklist; a lane's plan-header ceiling is
+a sub-ceiling of its phase's combined ceiling. Magnitude
 bands are relative and carry no time units: M is one pass under one
 plan at roughly the repo's recent pass ceilings, S is well under
 that, L splits into multiple passes at its own planning. Each rung
@@ -882,15 +890,25 @@ launch gate, so adjudication batches are part of the critical path
 and are kept small and regular. Everything else that needs Geoff is
 batched questions at checkpoints.
 
-Sessions run in arcs (Geoff's process ruling, 2026-09-02, folded
-after rung 1): foundation (rung 1), evidence (2-4), spine (5-9),
-surfaces (10-14), launch (15-17), one session per arc with no clears
-or re-brainstorms inside one and a close-out (post-mortem, STATUS
-handoff) between. Plans stay just-in-time and are drafted and
-adversarially reviewed in the shadow of the previous rung's
-execution; front-loading plans is refused on the evidence that plan
-staleness was the review rounds' dominant defect class. Workflow mode
-is a standing grant for execution and prep across the whole build,
-with human questions batched and unblocked work continuing when the
-owner is unavailable. CLAUDE.md's "Build process" section carries the
-operational form every session and subagent loads.
+Sessions run in phases (Geoff's arc ruling of 2026-09-02, re-keyed
+and ratified 2026-09-03; the full model is
+`specs/2026-09-03-parallel-build-approach.md`, revision 2). A phase
+is bounded by a merge point rather than by a range of rung numbers,
+because lanes cross the old arc boundaries: foundation (rung 1,
+closed); evidence (2, 3, 4, with lanes A and T carrying rungs 5 and 8
+alongside), closing at rung 4's deploy; spine (6, 14, 7, 9);
+surfaces (10, 11, 12, 13); launch (15, 16, 17, one lane). A phase
+runs with no clears or re-brainstorms inside it and closes with a
+post-mortem and a STATUS handoff; a phase whose lanes outrun one
+session may span more than one, each intermediate close carrying a
+written per-lane handoff in place of the post-mortem. Plans stay
+just-in-time per lane: a lane's next plan is drafted and
+adversarially reviewed in the shadow of that lane's own execution,
+never a phase's worth in advance. Front-loading plans stays refused
+on the evidence that plan staleness was the review rounds' dominant
+defect class, and running N lanes is exactly the condition under
+which that defect returns. Workflow mode is a standing grant for
+execution and prep across the whole build, with human questions
+batched and unblocked work continuing when the owner is unavailable.
+CLAUDE.md's "Build process" section carries the operational form
+every session and subagent loads.
