@@ -1,5 +1,7 @@
 {
   "best_album_id": "54cafabc-119c-47dc-88af-754be5ca4232",
+  "extra_items_len": 0,
+  "extra_tracks_len": 0,
   "recommendation": "strong",
   "penalty_keys_zero": ["album", "album_id", "albumdisambig", "artist", "catalognum", "label", "tracks", "year"]
 }
