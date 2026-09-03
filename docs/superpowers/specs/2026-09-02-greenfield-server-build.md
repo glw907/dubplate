@@ -584,7 +584,13 @@ are marked [E].
    with the birth-requirement validation, journey records, the reject
    copy contract adopted verbatim from the string authority with
    register-gated changes, and the uploader reference web client
-   built from the salvaged components under fresh review. The `web/`
+   built from the salvaged components under fresh review. Format
+   acceptance is CONFIG, not policy baked in (Geoff, 2026-09-03): an
+   accepted-format allowlist in the gate policy, the estate set to
+   FLAC-only, other adopters free to admit lossy formats; the
+   shipped default and the reject-copy wording per format are this
+   rung's design details, and the tag I/O scope (rung 8) plus the
+   matcher are format-agnostic upstream of it. The `web/`
    legs rejoin the repo gate here. The album is the verdict unit: one
    failing track rejects the batch, and no partial album is ever
    admitted. This rung carries an attended moment the process section
