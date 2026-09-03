@@ -36,11 +36,16 @@ new ladder. Rung 1 (foundation: the repo pivot, the config core,
 Folded from the organizer spec's "Roadmap revisions this spec carries"
 (2026-09-01-dubplate-organizer-design.md):
 - Streamer integration ships with the Navidrome reference driver only
-  (rung 12); Jellyfin and Subsonic drivers are supported by design and
-  built on demand. Navidrome is the reference driver, not "the bonus
-  only dubplate can offer": this page's product-essence line already
-  reads generically ("a shared music server") and needs no further
-  edit.
+  (rung 12). Target systems are Navidrome and Jellyfin (trimmed from
+  "Jellyfin and Subsonic" by Geoff, 2026-09-03: living Subsonic use
+  is mostly Navidrome itself, Airsonic-Advanced is stale with no
+  theming surface, and headless servers' users live in clients);
+  a Jellyfin driver builds on demand, and the documented driver seam
+  stays universal, so a Subsonic-family driver remains possible if
+  real demand appears. Navidrome is the reference driver, not "the
+  bonus only dubplate can offer": this page's product-essence line
+  already reads generically ("a shared music server") and needs no
+  further edit.
 - The built-ins roster is set by policy and probe-backed demotions
   (rung 11), superseding any fixed plugin roster or adoption-band
   ship criterion; the survey backing it is

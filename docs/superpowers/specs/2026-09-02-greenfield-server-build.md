@@ -690,7 +690,12 @@ are marked [E].
     (ladder entry 7); verified against v0.63.2's shipped theme
     roster. Navidrome has no custom CSS hook and proxy-side CSS
     injection stays refused as fragile; the shared published
-    palette standard is what makes the pair exact.
+    palette standard is what makes the pair exact. Target-system
+    ruling (Geoff, 2026-09-03): the streamer targets are Navidrome
+    and Jellyfin; the Subsonic family is demoted from
+    supported-by-design to reachable-through-the-seam-on-demand
+    (rationale and evidence in ROADMAP's streamer note and the
+    theme-collection brief).
 13. **Decision and review queues** (M). Persisted decision records
     serializing candidates, distances, and penalty breakdowns; the
     queue verbs (`list pending`, `answer`, `defer`) with a minimal
