@@ -2,6 +2,52 @@
 
 Per-pass ledger, newest first.
 
+## Rung 2, pass 2b (Structural stratum): analyses, synth, 61 synthetic cases (2026-09-02/03)
+
+Fourteen plan tasks plus one staleness pre-task, executed overnight
+across seven pass-execute workflows against
+`docs/superpowers/plans/2026-09-02-rung-2b-structural-stratum.md`
+(revision 2). Commits cec3c12 → 2219b19. All tasks accepted; five
+needed one fix round; four escalations, each ruled by the conductor
+and recorded in
+`research/2026-09-02-rung-2b-staleness-corrections.md`.
+
+What landed: the machinery half (threshold/weight echo with schema v2
+re-freeze; `harness freeze` with `Options.Dir`; `harness synth` and
+the authoring loop; the proximity flag, tie detector, per-case claims
+checker, and 72-row component derivation table; the shared
+`mbrequest` package), then the 61-case structural stratum across all
+15 shape families, every record derived through real pinned beets,
+plus the claims schema's zero-candidate mode and `penalty_keys_absent`
+field. Corpus total: 68 cases, all re-deriving byte-exact across two
+independent uncached runs (~2m13s each: corpus 70.5s, ties 54s,
+component 0.7s; this is 2c's budget line).
+
+What a later pass would be wrong to rediscover: the staleness review
+pattern paid for itself (a fresh-context read of the case tasks
+against the machinery as shipped found five blockers before any
+dispatch; plan staleness remains the dominant defect class); the
+"combined" completeness shape is unexpressible (`lapjv`'s leftover
+set is one-sided); the VA-misflag has NO record-level observable
+under the empty-search convention, so its witness is the frozen
+request log's `arid:` query, which `make derive` mechanically
+enforces; the response hand-edit escape hatch (edit generated
+responses BEFORE first freeze, named in the README row) is the
+sanctioned route for shapes `ReleaseSpec` cannot express; a
+sub-second `make derive` is a cache hit and proves nothing, so force
+`-count=1` for evidence.
+
+Carried: two smoke cases tied (pinned; rung 3's solver must mirror
+lapjv tie-breaking); family 15 parks cases on thresholds with
+acknowledged proximity rows; the candidate-absent country direction
+documented as declined; claims formatting drift cosmetic. 2c's
+inventory is unchanged from the 2a plan's split section, plus the
+determinism budget line above.
+
+Budgets: ≈5.8M subagent tokens against the 6M ceiling (Geoff's 12M
+overnight grant untouched); human interaction: two batched bedtime
+questions (ceiling, 2c scope), zero mid-execution.
+
 ## Rung 2, pass 2a (Cassette substrate and capture): schema, stub, shim, capture tool, smoke corpus (2026-09-02)
 
 Executed under two pass-execute workflows (wf_5ed5b773, wf_fe30d704)

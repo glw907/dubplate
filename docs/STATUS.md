@@ -53,16 +53,18 @@ Pass 2b is executing from its plan (revision 2, committed 415c4d9;
 14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
 ruling: machinery tasks 1-3 first, then a staleness check of case
 tasks 4-13 against the shipped machinery before dispatching them.
-Case sweep: families 1-7 all accepted (45 cases committed; latest
-6a335af). Family 2's "combined" exclusivity and family 3's misflag
-request-log witness: ruled and recorded in the corrections doc
-(research/2026-09-02-rung-2b-staleness-corrections.md, which wins
-over the plan on its named points and carries all dispatch
-corrections). Next: batch C = plan tasks 10-13 (families 8-15,
-16 cases; task 13 uses the pre-task's zero-candidate machinery),
-then Task 14 closes the pass (inventory read off the tree,
-determinism run with wall-time breakdown). After close: post-mortem,
-2c plan, overnight captures per the recorded grants.
+Pass 2b is CLOSED (HISTORY has the ledger; commits cec3c12 →
+2219b19): all machinery, 61 structural cases, 68 total, everything
+re-deriving byte-exact; ≈5.8M of 6M spent, the 12M grant untouched.
+Next per the overnight grants: plan pass 2c just-in-time on the
+quiet tree (real-catalog stratum ~80-150 live-captured cases,
+adversarial stratum seeded from known-oracle-bug classes,
+stock-config stratum per ruling 3, #6358 alias verification,
+file-level applied-tag derivation for rung 8, version-bump
+differential doc, re-capture chore doc, oracle-bug ledger and
+adjudication formats), then execute: overnight captures at anonymous
+1 req/s, strata authoring, the FIRST adjudication batch prepared and
+waiting for Geoff (never self-adjudicated).
 Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
 12M if needed; after 2b closes, proceed into 2c fully - plan
 just-in-time, run the live real-catalog captures (anonymous 1 req/s),
