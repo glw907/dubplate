@@ -17,7 +17,17 @@ corpus/
       case.json           # the case's metadata: input, request log, expected record
       responses/
         NNN.json           # a verbatim MusicBrainz response body
+      misses.json           # transient; see below
 ```
+
+`misses.json` is not part of a case's committed fixture: it is the
+miss list `oracle.Derive` writes into a case directory whenever its
+stub sees a request the case log does not cover, and removes again
+once a derivation records zero misses. It can appear transiently
+between a failed derivation and the `harness capture --case <dir>`
+that resolves it (see "The miss-file mechanism" below); a case
+directory carrying one mid-review means a capture is owed, not that
+the fixture itself is broken.
 
 `case.json` decodes into `cassette.Case`. Its `requests` field is the
 committed request log: an expectation the harness replays against, not
@@ -52,7 +62,7 @@ run here against all seven live cases).
 | `non-latin-pseudo-release` | Perfume, *GAME*, romanized Pseudo-Release (2008 JP) | `d344ccfb-2892-431e-a2a2-6df93b266a72` (backward `transl-tracklisting` to the Official release `6731434a-6638-3029-bfe6-cde8fa92b04f`) | a genuine qualifying Pseudo-Release, found within budget: the capture tool's follow-up fetch (two verbatim response bodies, one carrying non-Latin Japanese track titles and artist aliases byte-for-byte) and the shim's `_merge_pseudo_and_actual_album` merge (romanized tracks from the pseudo release, year/country/media from the actual one). |
 | `should-ask` | Radiohead, *OK Computer* (1997 CA CD) | `4b3d18cc-8937-36f4-8de0-481088be58e6` | 2 of 12 tracks deliberately corrupted (title, length, and index all maximally wrong) to land distance at 0.0998, inside the medium band; the ID lookup's non-strong recommendation triggers beets' own text-search fallback, which found 4 additional real pressings (5 candidates total) that the loop captured in turn. |
 | `should-reject` | Daft Punk, *Discovery* (2001 FR CD) | `d073287b-d1bd-4f11-a933-a4386f8cf701` | 6 of 14 tracks corrupted the same way, landing distance at 0.264; the search fallback's 5 additional pressings score close enough together that the recommendation downgrades past "low" to "none" (the gap-threshold branch), still resolving to the same quiet-mode "skip" action. |
-| `year-penalty` | Nirvana, *Nevermind* (1991 XE CD) | `3c19711b-b9df-495b-a610-634b1fc48763` | every field exact except a deliberately wrong tag year (1978 against the release's 1991); the year penalty is the sole nonzero distance component, and recommendation stays strong. The committed date-pinning proof (`TestPinnedDateMovesTheYearPenalty`, `internal/harness/oracle/derive_test.go`) rides the synthetic smoke fixture (`internal/harness/oracle/testdata/cases/smoke`), not this case; `year-penalty` is the live corpus case exercising the same year-penalty component. |
+| `year-penalty` | Nirvana, *Nevermind* (1991 XE CD) | `3c19711b-b9df-495b-a610-634b1fc48763` | every field exact except a deliberately wrong tag year (1978 against the release's 1991); the year penalty is the sole nonzero distance component, and recommendation stays strong. `TestPinnedDateMovesTheRealYearPenalty` (`internal/harness/oracle/corpus_derive_test.go`) derives this exact case under a second eval date and proves the year-penalty component itself moves, so the pinned date is causally in the verdict on the live corpus, not only on the synthetic smoke fixture `TestPinnedDateMovesTheYearPenalty` exercises. |
 
 The pseudo-release follow-up was found within budget (Perfume's *GAME*
 carries a genuine backward `transl-tracklisting` relation to its own

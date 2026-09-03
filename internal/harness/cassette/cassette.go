@@ -17,10 +17,11 @@
 // pairs sorted byte-wise. The rule never decodes and re-encodes a pair:
 // three wire facts documented alongside it in corpus/README.md would not
 // survive that round trip (fmt=json forced on every request, inc=
-// values joining with a literal "+", and Lucene escapes in search
-// queries). [LoadCase] rejects a case whose stored PathQuery is not
-// already in this canonical form, so a corpus case can never depend on
-// a lookup silently reordering pairs for it.
+// values joining logically with "+" but percent-escaped to "%2B" on the
+// wire, and Lucene escapes in search queries). [LoadCase] rejects a case
+// whose stored PathQuery is not already in this canonical form, so a
+// corpus case can never depend on a lookup silently reordering pairs
+// for it.
 package cassette
 
 import (
