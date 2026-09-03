@@ -62,13 +62,15 @@ revision 2, committed 25f0006 with review + inventory; 21 tasks,
 adjudication batch at close, non-blocking) and EXECUTING. The fold
 split file-level derivation + chore docs to a future pass 2d with
 findings pre-ruled (recorded in the plan's Task 20 HISTORY draft).
-Done: 2c-1 (3bbdfbd, both ledgers + checkers + 5 seeded hypotheses;
-owner-only dispositions via the "agent" adjudicator sentinel) and
-2c-2 + facts fix (693d737, de1bf85: seed-items projection + the
---facts read-only channel). Next: task 3 (the 96-MBID selection
-dossier), then twelve 8-case live capture batches (anonymous
-1 req/s), adversarial strata, #6358/locale, stock-config 19a/19b,
-close with the adjudication batch prepared for Geoff.
+Done: 2c-1 (ledgers + checkers + 5 hypotheses), 2c-2 + facts channel
+(693d737, de1bf85), 2c-3 the dossier (e238293 + 74bed2d + 1b953c3:
+96 primary + 12 reserve rows, all fact-verified axes re-checked by
+the reviewer; 52 staged candidate dirs await the batches; Task 18
+host: real-nonlatin-utada-first-love). Next: capture batches 1-12
+(tasks 4-15, 8 cases each) in quads with STATUS between quads
+(recorded deviation from per-task checkpoints), then adversarial
+strata, #6358/locale, stock-config 19a/19b, close with the
+adjudication batch prepared for Geoff.
 Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
 12M if needed; after 2b closes, proceed into 2c fully - plan
 just-in-time, run the live real-catalog captures (anonymous 1 req/s),
