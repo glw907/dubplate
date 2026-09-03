@@ -1,0 +1,151 @@
+{
+  "id": "3e8352e7-09a4-47c9-8cdd-6357c73a0930",
+  "title": "Nightbound (feat. Wren Salt)",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2014-07-01",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Amber Fold",
+      "joinphrase": "",
+      "artist": {
+        "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "name": "Amber Fold",
+        "sort-name": "Amber Fold",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "1433175c-7ce9-add6-0a35-009f18ac45dc",
+    "title": "Nightbound (feat. Wren Salt)",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2014-07-01",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2014-07-01",
+      "area": {
+        "id": "24a7917c-0aa9-4782-6d01-a9d82b90af25",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "c321b689-ede7-fa67-9ce4-f0e0a7d9dc6c",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4673310f-ce55-b9e4-7444-4a26adbc03e5",
+            "title": "Low Water Mark",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Fold",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+                  "name": "Amber Fold",
+                  "sort-name": "Amber Fold",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b9a58e2a-0e14-90dd-503e-7a0aece724ab",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a618cc93-db05-5df6-4cdd-1954c226d1bf",
+            "title": "Coastal Drift",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Fold",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+                  "name": "Amber Fold",
+                  "sort-name": "Amber Fold",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "6c1dd8e5-8980-b9a6-7f16-6b24dc1ecfa5",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4c59968b-3263-f45c-ca81-814ceb89957c",
+            "title": "Anchor Line",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Fold",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+                  "name": "Amber Fold",
+                  "sort-name": "Amber Fold",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

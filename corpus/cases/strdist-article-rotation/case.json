@@ -1,0 +1,468 @@
+{
+  "id": "strdist-article-rotation",
+  "input": {
+    "items": [
+      {
+        "album": "Low Tide Chronicles, The",
+        "albumartist": "Amber Fold",
+        "artist": "Amber Fold",
+        "length": 210,
+        "mb_albumid": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "title": "Low Water Mark",
+        "track": 1,
+        "year": 2014
+      },
+      {
+        "album": "Low Tide Chronicles, The",
+        "albumartist": "Amber Fold",
+        "artist": "Amber Fold",
+        "length": 195,
+        "mb_albumid": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "title": "Coastal Drift",
+        "track": 2,
+        "year": 2014
+      },
+      {
+        "album": "Low Tide Chronicles, The",
+        "albumartist": "Amber Fold",
+        "artist": "Amber Fold",
+        "length": 230,
+        "mb_albumid": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "title": "Anchor Line",
+        "track": 3,
+        "year": 2014
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/d61df7a2-121f-498a-9ea5-537869a0bea2?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Low Tide Chronicles",
+        "album_id": null,
+        "albumartist": "Amber Fold",
+        "albumartist_credit": "Amber Fold",
+        "albumartist_sort": "Amber Fold",
+        "albumartists": [
+          "Amber Fold"
+        ],
+        "albumartists_credit": [
+          "Amber Fold"
+        ],
+        "albumartists_sort": [
+          "Amber Fold"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Amber Fold",
+        "artist_credit": "Amber Fold",
+        "artist_sort": "Amber Fold",
+        "artists": [
+          "Amber Fold"
+        ],
+        "artists_credit": [
+          "Amber Fold"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Amber Fold"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 210,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "mb_albumartistids": [
+          "8fe05618-b1ef-a34b-f58d-f5135d7756c9"
+        ],
+        "mb_albumid": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "mb_artistid": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "mb_artistids": [
+          "8fe05618-b1ef-a34b-f58d-f5135d7756c9"
+        ],
+        "mb_releasegroupid": "5772505d-d26a-d743-cd30-525f962653e9",
+        "mb_releasetrackid": "e866e620-da9f-0b6a-7c56-e553c3566657",
+        "mb_trackid": "50ec5297-3b76-795e-8bd4-6bfcf68684c4",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Low Tide Chronicles",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Low Water Mark",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Low Tide Chronicles",
+        "album_id": null,
+        "albumartist": "Amber Fold",
+        "albumartist_credit": "Amber Fold",
+        "albumartist_sort": "Amber Fold",
+        "albumartists": [
+          "Amber Fold"
+        ],
+        "albumartists_credit": [
+          "Amber Fold"
+        ],
+        "albumartists_sort": [
+          "Amber Fold"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Amber Fold",
+        "artist_credit": "Amber Fold",
+        "artist_sort": "Amber Fold",
+        "artists": [
+          "Amber Fold"
+        ],
+        "artists_credit": [
+          "Amber Fold"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Amber Fold"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 195,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "mb_albumartistids": [
+          "8fe05618-b1ef-a34b-f58d-f5135d7756c9"
+        ],
+        "mb_albumid": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "mb_artistid": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "mb_artistids": [
+          "8fe05618-b1ef-a34b-f58d-f5135d7756c9"
+        ],
+        "mb_releasegroupid": "5772505d-d26a-d743-cd30-525f962653e9",
+        "mb_releasetrackid": "4502bf98-ca6b-89e5-eb8b-b688e60d7740",
+        "mb_trackid": "8f0c2783-5e33-5e86-06ea-83b2b6516f7e",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Low Tide Chronicles",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Coastal Drift",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Low Tide Chronicles",
+        "album_id": null,
+        "albumartist": "Amber Fold",
+        "albumartist_credit": "Amber Fold",
+        "albumartist_sort": "Amber Fold",
+        "albumartists": [
+          "Amber Fold"
+        ],
+        "albumartists_credit": [
+          "Amber Fold"
+        ],
+        "albumartists_sort": [
+          "Amber Fold"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Amber Fold",
+        "artist_credit": "Amber Fold",
+        "artist_sort": "Amber Fold",
+        "artists": [
+          "Amber Fold"
+        ],
+        "artists_credit": [
+          "Amber Fold"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Amber Fold"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 230,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "mb_albumartistids": [
+          "8fe05618-b1ef-a34b-f58d-f5135d7756c9"
+        ],
+        "mb_albumid": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+        "mb_artistid": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "mb_artistids": [
+          "8fe05618-b1ef-a34b-f58d-f5135d7756c9"
+        ],
+        "mb_releasegroupid": "5772505d-d26a-d743-cd30-525f962653e9",
+        "mb_releasetrackid": "40d84c07-46ef-001e-9238-c74ce828890b",
+        "mb_trackid": "740adcef-7659-4534-db95-cededc021dd2",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Low Tide Chronicles",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Anchor Line",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      }
+    }
+  }
+}

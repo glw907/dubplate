@@ -1,0 +1,151 @@
+{
+  "id": "440e7101-bb34-49cc-a89c-2dba169e5e5a",
+  "title": "Ash \u0026 Ferrous",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2014-07-01",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Amber Fold",
+      "joinphrase": "",
+      "artist": {
+        "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+        "name": "Amber Fold",
+        "sort-name": "Amber Fold",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "14310c93-4851-d9af-d1c4-16977a497308",
+    "title": "Ash \u0026 Ferrous",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2014-07-01",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2014-07-01",
+      "area": {
+        "id": "4d525b90-3e18-fa0e-6aa8-fff179249b4e",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "90366eb0-3f8e-a25b-ad08-79906e3dcf09",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "39a69da9-615b-3bc1-079a-8f93705aa3d8",
+            "title": "Low Water Mark",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Fold",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+                  "name": "Amber Fold",
+                  "sort-name": "Amber Fold",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "023938bb-7e75-7351-17dd-6e0d380794ba",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0adbe026-8f4e-960e-6b6c-9ced1c637bae",
+            "title": "Coastal Drift",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Fold",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+                  "name": "Amber Fold",
+                  "sort-name": "Amber Fold",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "0f9dbd2e-3d88-5050-77b6-421237dafcf8",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "29b2a858-efa2-fdc2-379b-4ba6fcd8009a",
+            "title": "Anchor Line",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Amber Fold",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8fe05618-b1ef-a34b-f58d-f5135d7756c9",
+                  "name": "Amber Fold",
+                  "sort-name": "Amber Fold",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

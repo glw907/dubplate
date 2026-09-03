@@ -1,0 +1,151 @@
+{
+  "id": "33508347-e61b-4789-b7d5-18d59238dc73",
+  "title": "Driftwood Signals",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2016-03-04",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Harborcrest",
+      "joinphrase": "",
+      "artist": {
+        "id": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "name": "Harborcrest",
+        "sort-name": "Harborcrest",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "71047a92-21ab-3cc6-47e6-ebe880ef9910",
+    "title": "Driftwood Signals",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-03-04",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-03-04",
+      "area": {
+        "id": "d37cc086-25e4-f39b-a45d-3dd2d40a1088",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "6e5c7ab2-1cc2-3252-4cac-7f7f15926c78",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "b9aeaef1-9386-7f4c-3a24-e7f0b49dba12",
+            "title": "Sounding Line",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Harborcrest",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+                  "name": "Harborcrest",
+                  "sort-name": "Harborcrest",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "7ee2f687-e8c0-674b-6ba7-4ca6826c3e10",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7edc9b41-00f9-0195-10e5-7bd24eb787db",
+            "title": "Riprap",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Harborcrest",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+                  "name": "Harborcrest",
+                  "sort-name": "Harborcrest",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e1e91294-5177-ab87-16b0-a05db9aabe88",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 222000,
+          "artist-credit": null,
+          "recording": {
+            "id": "605f5e07-ccc0-e1f0-641b-4b6fab2cb313",
+            "title": "Slack Tide",
+            "length": 222000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Harborcrest",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+                  "name": "Harborcrest",
+                  "sort-name": "Harborcrest",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

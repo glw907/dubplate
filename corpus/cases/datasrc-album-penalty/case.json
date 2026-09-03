@@ -1,0 +1,477 @@
+{
+  "id": "datasrc-album-penalty",
+  "input": {
+    "items": [
+      {
+        "album": "Driftwood Signals",
+        "albumartist": "Harborcrest",
+        "artist": "Harborcrest",
+        "data_source": "Bandcamp",
+        "length": 205,
+        "mb_albumid": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "title": "Sounding Line",
+        "track": 1,
+        "year": 2016
+      },
+      {
+        "album": "Driftwood Signals",
+        "albumartist": "Harborcrest",
+        "artist": "Harborcrest",
+        "data_source": "Bandcamp",
+        "length": 188,
+        "mb_albumid": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "title": "Riprap",
+        "track": 2,
+        "year": 2016
+      },
+      {
+        "album": "Driftwood Signals",
+        "albumartist": "Harborcrest",
+        "artist": "Harborcrest",
+        "data_source": "Bandcamp",
+        "length": 222,
+        "mb_albumid": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "title": "Slack Tide",
+        "track": 3,
+        "year": 2016
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/33508347-e61b-4789-b7d5-18d59238dc73?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28driftwood+signals%29+artist%3A%28harborcrest%29",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "distance": 0.0875,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "data_source": 0.05,
+          "tracks": 0.0375,
+          "year": 0
+        },
+        "tracks": [
+          0.125,
+          0.125,
+          0.125
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Driftwood Signals",
+        "album_id": null,
+        "albumartist": "Harborcrest",
+        "albumartist_credit": "Harborcrest",
+        "albumartist_sort": "Harborcrest",
+        "albumartists": [
+          "Harborcrest"
+        ],
+        "albumartists_credit": [
+          "Harborcrest"
+        ],
+        "albumartists_sort": [
+          "Harborcrest"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Harborcrest",
+        "artist_credit": "Harborcrest",
+        "artist_sort": "Harborcrest",
+        "artists": [
+          "Harborcrest"
+        ],
+        "artists_credit": [
+          "Harborcrest"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Harborcrest"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 205,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "mb_albumartistids": [
+          "ae8151e9-1794-4ec9-c710-2aaa507a6a9e"
+        ],
+        "mb_albumid": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "mb_artistid": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "mb_artistids": [
+          "ae8151e9-1794-4ec9-c710-2aaa507a6a9e"
+        ],
+        "mb_releasegroupid": "71047a92-21ab-3cc6-47e6-ebe880ef9910",
+        "mb_releasetrackid": "6e5c7ab2-1cc2-3252-4cac-7f7f15926c78",
+        "mb_trackid": "b9aeaef1-9386-7f4c-3a24-e7f0b49dba12",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 3,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Driftwood Signals",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sounding Line",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Driftwood Signals",
+        "album_id": null,
+        "albumartist": "Harborcrest",
+        "albumartist_credit": "Harborcrest",
+        "albumartist_sort": "Harborcrest",
+        "albumartists": [
+          "Harborcrest"
+        ],
+        "albumartists_credit": [
+          "Harborcrest"
+        ],
+        "albumartists_sort": [
+          "Harborcrest"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Harborcrest",
+        "artist_credit": "Harborcrest",
+        "artist_sort": "Harborcrest",
+        "artists": [
+          "Harborcrest"
+        ],
+        "artists_credit": [
+          "Harborcrest"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Harborcrest"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 188,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "mb_albumartistids": [
+          "ae8151e9-1794-4ec9-c710-2aaa507a6a9e"
+        ],
+        "mb_albumid": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "mb_artistid": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "mb_artistids": [
+          "ae8151e9-1794-4ec9-c710-2aaa507a6a9e"
+        ],
+        "mb_releasegroupid": "71047a92-21ab-3cc6-47e6-ebe880ef9910",
+        "mb_releasetrackid": "7ee2f687-e8c0-674b-6ba7-4ca6826c3e10",
+        "mb_trackid": "7edc9b41-00f9-0195-10e5-7bd24eb787db",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 3,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Driftwood Signals",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Riprap",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Driftwood Signals",
+        "album_id": null,
+        "albumartist": "Harborcrest",
+        "albumartist_credit": "Harborcrest",
+        "albumartist_sort": "Harborcrest",
+        "albumartists": [
+          "Harborcrest"
+        ],
+        "albumartists_credit": [
+          "Harborcrest"
+        ],
+        "albumartists_sort": [
+          "Harborcrest"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Harborcrest",
+        "artist_credit": "Harborcrest",
+        "artist_sort": "Harborcrest",
+        "artists": [
+          "Harborcrest"
+        ],
+        "artists_credit": [
+          "Harborcrest"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Harborcrest"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 222,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "mb_albumartistids": [
+          "ae8151e9-1794-4ec9-c710-2aaa507a6a9e"
+        ],
+        "mb_albumid": "33508347-e61b-4789-b7d5-18d59238dc73",
+        "mb_artistid": "ae8151e9-1794-4ec9-c710-2aaa507a6a9e",
+        "mb_artistids": [
+          "ae8151e9-1794-4ec9-c710-2aaa507a6a9e"
+        ],
+        "mb_releasegroupid": "71047a92-21ab-3cc6-47e6-ebe880ef9910",
+        "mb_releasetrackid": "e1e91294-5177-ab87-16b0-a05db9aabe88",
+        "mb_trackid": "605f5e07-ccc0-e1f0-641b-4b6fab2cb313",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 3,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Driftwood Signals",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Slack Tide",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      }
+    }
+  }
+}

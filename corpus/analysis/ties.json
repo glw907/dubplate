@@ -129,6 +129,22 @@
       "unique": true
     },
     {
+      "case_id": "datasrc-album-penalty",
+      "album_id": "33508347-e61b-4789-b7d5-18d59238dc73",
+      "optimal_cost": 0.375,
+      "best_forbidden_cost": 1.3041666666666667,
+      "difference": 0.9291666666666667,
+      "unique": true
+    },
+    {
+      "case_id": "datasrc-one-track-penalty",
+      "album_id": "f680ec56-b205-4fc3-9748-f1fbf729d28d",
+      "optimal_cost": 0.125,
+      "best_forbidden_cost": 1.2090277777777778,
+      "difference": 1.0840277777777778,
+      "unique": true
+    },
+    {
       "case_id": "multi-disc",
       "album_id": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
       "optimal_cost": 0,
@@ -171,6 +187,46 @@
       "unique": false,
       "disposition": "pinned",
       "reason": "Same shape as should-ask, six corrupted items wide: forbidding any of the pairs (1,1), (3,3), (7,9), (9,5) or (11,11) re-solves to the same cost through a permutation of the corrupted items alone. The album is not a VA release, so every tied optimum scores the same album distance and the same none recommendation. The mapping lapjv chose is the expectation; a Go solver has to mirror its tie-breaking to match this row."
+    },
+    {
+      "case_id": "strdist-ampersand",
+      "album_id": "440e7101-bb34-49cc-a89c-2dba169e5e5a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "strdist-article-rotation",
+      "album_id": "d61df7a2-121f-498a-9ea5-537869a0bea2",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "strdist-diacritic-translit",
+      "album_id": "c5f541a2-e06c-45a5-b4a1-172131970c72",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "strdist-ep-strip",
+      "album_id": "c3a145a0-be63-436b-9b8f-9e1b21d4f61c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "strdist-feat-strip",
+      "album_id": "3e8352e7-09a4-47c9-8cdd-6357c73a0930",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
     },
     {
       "case_id": "va-exact",

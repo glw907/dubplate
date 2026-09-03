@@ -217,6 +217,71 @@ lands `strong` never reaches match.py:453 at all.
 | `va-nonva-wrong` | a single-artist (non-VA) release with every item's `artist` and `albumartist` fields overridden to a performer that does not match the release: the album-level `artist` component fires (`artist: 0.1389`), falls to the search fallback (empty result), medium. | none |
 | `va-nonva-correct` | the same single-artist release with no overrides: `artist` is present and 0, distance 0, strong—the family's non-VA baseline, paired against `va-nonva-wrong`. | none |
 
+### Family 4: string-distance edges
+
+`strdist-*`, 5 cases. `test/autotag/test_distance.py`'s `TestStringDistance`
+(`test_matching_distance`'s equivalence pairs and, for the one shape that
+does not reduce to distance 0, `test_relative_weights`), exercising
+`string_dist` (distance.py:64-119) through the full pipeline rather than
+as a bare Python call: the lower-then-unidecode-then-lower normalization,
+the `SD_END_WORDS` end-of-string article rotation, `SD_REPLACE`'s
+`&`-to-`and` substitution, and the weighted `SD_PATTERNS` passes (`(ep|
+single)` at weight 0.0, `feat`/`ft`/`featuring` at weight 0.1). Every
+case is a 3-track release whose item-side `album` tag is overridden
+(uniformly, on all 3 items) to a string that the pipeline should read as
+equivalent, or in the `feat.` case, merely closer, to the candidate's own
+release title; nothing else about the item set diverges, so the `album`
+penalty is the case's only observable, verified directly against the
+pinned `string_dist` implementation before authoring
+(`tools/venv/.venv/lib/python3.13/site-packages/beets/autotag/distance.py`)
+rather than assumed. Four of the five pairs are drawn straight from
+`test_matching_distance`'s own parametrize table (`\xe9\xe1\xf1`/`ean`
+generalized to full words, since a single transliterated glyph is a
+harder case to read off a diff than a card the size of an album title)
+and net `string_dist == 0.0` exactly, matching the beets assertion
+verbatim; `feat.` strip is not one of that table's pairs; per
+`SD_PATTERNS`'s own weight column it can only ever *reduce* the base
+distance, not zero it, so its case is modeled on `test_relative_weights`
+instead and its `album` penalty is deliberately left nonzero to make that
+distinction legible from the record alone. No case in this family
+hand-edits a generated response; every shape is expressible through
+`overrides` alone.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `strdist-article-rotation` | candidate album `"The Low Tide Chronicles"`; every item's `album` overridden to `"Low Tide Chronicles, The"`. `SD_END_WORDS` rotates the trailing `", The"` back to a leading article before comparison, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
+| `strdist-ep-strip` | candidate album `"Slow Harbor (EP)"`; every item's `album` overridden to `"Slow Harbor"`. The `(ep|single)` pattern strips at weight 0.0, so the parenthetical costs nothing at all; `album` reads 0, distance 0, strong. | none |
+| `strdist-feat-strip` | candidate album `"Nightbound (feat. Wren Salt)"`; every item's `album` overridden to `"Nightbound"`. The `feat` pattern's weight is 0.1, not 0.0, so stripping it only shrinks the base edit distance rather than erasing it (`test_relative_weights`'s own comparative shape, not `test_matching_distance`'s equality one): `album` reads 0.0091, still comfortably strong (0.0091 < 0.04). | none |
+| `strdist-ampersand` | candidate album `"Ash & Ferrous"`; every item's `album` overridden to `"Ash and Ferrous"`. `SD_REPLACE` folds `&` to `and` on both strings before comparison, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
+| `strdist-diacritic-translit` | candidate album `"Café Méridien"`; every item's `album` overridden to `"Cafe Meridien"`. `unidecode` transliterates the diacritics away before the edit-distance pass, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
+
+### Family 5: single-source `data_source` penalty
+
+`datasrc-*`, 2 cases. A dubplate-derived shape (not literally one of
+`TestDataSourceDistance`'s 12 monkeypatched, multi-plugin parameter rows,
+which stay Tier A per the inventory), reached instead through
+`add_data_source`'s own condition (distance.py:357-361): `before != after
+and (before is set OR multiple sources loaded)`. "Before is set" alone
+suffices, so an item pre-tagged with any non-empty, non-`"MusicBrainz"`
+`data_source` fires the penalty under the corpus's single loaded source,
+via a plain `field` override the synth tool's fencing rule never touches
+(no field is filtered by the shim, `internal/harness/oracle/
+derive_oracle.py`'s `build_items` sets every spec field on the beets
+`Item` verbatim). `add_data_source` is called twice per candidate,
+independently: once at album level against `get_most_common_tags`'s
+consensus value, and once per track inside `track_distance` against that
+item's own value directly, which is what lets the two cases below
+separate a consensus-level firing from a per-item one without touching
+two different families. No case in this family hand-edits a generated
+response; the second case's routine empty-search fallback (the
+`data_source` penalty alone crosses it out of `strong`) is the sanctioned
+default, never a named hand-edit.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `datasrc-one-track-penalty` | a 3-track release with a single item's `data_source` overridden to `"Bandcamp"`, the other two left unset. `get_most_common_tags`'s plurality vote still picks the two unset items' empty value as the album-level consensus, so `distance()`'s own `add_data_source` call never fires and the record carries no album-level `data_source` key at all; but `track_distance`'s per-track call reads that one item's own field directly, regardless of consensus, and fires for it alone (`tracks: 0.0139`). `album` reads 0, distance 0.0139, strong. | none |
+| `datasrc-album-penalty` | the same shape with all 3 items' `data_source` overridden to `"Bandcamp"` uniformly: the consensus itself is now foreign, so both calls fire, the album-level one directly (`data_source: 0.05`) and every per-track one folded into `tracks` (`tracks: 0.0375`). Distance 0.0875 pushes the ID-lookup match out of `strong`, falling to the search fallback (empty result, the routine default), medium, skip. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
