@@ -126,3 +126,18 @@ Costs, stated plainly. Merge overhead: one rebase, one full gate run, and possib
 1. **Adopt or reject the two-code-lane model**, as amended in section 5.
 2. **Phase 0 as a prerequisite**, blocking the second code lane until the wall registry and mount seam land. Confirm or waive.
 3. **The estate's own shadow floor.** Ruling 1 set a configurable floor defaulting to 30 days for adopters. The estate's own value is a separate choice, and it has more effect on the launch date than every scheduling decision above combined. Worth answering now rather than discovering it at rung 15.
+
+## Ratification (Geoff, 2026-09-03)
+
+Decisions 1 and 2 are confirmed as proposed: the two-code-lane model
+as amended in section 5, with Phase 0 (the config wall-row registry
+and the serve mount seam) as the second lane's prerequisite. Decision
+3's framing is corrected rather than answered with a number: the
+shadow floor is an ordinary configuration variable, and since the
+shadow accumulates from rung 4 through the whole remaining build, any
+plausible floor is satisfied before the spine completes - it does not
+gate the launch date, which follows from completeness and a clean
+shadow record. The estate's value gets set like any other config
+choice under the defaults discipline; nothing pre-commits now.
+Next per process: the adversarial review round, then the fold of
+section 5's amendment text into the build spec.
