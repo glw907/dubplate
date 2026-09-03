@@ -48,12 +48,16 @@ Remote: github.com/glw907/dubplate (private).
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` |
 
-### Next action (evidence-arc session)
+### Next action (evidence-arc session, checkpoint after task 3)
 
-Rung 1 is closed; this session runs the evidence arc (rungs 2-4), no
-clears inside it. Start: execute pass 2a via pass-execute from
-docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md
-(revision 2, adversarially reviewed and folded), guard armed; plan
-pass 2b just-in-time in its shadow. Task 5 is blocked on the pass
-input DUBPLATE_HARNESS_CONTACT (the batched MusicBrainz ask to
-Geoff: contact value plus register-vs-anonymous).
+Pass 2a is executing (plans/2026-09-02-rung-2a-cassette-substrate.md,
+revision 2). Tasks 1-3 are accepted and landed (79420d3, 7338c6f,
+c3e84dd, d0ea5ab): cassette schema, replay stub, profiles, adapter,
+real shim, determinism proof; code-simplifier found nothing to change.
+Spend ≈0.75M of the 5M ceiling. DUBPLATE_HARNESS_CONTACT is minted
+(geoff@907.life, ~/.bashrc via dotfiles 3a1c551); staying anonymous at
+1 req/s. Next: tasks 4-5 via pass-execute (capture tool, smoke corpus,
+pass close), folding two task-2 review findings into task 4 (stub keys
+on the percent-decoded path; Derive never surfaces the miss list). If
+resuming cold: relaunch remaining tasks via the pass-execute workflow;
+prior run wf_5ed5b773-4eb. Then plan 2b just-in-time on the quiet tree.
