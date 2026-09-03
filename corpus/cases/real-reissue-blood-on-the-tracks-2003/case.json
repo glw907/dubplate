@@ -1,0 +1,1475 @@
+{
+  "id": "real-reissue-blood-on-the-tracks-2003",
+  "input": {
+    "items": [
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 341,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "9e5680b3-1a52-4910-9a47-f04f46545b98",
+        "title": "Tangled Up in Blue",
+        "track": 1,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 258,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "bf9fcb18-9ee0-42fb-b9ad-1a72ed52780a",
+        "title": "Simple Twist of Fate",
+        "track": 2,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 275,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "11e43295-b007-4222-a4aa-c90576ef3372",
+        "title": "You're a Big Girl Now",
+        "track": 3,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 467,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "cf9e2966-0165-4daf-b0ff-ce1217b3df0e",
+        "title": "Idiot Wind",
+        "track": 4,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 175,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "2917a32f-6756-445a-8d94-6de589af8bf0",
+        "title": "You're Gonna Make Me Lonesome When You Go",
+        "track": 5,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 261,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "2b60ec63-dd95-4ce8-881d-9980428d85c8",
+        "title": "Meet Me in the Morning",
+        "track": 6,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 532,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "9fa20f00-bdcb-4fcc-b85b-0b17601e10e5",
+        "title": "Lily, Rosemary and the Jack of Hearts",
+        "track": 7,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 288,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "41681fa3-3720-46a0-a6c8-a050588849c0",
+        "title": "If You See Her, Say Hello",
+        "track": 8,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 301,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "14704fe6-3e48-4be9-bac1-f57a98c4ebd9",
+        "title": "Shelter From the Storm",
+        "track": 9,
+        "year": 2003
+      },
+      {
+        "album": "Blood on the Tracks",
+        "albumartist": "Bob Dylan",
+        "artist": "Bob Dylan",
+        "length": 202,
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_trackid": "2bd02152-fa74-46a0-96e6-50705ab8f5fe",
+        "title": "Buckets of Rain",
+        "track": 10,
+        "year": 2003
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/b0851322-d298-418e-a741-d5479a0e50cb?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307464;USSM17400149;USSM17400276;USSM19906468",
+        "label": "Columbia",
+        "language": "",
+        "length": 341,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "9384f428-dc66-4783-aef5-1ece60e01c25",
+        "mb_trackid": "9e5680b3-1a52-4910-9a47-f04f46545b98",
+        "mb_workid": "8167aef3-d6e2-391d-8489-5af14bd33426",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Tangled Up in Blue",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "Tangled Up in Blue",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307465;USSM19906469",
+        "label": "Columbia",
+        "language": "",
+        "length": 258,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "226c998c-6be6-41f7-969a-26adc1d8dbfe",
+        "mb_trackid": "bf9fcb18-9ee0-42fb-b9ad-1a72ed52780a",
+        "mb_workid": "f80683b3-c36d-3a4d-8355-cf952ba932d3",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Simple Twist of Fate",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Simple Twist of Fate",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307466;USSM19906470",
+        "label": "Columbia",
+        "language": "",
+        "length": 275,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "d928c44e-7431-4a4e-b260-69c921ab0ad6",
+        "mb_trackid": "11e43295-b007-4222-a4aa-c90576ef3372",
+        "mb_workid": "b1433ed2-86c7-3c4e-854c-5516133e9fd7",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "You're a Big Girl Now",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "You’re a Big Girl Now",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307467;USSM19906471",
+        "label": "Columbia",
+        "language": "",
+        "length": 467,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "b48c78ba-0f46-4c27-a6e6-76945981d161",
+        "mb_trackid": "cf9e2966-0165-4daf-b0ff-ce1217b3df0e",
+        "mb_workid": "00329b5e-956d-3a3f-8895-d073c6783fde",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Idiot Wind",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "Idiot Wind",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307468;USSM19906472",
+        "label": "Columbia",
+        "language": "",
+        "length": 175,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "c9e3272a-c820-4c5e-a696-696155f8115e",
+        "mb_trackid": "2917a32f-6756-445a-8d94-6de589af8bf0",
+        "mb_workid": "855f1213-a46b-3d6b-b499-c502ba4c727b",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "You're Gonna Make Me Lonesome When You Go",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "You’re Gonna Make Me Lonesome When You Go",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307469;USSM19906473",
+        "label": "Columbia",
+        "language": "",
+        "length": 261,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "a9ac2441-7c22-42e4-86a3-7c36651a66e9",
+        "mb_trackid": "2b60ec63-dd95-4ce8-881d-9980428d85c8",
+        "mb_workid": "3ae04d1c-2958-3902-88d2-311447aa6d96",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Meet Me in the Morning",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "Meet Me in the Morning",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307470;USSM19906474",
+        "label": "Columbia",
+        "language": "",
+        "length": 532,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "67233874-e3db-4f0d-8fe0-01ea53a0dc8d",
+        "mb_trackid": "9fa20f00-bdcb-4fcc-b85b-0b17601e10e5",
+        "mb_workid": "1df015cb-3d8c-3f5d-a13b-541fbe43d978",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Lily, Rosemary and the Jack of Hearts",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "Lily, Rosemary and the Jack of Hearts",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307471;USSM19906475",
+        "label": "Columbia",
+        "language": "",
+        "length": 288,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "8bb381b6-a0a7-4272-ba0d-3e02ea40eeac",
+        "mb_trackid": "41681fa3-3720-46a0-a6c8-a050588849c0",
+        "mb_workid": "f29f75a6-9eed-3a23-b177-2ae2fe38ec20",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "If You See Her, Say Hello",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "If You See Her, Say Hello",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307472;USSM19906476",
+        "label": "Columbia",
+        "language": "",
+        "length": 301,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "e93e39bd-502d-4334-8ebb-ddc7a0e4dc19",
+        "mb_trackid": "14704fe6-3e48-4be9-bac1-f57a98c4ebd9",
+        "mb_workid": "c82efaff-546e-3af5-9326-e4c84cec7010",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Shelter From the Storm",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "Shelter From the Storm",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Blood on the Tracks",
+        "album_id": null,
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "European reissue; © 2003",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": "5099751235026",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "512350 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dylan, Bob",
+        "composers": [
+          "Bob Dylan"
+        ],
+        "composers_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10307473;USSM19906477",
+        "label": "Columbia",
+        "language": "",
+        "length": 202,
+        "lyricists": [
+          "Bob Dylan"
+        ],
+        "lyricists_ids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "b0851322-d298-418e-a741-d5479a0e50cb",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "9c1b8072-eb1d-33d2-af8c-984d46e40902",
+        "mb_releasetrackid": "17666510-7f5a-42b0-83e7-a72b5d460591",
+        "mb_trackid": "2bd02152-fa74-46a0-96e6-50705ab8f5fe",
+        "mb_workid": "dfc1bce0-033b-38c7-8fa9-1d7375305cc1",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Blood on the Tracks",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Buckets of Rain",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "original studio",
+        "tracktotal": 10,
+        "work": "Buckets of Rain",
+        "work_disambig": "",
+        "year": 1975
+      }
+    }
+  }
+}

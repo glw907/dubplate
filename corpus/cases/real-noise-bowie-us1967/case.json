@@ -1,0 +1,1950 @@
+{
+  "id": "real-noise-bowie-us1967",
+  "input": {
+    "items": [
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "4368a3de-35c7-485c-85ba-fdd6ae2b3424",
+        "title": "Uncle Arthur",
+        "track": 1,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "737ca97d-9411-4a34-952d-97d9d91461c1",
+        "title": "Sell Me a Coat",
+        "track": 2,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "aa185189-17ff-4e4e-b0d2-7fa88d845b00",
+        "title": "Rubber Band",
+        "track": 3,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "1cebe02d-c14e-4747-9b11-7f5e15c1bde0",
+        "title": "Love You Till Tuesday",
+        "track": 4,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "f9f22e3c-38c3-43b7-882d-4b374b898a22",
+        "title": "There Is a Happy Land",
+        "track": 5,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "1562e312-192d-432a-9277-8ee7a6c09758",
+        "title": "When I Live My Dream",
+        "track": 6,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "5401e647-9399-435c-b7df-4461b86f7bbc",
+        "title": "Little Bombardier",
+        "track": 7,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "18e56805-6cd9-4e5b-ad96-62d2a6976d8d",
+        "title": "Silly Boy Blue",
+        "track": 8,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "5a87d529-0db7-4aa4-bd96-3b174abdfc8b",
+        "title": "Come and Buy My Toys",
+        "track": 9,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "1f8877cf-6271-4990-8bb4-f444cfb4d292",
+        "title": "Join the Gang",
+        "track": 10,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "632c98b9-b395-4940-88b2-cf7c54b715fb",
+        "title": "She’s Got Medals",
+        "track": 11,
+        "year": 1967
+      },
+      {
+        "album": "David Bowie",
+        "albumartist": "David Bowie",
+        "artist": "David Bowie",
+        "length": 0,
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_trackid": "3dfa58de-7668-4fa9-acb2-1be152eacc5a",
+        "title": "Please Mr. Gravedigger",
+        "track": 12,
+        "year": 1967
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/bfa03202-690b-411a-bf6a-baa78d74cfb7?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28david+bowie%29+artist%3A%28david+bowie%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/17ca3011-430c-3063-af7b-4465fc82ec91?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/0db6ab8c-b60d-374b-878e-9b1062ed8226?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/90446d52-44a6-4ef1-8efa-b600c24e8c0d?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/f4678eec-fabf-42a3-bcc5-99d2e243bc11?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "distance": 0.1212121212121212,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0.1212121212121212,
+          "year": 0
+        },
+        "tracks": [
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "f4678eec-fabf-42a3-bcc5-99d2e243bc11",
+        "distance": 0.3290043290043291,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.1322751322751323,
+          "artist": 0,
+          "missing_tracks": 0.04761904761904762,
+          "tracks": 0.1491101491101491,
+          "year": 0
+        },
+        "tracks": [
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.18181818181818182,
+          0.2727272727272727,
+          0.2727272727272727,
+          0.2727272727272727,
+          0.2727272727272727,
+          0.2727272727272727,
+          0.2727272727272727,
+          0.2727272727272727
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "90446d52-44a6-4ef1-8efa-b600c24e8c0d",
+        "distance": 0.6706459514583378,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.06858710562414265,
+          "artist": 0,
+          "missing_tracks": 0.5061728395061728,
+          "tracks": 0.0958860063280224,
+          "year": 0
+        },
+        "tracks": [
+          0.29454545454545455,
+          0.29454545454545455,
+          0.2961038961038961,
+          0.28760330578512394,
+          0.2883116883116883,
+          0.2890909090909091,
+          0.2890909090909091,
+          0.2931818181818182,
+          0.2890909090909091,
+          0.29454545454545455,
+          0.29197860962566846,
+          0.28695652173913044
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "0db6ab8c-b60d-374b-878e-9b1062ed8226",
+        "distance": 0.7320918638238296,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.1506024096385542,
+          "artist": 0,
+          "tracks": 0.523150836556867,
+          "unmatched_tracks": 0.03614457831325301,
+          "year": 0.022194039315155355
+        },
+        "tracks": [
+          0.884297520661157,
+          0.8579545454545454,
+          0.9090909090909091,
+          0.8787878787878788,
+          0.893048128342246,
+          0.8579545454545454,
+          0.8609625668449198,
+          0.8181818181818182,
+          0.8409090909090909,
+          0.8831168831168832
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "17ca3011-430c-3063-af7b-4465fc82ec91",
+        "distance": 0.7904886871815574,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.10683760683760685,
+          "artist": 0,
+          "missing_tracks": 0.2307692307692308,
+          "tracks": 0.4371373601460199,
+          "year": 0.015744489428699954
+        },
+        "tracks": [
+          0.8579545454545454,
+          0.8409090909090909,
+          0.8128342245989305,
+          0.8727272727272727,
+          0.8571428571428572,
+          0.8467532467532468,
+          0.8498834498834499,
+          0.8477272727272727,
+          0.8461538461538463,
+          0.8883289124668434,
+          0.8363636363636363,
+          0.8722358722358723
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776910",
+        "label": "Deram",
+        "language": "eng",
+        "length": 129.866,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "eeb419ef-4ad4-49f4-a5d0-7c36a8f9fb89",
+        "mb_trackid": "4368a3de-35c7-485c-85ba-fdd6ae2b3424",
+        "mb_workid": "7f82f52e-ba7d-40a6-9c95-1a5f83bfb9b9",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Uncle Arthur",
+        "track": 1,
+        "track_alt": "A1",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Uncle Arthur",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776920",
+        "label": "Deram",
+        "language": "eng",
+        "length": 180.653,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "0732752a-e64e-44df-baf8-194441bac615",
+        "mb_trackid": "737ca97d-9411-4a34-952d-97d9d91461c1",
+        "mb_workid": "0382dd6a-2e1e-42bc-9a86-e9ac84a795a3",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sell Me a Coat",
+        "track": 2,
+        "track_alt": "A2",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Sell Me a Coat",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6777020",
+        "label": "Deram",
+        "language": "eng",
+        "length": 147.24,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "778f888c-7d1b-4562-b1b1-754072877164",
+        "mb_trackid": "632c98b9-b395-4940-88b2-cf7c54b715fb",
+        "mb_workid": "3e246289-1156-46e0-a6f2-01cb5b6acd8f",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "She’s Got Medals",
+        "track": 11,
+        "track_alt": "B5",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "She’s Got Medals",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6777040",
+        "label": "Deram",
+        "language": "eng",
+        "length": 158.2,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "1f8c3a68-2cdf-48f8-a708-162429bcaf5e",
+        "mb_trackid": "3dfa58de-7668-4fa9-acb2-1be152eacc5a",
+        "mb_workid": "17c94fbb-1f05-43e9-85eb-91521345e4c1",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Please Mr. Gravedigger",
+        "track": 12,
+        "track_alt": "B6",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Please Mr. Gravedigger",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Arthur Greenslade"
+        ],
+        "arrangers_ids": [
+          "d775c1b4-6049-452f-bc93-2035ecd426e5"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776930",
+        "label": "Deram",
+        "language": "eng",
+        "length": 139.786,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "2183f557-9632-4f39-967c-e210bf717be3",
+        "mb_trackid": "aa185189-17ff-4e4e-b0d2-7fa88d845b00",
+        "mb_workid": "7af56c47-032c-4afc-a728-a7f01f311fe5",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Rubber Band",
+        "track": 3,
+        "track_alt": "A3",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Rubber Band",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Arthur Greenslade"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "d775c1b4-6049-452f-bc93-2035ecd426e5"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776940",
+        "label": "Deram",
+        "language": "eng",
+        "length": 193.12,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "d96645b8-1c20-4ee8-bd6d-28f9b5c1529d",
+        "mb_trackid": "1cebe02d-c14e-4747-9b11-7f5e15c1bde0",
+        "mb_workid": "9fdfe242-caea-4941-b5df-fcbe00f95892",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Love You Till Tuesday",
+        "track": 4,
+        "track_alt": "A4",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Love You Till Tuesday",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776950",
+        "label": "Deram",
+        "language": "eng",
+        "length": 196.6,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "c3d6c1f2-a9b0-4215-9657-106a098ffad7",
+        "mb_trackid": "f9f22e3c-38c3-43b7-882d-4b374b898a22",
+        "mb_workid": "387d1f2a-90d4-41a0-af53-c12b3ae0397a",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "There Is a Happy Land",
+        "track": 5,
+        "track_alt": "A5",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "There Is a Happy Land",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Arthur Greenslade"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "d775c1b4-6049-452f-bc93-2035ecd426e5"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776970",
+        "label": "Deram",
+        "language": "eng",
+        "length": 205.546,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "c781476b-3a04-4e79-9c21-db27ef9648b7",
+        "mb_trackid": "1562e312-192d-432a-9277-8ee7a6c09758",
+        "mb_workid": "b6e2c219-5aff-4b7f-9139-da50994da1a5",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "When I Live My Dream",
+        "track": 6,
+        "track_alt": "A6",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "When I Live My Dream",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776980",
+        "label": "Deram",
+        "language": "eng",
+        "length": 206.746,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "c75ecebc-d88d-46d6-95fd-e367d1bc0cf6",
+        "mb_trackid": "5401e647-9399-435c-b7df-4461b86f7bbc",
+        "mb_workid": "6704641e-6d7f-45ef-9292-7eb059b04875",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Little Bombardier",
+        "track": 7,
+        "track_alt": "B1",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Little Bombardier",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6776990",
+        "label": "Deram",
+        "language": "eng",
+        "length": 234.746,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "03ca4080-d823-4b33-bee3-a2a711e6527b",
+        "mb_trackid": "18e56805-6cd9-4e5b-ad96-62d2a6976d8d",
+        "mb_workid": "760bba40-8ba4-4601-9ebe-4181e98600f5",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Silly Boy Blue",
+        "track": 8,
+        "track_alt": "B2",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Silly Boy Blue",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6777000",
+        "label": "Deram",
+        "language": "eng",
+        "length": 130.693,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "c7fb364f-2d19-4d84-a281-57448f0e050f",
+        "mb_trackid": "5a87d529-0db7-4aa4-bd96-3b174abdfc8b",
+        "mb_workid": "afa3ec1d-ed39-4580-b971-6d3d7b99232b",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Come and Buy My Toys",
+        "track": 9,
+        "track_alt": "B3",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Come and Buy My Toys",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "David Bowie",
+        "album_id": null,
+        "albumartist": "David Bowie",
+        "albumartist_credit": "David Bowie",
+        "albumartist_sort": "Bowie, David",
+        "albumartists": [
+          "David Bowie"
+        ],
+        "albumartists_credit": [
+          "David Bowie"
+        ],
+        "albumartists_sort": [
+          "Bowie, David"
+        ],
+        "albumdisambig": "mono",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Derek Fearnley"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5193e733-bd95-40eb-987e-28ef53718570"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DE 16003",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bowie, David",
+        "composers": [
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBBBA6777010",
+        "label": "Deram",
+        "language": "eng",
+        "length": 140.173,
+        "lyricists": [
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_albumartistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_albumid": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "5db40351-97ed-36a8-88e2-a21a2603cae1",
+        "mb_releasetrackid": "fafe48f0-18e0-42dc-83cf-876dc6febd23",
+        "mb_trackid": "1f8877cf-6271-4990-8bb4-f444cfb4d292",
+        "mb_workid": "e83ad53a-1f36-4ce6-ac97-c6ff1286cd00",
+        "media": "12\" Vinyl",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 6,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "David Bowie",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Join the Gang",
+        "track": 10,
+        "track_alt": "B4",
+        "trackdisambig": "original mono album mix",
+        "tracktotal": 12,
+        "work": "Join the Gang",
+        "work_disambig": "",
+        "year": 1967
+      }
+    }
+  }
+}

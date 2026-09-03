@@ -226,11 +226,27 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-mahler-complete",
+      "album_id": "e8bc073a-ca7f-4ffc-b3c6-635450d85491",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1,
+      "difference": 1,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-rachmaninov-complete",
       "album_id": "4bf5255b-3354-424b-95e1-c0cab112e4b7",
       "optimal_cost": 0,
       "best_forbidden_cost": 1,
       "difference": 1,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-woodstock-25th",
+      "album_id": "c5a03147-c173-43ca-b19a-cff9d1249c81",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
       "unique": true
     },
     {
@@ -242,11 +258,35 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-fela-kuti-zombie",
+      "album_id": "c59b62ef-32a4-410d-a9cf-8629cb9cb10d",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.7333333333333334,
+      "difference": 1.7333333333333334,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-public-enemy-nation-millions",
       "album_id": "02cfa32b-e22b-48a9-8a74-0fb4a8dbf221",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5,
       "difference": 1.5,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-wu-tang-36-chambers",
+      "album_id": "f711b6b2-1dca-442f-ac69-69009141f60c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1454545454545455,
+      "difference": 1.1454545454545455,
+      "unique": true
+    },
+    {
+      "case_id": "real-noise-bowie-us1967",
+      "album_id": "bfa03202-690b-411a-bf6a-baa78d74cfb7",
+      "optimal_cost": 2.1818181818181817,
+      "best_forbidden_cost": 3.6136363636363638,
+      "difference": 1.431818181818182,
       "unique": true
     },
     {
@@ -258,11 +298,27 @@
       "unique": true
     },
     {
+      "case_id": "real-nonlatin-anna-vissi-essential",
+      "album_id": "449c9b1f-7b35-4c8c-97f0-3a690b964783",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4594787878787876,
+      "difference": 1.4594787878787876,
+      "unique": true
+    },
+    {
       "case_id": "real-nonlatin-vandi",
       "album_id": "aa3a7756-b8ac-4a53-ba92-ac6d6700a0ad",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.2054545454545453,
       "difference": 1.2054545454545453,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-blood-on-the-tracks-2003",
+      "album_id": "b0851322-d298-418e-a741-d5479a0e50cb",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5291866028708134,
+      "difference": 1.5291866028708134,
       "unique": true
     },
     {
@@ -279,6 +335,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5034896331738437,
       "difference": 1.5034896331738437,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-rumours-deluxe-2013",
+      "album_id": "76bd530b-5a1d-4cca-92e6-883b8871ef06",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0580645161290323,
+      "difference": 1.0580645161290323,
       "unique": true
     },
     {

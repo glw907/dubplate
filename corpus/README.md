@@ -672,6 +672,28 @@ and the two-release sub-axis's sole reserve row is now spent: a later
 task's own two-release row should budget for the same WS/2-ranking
 risk, since no reserve remains behind it.
 
+### Task 5 (batch 2)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-mahler-complete` | VA/box-set | `e8bc073a-ca7f-4ffc-b3c6-635450d85491` | yes | no | *Mahler: The Complete Works* (16 discs); a genuine, tiny nonzero `artist` string distance (`0.0054`) survives well inside `strong`. |
+| `real-boxset-woodstock-25th` | VA/box-set | `c5a03147-c173-43ca-b19a-cff9d1249c81` | yes | no | *Woodstock: 25th Anniversary Collection* (Various Artists, 4 discs); a clean zero-distance match, and its `comp: true` credit carries no `artist` penalty key at all (the same shape the smoke corpus's own `various-artists` case exercises), distinct from the axis's usual single-artist-credit box sets. |
+| `real-genre-fela-kuti-zombie` | genre/era spread | `c59b62ef-32a4-410d-a9cf-8629cb9cb10d` | no | no | Fela and Africa 70, *Zombie* (US 2010 CD reissue of a 1976 Afrobeat original); a genuine, tiny nonzero `artist` string distance (`0.0395`) survives well inside `strong`. |
+| `real-genre-wu-tang-36-chambers` | genre/era spread | `f711b6b2-1dca-442f-ac69-69009141f60c` | no | no | Wu-Tang Clan, *Enter the Wu-Tang (36 Chambers)* (US 1993 CD; hip-hop); a clean zero-distance match. |
+| `real-noise-bowie-us1967` | MB-noise | `bfa03202-690b-411a-bf6a-baa78d74cfb7` | no | no | David Bowie, *David Bowie* (US 1967, 12 tracks); matched its own correct source but landed `medium`, not `strong`: the captured release carries no recording-length data at all, so every projected item's `length` is `0` and the `tracks` component pays a uniform per-track penalty (`0.1818` each, `0.1212` blended) -- a genuine MB-noise sparse-metadata finding, not a wrong match. Converged over three capture rounds: the primary ID lookup, then a search-fallback round (`limit=5`) and its four named-candidate release lookups. |
+| `real-nonlatin-anna-vissi-essential` | non-Latin | `449c9b1f-7b35-4c8c-97f0-3a690b964783` | no | no | Anna Vissi, *The Essential Anna Vissi* (Greek; native artist-credit carrying a documented `locale=el` alias "Άννα Βίσση"); a genuine, tiny nonzero `artist` string distance (`0.0145`) survives well inside `strong`. |
+| `real-reissue-blood-on-the-tracks-2003` | reissue/remaster | `b0851322-d298-418e-a741-d5479a0e50cb` | yes | no | Bob Dylan, *Blood on the Tracks* (2003 CD reissue); capture-confirmed release date 2003 against the release-group's own first-release-date 1975-01-20; a clean zero-distance match. |
+| `real-reissue-rumours-deluxe-2013` | reissue/remaster | `76bd530b-5a1d-4cca-92e6-883b8871ef06` | yes | no | Fleetwood Mac, *Rumours* (2013 deluxe reissue, 3 discs); capture-confirmed release date 2013-01-25 against the release-group's own first-release-date 1977-02-04; a clean zero-distance match. |
+
+All eight rows above matched their own captured source (`apply`, either
+recommendation): seven land `strong`, and `real-noise-bowie-us1967`
+lands `medium` per its own row above. No confident wrong match
+appeared, so this batch owes no `adjudications.json` row: a
+search-fallback case whose top candidate is anything other than its own
+correct release is this stratum's tier-one finding class, and none of
+the eight reached that shape. **Task 5 delivers all 8 dossier rows**;
+no reserve substitution was needed.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
