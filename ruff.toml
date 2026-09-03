@@ -1,0 +1,12 @@
+# The workstation's python-conventions rule set (PEP 257 docstrings via
+# pydocstyle's D family, google convention), plus ruff's own pyflakes
+# and pycodestyle defaults. The D100-D107 presence family stays off:
+# whether a docstring exists is the skill's write-time gate, not a hard
+# block, and D401 is restored because the google convention drops it.
+[lint]
+select = ["E", "F", "D"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
+extend-select = ["D401"]
+
+[lint.pydocstyle]
+convention = "google"

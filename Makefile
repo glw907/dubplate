@@ -26,7 +26,14 @@ tidy-check:
 # greenfield server.
 check: vet lint test tidy-check
 
+# derive runs the oracle-tagged tests, the only ones that launch the
+# real Python shim and so the only ones needing the uv venv
+# (tools/venv/README.md). Deliberately outside check: the gate protects
+# the frozen corpus records and never touches Python.
+derive:
+	go test -tags oracle ./internal/harness/oracle/...
+
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check clean
+.PHONY: build build-linux test vet lint install tidy-check check derive clean

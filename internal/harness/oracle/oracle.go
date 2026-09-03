@@ -1,11 +1,13 @@
 // Package oracle drives beets against a [cassette.Case]: the adapter
-// half lives here in Go, the shim half in Python (arriving in pass
-// 2a's Task 3), because the shim is the code that actually knows
-// beets, and a future beets bump must be able to edit only this
-// package. Derive owns the whole run: rendering the case's config
-// profile against a [stub.Server], launching exactly one shim
-// process, and validating the record the shim reports before handing
-// it back as a [cassette.Expected].
+// half lives here in Go, the shim half in derive_oracle.py alongside
+// it, because the shim is the code that actually knows beets, and a
+// future beets bump must be able to edit only this package. The shim
+// runs under a uv-pinned venv (tools/venv) that the repository gate
+// never requires; [Derive] and [Reconcile] are exercised by the
+// oracle-tagged tests `make derive` runs. Derive owns a run: rendering
+// the case's config profile against a [stub.Server], launching exactly
+// one shim process, and validating the record the shim reports before
+// handing it back as a [cassette.Expected].
 package oracle
 
 import (
@@ -96,6 +98,28 @@ func repoRoot() (string, error) {
 // config hash, or when the rendered profile does not load exactly
 // one metadata-source plugin.
 func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expected, error) {
+	raw, err := deriveRaw(ctx, c, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var exp cassette.Expected
+	if err := json.Unmarshal(raw, &exp); err != nil {
+		return nil, fmt.Errorf("oracle: derive %s: decode shim output: %w", c.ID, err)
+	}
+	if exp.EchoedDate != c.EvalDate {
+		return nil, fmt.Errorf("oracle: derive %s: shim echoed date %q, case wants %q", c.ID, exp.EchoedDate, c.EvalDate)
+	}
+	if exp.ConfigHash == "" {
+		return nil, fmt.Errorf("oracle: derive %s: shim omitted its config hash", c.ID)
+	}
+	return &exp, nil
+}
+
+// deriveRaw runs one shim process for c and returns its stdout
+// unparsed, which is what the determinism proof diffs: a Go-decoded
+// record would hide Python-side key ordering or float formatting drift.
+func deriveRaw(ctx context.Context, c *cassette.Case, opts Options) ([]byte, error) {
 	dir, err := caseDir(c)
 	if err != nil {
 		return nil, err
@@ -127,18 +151,11 @@ func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expe
 		return nil, err
 	}
 
-	exp, err := runShim(ctx, opts, profilePath, inputPath)
+	raw, err := runShim(ctx, opts, profilePath, inputPath)
 	if err != nil {
 		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
 	}
-
-	if exp.EchoedDate != c.EvalDate {
-		return nil, fmt.Errorf("oracle: derive %s: shim echoed date %q, case wants %q", c.ID, exp.EchoedDate, c.EvalDate)
-	}
-	if exp.ConfigHash == "" {
-		return nil, fmt.Errorf("oracle: derive %s: shim omitted its config hash", c.ID)
-	}
-	return exp, nil
+	return raw, nil
 }
 
 // renderProfile loads the named profile, substitutes its box-path
@@ -205,9 +222,9 @@ func writeShimInput(path string, c *cassette.Case) error {
 }
 
 // runShim launches exactly one shim process against the rendered
-// profile and input, decodes its stdout as a [cassette.Expected], and
-// reports the shim's stderr on failure.
-func runShim(ctx context.Context, opts Options, profilePath, inputPath string) (*cassette.Expected, error) {
+// profile and input, returns its stdout verbatim, and reports the
+// shim's stderr on failure.
+func runShim(ctx context.Context, opts Options, profilePath, inputPath string) ([]byte, error) {
 	cmd, err := shimCommand(ctx, opts, profilePath, inputPath)
 	if err != nil {
 		return nil, err
@@ -220,19 +237,13 @@ func runShim(ctx context.Context, opts Options, profilePath, inputPath string) (
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("run shim: %w: %s", err, stderr.String())
 	}
-
-	var exp cassette.Expected
-	if err := json.Unmarshal(stdout.Bytes(), &exp); err != nil {
-		return nil, fmt.Errorf("decode shim output: %w", err)
-	}
-	return &exp, nil
+	return stdout.Bytes(), nil
 }
 
 // shimCommand builds the shim invocation: opts.Shim exec'd directly
 // when set (tests point it at testdata/fakeshim), or, when empty, the
-// venv's python3 running the package's own shim script (Task 3's
-// derive_oracle.py, which does not exist yet). This branch is
-// untested until Task 3 lands the script it points at.
+// venv's python3 running derive_oracle.py. The venv branch is covered
+// only by the oracle-tagged tests, since the gate has no venv.
 func shimCommand(ctx context.Context, opts Options, args ...string) (*exec.Cmd, error) {
 	if opts.Shim != "" {
 		return exec.CommandContext(ctx, opts.Shim, args...), nil

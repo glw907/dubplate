@@ -3,6 +3,15 @@
 *.env
 env/rendered/
 
+# The beets oracle's Python venv, built with uv per tools/venv/README.md.
+# requirements.txt pins what belongs in it, so the tree itself is
+# reproducible output, not source. __pycache__ is the shim's bytecode;
+# corpus/.derive is where a derivation run puts scratch when it is
+# pointed inside the repo instead of at the system temp dir.
+/tools/venv/.venv/
+__pycache__/
+/corpus/.derive/
+
 # Go build output (make build / make build-linux).
 /dubplate-server
 /dubplate-server-linux-amd64

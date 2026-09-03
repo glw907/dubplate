@@ -24,6 +24,10 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   echo "check.sh: shellcheck not found; install it (brew install shellcheck)." >&2
   exit 1
 fi
+if ! command -v ruff >/dev/null 2>&1; then
+  echo "check.sh: ruff not found; install it (uv tool install ruff)." >&2
+  exit 1
+fi
 
 echo "== make check (Go) =="
 if ! make check; then
@@ -61,6 +65,25 @@ if [ "${#bash_scripts[@]}" -gt 0 ]; then
   fi
 else
   echo "check.sh: no bash scripts found under scripts/." >&2
+  status=1
+fi
+
+echo "== ruff (Python) =="
+# The repo's only Python is the beets oracle shim
+# (internal/harness/oracle/derive_oracle.py), which the gate lints but
+# never runs: running it would need the venv, and the gate never
+# requires uv or beets. Tracked files only, so an unstaged experiment
+# does not gate; ruff.toml carries the rule set.
+mapfile -t py_files < <(git ls-files '*.py')
+if [ "${#py_files[@]}" -gt 0 ]; then
+  if ! ruff check "${py_files[@]}"; then
+    status=1
+  fi
+  if ! ruff format --check "${py_files[@]}"; then
+    status=1
+  fi
+else
+  echo "check.sh: no tracked Python files found; the oracle shim should be one." >&2
   status=1
 fi
 
