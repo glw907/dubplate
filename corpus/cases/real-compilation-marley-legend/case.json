@@ -1,0 +1,2033 @@
+{
+  "id": "real-compilation-marley-legend",
+  "input": {
+    "items": [
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 235,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "1ece1d78-2ad4-4276-bf1c-a7fb66be6408",
+        "title": "Is This Love",
+        "track": 1,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 244,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "975e9e58-a22f-47bb-ad58-9bd712da9352",
+        "title": "No Woman No Cry",
+        "track": 2,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 215,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "205abade-20e4-48d1-92a4-753fdb0494b6",
+        "title": "Could You Be Loved",
+        "track": 3,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 180,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "33b9b9fd-15a1-4e1f-a10a-3d15df5e58f0",
+        "title": "Three Little Birds",
+        "track": 4,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 164,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "62fa31ee-236f-486c-acfd-a4098cd23cca",
+        "title": "Buffalo Soldier",
+        "track": 5,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 194,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "d656e897-a199-4b8b-941e-82edd4fb56be",
+        "title": "Get Up Stand Up",
+        "track": 6,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 218,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "905a5245-2c90-463d-8d69-0aef9d34c8e8",
+        "title": "Stir It Up",
+        "track": 7,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 171,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "76ad38d7-4d80-45a0-992a-68388621067a",
+        "title": "One Love / People Get Ready",
+        "track": 8,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 228,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "9c7ac284-8a79-4915-8e24-23d5251dca07",
+        "title": "I Shot the Sheriff",
+        "track": 9,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 248,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "4d8ca8d4-6254-4967-b4db-53e5844e79d0",
+        "title": "Waiting in Vain",
+        "track": 10,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 227,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "44f78249-8f06-42b4-adb7-31573a463e30",
+        "title": "Redemption Song",
+        "track": 11,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 227,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "1bd801c8-8b3b-4bc1-9034-1ea5625903a5",
+        "title": "Satisfy My Soul",
+        "track": 12,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 257,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "5a48b081-dbfd-4841-a1de-65e12f1881cb",
+        "title": "Exodus",
+        "track": 13,
+        "year": 1984
+      },
+      {
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "artist": "Bob Marley \u0026 The Wailers",
+        "length": 198,
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_trackid": "6a86d67e-2d75-4c01-b4bf-8b12f71b28f8",
+        "title": "Jamming",
+        "track": 14,
+        "year": 1984
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/f7da6448-0f6a-4569-90aa-920e7439815e?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR27800259",
+        "label": "BMG",
+        "language": "eng",
+        "length": 235,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "813e8ce2-45a5-491c-bb26-3ebe38eeed34",
+        "mb_trackid": "1ece1d78-2ad4-4276-bf1c-a7fb66be6408",
+        "mb_workid": "1bbb8fe4-f030-3656-aa15-80c39952a216",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Is This Love",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Is This Love",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ford, Vincent",
+        "composers": [
+          "Vincent Ford"
+        ],
+        "composers_ids": [
+          "e2eec0a3-dea8-4c38-aae1-1345aaca8c20"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "BMG",
+        "language": "eng",
+        "length": 244,
+        "lyricists": [
+          "Vincent Ford"
+        ],
+        "lyricists_ids": [
+          "e2eec0a3-dea8-4c38-aae1-1345aaca8c20"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "12738a95-e798-407c-9b3d-dd823404a6ca",
+        "mb_trackid": "975e9e58-a22f-47bb-ad58-9bd712da9352",
+        "mb_workid": "38a0a846-9066-3628-90bd-9cf8e272b0e6",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "No Woman No Cry",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live",
+        "tracktotal": 14,
+        "work": "No Woman, No Cry",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR28000018",
+        "label": "BMG",
+        "language": "eng",
+        "length": 227,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "ce47dfae-7ba8-4c05-bf63-8c452e580401",
+        "mb_trackid": "44f78249-8f06-42b4-adb7-31573a463e30",
+        "mb_workid": "396883fa-ba67-33a5-934c-a6d05ee6d7e7",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Redemption Song",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Redemption Song",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "BMG",
+        "language": "eng",
+        "length": 227,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "39c317c0-5a22-4ec8-91a1-0b3db0c158a0",
+        "mb_trackid": "1bd801c8-8b3b-4bc1-9034-1ea5625903a5",
+        "mb_workid": "82ea19b3-6cca-347c-b5a7-f02cbe756916",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Satisfy My Soul",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "single version",
+        "tracktotal": 14,
+        "work": "Satisfy My Soul",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "BMG",
+        "language": "eng",
+        "length": 257,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "11fd93cc-46e5-4656-8d8c-4419b4397e09",
+        "mb_trackid": "5a48b081-dbfd-4841-a1de-65e12f1881cb",
+        "mb_workid": "0b3ffb87-c57c-376f-9ad7-3274a7d28d1a",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Exodus",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "single version",
+        "tracktotal": 14,
+        "work": "Exodus",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "BMG",
+        "language": "eng",
+        "length": 198,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "f32f7114-ecb6-4d8b-97d9-eee86a4157a3",
+        "mb_trackid": "6a86d67e-2d75-4c01-b4bf-8b12f71b28f8",
+        "mb_workid": "18dcf0dc-a900-3bdc-b853-5d826abe8916",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jamming",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Jamming",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "BMG",
+        "language": "eng",
+        "length": 215,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "2bb3e054-1720-4146-9738-56566e76c8b8",
+        "mb_trackid": "205abade-20e4-48d1-92a4-753fdb0494b6",
+        "mb_workid": "dcdfeb08-c551-363e-8ca2-986162b80736",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Could You Be Loved",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "single version",
+        "tracktotal": 14,
+        "work": "Could You Be Loved",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAN7790001;USIR27700016;USIR27700352",
+        "label": "BMG",
+        "language": "eng",
+        "length": 180,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "a00e4022-3a8a-4bf8-bdf9-594ab8abd6a6",
+        "mb_trackid": "33b9b9fd-15a1-4e1f-a10a-3d15df5e58f0",
+        "mb_workid": "1a21f426-46e6-37db-a6e0-fd2c5166099c",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Three Little Birds",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Three Little Birds",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR20110142",
+        "label": "BMG",
+        "language": "eng",
+        "length": 164,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "2579cc12-285c-4571-8333-8e9bf983b36b",
+        "mb_trackid": "62fa31ee-236f-486c-acfd-a4098cd23cca",
+        "mb_workid": "b9670bf2-c3d5-3698-9fbf-78095b0c641d",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Buffalo Soldier",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "single version",
+        "tracktotal": 14,
+        "work": "Buffalo Soldier",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAN7390001",
+        "label": "BMG",
+        "language": "eng",
+        "length": 194,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "5d59d91e-0d7c-4012-8172-0e1beebc9278",
+        "mb_trackid": "d656e897-a199-4b8b-941e-82edd4fb56be",
+        "mb_workid": "00fdec8b-0f0b-32c7-91f7-284ea8b59042",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Get Up Stand Up",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Get Up, Stand Up",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "BMG",
+        "language": "eng",
+        "length": 218,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "5acc6690-9376-487d-93a2-7d6e822cc745",
+        "mb_trackid": "905a5245-2c90-463d-8d69-0aef9d34c8e8",
+        "mb_workid": "dc4e1297-9e5d-3a5c-b8d2-c562f0816389",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Stir It Up",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "single version",
+        "tracktotal": 14,
+        "work": "Stir It Up",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob, Mayfield, Curtis",
+        "composers": [
+          "Bob Marley",
+          "Curtis Mayfield"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360",
+          "4dca4bb2-23ba-4103-97e6-5810311db33a"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAN7790002;USA2B1513714;USIR27700017",
+        "label": "BMG",
+        "language": "eng",
+        "length": 171,
+        "lyricists": [
+          "Bob Marley",
+          "Curtis Mayfield"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360",
+          "4dca4bb2-23ba-4103-97e6-5810311db33a"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "33f8c961-6830-428a-a195-d8fc29e5fb79",
+        "mb_trackid": "76ad38d7-4d80-45a0-992a-68388621067a",
+        "mb_workid": "36ff6f1f-b063-3c35-8abc-1fb667aecb8e",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "One Love / People Get Ready",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "1977 re-recording",
+        "tracktotal": 14,
+        "work": "One Love / People Get Ready",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAN7390009",
+        "label": "BMG",
+        "language": "eng",
+        "length": 228,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "2f7838fb-0897-4369-a9b0-8d7792b6d0fe",
+        "mb_trackid": "9c7ac284-8a79-4915-8e24-23d5251dca07",
+        "mb_workid": "68746fde-1ee4-3a8a-a44e-1955ce50b8e0",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Shot the Sheriff",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "edit",
+        "tracktotal": 14,
+        "work": "I Shot the Sheriff",
+        "work_disambig": "",
+        "year": 1984
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Legend: The Best of Bob Marley \u0026 The Wailers",
+        "album_id": null,
+        "albumartist": "Bob Marley \u0026 The Wailers",
+        "albumartist_credit": "Bob Marley \u0026 The Wailers",
+        "albumartist_sort": "Marley, Bob \u0026 The Wailers",
+        "albumartists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "albumartists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Bob Marley \u0026 The Wailers",
+        "artist_credit": "Bob Marley \u0026 The Wailers",
+        "artist_sort": "Marley, Bob \u0026 The Wailers",
+        "artists": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_credit": [
+          "Bob Marley \u0026 The Wailers"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marley, Bob \u0026 The Wailers"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "153521D",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Marley, Bob",
+        "composers": [
+          "Bob Marley"
+        ],
+        "composers_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAAN7790003;USIR27700014",
+        "label": "BMG",
+        "language": "eng",
+        "length": 248,
+        "lyricists": [
+          "Bob Marley"
+        ],
+        "lyricists_ids": [
+          "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_albumartistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_albumid": "f7da6448-0f6a-4569-90aa-920e7439815e",
+        "mb_artistid": "c296e10c-110a-4103-9e77-47bfebb7fb2e",
+        "mb_artistids": [
+          "c296e10c-110a-4103-9e77-47bfebb7fb2e"
+        ],
+        "mb_releasegroupid": "1a4c52cd-483a-347c-93f9-4d512767c7ba",
+        "mb_releasetrackid": "2aa259e8-45e4-4dfb-bcf8-09fcc6330e32",
+        "mb_trackid": "4d8ca8d4-6254-4967-b4db-53e5844e79d0",
+        "mb_workid": "a7fb843e-5e9e-3f16-886b-0228f68d064d",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 5,
+        "original_year": 1984,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Legend: The Best of Bob Marley and The Wailers",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Waiting in Vain",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "album version",
+        "tracktotal": 14,
+        "work": "Waiting in Vain",
+        "work_disambig": "",
+        "year": 1984
+      }
+    }
+  }
+}

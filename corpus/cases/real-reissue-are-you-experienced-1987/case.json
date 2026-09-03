@@ -1,0 +1,1619 @@
+{
+  "id": "real-reissue-are-you-experienced-1987",
+  "input": {
+    "items": [
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 172.893,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "6146cf8f-f348-4370-8230-ed0e26d3a068",
+        "title": "Purple Haze",
+        "track": 1,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 224.4,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "637adeff-3984-453c-89c9-aa226a3dd33d",
+        "title": "Manic Depression",
+        "track": 2,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 212.173,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "93895667-4bc5-4a28-aa93-e9f664dddde9",
+        "title": "Hey Joe",
+        "track": 3,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 195.226,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "a86fbc94-13c1-416c-9ef4-31aa3a9029bf",
+        "title": "Love or Confusion",
+        "track": 4,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 192.466,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "50f2c8de-c740-4faf-aa22-f810ff8ac2f6",
+        "title": "May This Be Love",
+        "track": 5,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 235.733,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "32f22ff9-4d46-41e2-b35d-a9138d6d311c",
+        "title": "I Don't Live Today",
+        "track": 6,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 202.84,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "44e04a3d-dab6-4669-9226-dfb99911eb5a",
+        "title": "The Wind Cries Mary",
+        "track": 7,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 165.933,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "7be705b2-3a0b-481d-805f-2bd750f855b8",
+        "title": "Fire",
+        "track": 8,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 407.666,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "a9965378-bb38-4993-bdf3-9b16f662898e",
+        "title": "Third Stone From the Sun",
+        "track": 9,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 202.266,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "061bb613-8c1f-44ed-af1c-9805038ca43b",
+        "title": "Foxy Lady",
+        "track": 10,
+        "year": 1987
+      },
+      {
+        "album": "Are You Experienced",
+        "albumartist": "The Jimi Hendrix Experience",
+        "artist": "The Jimi Hendrix Experience",
+        "length": 253.426,
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_trackid": "4c6f89c7-fd1d-4460-af9a-43ceb78f8de3",
+        "title": "Are You Experienced?",
+        "track": 11,
+        "year": 1987
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/789f6eb5-c7e1-37f7-a8f4-1a3374af225f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16740589;USQX90900765",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 172.893,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "c09a448f-2fcf-3d2d-92bd-2a2413943d8d",
+        "mb_trackid": "6146cf8f-f348-4370-8230-ed0e26d3a068",
+        "mb_workid": "a0315950-33b7-35b0-a0ca-42f1ad80b213",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Purple Haze",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "stereo",
+        "tracktotal": 11,
+        "work": "Purple Haze",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16740601;USQX90900766",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 224.4,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "40bdd0a9-308d-33eb-9b70-f6a4d61afc43",
+        "mb_trackid": "637adeff-3984-453c-89c9-aa226a3dd33d",
+        "mb_workid": "4021f691-2d0c-38ba-b389-d4e681296417",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Manic Depression",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "Manic Depression",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USQX90900775",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 253.426,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "cefd396d-fbca-379d-a296-a515498d3543",
+        "mb_trackid": "4c6f89c7-fd1d-4460-af9a-43ceb78f8de3",
+        "mb_workid": "871ddfbb-fc21-3518-a7dc-47910f31d612",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Are You Experienced?",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "Are You Experienced?",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Jimi Hendrix"
+        ],
+        "arrangers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Roberts, Billy",
+        "composers": [
+          "Billy Roberts"
+        ],
+        "composers_ids": [
+          "197ef0a7-3a9d-4df1-aa4c-f945e4f631ba"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16740590;USQX90900767",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 212.173,
+        "lyricists": [
+          "Billy Roberts"
+        ],
+        "lyricists_ids": [
+          "197ef0a7-3a9d-4df1-aa4c-f945e4f631ba"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "3aa6e2ee-727a-3d7c-9f42-e862ba460d08",
+        "mb_trackid": "93895667-4bc5-4a28-aa93-e9f664dddde9",
+        "mb_workid": "c04fdab6-f1e2-3972-ace2-08f195ca85a4",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hey Joe",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "Hey Joe",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16741487;USQX90900768",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 195.226,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "720754fd-470f-33cf-899f-85486b8cd463",
+        "mb_trackid": "a86fbc94-13c1-416c-9ef4-31aa3a9029bf",
+        "mb_workid": "d701b412-ea0f-34e3-811e-a8fa752d0e47",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Love or Confusion",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "Love or Confusion",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USLIC0500301;USMC16741489;USQX90900769",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 192.466,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "2d0b29f8-b6ac-3a1b-bb4c-be969225380c",
+        "mb_trackid": "50f2c8de-c740-4faf-aa22-f810ff8ac2f6",
+        "mb_workid": "0d4e4834-6d09-3de3-88c1-9161caa99694",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "May This Be Love",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "May This Be Love",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16741488;USQX90900770",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 235.733,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "3d1aebfc-00e4-31af-98ca-4a018ce7a577",
+        "mb_trackid": "32f22ff9-4d46-41e2-b35d-a9138d6d311c",
+        "mb_workid": "c3aca6ef-4ec4-355b-8f6c-db3eb56b0ddd",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Don't Live Today",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "I Don’t Live Today",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16740591;USQX90900771",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 202.84,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "b62fefe0-bac6-3789-8272-1df1f82a8250",
+        "mb_trackid": "44e04a3d-dab6-4669-9226-dfb99911eb5a",
+        "mb_workid": "9b24a71f-b62c-38bf-88a4-6c19e08a6e2e",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Wind Cries Mary",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "The Wind Cries Mary",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16740604;USMC16757578;USMC16757596;USQX90900772",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 165.933,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "9e5dff06-41f1-38ed-8f4e-cc096d48b356",
+        "mb_trackid": "7be705b2-3a0b-481d-805f-2bd750f855b8",
+        "mb_workid": "ef334da9-4b23-3046-a321-cf93a75cd842",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fire",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "Fire",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16741490;USQX90900773",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 407.666,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "f183c49a-6d7b-3d1c-9844-e27f79222ecb",
+        "mb_trackid": "a9965378-bb38-4993-bdf3-9b16f662898e",
+        "mb_workid": "808558bd-538a-3f6d-b27f-e42d3db57716",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Third Stone From the Sun",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 11,
+        "work": "Third Stone From the Sun",
+        "work_disambig": "",
+        "year": 1967
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Are You Experienced",
+        "album_id": null,
+        "albumartist": "The Jimi Hendrix Experience",
+        "albumartist_credit": "The Jimi Hendrix Experience",
+        "albumartist_sort": "Hendrix, Jimi, Experience, The",
+        "albumartists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Jimi Hendrix Experience",
+        "artist_credit": "The Jimi Hendrix Experience",
+        "artist_sort": "Hendrix, Jimi, Experience, The",
+        "artists": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_credit": [
+          "The Jimi Hendrix Experience"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi, Experience, The"
+        ],
+        "asin": "",
+        "barcode": "07599274382",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "6261-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC10000738;USMC16740594;USQX90900774",
+        "label": "Reprise Records",
+        "language": "eng",
+        "length": 202.266,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_albumartistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_albumid": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+        "mb_artistid": "33b3c323-77c2-417c-a5b4-af7e6a111cc9",
+        "mb_artistids": [
+          "33b3c323-77c2-417c-a5b4-af7e6a111cc9"
+        ],
+        "mb_releasegroupid": "da40e720-2097-3730-8a7f-0c2ddbff4a96",
+        "mb_releasetrackid": "25294782-417c-37f5-af11-86993dca1564",
+        "mb_trackid": "061bb613-8c1f-44ed-af1c-9805038ca43b",
+        "mb_workid": "30e368af-14bb-3472-8a69-c033583eed20",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 1967,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Are You Experienced",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Foxy Lady",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "stereo",
+        "tracktotal": 11,
+        "work": "Foxy Lady",
+        "work_disambig": "",
+        "year": 1967
+      }
+    }
+  }
+}

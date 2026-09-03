@@ -848,6 +848,30 @@ releases), so no new hypothesis row is authored here; a later pass
 authoring `oracle_bugs.json` rows is where a sixth hypothesis, if
 warranted, belongs.
 
+### Task 10 (batch 7)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-miles-davis-series` | VA/box-set | `f380f1cd-692c-4f1a-9b3f-52f80981e1d9` | yes | no | Miles Davis, *The Box Set Series* (4 discs, 26 tracks); capture-confirmed 4 discs. A clean zero-distance match. |
+| `real-classical-perlman-four-seasons` | classical/compilation | `7558e8ab-0ee6-4f03-a629-234f34b76126` | no | no | Itzhak Perlman with the London Philharmonic Orchestra, Vivaldi's *The Four Seasons*; a multi-artist classical credit (`"Vivaldi; Itzhak Perlman, London Philharmonic Orchestra"`) distinct from Karajan's (Task 8) conductor-only shape. A genuine, tiny nonzero `artist` string distance (`0.0108`) survives well inside `strong`. |
+| `real-compilation-marley-legend` | classical/compilation | `f7da6448-0f6a-4569-90aa-920e7439815e` | no | no | Bob Marley & The Wailers, *Legend* (14 tracks); the best-known single-artist reggae compilation, distinct in artist and genre from the Beatles row (Task 9). A clean zero-distance match. |
+| `real-genre-sex-pistols-bollocks` | genre/era spread | `9c58da21-9819-41bf-9830-75b0a34a3642` | no | no | Sex Pistols, *Never Mind the Bollocks Here's the Sex Pistols* (US 1988 CD; punk); a clean zero-distance match. |
+| `real-genre-bob-marley-exodus` | genre/era spread | `bb40fa6b-c2fe-350c-98ad-cf116d95b7f1` | no | no | Bob Marley & The Wailers, *Exodus* (US 1990 CD; reggae); a clean zero-distance match. |
+| `real-noise-led-zeppelin-honeydrippers` | MB-noise | `1d5bb23f-b666-47e7-9f95-82c9a828c64b` | no | no | Led Zeppelin (The Honeydrippers / Jimmy Page) (RU 2000, live); MB Status: Bootleg, dossier item shape "sparse metadata". Matched its own captured source cleanly: every field projects and matches exactly, distance 0, strong, the same "sparse metadata is not itself a distance-moving property" reading Task 9's `real-noise-grateful-live-it1993` row already states. |
+| `real-nonlatin-bts-map-of-soul-7` | non-Latin | `cc56250c-f0fb-42e3-9ae4-80a8016e68d1` | no | no | BTS, *MAP OF THE SOUL : 7* (Korean; artist-credit carrying a documented `locale=ko` alias "방탄소년단"); a clean zero-distance match. |
+| `real-reissue-are-you-experienced-1987` | reissue/remaster | `789f6eb5-c7e1-37f7-a8f4-1a3374af225f` | yes | no | The Jimi Hendrix Experience, *Are You Experienced* (1987 CD reissue); capture-confirmed release date 1987 against the release-group's own first-release-date 1967-05-12; a clean zero-distance match. |
+
+All eight rows above matched their own captured source and land
+`strong`/`apply`: seven on a clean zero-distance match, and
+`real-classical-perlman-four-seasons` per its own row above on a
+genuine, tiny nonzero `artist` distance. No confident wrong match
+appeared, so this batch owes no `adjudications.json` row. **Task 10
+delivers all 8 dossier rows**; no reserve substitution was needed.
+This batch carries no two-release sub-axis row (the dossier assigns
+none to Task 10), so the decoy-resourcing question does not arise
+here; see Tasks 4, 6, and 7 for that axis's three attempts and their
+outcomes.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

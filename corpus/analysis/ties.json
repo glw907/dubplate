@@ -258,6 +258,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-miles-davis-series",
+      "album_id": "f380f1cd-692c-4f1a-9b3f-52f80981e1d9",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4166666666666667,
+      "difference": 1.4166666666666667,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-nuggets-1965-1968",
       "album_id": "f5ebc3e1-4c2d-46d1-8f42-563a3fdc3653",
       "optimal_cost": 0,
@@ -306,11 +314,27 @@
       "unique": true
     },
     {
+      "case_id": "real-classical-perlman-four-seasons",
+      "album_id": "7558e8ab-0ee6-4f03-a629-234f34b76126",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.17914812460267,
+      "difference": 1.17914812460267,
+      "unique": true
+    },
+    {
       "case_id": "real-compilation-beatles-1967-1970",
       "album_id": "acd971e6-d23f-414b-aeea-25812c72fe5b",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.3333333333333333,
       "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "real-compilation-marley-legend",
+      "album_id": "f7da6448-0f6a-4569-90aa-920e7439815e",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4545454545454546,
+      "difference": 1.4545454545454546,
       "unique": true
     },
     {
@@ -343,6 +367,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.6116666666666672,
       "difference": 1.6116666666666672,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-bob-marley-exodus",
+      "album_id": "bb40fa6b-c2fe-350c-98ad-cf116d95b7f1",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4661532976827092,
+      "difference": 1.4661532976827092,
       "unique": true
     },
     {
@@ -410,6 +442,14 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-sex-pistols-bollocks",
+      "album_id": "9c58da21-9819-41bf-9830-75b0a34a3642",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3977272727272727,
+      "difference": 1.3977272727272727,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-wu-tang-36-chambers",
       "album_id": "f711b6b2-1dca-442f-ac69-69009141f60c",
       "optimal_cost": 0,
@@ -466,6 +506,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-led-zeppelin-honeydrippers",
+      "album_id": "1d5bb23f-b666-47e7-9f95-82c9a828c64b",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4805194805194803,
+      "difference": 1.4805194805194803,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-velvet-underground-us1986",
       "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
       "optimal_cost": 0,
@@ -495,6 +543,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4545454545454546,
       "difference": 1.4545454545454546,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-bts-map-of-soul-7",
+      "album_id": "cc56250c-f0fb-42e3-9ae4-80a8016e68d1",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4805194805194803,
+      "difference": 1.4805194805194803,
       "unique": true
     },
     {
@@ -535,6 +591,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.3246753246753247,
       "difference": 1.3246753246753247,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-are-you-experienced-1987",
+      "album_id": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5272727272727273,
+      "difference": 1.5272727272727273,
       "unique": true
     },
     {
