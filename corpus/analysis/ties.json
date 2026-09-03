@@ -234,11 +234,27 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-mel-kim-singles",
+      "album_id": "4f6b028a-b9a8-4595-9ce1-3bacb9c39842",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.1988095238095238,
+      "difference": 0.1988095238095238,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-rachmaninov-complete",
       "album_id": "4bf5255b-3354-424b-95e1-c0cab112e4b7",
       "optimal_cost": 0,
       "best_forbidden_cost": 1,
       "difference": 1,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-scriabin-complete",
+      "album_id": "b94231a2-1c50-4950-88af-7f2b89198045",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0119047619047619,
+      "difference": 1.0119047619047619,
       "unique": true
     },
     {
@@ -258,11 +274,27 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-buena-vista-social-club",
+      "album_id": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4848484848484846,
+      "difference": 1.4848484848484846,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-fela-kuti-zombie",
       "album_id": "c59b62ef-32a4-410d-a9cf-8629cb9cb10d",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.7333333333333334,
       "difference": 1.7333333333333334,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-kraftwerk-trans-europe-express",
+      "album_id": "03055f40-ed52-320a-8de7-015eddefe156",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5757575757575757,
+      "difference": 1.5757575757575757,
       "unique": true
     },
     {
@@ -298,11 +330,27 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-velvet-underground-us1986",
+      "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5064935064935063,
+      "difference": 1.5064935064935063,
+      "unique": true
+    },
+    {
       "case_id": "real-nonlatin-anna-vissi-essential",
       "album_id": "449c9b1f-7b35-4c8c-97f0-3a690b964783",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4594787878787876,
       "difference": 1.4594787878787876,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "album_id": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4949494949494948,
+      "difference": 1.4949494949494948,
       "unique": true
     },
     {
@@ -335,6 +383,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5034896331738437,
       "difference": 1.5034896331738437,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-nevermind-2011",
+      "album_id": "237b8564-c726-4cb0-b804-348c30697325",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.5,
       "unique": true
     },
     {

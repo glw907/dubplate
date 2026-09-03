@@ -1,0 +1,1055 @@
+{
+  "id": "real-genre-kraftwerk-trans-europe-express",
+  "input": {
+    "items": [
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 580,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "64ff2d5b-64fb-4e4d-bbf0-8afc07d64910",
+        "title": "Europe Endless",
+        "track": 1,
+        "year": 1987
+      },
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 474.04,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "3874f909-701f-4927-aae6-1ee6301f7b2c",
+        "title": "The Hall of Mirrors",
+        "track": 2,
+        "year": 1987
+      },
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 373.226,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "7a3ffa1c-b71f-41cf-8013-df8e732e7596",
+        "title": "Showroom Dummies",
+        "track": 3,
+        "year": 1987
+      },
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 412.373,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "8635111d-dee8-42e1-a452-190da110ddeb",
+        "title": "Trans-Europe Express",
+        "track": 4,
+        "year": 1987
+      },
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 403.4,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "ed88b348-20ea-41ef-9fce-df6654027404",
+        "title": "Metal on Metal",
+        "track": 5,
+        "year": 1987
+      },
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 266,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "a51a0d50-f2ba-4073-a896-e109d8075e7a",
+        "title": "Franz Schubert",
+        "track": 6,
+        "year": 1987
+      },
+      {
+        "album": "Trans-Europe Express",
+        "albumartist": "Kraftwerk",
+        "artist": "Kraftwerk",
+        "length": 55.933,
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_trackid": "0d601d61-03ee-4842-90ae-739e294dc747",
+        "title": "Endless Endless",
+        "track": 7,
+        "year": 1987
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/03055f40-ed52-320a-8de7-015eddefe156?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "03055f40-ed52-320a-8de7-015eddefe156",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf",
+        "composers": [
+          "Ralf Hütter"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA20903028",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 580,
+        "lyricists": [
+          "Ralf Hütter",
+          "Florian Schneider"
+        ],
+        "lyricists_ids": [
+          "da3f4766-628e-4da3-a871-014728993157",
+          "46957dac-b5ff-40a9-a427-ab53bc414f6e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "cb0d45a6-b63e-328c-9cd0-6ec3d8d706f5",
+        "mb_trackid": "64ff2d5b-64fb-4e4d-bbf0-8afc07d64910",
+        "mb_workid": "683b3b80-9a9e-3d59-85ca-da118b9e686b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Europe Endless",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "Europe Endless",
+        "work_disambig": "",
+        "year": 1977
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf",
+        "composers": [
+          "Ralf Hütter"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA20903029",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 474.04,
+        "lyricists": [
+          "Ralf Hütter",
+          "Florian Schneider",
+          "Emil Schult"
+        ],
+        "lyricists_ids": [
+          "da3f4766-628e-4da3-a871-014728993157",
+          "46957dac-b5ff-40a9-a427-ab53bc414f6e",
+          "e47b4862-a587-488f-b7a7-bd329726693d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "bace074a-9844-3f68-bb55-450deaee696c",
+        "mb_trackid": "3874f909-701f-4927-aae6-1ee6301f7b2c",
+        "mb_workid": "ac7af26f-879c-38f0-b609-09a995e59f60",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Hall of Mirrors",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "The Hall of Mirrors",
+        "work_disambig": "",
+        "year": 1977
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf",
+        "composers": [
+          "Ralf Hütter"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA20903030",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 373.226,
+        "lyricists": [
+          "Ralf Hütter"
+        ],
+        "lyricists_ids": [
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "d1e053c4-7b71-3747-bbf7-b6bbb9af3ac7",
+        "mb_trackid": "7a3ffa1c-b71f-41cf-8013-df8e732e7596",
+        "mb_workid": "e25ca2e2-87c4-33cf-bd4e-af444947aea3",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Showroom Dummies",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "Showroom Dummies",
+        "work_disambig": "",
+        "year": 1977
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf",
+        "composers": [
+          "Ralf Hütter"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA20903075",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 412.373,
+        "lyricists": [
+          "Ralf Hütter",
+          "Emil Schult"
+        ],
+        "lyricists_ids": [
+          "da3f4766-628e-4da3-a871-014728993157",
+          "e47b4862-a587-488f-b7a7-bd329726693d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "ec5dbfb4-9af5-3aca-bcb0-467897ec00f5",
+        "mb_trackid": "8635111d-dee8-42e1-a452-190da110ddeb",
+        "mb_workid": "fd0f3b10-17ce-37af-91db-1f4f71152a59",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Trans-Europe Express",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "Trans‐Europe Express",
+        "work_disambig": "",
+        "year": 1977
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf, Hütter, Ralf",
+        "composers": [
+          "Ralf Hütter",
+          "Ralf Hütter"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157",
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 403.4,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "e6c9f94e-0bad-3d8e-8a99-ae8c31daec99",
+        "mb_trackid": "ed88b348-20ea-41ef-9fce-df6654027404",
+        "mb_workid": "316981b7-c6e9-34c7-a376-161dcb70c79e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Metal on Metal",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "Metal on Metal",
+        "work_disambig": "",
+        "year": 1977
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf",
+        "composers": [
+          "Ralf Hütter"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "DEC610900212",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 266,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "bcff48f1-4c2c-36d5-b922-dad56f12834a",
+        "mb_trackid": "a51a0d50-f2ba-4073-a896-e109d8075e7a",
+        "mb_workid": "620df7ca-ed84-3d76-a965-3abb9da73a8f",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Franz Schubert",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "Franz Schubert",
+        "work_disambig": "",
+        "year": 1977
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Trans-Europe Express",
+        "album_id": null,
+        "albumartist": "Kraftwerk",
+        "albumartist_credit": "Kraftwerk",
+        "albumartist_sort": "Kraftwerk",
+        "albumartists": [
+          "Kraftwerk"
+        ],
+        "albumartists_credit": [
+          "Kraftwerk"
+        ],
+        "albumartists_sort": [
+          "Kraftwerk"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Kraftwerk",
+        "artist_credit": "Kraftwerk",
+        "artist_sort": "Kraftwerk",
+        "artists": [
+          "Kraftwerk"
+        ],
+        "artists_credit": [
+          "Kraftwerk"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Kraftwerk"
+        ],
+        "asin": "B00000DQSZ",
+        "barcode": "0077774647328",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46473 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hütter, Ralf, Schneider, Florian",
+        "composers": [
+          "Ralf Hütter",
+          "Florian Schneider"
+        ],
+        "composers_ids": [
+          "da3f4766-628e-4da3-a871-014728993157",
+          "46957dac-b5ff-40a9-a427-ab53bc414f6e"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA20903032",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 55.933,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_albumartistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_albumid": "03055f40-ed52-320a-8de7-015eddefe156",
+        "mb_artistid": "5700dcd4-c139-4f31-aa3e-6382b9af9032",
+        "mb_artistids": [
+          "5700dcd4-c139-4f31-aa3e-6382b9af9032"
+        ],
+        "mb_releasegroupid": "33101a28-ae05-3a69-873c-684e336fe2df",
+        "mb_releasetrackid": "51c84f87-7abf-32af-9bc9-8409bdda39a3",
+        "mb_trackid": "0d601d61-03ee-4842-90ae-739e294dc747",
+        "mb_workid": "d67e18c3-2ec8-3df9-95a2-de50a7c03060",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1977,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Trans Europa Express",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Endless Endless",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 7,
+        "work": "Endless Endless",
+        "work_disambig": "",
+        "year": 1977
+      }
+    }
+  }
+}

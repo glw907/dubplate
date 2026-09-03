@@ -1,0 +1,1999 @@
+{
+  "id": "real-genre-buena-vista-social-club",
+  "input": {
+    "items": [
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 257.893,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "47b7339f-8f7e-432e-acf1-8cb6b53a3554",
+        "title": "Chan Chan",
+        "track": 1,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 303.973,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "f22b505c-9496-4c67-a872-c2768b4ae50f",
+        "title": "De camino a la vereda",
+        "track": 2,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 445.826,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "471cc66c-7772-4d6c-b780-b2429a48edc2",
+        "title": "El cuarto de Tula",
+        "track": 3,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 366.786,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "7a2f8a38-e1a8-4f8d-9d92-919d6ea54195",
+        "title": "Pueblo Nuevo",
+        "track": 4,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 184.186,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "3337d23e-eec6-4e8c-a279-9dcfee979719",
+        "title": "Dos gardenias",
+        "track": 5,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 194.706,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "fd503a45-da49-4a11-8e4b-cc0e123cf366",
+        "title": "¿Y tú qué has hecho?",
+        "track": 6,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 211.96,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "de7429d0-04f4-4c20-b0d8-b350610db002",
+        "title": "Veinte años",
+        "track": 7,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 210.173,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "68d8672e-7f48-4fa6-aca1-b63fc9b3e2da",
+        "title": "El carretero",
+        "track": 8,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 329.293,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "16c11b1d-162e-4b9e-a3c0-fc74546b4520",
+        "title": "Candela",
+        "track": 9,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 203.106,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "4198c8e0-7cf4-48c1-b143-c2b9ad9074a8",
+        "title": "Amor de loca juventud",
+        "track": 10,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 199.346,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "9820e0fd-a16c-43f3-8cd0-e5f0949ad9f6",
+        "title": "Orgullecida",
+        "track": 11,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 231.506,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "b6d6d862-bc20-4c9a-9571-ee6f9cbb490c",
+        "title": "Murmullo",
+        "track": 12,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 292.88,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "82014f36-3cc7-4682-bfea-2f6b7104c61d",
+        "title": "Buena Vista Social Club",
+        "track": 13,
+        "year": 1997
+      },
+      {
+        "album": "Buena Vista Social Club",
+        "albumartist": "Buena Vista Social Club",
+        "artist": "Buena Vista Social Club",
+        "length": 174.2,
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_trackid": "93eb6045-fc56-4e71-8577-583fcbd31e60",
+        "title": "La Bayamesa",
+        "track": 14,
+        "year": 1997
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/2e18e017-0a62-4c50-a708-b6fbea29612e?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Segundo, Compay",
+        "composers": [
+          "Compay Segundo"
+        ],
+        "composers_ids": [
+          "8b8ab7a4-add8-4353-a586-e1086e521af8"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100083;GBBGU9700150",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 257.893,
+        "lyricists": [
+          "Compay Segundo"
+        ],
+        "lyricists_ids": [
+          "8b8ab7a4-add8-4353-a586-e1086e521af8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "a3531e8a-ba77-3b4e-8d96-396857c9ca7a",
+        "mb_trackid": "47b7339f-8f7e-432e-acf1-8cb6b53a3554",
+        "mb_workid": "d800088b-8648-3471-a782-0a07096b2bc5",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Chan Chan",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Chan Chan",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ferrer, Ibrahim",
+        "composers": [
+          "Ibrahim Ferrer"
+        ],
+        "composers_ids": [
+          "a61930ae-dfe3-4574-bc5b-b0fa8d8efb62"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100084;GBBGU9700250",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 303.973,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "3ff13bd9-8556-3654-ac43-28b0212991fb",
+        "mb_trackid": "f22b505c-9496-4c67-a872-c2768b4ae50f",
+        "mb_workid": "557967c8-d76f-3553-b553-c675fc9107da",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "De camino a la vereda",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "De camino a La Vereda",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Silveira, Eliseo",
+        "composers": [
+          "Eliseo Silveira"
+        ],
+        "composers_ids": [
+          "164ef7f1-cf18-4495-8b65-28be2dcf88d7"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100093;GBBGU9701150",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 199.346,
+        "lyricists": [
+          "Eliseo Silveira"
+        ],
+        "lyricists_ids": [
+          "164ef7f1-cf18-4495-8b65-28be2dcf88d7"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "d1f4e50e-8423-3be4-b62b-182f6c8a639c",
+        "mb_trackid": "9820e0fd-a16c-43f3-8cd0-e5f0949ad9f6",
+        "mb_workid": "6c0e740d-c912-4f01-85d1-1da256c025fe",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Orgullecida",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Orgullecida",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Rosell, Electo",
+        "composers": [
+          "Electo Rosell"
+        ],
+        "composers_ids": [
+          "c9a2a5d5-d563-4f7a-9b91-9abc39c31e4b"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100094;GBBGU9701250",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 231.506,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "15e1b53e-e1e1-3122-a364-3bb17de02c7f",
+        "mb_trackid": "b6d6d862-bc20-4c9a-9571-ee6f9cbb490c",
+        "mb_workid": "fed53a74-7e4c-4b9b-be2d-091a85c3285c",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Murmullo",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Murmullo",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "López, Israel “Cachao”",
+        "composers": [
+          "Israel “Cachao” López"
+        ],
+        "composers_ids": [
+          "d6060786-dac7-4101-80f1-8a10c81d0a7a"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100095;GBBGU9701350",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 292.88,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "b640e107-6b6f-3296-8d98-4ace2250c874",
+        "mb_trackid": "82014f36-3cc7-4682-bfea-2f6b7104c61d",
+        "mb_workid": "e7eb1cc6-6d11-4a65-9a81-67a4587253e6",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Buena Vista Social Club",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Buena Vista Social Club",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garay, Sindo",
+        "composers": [
+          "Sindo Garay"
+        ],
+        "composers_ids": [
+          "830c8f8b-916a-47f4-922a-df69ebfbd92a"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100096;GBBGU9701450",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 174.2,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "01ecc9ec-2ce9-3cf4-9487-19abdf389096",
+        "mb_trackid": "93eb6045-fc56-4e71-8577-583fcbd31e60",
+        "mb_workid": "4b5af548-f4c6-4915-8d39-717d1faaf47e",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "La Bayamesa",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "La Bayamesa",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Siaba, Sergio González",
+        "composers": [
+          "Sergio González Siaba"
+        ],
+        "composers_ids": [
+          "41c949df-ee81-4525-82fb-51982a8282ea"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100085;GBBGU9700350",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 445.826,
+        "lyricists": [
+          "Sergio González Siaba"
+        ],
+        "lyricists_ids": [
+          "41c949df-ee81-4525-82fb-51982a8282ea"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "72aa2dd1-87d0-393d-a6bc-ce78687ce27e",
+        "mb_trackid": "471cc66c-7772-4d6c-b780-b2429a48edc2",
+        "mb_workid": "477cf98f-02a5-4e32-9ab9-61cec766e87c",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "El cuarto de Tula",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "El cuarto de Tula",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "López, Israel “Cachao”",
+        "composers": [
+          "Israel “Cachao” López"
+        ],
+        "composers_ids": [
+          "d6060786-dac7-4101-80f1-8a10c81d0a7a"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100086;GBBGU9700450",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 366.786,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "4d85a350-427d-3659-a332-d4583e77741c",
+        "mb_trackid": "7a2f8a38-e1a8-4f8d-9d92-919d6ea54195",
+        "mb_workid": "f4d363bc-1aaf-4ef4-a2db-a91b609d04b1",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pueblo Nuevo",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Pueblo Nuevo",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Carrillo, Isolina",
+        "composers": [
+          "Isolina Carrillo"
+        ],
+        "composers_ids": [
+          "7edc3952-f853-4369-9883-589db1f3875f"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100087;GBBGU9700550",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 184.186,
+        "lyricists": [
+          "Isolina Carrillo"
+        ],
+        "lyricists_ids": [
+          "7edc3952-f853-4369-9883-589db1f3875f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "89cef718-4fbc-34b0-a819-329c18fc9f3c",
+        "mb_trackid": "3337d23e-eec6-4e8c-a279-9dcfee979719",
+        "mb_workid": "0bf780e8-2771-4cfa-b34e-8ec86d1d52c0",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dos gardenias",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Dos gardenias",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Delfín, Eusebio",
+        "composers": [
+          "Eusebio Delfín"
+        ],
+        "composers_ids": [
+          "fd636720-75ec-471c-990a-f33de8c7c35f"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100088;GBBGU9700650",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 194.706,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "d2721d59-e0f1-3bfb-a0d6-07564e2a01eb",
+        "mb_trackid": "fd503a45-da49-4a11-8e4b-cc0e123cf366",
+        "mb_workid": "4e8fe68a-6557-4678-9ae3-427eb080dc14",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "¿Y tú qué has hecho?",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "¿Y tú qué has hecho?",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Vera, María Teresa",
+        "composers": [
+          "María Teresa Vera"
+        ],
+        "composers_ids": [
+          "89183d7e-bec7-4931-a5ce-a0d30d7155ed"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100089;GBBGU9700750",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 211.96,
+        "lyricists": [
+          "Guillermina Aramburu"
+        ],
+        "lyricists_ids": [
+          "576878bd-b0c1-4eb2-b027-68ce7062c084"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "76dfc9d3-93bf-33bf-8502-88c46b1bff2e",
+        "mb_trackid": "de7429d0-04f4-4c20-b0d8-b350610db002",
+        "mb_workid": "07d934d5-af94-4a32-871d-b9cd327986f2",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Veinte años",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Veinte años",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Portabales, Guillermo",
+        "composers": [
+          "Guillermo Portabales"
+        ],
+        "composers_ids": [
+          "ea562209-d706-401a-8b18-0e832980aae4"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100090;GBBGU9700850",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 210.173,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "345320d1-b761-37ba-b885-6366579f0432",
+        "mb_trackid": "68d8672e-7f48-4fa6-aca1-b63fc9b3e2da",
+        "mb_workid": "1bddca0c-cc8d-41af-bd28-48044c8f4dd8",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "El carretero",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "El carretero",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Oramas, Faustino",
+        "composers": [
+          "Faustino Oramas"
+        ],
+        "composers_ids": [
+          "7edff7f4-4840-408a-8218-d0a848ce62a3"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100091;GBBGU9700950",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 329.293,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "629bad50-a7d4-3880-ad94-c098030a04d7",
+        "mb_trackid": "16c11b1d-162e-4b9e-a3c0-fc74546b4520",
+        "mb_workid": "c46fa214-25e2-4ba2-b152-704dd627baf7",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Candela",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Candela",
+        "work_disambig": "",
+        "year": 1997
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Buena Vista Social Club",
+        "album_id": null,
+        "albumartist": "Buena Vista Social Club",
+        "albumartist_credit": "Buena Vista Social Club",
+        "albumartist_sort": "Buena Vista Social Club",
+        "albumartists": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "albumartists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Buena Vista Social Club",
+        "artist_credit": "Buena Vista Social Club",
+        "artist_sort": "Buena Vista Social Club",
+        "artists": [
+          "Buena Vista Social Club"
+        ],
+        "artists_credit": [
+          "Buena Vista Social Club"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Buena Vista Social Club"
+        ],
+        "asin": "B000005J56",
+        "barcode": "075597947823",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "79478-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ortíz, Rafael",
+        "composers": [
+          "Rafael Ortíz"
+        ],
+        "composers_ids": [
+          "3abe9f1f-5221-4271-987f-3e2b4ebf7187"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GB5KW2100092;GBBGU9701050",
+        "label": "Nonesuch",
+        "language": "spa",
+        "length": 203.106,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_albumartistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_albumid": "2e18e017-0a62-4c50-a708-b6fbea29612e",
+        "mb_artistid": "2a85ecff-41e9-4be1-aca6-c87054a4c334",
+        "mb_artistids": [
+          "2a85ecff-41e9-4be1-aca6-c87054a4c334"
+        ],
+        "mb_releasegroupid": "32bbab8e-02c0-30d2-9e23-a19739864b84",
+        "mb_releasetrackid": "fc31e2e7-da0b-380a-93b4-8c54521f6fb3",
+        "mb_trackid": "4198c8e0-7cf4-48c1-b143-c2b9ad9074a8",
+        "mb_workid": "3ef5955d-9acd-4e03-87ef-42fb9cf066e1",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 23,
+        "original_month": 6,
+        "original_year": 1997,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Buena Vista Social Club",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Amor de loca juventud",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Amor de Loca Juventud",
+        "work_disambig": "",
+        "year": 1997
+      }
+    }
+  }
+}

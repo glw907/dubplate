@@ -694,6 +694,41 @@ correct release is this stratum's tier-one finding class, and none of
 the eight reached that shape. **Task 5 delivers all 8 dossier rows**;
 no reserve substitution was needed.
 
+### Task 6 (batch 3)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-mel-kim-singles` | VA/box-set | `4f6b028a-b9a8-4595-9ce1-3bacb9c39842` | yes | no | Mel & Kim, *The Singles Box Set* (7 discs, 76 tracks); a clean zero-distance match. |
+| `real-boxset-scriabin-complete` | VA/box-set | `b94231a2-1c50-4950-88af-7f2b89198045` | yes | no | *Scriabin: The Complete Works* (18 discs, 321 tracks); a genuine, tiny nonzero `artist` string distance (`0.0004`) survives well inside `strong`. |
+| `real-genre-buena-vista-social-club` | genre/era spread | `2e18e017-0a62-4c50-a708-b6fbea29612e` | no | no | Buena Vista Social Club, *Buena Vista Social Club* (US 1997 CD; Cuban son/world); a clean zero-distance match. |
+| `real-genre-kraftwerk-trans-europe-express` | genre/era spread | `03055f40-ed52-320a-8de7-015eddefe156` | no | no | Kraftwerk, *Trans-Europe Express* (US 1987 CD; electronic); a clean zero-distance match. |
+| `real-noise-velvet-underground-us1986` | MB-noise | `9258ac80-8f65-4699-b8f0-1e05ea815110` | no | no | The Velvet Underground, *The Velvet Underground* (US 1986 CD); shares its title with a JP 1990 pressing (`a735be2e-...`), the near-duplicate-catalog regional-pressing shape; matched its own correct source cleanly, a clean zero-distance match. |
+| `real-nonlatin-utada-first-love` | non-Latin | `932c04f9-925a-45fc-847d-0da6a7b4e7a5` | no | yes | Hikaru Utada, *First Love* (Japanese; romanized artist-credit "Hikaru Utada" carrying a documented `locale=ja` alias "宇多田ヒカル"); matched its own correct source but landed `medium`, not `strong`, on a nonzero `artist` string distance (`0.0722`). Task 18's host release for the future `#6358` alias-selection verification. |
+| `real-reissue-nevermind-2011` | reissue/remaster | `237b8564-c726-4cb0-b804-348c30697325` | yes | yes | Nirvana, *Nevermind* (2011 20th-anniversary CD); capture-confirmed release date 2011-09-23 against the release-group's own first-release-date 1991-09-24; a clean zero-distance match. |
+
+All seven promoted rows above matched their own captured source
+(`apply`, either recommendation): six land `strong`, and
+`real-nonlatin-utada-first-love` lands `medium` per its own row above.
+No confident wrong match appeared, so this batch owes no
+`adjudications.json` row.
+
+**The two-release sub-axis finding (Task 6).** The dossier's Task 6 row
+for this axis, `real-decoy-vivaldi-four-seasons`
+(`d9a105e8-de9c-4a80-a5e7-d98665558263`, decoy
+`8407e282-a386-4c8c-b679-f84363a0c8a0`), was attempted with two
+override variants: first ambiguating `album`/`artist` to the generic
+`Four Seasons` / `Vivaldi`, then to the release's own exact title
+`Vivaldi's Four Seasons` / `Vivaldi`. Both variants knocked the ID
+lookup off `strong` and forced beets' own text-search fallback
+(`limit=5`), and both converged cleanly to the case's own correct
+release (`medium`, `skip`, artist distance `0.0722`) without the named
+decoy ever appearing among either round's five search candidates. Per
+the mechanism's own escape hatch, the candidate was not forced into a
+case and its staging directory was discarded. The two-release axis's
+sole reserve (`real-decoy-mozart-piano-concerto-21`) was already spent
+by Task 4's own attempt, so **Task 6 delivers 7 cases instead of 8**
+with no reserve remaining behind any later two-release row.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

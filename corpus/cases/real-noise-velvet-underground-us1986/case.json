@@ -1,0 +1,1515 @@
+{
+  "id": "real-noise-velvet-underground-us1986",
+  "input": {
+    "items": [
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 243.04,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "ab001e7b-28b0-40b5-9fb5-905e27600d29",
+        "title": "Candy Says",
+        "track": 1,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 288.693,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "18b5202f-89aa-44d5-9815-4a3c4deed1dc",
+        "title": "What Goes On",
+        "track": 2,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 240.706,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "2f0c45e6-909f-41a7-8cfc-fef3a405d7cd",
+        "title": "Some Kinda Love",
+        "track": 3,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 339.533,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "9c1af8d0-faf6-4758-b4a6-a30f6f869862",
+        "title": "Pale Blue Eyes",
+        "track": 4,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 204.026,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "5610f4c9-ba14-4fca-a242-34260976d906",
+        "title": "Jesus",
+        "track": 5,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 276,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "13145a0e-e82d-4ae1-ba00-65a0d5c5edd2",
+        "title": "Beginning to See the Light",
+        "track": 6,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 243.666,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "f3bde357-56f4-4fc4-a76c-1e4b85a220a7",
+        "title": "I’m Set Free",
+        "track": 7,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 123,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "2e30cd9c-b9ec-44c4-8103-1d56488c6049",
+        "title": "That’s the Story of My Life",
+        "track": 8,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 532.333,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "3a601072-ee0f-452c-a557-3dcc65370ac2",
+        "title": "The Murder Mystery",
+        "track": 9,
+        "year": 1986
+      },
+      {
+        "album": "The Velvet Underground",
+        "albumartist": "The Velvet Underground",
+        "artist": "The Velvet Underground",
+        "length": 127.306,
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_trackid": "e4260b9d-3e57-46cb-b98f-1c35873888a2",
+        "title": "After Hours",
+        "track": 10,
+        "year": 1986
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/9258ac80-8f65-4699-b8f0-1e05ea815110?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905201;USPR36909013",
+        "label": "Verve",
+        "language": "eng",
+        "length": 243.04,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "66ef6d53-c87a-4b1a-aac8-a412515417e3",
+        "mb_trackid": "ab001e7b-28b0-40b5-9fb5-905e27600d29",
+        "mb_workid": "17d19364-b98c-3443-84ab-de960686477a",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Candy Says",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Candy Says",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USUR10000998",
+        "label": "Verve",
+        "language": "eng",
+        "length": 288.693,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "0b853fff-a9d5-4866-be9a-7502f1e6c26f",
+        "mb_trackid": "18b5202f-89aa-44d5-9815-4a3c4deed1dc",
+        "mb_workid": "a8ae9146-51a2-3663-b23f-28795eea351a",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "What Goes On",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "What Goes On",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905203;USUM70500030",
+        "label": "Verve",
+        "language": "eng",
+        "length": 240.706,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "bff4fbf8-adc4-4aac-bf21-b4aa276b793f",
+        "mb_trackid": "2f0c45e6-909f-41a7-8cfc-fef3a405d7cd",
+        "mb_workid": "db32bf6b-6729-3566-9854-a9c118d75a26",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Some Kinda Love",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Some Kinda Love",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905204;USPR36909016",
+        "label": "Verve",
+        "language": "eng",
+        "length": 339.533,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "477aac86-b437-444f-a262-9f467f3ae41e",
+        "mb_trackid": "9c1af8d0-faf6-4758-b4a6-a30f6f869862",
+        "mb_workid": "9b3cb1e3-01f0-3777-958d-441ed9bafca5",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pale Blue Eyes",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Pale Blue Eyes",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36909017",
+        "label": "Verve",
+        "language": "eng",
+        "length": 204.026,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "d1a37252-936e-442c-b7a7-15befe59eab2",
+        "mb_trackid": "5610f4c9-ba14-4fca-a242-34260976d906",
+        "mb_workid": "8ba49fad-bf04-3050-8a46-d14bda608c0a",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jesus",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Jesus",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905206;USUM70812112",
+        "label": "Verve",
+        "language": "eng",
+        "length": 276,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "fab33888-c00b-4e9b-bc84-77f4cb5d33bd",
+        "mb_trackid": "13145a0e-e82d-4ae1-ba00-65a0d5c5edd2",
+        "mb_workid": "1633f0a7-b20c-3aa2-af0a-f18034572a1c",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Beginning to See the Light",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Beginning to See the Light",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905207;USPR36909019",
+        "label": "Verve",
+        "language": "eng",
+        "length": 243.666,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "305792ce-0737-44c7-bfd8-31158b64bf2c",
+        "mb_trackid": "f3bde357-56f4-4fc4-a76c-1e4b85a220a7",
+        "mb_workid": "22ba38f1-3370-3765-87ec-b7424eef110a",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I’m Set Free",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "I’m Set Free",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905208;USPR36909020",
+        "label": "Verve",
+        "language": "eng",
+        "length": 123,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "7c4e8145-1084-49be-bc06-315b045c8a63",
+        "mb_trackid": "2e30cd9c-b9ec-44c4-8103-1d56488c6049",
+        "mb_workid": "e257d6fd-7c9b-3ead-8d5d-4b5f41998144",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "That’s the Story of My Life",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "That's the Story of My Life",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR36905209;USPR36909021",
+        "label": "Verve",
+        "language": "eng",
+        "length": 532.333,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "f904b7ef-ce58-4d5c-8ce3-af34e4335e4b",
+        "mb_trackid": "3a601072-ee0f-452c-a557-3dcc65370ac2",
+        "mb_workid": "a038ea5f-5213-30d5-b28b-df85a6e4c835",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Murder Mystery",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "The Murder Mystery",
+        "work_disambig": "",
+        "year": 1969
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Velvet Underground",
+        "album_id": null,
+        "albumartist": "The Velvet Underground",
+        "albumartist_credit": "The Velvet Underground",
+        "albumartist_sort": "Velvet Underground, The",
+        "albumartists": [
+          "The Velvet Underground"
+        ],
+        "albumartists_credit": [
+          "The Velvet Underground"
+        ],
+        "albumartists_sort": [
+          "Velvet Underground, The"
+        ],
+        "albumdisambig": "made in USA",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "The Velvet Underground"
+        ],
+        "arrangers_ids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "artist": "The Velvet Underground",
+        "artist_credit": "The Velvet Underground",
+        "artist_sort": "Velvet Underground, The",
+        "artists": [
+          "The Velvet Underground"
+        ],
+        "artists_credit": [
+          "The Velvet Underground"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Velvet Underground, The"
+        ],
+        "asin": "",
+        "barcode": "042281545429",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "815 454-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Reed, Lou",
+        "composers": [
+          "Lou Reed"
+        ],
+        "composers_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USF096900220;USPR36909022",
+        "label": "Verve",
+        "language": "eng",
+        "length": 127.306,
+        "lyricists": [
+          "Lou Reed"
+        ],
+        "lyricists_ids": [
+          "9d1ebcfe-4c15-4d18-95d3-d919898638a1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_albumartistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_albumid": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+        "mb_artistid": "94b0fb9d-a066-4823-b2ec-af1d324bcfcf",
+        "mb_artistids": [
+          "94b0fb9d-a066-4823-b2ec-af1d324bcfcf"
+        ],
+        "mb_releasegroupid": "a616dcf5-7a1f-3afe-a53b-27281c2bf75e",
+        "mb_releasetrackid": "de539934-c834-4812-b60c-a98421da688b",
+        "mb_trackid": "e4260b9d-3e57-46cb-b98f-1c35873888a2",
+        "mb_workid": "90b747e9-4b1d-3452-a875-cc9facb6639e",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 3,
+        "original_year": 1969,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Velvet Underground",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "After Hours",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 10,
+        "work": "Afterhours",
+        "work_disambig": "",
+        "year": 1969
+      }
+    }
+  }
+}
