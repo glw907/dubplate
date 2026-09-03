@@ -84,21 +84,23 @@ scope creep, and the same mechanism a future case can hit again.
 
 ## The structural stratum
 
-Pass 2b's own cases, roughly 60-120 of them across 15 shape families
+Pass 2b's own cases: 61 of them across 15 shape families
 (`docs/superpowers/research/2026-09-02-beets-structural-stratum-inventory.md`,
 section (b)), each a synthetic release built through `harness synth`
 rather than a live capture: matcher-behavior coverage, where the smoke
-corpus above is machinery coverage. Every row names the case's family,
-the structural shape it exercises, and its hand-edit column: an edit to
-the generated `responses/001.json` made before the case's first freeze,
-reached only for a shape `ReleaseSpec` cannot otherwise express (the
-response hand-edit escape hatch, staleness-corrections ruling 3). The
-routine empty-search fallback response a fallthrough case adds (a
-hand-written empty search result plus a hand-added `requests` entry,
-"Authoring a synthetic case" step 3 below) is the sanctioned default and
-is never itself a named hand-edit. This table is filled in family by
-family as each case-authoring task lands; Task 14 rewrites it whole once
-every family is committed.
+corpus above is machinery coverage. Together with the smoke corpus's
+seven live cases, the corpus commits 68 cases total, the count `ls
+corpus/cases | wc -l` reads directly off the tree (no case counts
+itself twice: every id under `corpus/cases/` appears in exactly one
+family table below or the smoke table above). Every row names the
+case's family, the structural shape it exercises, and its hand-edit
+column: an edit to the generated `responses/001.json` made before the
+case's first freeze, reached only for a shape `ReleaseSpec` cannot
+otherwise express (the response hand-edit escape hatch,
+staleness-corrections ruling 3). The routine empty-search fallback
+response a fallthrough case adds (a hand-written empty search result
+plus a hand-added `requests` entry, "Authoring a synthetic case" step 3
+below) is the sanctioned default and is never itself a named hand-edit.
 
 ### Family 1: assignment and ordering
 
@@ -478,14 +480,15 @@ release-absolute or a per-disc track number, and the guard that makes
 an absent item-side track number a different code path from a
 mismatched one rather than a zero-diff variant of it. The inventory's
 own row names four shapes (absolute matches, per-disc matches,
-mismatch, index absent) but budgets three: `track-index-mismatch-
-and-absent` covers the last two together (staleness-corrections Task
-12 note), a candidate whose items include both a track with an absent
-index and a track with a mismatched one. Every case is a two-medium,
-3-tracks-per-disc release (family 12's first two cases) or a single-
-disc, 3-track release (the third), with no `disctotal`/`media`
-overrides at all, so `mediums`/`media` never fire and the `tracks`
-penalty isolates `track_index` cleanly, the same discipline family 6
+mismatch, index absent) but budgets three:
+`track-index-mismatch-and-absent` covers the last two together
+(staleness-corrections Task 12 note), a candidate whose items include
+both a track with an absent index and a track with a mismatched one.
+Every case is a two-medium, 3-tracks-per-disc release (family 12's
+first two cases) or a single-disc, 3-track release (the third), with
+no `disctotal`/`media` overrides at all, so `mediums`/`media` never
+fire and the `tracks` penalty isolates `track_index` cleanly, the
+same discipline family 6
 uses for its own per-track `medium` case. No case in this family
 hand-edits a generated response; the mismatch-and-absent case's
 routine empty-search fallback never fires at all, since its ID-lookup
@@ -516,7 +519,7 @@ is no way to compute it without generating the release first, since
 prints none of them). Both cases are a single-disc, 3-track release
 with the override on the first item alone, the same one-item-diverges
 shape families 8, 9, and 11 use to isolate a component cleanly; items
-1 and 2 carry no `mb_trackid` at all, so `track_id` is absent for them
+2 and 3 carry no `mb_trackid` at all, so `track_id` is absent for them
 in both cases, not present at 0.
 
 | id | shape | hand-edit |
@@ -550,7 +553,7 @@ for family 3's misflag case.
 | id | shape | hand-edit |
 | --- | --- | --- |
 | `admit-duplicate-candidate` | a 3-track release with every item's `data_source` overridden to `"Bandcamp"` (family 5's own recipe, `distance: 0.0875`, medium), falling to the search fallback: the hand-authored `responses/002.json` lists the release's own id twice in one search document rather than the routine empty result. Both entries resolve to the same fetched `AlbumInfo` (the stub replays `responses/001.json` for every request to that URL, no new response needed); `_add_candidate` admits the first and discards the second as a duplicate, leaving exactly one candidate in the record, identical to what a genuinely empty search would have produced. | `responses/002.json` is a non-empty search document (the release's own id, twice), reached only by hand: `harness synth` never emits a non-empty search body itself |
-| `admit-zero-track-dropped` | a normal 3-track release, synthesized and derived once to seed a well-formed response, then `responses/001.json` hand-edited to empty every medium's `tracks` array (`track-count: 0`) before the case's own freeze: the musicbrainz plugin parses a zero-track `AlbumInfo`, `_add_candidate` discards it outright (`if not info.tracks: return`), and the ID-lookup search never adds a single candidate. The routine empty search fallback finds nothing either, so the record carries no candidate at all: `recommendation: none`, `candidates: []`, the `min_candidates: 0` claims mode (`internal/harness/analysis/claims.go`), a skipped row in `ties.json` (auto-derived by `derive_ties.py`, staleness-corrections ruling 1), and a named skip in `proximity.json` (the flag's own zero-candidate guard, `internal/harness/analysis/proximity.go`'s `Flag`). | `responses/001.json`'s three `media[].tracks` arrays emptied (and `track-count` zeroed) after the first synth pass, before the case's own freeze |
+| `admit-zero-track-dropped` | a normal 3-track release, synthesized and derived once to seed a well-formed response, then `responses/001.json` hand-edited to empty every medium's `tracks` array (`track-count: 0`) before the case's own freeze: the musicbrainz plugin parses a zero-track `AlbumInfo`, `_add_candidate` discards it outright (`if not info.tracks: return`), and the ID-lookup search never adds a single candidate. The routine empty search fallback finds nothing either, so the record carries no candidate at all: `recommendation: none`, `candidates: []`, the `min_candidates: 0` claims mode (`internal/harness/analysis/claims.go`), a skipped row in `ties.json` (auto-derived by `derive_ties.py`, staleness-corrections ruling 1), and a named skip in `proximity.json` (the flag's own zero-candidate guard, `internal/harness/analysis/proximity.go`'s `Flag`). | `responses/001.json`'s one `media[].tracks` array emptied (and `track-count` zeroed) after the first synth pass, before the case's own freeze |
 
 ### Family 15: the recommendation and threshold boundary
 

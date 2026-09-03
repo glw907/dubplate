@@ -21,6 +21,7 @@ func TestCheckClaimsAgainstARealRecord(t *testing.T) {
 		{"written off the record", "good", ""},
 		{"best album id changed by one character", "mutated-album-id", "best_album_id"},
 		{"a zero penalty claimed nonzero", "mutated-penalty", `penalty "year" claimed nonzero`},
+		{"a present-at-zero penalty claimed absent", "mutated-penalty-absent", `penalty "album" claimed absent`},
 		{"one assignment pair moved", "mutated-assignment", "assignment item 3"},
 		{"an applied spot value moved", "mutated-applied-field", "applied_fields item 0"},
 	}

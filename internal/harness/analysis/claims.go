@@ -34,13 +34,18 @@ const ClaimsFileName = "claims.json"
 // zero as a trivially-satisfied lower bound. The remaining optional
 // fields are per family: Assignment, ExtraItemsLen, and ExtraTracksLen
 // for the assignment family, AppliedFields for the per_disc_numbering
-// cases.
+// cases. PenaltyKeysAbsent names keys the best candidate's penalty map
+// must not carry at all, distinct from PenaltyKeysZero: a component
+// gated on a falsy `likelies` value never runs `add_*`, so the key is
+// never added, where a component that runs and finds no distance adds
+// the key at 0.0 and still counts it in the normalizer's denominator.
 type Claims struct {
 	MinCandidates      *int                      `json:"min_candidates,omitempty"`
 	BestAlbumID        string                    `json:"best_album_id"`
 	Recommendation     string                    `json:"recommendation"`
 	PenaltyKeysNonzero []string                  `json:"penalty_keys_nonzero,omitempty"`
 	PenaltyKeysZero    []string                  `json:"penalty_keys_zero,omitempty"`
+	PenaltyKeysAbsent  []string                  `json:"penalty_keys_absent,omitempty"`
 	Assignment         map[string]int            `json:"assignment,omitempty"`
 	ExtraItemsLen      *int                      `json:"extra_items_len,omitempty"`
 	ExtraTracksLen     *int                      `json:"extra_tracks_len,omitempty"`
@@ -131,6 +136,11 @@ func CheckClaims(exp *cassette.Expected, c *Claims) error {
 			errs = append(errs, fmt.Errorf("claims: penalty %q claimed zero but the best candidate never added it", key))
 		case v != 0:
 			errs = append(errs, fmt.Errorf("claims: penalty %q claimed zero, recorded %v", key, v))
+		}
+	}
+	for _, key := range c.PenaltyKeysAbsent {
+		if _, ok := best.Penalties[key]; ok {
+			errs = append(errs, fmt.Errorf("claims: penalty %q claimed absent, but the best candidate carries it", key))
 		}
 	}
 	if c.ExtraItemsLen != nil && len(exp.ExtraItems) != *c.ExtraItemsLen {
