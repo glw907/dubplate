@@ -589,8 +589,11 @@ are marked [E].
    accepted-format allowlist in the gate policy, the estate set to
    FLAC-only, other adopters free to admit lossy formats; the
    shipped default and the reject-copy wording per format are this
-   rung's design details, and the tag I/O scope (rung 8) plus the
-   matcher are format-agnostic upstream of it. The `web/`
+   rung's design details. The allowlist is BOUNDED by rung 8's tag
+   I/O support (pure-Go FLAC at launch): the gate never admits a
+   format the server cannot tag, so a permissive adopter's wider
+   allowlist arrives with post-launch tag I/O extensions (ID3 and
+   friends), not by loosening intake alone. The `web/`
    legs rejoin the repo gate here. The album is the verdict unit: one
    failing track rejects the batch, and no partial album is ever
    admitted. This rung carries an attended moment the process section
