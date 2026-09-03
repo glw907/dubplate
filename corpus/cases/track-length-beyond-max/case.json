@@ -1,0 +1,468 @@
+{
+  "id": "track-length-beyond-max",
+  "input": {
+    "items": [
+      {
+        "album": "Harbor Static",
+        "albumartist": "Coldwell Iris",
+        "artist": "Coldwell Iris",
+        "length": 255,
+        "mb_albumid": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "title": "Drift Line",
+        "track": 1,
+        "year": 2013
+      },
+      {
+        "album": "Harbor Static",
+        "albumartist": "Coldwell Iris",
+        "artist": "Coldwell Iris",
+        "length": 245,
+        "mb_albumid": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "title": "Low Static",
+        "track": 2,
+        "year": 2013
+      },
+      {
+        "album": "Harbor Static",
+        "albumartist": "Coldwell Iris",
+        "artist": "Coldwell Iris",
+        "length": 198,
+        "mb_albumid": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "title": "Harbor Bell",
+        "track": 3,
+        "year": 2013
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/9fa43287-33e8-4900-a34e-b41df3dc3c39?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "distance": 0.037037037037037035,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0.037037037037037035,
+          "year": 0
+        },
+        "tracks": [
+          0.3333333333333333,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harbor Static",
+        "album_id": null,
+        "albumartist": "Coldwell Iris",
+        "albumartist_credit": "Coldwell Iris",
+        "albumartist_sort": "Coldwell Iris",
+        "albumartists": [
+          "Coldwell Iris"
+        ],
+        "albumartists_credit": [
+          "Coldwell Iris"
+        ],
+        "albumartists_sort": [
+          "Coldwell Iris"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coldwell Iris",
+        "artist_credit": "Coldwell Iris",
+        "artist_sort": "Coldwell Iris",
+        "artists": [
+          "Coldwell Iris"
+        ],
+        "artists_credit": [
+          "Coldwell Iris"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coldwell Iris"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 210,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2c65530c-7810-bb7b-4bf1-0b57a5e29c33",
+        "mb_albumartistids": [
+          "2c65530c-7810-bb7b-4bf1-0b57a5e29c33"
+        ],
+        "mb_albumid": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "mb_artistid": "2c65530c-7810-bb7b-4bf1-0b57a5e29c33",
+        "mb_artistids": [
+          "2c65530c-7810-bb7b-4bf1-0b57a5e29c33"
+        ],
+        "mb_releasegroupid": "1a8baff8-804c-7750-24dd-5dbc4e277e75",
+        "mb_releasetrackid": "13132bdf-980c-ceb6-4472-585600975445",
+        "mb_trackid": "ebd02797-0cf7-d2c9-4948-6c466eb02f70",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 5,
+        "original_year": 2013,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harbor Static",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Drift Line",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harbor Static",
+        "album_id": null,
+        "albumartist": "Coldwell Iris",
+        "albumartist_credit": "Coldwell Iris",
+        "albumartist_sort": "Coldwell Iris",
+        "albumartists": [
+          "Coldwell Iris"
+        ],
+        "albumartists_credit": [
+          "Coldwell Iris"
+        ],
+        "albumartists_sort": [
+          "Coldwell Iris"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coldwell Iris",
+        "artist_credit": "Coldwell Iris",
+        "artist_sort": "Coldwell Iris",
+        "artists": [
+          "Coldwell Iris"
+        ],
+        "artists_credit": [
+          "Coldwell Iris"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coldwell Iris"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 245,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2c65530c-7810-bb7b-4bf1-0b57a5e29c33",
+        "mb_albumartistids": [
+          "2c65530c-7810-bb7b-4bf1-0b57a5e29c33"
+        ],
+        "mb_albumid": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "mb_artistid": "2c65530c-7810-bb7b-4bf1-0b57a5e29c33",
+        "mb_artistids": [
+          "2c65530c-7810-bb7b-4bf1-0b57a5e29c33"
+        ],
+        "mb_releasegroupid": "1a8baff8-804c-7750-24dd-5dbc4e277e75",
+        "mb_releasetrackid": "ac74eafe-156a-0e00-1f76-d123f53483b8",
+        "mb_trackid": "f6e4b45e-3b20-0c8e-8ec2-bba0c68e6797",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 5,
+        "original_year": 2013,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harbor Static",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Low Static",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harbor Static",
+        "album_id": null,
+        "albumartist": "Coldwell Iris",
+        "albumartist_credit": "Coldwell Iris",
+        "albumartist_sort": "Coldwell Iris",
+        "albumartists": [
+          "Coldwell Iris"
+        ],
+        "albumartists_credit": [
+          "Coldwell Iris"
+        ],
+        "albumartists_sort": [
+          "Coldwell Iris"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coldwell Iris",
+        "artist_credit": "Coldwell Iris",
+        "artist_sort": "Coldwell Iris",
+        "artists": [
+          "Coldwell Iris"
+        ],
+        "artists_credit": [
+          "Coldwell Iris"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coldwell Iris"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 198,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "2c65530c-7810-bb7b-4bf1-0b57a5e29c33",
+        "mb_albumartistids": [
+          "2c65530c-7810-bb7b-4bf1-0b57a5e29c33"
+        ],
+        "mb_albumid": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+        "mb_artistid": "2c65530c-7810-bb7b-4bf1-0b57a5e29c33",
+        "mb_artistids": [
+          "2c65530c-7810-bb7b-4bf1-0b57a5e29c33"
+        ],
+        "mb_releasegroupid": "1a8baff8-804c-7750-24dd-5dbc4e277e75",
+        "mb_releasetrackid": "0a88d513-871e-0e07-b277-cbd2193dafb5",
+        "mb_trackid": "8aa8a701-2e98-a42b-75d6-af6cd89986a1",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 5,
+        "original_year": 2013,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harbor Static",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Harbor Bell",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2013
+      }
+    }
+  }
+}

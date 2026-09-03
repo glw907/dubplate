@@ -325,6 +325,38 @@
       "unique": true
     },
     {
+      "case_id": "track-length-beyond-grace-under-max",
+      "album_id": "e8419e85-d1ce-49a3-a9a0-f56d70c996c6",
+      "optimal_cost": 0.1111111111111111,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.3888888888888888,
+      "unique": true
+    },
+    {
+      "case_id": "track-length-beyond-max",
+      "album_id": "9fa43287-33e8-4900-a34e-b41df3dc3c39",
+      "optimal_cost": 0.3333333333333333,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.1666666666666667,
+      "unique": true
+    },
+    {
+      "case_id": "track-length-candidate-absent",
+      "album_id": "4b682cc7-c59c-4323-ae3d-9a3f272d825f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.563888888888889,
+      "difference": 1.563888888888889,
+      "unique": true
+    },
+    {
+      "case_id": "track-length-within-grace",
+      "album_id": "05afe128-e1fc-4ea5-a1be-ce0baf8e0dd2",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3666666666666667,
+      "difference": 1.3666666666666667,
+      "unique": true
+    },
+    {
       "case_id": "va-exact",
       "album_id": "796b5580-c491-5652-a2b8-333f7669e35c",
       "optimal_cost": 0,

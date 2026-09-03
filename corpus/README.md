@@ -429,6 +429,45 @@ case, `country`), and wins on distance regardless.
 | `rich-album-id-recovers-clean` | items match the recovered release's content exactly (title, length, track, artist, album, year) except the shared wrong `mb_albumid`: after recovery, `album_id: 0.278` is the sole nonzero penalty on the winning candidate, isolating the component cleanly; `distance: 0.278`, `recommendation: none` (`match.py`'s own gap-threshold branch: past `medium_rec_thresh` with a single-candidate margin over the wrong release too small to call it `low`), skip. | none |
 | `rich-album-id-recovers-country` | the same recovery shape with every item's `country` also overridden to mismatch the recovered release's own (folding family 8's component into the recovery path): the winning candidate carries both `album_id: 0.270` and `country: 0.027` nonzero, `distance: 0.297`, `recommendation: none`, skip. | none |
 
+### Family 11: track length
+
+`track-length-*`, 4 cases. `distance.py:397-399`'s `track_length`
+component, `track_distance`'s only ratio-shaped penalty:
+`diff = abs(item.length - info_length) - track_length_grace`, then
+`add_ratio("track_length", diff, track_length_max)` bounds `diff` at
+`[0, track_length_max]` before dividing by it. Both knobs stay at
+beets' shipped defaults under both corpus profiles
+(`track_length_grace: 10`, `track_length_max: 30` seconds), and
+`if info_length := track_info.length:` gates the whole component on
+the candidate track's own length being truthy, which is what makes
+the fourth shape (the candidate side absent) a different code path
+from the other three rather than a zero-diff variant of them. Every
+case is a 3-track release with only its first item's `length`
+overridden; the remaining two items match their own candidate tracks
+exactly, so `tracks` (the album-level aggregate `track_distance`
+folds into, distance.py:530) isolates the one perturbed track's own
+normalized distance cleanly, the same one-item-diverges shape family
+8 and 9 use for their own one-sided cases. No case in this family
+hand-edits a generated response: every ID-lookup candidate here scores
+strong (`match.py:436-442`'s early return), so none reaches the search
+fallback at all, unlike most of the corpus's other single-perturbation
+families whose fallback returns empty. `track-length-candidate-absent`
+needs a spec track `length: 0` (the pass 2b staleness corrections'
+binding note on this task): `harness synth` always serializes a
+numeric WS/2 track and recording length, so 0 is the only way to
+express "absent" through the tool, and the same override mechanism
+every other case in this family uses (`op: field` on the item at index
+0) restores that item's own length to a normal value afterward, since
+the spec's item-derivation default would otherwise leave the item's
+length at the same 0 the candidate side carries.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `track-length-within-grace` | the first item's `length` overridden 8 seconds off its candidate track's own 210: `diff = 8 - 10 = -2`, bound at 0, `track_length` reads 0 like the other two untouched tracks; `tracks: 0`, distance 0, strong. | none |
+| `track-length-beyond-grace-under-max` | the same shape with a 20-second offset: `diff = 20 - 10 = 10`, `track_length: 10/30 = 0.333` on the perturbed track alone, folding into `tracks: 0.0123` at the album level (still comfortably strong, 0.0123 < 0.04). | none |
+| `track-length-beyond-max` | the same shape with a 45-second offset: `diff = 45 - 10 = 35`, bound at `track_length_max` (30), `track_length: 1.0` on the perturbed track, `tracks: 0.037`, the ceiling this one-of-three-tracks shape can reach and still just inside strong (0.037 < 0.04). | none |
+| `track-length-candidate-absent` | the candidate's first track carries `length: 0` (the spec's only way to emit an absent WS/2 length) while the item's own `length` override restores a normal value: `track_info.length` is falsy, so `track_distance` never adds `track_length` at all for that track, distinct from the within-grace case's key present at 0; `tracks: 0`, distance 0, strong. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
