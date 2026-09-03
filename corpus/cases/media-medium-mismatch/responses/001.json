@@ -1,0 +1,249 @@
+{
+  "id": "482744bf-0ea8-4a14-ab34-bfe5a8abc199",
+  "title": "Parallel Tides",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2021-04-17",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Corwin Vale",
+      "joinphrase": "",
+      "artist": {
+        "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+        "name": "Corwin Vale",
+        "sort-name": "Corwin Vale",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "c3678a86-47d7-e8ee-a0dd-20e363feeb29",
+    "title": "Parallel Tides",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2021-04-17",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2021-04-17",
+      "area": {
+        "id": "987256f8-5c43-6282-f43b-2e584bf12247",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "5dbd6b08-2c23-d4f9-88f5-600aced2163a",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 185000,
+          "artist-credit": null,
+          "recording": {
+            "id": "009fa04a-99d4-29a4-8f0b-4630294c02ac",
+            "title": "Parallel Tides",
+            "length": 185000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Corwin Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+                  "name": "Corwin Vale",
+                  "sort-name": "Corwin Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "2f408443-1129-6a35-2c63-fe35efd9a1fe",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5d8fc43a-2bab-0146-b5bb-d0ecbfc9ebcd",
+            "title": "Undertow",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Corwin Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+                  "name": "Corwin Vale",
+                  "sort-name": "Corwin Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ff6599ee-3909-5f18-a6f8-7669d88c5684",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 175000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7e797d2c-65df-894f-7c74-090ab4787148",
+            "title": "Drift",
+            "length": 175000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Corwin Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+                  "name": "Corwin Vale",
+                  "sort-name": "Corwin Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "d1fde4d0-0fdf-107a-7c4f-416aaf6b8d39",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "756de25f-8509-3335-3f9d-bce10ede2b5d",
+            "title": "Mirror Coast",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Corwin Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+                  "name": "Corwin Vale",
+                  "sort-name": "Corwin Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b6089044-fbd3-e337-8079-ce9825e7de70",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "da17702c-f7ce-5f47-89c7-a0a26109bd5b",
+            "title": "Backwash",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Corwin Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+                  "name": "Corwin Vale",
+                  "sort-name": "Corwin Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "49a59597-e11f-2161-4775-9d9a54458b82",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "b0f70af8-774e-4d4f-0566-74c268c1756a",
+            "title": "Return",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Corwin Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "00114a7b-ccd6-261f-c464-10cfe1c3c5d8",
+                  "name": "Corwin Vale",
+                  "sort-name": "Corwin Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

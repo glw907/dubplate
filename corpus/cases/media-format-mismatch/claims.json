@@ -1,0 +1,48 @@
+{
+  "applied_fields": {
+    "0": {
+      "disc": 1,
+      "disctotal": 2,
+      "media": "CD",
+      "track": 1,
+      "tracktotal": 3
+    },
+    "3": {
+      "disc": 2,
+      "disctotal": 2,
+      "media": "CD",
+      "track": 1,
+      "tracktotal": 3
+    },
+    "5": {
+      "disc": 2,
+      "disctotal": 2,
+      "media": "CD",
+      "track": 3,
+      "tracktotal": 3
+    }
+  },
+  "assignment": {
+    "0": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5
+  },
+  "best_album_id": "aa575dee-be25-4a6b-955d-0dede15b58a0",
+  "extra_items_len": 0,
+  "extra_tracks_len": 0,
+  "penalty_keys_nonzero": [
+    "media"
+  ],
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "artist",
+    "mediums",
+    "tracks",
+    "year"
+  ],
+  "recommendation": "strong"
+}

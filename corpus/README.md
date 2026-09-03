@@ -282,6 +282,41 @@ default, never a named hand-edit.
 | `datasrc-one-track-penalty` | a 3-track release with a single item's `data_source` overridden to `"Bandcamp"`, the other two left unset. `get_most_common_tags`'s plurality vote still picks the two unset items' empty value as the album-level consensus, so `distance()`'s own `add_data_source` call never fires and the record carries no album-level `data_source` key at all; but `track_distance`'s per-track call reads that one item's own field directly, regardless of consensus, and fires for it alone (`tracks: 0.0139`). `album` reads 0, distance 0.0139, strong. | none |
 | `datasrc-album-penalty` | the same shape with all 3 items' `data_source` overridden to `"Bandcamp"` uniformly: the consensus itself is now foreign, so both calls fire, the album-level one directly (`data_source: 0.05`) and every per-track one folded into `tracks` (`tracks: 0.0375`). Distance 0.0875 pushes the ID-lookup match out of `strong`, falling to the search fallback (empty result, the routine default), medium, skip. | none |
 
+### Family 6: media/mediums/disc structure
+
+`media-*`, 5 cases, all two-medium releases (`harness synth`'s own
+`multiDisc` branch, `internal/harness/synth/synth.go:66`), exercising
+`distance()`'s album-level `media` and `mediums` components
+(distance.py:454-469) and `track_distance`'s per-track `medium`
+component (distance.py:420-422). `harness synth` never sets a derived
+item's own `disctotal` or `media` tag (only `disc`, and only on a
+multi-medium spec), so every case that wants `likelies["disctotal"]`
+or `likelies["media"]` truthy needs an explicit `field` override
+naming it; `corpus/cases/multi-disc/claims.json` is the applied-fields
+claims template these five follow. The inventory's own row names four
+shapes (disctotal mismatch, media-format mismatch, uneven disc split,
+the correct baseline) but budgets five; the fifth is the `medium`
+component itself (distance.py:420-422, `item.disc != track_info.medium`),
+a per-track code path distinct from the three album-level shapes and
+reachable only by overriding one item's own `disc` field against its
+real candidate track, the same undercount-resolving move family 3
+made for its own seventh case. Every applied record confirms apply-
+time fields (`disc`, `disctotal`, `track`, `tracktotal`, `media`) come
+from the winning candidate, never from an item's own (deliberately
+wrong) tag, matching `test_hooks.py`'s `test_per_disc_numbering`
+(`track` = the candidate's `medium_index`, `tracktotal` = its
+`medium_total`) with no divergence to record. No case in this family
+hand-edits a generated response; every shape is expressible through
+`overrides` alone.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `media-baseline` | a two-medium, 3-tracks-per-disc release (a synthetic analogue of the smoke `multi-disc` case) whose every item carries an explicit `disctotal: 2` / `media: "CD"` override matching the candidate exactly: `media` and `mediums` both read present at 0 rather than absent, distance 0, strong. | none |
+| `media-disctotal-mismatch` | the same shape with every item's `disctotal` override set to `1` against the candidate's actual 2 media: `likelies["disctotal"]` (1) and `album_info.mediums` (2) disagree, firing `mediums: 0.0385` alone (`media` stays 0 via its own matching override); still strong (0.0385 < 0.04). Every item's applied `disctotal` still reads 2, the candidate's own value, not the item's wrong tag. | none |
+| `media-format-mismatch` | the same shape with every item's `media` override set to `"Vinyl"` against the candidate's actual `"CD"`: `add_equality` fires `media: 0.0385` alone (`mediums` stays 0 via its own matching override); still strong. Every item's applied `media` still reads `"CD"`. | none |
+| `media-uneven-split` | a two-medium release with a 4-track and a 2-track disc (disctotal/media overrides matching, as `media-baseline`): distance 0, strong, and its applied `track`/`tracktotal` diverge correctly per disc under `per_disc_numbering` (disc 1: `track` 1-4 of `tracktotal: 4`; disc 2: `track` 1-2 of `tracktotal: 2`), proving the even 13+13 smoke split was not load-bearing for that mechanism. | none |
+| `media-medium-mismatch` | the same shape as `media-baseline` (no disctotal/media overrides) with one item's `disc` field overridden from its real disc (1) to the wrong one (2): `track_distance`'s `medium` component fires for that track alone (folded into `tracks: 0.0119`, `penalty_keys_nonzero: ["tracks"]`, since `medium` is never itself a top-level penalty key, distance.py:526-530), still strong. The applied `disc` for that item reads 1, the candidate's own value, not the item's wrong tag. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

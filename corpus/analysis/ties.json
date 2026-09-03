@@ -145,6 +145,46 @@
       "unique": true
     },
     {
+      "case_id": "media-baseline",
+      "album_id": "af104edf-4ad0-42bc-8328-627d5f4e0429",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.9523809523809524,
+      "difference": 0.9523809523809524,
+      "unique": true
+    },
+    {
+      "case_id": "media-disctotal-mismatch",
+      "album_id": "adeb1868-4b64-4c58-aacf-61aa642db0fb",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0476190476190477,
+      "difference": 1.0476190476190477,
+      "unique": true
+    },
+    {
+      "case_id": "media-format-mismatch",
+      "album_id": "aa575dee-be25-4a6b-955d-0dede15b58a0",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2857142857142858,
+      "difference": 1.2857142857142858,
+      "unique": true
+    },
+    {
+      "case_id": "media-medium-mismatch",
+      "album_id": "482744bf-0ea8-4a14-ab34-bfe5a8abc199",
+      "optimal_cost": 0.14285714285714285,
+      "best_forbidden_cost": 1.1538461538461537,
+      "difference": 1.010989010989011,
+      "unique": true
+    },
+    {
+      "case_id": "media-uneven-split",
+      "album_id": "6cdd8070-54ab-4e1a-9da5-d789dcf10c3c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0952380952380953,
+      "difference": 1.0952380952380953,
+      "unique": true
+    },
+    {
       "case_id": "multi-disc",
       "album_id": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
       "optimal_cost": 0,

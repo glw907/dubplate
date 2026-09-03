@@ -1,0 +1,249 @@
+{
+  "id": "aa575dee-be25-4a6b-955d-0dede15b58a0",
+  "title": "Coldwater Session",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2013-11-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Selwyn Brake",
+      "joinphrase": "",
+      "artist": {
+        "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+        "name": "Selwyn Brake",
+        "sort-name": "Selwyn Brake",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "fd1f0574-a3c2-8ceb-477a-65555d0e0df2",
+    "title": "Coldwater Session",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2013-11-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2013-11-05",
+      "area": {
+        "id": "fad73575-b748-477c-3ed6-ede8cd4135bf",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "e408d906-e4d2-352e-1098-973a965d7b81",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 165000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4f918031-4cee-4d47-4d21-1472f94d0fb3",
+            "title": "Coldwater",
+            "length": 165000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Selwyn Brake",
+                "joinphrase": "",
+                "artist": {
+                  "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+                  "name": "Selwyn Brake",
+                  "sort-name": "Selwyn Brake",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "081a5b28-129b-1af5-013c-a0cf48a1dabf",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d8de8925-194d-deb0-80c0-c150607ecc49",
+            "title": "Iron Frost",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Selwyn Brake",
+                "joinphrase": "",
+                "artist": {
+                  "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+                  "name": "Selwyn Brake",
+                  "sort-name": "Selwyn Brake",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "70d351d4-203d-d348-53a8-e6964efb9250",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 185000,
+          "artist-credit": null,
+          "recording": {
+            "id": "50b8163b-dea1-5ed8-4fea-64ccbf6b0685",
+            "title": "Night Session",
+            "length": 185000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Selwyn Brake",
+                "joinphrase": "",
+                "artist": {
+                  "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+                  "name": "Selwyn Brake",
+                  "sort-name": "Selwyn Brake",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "beed08f0-5d55-e7ee-d9db-f0e8408cdb74",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e6e529c7-6e54-eb85-ba08-a5affea57524",
+            "title": "Winter Take",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Selwyn Brake",
+                "joinphrase": "",
+                "artist": {
+                  "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+                  "name": "Selwyn Brake",
+                  "sort-name": "Selwyn Brake",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "98946a1f-dff8-0d91-672b-3537a80b2bc4",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 245000,
+          "artist-credit": null,
+          "recording": {
+            "id": "aaaa3679-e2dc-7232-fae5-3658357c63f8",
+            "title": "Slow Burn",
+            "length": 245000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Selwyn Brake",
+                "joinphrase": "",
+                "artist": {
+                  "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+                  "name": "Selwyn Brake",
+                  "sort-name": "Selwyn Brake",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "06cfe4a2-0953-b739-629b-8c6a8eded64f",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 155000,
+          "artist-credit": null,
+          "recording": {
+            "id": "818bf8e4-6b26-99b1-e58a-704e04ff2f71",
+            "title": "Last Light",
+            "length": 155000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Selwyn Brake",
+                "joinphrase": "",
+                "artist": {
+                  "id": "da6a4db2-af87-0c2d-3f1d-bf06addfb542",
+                  "name": "Selwyn Brake",
+                  "sort-name": "Selwyn Brake",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

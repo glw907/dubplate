@@ -1,0 +1,249 @@
+{
+  "id": "af104edf-4ad0-42bc-8328-627d5f4e0429",
+  "title": "Low Country Suite",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-12",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Fenwick Aldous",
+      "joinphrase": "",
+      "artist": {
+        "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+        "name": "Fenwick Aldous",
+        "sort-name": "Fenwick Aldous",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "4fc33de6-b934-60a3-569b-3ab0fcf09272",
+    "title": "Low Country Suite",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-12",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-12",
+      "area": {
+        "id": "23754251-99b9-d0fb-883e-186a286b5ffb",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "250d3c5c-479e-62f6-32e8-2d9cada73032",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a5b85225-e72b-25ed-9f48-d69b31d1b942",
+            "title": "Tideline",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fenwick Aldous",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+                  "name": "Fenwick Aldous",
+                  "sort-name": "Fenwick Aldous",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "21058b88-f2a2-5b4d-ee0e-91762ebb6784",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "eb330964-7775-f95e-95cd-8145a8e6951c",
+            "title": "Salt Air",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fenwick Aldous",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+                  "name": "Fenwick Aldous",
+                  "sort-name": "Fenwick Aldous",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ac5b8af8-6c93-744b-8932-7c20b3b4cbf0",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 150000,
+          "artist-credit": null,
+          "recording": {
+            "id": "630730e9-420c-fd4c-f896-70eedfe34376",
+            "title": "North Wind",
+            "length": 150000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fenwick Aldous",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+                  "name": "Fenwick Aldous",
+                  "sort-name": "Fenwick Aldous",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "14e39de2-e897-c96d-15e4-e83688663167",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0b21922a-a97d-2d3b-ec44-400faaf382af",
+            "title": "Quiet Harbor",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fenwick Aldous",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+                  "name": "Fenwick Aldous",
+                  "sort-name": "Fenwick Aldous",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "1dcfe4eb-eb06-1357-2427-81577e10aa9b",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "1016a8f1-b07e-7496-7c02-f4318f288d0e",
+            "title": "Grey Water",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fenwick Aldous",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+                  "name": "Fenwick Aldous",
+                  "sort-name": "Fenwick Aldous",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4f378c02-4efe-2f08-da21-f7d69aa23477",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 240000,
+          "artist-credit": null,
+          "recording": {
+            "id": "36d85732-df10-c718-b2c2-017b87e95251",
+            "title": "Homebound",
+            "length": 240000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fenwick Aldous",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9d87e9ac-102e-6c66-9f3d-d0556991dedc",
+                  "name": "Fenwick Aldous",
+                  "sort-name": "Fenwick Aldous",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

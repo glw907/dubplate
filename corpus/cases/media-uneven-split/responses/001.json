@@ -1,0 +1,249 @@
+{
+  "id": "6cdd8070-54ab-4e1a-9da5-d789dcf10c3c",
+  "title": "Split Horizon",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2019-09-01",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Odette Fenn",
+      "joinphrase": "",
+      "artist": {
+        "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+        "name": "Odette Fenn",
+        "sort-name": "Odette Fenn",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "e0835da5-e25f-f700-be63-647287dda089",
+    "title": "Split Horizon",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2019-09-01",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2019-09-01",
+      "area": {
+        "id": "eee55625-4810-a18a-b5fc-5273bf67f27b",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 4,
+      "tracks": [
+        {
+          "id": "b0a09f67-b4de-c6d1-8194-11ef8b79fa71",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5b31bbed-d740-3c19-bbeb-bc7402b42c29",
+            "title": "Split Horizon",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Odette Fenn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+                  "name": "Odette Fenn",
+                  "sort-name": "Odette Fenn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "089f8e11-baee-60c8-d553-6fd30d04c315",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 175000,
+          "artist-credit": null,
+          "recording": {
+            "id": "27ab74be-ce38-d280-edb6-e5e75a533957",
+            "title": "Opening Fault",
+            "length": 175000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Odette Fenn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+                  "name": "Odette Fenn",
+                  "sort-name": "Odette Fenn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a3540895-6ee0-c5f8-4975-77dfd93dc72c",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a553e526-dcc5-a55e-5f24-16b0e92fe754",
+            "title": "Ridge Line",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Odette Fenn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+                  "name": "Odette Fenn",
+                  "sort-name": "Odette Fenn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a418f835-3797-4a1f-20e9-f36b4daba5b1",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 160000,
+          "artist-credit": null,
+          "recording": {
+            "id": "3b68afc3-e2e3-ae2b-366a-866d7f3a77dc",
+            "title": "Fold",
+            "length": 160000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Odette Fenn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+                  "name": "Odette Fenn",
+                  "sort-name": "Odette Fenn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 2,
+      "tracks": [
+        {
+          "id": "368e0ba6-9ae1-9cff-67ff-50485abd1d44",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "40c7209d-95d3-c37a-d44f-2f2eb7fdb330",
+            "title": "Aftershock",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Odette Fenn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+                  "name": "Odette Fenn",
+                  "sort-name": "Odette Fenn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "018a619f-77e0-7437-ede9-3daadcebd70c",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 240000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0865bd4c-abc1-e0a1-868c-79fcab7c9cc2",
+            "title": "Settling",
+            "length": 240000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Odette Fenn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+                  "name": "Odette Fenn",
+                  "sort-name": "Odette Fenn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

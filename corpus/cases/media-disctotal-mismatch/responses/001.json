@@ -1,0 +1,249 @@
+{
+  "id": "adeb1868-4b64-4c58-aacf-61aa642db0fb",
+  "title": "Two Rivers",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2017-02-20",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Marlowe Quinn",
+      "joinphrase": "",
+      "artist": {
+        "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+        "name": "Marlowe Quinn",
+        "sort-name": "Marlowe Quinn",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "2f9763d5-781d-690b-557e-de596ca40c18",
+    "title": "Two Rivers",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2017-02-20",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2017-02-20",
+      "area": {
+        "id": "3603e63e-a8aa-53ec-1c19-ff76c342f880",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "c6b6a71e-b50c-836d-d404-2bcba377719b",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 175000,
+          "artist-credit": null,
+          "recording": {
+            "id": "2250bb6f-b5b0-d1d6-62e4-d08f9e8519a9",
+            "title": "First Light",
+            "length": 175000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marlowe Quinn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+                  "name": "Marlowe Quinn",
+                  "sort-name": "Marlowe Quinn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "2a9648e9-8e68-6479-9ac7-ba4fca36d70c",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "530519be-a289-89fb-d36b-8cb154eb444c",
+            "title": "River Bend",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marlowe Quinn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+                  "name": "Marlowe Quinn",
+                  "sort-name": "Marlowe Quinn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "af29f4dd-34e4-1baa-fcd9-cd2cd12ad75d",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 160000,
+          "artist-credit": null,
+          "recording": {
+            "id": "40b14165-5d78-0798-4027-c17d221783ed",
+            "title": "Still Water",
+            "length": 160000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marlowe Quinn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+                  "name": "Marlowe Quinn",
+                  "sort-name": "Marlowe Quinn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "b5bb05a8-ffc4-63e5-d98b-1d8cf1323fc9",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "1ba917c8-6c9b-a6cc-9b17-e61903b24a3e",
+            "title": "Second Crossing",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marlowe Quinn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+                  "name": "Marlowe Quinn",
+                  "sort-name": "Marlowe Quinn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "cfadd827-81f3-466b-b00d-10c3ef8170a6",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e9884bd8-48f4-29c3-ae3b-2b1ed79f2778",
+            "title": "Low Tide",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marlowe Quinn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+                  "name": "Marlowe Quinn",
+                  "sort-name": "Marlowe Quinn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "52a6a822-d427-5b64-a2c5-a113bb385d0e",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 250000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5e517573-5a8b-973e-c7e0-99f8c3f7b0bc",
+            "title": "Far Shore",
+            "length": 250000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marlowe Quinn",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0f6f5af9-4c16-3def-5a25-5165678a10d4",
+                  "name": "Marlowe Quinn",
+                  "sort-name": "Marlowe Quinn",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
