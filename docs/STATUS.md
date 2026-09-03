@@ -66,11 +66,15 @@ Done: 2c-1 (ledgers + checkers + 5 hypotheses), 2c-2 + facts channel
 (693d737, de1bf85), 2c-3 the dossier (e238293 + 74bed2d + 1b953c3:
 96 primary + 12 reserve rows, all fact-verified axes re-checked by
 the reviewer; 52 staged candidate dirs await the batches; Task 18
-host: real-nonlatin-utada-first-love). Next: capture batches 1-12
-(tasks 4-15, 8 cases each) in quads with STATUS between quads
-(recorded deviation from per-task checkpoints), then adversarial
-strata, #6358/locale, stock-config 19a/19b, close with the
-adjudication batch prepared for Geoff.
+host: real-nonlatin-utada-first-love). Quad 1 (batches 1-4) landed
+30 of 32 cases, corpus at 98; three 529-killed reviews recovered via
+workflow resume. Conductor rulings: decoy sub-axis re-sourced as
+same-release-group pairs (WS/2 limit=5 never ranks the web-UI-picked
+decoys; 0/3 surfaced; an unreachable decoy is itself tier-one
+evidence); README apply/skip wording reworded in quad 2; one
+status-only /ws/2 curl breach disclosed, recorded at close. Next:
+quads 2-3 (batches 5-12), adversarial strata, #6358/locale,
+stock-config, close with Geoff's adjudication batch.
 Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
 12M if needed; after 2b closes, proceed into 2c fully - plan
 just-in-time, run the live real-catalog captures (anonymous 1 req/s),
