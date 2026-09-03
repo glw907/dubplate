@@ -166,9 +166,7 @@ type wsRelease struct {
 }
 
 // buildRelease renders spec's release into the WS/2 document pinned
-// beets fetches at its ID-lookup request, and, alongside it, the
-// derived per-medium track artist credits synth needs to build the
-// matching item set (keyed by medium index, then track position).
+// beets fetches at its ID-lookup request.
 func buildRelease(spec *ReleaseSpec) *wsRelease {
 	labelInfo := []wsLabelInfo{}
 	if spec.Label != "" || spec.CatalogNumber != "" {

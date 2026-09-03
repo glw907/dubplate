@@ -104,8 +104,9 @@ func repoRoot() (string, error) {
 //
 // Derive fails loudly, never silently, when the shim's echoed
 // evaluation date disagrees with c.EvalDate, when the shim omits its
-// config hash or its thresholds document, or when the rendered
-// profile does not load exactly one metadata-source plugin.
+// config hash, its thresholds document, or its weights document, or
+// when the rendered profile does not load exactly one metadata-source
+// plugin.
 func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expected, error) {
 	raw, err := deriveRaw(ctx, c, opts)
 	if err != nil {
