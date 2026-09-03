@@ -53,18 +53,16 @@ Pass 2b is executing from its plan (revision 2, committed 415c4d9;
 14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
 ruling: machinery tasks 1-3 first, then a staleness check of case
 tasks 4-13 against the shipped machinery before dispatching them.
-Machinery complete: 2b-1..3 accepted, simplifier landed (c1b8c05,
-mbrequest package), staleness review of case tasks 4-14 done, its
-five blockers resolved via pre-task 2b-3b (324428a + 72df002 +
-834c4b7: ties skip rows, claims min_candidates:0 mode,
-ReleaseSpec.original_date, hash-seed check). Conductor rulings and
-per-task dispatch corrections: committed in
-research/2026-09-02-rung-2b-staleness-corrections.md (dispatches
-fold it; it wins over the plan on its named points). Notable: two
-smoke cases genuinely tied, pinned; rung 3's solver must mirror
-lapjv tie-breaking. Next: case tasks 4-13 via pass-execute in
-batches of three with STATUS between batches (named deviation from
-per-task checkpoints; compaction risk low), then Task 14 closes.
+Case sweep: families 1-7 all accepted (45 cases committed; latest
+6a335af). Family 2's "combined" exclusivity and family 3's misflag
+request-log witness: ruled and recorded in the corrections doc
+(research/2026-09-02-rung-2b-staleness-corrections.md, which wins
+over the plan on its named points and carries all dispatch
+corrections). Next: batch C = plan tasks 10-13 (families 8-15,
+16 cases; task 13 uses the pre-task's zero-candidate machinery),
+then Task 14 closes the pass (inventory read off the tree,
+determinism run with wall-time breakdown). After close: post-mortem,
+2c plan, overnight captures per the recorded grants.
 Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
 12M if needed; after 2b closes, proceed into 2c fully - plan
 just-in-time, run the live real-catalog captures (anonymous 1 req/s),
