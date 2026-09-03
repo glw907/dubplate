@@ -30,26 +30,47 @@ user-path page before any attended ask (`see-it-before-geoff-tests-it`).
   `docs/superpowers/`, migrated into the repo at T14; the dotfiles copies
   are pointers only).
 
-## Build process (greenfield initiative; ratified 2026-09-02)
+## Build process (greenfield initiative; ratified 2026-09-02, re-keyed 2026-09-03)
 
-The build runs in session-scale ARCS, never one session per rung:
-foundation (rung 1), evidence (2-4), spine (5-9), surfaces (10-14),
-launch (15-17). Inside an arc: no session clears, no re-brainstorm.
-Between arcs: close the session, post-mortem, STATUS handoff.
-Canonical record: the build spec's Process section.
+The build runs in session-scale PHASES bounded by merge points, not
+one session per rung: foundation (rung 1, closed), evidence (2, 3,
+4, with rungs 5 and 8 alongside), spine (6, 14, 7, 9), surfaces (10,
+11, 12, 13), launch (15, 16, 17). Inside a phase: no clears, no
+re-brainstorm. Between phases: close the session, post-mortem,
+STATUS handoff. A phase whose lanes outrun one session may span
+more than one, each intermediate close carrying a written per-lane
+handoff. Canonical record: the build spec's Process section and
+`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`.
 
-**Standing grants (Geoff, 2026-09-02):** workflow mode for the whole
-build, execution and prep both; batch human questions into checkpoint
-bundles; when Geoff is unavailable, continue unblocked work rather
-than idling.
+**Standing grants (Geoff, 2026-09-02, extended 2026-09-03):**
+workflow mode for the whole build, execution and prep both; batch
+human questions into checkpoint bundles; when Geoff is unavailable,
+continue unblocked work rather than idling; up to two code lanes
+plus any number of document lanes at once.
 
-**The conducting loop, per rung:** execute via the pass-execute chain
-with the runaway guard armed; prep the next rung's plan in a workflow
-only against a quiet tree (never launch agents into a mid-execution
-tree); land queued repo edits in one batch after the executor
-finishes; plans are just-in-time, never front-loaded (plan staleness
-is the proven dominant defect class). Review scales to rung risk:
-mechanical rungs ride the in-chain diff-reviewer; auth (5),
+**Lanes.** A lane is one rung's execution with a named package
+territory. The primary code lane and all document lanes share the
+tree; a second code lane gets its own git worktree, because
+`scripts/check.sh` runs the module gate over `./...` and two
+whole-repo legs besides. Corpus and harness work never moves to a
+worktree. Every lane launch runs the checklist: reverse edges
+cleared, contested surfaces written, runaway guard armed, lane
+registry entry written, venv provisioned if needed, sub-ceiling
+assigned, AC power, throughput baseline. **Never launch a second
+executor into the SAME tree**: the live-executor check is the lane
+registry, not `pgrep -f Projects/dubplate`, which matches every lane
+once a worktree exists.
+
+**The conducting loop, per lane:** execute via the pass-execute
+chain with the runaway guard armed; prep the next rung's plan in a
+workflow against a tree no other executor is writing; land queued
+repo edits in one batch after the executor finishes; plans are
+just-in-time per lane, never front-loaded (plan staleness is the
+proven dominant defect class). A lane closes through the merge
+ritual: merge token, rebase, full gate in-tree, `--ff-only`, full
+gate on master, and one `diff-reviewer` on the merged result
+whenever the rebase was not a fast-forward. Review scales to rung
+risk: mechanical rungs ride the in-chain diff-reviewer; auth (5),
 streamer/SSO (12), and cutover (16) keep the full fresh-context
 adversarial cycle. Subagents cannot dispatch agents: never instruct
 an implementer to run `code-simplifier`; the conductor owns that
