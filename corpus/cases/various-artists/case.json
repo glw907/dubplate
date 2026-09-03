@@ -1,0 +1,1769 @@
+{
+  "id": "various-artists",
+  "input": {
+    "items": [
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Blue Swede",
+        "comp": true,
+        "length": 174.306,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "27697708-3c75-4da4-9d04-7594b99498c4",
+        "title": "Hooked on a Feeling",
+        "track": 1,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Raspberries",
+        "comp": true,
+        "length": 202.786,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "ae50a22d-df78-4bdb-8d97-e98441bb90fd",
+        "title": "Go All the Way",
+        "track": 2,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Norman Greenbaum",
+        "comp": true,
+        "length": 243.8,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "b2823384-7ee0-4cb3-942a-f93b52cb5389",
+        "title": "Spirit in the Sky",
+        "track": 3,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "David Bowie",
+        "comp": true,
+        "length": 282.773,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "c0f27bed-7986-4c88-a9c6-1d16ebc9817b",
+        "title": "Moonage Daydream",
+        "track": 4,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Elvin Bishop",
+        "comp": true,
+        "length": 277.16,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "12ecdcf0-7a7a-4586-82c2-fd4aa71f0ea7",
+        "title": "Fooled Around and Fell in Love",
+        "track": 5,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "10cc",
+        "comp": true,
+        "length": 364.986,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "db63cb9b-a80c-4a81-9f0e-9a24fd4aec7c",
+        "title": "I’m Not in Love",
+        "track": 6,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "The Jackson 5",
+        "comp": true,
+        "length": 180.453,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "6a16fd65-347c-4875-8725-1618064de6bd",
+        "title": "I Want You Back",
+        "track": 7,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Redbone",
+        "comp": true,
+        "length": 208.253,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "19743e71-e55d-4413-9450-0be53223675a",
+        "title": "Come and Get Your Love",
+        "track": 8,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "The Runaways",
+        "comp": true,
+        "length": 139.6,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "d8cb3068-578e-4323-82d1-8b6248a9b8b5",
+        "title": "Cherry Bomb",
+        "track": 9,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Rupert Holmes",
+        "comp": true,
+        "length": 278.813,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "71709e8c-fb6b-48c6-972a-851ecff0a60d",
+        "title": "Escape (The Piña Colada Song)",
+        "track": 10,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "The Five Stairsteps",
+        "comp": true,
+        "length": 195.6,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "4af967a1-0a7f-42ac-93c8-e5e80f70a6c1",
+        "title": "O‐o‐h Child",
+        "track": 11,
+        "year": 2014
+      },
+      {
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "albumartist": "Various Artists",
+        "artist": "Marvin Gaye \u0026 Tammi Terrell",
+        "comp": true,
+        "length": 149.013,
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_trackid": "b04b5028-da5b-4f05-bfe3-4f8f80396d98",
+        "title": "Ain’t No Mountain High Enough",
+        "track": 12,
+        "year": 2014
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/8c930411-7b42-4089-b20e-337aca7b8e64?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "distance": 0.001012178552285504,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "tracks": 0.001012178552285504,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.013986013986013986,
+          0,
+          0,
+          0,
+          0.002714932126696833,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Blue Swede",
+        "artist_credit": "Blue Swede",
+        "artist_sort": "Blue Swede",
+        "artists": [
+          "Blue Swede"
+        ],
+        "artists_credit": [
+          "Blue Swede"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Blue Swede"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "James, Mark",
+        "composers": [
+          "Mark James"
+        ],
+        "composers_ids": [
+          "fb58dcc9-a429-4edf-a747-415fd86f1a7b"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "SEAMA7343050;SEPQA1900089",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 174.306,
+        "lyricists": [
+          "Mark James"
+        ],
+        "lyricists_ids": [
+          "fb58dcc9-a429-4edf-a747-415fd86f1a7b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "f98a61b4-394d-4e1f-a5f3-f747b9494e5a",
+        "mb_artistids": [
+          "f98a61b4-394d-4e1f-a5f3-f747b9494e5a"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "272444c1-e719-4254-813f-1868fa47ff46",
+        "mb_trackid": "27697708-3c75-4da4-9d04-7594b99498c4",
+        "mb_workid": "34fd6b8f-1f3b-413c-b595-0207c37c8d54",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hooked on a Feeling",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Hooked on a Feeling",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Raspberries",
+        "artist_credit": "Raspberries",
+        "artist_sort": "Raspberries",
+        "artists": [
+          "Raspberries"
+        ],
+        "artists_credit": [
+          "Raspberries"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Raspberries"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Carmen, Eric",
+        "composers": [
+          "Eric Carmen"
+        ],
+        "composers_ids": [
+          "4e6daf86-a5c9-42ea-9bd2-9482a71c38d4"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USBMG0701027;USCA20700663;USCA29901186",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 202.786,
+        "lyricists": [
+          "Eric Carmen"
+        ],
+        "lyricists_ids": [
+          "4e6daf86-a5c9-42ea-9bd2-9482a71c38d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "01b405ae-8ca2-4dbe-8a30-0587b597f598",
+        "mb_artistids": [
+          "01b405ae-8ca2-4dbe-8a30-0587b597f598"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "f203b903-be64-4d02-bde4-390d88e2fcb1",
+        "mb_trackid": "ae50a22d-df78-4bdb-8d97-e98441bb90fd",
+        "mb_workid": "7e73dc33-a47e-37cd-9d0c-3869c77d9df8",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Go All the Way",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Go All the Way",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Five Stairsteps",
+        "artist_credit": "The Five Stairsteps",
+        "artist_sort": "Five Stairsteps",
+        "artists": [
+          "Five Stairsteps"
+        ],
+        "artists_credit": [
+          "The Five Stairsteps"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Five Stairsteps"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Vincent, Stan",
+        "composers": [
+          "Stan Vincent"
+        ],
+        "composers_ids": [
+          "73a156a2-816d-4b3c-ae2e-579da4b998bc"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USBR10100127",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 195.6,
+        "lyricists": [
+          "Stan Vincent"
+        ],
+        "lyricists_ids": [
+          "73a156a2-816d-4b3c-ae2e-579da4b998bc"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "42700164-abe3-4b45-b627-f4c8deca5e82",
+        "mb_artistids": [
+          "42700164-abe3-4b45-b627-f4c8deca5e82"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "9cd8d19a-c567-420e-bc31-f7c4bcd3b0da",
+        "mb_trackid": "4af967a1-0a7f-42ac-93c8-e5e80f70a6c1",
+        "mb_workid": "f2ce9947-4ba1-3083-a506-15d92f31ab58",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "O‐o‐h Child",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "O‐o‐h Child",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marvin Gaye \u0026 Tammi Terrell",
+        "artist_credit": "Marvin Gaye \u0026 Tammi Terrell",
+        "artist_sort": "Gaye, Marvin \u0026 Terrell, Tammi",
+        "artists": [
+          "Marvin Gaye",
+          "Tammi Terrell"
+        ],
+        "artists_credit": [
+          "Marvin Gaye",
+          "Tammi Terrell"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Gaye, Marvin",
+          "Terrell, Tammi"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMO16700486;USMO16700534",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 149.013,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "afdb7919-059d-43c1-b668-ba1d265e7e42",
+        "mb_artistids": [
+          "afdb7919-059d-43c1-b668-ba1d265e7e42",
+          "ce4582b6-aee7-4da1-b841-3c619d4fb5a5"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "3e5b7d9b-fc9f-478e-ac47-3873ddd418fa",
+        "mb_trackid": "b04b5028-da5b-4f05-bfe3-4f8f80396d98",
+        "mb_workid": "a2f088de-18ff-3303-bc73-994b74952b02",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Ain’t No Mountain High Enough",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "stereo version",
+        "tracktotal": 12,
+        "work": "Ain’t No Mountain High Enough",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Norman Greenbaum",
+        "artist_credit": "Norman Greenbaum",
+        "artist_sort": "Greenbaum, Norman",
+        "artists": [
+          "Norman Greenbaum"
+        ],
+        "artists_credit": [
+          "Norman Greenbaum"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Greenbaum, Norman"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Greenbaum, Norman",
+        "composers": [
+          "Norman Greenbaum"
+        ],
+        "composers_ids": [
+          "8f6ade41-0e4d-477c-9ef7-42591fed1133"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "NLG620400918;NLG620466825;USAT21602767;USC4R2335155;USRC11300535;USRE19600416;USWD10524718",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 243.8,
+        "lyricists": [
+          "Norman Greenbaum"
+        ],
+        "lyricists_ids": [
+          "8f6ade41-0e4d-477c-9ef7-42591fed1133"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "8f6ade41-0e4d-477c-9ef7-42591fed1133",
+        "mb_artistids": [
+          "8f6ade41-0e4d-477c-9ef7-42591fed1133"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "e7980923-9fd6-48cf-b249-26bbc21f2b65",
+        "mb_trackid": "b2823384-7ee0-4cb3-942a-f93b52cb5389",
+        "mb_workid": "ab77a037-a58b-3f4e-bef6-838a938185a5",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Spirit in the Sky",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Spirit in the Sky",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "David Bowie",
+          "Mick Ronson"
+        ],
+        "arrangers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5a150caa-fe13-4590-a50e-7778ee29b587"
+        ],
+        "artist": "David Bowie",
+        "artist_credit": "David Bowie",
+        "artist_sort": "Bowie, David",
+        "artists": [
+          "David Bowie"
+        ],
+        "artists_credit": [
+          "David Bowie"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bowie, David"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Bowie, David, Bowie, David",
+        "composers": [
+          "David Bowie",
+          "David Bowie"
+        ],
+        "composers_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USJT10200021;USJT10300103;USJT11200003;USJT19900054",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 282.773,
+        "lyricists": [
+          "David Bowie",
+          "David Bowie"
+        ],
+        "lyricists_ids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+        "mb_artistids": [
+          "5441c29d-3602-4898-b1a1-b77fa23b8e50"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "d1fccfe3-fa53-4ecd-8595-1b607e1c4579",
+        "mb_trackid": "c0f27bed-7986-4c88-a9c6-1d16ebc9817b",
+        "mb_workid": "f0531270-1a72-3108-abd9-b4c74287a622",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Moonage Daydream",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Moonage Daydream",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Elvin Bishop",
+        "artist_credit": "Elvin Bishop",
+        "artist_sort": "Bishop, Elvin",
+        "artists": [
+          "Elvin Bishop"
+        ],
+        "artists_credit": [
+          "Elvin Bishop"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Bishop, Elvin"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Bishop, Elvin",
+        "composers": [
+          "Elvin Bishop"
+        ],
+        "composers_ids": [
+          "b1768592-294e-4e15-a892-eb8837dec3e4"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR37600038",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 277.16,
+        "lyricists": [
+          "Elvin Bishop"
+        ],
+        "lyricists_ids": [
+          "b1768592-294e-4e15-a892-eb8837dec3e4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "b1768592-294e-4e15-a892-eb8837dec3e4",
+        "mb_artistids": [
+          "b1768592-294e-4e15-a892-eb8837dec3e4"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "243a2070-f9dc-4aaf-ac1f-a8b5ea6b0b0a",
+        "mb_trackid": "12ecdcf0-7a7a-4586-82c2-fd4aa71f0ea7",
+        "mb_workid": "c3ea38d9-739b-4ebd-a0ef-03e9eb27ca49",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fooled Around and Fell in Love",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Fooled Around and Fell in Love",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "10cc",
+        "artist_credit": "10cc",
+        "artist_sort": "10cc",
+        "artists": [
+          "10cc"
+        ],
+        "artists_credit": [
+          "10cc"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "10cc"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBF087500001",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 364.986,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "f37c537b-3557-4031-bfd6-ab63ced32854",
+        "mb_artistids": [
+          "f37c537b-3557-4031-bfd6-ab63ced32854"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "e9775345-5ad9-41c6-8c72-2b582b5323d5",
+        "mb_trackid": "db63cb9b-a80c-4a81-9f0e-9a24fd4aec7c",
+        "mb_workid": "6edaeeac-87ba-36c7-b9db-fd034d43433f",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I’m Not in Love",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "album version",
+        "tracktotal": 12,
+        "work": "I’m Not in Love",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "The Corporation"
+        ],
+        "arrangers_ids": [
+          "2c0a4632-6ff9-44d1-8932-adbd227d7bbb"
+        ],
+        "artist": "The Jacksons",
+        "artist_credit": "The Jackson 5",
+        "artist_sort": "Jacksons, The",
+        "artists": [
+          "The Jacksons"
+        ],
+        "artists_credit": [
+          "The Jackson 5"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Jacksons, The"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Corporation, The",
+        "composers": [
+          "The Corporation"
+        ],
+        "composers_ids": [
+          "2c0a4632-6ff9-44d1-8932-adbd227d7bbb"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMO10400510;USMO16900464;USMO19400306",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 180.453,
+        "lyricists": [
+          "The Corporation"
+        ],
+        "lyricists_ids": [
+          "2c0a4632-6ff9-44d1-8932-adbd227d7bbb"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "e5257dc5-1edd-4fca-b7e6-1158e00522c8",
+        "mb_artistids": [
+          "e5257dc5-1edd-4fca-b7e6-1158e00522c8"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "ec966d4c-adf0-498b-a03c-8fc6b9699a8b",
+        "mb_trackid": "6a16fd65-347c-4875-8725-1618064de6bd",
+        "mb_workid": "958cb297-1409-32c1-ae48-54a425a17795",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Want You Back",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "I Want You Back",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Redbone",
+        "artist_credit": "Redbone",
+        "artist_sort": "Redbone",
+        "artists": [
+          "Redbone"
+        ],
+        "artists_credit": [
+          "Redbone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Redbone"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Vegas, Lolly",
+        "composers": [
+          "Lolly Vegas"
+        ],
+        "composers_ids": [
+          "f4dcd235-811b-49be-a597-f0a356b2d454"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USBT21600126;USSM17300653",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 208.253,
+        "lyricists": [
+          "Lolly Vegas"
+        ],
+        "lyricists_ids": [
+          "f4dcd235-811b-49be-a597-f0a356b2d454"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "b3fa0e6f-93db-4aa5-b76e-393e24de35ba",
+        "mb_artistids": [
+          "b3fa0e6f-93db-4aa5-b76e-393e24de35ba"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "c6c322d5-7920-4429-ad61-6fb3dd2933e1",
+        "mb_trackid": "19743e71-e55d-4413-9450-0be53223675a",
+        "mb_workid": "81b603a6-d684-4abe-ac75-cbffae5654d7",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Come and Get Your Love",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "single edit",
+        "tracktotal": 12,
+        "work": "Come and Get Your Love",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Scott Anderson",
+          "Kim Fowley",
+          "The Runaways"
+        ],
+        "arrangers_ids": [
+          "efb666a2-ee48-42b4-b04e-a4963a96d943",
+          "6bedf676-3e23-46ef-a008-720ded2b9a06",
+          "ded0d67a-eb71-4fe9-83c0-1d18b8ed497e"
+        ],
+        "artist": "The Runaways",
+        "artist_credit": "The Runaways",
+        "artist_sort": "Runaways, The",
+        "artists": [
+          "The Runaways"
+        ],
+        "artists_credit": [
+          "The Runaways"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Runaways, The"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Jett, Joan",
+        "composers": [
+          "Joan Jett"
+        ],
+        "composers_ids": [
+          "f376828a-b438-4fda-bb2e-dcd5fbe81f83"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGI19900140;USIR20200576",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 139.6,
+        "lyricists": [
+          "Kim Fowley"
+        ],
+        "lyricists_ids": [
+          "6bedf676-3e23-46ef-a008-720ded2b9a06"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "ded0d67a-eb71-4fe9-83c0-1d18b8ed497e",
+        "mb_artistids": [
+          "ded0d67a-eb71-4fe9-83c0-1d18b8ed497e"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "3c126f7d-fcac-4069-b910-7e185bb074a8",
+        "mb_trackid": "d8cb3068-578e-4323-82d1-8b6248a9b8b5",
+        "mb_workid": "7cb1464a-3124-49d5-86f5-3322147e0d76",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Cherry Bomb",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Cherry Bomb",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Guardians of the Galaxy: Awesome Mix, Vol. 1",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Rupert Holmes",
+        "artist_credit": "Rupert Holmes",
+        "artist_sort": "Holmes, Rupert",
+        "artists": [
+          "Rupert Holmes"
+        ],
+        "artists_credit": [
+          "Rupert Holmes"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Holmes, Rupert"
+        ],
+        "asin": "B00LBKI41K",
+        "barcode": "050087314460",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "00050087314460",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "Holmes, Rupert",
+        "composers": [
+          "Rupert Holmes"
+        ],
+        "composers_ids": [
+          "3e7ef7ed-18c1-436d-b946-7e7e63ace408"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 28,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC17948997",
+        "label": "Hollywood Records",
+        "language": "eng",
+        "length": 278.813,
+        "lyricists": [
+          "Rupert Holmes"
+        ],
+        "lyricists_ids": [
+          "3e7ef7ed-18c1-436d-b946-7e7e63ace408"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "8c930411-7b42-4089-b20e-337aca7b8e64",
+        "mb_artistid": "3e7ef7ed-18c1-436d-b946-7e7e63ace408",
+        "mb_artistids": [
+          "3e7ef7ed-18c1-436d-b946-7e7e63ace408"
+        ],
+        "mb_releasegroupid": "950092d6-45f6-4269-87da-99a9ff2fcc52",
+        "mb_releasetrackid": "dbff8aa7-880c-416a-8c55-b56885288d29",
+        "mb_trackid": "71709e8c-fb6b-48c6-972a-851ecff0a60d",
+        "mb_workid": "2207e96d-1598-3a16-b7b4-4bce8317d31f",
+        "media": "CD",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 28,
+        "original_month": 7,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Guardians of the Galaxy: Awesome Mix, Vol. 1: Original Motion Picture Soundtrack",
+        "releasegroupdisambig": "Original Motion Picture Soundtrack",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Escape (The Piña Colada Song)",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Escape (The Piña Colada Song)",
+        "work_disambig": "",
+        "year": 2014
+      }
+    }
+  }
+}

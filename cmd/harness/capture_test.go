@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,7 +63,7 @@ func withSleep(t *testing.T) *[]time.Duration {
 
 func TestReleaseRequestIsCanonical(t *testing.T) {
 	got := releaseRequest("00000000-0000-0000-0000-000000000000")
-	want := "/ws/2/release/00000000-0000-0000-0000-000000000000?fmt=json&inc=" + maximalReleaseInclude
+	want := "/ws/2/release/00000000-0000-0000-0000-000000000000?fmt=json&inc=" + url.QueryEscape(maximalReleaseInclude)
 	if got != want {
 		t.Errorf("releaseRequest = %q, want %q", got, want)
 	}

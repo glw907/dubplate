@@ -102,6 +102,14 @@ one with `command -v || skip`. Never commit red.
   `source ~/.local/secrets`). The tunnel is remote-managed:
   `config/cloudflared-tunnel-config.json` is the record of what gets PUT to
   the API, not a file compose reads. See `.claude/instructions/api-access.md`.
+- **Python** (`internal/harness/oracle/derive_oracle.py`): invoke the
+  `python-conventions` skill BEFORE writing any Python. This shim is the
+  only Python in the repo, and it stays that way; it drives pinned beets
+  under a uv-managed venv (`tools/venv/`) that the gate never requires and
+  never runs (derivation is `make derive`, tagged `oracle`, workstation
+  only). ruff (`ruff check` and `ruff format --check`) joins `scripts/check.sh`
+  for every tracked `*.py` file, so the shim's bar is enforced, not
+  aspirational, even though the gate can't execute it.
 
 ## Reviewers
 

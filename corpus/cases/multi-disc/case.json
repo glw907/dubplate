@@ -1,0 +1,3722 @@
+{
+  "id": "multi-disc",
+  "input": {
+    "items": [
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 197,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "1be4459a-4bda-4530-bf8e-421fdddbdbfc",
+        "title": "In the Flesh?",
+        "track": 1,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 148,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "eff36e5e-5abb-4f7e-a0aa-64c154c5b28d",
+        "title": "The Thin Ice",
+        "track": 2,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 221,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "bab28d44-b444-4eef-89f9-424a5978f9b8",
+        "title": "Another Brick in the Wall, Part 1",
+        "track": 3,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 80,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "489a7c58-cf40-406d-bc0b-62e6d061d04f",
+        "title": "The Happiest Days of Our Lives",
+        "track": 4,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 236,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "597eae0b-ccb6-4076-b997-0ce940586076",
+        "title": "Another Brick in the Wall, Part 2",
+        "track": 5,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 332,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "2423ca5e-99d3-4b49-be53-542e6ee38a82",
+        "title": "Mother",
+        "track": 6,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 168,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "bb0d3c16-b684-4a5a-a107-e12bbd4f3041",
+        "title": "Goodbye Blue Sky",
+        "track": 7,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 336,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "f090a65d-c69f-4d7a-a1c3-e3f1c637bbda",
+        "title": "Empty Spaces",
+        "track": 8,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 123,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "69a70dce-fac4-4d55-84e8-c47d8943f8b5",
+        "title": "Young Lust",
+        "track": 9,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 93,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "dfb87080-6d33-4217-8075-c4faf2cb1c0d",
+        "title": "One of My Turns",
+        "track": 10,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 262,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "c0a217dc-4c2c-45f9-afd4-9b5f366386ef",
+        "title": "Don’t Leave Me Now",
+        "track": 11,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 77,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "ae5096a0-4b53-455a-ac9c-0348108208c3",
+        "title": "Another Brick in the Wall, Part 3",
+        "track": 12,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 65,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "bc3448ee-53bb-412a-99d6-ea6cc862928a",
+        "title": "Goodbye Cruel World",
+        "track": 13,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 279,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "daebd800-fe8a-48bf-bfb4-d8655a895dff",
+        "title": "Hey You",
+        "track": 1,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 160,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "5893b2c3-243c-4b79-bfbf-c6624770a97b",
+        "title": "Is There Anybody Out There?",
+        "track": 2,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 205,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "cfc2fb95-2fc0-4129-acf3-5a5dfb9bceef",
+        "title": "Nobody Home",
+        "track": 3,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 98,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "eb2fbdca-089e-493b-ae03-bb24cdf2b176",
+        "title": "Vera",
+        "track": 4,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 50,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "f4d42a74-cfb1-488d-a312-639034793cc1",
+        "title": "Bring the Boys Back Home",
+        "track": 5,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 409,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "d3528f95-1a3f-45d2-a569-826740c0adee",
+        "title": "Comfortably Numb",
+        "track": 6,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 96,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "e90a6932-b238-4cc0-8331-6637469b7a34",
+        "title": "The Show Must Go On",
+        "track": 7,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 256,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "89881237-8c35-43b7-af8f-950fb6183fee",
+        "title": "In the Flesh",
+        "track": 8,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 262,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "d36e0b66-a91c-44ee-98c1-881ac8157439",
+        "title": "Run Like Hell",
+        "track": 9,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 236,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "da31bbd5-d020-41d8-8ed5-908c18c13c55",
+        "title": "Waiting for the Worms",
+        "track": 10,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 33.893,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "92e2cb40-de60-47e4-80bc-60595fb5a488",
+        "title": "Stop",
+        "track": 11,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 316,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "a362cf52-5d85-4f34-8a69-e830ef87b5cb",
+        "title": "The Trial",
+        "track": 12,
+        "year": 1984
+      },
+      {
+        "album": "The Wall",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 102,
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_trackid": "a0545de0-0c68-4301-8cd4-1b77e4b0dc3e",
+        "title": "Outside the Wall",
+        "track": 13,
+        "year": 1984
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/8eb1532a-bccb-4cc4-b590-5be19386a6f7?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "16": 16,
+      "17": 17,
+      "18": 18,
+      "19": 19,
+      "2": 2,
+      "20": 20,
+      "21": 21,
+      "22": 22,
+      "23": 23,
+      "24": 24,
+      "25": 25,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900004;GBDJQ9200026;GBDJQ9400020;GBN9Y1100095",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 197,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "34df27f2-2ef6-4389-9071-0100493d1576",
+        "mb_trackid": "1be4459a-4bda-4530-bf8e-421fdddbdbfc",
+        "mb_workid": "9b45b65a-b910-3cd3-9133-74ea9a08471c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "In the Flesh?",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "In the Flesh?",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900006;GBDJQ9200027;GBDJQ9400002;GBN9Y1100096;USSM17900267",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 148,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "5a779205-acd5-47e4-aeaa-f27e87364b65",
+        "mb_trackid": "eff36e5e-5abb-4f7e-a0aa-64c154c5b28d",
+        "mb_workid": "15686692-2ba6-39a3-a2b3-a4b3dc2af576",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Thin Ice",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Thin Ice",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900015;GBDJQ9200036;GBDJQ9400011;GBN9Y1100105;USSM17900252",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 262,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "d3f53a93-db9c-4b91-b065-70a46567ce00",
+        "mb_trackid": "c0a217dc-4c2c-45f9-afd4-9b5f366386ef",
+        "mb_workid": "90918a2a-d977-341a-b96e-385583bd2444",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Don’t Leave Me Now",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Don’t Leave Me Now",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900008;GBDJQ9200037;GBDJQ9400012;GBN9Y1100106;USSM17900249",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 77,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "7a11f481-855f-4003-9d9e-f82651d11d0a",
+        "mb_trackid": "ae5096a0-4b53-455a-ac9c-0348108208c3",
+        "mb_workid": "99c1086b-7400-456d-ad43-9969520bd8ee",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Brick in the Wall, Part 3",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Another Brick in the Wall, Part 3",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900016;GBDJQ9200038;GBDJQ9400025;GBN9Y1100107;USSM17900255",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 65,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "8fe07ae4-1ece-4c6f-9b31-0238ac6f1b97",
+        "mb_trackid": "bc3448ee-53bb-412a-99d6-ea6cc862928a",
+        "mb_workid": "f641de5b-728d-3542-bbb8-d32b9ce53107",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Goodbye Cruel World",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Goodbye Cruel World",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900017;GBDJQ9200039;GBDJQ9400013;GBN9Y1100108;USSM17900256",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 279,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "e668076e-b3f6-4bdb-937c-a479536f2293",
+        "mb_trackid": "daebd800-fe8a-48bf-bfb4-d8655a895dff",
+        "mb_workid": "f7d5beba-103b-37e9-994d-52c57c68655b",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hey You",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Hey You",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900018;GBDJQ9200040;GBDJQ9400014;GBN9Y1100109;USSM17900258",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 160,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "dc6e1e3f-9208-4c16-96fc-61fdee01a661",
+        "mb_trackid": "5893b2c3-243c-4b79-bfbf-c6624770a97b",
+        "mb_workid": "c267022f-c70a-3e6c-b424-d3d96d0819a5",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Is There Anybody Out There?",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Is There Anybody Out There?",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900019;GBDJQ9200041;GBDJQ9400015;GBN9Y1100110;USSM17900260",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 205,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "4e7de0f5-5c91-48fe-ba55-e9a351243a2d",
+        "mb_trackid": "cfc2fb95-2fc0-4129-acf3-5a5dfb9bceef",
+        "mb_workid": "48d6820d-3456-3018-90ab-8f369ea398a5",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Nobody Home",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Nobody Home",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "16": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900020;GBDJQ9200042;GBDJQ9400084;GBN9Y1100111;USSM17900269",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 98,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "01beee32-f1a6-46b1-b534-b0aed4949ff5",
+        "mb_trackid": "eb2fbdca-089e-493b-ae03-bb24cdf2b176",
+        "mb_workid": "1fd1ecc6-0030-3854-a7ca-34a9f4017073",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Vera",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Vera",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "17": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 50,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "33ab6d57-7a59-4d91-9da7-5d2792e560f6",
+        "mb_trackid": "f4d42a74-cfb1-488d-a312-639034793cc1",
+        "mb_workid": "b5c82f38-f64e-3fa9-a79e-ef0e444950d8",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Bring the Boys Back Home",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "0:51 album version",
+        "tracktotal": 13,
+        "work": "Bring the Boys Back Home",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "18": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900022",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 409,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "f06d96ce-2355-45f0-8b89-4a61f5401958",
+        "mb_trackid": "d3528f95-1a3f-45d2-a569-826740c0adee",
+        "mb_workid": "bf480571-a0a5-3294-9260-90edef09ae3f",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Comfortably Numb",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "6:49 album version, including \"Is There Anybody Out There\"",
+        "tracktotal": 13,
+        "work": "Comfortably Numb",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "19": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900023;GBDJQ9200045;GBDJQ9400019;GBN9Y1100114;USSM17900299",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 96,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "fa8233ec-75eb-4533-98f2-3925fdd9957e",
+        "mb_trackid": "e90a6932-b238-4cc0-8331-6637469b7a34",
+        "mb_workid": "5c8a13b7-c48f-32df-bc51-097bef32b19d",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Show Must Go On",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Show Must Go On",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 221,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "1362d638-5657-4533-80a6-a8837980a35b",
+        "mb_trackid": "bab28d44-b444-4eef-89f9-424a5978f9b8",
+        "mb_workid": "ad99e7f5-6828-303e-9209-d9ddcd7bd626",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Brick in the Wall, Part 1",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "3:41 album edit",
+        "tracktotal": 13,
+        "work": "Another Brick in the Wall, Part 1",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "20": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900005;GBDJQ9200046;GBDJQ9400001;GBN9Y1100115",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 256,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "b0ae2a36-0255-429d-9f47-7577718f5be1",
+        "mb_trackid": "89881237-8c35-43b7-af8f-950fb6183fee",
+        "mb_workid": "81810049-2340-4dc0-b36f-e85a4211dff7",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "In the Flesh",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "In the Flesh",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "21": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900024;GBDJQ9200047;GBDJQ9400021;GBN9Y1100116;USSM17900263",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 262,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "80aadf6b-ce64-4308-a7c2-dc621bbb35c4",
+        "mb_trackid": "d36e0b66-a91c-44ee-98c1-881ac8157439",
+        "mb_workid": "e2d49846-8f96-3c54-85ea-072408d9077c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Run Like Hell",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Run Like Hell",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "22": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900025;GBDJQ9200048;GBDJQ9400085;GBN9Y1100117;USSM17900270",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 236,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "07ca6b8e-5de5-4765-bcb6-87743158acc4",
+        "mb_trackid": "da31bbd5-d020-41d8-8ed5-908c18c13c55",
+        "mb_workid": "9dc4b01b-52f9-3ecc-8898-71e58a073961",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Waiting for the Worms",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Waiting for the Worms",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "23": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900026;GBDJQ9200049;GBDJQ9400023;GBN9Y1100118;USSM17900264",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 33.893,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "a82deffe-e95e-4826-9e9d-0506b66ed108",
+        "mb_trackid": "92e2cb40-de60-47e4-80bc-60595fb5a488",
+        "mb_workid": "0b98f691-b420-3420-8519-24cb475d539b",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Stop",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Stop",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "24": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ezrin, Bob, Waters, Roger",
+        "composers": [
+          "Bob Ezrin",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "d0135fd6-a79a-4ec2-a379-52b2e4a628f1",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900027;GBDJQ9200050;GBDJQ9400024;GBN9Y1100119;USSM17900268",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 316,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "ca1759d8-8d84-41f4-a764-bf0844c3f061",
+        "mb_trackid": "a362cf52-5d85-4f34-8a69-e830ef87b5cb",
+        "mb_workid": "ebb469a0-34bd-3094-9c36-cc05c7396300",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Trial",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "The Trial",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "25": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900028;GBDJQ9200051;GBDJQ9400026;GBN9Y1100120;USSM17900262",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 102,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "94ff5647-d885-48f5-94cd-1ea35e08adc2",
+        "mb_trackid": "a0545de0-0c68-4301-8cd4-1b77e4b0dc3e",
+        "mb_workid": "783a1b57-82fe-3ca5-923d-dea1c067e5fc",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Outside the Wall",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Outside the Wall",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 80,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "812c5870-2a3d-44e6-9919-8be41677b780",
+        "mb_trackid": "489a7c58-cf40-406d-bc0b-62e6d061d04f",
+        "mb_workid": "af530ac7-d7d7-3f17-b0cf-4c6ef2074fb8",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Happiest Days of Our Lives",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "1:20 album edit",
+        "tracktotal": 13,
+        "work": "The Happiest Days of Our Lives",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ0100002;GBDJQ7900001;GBDJQ9200030;GBDJQ9400005;GBN9Y1100099;USSM17900248",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 236,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "c048640a-60ff-4f6e-99ef-5e140197f9b9",
+        "mb_trackid": "597eae0b-ccb6-4076-b997-0ce940586076",
+        "mb_workid": "e4207803-df79-37ca-9825-4f92bf6cea89",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Brick in the Wall, Part 2",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "album version",
+        "tracktotal": 13,
+        "work": "Another Brick in the Wall, Part 2",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900010;GBDJQ9200031;GBDJQ9400006;GBN9Y1100100;USSM17900259",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 332,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "7c840b75-2e24-4d70-be00-76c44429b538",
+        "mb_trackid": "2423ca5e-99d3-4b49-be53-542e6ee38a82",
+        "mb_workid": "a37f8c1a-bf0c-3ac3-8dc2-f1b8d5522d5e",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mother",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Mother",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBDJQ7900011;GBDJQ9200032;GBDJQ9400007;GBN9Y1100101;USSM17900254",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 168,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "612d4922-cae5-4909-b527-e4f4b93ab757",
+        "mb_trackid": "bb0d3c16-b684-4a5a-a107-e12bbd4f3041",
+        "mb_workid": "4cabd763-29df-3df6-b3f8-0e9b5571d859",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Goodbye Blue Sky",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Goodbye Blue Sky",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger, Gilmour, David, Waters, Roger",
+        "composers": [
+          "Roger Waters",
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 336,
+        "lyricists": [
+          "Roger Waters",
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "ff43d12a-db5c-4ba5-9cd2-29760e6480a7",
+        "mb_trackid": "f090a65d-c69f-4d7a-a1c3-e3f1c637bbda",
+        "mb_workid": "d7bf11f9-fd4b-3688-96b2-93d5ebf30ca4",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Empty Spaces",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "incorrectly indexed, includes Young Lust",
+        "tracktotal": 13,
+        "work": "Young Lust",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 123,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "fe0de145-6957-42c0-8562-14a826ec46f4",
+        "mb_trackid": "69a70dce-fac4-4d55-84e8-c47d8943f8b5",
+        "mb_workid": "ec2d56cb-638c-30a2-af9e-579759a79b6a",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Young Lust",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "incorrectly indexed, the beginning of One of My Turns",
+        "tracktotal": 13,
+        "work": "One of My Turns",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Wall",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "made in Japan, CDP 7 46036 8",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 46036 8",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Harvest",
+        "language": "eng",
+        "length": 93,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "f2026101-945b-3d05-9ef4-aa718fc3feef",
+        "mb_releasetrackid": "02029590-6c14-4f02-a2b4-fe90f6eb6e54",
+        "mb_trackid": "dfb87080-6d33-4217-8075-c4faf2cb1c0d",
+        "mb_workid": "ec2d56cb-638c-30a2-af9e-579759a79b6a",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 30,
+        "original_month": 11,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Wall",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "One of My Turns",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "incorrectly indexed, the end of One of My Turns",
+        "tracktotal": 13,
+        "work": "One of My Turns",
+        "work_disambig": "",
+        "year": 1979
+      }
+    }
+  }
+}

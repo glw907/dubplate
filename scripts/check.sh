@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# check.sh: the repo gate. `make check` covers the Go module (build,
-# vet, golangci-lint, test, tidy-check); the web leg rejoins at rung 7,
-# when web/ is rebuilt against the greenfield server. shellcheck still
+# check.sh: the repo gate. `make check` covers the Go module (vet,
+# golangci-lint, test, tidy-check; it does not build the binary, that
+# is `make build`'s own job); the web leg rejoins at rung 7, when
+# web/ is rebuilt against the greenfield server. shellcheck still
 # covers the scripts that remain (deploy.sh, check.sh itself,
-# vale-comments.sh, provision.sh). Exits nonzero on any failure so it
+# vale-comments.sh, provision.sh), ruff covers the oracle shim's
+# Python, and gitleaks scans the whole tree (the corpus under
+# corpus/cases/ is the repo's first large data directory, and a check
+# either gates or does not exist). Exits nonzero on any failure so it
 # can be wired into CI or a pre-push hook unmodified.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,6 +30,10 @@ if ! command -v shellcheck >/dev/null 2>&1; then
 fi
 if ! command -v ruff >/dev/null 2>&1; then
   echo "check.sh: ruff not found; install it (uv tool install ruff)." >&2
+  exit 1
+fi
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "check.sh: gitleaks not found; install it (brew install gitleaks)." >&2
   exit 1
 fi
 
@@ -84,6 +92,19 @@ if [ "${#py_files[@]}" -gt 0 ]; then
   fi
 else
   echo "check.sh: no tracked Python files found; the oracle shim should be one." >&2
+  status=1
+fi
+
+echo "== gitleaks (secret scan) =="
+# --no-git scans the tracked worktree as it sits, not the full git
+# history (a separate, heavier job): the corpus under corpus/cases/ is
+# the repo's first large data directory, and every response body in
+# it is verbatim wire data from a live service, so this is the rail
+# that makes CLAUDE.md's "eyeball the diff for stray personal values"
+# instruction a backstop rather than the only net. .gitleaksignore
+# carries the one known false positive (a config-key-name test
+# fixture that happens to look like a generic API key).
+if ! gitleaks detect --no-git -s . --redact; then
   status=1
 fi
 

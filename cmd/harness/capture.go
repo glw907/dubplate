@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -292,16 +293,19 @@ func releaseRequest(mbid string) string {
 
 // canonicalizeQuery joins path with params sorted byte-wise by their
 // "key=value" pair, matching the cassette package's own
-// canonicalization rule (corpus/README.md): params carries values
-// already in their final percent-encoded wire form, since a decode-
-// then-re-encode step can silently change what a Lucene-escaped search
-// query or a "+"-joined inc= list means. Duplicated here rather than
-// called from cassette because Task 1's cassette package ships frozen
-// and keeps the rule unexported.
+// canonicalization rule (corpus/README.md): each value is percent-
+// encoded with url.QueryEscape before joining, the same encoding
+// Python's requests library applies when beets' MusicBrainz client
+// builds its own query string (a bare "+" joining inc= values becomes
+// "%2B" on the wire, never a literal "+"; a capture that stored the
+// literal form would never match what pinned beets actually requests
+// during derivation). Duplicated here rather than called from cassette
+// because Task 1's cassette package ships frozen and keeps the rule
+// unexported.
 func canonicalizeQuery(path string, params map[string]string) string {
 	pairs := make([]string, 0, len(params))
 	for k, v := range params {
-		pairs = append(pairs, k+"="+v)
+		pairs = append(pairs, url.QueryEscape(k)+"="+url.QueryEscape(v))
 	}
 	slices.Sort(pairs)
 	return path + "?" + strings.Join(pairs, "&")

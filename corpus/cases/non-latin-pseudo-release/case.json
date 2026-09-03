@@ -1,0 +1,1777 @@
+{
+  "id": "non-latin-pseudo-release",
+  "input": {
+    "items": [
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 249.653,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "c78ea507-2bb3-4b01-a5b3-7e72b6097628",
+        "title": "Polyrhythm",
+        "track": 1,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 275.946,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "9e27edb8-63fc-4f43-85fd-48872c474794",
+        "title": "plastic smile",
+        "track": 2,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 306,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "cb40ed41-f7c8-4c87-b04e-8cf7d2fbbc06",
+        "title": "GAME",
+        "track": 3,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 281.053,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "e64b3f65-d317-4307-8525-a245850afbaf",
+        "title": "Baby cruising Love",
+        "track": 4,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 226.213,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "32275562-9c05-4477-be44-d1aa8c4e7c18",
+        "title": "Chocolate Disco",
+        "track": 5,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 279.44,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "b3f8802f-ab81-4504-8a01-08556d9314b5",
+        "title": "Macaroni",
+        "track": 6,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 274.306,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "cff3fca5-9583-4eb4-8d80-66e1e6b2f298",
+        "title": "Ceramic Girl",
+        "track": 7,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 328.533,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "db84a142-890c-4565-8eae-d7a73418fc4e",
+        "title": "Take me Take me",
+        "track": 8,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 297.52,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "83f2726a-6200-46d2-9abd-3f9e4832f974",
+        "title": "Secret Secret",
+        "track": 9,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 341.88,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "b62a9c9a-f2e2-4e00-9c78-fad35e835c6e",
+        "title": "Butterfly",
+        "track": 10,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 229.733,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "b9bdc497-a3c2-4806-84e6-33b94dd644c8",
+        "title": "Twinkle Snow Powdery Snow",
+        "track": 11,
+        "year": 2008
+      },
+      {
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "artist": "Perfume",
+        "length": 272.706,
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_trackid": "37083815-3211-4801-b1c4-419bca57eb8c",
+        "title": "Puppy love",
+        "track": 12,
+        "year": 2008
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/d344ccfb-2892-431e-a2a2-6df93b266a72?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/6731434a-6638-3029-bfe6-cde8fa92b04f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00709290",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 249.653,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "289c3a99-e32a-4741-94a1-f672f678af0e",
+        "mb_trackid": "c78ea507-2bb3-4b01-a5b3-7e72b6097628",
+        "mb_workid": "f6297a1e-92e1-31bf-a550-53726d91e140",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Polyrhythm",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "ポリリズム",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800740",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 275.946,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "a93f43b1-828c-4d53-b354-da2ebbd9f7da",
+        "mb_trackid": "9e27edb8-63fc-4f43-85fd-48872c474794",
+        "mb_workid": "2fe435e1-d6cd-46d9-bcb3-20f83d585935",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "plastic smile",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "plastic smile",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00616670",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 229.733,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "000af071-5402-473b-a7ef-1f283004a5e3",
+        "mb_trackid": "b9bdc497-a3c2-4806-84e6-33b94dd644c8",
+        "mb_workid": "92ac2459-515d-4e45-9e80-8fb388be83c1",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Twinkle Snow Powdery Snow",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Twinkle Snow Powdery Snow",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800800",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 272.706,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "28b0d6fa-15f5-4205-bc40-1b57df71a295",
+        "mb_trackid": "37083815-3211-4801-b1c4-419bca57eb8c",
+        "mb_workid": "d0ab557a-9481-4a8f-9b49-3bf959648ff3",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Puppy love",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Puppy love",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800750",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 306,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "d6d34e50-6981-4a24-9005-b6cf100302aa",
+        "mb_trackid": "cb40ed41-f7c8-4c87-b04e-8cf7d2fbbc06",
+        "mb_workid": "c24c191e-649b-41c0-ab35-1de65be5dbdd",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "GAME",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "GAME",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00714070",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 281.053,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "2a922714-9a13-4326-9383-1eca589a2b36",
+        "mb_trackid": "e64b3f65-d317-4307-8525-a245850afbaf",
+        "mb_workid": "2bbbd431-2915-302a-b85b-5f3911ed24a0",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Baby cruising Love",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Baby cruising Love",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00616660",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 226.213,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "52a79410-5196-4c3d-93dc-bc6bb5f89bd5",
+        "mb_trackid": "32275562-9c05-4477-be44-d1aa8c4e7c18",
+        "mb_workid": "98042f12-05c3-48ab-b367-78f8644ebe69",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Chocolate Disco",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "チョコレイト・ディスコ",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00714080",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 279.44,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "450db161-3e8f-4ed7-a4d6-7614625dcb2f",
+        "mb_trackid": "b3f8802f-ab81-4504-8a01-08556d9314b5",
+        "mb_workid": "c8c66122-3322-3bf2-bbd8-f9cbba4f7e8d",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Macaroni",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "マカロニ",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800760",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 274.306,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "338a0c0a-0d28-4421-a0cb-947de70e28de",
+        "mb_trackid": "cff3fca5-9583-4eb4-8d80-66e1e6b2f298",
+        "mb_workid": "74face6b-e31e-4fde-88e1-0b33a12cafaf",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Ceramic Girl",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "セラミックガール",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800770",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 328.533,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "60f6ffbf-f609-4959-a5c8-c5899db5b7ea",
+        "mb_trackid": "db84a142-890c-4565-8eae-d7a73418fc4e",
+        "mb_workid": "52a9bac1-dad6-4839-b4f4-8856a5864b59",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Take me Take me",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Take me Take me",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800780",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 297.52,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "85aabdd6-2f8a-4709-a5ff-188f921402bf",
+        "mb_trackid": "83f2726a-6200-46d2-9abd-3f9e4832f974",
+        "mb_workid": "4f5482e1-1f09-43bd-a537-1f4082578eaa",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Secret Secret",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "シークレットシークレット",
+        "work_disambig": "",
+        "year": 2008
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "GAME",
+        "album_id": null,
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "arrangers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "composers_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTK00800790",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "length": 341.88,
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyricists_ids": [
+          "53bfc28e-2c48-4776-8949-1953c78dd187"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "457f4b50-5a21-4323-8099-cdee2f8d8e33",
+        "mb_trackid": "b62a9c9a-f2e2-4e00-9c78-fad35e835c6e",
+        "mb_workid": "01f14cc1-9937-423b-bff4-b12330903cf9",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "GAME",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Butterfly",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Butterfly",
+        "work_disambig": "",
+        "year": 2008
+      }
+    }
+  }
+}
