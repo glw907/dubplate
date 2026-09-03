@@ -85,6 +85,7 @@ func (c *Claims) declaresZeroCandidates() bool {
 // about a case (the mechanics study, Q2).
 func CheckClaims(exp *cassette.Expected, c *Claims) error {
 	var errs []error
+	errs = append(errs, checkRecommendation(exp, c)...)
 
 	if c.declaresZeroCandidates() {
 		// The mode names the record's shape directly rather than folding
@@ -95,9 +96,6 @@ func CheckClaims(exp *cassette.Expected, c *Claims) error {
 		if len(exp.Candidates) != 0 {
 			errs = append(errs, fmt.Errorf("claims: min_candidates: 0 declares the record carries no candidate, but it carries %d", len(exp.Candidates)))
 		}
-		if exp.Recommendation != c.Recommendation {
-			errs = append(errs, fmt.Errorf("claims: recommendation = %q, want %q", exp.Recommendation, c.Recommendation))
-		}
 		return errors.Join(errs...)
 	}
 
@@ -107,9 +105,6 @@ func CheckClaims(exp *cassette.Expected, c *Claims) error {
 	}
 	if len(exp.Candidates) < minCandidates {
 		errs = append(errs, fmt.Errorf("claims: candidates = %d, want at least %d", len(exp.Candidates), minCandidates))
-	}
-	if exp.Recommendation != c.Recommendation {
-		errs = append(errs, fmt.Errorf("claims: recommendation = %q, want %q", exp.Recommendation, c.Recommendation))
 	}
 	if len(exp.Candidates) == 0 {
 		// Every remaining claim reads the best candidate; without one there
@@ -153,6 +148,15 @@ func CheckClaims(exp *cassette.Expected, c *Claims) error {
 	errs = append(errs, checkAppliedFields(exp.AppliedFields, c.AppliedFields)...)
 
 	return errors.Join(errs...)
+}
+
+// checkRecommendation compares exp's recommendation against c's claim,
+// the one check every claims mode makes regardless of candidate count.
+func checkRecommendation(exp *cassette.Expected, c *Claims) []error {
+	if exp.Recommendation == c.Recommendation {
+		return nil
+	}
+	return []error{fmt.Errorf("claims: recommendation = %q, want %q", exp.Recommendation, c.Recommendation)}
 }
 
 // checkAssignment compares a claimed item-index to track-index mapping
