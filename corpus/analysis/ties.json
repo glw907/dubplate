@@ -73,6 +73,62 @@
       "unique": true
     },
     {
+      "case_id": "complete-combined-over-scrambled",
+      "album_id": "6df3fd40-2206-429b-8dfe-bb2cd7458c20",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.4166666666666667,
+      "difference": 0.4166666666666667,
+      "unique": true
+    },
+    {
+      "case_id": "complete-combined-short-scrambled",
+      "album_id": "2f54aba6-9110-4d33-ab2a-2586ee5109b3",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.888888888888889,
+      "difference": 0.888888888888889,
+      "unique": true
+    },
+    {
+      "case_id": "complete-max-rec-boundary",
+      "album_id": "c2b57266-b219-4e1c-bdf4-02e727464df9",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.4102564102564103,
+      "difference": 0.4102564102564103,
+      "unique": true
+    },
+    {
+      "case_id": "complete-over-one",
+      "album_id": "d1b3ae09-063f-480d-9151-66452ad3d8e2",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.5972222222222222,
+      "difference": 0.5972222222222222,
+      "unique": true
+    },
+    {
+      "case_id": "complete-over-two",
+      "album_id": "1ff40ed0-0775-4039-810c-340611f05a78",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.6222222222222223,
+      "difference": 0.6222222222222223,
+      "unique": true
+    },
+    {
+      "case_id": "complete-short-one",
+      "album_id": "1d087e3c-a063-4d7c-b2c8-f6b08d2f3a80",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.9,
+      "difference": 0.9,
+      "unique": true
+    },
+    {
+      "case_id": "complete-short-two",
+      "album_id": "5d72067b-6fa8-4317-9cc1-2728e7b0d7c4",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.875,
+      "difference": 0.875,
+      "unique": true
+    },
+    {
       "case_id": "multi-disc",
       "album_id": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
       "optimal_cost": 0,

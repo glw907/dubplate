@@ -1,0 +1,151 @@
+{
+  "id": "2f54aba6-9110-4d33-ab2a-2586ee5109b3",
+  "title": "Nine Fathom",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2019-04-15",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Cane and Rally",
+      "joinphrase": "",
+      "artist": {
+        "id": "d9c450de-a20f-4500-9231-09b8982444f7",
+        "name": "Cane and Rally",
+        "sort-name": "Cane and Rally",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "52232af0-e82f-5ae1-a5d9-de7171af1e15",
+    "title": "Nine Fathom",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2019-04-15",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2019-04-15",
+      "area": {
+        "id": "61709d65-1ee3-0726-0568-907b70873e1d",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "e6055d78-3a24-22bb-00ef-8f8aa598b28f",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a8eea0be-2aab-617f-266b-b3e0410b94e1",
+            "title": "Low Water",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cane and Rally",
+                "joinphrase": "",
+                "artist": {
+                  "id": "d9c450de-a20f-4500-9231-09b8982444f7",
+                  "name": "Cane and Rally",
+                  "sort-name": "Cane and Rally",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "fa704122-1b3f-7e65-c6cc-47d79c1952d8",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f9ece06b-779b-50db-73ce-c8b0cefaa7f9",
+            "title": "Rope and Chain",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cane and Rally",
+                "joinphrase": "",
+                "artist": {
+                  "id": "d9c450de-a20f-4500-9231-09b8982444f7",
+                  "name": "Cane and Rally",
+                  "sort-name": "Cane and Rally",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "5c8b0765-0e66-ae3f-73c9-42ae2fb04254",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 175000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4a02aaf4-3b12-eea9-8cd5-7ad3918027d5",
+            "title": "Nine Fathom",
+            "length": 175000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cane and Rally",
+                "joinphrase": "",
+                "artist": {
+                  "id": "d9c450de-a20f-4500-9231-09b8982444f7",
+                  "name": "Cane and Rally",
+                  "sort-name": "Cane and Rally",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,421 @@
+{
+  "id": "c2b57266-b219-4e1c-bdf4-02e727464df9",
+  "title": "Long Reach",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2013-01-01",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Cormorant Table",
+      "joinphrase": "",
+      "artist": {
+        "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+        "name": "Cormorant Table",
+        "sort-name": "Cormorant Table",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "cee5f94d-d047-b10b-6a12-d228d467c2cc",
+    "title": "Long Reach",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2013-01-01",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2013-01-01",
+      "area": {
+        "id": "aedda1a9-13d5-7369-7c67-51664ca474ae",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 12,
+      "tracks": [
+        {
+          "id": "1476a2a8-7402-d215-1c09-dcef324e0106",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e6d1c354-9de8-a407-8891-f9f17e945687",
+            "title": "Long Reach I",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "0dba324a-54db-fadf-17cb-fc666fe4ab90",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 185000,
+          "artist-credit": null,
+          "recording": {
+            "id": "befeca3a-897d-1471-761e-91f4959b684a",
+            "title": "Long Reach II",
+            "length": 185000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "60b439cb-5beb-2770-9f57-c096064d08ea",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d4e81bd9-3e2f-4357-3e5c-d440999d4a81",
+            "title": "Long Reach III",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "310277f7-975b-c131-99d6-777ce232b130",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ecfeb225-0fe7-909f-ea20-cb34231030f1",
+            "title": "Long Reach IV",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b08eb66f-3d46-d156-06cd-dc944f43eb4e",
+          "position": "5",
+          "number": "5",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d1b1b8c4-2211-8e39-5197-2c030e0b222e",
+            "title": "Long Reach V",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "27dcc9c7-253f-5b14-22fa-6adc00d4066b",
+          "position": "6",
+          "number": "6",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e2ad3d29-ab91-ae60-39c8-eaee83fd1ca8",
+            "title": "Long Reach VI",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b5fa58c9-0b21-fe04-ea27-fe91527b3494",
+          "position": "7",
+          "number": "7",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "36059474-ae0f-402f-eba9-27876ca20f15",
+            "title": "Long Reach VII",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "62f87a9f-5d24-75ad-bab0-b8f75e1d677a",
+          "position": "8",
+          "number": "8",
+          "title": "",
+          "length": 215000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a550f30e-db0e-4443-f847-1798d8ae2e68",
+            "title": "Long Reach VIII",
+            "length": 215000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b78cb558-424a-96c9-9f12-430a30a01e86",
+          "position": "9",
+          "number": "9",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ea287755-a45d-24de-26cb-0c3d8a4698bc",
+            "title": "Long Reach IX",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "95aded3b-92e3-894f-0c82-1148b2e5d866",
+          "position": "10",
+          "number": "10",
+          "title": "",
+          "length": 225000,
+          "artist-credit": null,
+          "recording": {
+            "id": "2aa30165-0f99-316e-1058-3c6b03c87457",
+            "title": "Long Reach X",
+            "length": 225000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "182cbdbc-2e43-dcd8-4a8d-a44647a411de",
+          "position": "11",
+          "number": "11",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "1078c29d-e293-b385-2422-75c98203df88",
+            "title": "Long Reach XI",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ad4e00ad-beda-9440-c87a-950b81e6dc93",
+          "position": "12",
+          "number": "12",
+          "title": "",
+          "length": 235000,
+          "artist-credit": null,
+          "recording": {
+            "id": "aede44a9-93a5-31a0-f1e9-8c24866d5e2d",
+            "title": "Long Reach XII",
+            "length": 235000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cormorant Table",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bb094f99-dbad-fef0-f453-d1976398c8fc",
+                  "name": "Cormorant Table",
+                  "sort-name": "Cormorant Table",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

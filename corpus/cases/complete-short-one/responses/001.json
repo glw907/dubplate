@@ -1,0 +1,151 @@
+{
+  "id": "1d087e3c-a063-4d7c-b2c8-f6b08d2f3a80",
+  "title": "Harborlight",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2016-05-10",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Rill and Stone",
+      "joinphrase": "",
+      "artist": {
+        "id": "14bdc565-2597-6fee-c13d-8cab079edffa",
+        "name": "Rill and Stone",
+        "sort-name": "Rill and Stone",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "fb51e622-f581-ae78-9ebb-7522aba1fe9c",
+    "title": "Harborlight",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-05-10",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-05-10",
+      "area": {
+        "id": "a2ef1245-add9-ae96-67df-d053882307d8",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "3c9a770c-24f3-d595-9fbe-f74123dfe562",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "c0b979f7-74fd-8973-e358-9bd80337d7fc",
+            "title": "Tideline",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Rill and Stone",
+                "joinphrase": "",
+                "artist": {
+                  "id": "14bdc565-2597-6fee-c13d-8cab079edffa",
+                  "name": "Rill and Stone",
+                  "sort-name": "Rill and Stone",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "38051fae-e4bb-3f80-f95e-8e803c1706ed",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "6ea86d47-e1e3-4a17-cb65-0dc407dd2f48",
+            "title": "Amber Run",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Rill and Stone",
+                "joinphrase": "",
+                "artist": {
+                  "id": "14bdc565-2597-6fee-c13d-8cab079edffa",
+                  "name": "Rill and Stone",
+                  "sort-name": "Rill and Stone",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ece71a04-c3c7-3042-2fa4-94017df0894b",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 175000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7ddc5f35-59fb-4ffe-824e-de67cd179a71",
+            "title": "Quiet Ferry",
+            "length": 175000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Rill and Stone",
+                "joinphrase": "",
+                "artist": {
+                  "id": "14bdc565-2597-6fee-c13d-8cab079edffa",
+                  "name": "Rill and Stone",
+                  "sort-name": "Rill and Stone",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

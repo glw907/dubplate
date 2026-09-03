@@ -1,0 +1,20 @@
+{
+  "assignment": {
+    "0": 1,
+    "1": 3
+  },
+  "best_album_id": "1ff40ed0-0775-4039-810c-340611f05a78",
+  "extra_items_len": 0,
+  "extra_tracks_len": 2,
+  "penalty_keys_nonzero": [
+    "missing_tracks"
+  ],
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "artist",
+    "tracks",
+    "year"
+  ],
+  "recommendation": "medium"
+}

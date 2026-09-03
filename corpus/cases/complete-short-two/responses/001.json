@@ -1,0 +1,151 @@
+{
+  "id": "5d72067b-6fa8-4317-9cc1-2728e7b0d7c4",
+  "title": "Driftglass",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2014-09-02",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Nine Copper Bells",
+      "joinphrase": "",
+      "artist": {
+        "id": "3af9aee1-6d65-b15c-7c26-95d816fc5295",
+        "name": "Nine Copper Bells",
+        "sort-name": "Nine Copper Bells",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "68ac0f80-017a-64a3-4655-5de1df70b60e",
+    "title": "Driftglass",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2014-09-02",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2014-09-02",
+      "area": {
+        "id": "7cb0072f-9928-e9c3-008a-e08455dc92b5",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "65bf2e5d-2fcb-c576-c08f-8800a46d51d3",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 165000,
+          "artist-credit": null,
+          "recording": {
+            "id": "836aff49-7c22-939e-3033-4385b2d0f3ed",
+            "title": "Glass Bay",
+            "length": 165000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nine Copper Bells",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3af9aee1-6d65-b15c-7c26-95d816fc5295",
+                  "name": "Nine Copper Bells",
+                  "sort-name": "Nine Copper Bells",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "dce4afb2-65fd-c5de-0b71-8f338f6ccf48",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a5619911-edad-4230-d634-8b2e4f02c161",
+            "title": "Slow Current",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nine Copper Bells",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3af9aee1-6d65-b15c-7c26-95d816fc5295",
+                  "name": "Nine Copper Bells",
+                  "sort-name": "Nine Copper Bells",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "fe15ac87-ab08-f861-9960-cbe58f39b08a",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9849e895-3e6b-8b32-9594-a6e534e91b97",
+            "title": "Undertow",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nine Copper Bells",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3af9aee1-6d65-b15c-7c26-95d816fc5295",
+                  "name": "Nine Copper Bells",
+                  "sort-name": "Nine Copper Bells",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "id": "6df3fd40-2206-429b-8dfe-bb2cd7458c20",
+  "title": "Backwater Fold",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2011-08-08",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Wick and Loam",
+      "joinphrase": "",
+      "artist": {
+        "id": "b4203ba3-0f90-b72a-42d6-0582151c72ff",
+        "name": "Wick and Loam",
+        "sort-name": "Wick and Loam",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "6d42d128-4e64-1d54-295d-aeb4a39b5ade",
+    "title": "Backwater Fold",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2011-08-08",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2011-08-08",
+      "area": {
+        "id": "2218ab9a-7017-30db-e099-a483c1c5df05",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 4,
+      "tracks": [
+        {
+          "id": "1d18192f-0785-b249-cc55-1947ed1ffbbb",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4f7dfd22-e3c1-b64a-bf2c-6d46e02f792b",
+            "title": "First Bend",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Wick and Loam",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b4203ba3-0f90-b72a-42d6-0582151c72ff",
+                  "name": "Wick and Loam",
+                  "sort-name": "Wick and Loam",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "dc885fa6-42cd-9163-9cf1-ad16c03e6f5b",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7e88c826-76eb-38a4-87b4-222b43ff727e",
+            "title": "Second Bend",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Wick and Loam",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b4203ba3-0f90-b72a-42d6-0582151c72ff",
+                  "name": "Wick and Loam",
+                  "sort-name": "Wick and Loam",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d552e839-db86-05b3-eb9a-d29b217758de",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "fb824898-6ff5-70f4-136e-7b91cf11b551",
+            "title": "Third Bend",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Wick and Loam",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b4203ba3-0f90-b72a-42d6-0582151c72ff",
+                  "name": "Wick and Loam",
+                  "sort-name": "Wick and Loam",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "0bfa8721-4f48-33ad-4540-69f3e96daccf",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "11e3bd30-b38e-4056-54c8-152727159ac7",
+            "title": "Fourth Bend",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Wick and Loam",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b4203ba3-0f90-b72a-42d6-0582151c72ff",
+                  "name": "Wick and Loam",
+                  "sort-name": "Wick and Loam",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

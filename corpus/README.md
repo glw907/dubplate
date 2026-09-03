@@ -121,6 +121,38 @@ set) or `overrides` (`missing`/`extra`) alone.
 | `assign-multi-extra-items` | a 3-track release plus two `extra` items, both unmatched (`extra_items` length 2): the single-extra-item shape generalizes to more than one. | none |
 | `assign-multi-extra-tracks` | a 5-track release with two non-adjacent candidate tracks left unmatched (`extra_tracks` length 2): the single-extra-track shape generalizes to more than one. Note: `assign_items` never returns both a nonzero `extra_items` and a nonzero `extra_tracks` from the same call (its leftover set is one-sided, on whichever of items/tracks is longer), so a case combining the two is not an expressible shape and is not attempted here. | none |
 
+### Family 2: album completeness
+
+`complete-*`, 7 cases. `test/autotag/test_distance.py`'s
+`test_incomplete_album` and `test_overly_complete_album`, and
+match.py:304-323's `max_rec` downgrade, exercising `distance()`'s
+`unmatched_tracks` (weight 0.6, the candidate short of the items) and
+`missing_tracks` (weight 0.9, the candidate beyond the items) loops
+directly (distance.py:532-538). Every case in this family shares
+family 1's own finding: `dist.add("missing_tracks", ...)` and
+`dist.add("unmatched_tracks", ...)` derive from the same
+`len(album_info.tracks) - len(item_info_pairs)` /
+`len(items) - len(item_info_pairs)` pair `assign_items` already proved
+mutually exclusive within one candidate (family 1's
+`assign-multi-extra-tracks` note), so "the combined shape" the plan
+names is read here as composing a completeness deficiency with
+family 1's own ordering-correction mechanism (a scrambled,
+independently-supplied item set) rather than as both penalty keys
+firing in one record, which the shipped `assign_items`/`distance()`
+pairing cannot produce. No case in this family hand-edits a generated
+response; every shape is expressible through `overrides`
+(`missing`/`extra`) or an independent `items` set.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `complete-short-one` | a 3-track release plus one `extra` item, leaving the candidate one track short of the items (`unmatched_tracks: 0.032`, medium). | none |
+| `complete-short-two` | the same shape with two `extra` items, doubling the deficit (`unmatched_tracks: 0.0625`). | none |
+| `complete-over-one` | a 3-track release with its first item dropped (`overrides: [{"op":"missing","index":0}]`), leaving the candidate one track beyond the items (`missing_tracks: 0.053`, medium). | none |
+| `complete-over-two` | a 4-track release with two non-adjacent items dropped, doubling the deficit (`missing_tracks: 0.101`). | none |
+| `complete-combined-short-scrambled` | a 3-track release whose item set (supplied independently via `items`, matching every field exactly) lists its three real items out of release order plus one unrelated `extra` item: assignment corrects the scrambled order (`assignment: {"0":2,"1":0,"2":1}`) while the leftover item still drives `unmatched_tracks`, composing family 1's ordering mechanism with this family's completeness penalty. | none |
+| `complete-combined-over-scrambled` | a 4-track release whose independently-supplied `items` set covers only three of the four tracks, listed out of release order: assignment corrects the scrambled order among the three matched items while the fourth candidate track drives `missing_tracks`. | none |
+| `complete-max-rec-boundary` | a 12-track release plus one `extra` item: the same `unmatched_tracks` shape as `complete-short-one`, but at 12 tracks the fixed 0.6 penalty is diluted by a much larger denominator, landing distance at 0.0164, comfortably under `strong_rec_thresh` (0.04). Recommendation still downgrades to medium; this is the case where `max_rec` is not a distance nudge but a discrete verdict, since distance alone would have called it strong. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

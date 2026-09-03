@@ -1,0 +1,151 @@
+{
+  "id": "d1b3ae09-063f-480d-9151-66452ad3d8e2",
+  "title": "Salt Meridian",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2018-02-20",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Coldwater Line",
+      "joinphrase": "",
+      "artist": {
+        "id": "68b1c0c1-0869-c4ce-3197-bbeead500ca6",
+        "name": "Coldwater Line",
+        "sort-name": "Coldwater Line",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "ca5df81b-c3bd-24c1-4d3f-a1fed4bd6187",
+    "title": "Salt Meridian",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2018-02-20",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2018-02-20",
+      "area": {
+        "id": "54ff33cf-d173-35af-2c4a-bccf9f3b59d0",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "b48b3d03-57c5-9748-9acd-ddfc4542e1ae",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0004e809-2f82-8bf8-c88b-b17418ec85c3",
+            "title": "Salt Meridian",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coldwater Line",
+                "joinphrase": "",
+                "artist": {
+                  "id": "68b1c0c1-0869-c4ce-3197-bbeead500ca6",
+                  "name": "Coldwater Line",
+                  "sort-name": "Coldwater Line",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "5388b06a-51e0-14b0-7a5c-2aa0ed277a56",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "94455f68-a03d-2c09-b1c5-2fa497d707f2",
+            "title": "Low Bearing",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coldwater Line",
+                "joinphrase": "",
+                "artist": {
+                  "id": "68b1c0c1-0869-c4ce-3197-bbeead500ca6",
+                  "name": "Coldwater Line",
+                  "sort-name": "Coldwater Line",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "5cd0e945-44ae-7e6c-7a8e-1e0ea3503a4d",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "1c9c132a-93b9-2a36-675a-1a2a806c7824",
+            "title": "Fathom Line",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coldwater Line",
+                "joinphrase": "",
+                "artist": {
+                  "id": "68b1c0c1-0869-c4ce-3197-bbeead500ca6",
+                  "name": "Coldwater Line",
+                  "sort-name": "Coldwater Line",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
