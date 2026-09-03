@@ -254,3 +254,27 @@ this file without checking for gaps.
    DaisyUI-side variable blocks as ready-to-drop tier-3 operator
    files (crib from rose-pine/daisyui and dachinat's ports) without
    growing rung 7's shipped roster?
+
+## Addendum: matching the factory defaults (Geoff, 2026-09-03)
+
+A requirement added after the survey above: the shipped roster also
+carries a matching DaisyUI theme for each target streamer's factory
+default, because the common adopter never re-themes the streamer and
+should get coherence out of the box.
+
+- Navidrome's default is its **Dark** theme, verified at v0.63.2:
+  `conf/configuration.go` sets `defaulttheme` to `"Dark"`, and
+  `ui/src/themes/useCurrentTheme.js` falls back to `DarkTheme` (the
+  Auto option follows `prefers-color-scheme`). Palette source for
+  extraction: `ui/src/themes/dark.js` and `dark.css.js`.
+- Jellyfin-web's default is its **dark** theme (the `src/themes/dark`
+  directory in jellyfin/jellyfin-web; siblings: light, appletv,
+  blueradiance, purplehaze, wmc). Palette source for extraction:
+  that theme directory's stylesheet.
+
+Neither palette is a published standard, so both land as authored
+DaisyUI variable blocks under the same theming-is-data rule as
+gruvbox, derived from the apps' own theme sources at their pinned
+versions. Final rung 7 roster: dark, light, dim, night, black, nord,
+coffee, retro, gruvbox (estate default), catppuccin, navidrome-dark
+match, jellyfin-dark match.
