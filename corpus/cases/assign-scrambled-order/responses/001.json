@@ -1,0 +1,151 @@
+{
+  "id": "808d5660-e95b-5730-8063-b7d5f1dd8ffe",
+  "title": "Tidewheel",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-09",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Cobalt Harbor",
+      "joinphrase": "",
+      "artist": {
+        "id": "5b688ecd-beed-17b0-94cc-90704432448d",
+        "name": "Cobalt Harbor",
+        "sort-name": "Cobalt Harbor",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "130a0551-3f86-631e-54d9-3dbccab100bc",
+    "title": "Tidewheel",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-09",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-09",
+      "area": {
+        "id": "e9f70aac-6398-4104-1928-89199c867476",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "53372a6d-5a98-f3eb-f9a8-84ce02338e1d",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "68eacefd-c523-388b-4062-9883c3fcf617",
+            "title": "First Light",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cobalt Harbor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5b688ecd-beed-17b0-94cc-90704432448d",
+                  "name": "Cobalt Harbor",
+                  "sort-name": "Cobalt Harbor",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "787d72b7-1063-2d5f-767b-40144449d978",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 240000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7511a2ce-b29c-6fbb-1564-da77c135d609",
+            "title": "Between Stations",
+            "length": 240000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cobalt Harbor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5b688ecd-beed-17b0-94cc-90704432448d",
+                  "name": "Cobalt Harbor",
+                  "sort-name": "Cobalt Harbor",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "83e55e38-386c-cce9-bbd8-d8d161e278fa",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0e929cc1-a8ea-225a-9e4f-82c2ec618197",
+            "title": "Low Tide",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Cobalt Harbor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5b688ecd-beed-17b0-94cc-90704432448d",
+                  "name": "Cobalt Harbor",
+                  "sort-name": "Cobalt Harbor",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

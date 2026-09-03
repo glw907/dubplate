@@ -1,0 +1,151 @@
+{
+  "id": "66a32628-93f3-5cb0-b34a-b04041de00da",
+  "title": "Salt Line",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "GB",
+  "date": "2011-03-14",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Given Ground",
+      "joinphrase": "",
+      "artist": {
+        "id": "2f2c3b03-0b5b-f747-2336-b43a04336593",
+        "name": "Given Ground",
+        "sort-name": "Given Ground",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "5d4a6b14-9f37-91a1-8651-866c974faa37",
+    "title": "Salt Line",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2011-03-14",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2011-03-14",
+      "area": {
+        "id": "194cf8d0-44d6-426d-ccf0-6f9658488ebe",
+        "name": "GB",
+        "iso-3166-1-codes": [
+          "GB"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "36230767-39c3-8116-d8aa-a79655c8cfda",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5a30b5b2-8b43-a982-1c11-8f2dc4064e66",
+            "title": "Riverbed",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Given Ground",
+                "joinphrase": "",
+                "artist": {
+                  "id": "2f2c3b03-0b5b-f747-2336-b43a04336593",
+                  "name": "Given Ground",
+                  "sort-name": "Given Ground",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "461152c0-5f9d-b60d-3ee2-cb5cd2f4fddb",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "2b04a276-b94c-c870-6971-dbcf2c44f330",
+            "title": "Static Hum",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Given Ground",
+                "joinphrase": "",
+                "artist": {
+                  "id": "2f2c3b03-0b5b-f747-2336-b43a04336593",
+                  "name": "Given Ground",
+                  "sort-name": "Given Ground",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ffa3375a-7992-fed4-0dc9-fe37fc144a16",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f537e96b-b3f0-51f5-4595-e6aa346d412b",
+            "title": "Coastal Drift",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Given Ground",
+                "joinphrase": "",
+                "artist": {
+                  "id": "2f2c3b03-0b5b-f747-2336-b43a04336593",
+                  "name": "Given Ground",
+                  "sort-name": "Given Ground",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

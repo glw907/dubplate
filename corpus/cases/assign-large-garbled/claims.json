@@ -1,0 +1,29 @@
+{
+  "assignment": {
+    "0": 0,
+    "1": 1,
+    "10": 10,
+    "11": 11,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9
+  },
+  "best_album_id": "2377b5a6-11f6-588c-80e1-de06f88d8ec5",
+  "extra_items_len": 0,
+  "extra_tracks_len": 0,
+  "penalty_keys_nonzero": [
+    "tracks"
+  ],
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "artist",
+    "year"
+  ],
+  "recommendation": "low"
+}

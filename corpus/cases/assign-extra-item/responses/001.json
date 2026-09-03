@@ -1,0 +1,151 @@
+{
+  "id": "4e4ec843-7eb9-582a-bc84-746ca7c9f61f",
+  "title": "Copper Wire",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2017-05-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Fieldstone",
+      "joinphrase": "",
+      "artist": {
+        "id": "9e74e688-60ee-3235-d3f1-a882524c585e",
+        "name": "Fieldstone",
+        "sort-name": "Fieldstone",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "0d559e03-e512-eed2-6646-df59b5450b77",
+    "title": "Copper Wire",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2017-05-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2017-05-05",
+      "area": {
+        "id": "e8e6edd2-6fca-92b2-23fd-90d37e309fa7",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "3176b20b-e274-7155-c99b-ed47cb0bc701",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "04ab768c-90cc-9f71-b0b8-da78ebb55e24",
+            "title": "Copper Wire",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fieldstone",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9e74e688-60ee-3235-d3f1-a882524c585e",
+                  "name": "Fieldstone",
+                  "sort-name": "Fieldstone",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "92d2b3bf-78ee-8072-1987-d41ffbe990d2",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9e281eb2-30f1-1e08-3a79-411318f41f6a",
+            "title": "Low Static",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fieldstone",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9e74e688-60ee-3235-d3f1-a882524c585e",
+                  "name": "Fieldstone",
+                  "sort-name": "Fieldstone",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "56ee75d6-cd2f-ae78-033c-6f7e06aacc8a",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "eba47550-a27d-23ca-8cff-5faee6ab6c9f",
+            "title": "North Fork",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fieldstone",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9e74e688-60ee-3235-d3f1-a882524c585e",
+                  "name": "Fieldstone",
+                  "sort-name": "Fieldstone",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

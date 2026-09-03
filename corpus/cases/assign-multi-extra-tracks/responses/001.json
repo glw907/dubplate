@@ -1,0 +1,211 @@
+{
+  "id": "0ced6ce6-04b6-5650-8333-1546121558e1",
+  "title": "Static Coast",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2012-10-10",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Northline",
+      "joinphrase": "",
+      "artist": {
+        "id": "56ccdf89-77ba-1d47-609a-2f81d5259d63",
+        "name": "Northline",
+        "sort-name": "Northline",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "22dc7ceb-eedc-beb0-4d38-15bfe62be055",
+    "title": "Static Coast",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2012-10-10",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2012-10-10",
+      "area": {
+        "id": "fb9c8fc5-573c-812c-ed3c-faf7759f407b",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 5,
+      "tracks": [
+        {
+          "id": "06928142-0c7c-0b9e-f2d4-ab2b8995ec31",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "707ae0bd-944e-2a90-d94c-c53e09086ea7",
+            "title": "Tideline",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Northline",
+                "joinphrase": "",
+                "artist": {
+                  "id": "56ccdf89-77ba-1d47-609a-2f81d5259d63",
+                  "name": "Northline",
+                  "sort-name": "Northline",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "6b20c972-1acb-0144-9405-4af8d1b3d925",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a6e0d487-3c03-0983-f7e1-8b69238e6635",
+            "title": "Static Hum",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Northline",
+                "joinphrase": "",
+                "artist": {
+                  "id": "56ccdf89-77ba-1d47-609a-2f81d5259d63",
+                  "name": "Northline",
+                  "sort-name": "Northline",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "34450645-bfa9-ca4d-49cd-0c66a170a6ac",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a6f73c17-fe62-8e13-d03d-d3c8da97aefd",
+            "title": "Coastal Drift",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Northline",
+                "joinphrase": "",
+                "artist": {
+                  "id": "56ccdf89-77ba-1d47-609a-2f81d5259d63",
+                  "name": "Northline",
+                  "sort-name": "Northline",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "c1874a19-d970-42ec-5445-31531f543589",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 250000,
+          "artist-credit": null,
+          "recording": {
+            "id": "20866550-ea6d-eac7-21e1-8328b95a6bf3",
+            "title": "Undertow",
+            "length": 250000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Northline",
+                "joinphrase": "",
+                "artist": {
+                  "id": "56ccdf89-77ba-1d47-609a-2f81d5259d63",
+                  "name": "Northline",
+                  "sort-name": "Northline",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "846510f4-cb28-c790-6bc4-2a7e511e1707",
+          "position": "5",
+          "number": "5",
+          "title": "",
+          "length": 270000,
+          "artist-credit": null,
+          "recording": {
+            "id": "50f400f7-759c-c919-1f9e-903d45e9ba26",
+            "title": "Salt Line",
+            "length": 270000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Northline",
+                "joinphrase": "",
+                "artist": {
+                  "id": "56ccdf89-77ba-1d47-609a-2f81d5259d63",
+                  "name": "Northline",
+                  "sort-name": "Northline",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

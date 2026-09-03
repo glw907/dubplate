@@ -1,0 +1,421 @@
+{
+  "id": "2377b5a6-11f6-588c-80e1-de06f88d8ec5",
+  "title": "Twelve Views",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2008-02-19",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Meridian Falls",
+      "joinphrase": "",
+      "artist": {
+        "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+        "name": "Meridian Falls",
+        "sort-name": "Meridian Falls",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "168c74f0-8c46-5928-f245-6a276ab761c8",
+    "title": "Twelve Views",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2008-02-19",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2008-02-19",
+      "area": {
+        "id": "0df9f37a-e704-a5ec-ae03-5b7990322507",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 12,
+      "tracks": [
+        {
+          "id": "ad03e653-8e22-fc21-a52b-ed4c363aa6ac",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 165000,
+          "artist-credit": null,
+          "recording": {
+            "id": "3a776699-8dd1-1c40-9470-54774e97ac5e",
+            "title": "Aerial",
+            "length": 165000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e00e9e21-3576-db2f-819a-fdf3dbb6d134",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "bcc06c04-ba3f-bb62-ded8-726013592dbf",
+            "title": "Undertone",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "343c6c53-be5b-11ee-55c8-e2fdb2a60bf3",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 255000,
+          "artist-credit": null,
+          "recording": {
+            "id": "58b982e3-09d0-d9fa-c91a-2b4a5bea1f97",
+            "title": "Causeway",
+            "length": 255000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "f5dd3e65-3526-7345-09cd-1e95e9e5fcf4",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 300000,
+          "artist-credit": null,
+          "recording": {
+            "id": "00e8e2c3-939b-73ca-4d74-ad91d1797b20",
+            "title": "Ember Line",
+            "length": 300000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "1c7081fd-ec9d-1b7f-7151-410eeeab40c0",
+          "position": "5",
+          "number": "5",
+          "title": "",
+          "length": 345000,
+          "artist-credit": null,
+          "recording": {
+            "id": "a34706cb-8b9b-9848-c558-6e04c3bf406f",
+            "title": "Fallow",
+            "length": 345000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "0ea6be93-6301-8ff2-524e-91aefb73452f",
+          "position": "6",
+          "number": "6",
+          "title": "",
+          "length": 390000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ac5cb130-4cde-7eb3-98a7-3d07f28e4942",
+            "title": "Ground Swell",
+            "length": 390000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "08be5a21-4366-33e3-3b43-299456ce371c",
+          "position": "7",
+          "number": "7",
+          "title": "",
+          "length": 435000,
+          "artist-credit": null,
+          "recording": {
+            "id": "996d21c8-3ca5-4d16-9cdb-b7e05bb470a7",
+            "title": "Halcyon",
+            "length": 435000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "924c432f-59a9-fb8a-e4e0-9f7c8cce777c",
+          "position": "8",
+          "number": "8",
+          "title": "",
+          "length": 480000,
+          "artist-credit": null,
+          "recording": {
+            "id": "74fa25ae-076f-77af-6ccd-8a595a56d452",
+            "title": "Isthmus",
+            "length": 480000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a81e4ecb-9607-4900-743f-bd0d0dcef973",
+          "position": "9",
+          "number": "9",
+          "title": "",
+          "length": 525000,
+          "artist-credit": null,
+          "recording": {
+            "id": "de2f1626-aa2b-06e2-d103-a03398286e45",
+            "title": "Junction",
+            "length": 525000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "13e72337-740e-c115-beff-4aa383d82109",
+          "position": "10",
+          "number": "10",
+          "title": "",
+          "length": 570000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7bdf03b9-b501-4742-ebab-75e3d95489c3",
+            "title": "Keel",
+            "length": 570000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "c463838d-312e-2527-999c-4c0c43c911f2",
+          "position": "11",
+          "number": "11",
+          "title": "",
+          "length": 615000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5c547cb0-e92c-88ec-7e97-49cf2e1af1a4",
+            "title": "Lowland",
+            "length": 615000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e2f2df62-d06c-bfaf-dab3-7266d59566a3",
+          "position": "12",
+          "number": "12",
+          "title": "",
+          "length": 660000,
+          "artist-credit": null,
+          "recording": {
+            "id": "07d37de1-6a95-e6b4-0fde-982daa42e363",
+            "title": "Meridian",
+            "length": 660000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Meridian Falls",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f6a4eda0-6fbb-573a-e801-8db637f41016",
+                  "name": "Meridian Falls",
+                  "sort-name": "Meridian Falls",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

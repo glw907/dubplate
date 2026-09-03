@@ -1,0 +1,151 @@
+{
+  "id": "15ed4b62-0987-5417-9044-7f0d6c690bb7",
+  "title": "Nightjar",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2013-11-22",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Halfmoon Static",
+      "joinphrase": "",
+      "artist": {
+        "id": "39170bea-332d-a053-70c3-506be25b35fb",
+        "name": "Halfmoon Static",
+        "sort-name": "Halfmoon Static",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "c1ff095c-0a01-20fa-9078-c3481d6f53b4",
+    "title": "Nightjar",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2013-11-22",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2013-11-22",
+      "area": {
+        "id": "87c9d101-20ad-ce86-6df0-834f58434daa",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "9bf371ec-b242-aa3b-bf07-bf94a2ffd451",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "589247f5-847b-0dee-7640-53a762c5b9d6",
+            "title": "Downstream",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halfmoon Static",
+                "joinphrase": "",
+                "artist": {
+                  "id": "39170bea-332d-a053-70c3-506be25b35fb",
+                  "name": "Halfmoon Static",
+                  "sort-name": "Halfmoon Static",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4d8c3010-5c64-3095-3e0f-0a27a953ec16",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 215000,
+          "artist-credit": null,
+          "recording": {
+            "id": "bf4bce2d-773d-818b-4279-5218d7adf3ca",
+            "title": "Halfway House",
+            "length": 215000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halfmoon Static",
+                "joinphrase": "",
+                "artist": {
+                  "id": "39170bea-332d-a053-70c3-506be25b35fb",
+                  "name": "Halfmoon Static",
+                  "sort-name": "Halfmoon Static",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b92645c3-c0b7-706e-7e56-7500f9ff750c",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 235000,
+          "artist-credit": null,
+          "recording": {
+            "id": "567985a5-fc8d-829d-d84f-08ff1342735f",
+            "title": "Coda",
+            "length": 235000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Halfmoon Static",
+                "joinphrase": "",
+                "artist": {
+                  "id": "39170bea-332d-a053-70c3-506be25b35fb",
+                  "name": "Halfmoon Static",
+                  "sort-name": "Halfmoon Static",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

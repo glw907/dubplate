@@ -82,6 +82,39 @@ which the capture-derive loop then satisfies by capturing every
 pressing the search returned: this is expected corpus growth, not
 scope creep, and the same mechanism a future case can hit again.
 
+## The structural stratum
+
+Pass 2b's own cases, roughly 60-120 of them across 15 shape families
+(`docs/superpowers/research/2026-09-02-beets-structural-stratum-inventory.md`,
+section (b)), each a synthetic release built through `harness synth`
+rather than a live capture: matcher-behavior coverage, where the smoke
+corpus above is machinery coverage. Every row names the case's family,
+the structural shape it exercises, and any hand-edit its README-blessed
+escape hatch used (corpus/README.md, "Authoring a synthetic case",
+step 3). This table is filled in family by family as each case-authoring
+task lands; Task 14 rewrites it whole once every family is committed.
+
+### Family 1: assignment and ordering
+
+`assign-*`, 8 cases. `test/autotag/test_match.py`'s `TestAssignment`
+(`test_assign_tracks`'s five params plus
+`test_order_works_when_track_names_are_entirely_wrong`), exercising
+`assign_items` (match.py:53-81) directly. No case in this family hand-
+edits a generated response; every shape is expressible through
+`ReleaseSpec`'s `items` (an independent, deliberately reordered item
+set) or `overrides` (`missing`/`extra`) alone.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `assign-scrambled-order` | a 3-track release whose item set (supplied independently via `items`, matching every field exactly) lists the same three items out of release order; the assignment corrects them to their true tracks by content alone (`assignment: {"0":0,"1":2,"2":1}`), distance 0, strong. | none |
+| `assign-extra-track-leading` | the release's first candidate track is left unmatched (`overrides: [{"op":"missing","index":0}]` on a 3-track release), becoming `extra_tracks`. | none |
+| `assign-extra-track-middle` | the same shape with the middle candidate track left unmatched. | none |
+| `assign-extra-track-trailing` | the same shape with the last candidate track left unmatched. | none |
+| `assign-extra-item` | a 3-track release plus one `extra` item unrelated to any track, becoming `extra_items` (carrying the release's own `mb_albumid` per the fencing rule). | none |
+| `assign-large-garbled` | a 12-track release whose every item carries the same wrong title and a length perturbed within `track_length_grace` of its true track, so the title component cannot discriminate and only length separates a correct pairing from an incorrect one; `assign_items`'s optimum still recovers the identity mapping, proving the solver's result survives large, uniform per-pair costs. | none |
+| `assign-multi-extra-items` | a 3-track release plus two `extra` items, both unmatched (`extra_items` length 2): the single-extra-item shape generalizes to more than one. | none |
+| `assign-multi-extra-tracks` | a 5-track release with two non-adjacent candidate tracks left unmatched (`extra_tracks` length 2): the single-extra-track shape generalizes to more than one. Note: `assign_items` never returns both a nonzero `extra_items` and a nonzero `extra_tracks` from the same call (its leftover set is one-sided, on whichever of items/tracks is longer), so a case combining the two is not an expressible shape and is not attempted here. |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

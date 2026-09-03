@@ -1,6 +1,70 @@
 {
   "entries": [
     {
+      "case_id": "assign-extra-item",
+      "album_id": "4e4ec843-7eb9-582a-bc84-746ca7c9f61f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.923076923076923,
+      "difference": 0.923076923076923,
+      "unique": true
+    },
+    {
+      "case_id": "assign-extra-track-leading",
+      "album_id": "66a32628-93f3-5cb0-b34a-b04041de00da",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.7777777777777777,
+      "difference": 0.7777777777777777,
+      "unique": true
+    },
+    {
+      "case_id": "assign-extra-track-middle",
+      "album_id": "a1f0e2b4-325a-52f8-8c3b-ff88cc80c4ac",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.6527777777777778,
+      "difference": 0.6527777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "assign-extra-track-trailing",
+      "album_id": "15ed4b62-0987-5417-9044-7f0d6c690bb7",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.736111111111111,
+      "difference": 0.736111111111111,
+      "unique": true
+    },
+    {
+      "case_id": "assign-large-garbled",
+      "album_id": "2377b5a6-11f6-588c-80e1-de06f88d8ec5",
+      "optimal_cost": 5.25,
+      "best_forbidden_cost": 6.25,
+      "difference": 1,
+      "unique": true
+    },
+    {
+      "case_id": "assign-multi-extra-items",
+      "album_id": "1222b914-8055-501c-8880-7384e0d11017",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.8846153846153847,
+      "difference": 0.8846153846153847,
+      "unique": true
+    },
+    {
+      "case_id": "assign-multi-extra-tracks",
+      "album_id": "0ced6ce6-04b6-5650-8333-1546121558e1",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.6527777777777778,
+      "difference": 0.6527777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "assign-scrambled-order",
+      "album_id": "808d5660-e95b-5730-8063-b7d5f1dd8ffe",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3555555555555554,
+      "difference": 1.3555555555555554,
+      "unique": true
+    },
+    {
       "case_id": "clean-match",
       "album_id": "1a8c4ac3-6f47-4570-aedb-f1928a0498ea",
       "optimal_cost": 0,
@@ -32,7 +96,7 @@
       "difference": 0,
       "unique": false,
       "disposition": "pinned",
-      "reason": "Items 1 and 6 are the case's two deliberately corrupted items, and their distances to tracks 1 and 6 are equal, so assigning 1->6, 6->1 and assigning 1->1, 6->6 cost the same. The album is not a VA release, so beets recomputes the final per-track distances under the same incl_artist=False objective the assignment used: both optima produce the same album distance and the same medium recommendation, and only the mapping itself is arbitrary. The mapping lapjv chose is the expectation; a Go solver has to mirror its tie-breaking to match this row."
+      "reason": "Items 1 and 6 are the case's two deliberately corrupted items, and their distances to tracks 1 and 6 are equal, so assigning 1-\u003e6, 6-\u003e1 and assigning 1-\u003e1, 6-\u003e6 cost the same. The album is not a VA release, so beets recomputes the final per-track distances under the same incl_artist=False objective the assignment used: both optima produce the same album distance and the same medium recommendation, and only the mapping itself is arbitrary. The mapping lapjv chose is the expectation; a Go solver has to mirror its tie-breaking to match this row."
     },
     {
       "case_id": "should-reject",
