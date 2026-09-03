@@ -1,0 +1,1573 @@
+{
+  "id": "real-noise-rolling-stones-es2004",
+  "input": {
+    "items": [
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 188,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "7016fbdd-e1d9-4e4c-bdd0-bdcc7d2f6d37",
+        "title": "The Last Time",
+        "track": 1,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 211,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "cd95b4ea-197a-4497-94d0-3c5a6ad8a796",
+        "title": "It's All Over Now",
+        "track": 2,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 106,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "8de938fe-6ab9-4556-bcc0-c629a91e82f1",
+        "title": "Come On",
+        "track": 3,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 108,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "a76a69b9-1f12-42ff-a649-7cb9f6a8f115",
+        "title": "Hot Fade Away",
+        "track": 4,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 153,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "905d1952-dd9f-4735-a89e-ae9393ed777c",
+        "title": "You Better Move",
+        "track": 5,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 149,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "aaefe662-7fb2-459e-aa95-046d78a2cb96",
+        "title": "Confessin' the Blues",
+        "track": 6,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 175,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "677dc628-482e-4b17-8c22-028f34a742e8",
+        "title": "Mona",
+        "track": 7,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 153,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "b82c85e2-1c45-4529-b750-1dc96a048868",
+        "title": "Everybody Needs Somebody to Love",
+        "track": 8,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 121,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "c5f0c4a9-5b2b-4e1e-84ac-33f99ee90537",
+        "title": "Pain in My Heart",
+        "track": 9,
+        "year": 2004
+      },
+      {
+        "album": "Rolling Stones",
+        "albumartist": "The Rolling Stones",
+        "artist": "The Rolling Stones",
+        "length": 124,
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_trackid": "9446c628-d693-435b-bf59-7a396e1b334e",
+        "title": "Play With Fire",
+        "track": 10,
+        "year": 2004
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28rolling+stones%29+artist%3A%28the+rolling+stones%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/93854c40-ba7b-4ce1-ae25-f98316161073?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/021.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/66afc3e2-ff22-45ca-a1b7-5c14e594bcd2?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/022.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/969eff21-8a35-4755-86a2-09734f43c5c8?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/023.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/fb241fad-b606-424a-a30a-ebcea0be5038?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/024.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "distance": 0.053254437869822494,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "missing_tracks": 0.053254437869822494,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "66afc3e2-ff22-45ca-a1b7-5c14e594bcd2",
+        "distance": 0.668359040975449,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.12195121951219512,
+          "artist": 0,
+          "missing_tracks": 0.21951219512195122,
+          "tracks": 0.3223789145075176,
+          "year": 0.004516711833785004
+        },
+        "tracks": [
+          0.5702479338842975,
+          0.7636363636363637,
+          0.7113636363636364,
+          0.5454545454545454,
+          0.7342657342657343,
+          0.5454545454545454,
+          0.5454545454545454,
+          0.7762237762237763,
+          0.75,
+          0.6666666666666666
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "93854c40-ba7b-4ce1-ae25-f98316161073",
+        "distance": 0.678858300790119,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.125,
+          "artist": 0,
+          "missing_tracks": 0.225,
+          "tracks": 0.328858300790119
+        },
+        "tracks": [
+          0.5702479338842975,
+          0.7597402597402598,
+          0.6992424242424242,
+          0.5454545454545454,
+          0.7283549783549784,
+          0.7342657342657343,
+          0.5454545454545454,
+          0.5454545454545454,
+          0.7762237762237763,
+          0.6727272727272727
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "969eff21-8a35-4755-86a2-09734f43c5c8",
+        "distance": 0.7886282809420063,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.1,
+          "artist": 0,
+          "missing_tracks": 0.36,
+          "tracks": 0.32085050316422864,
+          "year": 0.0077777777777777776
+        },
+        "tracks": [
+          0.7999999999999999,
+          0.8300653594771242,
+          0.6581196581196581,
+          0.8431372549019608,
+          0.8412698412698413,
+          0.7863247863247863,
+          0.7777777777777778,
+          0.8271604938271605,
+          0.8611111111111112,
+          0.7962962962962963
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "fb241fad-b606-424a-a30a-ebcea0be5038",
+        "distance": 0.8153369927563476,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.062034739454094295,
+          "artist": 0,
+          "missing_tracks": 0.6029776674937966,
+          "tracks": 0.14549966162869388,
+          "year": 0.00482492417976289
+        },
+        "tracks": [
+          0.45454545454545453,
+          0.6484848484848484,
+          0.5818181818181819,
+          0.5545454545454546,
+          0.45454545454545453,
+          0.5702479338842975,
+          0.5878787878787879,
+          0.7272727272727273,
+          0.7388429752066116,
+          0.5454545454545454
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [
+      10,
+      11
+    ],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 188,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "1609a9bc-3b77-4e38-9612-b1f8278d7136",
+        "mb_trackid": "7016fbdd-e1d9-4e4c-bdd0-bdcc7d2f6d37",
+        "mb_workid": "d12cf1ae-7feb-3f04-88e9-c4d7df3ff754",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "The Last Time",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "The Last Time",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 211,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "7e09b786-df92-4aaf-9ce4-7a89653892e7",
+        "mb_trackid": "cd95b4ea-197a-4497-94d0-3c5a6ad8a796",
+        "mb_workid": "9f9307a7-890c-3caf-bc64-c5fd56d93a20",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "It's All Over Now",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "It’s All Over Now",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Berry, Chuck",
+        "composers": [
+          "Chuck Berry"
+        ],
+        "composers_ids": [
+          "592a3b6d-c42b-4567-99c9-ecf63bd66499"
+        ],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 106,
+        "lyricists": [
+          "Chuck Berry"
+        ],
+        "lyricists_ids": [
+          "592a3b6d-c42b-4567-99c9-ecf63bd66499"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "29512c31-0ebf-445f-a0c7-00460bc0ab68",
+        "mb_trackid": "8de938fe-6ab9-4556-bcc0-c629a91e82f1",
+        "mb_workid": "6b3bbd5a-0b4e-365e-bde1-d3eceaad9d5e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Come On",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Come On",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 108,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "96bb003a-0c71-49ee-acf9-c197902e86c0",
+        "mb_trackid": "a76a69b9-1f12-42ff-a649-7cb9f6a8f115",
+        "mb_workid": "6394bda2-57a6-3578-badc-f3043d4f0ba8",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Hot Fade Away",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Not Fade Away",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Alexander, Arthur",
+        "composers": [
+          "Arthur Alexander"
+        ],
+        "composers_ids": [
+          "749896c9-578c-459c-9487-22f5376172ab"
+        ],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 153,
+        "lyricists": [
+          "Arthur Alexander"
+        ],
+        "lyricists_ids": [
+          "749896c9-578c-459c-9487-22f5376172ab"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "0777dd9f-d893-4b0e-a5c2-fa7deb1865a5",
+        "mb_trackid": "905d1952-dd9f-4735-a89e-ae9393ed777c",
+        "mb_workid": "80e75305-fdd2-36a8-aa34-b1fb912515a8",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "You Better Move",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "You Better Move On",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 149,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "4f0c3eb2-de94-49ef-b0e6-382a3d21c374",
+        "mb_trackid": "aaefe662-7fb2-459e-aa95-046d78a2cb96",
+        "mb_workid": "65dbcf9d-5856-3585-bc69-b879e95d3957",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Confessin' the Blues",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Confessin’ the Blues",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Diddley, Bo",
+        "composers": [
+          "Bo Diddley"
+        ],
+        "composers_ids": [
+          "bf659d74-0b61-488c-8a7d-594f43bed9e0"
+        ],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 175,
+        "lyricists": [
+          "Bo Diddley"
+        ],
+        "lyricists_ids": [
+          "bf659d74-0b61-488c-8a7d-594f43bed9e0"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "0a9769ae-dacc-4923-8476-875f7f68bf5b",
+        "mb_trackid": "677dc628-482e-4b17-8c22-028f34a742e8",
+        "mb_workid": "2e0de115-e833-3b42-8fba-b20314b0284f",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Mona",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Mona",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 153,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "d5db7d6d-329c-45ae-89f9-76706afebef8",
+        "mb_trackid": "b82c85e2-1c45-4529-b750-1dc96a048868",
+        "mb_workid": "84c3151f-6d1e-3cf8-aaef-025df5c9a3d6",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Everybody Needs Somebody to Love",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Everybody Needs Somebody to Love",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Neville, Naomi",
+        "composers": [
+          "Naomi Neville"
+        ],
+        "composers_ids": [
+          "0df0cb5e-666a-4b98-a29a-1bb586199742"
+        ],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 121,
+        "lyricists": [
+          "Naomi Neville"
+        ],
+        "lyricists_ids": [
+          "0df0cb5e-666a-4b98-a29a-1bb586199742"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "078ce51b-d05f-4dbf-a255-2366ff9ce5a9",
+        "mb_trackid": "c5f0c4a9-5b2b-4e1e-84ac-33f99ee90537",
+        "mb_workid": "6fd787db-6b7b-411b-ade6-4034603f7fd9",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Pain in My Heart",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Pain in My Heart",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Rolling Stones",
+        "album_id": null,
+        "albumartist": "The Rolling Stones",
+        "albumartist_credit": "The Rolling Stones",
+        "albumartist_sort": "Rolling Stones, The",
+        "albumartists": [
+          "The Rolling Stones"
+        ],
+        "albumartists_credit": [
+          "The Rolling Stones"
+        ],
+        "albumartists_sort": [
+          "Rolling Stones, The"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Rolling Stones",
+        "artist_credit": "The Rolling Stones",
+        "artist_sort": "Rolling Stones, The",
+        "artists": [
+          "The Rolling Stones"
+        ],
+        "artists_credit": [
+          "The Rolling Stones"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Rolling Stones, The"
+        ],
+        "asin": "",
+        "barcode": "8430526440288",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CD-4028",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nanker Phelge",
+        "composers": [
+          "Nanker Phelge"
+        ],
+        "composers_ids": [
+          "18b60be3-6b62-48b3-b1eb-4cb46d7cca9d"
+        ],
+        "country": "ES",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "OK Records",
+        "language": "",
+        "length": 124,
+        "lyricists": [
+          "Nanker Phelge"
+        ],
+        "lyricists_ids": [
+          "18b60be3-6b62-48b3-b1eb-4cb46d7cca9d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_albumartistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_albumid": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+        "mb_artistid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+        "mb_artistids": [
+          "b071f9fa-14b0-4217-8e97-eb41da73f598"
+        ],
+        "mb_releasegroupid": "c6b0c92e-427b-401d-938b-8ed5066139f4",
+        "mb_releasetrackid": "6cd6f0e3-b1b3-49ea-88c1-cbd3c8f576bc",
+        "mb_trackid": "9446c628-d693-435b-bf59-7a396e1b334e",
+        "mb_workid": "ea934515-6f2a-332f-946e-81289f5d3dd5",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Rolling Stones",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Play With Fire",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Play With Fire",
+        "work_disambig": "",
+        "year": 2004
+      }
+    }
+  }
+}

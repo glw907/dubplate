@@ -1014,6 +1014,59 @@ matcher rejects it correctly. Converged over three capture rounds: the
 primary ID lookup (already seeded by Task 3), then a search-fallback
 round (`limit=5`) and its four named-candidate release lookups.
 
+### Task 15 (batch 12)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-trojan-marley-covers` | VA/box-set | `8641cd63-10d1-4ec5-be67-a1ed1f916ad8` | yes | no | *Trojan Bob Marley Covers Box Set* (VA, 3 discs, 50 tracks); capture-confirmed 3 discs; a genuine, tiny nonzero `tracks` distance (`0.0007`) survives well inside `strong`. |
+| `real-decoy-chopin-nocturnes` | two-release sub-axis | `12cdb773-f5f2-438b-874a-7ec824ce0ff9` | no | no | Peter Schmalfuss & Dubravka Tomšič, *Chopin Nocturnes*; items authored ambiguously (`albumartist` shortened to the generic `Chopin`) to force beets' own text-search fallback. See the finding below: the named decoy did not surface inside the 5-result search window, and the matcher still correctly picked its own captured source (`medium`, `skip`, distance `0.0729`, a nonzero `artist` penalty alone). |
+| `real-genre-burna-boy-african-giant` | genre/era spread | `c077002c-e55d-46cd-b7d9-09cb1e41d751` | no | no | Burna Boy, *African Giant* (Digital Media; Afrobeats, 2019, 19 tracks); a clean zero-distance match. |
+| `real-genre-manu-chao-clandestino` | genre/era spread | `3df03311-b0dc-4b99-895b-24db8b1b2c9c` | no | no | Manu Chao, *Clandestino* (XE 1998 CD; Latin alternative/world, 16 tracks); a clean zero-distance match. |
+| `real-genre-skepta-konnichiwa` | genre/era spread | `b7622f63-3470-4490-a296-4a4d5bca82cd` | no | no | Skepta, *Konnichiwa* (GB 2016 CD; grime, 12 tracks); a clean zero-distance match. |
+| `real-noise-rolling-stones-es2004` | MB-noise | `11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143` | no | no | The Rolling Stones, *Rolling Stones* (ES 2004 compilation; Official status, an obscure regional reissue). Authored as a partial rip (2 of 12 tracks dropped via `--overrides`); matched its own correct source at `medium` on a nonzero `missing_tracks` penalty (`0.0533`). |
+| `real-nonlatin-alla-pugacheva-vol1` | non-Latin | `b5bed26f-4e2b-48cb-ae9a-057095ec1d01` | no | no | Alla Pugacheva, *Alla Pugacheva, Volume 1* (Russian, Cyrillic; artist-credit is natively the Cyrillic form Алла Пугачёва itself, with a documented `locale=en` alias "Alla Pugacheva"); a clean zero-distance match. The release carries no parseable date, so `year` is absent from the record rather than present at zero, the same shape `real-nonlatin-vandi` (Task 4) exercises. |
+| `real-reissue-ten-2009` | reissue/remaster | `06fc304e-d70a-4846-93e5-544d6aa618d6` | yes | no | Pearl Jam, *Ten* (2009 legacy edition, 2 discs, 28 tracks); capture-confirmed release date 2009-03-23 against the release-group's own first-release-date 1991-08-27; a clean zero-distance match. |
+
+Six of the eight rows above matched their own captured source and land
+`strong`/`apply`; `real-decoy-chopin-nocturnes` and
+`real-noise-rolling-stones-es2004` also matched their own captured
+source but land `medium`/`skip` per their own rows above (a nonzero
+`artist` penalty for the decoy row, a nonzero `missing_tracks` penalty
+for the noise row -- neither a wrong match). No confident wrong match
+appeared, so this batch owes no `adjudications.json` row; no
+threshold-proximity flag (both distances, `0.0729` and `0.0533`, clear
+`ProximityEpsilon`'s tight band around `strong_rec_thresh`); ties.json's
+re-derive shows every new assignment unique. **Task 15 delivers all 8
+dossier rows**; no reserve substitution was needed. This batch closes
+the real-catalog stratum's twelve-task capture loop (Tasks 4 through
+15).
+
+**The two-release sub-axis finding (Task 15), and the axis's own
+close.** The dossier's Task 15 row for this axis,
+`real-decoy-chopin-nocturnes` (`12cdb773-f5f2-438b-874a-7ec824ce0ff9`,
+decoy `d9b0cb53-0d57-4b8d-85ee-813689daddad`, Natalia Kushner), was
+authored ambiguously by shortening `albumartist` to the generic
+`Chopin` while leaving `artist` at its full credited form (`Frédéric
+Chopin`), the same technique that forced Task 14's fallback. Beets' own
+text-search fallback (`limit=5`, `release:(chopin nocturnes)
+artist:(chopin)`) surfaced five distinct *Chopin Nocturnes* pressings,
+but the named decoy was not among them. The matcher still correctly
+picked its own captured source (`medium`, `skip`, distance `0.0729`, an
+`artist` penalty alone) over all five search hits, which ranged from
+`0.6691` to `0.7020`, none remotely competitive. This closes the
+two-release sub-axis at its full 6-of-6 primary rows attempted: 4
+delivered as cases (Task 7's `real-decoy-mozart-requiem`, Task 13's
+`real-decoy-beethoven-symphony-9-choral`, Task 14's
+`real-decoy-tchaikovsky-swan-lake`, and this row), of which 3 actually
+surfaced their named decoy inside beets' own 5-result search window and
+1 (this row) did not; 2 discarded before ever becoming cases (Task 4's
+`real-decoy-beethoven-symphony-5` and Task 6's
+`real-decoy-vivaldi-four-seasons`, both per the mechanism's own escape
+hatch, with the axis's sole reserve exhausted by Task 4's own retry).
+Across every delivered case, the matcher rejected every decoy or other
+search-surfaced candidate it was shown, named or not: the axis's
+headline finding is a clean bill, not a wrong match.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

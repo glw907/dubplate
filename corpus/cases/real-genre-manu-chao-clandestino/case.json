@@ -1,0 +1,2299 @@
+{
+  "id": "real-genre-manu-chao-clandestino",
+  "input": {
+    "items": [
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 149.853,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "b0eb1856-ef50-4f4b-a84a-04aea2ae9dcf",
+        "title": "Clandestino",
+        "track": 1,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 229.226,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "69c2473e-c63c-42be-9dff-055136eb3a5a",
+        "title": "Desaparecido",
+        "track": 2,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 160.453,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "aef7788e-0132-4039-bb45-d2c6036ae1c8",
+        "title": "Bongo Bong",
+        "track": 3,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 124.8,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "9b419aac-9b02-4c12-b597-0cb6d6080387",
+        "title": "Je ne t’aime plus",
+        "track": 4,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 279.026,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "7719f9ca-c8fa-48a8-a8d1-df24e95247d0",
+        "title": "Mentira…",
+        "track": 5,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 179.626,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "68c835aa-9947-4a0b-8495-646f3ec8ce96",
+        "title": "Lágrimas de oro",
+        "track": 6,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 143.226,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "67ebcdf6-a834-4747-ad22-d425d001f9a9",
+        "title": "Mama Call",
+        "track": 7,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 188.853,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "c98764d7-3a9e-4bbb-9b37-87a6bca3e8b4",
+        "title": "Luna y sol",
+        "track": 8,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 143.52,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "296c8ef4-34d3-4aee-a369-bb2f49eac6a7",
+        "title": "Por el suelo",
+        "track": 9,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 246.533,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "1db726e5-6556-48a8-8fef-b0fd6720d676",
+        "title": "Welcome to Tijuana",
+        "track": 10,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 92.16,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "e5039da9-667c-4ce0-ba74-e7fc04209059",
+        "title": "Día luna… día pena",
+        "track": 11,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 177.693,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "1453729a-394f-4d8a-8814-c6071d53abbd",
+        "title": "Malegría",
+        "track": 12,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 182.2,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "c0eb7b94-0a4d-4e1f-b4c5-6633acc8cbfd",
+        "title": "La vie à 2",
+        "track": 13,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 143.72,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "0fcc03d9-ea69-45a5-af13-f0f9ddd5f230",
+        "title": "Minha galera",
+        "track": 14,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 192.066,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "f4e6bc32-cd82-49ce-b04a-73fb716ad1ed",
+        "title": "La despedida",
+        "track": 15,
+        "year": 1998
+      },
+      {
+        "album": "Clandestino",
+        "albumartist": "Manu Chao",
+        "artist": "Manu Chao",
+        "length": 148.306,
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_trackid": "21fe115d-6b33-431c-b798-80651ccc9673",
+        "title": "El viento",
+        "track": 16,
+        "year": 1998
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/3df03311-b0dc-4b99-895b-24db8b1b2c9c?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800011",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 149.853,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "14622506-adb7-4f8e-b8c3-e0509d92efd3",
+        "mb_trackid": "b0eb1856-ef50-4f4b-a84a-04aea2ae9dcf",
+        "mb_workid": "26fa151b-6c67-3a23-82c4-75c0ffc868ec",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Clandestino",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Clandestino",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800012",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 229.226,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "9ca1a641-9a9c-4d8c-8017-5ee380ccd83b",
+        "mb_trackid": "69c2473e-c63c-42be-9dff-055136eb3a5a",
+        "mb_workid": "bd36ddcd-e178-4637-a874-69c5bbb0194c",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Desaparecido",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Desaparecido",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800021",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 92.16,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "bd9011ac-1a06-481b-a006-b9c17235beb8",
+        "mb_trackid": "e5039da9-667c-4ce0-ba74-e7fc04209059",
+        "mb_workid": "cc52ae8d-7605-4f51-ab44-632643db6169",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Día luna… día pena",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Día luna… día pena",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800022",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 177.693,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "5832219f-1527-4786-8344-bd79347ee0c6",
+        "mb_trackid": "1453729a-394f-4d8a-8814-c6071d53abbd",
+        "mb_workid": "a0ce9f20-3cb3-44f8-b8d3-ec0efb663221",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Malegría",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Malegría",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800023",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 182.2,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "16629603-86f2-43e9-b72a-4157af478d70",
+        "mb_trackid": "c0eb7b94-0a4d-4e1f-b4c5-6633acc8cbfd",
+        "mb_workid": "17984f11-ac42-4009-a194-b7d5eda3f372",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "La vie à 2",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "La vie à 2",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800024",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 143.72,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "4494ed8c-4446-4df8-8cb1-285a6a73d940",
+        "mb_trackid": "0fcc03d9-ea69-45a5-af13-f0f9ddd5f230",
+        "mb_workid": "bdc2748c-2c1d-42f5-98f1-428d7ac08ba6",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Minha galera",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Minha galera",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800025",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 192.066,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "93d32829-f231-4ae1-b7f9-15c0054ce108",
+        "mb_trackid": "f4e6bc32-cd82-49ce-b04a-73fb716ad1ed",
+        "mb_workid": "11adaf35-9299-4ee9-a652-2ff6e3870acb",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "La despedida",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "La despedida",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800026",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 148.306,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "146d7279-bfda-4662-a7b8-c0a3e693c370",
+        "mb_trackid": "21fe115d-6b33-431c-b798-80651ccc9673",
+        "mb_workid": "a4e07a7a-86bb-400d-9a5c-284053bf0772",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "El viento",
+        "track": 16,
+        "track_alt": "16",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "El viento",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800013",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 160.453,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "540a43a4-0b27-44ab-a5bb-17deb0606162",
+        "mb_trackid": "aef7788e-0132-4039-bb45-d2c6036ae1c8",
+        "mb_workid": "fcc69243-c4b7-3cb5-ae8a-21228464733e",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Bongo Bong",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Bongo Bong",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800014",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 124.8,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "43f0bdef-da15-401b-a342-8beb8c8e64f7",
+        "mb_trackid": "9b419aac-9b02-4c12-b597-0cb6d6080387",
+        "mb_workid": "6fc5067e-cbd0-386a-9702-b009db6885a4",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Je ne t’aime plus",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Je ne t’aime plus",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800015",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 279.026,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "b6c2a9c8-9c65-4757-8796-a0f772386fef",
+        "mb_trackid": "7719f9ca-c8fa-48a8-a8d1-df24e95247d0",
+        "mb_workid": "6b978017-ba4d-43ff-9c50-04429014eb94",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mentira…",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Mentira…",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800016",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 179.626,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "d8dd6047-fb79-4cbb-9861-a9fe1a337020",
+        "mb_trackid": "68c835aa-9947-4a0b-8495-646f3ec8ce96",
+        "mb_workid": "37d75664-7e64-47dc-9037-a039aceec8ce",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Lágrimas de oro",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Lágrimas de oro",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800017",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 143.226,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "792bce4d-550c-4abb-83c7-4dbc23f21ac2",
+        "mb_trackid": "67ebcdf6-a834-4747-ad22-d425d001f9a9",
+        "mb_workid": "82b5da70-c74e-4212-af08-2cc1022cc66d",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mama Call",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Mama Call",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800018",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 188.853,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "79dece45-8436-4b16-aa59-c22db6c614ab",
+        "mb_trackid": "c98764d7-3a9e-4bbb-9b37-87a6bca3e8b4",
+        "mb_workid": "eba6c97b-880b-4817-a3c3-2d1bd02290b0",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Luna y sol",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Luna y sol",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Chao, Manu",
+        "composers": [
+          "Manu Chao"
+        ],
+        "composers_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800019",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 143.52,
+        "lyricists": [
+          "Manu Chao"
+        ],
+        "lyricists_ids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "f28dbc8a-49f2-404a-94bd-221f9d1336b5",
+        "mb_trackid": "296c8ef4-34d3-4aee-a369-bb2f49eac6a7",
+        "mb_workid": "e5e8a0a9-5936-4c68-93d4-379130a848de",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Por el suelo",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Por el suelo",
+        "work_disambig": "",
+        "year": 1998
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Clandestino",
+        "album_id": null,
+        "albumartist": "Manu Chao",
+        "albumartist_credit": "Manu Chao",
+        "albumartist_sort": "Chao, Manu",
+        "albumartists": [
+          "Manu Chao"
+        ],
+        "albumartists_credit": [
+          "Manu Chao"
+        ],
+        "albumartists_sort": [
+          "Chao, Manu"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Manu Chao",
+        "artist_credit": "Manu Chao",
+        "artist_sort": "Chao, Manu",
+        "artists": [
+          "Manu Chao"
+        ],
+        "artists_credit": [
+          "Manu Chao"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chao, Manu"
+        ],
+        "asin": "",
+        "barcode": "724384585129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7243 8458512 9",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FRZ189800020",
+        "label": "Virgin",
+        "language": "mul",
+        "length": 246.533,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_albumartistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_albumid": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+        "mb_artistid": "7570a0dd-5a67-401b-b19a-261eee01a284",
+        "mb_artistids": [
+          "7570a0dd-5a67-401b-b19a-261eee01a284"
+        ],
+        "mb_releasegroupid": "24a451c9-a8f3-33f9-a4fc-5e2d00cb7816",
+        "mb_releasetrackid": "fec2f7ce-5962-4f16-b40d-bb8cf8e2173e",
+        "mb_trackid": "1db726e5-6556-48a8-8fef-b0fd6720d676",
+        "mb_workid": "a01a295c-c684-46c1-8491-f10228c0eda9",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1998,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Clandestino",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Welcome to Tijuana",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 16,
+        "work": "Welcome to Tijuana",
+        "work_disambig": "",
+        "year": 1998
+      }
+    }
+  }
+}

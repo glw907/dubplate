@@ -1,0 +1,15 @@
+{
+  "best_album_id": "8641cd63-10d1-4ec5-be67-a1ed1f916ad8",
+  "recommendation": "strong",
+  "penalty_keys_nonzero": [
+    "tracks"
+  ],
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "year"
+  ],
+  "penalty_keys_absent": [
+    "artist"
+  ]
+}

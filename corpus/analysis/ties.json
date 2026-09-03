@@ -322,6 +322,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-trojan-marley-covers",
+      "album_id": "8641cd63-10d1-4ec5-be67-a1ed1f916ad8",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1666666666666667,
+      "difference": 1.1666666666666667,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-woodstock-25th",
       "album_id": "c5a03147-c173-43ca-b19a-cff9d1249c81",
       "optimal_cost": 0,
@@ -418,6 +426,14 @@
       "unique": true
     },
     {
+      "case_id": "real-decoy-chopin-nocturnes",
+      "album_id": "12cdb773-f5f2-438b-874a-7ec824ce0ff9",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1919191919191918,
+      "difference": 1.1919191919191918,
+      "unique": true
+    },
+    {
       "case_id": "real-decoy-mozart-requiem",
       "album_id": "a67b8f8d-c524-4634-9473-9a1d75519bf8",
       "optimal_cost": 0,
@@ -487,6 +503,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4848484848484846,
       "difference": 1.4848484848484846,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-burna-boy-african-giant",
+      "album_id": "c077002c-e55d-46cd-b7d9-09cb1e41d751",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3246753246753247,
+      "difference": 1.3246753246753247,
       "unique": true
     },
     {
@@ -570,6 +594,14 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-manu-chao-clandestino",
+      "album_id": "3df03311-b0dc-4b99-895b-24db8b1b2c9c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.43801652892562,
+      "difference": 1.43801652892562,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-metallica-master-of-puppets",
       "album_id": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
       "optimal_cost": 0,
@@ -591,6 +623,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.3977272727272727,
       "difference": 1.3977272727272727,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-skepta-konnichiwa",
+      "album_id": "b7622f63-3470-4490-a296-4a4d5bca82cd",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4727272727272727,
+      "difference": 1.4727272727272727,
       "unique": true
     },
     {
@@ -706,6 +746,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-rolling-stones-es2004",
+      "album_id": "11d2cc47-92ee-4ef0-9ebd-2cdd1ac3c143",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.7597402597402598,
+      "difference": 0.7597402597402598,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-velvet-underground-us1986",
       "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
       "optimal_cost": 0,
@@ -719,6 +767,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 0.7150413223140496,
       "difference": 0.7150413223140496,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-alla-pugacheva-vol1",
+      "album_id": "b5bed26f-4e2b-48cb-ae9a-057095ec1d01",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4805194805194803,
+      "difference": 1.4805194805194803,
       "unique": true
     },
     {
@@ -895,6 +951,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.372051282051282,
       "difference": 1.372051282051282,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-ten-2009",
+      "album_id": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.16666666666666666,
+      "difference": 0.16666666666666666,
       "unique": true
     },
     {
