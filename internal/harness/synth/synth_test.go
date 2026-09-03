@@ -353,8 +353,9 @@ func TestBuildReleaseDocumentIsValidJSON(t *testing.T) {
 // TestBuildOriginalDateOverridesTheReleaseGroupDate proves the three
 // shapes OriginalDate expresses: absent keeps the release-group's
 // first-release-date equal to Date (today's behavior), a non-empty
-// value replaces it, and an explicit empty string omits it, distinct
-// from leaving the field out of the spec at all.
+// value replaces it, and an explicit empty string empties it (a real
+// "first-release-date": "" in the document), distinct from leaving the
+// field out of the spec at all.
 func TestBuildOriginalDateOverridesTheReleaseGroupDate(t *testing.T) {
 	earlier := "1975-06-15"
 	empty := ""
@@ -366,7 +367,7 @@ func TestBuildOriginalDateOverridesTheReleaseGroupDate(t *testing.T) {
 	}{
 		{"absent keeps the release-group date equal to the release date", nil, "1999-03-02"},
 		{"a non-empty value overrides it", &earlier, earlier},
-		{"an explicit empty string omits it", &empty, ""},
+		{"an explicit empty string empties it", &empty, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

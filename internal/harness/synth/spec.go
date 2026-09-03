@@ -71,12 +71,12 @@ type ReleaseSpec struct {
 	// its group's original date. A non-empty value names an earlier (or
 	// later) original date directly, the shape a reissue case needs to
 	// drive a year-penalty branch (corpus/README.md's "The synth tool").
-	// The empty string is a distinct, explicit value: it omits the
-	// release-group's first-release-date entirely, the "no original date
-	// on record" branch. A pointer, rather than a bare string, is what
-	// lets that explicit empty string be told apart from the field being
-	// left out of the spec altogether, which a plain string cannot
-	// express.
+	// The empty string is a distinct, explicit value: it emits an empty
+	// release-group first-release-date ("first-release-date": ""), the
+	// "no original date on record" shape beets reads as absent. A
+	// pointer, rather than a bare string, is what lets that explicit
+	// empty string be told apart from the field being left out of the
+	// spec altogether, which a plain string cannot express.
 	OriginalDate *string `json:"original_date,omitempty"`
 	// Country is the release's WS/2 country code (for example "US").
 	Country string `json:"country"`

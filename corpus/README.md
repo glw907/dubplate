@@ -238,9 +238,10 @@ reason, and no row claims a uniqueness its own recorded costs deny.
 (`"status": "skipped"`) instead of a measured one, mirroring
 `proximity.json`'s own skip: there is no candidate to ask the tie
 question about, so `DeriveTies` never starts the replay stub for it. A
-skipped row carries no `album_id`, no cost fields, and no
-`disposition`, but still carries a written `reason`; a case with no row
-at all is still a missing-coverage failure, skipped or not.
+skipped row carries a `reason` and no `album_id` or `disposition`; its
+cost fields serialize as zeros and are ignored when status is
+`"skipped"`. A case with no row at all is still a missing-coverage
+failure, skipped or not.
 
 Two live smoke cases are genuinely tied. `should-ask` and
 `should-reject` both corrupt several items into interchangeable garbage,
@@ -422,12 +423,12 @@ from `date`**, the field a year-penalty reissue case (family 7) needs:
 absent, the release-group's first-release-date equals `date` (today's
 behavior, no divergence between a release and its group's original
 date); a non-empty value names the group's own earlier or later
-original date directly; an explicit empty string omits the
-release-group's first-release-date entirely, the "no original date on
-record" shape. Every derived item's own `year` tag still comes from
-`date` alone (`original_date` never touches item generation), so a
-case that wants the items themselves to diverge from both dates still
-reaches for an `overrides` entry on `year`.
+original date directly; an explicit empty string emits an empty
+release-group first-release-date, the "no original date on record"
+shape beets reads as absent. Every derived item's own `year` tag
+still comes from `date` alone (`original_date` never touches item
+generation), so a case that wants the items themselves to diverge
+from both dates still reaches for an `overrides` entry on `year`.
 
 **Items are derived from the release by default, then perturbed.** The
 common shape across almost every family is "a correct item set with
