@@ -27,10 +27,14 @@ type key struct {
 
 // Miss is one request the case's log did not cover: the method and
 // canonical path+query the server actually received, in the shape a
-// follow-up capture can act on directly.
+// follow-up capture can act on directly. JSON tags match this
+// package's on-disk miss-file contract, documented in
+// corpus/README.md: [internal/harness/oracle.Derive] writes a case's
+// misses in this shape, and `harness capture --case <dir>` decodes
+// them straight into this type.
 type Miss struct {
-	Method    string
-	PathQuery string
+	Method    string `json:"method"`
+	PathQuery string `json:"path_query"`
 }
 
 // Server replays one [cassette.Case] over HTTP on an ephemeral loopback
@@ -75,7 +79,7 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 // ServeHTTP replays the response filed under the request's canonical
 // path+query, or records a [Miss] and answers 404.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	pathQuery := canonicalize(r.URL.Path, r.URL.RawQuery)
+	pathQuery := canonicalize(r.URL.EscapedPath(), r.URL.RawQuery)
 	body, ok := s.responses[key{method: r.Method, pathQuery: pathQuery}]
 	if !ok {
 		s.recordMiss(r.Method, pathQuery)
@@ -114,9 +118,13 @@ func (s *Server) Close() error {
 // canonicalize mirrors cassette's canonicalization rule, documented in
 // corpus/README.md: sort the raw, percent-encoded query's "&"-joined
 // key=value pairs byte-wise; the path, including any trailing slash,
-// and each pair's own encoding are left untouched. Duplicated here
-// rather than called from cassette because Task 1's cassette package
-// ships frozen and keeps the rule unexported.
+// and each pair's own encoding are left untouched. path must be the
+// request's raw, percent-encoded form (r.URL.EscapedPath(), never the
+// already-decoded r.URL.Path): a case logs the wire bytes it captured,
+// and Go's request parsing decodes Path eagerly, so keying on it would
+// silently fail to match a request whose path segment needed encoding.
+// Duplicated here rather than called from cassette because Task 1's
+// cassette package ships frozen and keeps the rule unexported.
 func canonicalize(path, rawQuery string) string {
 	if rawQuery == "" {
 		return path

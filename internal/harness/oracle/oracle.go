@@ -31,6 +31,13 @@ type Options struct {
 	Shim string // shim executable path; empty means the package's own shim
 }
 
+// missFileName is the file Derive writes into a case's own directory
+// whenever its stub sees a request the case log did not cover: the
+// plumbing corpus/README.md documents between a derivation and
+// `harness capture --case <dir>`, which reads this file to know
+// exactly what to fetch next.
+const missFileName = "misses.json"
+
 // metadataSourcePlugins are the beets plugins that supply match
 // candidates (beetsplug/musicbrainz.py and its siblings); fetchart,
 // embedart, and replaygain never count even if a profile listed them,
@@ -152,10 +159,42 @@ func deriveRaw(ctx context.Context, c *cassette.Case, opts Options) ([]byte, err
 	}
 
 	raw, err := runShim(ctx, opts, profilePath, inputPath)
+	// The stub's miss list is collected regardless of runShim's own
+	// outcome: a shim failure is often caused by a request the case
+	// log never covered, so the miss file is diagnostic either way.
+	// A write failure here only surfaces when the shim itself
+	// succeeded; the shim's own error always takes priority.
+	if missErr := writeMissFile(dir, srv.Misses()); missErr != nil && err == nil {
+		err = fmt.Errorf("write miss file: %w", missErr)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
 	}
 	return raw, nil
+}
+
+// writeMissFile records srv's unmatched requests to dir/misses.json,
+// or removes any stale file when there were none, so a case
+// directory's presence of the file always reflects its most recent
+// derivation.
+func writeMissFile(dir string, misses []stub.Miss) error {
+	path := filepath.Join(dir, missFileName)
+	if len(misses) == 0 {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("remove stale miss file: %w", err)
+		}
+		return nil
+	}
+
+	data, err := json.MarshalIndent(misses, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode miss file: %w", err)
+	}
+	data = append(data, '\n')
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return fmt.Errorf("write miss file: %w", err)
+	}
+	return nil
 }
 
 // renderProfile loads the named profile, substitutes its box-path

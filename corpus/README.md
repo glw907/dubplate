@@ -125,3 +125,78 @@ to anything other than exactly one recognized metadata-source plugin,
 so a profile edit that reintroduces a second source, or drops
 `musicbrainz` entirely, fails loudly at derivation time rather than
 silently changing which source produced a case's `Expected` record.
+
+## The capture tool
+
+`cmd/harness` (`harness capture`) is the workstation dev tool that
+populates a case's `responses/` directory from the live MusicBrainz
+API. It is never shipped, and the repository gate never runs it
+against the network: `go test` exercises only its request planning
+and file I/O, against a fake fetcher.
+
+Two verbs, matching the capture-derive loop's two halves:
+
+- **`harness capture --mbid <release> --out corpus/cases/<id>`** seeds
+  a case: it fetches the release lookup at beets' own maximal `inc=`
+  (`RELEASE_INCLUDES`, mechanics study Q5) rather than the minimal set
+  today's matcher happens to read, so a future matcher improvement
+  that wants another field never forces a re-capture (U6). When the
+  fetched release carries `status: "Pseudo-Release"` and a backward
+  `transl-tracklisting` relation, it follows that relation and fetches
+  the linked actual release too, at the same maximal `inc=` (Q5, item
+  7): beets merges the two AlbumInfos internally, so a capture missing
+  the second release would replay a 404 the moment pinned beets
+  follows it. Both response bodies are written verbatim with
+  `os.WriteFile`, never re-encoded. The seeded case carries only its
+  request log; `Input`, `Profile`, and `EvalDate` are a human's job
+  once a case is seeded, since none of them is derivable from an MBID
+  alone.
+- **`harness capture --case <dir>`** consumes an existing case's miss
+  list: it fetches exactly the requests named in `<dir>/misses.json`
+  (see "The miss-file mechanism" below), appends each as a logged
+  `Request`, and removes the miss file once every fetch succeeds. A
+  fetch failure leaves both the case and the miss file untouched, so a
+  retry never loses partial progress.
+
+**Wire discipline**, both verbs: at most one request per second within
+a single invocation (the first request pays no wait; every request
+after it does); every request carries the identified User-Agent
+`dubplate-harness/<version> ( $DUBPLATE_HARNESS_CONTACT )`; the tool
+refuses to run at all when `DUBPLATE_HARNESS_CONTACT` is unset or
+empty, since MusicBrainz's terms require a reachable contact in every
+request and this tool never substitutes a literal for it (CLAUDE.md's
+universality rule).
+
+### The miss-file mechanism
+
+`internal/harness/oracle.Derive` starts a `stub.Server` over a case's
+existing responses and runs pinned beets against it. When beets issues
+a request the case log does not cover, the stub answers 404 and
+records a `stub.Miss` (method plus canonical path+query). After the
+shim process exits, `Derive` writes every miss it collected to
+`<case dir>/misses.json` as a JSON array of `stub.Miss` values
+(`{"method": "...", "path_query": "..."}`); when a derivation sees no
+misses at all, `Derive` removes any stale file instead, so a case
+directory's `misses.json` always reflects only its most recent
+derivation. `harness capture --case <dir>` reads that same file and
+`stub.Miss` shape directly (no separate schema to keep in sync), which
+is what makes the file the load-bearing handoff between a derivation
+and the next capture, rather than scaffolding a human has to
+transcribe by hand.
+
+### A recorded fixed point, not a stable request set
+
+The capture-derive loop (capture, derive, capture the derivation's
+misses, derive again) converges when a derivation records zero misses.
+That convergence is a **fixed point of one specific pinned-beets run
+against today's captured data**, not a promise that the request set
+itself is stable or minimal. In particular, a strong ID-lookup match
+retires beets' search fallback for that item: once a release lookup by
+MBID scores a strong recommendation, beets never issues the search
+request an earlier, less complete capture might have needed. Any
+response already captured for that now-unreachable search request does
+not become wrong; it becomes `Extra` (recall-extension surface, U8),
+legally orphaned by a more complete capture rather than a regression
+to fix. A case's `Extra` list is exactly where those orphaned
+responses belong once a maintainer notices the loop has converged past
+needing them.
