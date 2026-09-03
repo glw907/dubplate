@@ -11,10 +11,16 @@
 #   FAKESHIM_DATE              overrides echoed_date (default 2024-01-15)
 #   FAKESHIM_OMIT_HASH         when set, drops config_hash from the document
 #   FAKESHIM_OMIT_THRESHOLDS   when set, drops thresholds from the document
+#   FAKESHIM_OMIT_WEIGHTS      when set, drops weights from the document
 #   FAKESHIM_TRIGGER_MISS      when set, GETs an unlogged path from the
 #                                rendered config's musicbrainz.host (argv
 #                                $1) before printing, so the replay stub
-#                                records a genuine miss
+#                                records a genuine miss. Uses python3's
+#                                urllib rather than curl: this shim runs
+#                                under the untagged gate path (no venv,
+#                                no oracle build tag), which must not
+#                                depend on a binary the repo never
+#                                declares.
 #   FAKESHIM_CALL_LOG          when set, this invocation appends one line to
 #                                it, so a test can prove exactly one process ran
 #   FAKESHIM_ENV_LOG            when set, this invocation writes
@@ -31,7 +37,13 @@ fi
 if [ -n "${FAKESHIM_TRIGGER_MISS:-}" ]; then
   host=$(sed -n 's/^[[:space:]]*host: "\(.*\)"/\1/p' "$1" | tail -n1)
   if [ -n "$host" ]; then
-    curl -s -o /dev/null "http://${host}/ws/2/nonexistent-miss-trigger?fmt=json" || true
+    python3 -c "
+import urllib.request
+try:
+    urllib.request.urlopen('http://${host}/ws/2/nonexistent-miss-trigger?fmt=json', timeout=5)
+except Exception:
+    pass
+" || true
   fi
 fi
 
@@ -47,13 +59,18 @@ if [ -z "${FAKESHIM_OMIT_THRESHOLDS:-}" ]; then
   thresholds_field='"thresholds": {"strong_rec_thresh": 0.04, "medium_rec_thresh": 0.25, "rec_gap_thresh": 0.25, "max_rec": {"missing_tracks": "medium", "unmatched_tracks": "medium"}},'
 fi
 
+weights_field='"weights": {"source": 2.0, "artist": 3.0, "album": 3.0, "year": 1.0},'
+if [ -n "${FAKESHIM_OMIT_WEIGHTS:-}" ]; then
+  weights_field=""
+fi
+
 cat <<EOF
 {
   "recommendation": "strong",
   "action": "apply",
   "echoed_date": "${date}",
   ${config_hash_field}
-  "weights": {"source": 2.0, "artist": 3.0, "album": 3.0, "year": 1.0},
+  ${weights_field}
   ${thresholds_field}
   "candidates": [
     {

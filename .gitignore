@@ -12,6 +12,13 @@ env/rendered/
 __pycache__/
 /corpus/.derive/
 
+# corpus/staging/ is a case's working directory during the synth ->
+# freeze -> iterate authoring loop (corpus/README.md, "Authoring a
+# synthetic case"): a case promotes to corpus/cases/<id>/ only once its
+# derivation records zero misses, so nothing under staging/ is ever a
+# committed fixture.
+/corpus/staging/
+
 # Go build output (make build / make build-linux).
 /dubplate-server
 /dubplate-server-linux-amd64

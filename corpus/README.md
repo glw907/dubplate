@@ -247,6 +247,94 @@ is what makes the file the load-bearing handoff between a derivation
 and the next capture, rather than scaffolding a human has to
 transcribe by hand.
 
+## The synth tool
+
+`harness synth --spec <file> --out corpus/staging/<id>` is the
+structural stratum's own seeding tool (rung 2, pass 2b): where
+`harness capture` seeds a case from a live MusicBrainz release,
+`harness synth` seeds one from a compact, hand-written release spec,
+since every structural case invents its own release rather than
+capturing a real one. It emits `case.json` (the input items, in pinned
+order; the profile; the eval date; and the ID-lookup request log, in
+canonical form) plus `responses/001.json` (the WS/2 release document
+that request log names), and never touches the network.
+
+A spec names one release: `album`, `artist`, `date`, `country`, an
+invented `mb_albumid`, the `profile` and `eval_date` the case derives
+under, and a `media` list of per-medium track lists (`title`, `length`,
+`position`). A handful of flags cover the families that need them:
+`various_artists` (sets MusicBrainz's own well-known Various Artists
+artist id on the release credit, the sole signal beets' musicbrainz
+plugin reads to set `AlbumInfo.va`), a per-track `artist_credit`
+override, `label` / `catalog_number`, and `disambiguation`.
+
+**Items are derived from the release by default, then perturbed.** The
+common shape across almost every family is "a correct item set with
+one deliberate divergence," so a spec expresses its item set as the
+release's own tracks (one item per track, release order) plus an
+`overrides` list of small, explicit perturbations, rather than
+restating every field for every item. Each override names an `op`:
+
+- `field` merges `fields` onto the derived item at `index` (a wrong
+  title, a wrong year, a wrong `data_source`, ...).
+- `missing` drops the item at `index` entirely, leaving its candidate
+  track unmatched (`extra_tracks`).
+- `extra` appends a brand-new item carrying `fields`, unmatched to any
+  candidate track (`extra_items`).
+
+**`mb_albumid` is fenced off the override list outside family 10.**
+beets picks the release it looks up from `current_metadata`'s
+most-common `mb_albumid` value across items; perturbing it on enough
+items changes which release gets fetched, which is unanswerable under
+the no-failing-request constraint below, since a case cannot depend on
+a request that fails. `harness synth` rejects a `field` or `extra`
+override that sets `mb_albumid` unless the spec sets
+`allow_album_id_override` (family 10 only), and an `extra` override
+always carries the release's own `mb_albumid`, like every other item,
+regardless of what its own `fields` name. A family that needs a wholly
+independent item set, unrelated to the release's own tracks, can
+supply one via the spec's `items` field directly; `overrides` is
+ignored in that mode.
+
+**Canonical form is produced, never hand-typed.** The request log's
+`path_query` goes through the same query-canonicalization rule this
+file documents above (including the `%2B`-escaped `inc=` join), so a
+generated case never depends on a literal a human happened to type
+correctly.
+
+### Authoring a synthetic case
+
+1. **Write a spec** naming the release and its perturbation from a
+   correct baseline (a wrong title, a missing item, an extra item,
+   ...), and run `harness synth --spec <file> --out
+   corpus/staging/<id>`. The case directory it writes is gitignored:
+   nothing under `corpus/staging/` is ever a committed fixture.
+2. **Freeze and read the misses.** `harness freeze --case
+   corpus/staging/<id>` derives the case. A structural case is
+   deliberately imperfect (most of the corpus's families), so pinned
+   beets falls through to its text-search fallback exactly as the live
+   `should-ask` and `should-reject` cases did; that request arrives as
+   a miss, not a failure, and freeze writes `corpus/staging/<id>/
+   misses.json` naming it.
+3. **Hand-author a response for every miss**, most often the search
+   fallback. The default answer is an empty search result: a
+   well-formed WS/2 search document with zero releases (`created`,
+   `count: 0`, `offset: 0`, an empty `releases` array), the same shape
+   `corpus/cases/should-ask/responses/002.json` carries with its
+   `releases` array emptied, saved as the case's next response file
+   and referenced by a hand-added `requests` entry at the miss's own
+   `path_query`. An empty search result keeps the candidate set to the
+   single looked-up release, which is what a structural distance case
+   wants; family 10 is the pass's only shape whose search response
+   deliberately returns a release (see the plan's Task 10).
+4. **Re-derive, iterate to zero misses, then promote.** Re-run
+   `harness freeze --case corpus/staging/<id>` until it records no
+   misses at all; freeze refuses to write a record while any remain,
+   so a case directory with no `misses.json` and a non-nil `expected`
+   is the loop's own fixed point. Promotion to `corpus/cases/<id>/` is
+   a plain move once the case's `claims.json` and both analysis-ledger
+   rows are written (Task 3's checks).
+
 ## The freeze tool
 
 `harness freeze --case <dir>` is the capture-derive loop's other half:
@@ -269,6 +357,14 @@ already-normalized case twice in a row changes nothing but its
 `expected` field: `cassette.Case.Write` re-marshals `Input`
 deterministically, so the second freeze's `id`, `input`, `profile`,
 `eval_date`, `requests`, and `extra` bytes match the first's exactly.
+
+Freeze derives against the pinned uv venv at `tools/venv/.venv`
+(tools/venv/README.md) by default. Set `DUBPLATE_ORACLE_VENV` to point
+it at a venv built somewhere else; `internal/harness/oracle`'s own
+oracle-tagged tests, `make derive`'s whole run, and every case-
+authoring task's freeze invocations all honor the same variable, so a
+venv built once outside the repository root works everywhere freezing
+happens.
 
 ### A recorded fixed point, not a stable request set
 

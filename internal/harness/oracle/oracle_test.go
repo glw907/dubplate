@@ -130,6 +130,18 @@ func TestDeriveRejectsEchoedDateMismatch(t *testing.T) {
 	}
 }
 
+func TestDeriveRejectsMissingWeights(t *testing.T) {
+	c := testCase(t, "2024-01-15")
+	t.Setenv("FAKESHIM_OMIT_WEIGHTS", "1")
+	_, err := Derive(context.Background(), c, Options{Shim: fakeShim(t)})
+	if err == nil {
+		t.Fatal("Derive with a shim that omits weights: got nil error, want one")
+	}
+	if !strings.Contains(err.Error(), "weights") {
+		t.Errorf("error %q does not name the missing weights", err)
+	}
+}
+
 func TestDeriveRejectsMissingConfigHash(t *testing.T) {
 	c := testCase(t, "2024-01-15")
 	t.Setenv("FAKESHIM_OMIT_HASH", "1")

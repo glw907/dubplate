@@ -125,6 +125,9 @@ func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expe
 	if err := validateThresholdsPresent(raw); err != nil {
 		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
 	}
+	if err := validateWeightsPresent(raw); err != nil {
+		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
+	}
 	return &exp, nil
 }
 
@@ -142,6 +145,24 @@ func validateThresholdsPresent(raw []byte) error {
 	}
 	if len(probe.Thresholds) == 0 {
 		return errors.New("shim omitted its thresholds")
+	}
+	return nil
+}
+
+// validateWeightsPresent proves raw's document carried a "weights" key
+// at all, the same presence check validateThresholdsPresent runs: a
+// map decodes to nil whether the shim omitted the key or emitted an
+// empty object, so presence is checked against the raw document rather
+// than the decoded map.
+func validateWeightsPresent(raw []byte) error {
+	var probe struct {
+		Weights json.RawMessage `json:"weights"`
+	}
+	if err := json.Unmarshal(raw, &probe); err != nil {
+		return fmt.Errorf("decode shim output: %w", err)
+	}
+	if len(probe.Weights) == 0 {
+		return errors.New("shim omitted its weights")
 	}
 	return nil
 }

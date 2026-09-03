@@ -12,6 +12,10 @@
 //   - freeze --case <dir>: derives a case and writes its expected
 //     record back to case.json, refusing to do so when the
 //     derivation leaves the case half-derived.
+//   - synth --spec <file> --out <dir>: builds a synthetic case's
+//     case.json and release response from a compact release spec, the
+//     input side of the authoring loop for every structural-stratum
+//     case (corpus/README.md, "The synth tool").
 //
 // Every live request carries the identified User-Agent
 // corpus/README.md documents; the tool refuses to run at all when
@@ -47,5 +51,6 @@ func newRootCmd() *cobra.Command {
 	}
 	cmd.AddCommand(newCaptureCmd(os.Environ(), version))
 	cmd.AddCommand(newFreezeCmd())
+	cmd.AddCommand(newSynthCmd())
 	return cmd
 }
