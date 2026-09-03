@@ -259,6 +259,58 @@ func TestComponentTableIsWellFormed(t *testing.T) {
 	}
 }
 
+// TestAdjudicationsLedgerIsWellFormed checks corpus/analysis/adjudications.json:
+// every subject case id resolves to a committed case, every row carries
+// a recognized disposition with its required evidence, and only a
+// human adjudicator may set anything but pending-adjudication. It is
+// deliberately not a coverage check: unlike ties.json and
+// proximity.json, adjudications.json is an exception log, carrying a
+// row only for a case someone suspects the oracle got wrong.
+func TestAdjudicationsLedgerIsWellFormed(t *testing.T) {
+	root := repoRoot(t)
+	var ids []string
+	for _, dir := range corpusCaseDirs(t, root) {
+		ids = append(ids, filepath.Base(dir))
+	}
+
+	ledger, err := analysis.LoadAdjudications(filepath.Join(root, "corpus", "analysis", "adjudications.json"))
+	if err != nil {
+		t.Fatalf("load adjudications ledger: %v", err)
+	}
+	if err := analysis.CheckAdjudications(ids, ledger); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestOracleBugsLedgerIsWellFormed checks corpus/analysis/oracle_bugs.json
+// against both the committed corpus (every probe case id must resolve)
+// and the adjudications ledger (every adjudication_refs entry must
+// resolve, and a row reproduced "yes" must reference at least one).
+func TestOracleBugsLedgerIsWellFormed(t *testing.T) {
+	root := repoRoot(t)
+	var ids []string
+	for _, dir := range corpusCaseDirs(t, root) {
+		ids = append(ids, filepath.Base(dir))
+	}
+
+	adjLedger, err := analysis.LoadAdjudications(filepath.Join(root, "corpus", "analysis", "adjudications.json"))
+	if err != nil {
+		t.Fatalf("load adjudications ledger: %v", err)
+	}
+	adjIDs := make(map[string]bool, len(adjLedger.Entries))
+	for _, e := range adjLedger.Entries {
+		adjIDs[e.ID] = true
+	}
+
+	bugs, err := analysis.LoadOracleBugs(filepath.Join(root, "corpus", "analysis", "oracle_bugs.json"))
+	if err != nil {
+		t.Fatalf("load oracle bugs ledger: %v", err)
+	}
+	if err := analysis.CheckOracleBugs(ids, adjIDs, bugs); err != nil {
+		t.Error(err)
+	}
+}
+
 // TestLoadCaseRejectsCorruptedFixture is the negative case: a
 // deliberately corrupted case directory (cassette's own testdata,
 // missing eval_date) must fail LoadCase, proving this gate-resident

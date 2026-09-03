@@ -806,6 +806,81 @@ those are human adjudication, and a re-measurement has nothing to say
 about them. `proximity.json` has no derived half at all, so its rows are
 written by hand; the gate names exactly which ones are owed.
 
+### The adjudication artifacts
+
+`adjudications.json` and `oracle_bugs.json` are pure Go and hand-written,
+never derived: neither needs the venv or a `make derive` run, and both
+are checked on every `bash scripts/check.sh` by
+`internal/harness/analysis`.
+
+**`adjudications.json` is the general divergence row**, designed
+forward-compatible with rung 4 (Shadow): the build spec names a
+divergence log and an adjudication artifact there for a structurally
+identical problem, a human ruling on a matcher disagreement from a
+written artifact alone. This pass originates the schema. A row's
+`subject` is the join key back to the oracle's own record rather than a
+re-transcription of it (`cassette.Expected` already holds
+recommendation, action, distance, and the best candidate's full penalty
+breakdown): either a corpus `case_id`, or an `album` plus
+`release_mbid` pair for a live shadow divergence, never both and never
+neither. A row also carries `suspected` (what is suspected wrong and
+why, in prose, with its `citation`, an issue number or an
+evolution-lessons finding id such as `U1/ft-pattern`), `release_truth`
+(the correct verdict with its own citation, or an explicit statement
+that the input material has no correct MusicBrainz entry at all), and
+`disposition` plus `reason`, the same two-field shape `ties.json`
+already uses, plus `adjudicator` and `date`.
+
+**`oracle_bugs.json` is one row per known-defect hypothesis, not one
+per case.** A hypothesis may be probed by several cases, or by none. A
+row carries `bug_class` and `citation`, `probe_case_ids`, a
+`reproduced` field (`yes`, `no`, or `not-attempted` with a
+`reproduced_reason`, agent-settable, since it is a machine-observable
+fact about whether a probe case moved the verdict), `adjudication_refs`
+pointing at the `adjudications.json` rows the probes produced, and the
+same `disposition`/`reason`/`adjudicator`/`date` fields as
+`adjudications.json`. A hypothesis that does not reproduce is still a
+written row, matching the corpus's standing "an unacknowledged flag is
+a failure" discipline: a checked-and-cleared hypothesis is never
+silently dropped.
+
+**`pending-adjudication` is a legal disposition here and an illegal one
+at the launch gate.** The gate accepts a `pending-adjudication` row with
+a written suspicion and written release truth; it fails a row with a
+missing disposition or one no parser recognizes. Recognized
+dispositions: `pending-adjudication`, `oracle-wrong` (carrying the
+adjudicated correct verdict in `corrected_verdict`), `oracle-correct`
+(the crafted case failed to reproduce the suspected defect), and
+`no-correct-answer` (the material has no correct MB entry). It is the
+**launch gate**, a different gate at a different time, that refuses an
+unadjudicated row; this pass's own gate accepts one sitting at
+`pending-adjudication` indefinitely.
+
+**`disposition` is owner-only** (never self-adjudicated). `reproduced`
+is a field an agent may set; `disposition` is never set by an agent to
+anything but `pending-adjudication`, including a row whose written
+evidence looks unambiguous. An agent-authored row carries the reserved
+sentinel `"agent"` as its `adjudicator`; only a row whose `adjudicator`
+is something else (a human name) may carry a disposition other than
+`pending-adjudication`. The gate-resident checker enforces this and
+ships a fixture proving it fires: an `adjudicator: "agent"` row cannot
+be committed carrying `oracle-wrong` or any other ruled disposition.
+
+**Five known-oracle-bug hypotheses are seeded now**, all at
+`not-attempted` except one: the featuring-pattern (`"ft"`) false
+positive (`742ebdf69`, `7b59604c5`, `19d091440`); the
+parenthetical/remix near-duplicate discount (`#5868`), its own
+hypothesis distinct from the featuring-pattern row since the
+adversarial stratum authors it as a separate case class; non-Latin,
+pseudo-release, and alias mis-selection (`#1916`, `#6358`); per-pair
+track-assignment rejection gaps (`#2981`, `#6078`); and
+threshold-boundary strictness (`#5458`), which lands immediately at
+`reproduced: "no"` because pass 2b's `rec-strong-medium-boundary` case
+and `proximity.json` already cover it by construction; no new case
+probes it. All five sit at `disposition: "pending-adjudication"`, since
+disposition is owner-only even where the reasoning already looks
+settled.
+
 ## Config profiles
 
 `corpus/profiles/estate.yaml` derives from `config/beets-config.yaml`,

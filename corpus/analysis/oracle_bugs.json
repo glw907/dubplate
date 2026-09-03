@@ -1,0 +1,63 @@
+{
+  "entries": [
+    {
+      "id": "bug-ft-pattern",
+      "bug_class": "featuring-pattern (\"ft\") false positive",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "probe_case_ids": [],
+      "reproduced": "not-attempted",
+      "reproduced_reason": "no probe case authored yet; Task 16 (adv-ft-*, 6 cases) authors the probes: a title containing a trigger word (\"Draft\", \"Left:\", \"Gift\") against a genuinely different candidate the discount tips under threshold.",
+      "disposition": "pending-adjudication",
+      "reason": "seeded this pass (Task 1) ahead of the adversarial stratum; 2b's strdist-feat-strip already proves the pipeline mechanics for the legitimate feat. strip, and this hypothesis is the false-positive twin.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "bug-remix-parenthetical",
+      "bug_class": "parenthetical/remix near-duplicate discount",
+      "citation": "#5868",
+      "probe_case_ids": [],
+      "reproduced": "not-attempted",
+      "reproduced_reason": "no probe case authored yet; Task 16 (adv-remix-*, 4 cases) authors the probes: an original paired against a remix whose only distinguishing token sits inside the discounted parenthetical.",
+      "disposition": "pending-adjudication",
+      "reason": "split out as its own hypothesis rather than folded into bug-ft-pattern (M7), since Task 16 authors it as a distinct case class from the featuring-pattern false positive.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "bug-nonlatin-alias-selection",
+      "bug_class": "non-Latin, pseudo-release, and alias mis-selection",
+      "citation": "#1916 (romaji transliteration, open since 2016); #6358 (locale aliases ignored after mbsync, 2026)",
+      "probe_case_ids": [],
+      "reproduced": "not-attempted",
+      "reproduced_reason": "no probe case authored yet; Task 17's adv-alias-* cases (4, captured) and Task 18's #6358 verification (2 sibling cases under estate/locale) both author probes for this hypothesis.",
+      "disposition": "pending-adjudication",
+      "reason": "the corpus's existing non-latin-pseudo-release smoke case proves the merge mechanism works for one release; this hypothesis is scoped to where alias/transliteration selection picks the wrong string, not merely a correctly-merged one.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "bug-assignment-rejection-gap",
+      "bug_class": "per-pair track-assignment rejection gaps",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "probe_case_ids": [],
+      "reproduced": "not-attempted",
+      "reproduced_reason": "no probe case authored yet; Task 17 (adv-assign-*, 6 synthetic cases) authors the probes: same track count as the candidate, titles carrying no signal, adjacent-track lengths close enough for the solver's optimum to pick a wrong mapping.",
+      "disposition": "pending-adjudication",
+      "reason": "assign_items never rejects a pair; it always maps every input track onto some candidate track, so the album-level verdict can still land strong while individual AppliedFields.title values are wrong.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "bug-threshold-boundary",
+      "bug_class": "threshold-boundary strictness (strong_rec_thresh: 0 cannot mean exact-only, since match.py's own comparison is a strict \"<\")",
+      "citation": "#5458 (2024)",
+      "probe_case_ids": ["rec-strong-medium-boundary"],
+      "reproduced": "no",
+      "disposition": "pending-adjudication",
+      "reason": "pass 2b's rec-strong-medium-boundary case already parks a derived record on the strong/medium boundary, and proximity.json's ledger already tracks the strict-vs-inclusive comparison risk by construction; this hypothesis needs no new adversarial case, only this row carrying the pointer forward. Never oracle-correct directly (M6) even though the reasoning is already legible; disposition is owner-only.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    }
+  ]
+}
