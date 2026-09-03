@@ -612,7 +612,12 @@ are marked [E].
    MATCHING theme for each streamer a driver ships (nord and
    dracula already exist as shared standards on both sides;
    future drivers bring their pairing on demand), keeping any
-   estate visually coherent from uploader to player.
+   estate visually coherent from uploader to player. The
+   cross-platform evidence and the lean popularity-weighted
+   roster (gruvbox pair, nord, dracula, catppuccin; the rest
+   deferred to the escape hatch) live in
+   research/2026-09-03-theme-collection-brief.md, a standing
+   input to this rung's plan.
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
