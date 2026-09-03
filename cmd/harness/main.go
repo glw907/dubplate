@@ -16,6 +16,10 @@
 //     case.json and release response from a compact release spec, the
 //     input side of the authoring loop for every structural-stratum
 //     case (corpus/README.md, "The synth tool").
+//   - seed-items --case <dir>: projects a staged case's Input.Items
+//     from its own captured response, the sanctioned way to author a
+//     real-catalog case without an agent reading responses/*.json
+//     directly (corpus/README.md, "The seed-items tool").
 //
 // Every live request carries the identified User-Agent
 // corpus/README.md documents; the tool refuses to run at all when
@@ -52,5 +56,6 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newCaptureCmd(os.Environ(), version))
 	cmd.AddCommand(newFreezeCmd())
 	cmd.AddCommand(newSynthCmd())
+	cmd.AddCommand(newSeedItemsCmd())
 	return cmd
 }

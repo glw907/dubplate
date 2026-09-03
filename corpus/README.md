@@ -989,6 +989,78 @@ is what makes the file the load-bearing handoff between a derivation
 and the next capture, rather than scaffolding a human has to
 transcribe by hand.
 
+## The seed-items tool
+
+`harness seed-items --case <dir> [--overrides <file>]` closes the gap
+`harness capture` leaves open: a seeded case carries only its request
+log (per-track title, length, recording id, and the release-level
+album, albumartist, and date all live in the captured response, none
+of them inventable from an MBID alone), and a captured response body
+is evidence, never read into agent context. `seed-items` is the
+**sanctioned reader**: it opens the case's primary response
+(`Requests[0].Response`), projects a correct baseline `Input.Items`
+from it, and writes the result back to `case.json` through
+`cassette.Case.Write`. No other code path in the corpus tooling, and
+no agent directly, opens `responses/*.json`; inspect a captured case
+through its derived record, its `claims.json`, and `seed-items`' own
+projection instead.
+
+**The projection mirrors `harness synth`'s own derive-then-perturb
+model** (`internal/harness/synth.ProjectItems`), sourced from a parsed
+captured document instead of a `ReleaseSpec`: one item per track,
+release order, carrying `title` (the track's own title, falling back
+to its recording's when the API leaves the track-level field empty,
+matching beets' own `get_tracks_from_medium`), `length` (milliseconds
+divided by 1000, the same precision the release document itself
+carries), `track` (per-medium position), `mb_trackid` (the recording
+id), and the release-level `album`, `albumartist`, `artist`, `year`,
+and `mb_albumid`. A multi-medium release gets a `disc` field per item;
+a release whose artist-credit carries MusicBrainz's well-known Various
+Artists id gets `comp: true` and each item's `artist` from its own
+track-level (or recording) credit rather than the release's. An
+artist-credit spanning more than one entry (`"Marvin Gaye" + " & " +
+"Tammi Terrell"`) is reassembled from its `name`/`joinphrase` pairs,
+the same display string beets itself builds.
+
+**`--overrides` reuses `harness synth`'s exact vocabulary**: a JSON
+file of `field` / `missing` / `extra` entries, applied to the projected
+baseline through the same `applyOverrides` function a synthetic spec's
+perturbation step calls. A case whose axis is real MB noise or
+mistagged material reaches for this the same way a structural-stratum
+case reaches for a spec's own `overrides` list: the baseline is
+correct by construction, and the axis's whole point is one deliberate
+divergence from it.
+
+`seed-items` never sets `profile` or `eval_date`; those are still a
+human's job once a case is seeded (`harness capture`'s own doc
+comment), which is also why `--case` must already resolve through
+`cassette.LoadCase`: a directory missing either field fails to load
+before `seed-items` ever gets to project anything into it.
+
+### Authoring a captured case
+
+1. **Seed:** `harness capture --mbid <release> --out
+   corpus/staging/<id>`. The seeded case carries only its request log.
+2. **Set `profile` and `eval_date`** directly in `case.json`: both are
+   trivial known values (the profile the case derives under; the
+   case's own capture date, matching the smoke corpus's own
+   convention), needing no tooling.
+3. **Author the input:** `harness seed-items --case
+   corpus/staging/<id>`, adding `--overrides <file>` for a case whose
+   axis is real MB noise or a partial rip.
+4. **Derive, read misses, capture, re-derive, until zero misses.**
+   `harness freeze --case corpus/staging/<id>` derives and freezes.
+   When beets falls through to its text search, `Derive` writes
+   `misses.json` and `harness capture --case corpus/staging/<id>`
+   fetches exactly what it names; each round may change the candidate
+   pool, so a fallback case's item set sometimes needs a second
+   `seed-items` pass (with a wider `--overrides` list) to converge.
+5. **Promote, then write the owed ledger rows.** Move the frozen case
+   into `corpus/cases/<id>/` first, then run `go test -tags oracle
+   ./internal/harness/oracle -run Ledger -update-ledgers` so `ties.json`
+   picks up its generated row, then write `claims.json` and any owed
+   `proximity.json` exception row, then run both gates and commit.
+
 ## The synth tool
 
 `harness synth --spec <file> --out corpus/staging/<id>` is the
