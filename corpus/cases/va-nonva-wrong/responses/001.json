@@ -1,0 +1,151 @@
+{
+  "id": "2e16bbcf-dbde-544c-94c9-b328d44449c6",
+  "title": "Salt Meridian",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2018-02-11",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Nova Ridge",
+      "joinphrase": "",
+      "artist": {
+        "id": "b2380246-099f-9210-b4b9-f755a96311b9",
+        "name": "Nova Ridge",
+        "sort-name": "Nova Ridge",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "520c717f-3ec2-a780-f965-20288c1c8f2e",
+    "title": "Salt Meridian",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2018-02-11",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2018-02-11",
+      "area": {
+        "id": "648ac184-0b2c-3921-e66f-5d1b1c6ddc78",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "5091371c-f22b-bb92-2b76-225831fd13a8",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d5dc9af5-3126-6b81-2233-a87ba8b40558",
+            "title": "Cinder Coast",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nova Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b2380246-099f-9210-b4b9-f755a96311b9",
+                  "name": "Nova Ridge",
+                  "sort-name": "Nova Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "9f822a5f-cbf1-e9e7-4c99-d20c5a15f3e5",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 185000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f29de8b2-54b6-4291-bf53-0f92cbae2bde",
+            "title": "Low Water Mark",
+            "length": 185000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nova Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b2380246-099f-9210-b4b9-f755a96311b9",
+                  "name": "Nova Ridge",
+                  "sort-name": "Nova Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "bd9bc387-ee46-b6d4-803c-423f3f35b726",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ecb610b6-9b28-1cd5-5202-58d72a0b3ec3",
+            "title": "Nightbuoy",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nova Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b2380246-099f-9210-b4b9-f755a96311b9",
+                  "name": "Nova Ridge",
+                  "sort-name": "Nova Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

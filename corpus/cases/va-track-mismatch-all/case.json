@@ -1,0 +1,475 @@
+{
+  "id": "va-track-mismatch-all",
+  "input": {
+    "items": [
+      {
+        "album": "Harbor Lantern Sessions III",
+        "albumartist": "Various Artists",
+        "artist": "Marlowe Finch",
+        "comp": true,
+        "length": 210,
+        "mb_albumid": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "title": "Salt Line",
+        "track": 1,
+        "year": 2016
+      },
+      {
+        "album": "Harbor Lantern Sessions III",
+        "albumartist": "Various Artists",
+        "artist": "Sable Grant",
+        "comp": true,
+        "length": 195,
+        "mb_albumid": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "title": "Tideglass",
+        "track": 2,
+        "year": 2016
+      },
+      {
+        "album": "Harbor Lantern Sessions III",
+        "albumartist": "Various Artists",
+        "artist": "Ines Callahan",
+        "comp": true,
+        "length": 230,
+        "mb_albumid": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "title": "Amber Hours",
+        "track": 3,
+        "year": 2016
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/f1444810-2139-5b52-97fb-6bd08656092b?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28harbor+lantern+sessions+iii%29+arid%3A%2889ad4ac3%5C-39f7%5C-470e%5C-963a%5C-56509c546377%29",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "distance": 0.08833333333333333,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "tracks": 0.08833333333333333,
+          "year": 0
+        },
+        "tracks": [
+          0.20833333333333334,
+          0.225,
+          0.22916666666666666
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harbor Lantern Sessions III",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nova Ridge",
+        "artist_credit": "Nova Ridge",
+        "artist_sort": "Nova Ridge",
+        "artists": [
+          "Nova Ridge"
+        ],
+        "artists_credit": [
+          "Nova Ridge"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nova Ridge"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 210,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "mb_artistid": "b2380246-099f-9210-b4b9-f755a96311b9",
+        "mb_artistids": [
+          "b2380246-099f-9210-b4b9-f755a96311b9"
+        ],
+        "mb_releasegroupid": "edc9c81d-fe58-1ab2-102c-220933dbbcde",
+        "mb_releasetrackid": "22a13c80-24ea-7e5f-3d10-b3a934e7e77e",
+        "mb_trackid": "b4defc04-e50e-625a-d0f5-7ac61e0fd4e4",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 5,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harbor Lantern Sessions III",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Salt Line",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harbor Lantern Sessions III",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Vance",
+        "artist_credit": "Petra Vance",
+        "artist_sort": "Petra Vance",
+        "artists": [
+          "Petra Vance"
+        ],
+        "artists_credit": [
+          "Petra Vance"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Vance"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 195,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "mb_artistid": "5955ffef-b954-d959-86c6-304a9447041a",
+        "mb_artistids": [
+          "5955ffef-b954-d959-86c6-304a9447041a"
+        ],
+        "mb_releasegroupid": "edc9c81d-fe58-1ab2-102c-220933dbbcde",
+        "mb_releasetrackid": "da945895-87b8-a939-072f-44c794c7aca2",
+        "mb_trackid": "e4e1567d-7aeb-c896-8077-06ff219399f0",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 5,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harbor Lantern Sessions III",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tideglass",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harbor Lantern Sessions III",
+        "album_id": null,
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Callum Reyes",
+        "artist_credit": "Callum Reyes",
+        "artist_sort": "Callum Reyes",
+        "artists": [
+          "Callum Reyes"
+        ],
+        "artists_credit": [
+          "Callum Reyes"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Callum Reyes"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 230,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "f1444810-2139-5b52-97fb-6bd08656092b",
+        "mb_artistid": "bd655f77-4f42-a27a-7bb2-fdf3fdf51032",
+        "mb_artistids": [
+          "bd655f77-4f42-a27a-7bb2-fdf3fdf51032"
+        ],
+        "mb_releasegroupid": "edc9c81d-fe58-1ab2-102c-220933dbbcde",
+        "mb_releasetrackid": "28794409-9271-1fb9-a489-f8cc28a0a341",
+        "mb_trackid": "4fc522eb-5205-9ca7-c2c4-c1ede1378008",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 5,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harbor Lantern Sessions III",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Amber Hours",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      }
+    }
+  }
+}

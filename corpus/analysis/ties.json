@@ -165,6 +165,62 @@
       "reason": "Same shape as should-ask, six corrupted items wide: forbidding any of the pairs (1,1), (3,3), (7,9), (9,5) or (11,11) re-solves to the same cost through a permutation of the corrupted items alone. The album is not a VA release, so every tied optimum scores the same album distance and the same none recommendation. The mapping lapjv chose is the expectation; a Go solver has to mirror its tie-breaking to match this row."
     },
     {
+      "case_id": "va-exact",
+      "album_id": "796b5580-c491-5652-a2b8-333f7669e35c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "va-missing-track-artists",
+      "album_id": "5122626e-1f95-582b-aa36-337a9ed35f99",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "va-nonva-correct",
+      "album_id": "03235ca1-2baa-5b7e-8aaf-db53e81b2763",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "va-nonva-wrong",
+      "album_id": "2e16bbcf-dbde-544c-94c9-b328d44449c6",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.277777777777778,
+      "difference": 1.277777777777778,
+      "unique": true
+    },
+    {
+      "case_id": "va-string-collision",
+      "album_id": "ce3ca576-8b60-5464-b2c1-68a2dbbe95d8",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "va-track-mismatch-all",
+      "album_id": "f1444810-2139-5b52-97fb-6bd08656092b",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "va-track-mismatch-one",
+      "album_id": "5442745f-32c6-5415-8818-93d93cd9f23c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
       "case_id": "various-artists",
       "album_id": "8c930411-7b42-4089-b20e-337aca7b8e64",
       "optimal_cost": 0,

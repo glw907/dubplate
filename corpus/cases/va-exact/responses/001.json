@@ -1,0 +1,151 @@
+{
+  "id": "796b5580-c491-5652-a2b8-333f7669e35c",
+  "title": "Harbor Lantern Sessions",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2016-05-20",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Various Artists",
+      "joinphrase": "",
+      "artist": {
+        "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "name": "Various Artists",
+        "sort-name": "Various Artists",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "88298893-8c4d-6797-3c11-8f3fde6f5f0a",
+    "title": "Harbor Lantern Sessions",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-05-20",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-05-20",
+      "area": {
+        "id": "9aa28a74-4574-379d-c16b-b04c90ed02fb",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "0c44220f-bb40-5a8c-39ed-f948c1de7d8f",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9be62ba6-e84b-c869-6df8-ff000222be53",
+            "title": "Salt Line",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Nova Ridge",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b2380246-099f-9210-b4b9-f755a96311b9",
+                  "name": "Nova Ridge",
+                  "sort-name": "Nova Ridge",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4752db24-684c-4916-d193-bbe9b1c25ee5",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "2f6ae58b-7094-0a9f-ddce-f037968b9425",
+            "title": "Tideglass",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Vance",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5955ffef-b954-d959-86c6-304a9447041a",
+                  "name": "Petra Vance",
+                  "sort-name": "Petra Vance",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b0155ee0-05a7-a8f1-bc39-657db96d87bf",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f432c2a4-1a86-fb8c-d315-4cb7dc228b79",
+            "title": "Amber Hours",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Callum Reyes",
+                "joinphrase": "",
+                "artist": {
+                  "id": "bd655f77-4f42-a27a-7bb2-fdf3fdf51032",
+                  "name": "Callum Reyes",
+                  "sort-name": "Callum Reyes",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

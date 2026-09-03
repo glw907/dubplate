@@ -153,6 +153,50 @@ response; every shape is expressible through `overrides`
 | `complete-combined-over-scrambled` | a 4-track release whose independently-supplied `items` set covers only three of the four tracks, listed out of release order: assignment corrects the scrambled order among the three matched items while the fourth candidate track drives `missing_tracks`. | none |
 | `complete-max-rec-boundary` | a 12-track release plus one `extra` item: the same `unmatched_tracks` shape as `complete-short-one`, but at 12 tracks the fixed 0.6 penalty is diluted by a much larger denominator, landing distance at 0.0164, comfortably under `strong_rec_thresh` (0.04). Recommendation still downgrades to medium; this is the case where `max_rec` is not a distance nudge but a discrete verdict, since distance alone would have called it strong. | none |
 
+### Family 3: various artists and artist handling
+
+`va-*`, 7 cases. `test/autotag/test_distance.py`'s `test_albumartist`
+(both `va` parameters), `test_comp_no_track_artists`, and
+`test_comp_track_artists_do_not_match`, plus `distance.py`'s
+`VA_ARTISTS` tuple (l.29), exercising `distance()`'s va-conditional
+album-level `artist` skip (distance.py:447) and `track_distance`'s
+`incl_artist` gate (distance.py:404-410) directly. The inventory's own
+shape list under-counts by one against its own budget column: it names
+six shapes (VA exact, VA mismatched track artist, VA absent per-track
+credits both sides, non-VA correct artist, non-VA wrong artist, a
+single-artist album's credit string colliding with `VA_ARTISTS`) but
+budgets seven cases. `va-track-mismatch-one` and `va-track-mismatch-all`
+resolve the count here: the single mismatched-track-artist shape splits
+into a one-track deviation (`va-track-mismatch-one`, still `strong`) and
+every-track deviation (`va-track-mismatch-all`, crossing into `medium`),
+the same doubling technique family 2 uses between its `-one`/`-two`
+pairs, rather than inventing a case with no distinguishing code path
+from one already covered. `va-missing-track-artists` hand-edits its
+generated response (staleness-corrections ruling 3): `ReleaseSpec`'s
+`artist_credit` always falls back to the release-level artist rather
+than emitting a genuinely empty credit, so the candidate side of
+"absent on both sides" is reached only by editing
+`responses/001.json`'s `recording.artist-credit[0].name` and its nested
+`artist.name` to `""` after synth, before the first freeze; the item
+side is expressible directly, an ordinary `field` override setting
+`artist` to `""`. `va-nonva-wrong` needed both `artist` and
+`albumartist` overridden, not `artist` alone:
+`get_most_common_tags` (`beets/util/__init__.py:842-844`) substitutes
+the item consensus `albumartist` for `artist` whenever `albumartist` has
+unanimous non-empty consensus across items, so a wrong-artist case that
+only touches the `artist` field is silently overridden back to a
+correct match.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `va-exact` | a various-artists release, each of its 3 tracks credited to a distinct real performer that matches its item's own `artist` tag exactly: the album-level `artist` component never appears in the record at all (`AlbumInfo.va` skips it, distance.py:447), and the per-track `track_artist` component is zero everywhere it is checked, distance 0, strong. | none |
+| `va-track-mismatch-one` | the same various-artists release with one item's `artist` field overridden to a name that does not match its own track's credited performer: `track_artist` fires for that one track only (`tracks: 0.0278`), still strong. | none |
+| `va-track-mismatch-all` | the same shape with all 3 items' `artist` fields overridden to mismatch their own tracks' credited performers: `track_artist` fires on every track (`tracks: 0.0883`), crossing into medium—the doubling extension of `va-track-mismatch-one` that also demonstrates the mismatch compounding past a recommendation boundary. | none |
+| `va-missing-track-artists` | a various-artists release whose items carry an empty `artist` tag and whose generated response's per-track `recording.artist-credit` is hand-edited to an empty display and artist name on every track: `track_distance`'s `incl_artist` guard short-circuits on the falsy `track_info.artist` before it ever reads the item side, so the whole album scores 0 for `track_artist` despite carrying no per-track credit on either side. | recording artist-credit name and nested artist name emptied on all 3 tracks, before the first freeze (ruling 3) |
+| `va-string-collision` | the same various-artists release with each item's `artist` field overridden to the literal string `"Unknown"`, one of `VA_ARTISTS`' five members, while the candidate's own per-track credits stay real and distinct: `track_distance` skips the `track_artist` component on every track because the item's own artist string collides with the placeholder set, not because either side is genuinely missing data, distance 0, strong. | none |
+| `va-nonva-wrong` | a single-artist (non-VA) release with every item's `artist` and `albumartist` fields overridden to a performer that does not match the release: the album-level `artist` component fires (`artist: 0.1389`), falls to the search fallback (empty result), medium. | none |
+| `va-nonva-correct` | the same single-artist release with no overrides: `artist` is present and 0, distance 0, strong—the family's non-VA baseline, paired against `va-nonva-wrong`. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
