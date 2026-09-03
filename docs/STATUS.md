@@ -36,9 +36,8 @@ Remote: github.com/glw907/dubplate (private).
 
 - Rewrite post-mortem still owed.
 - Two albums in /srv/music/review/2026-08-31/geoff/ await manual review.
-- Age store: FILEBROWSER_ADMIN_PASSWORD orphaned (delete at next sweep);
-  DUBPLATE_SERVE_SITE_NAME ("907 Music") stays minted for the new server.
-- Stale failed units on the box; cosmetic; `systemctl reset-failed`.
+- Age store: FILEBROWSER_ADMIN_PASSWORD orphaned (delete at next
+  sweep). Box: stale failed units, cosmetic; `systemctl reset-failed`.
 
 ## Pinned versions (looked up 2026-08-30)
 
@@ -48,16 +47,15 @@ Remote: github.com/glw907/dubplate (private).
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` |
 
-### Next action (evidence-arc session, checkpoint after task 3)
+### Next action (evidence-arc session)
 
-Pass 2a is executing (plans/2026-09-02-rung-2a-cassette-substrate.md,
-revision 2). Tasks 1-3 are accepted and landed (79420d3, 7338c6f,
-c3e84dd, d0ea5ab): cassette schema, replay stub, profiles, adapter,
-real shim, determinism proof; code-simplifier found nothing to change.
-Spend ≈0.75M of the 5M ceiling. DUBPLATE_HARNESS_CONTACT is minted
-(geoff@907.life, ~/.bashrc via dotfiles 3a1c551); staying anonymous at
-1 req/s. Next: tasks 4-5 via pass-execute (capture tool, smoke corpus,
-pass close), folding two task-2 review findings into task 4 (stub keys
-on the percent-decoded path; Derive never surfaces the miss list). If
-resuming cold: relaunch remaining tasks via the pass-execute workflow;
-prior run wf_5ed5b773-4eb. Then plan 2b just-in-time on the quiet tree.
+Pass 2a is closed (HISTORY has the ledger): corpus machinery proven,
+seven live smoke cases re-derivable from the tree, spend ≈1.75M of 5M.
+DUBPLATE_HARNESS_CONTACT is minted (~/.bashrc, dotfiles 3a1c551);
+anonymous 1 req/s stands. Next: plan pass 2b just-in-time on the quiet
+tree (structural stratum from beets' test scenario shapes, ~60-120
+cases; component-test derivation from test_distance.py; assignment-tie
+detector; threshold-proximity flag), fold the carried 2b/2c items from
+HISTORY's pass 2a entry, then execute via pass-execute. Pass 2c
+follows (real-catalog + adversarial strata, stock-config stratum,
+file-level applied tags, first adjudication batch to Geoff).

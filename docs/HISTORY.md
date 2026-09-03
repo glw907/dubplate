@@ -2,6 +2,56 @@
 
 Per-pass ledger, newest first.
 
+## Rung 2, pass 2a (Cassette substrate and capture): schema, stub, shim, capture tool, smoke corpus (2026-09-02)
+
+Executed under two pass-execute workflows (wf_5ed5b773, wf_fe30d704)
+plus one escalation follow-up, against
+`docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`
+(revision 2). Commits 79420d3 → 69a1804. Five plan tasks, all accepted;
+one fix round (task 5); one escalation, ruled in-scope and closed by
+follow-up commit 6d45c28.
+
+What landed: `internal/harness/cassette` (the frozen schema, verbatim
+response-file store, byte-wise canonicalization rule);
+`internal/harness/stub` (replay server with a miss list) and
+`internal/harness/oracle` (adapter proven against a fake shim, then the
+real `derive_oracle.py` driving pinned beets 2.13.1 in a uv venv, with
+internal self-verifying date pinning and a raw-stdout determinism
+proof); the two config profiles with their documented transform;
+`cmd/harness` (capture tool: `--mbid` seeding with maximal `inc=` and
+the pseudo-release double fetch, `--case` miss consumption, 1 req/s
+identified wire discipline, contact refusal); and a seven-case live
+smoke corpus (clean-match, should-ask, should-reject, various-artists,
+multi-disc, non-latin pseudo-release with its transl-tracklisting
+follow-up, year-penalty), every record derived through the real shim,
+all seven re-derivable from the committed tree
+(`TestCorpusReDerivesToItsCommittedRecords`) with the date-pinning
+proof riding the real year-penalty case. Gate grew ruff and gitleaks
+legs; `make derive` runs the oracle-tagged tests.
+
+What a later pass would be wrong to rediscover: the `inc=` join is
+`%2B` on the wire, never a literal `+` (requests percent-escapes it;
+every live case missed its primary lookup until the capture tool's
+canonicalization matched, and the original cassette doc's "literal +"
+wire fact was corrected in 6d45c28; do not "fix" it back); the stub
+must key on `r.URL.EscapedPath()`, since `r.URL.Path` arrives
+percent-decoded; the miss loop's contract is `<case dir>/misses.json`,
+written by `Derive`, consumed by `harness capture --case`; a
+strong ID match legally orphans search captures into `Extra` (recorded
+fixed point, not a stable request set).
+
+Carried to 2b/2c: three non-blocking hardenings on
+`corpus_derive_test.go` (skip-all-green residual hole, unguarded
+`Candidates[0]`, redundant equality branch); the line-pinned
+`.gitleaksignore` fingerprint; git-history gitleaks scanning (deferred
+as a heavier job); response-number gaps in two cases (documented,
+harmless).
+
+Budgets: ≈1.75M subagent tokens against the 5M ceiling, plus conductor
+context. Human interaction: one batched ask (the MusicBrainz contact,
+minted as `DUBPLATE_HARNESS_CONTACT` in `~/.bashrc` via dotfiles
+3a1c551; registration declined, anonymous 1 req/s stands).
+
 ## Rung 1 (Foundation): the repo pivot, config core, check/doctor (2026-09-02)
 
 The greenfield build's first rung, run under the pass-execute workflow
