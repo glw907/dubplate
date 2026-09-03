@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,9 +62,19 @@ func withSleep(t *testing.T) *[]time.Duration {
 
 func TestReleaseRequestIsCanonical(t *testing.T) {
 	got := releaseRequest("00000000-0000-0000-0000-000000000000")
-	want := "/ws/2/release/00000000-0000-0000-0000-000000000000?fmt=json&inc=" + url.QueryEscape(maximalReleaseInclude)
+	want := "/ws/2/release/00000000-0000-0000-0000-000000000000?fmt=json&inc=" +
+		"artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2B" +
+		"recording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2B" +
+		"release-rels%2Bgenres%2Btags"
 	if got != want {
 		t.Errorf("releaseRequest = %q, want %q", got, want)
+	}
+	// The inc= join is %2B on the wire, never a literal +: a decode
+	// step that treats + as a space would corrupt the logical
+	// +-joined list beets' MusicBrainz client sends (corpus/README.md's
+	// canonicalization rule, item 2).
+	if strings.Contains(got, "+") {
+		t.Errorf("releaseRequest = %q, contains a literal +, want every join percent-escaped to %%2B", got)
 	}
 }
 
