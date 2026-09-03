@@ -59,12 +59,12 @@ func corpusCaseDirs(t *testing.T, root string) []string {
 	return dirs
 }
 
-// TestEveryCorpusCaseLoadsClean proves cassette.LoadCase accepts
-// every committed case as-is: a case that fails here would fail the
-// same way for any consumer (harness capture, oracle.Derive, or a
-// future dubplate-server importer).
-func TestEveryCorpusCaseLoadsClean(t *testing.T) {
-	root := repoRoot(t)
+// forEachCase runs fn as a t.Run subtest per corpus case directory
+// under root, after loading and validating the case through
+// cassette.LoadCase, so every caller below can assume c loaded clean
+// instead of repeating the load-and-fail boilerplate.
+func forEachCase(t *testing.T, root string, fn func(t *testing.T, id, dir string, c *cassette.Case)) {
+	t.Helper()
 	for _, dir := range corpusCaseDirs(t, root) {
 		id := filepath.Base(dir)
 		t.Run(id, func(t *testing.T) {
@@ -72,14 +72,25 @@ func TestEveryCorpusCaseLoadsClean(t *testing.T) {
 			if err != nil {
 				t.Fatalf("LoadCase(%s): %v", dir, err)
 			}
-			if c.ID != id {
-				t.Errorf("case.json id = %q, want %q (directory name)", c.ID, id)
-			}
-			if c.Expected == nil {
-				t.Errorf("case %s carries no expected record; it was never derived", id)
-			}
+			fn(t, id, dir, c)
 		})
 	}
+}
+
+// TestEveryCorpusCaseLoadsClean proves cassette.LoadCase accepts
+// every committed case as-is: a case that fails here would fail the
+// same way for any consumer (harness capture, oracle.Derive, or a
+// future dubplate-server importer).
+func TestEveryCorpusCaseLoadsClean(t *testing.T) {
+	root := repoRoot(t)
+	forEachCase(t, root, func(t *testing.T, id, _ string, c *cassette.Case) {
+		if c.ID != id {
+			t.Errorf("case.json id = %q, want %q (directory name)", c.ID, id)
+		}
+		if c.Expected == nil {
+			t.Errorf("case %s carries no expected record; it was never derived", id)
+		}
+	})
 }
 
 // TestEveryLoggedRequestResolvesToExactlyOneResponse proves the
@@ -92,26 +103,18 @@ func TestEveryCorpusCaseLoadsClean(t *testing.T) {
 // this package's own docs promise is unambiguous.
 func TestEveryLoggedRequestResolvesToExactlyOneResponse(t *testing.T) {
 	root := repoRoot(t)
-	for _, dir := range corpusCaseDirs(t, root) {
-		id := filepath.Base(dir)
-		t.Run(id, func(t *testing.T) {
-			c, err := cassette.LoadCase(dir)
-			if err != nil {
-				t.Fatalf("LoadCase(%s): %v", dir, err)
+	forEachCase(t, root, func(t *testing.T, id, _ string, c *cassette.Case) {
+		type key struct{ method, pathQuery string }
+		seen := make(map[key]string, len(c.Requests))
+		for _, req := range c.Requests {
+			k := key{req.Method, req.PathQuery}
+			if prior, dup := seen[k]; dup {
+				t.Errorf("case %s: requests for %s %s resolve to two responses (%s and %s)",
+					id, req.Method, req.PathQuery, prior, req.Response)
 			}
-
-			type key struct{ method, pathQuery string }
-			seen := make(map[key]string, len(c.Requests))
-			for _, req := range c.Requests {
-				k := key{req.Method, req.PathQuery}
-				if prior, dup := seen[k]; dup {
-					t.Errorf("case %s: requests for %s %s resolve to two responses (%s and %s)",
-						id, req.Method, req.PathQuery, prior, req.Response)
-				}
-				seen[k] = req.Response
-			}
-		})
-	}
+			seen[k] = req.Response
+		}
+	})
 }
 
 // TestEveryResponseFileIsConsumed proves every file under a case's
@@ -122,37 +125,29 @@ func TestEveryLoggedRequestResolvesToExactlyOneResponse(t *testing.T) {
 // U8's recall-extension bookkeeping.
 func TestEveryResponseFileIsConsumed(t *testing.T) {
 	root := repoRoot(t)
-	for _, dir := range corpusCaseDirs(t, root) {
-		id := filepath.Base(dir)
-		t.Run(id, func(t *testing.T) {
-			c, err := cassette.LoadCase(dir)
-			if err != nil {
-				t.Fatalf("LoadCase(%s): %v", dir, err)
-			}
+	forEachCase(t, root, func(t *testing.T, id, dir string, c *cassette.Case) {
+		consumed := make(map[string]bool, len(c.Requests)+len(c.Extra))
+		for _, req := range c.Requests {
+			consumed[req.Response] = true
+		}
+		for _, extra := range c.Extra {
+			consumed[extra] = true
+		}
 
-			consumed := make(map[string]bool, len(c.Requests)+len(c.Extra))
-			for _, req := range c.Requests {
-				consumed[req.Response] = true
+		entries, err := os.ReadDir(filepath.Join(dir, "responses"))
+		if err != nil {
+			t.Fatalf("read %s/responses: %v", dir, err)
+		}
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
 			}
-			for _, extra := range c.Extra {
-				consumed[extra] = true
+			name := filepath.Join("responses", e.Name())
+			if !consumed[name] {
+				t.Errorf("case %s: response file %s is neither a logged request's response nor listed in Extra", id, name)
 			}
-
-			entries, err := os.ReadDir(filepath.Join(dir, "responses"))
-			if err != nil {
-				t.Fatalf("read %s/responses: %v", dir, err)
-			}
-			for _, e := range entries {
-				if e.IsDir() {
-					continue
-				}
-				name := filepath.Join("responses", e.Name())
-				if !consumed[name] {
-					t.Errorf("case %s: response file %s is neither a logged request's response nor listed in Extra", id, name)
-				}
-			}
-		})
-	}
+		}
+	})
 }
 
 // wantManifestSchemaVersion pins the schema version this test
