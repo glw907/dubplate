@@ -155,24 +155,26 @@ response; every shape is expressible through `overrides`
 
 ### Family 3: various artists and artist handling
 
-`va-*`, 7 cases. `test/autotag/test_distance.py`'s `test_albumartist`
-(both `va` parameters), `test_comp_no_track_artists`, and
-`test_comp_track_artists_do_not_match`, plus `distance.py`'s
+`va-*` plus `nonva-va-artists-misflag`, 7 cases. `test/autotag/test_distance.py`'s
+`test_albumartist` (both `va` parameters), `test_comp_no_track_artists`,
+and `test_comp_track_artists_do_not_match`, plus `distance.py`'s
 `VA_ARTISTS` tuple (l.29), exercising `distance()`'s va-conditional
 album-level `artist` skip (distance.py:447) and `track_distance`'s
-`incl_artist` gate (distance.py:404-410) directly. The inventory's own
-shape list under-counts by one against its own budget column: it names
-six shapes (VA exact, VA mismatched track artist, VA absent per-track
-credits both sides, non-VA correct artist, non-VA wrong artist, a
-single-artist album's credit string colliding with `VA_ARTISTS`) but
-budgets seven cases. `va-track-mismatch-one` and `va-track-mismatch-all`
-resolve the count here: the single mismatched-track-artist shape splits
-into a one-track deviation (`va-track-mismatch-one`, still `strong`) and
-every-track deviation (`va-track-mismatch-all`, crossing into `medium`),
-the same doubling technique family 2 uses between its `-one`/`-two`
-pairs, rather than inventing a case with no distinguishing code path
-from one already covered. `va-missing-track-artists` hand-edits its
-generated response (staleness-corrections ruling 3): `ReleaseSpec`'s
+`incl_artist` gate (distance.py:404-410) directly, and (the family's
+seventh shape) `match.py:453`'s separate `va_likely` heuristic inside
+`tag_album`. The inventory's own shape list under-counts by one
+against its own budget column: it names six shapes (VA exact, VA
+mismatched track artist, VA absent per-track credits both sides,
+non-VA correct artist, non-VA wrong artist, a non-VA release whose
+artist string collides with `VA_ARTISTS`) but budgets seven cases.
+`va-track-mismatch-one` and `va-track-mismatch-all` resolve the count
+here: the single mismatched-track-artist shape splits into a one-track
+deviation (`va-track-mismatch-one`, still `strong`) and every-track
+deviation (`va-track-mismatch-all`, crossing into `medium`), the same
+doubling technique family 2 uses between its `-one`/`-two` pairs,
+rather than inventing a case with no distinguishing code path from one
+already covered. `va-missing-track-artists` hand-edits its generated
+response (staleness-corrections ruling 3): `ReleaseSpec`'s
 `artist_credit` always falls back to the release-level artist rather
 than emitting a genuinely empty credit, so the candidate side of
 "absent on both sides" is reached only by editing
@@ -185,7 +187,25 @@ side is expressible directly, an ordinary `field` override setting
 the item consensus `albumartist` for `artist` whenever `albumartist` has
 unanimous non-empty consensus across items, so a wrong-artist case that
 only touches the `artist` field is silently overridden back to a
-correct match.
+correct match. `nonva-va-artists-misflag` needs the same double
+override for the same reason, plus a real (non-`VariousArtists`) release
+so that `distance()`'s own `album_info.va` gate (distance.py:447) never
+fires: the shape under test is a *different* code path,
+`tag_album`'s own `va_likely` guess (match.py:451-455), which is
+computed from the submitted metadata rather than from the candidate. A
+`VA_ARTISTS`-colliding artist string is one of `va_likely`'s three
+disjuncts (`search_artist.lower() in VA_ARTISTS`) independent of
+whether the release itself is various-artists; the record's own
+`distance()` computation, by contrast, keys strictly off
+`album_info.va` (the candidate's own MusicBrainz artist-credit id), so
+a genuinely single-artist release with a colliding submitted artist
+string still takes the album-level `artist` penalty
+(`distance.py:447-448`) exactly like any other wrong-artist non-VA
+case. That penalty is what keeps the ID-lookup candidate from
+resolving `strong` on its own (`match.py:436-442`'s early return),
+which is what forces `tag_album` on to the search-fallback branch
+where `va_likely` is actually consulted; a case whose ID match already
+lands `strong` never reaches match.py:453 at all.
 
 | id | shape | hand-edit |
 | --- | --- | --- |
@@ -193,7 +213,7 @@ correct match.
 | `va-track-mismatch-one` | the same various-artists release with one item's `artist` field overridden to a name that does not match its own track's credited performer: `track_artist` fires for that one track only (`tracks: 0.0278`), still strong. | none |
 | `va-track-mismatch-all` | the same shape with all 3 items' `artist` fields overridden to mismatch their own tracks' credited performers: `track_artist` fires on every track (`tracks: 0.0883`), crossing into medium—the doubling extension of `va-track-mismatch-one` that also demonstrates the mismatch compounding past a recommendation boundary. | none |
 | `va-missing-track-artists` | a various-artists release whose items carry an empty `artist` tag and whose generated response's per-track `recording.artist-credit` is hand-edited to an empty display and artist name on every track: `track_distance`'s `incl_artist` guard short-circuits on the falsy `track_info.artist` before it ever reads the item side, so the whole album scores 0 for `track_artist` despite carrying no per-track credit on either side. | recording artist-credit name and nested artist name emptied on all 3 tracks, before the first freeze (ruling 3) |
-| `va-string-collision` | the same various-artists release with each item's `artist` field overridden to the literal string `"Unknown"`, one of `VA_ARTISTS`' five members, while the candidate's own per-track credits stay real and distinct: `track_distance` skips the `track_artist` component on every track because the item's own artist string collides with the placeholder set, not because either side is genuinely missing data, distance 0, strong. | none |
+| `nonva-va-artists-misflag` | a genuinely single-artist release (real artist "Nova Ridge", not `VariousArtists`) whose every item's `artist` and `albumartist` fields are overridden to the literal string `"Unknown"`, one of `VA_ARTISTS`' five members: the album-level `artist` component fires against the real candidate artist (`artist: 0.1667`), keeping the ID-lookup candidate off `strong` and forcing `tag_album` on to its search-fallback branch, where `va_likely` (match.py:451-455) reads `search_artist.lower() in VA_ARTISTS` true and searches MusicBrainz by `arid:(<VARIOUS_ARTISTS_ID>)` instead of `artist:(unknown)` (`requests[1].path_query`, a freeze-derived, verified artifact, not invented): the misflag's own observable trace, since it never touches `distance()`'s candidate set, penalties, or applied fields once the fallback search returns empty (per the family's own convention; a non-empty response is family 10's shape alone). Medium. | none |
 | `va-nonva-wrong` | a single-artist (non-VA) release with every item's `artist` and `albumartist` fields overridden to a performer that does not match the release: the album-level `artist` component fires (`artist: 0.1389`), falls to the search fallback (empty result), medium. | none |
 | `va-nonva-correct` | the same single-artist release with no overrides: `artist` is present and 0, distance 0, strong—the family's non-VA baseline, paired against `va-nonva-wrong`. | none |
 

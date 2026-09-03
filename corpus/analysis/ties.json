@@ -145,6 +145,14 @@
       "unique": true
     },
     {
+      "case_id": "nonva-va-artists-misflag",
+      "album_id": "f2c1a3e4-9b7d-4a6e-8c1a-1e2d3f4a5b6c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
       "case_id": "should-ask",
       "album_id": "4b3d18cc-8937-36f4-8de0-481088be58e6",
       "optimal_cost": 1.7962962962962963,
@@ -194,14 +202,6 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.277777777777778,
       "difference": 1.277777777777778,
-      "unique": true
-    },
-    {
-      "case_id": "va-string-collision",
-      "album_id": "ce3ca576-8b60-5464-b2c1-68a2dbbe95d8",
-      "optimal_cost": 0,
-      "best_forbidden_cost": 1.3333333333333333,
-      "difference": 1.3333333333333333,
       "unique": true
     },
     {
