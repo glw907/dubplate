@@ -741,12 +741,12 @@ with no reserve remaining behind any later two-release row.
 | `real-nonlatin-x-japan-art-of-life` | non-Latin | `4a56da85-22d2-4ba9-b834-1b736a21ae97` | no | no | X JAPAN, *Art of Life* (Japanese; a single 29-minute track; artist-credit carries a documented `locale=ja_JP` alias); a clean zero-distance match. |
 | `real-reissue-thriller-25` | reissue/remaster | `7a9ba230-8207-3d50-93bf-11fd3f33901a` | yes | no | Michael Jackson, *Thriller 25* (2008 CD reissue); capture-confirmed release date 2008-02-12 against the release-group's own first-release-date 1982-11-30; a clean zero-distance match. |
 
-All eight rows above matched their own captured source (`apply`, either
-recommendation): five land `strong`, and `real-decoy-mozart-requiem`,
+All eight rows above matched their own captured source: five land
+`strong`/`apply`, and `real-decoy-mozart-requiem`,
 `real-noise-dylan-bootleg`, and `real-noise-zappa-cucamonga` land
-`medium` per their own rows above. No confident wrong match appeared,
-so this batch owes no `adjudications.json` row. **Task 7 delivers all 8
-dossier rows**; no reserve substitution was needed.
+`medium`/`skip` per their own rows above. No confident wrong match
+appeared, so this batch owes no `adjudications.json` row. **Task 7
+delivers all 8 dossier rows**; no reserve substitution was needed.
 
 **The two-release sub-axis finding (Task 7).** The dossier's Task 7 row
 for this axis, `real-decoy-mozart-requiem`
