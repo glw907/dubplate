@@ -1,0 +1,1843 @@
+{
+  "id": "real-genre-aphex-twin-saw85-92",
+  "input": {
+    "items": [
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 294.133,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "e5e5e3c9-8515-4abf-aebb-7529b4e9aa0b",
+        "title": "Xtal",
+        "track": 1,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 547.106,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "213757f0-41cd-4daa-bc6a-4d990fa5d5ab",
+        "title": "Tha",
+        "track": 2,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 228.026,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "213d4632-7d0a-4d14-b458-a9cb7fb7dd6a",
+        "title": "Pulsewidth",
+        "track": 3,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 323.133,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "4c52fe7c-a5f9-4f22-980d-cb79eef521d7",
+        "title": "Ageispolis",
+        "track": 4,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 77.4,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "12db16d7-6541-4a3e-9fc1-fa1f27501bbb",
+        "title": "i",
+        "track": 5,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 365.2,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "c6f0f3cd-0099-4592-8e68-86cdfff99c6e",
+        "title": "Green Calx",
+        "track": 6,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 293.8,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "3038681f-15e7-4268-948f-e290540a4393",
+        "title": "Heliosphan",
+        "track": 7,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 463.506,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "365e1251-3776-4a1a-8ef2-d3b52c69cbf7",
+        "title": "We are the music makers",
+        "track": 8,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 308.733,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "de45845e-0366-4cc5-b72c-d8aca5450617",
+        "title": "Schottkey 7th Path",
+        "track": 9,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 434.293,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "3a028d7d-d5ba-40c7-9547-ba6af62a275a",
+        "title": "Ptolemy",
+        "track": 10,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 363.906,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "8acc6607-51b4-4440-a75a-73173ddfa670",
+        "title": "Hedphelym",
+        "track": 11,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 329.16,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "008083c0-3a73-4072-a14d-860eaa628f05",
+        "title": "Delphium",
+        "track": 12,
+        "year": 2008
+      },
+      {
+        "album": "Selected Ambient Works 85–92",
+        "albumartist": "Aphex Twin",
+        "artist": "Aphex Twin",
+        "length": 456.106,
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_trackid": "7ae7dc7f-852c-4737-bf4c-acb0e5c2ad34",
+        "title": "Actium",
+        "track": 13,
+        "year": 2008
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/f5538f56-309a-3322-92bb-54b829c14934?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "f5538f56-309a-3322-92bb-54b829c14934",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800022",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 294.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "83ea0eea-d1d7-3b0e-a641-5f3e3ec13731",
+        "mb_trackid": "e5e5e3c9-8515-4abf-aebb-7529b4e9aa0b",
+        "mb_workid": "271bcf59-414d-36ec-abee-94cf71a7052c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Xtal",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Xtal",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800023",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 547.106,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "356e9c90-ccac-3b01-9632-5980b661964b",
+        "mb_trackid": "213757f0-41cd-4daa-bc6a-4d990fa5d5ab",
+        "mb_workid": "ccfd3d83-2943-3611-8be8-5335b1c52419",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tha",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Tha",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800032",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 363.906,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "b5b2f429-63ca-3d1d-9cea-084b1b1b5947",
+        "mb_trackid": "8acc6607-51b4-4440-a75a-73173ddfa670",
+        "mb_workid": "5b6a6fd5-f638-3be7-97c2-f1550c213a11",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hedphelym",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Hedphelym",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800033",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 329.16,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "401f86fc-0fdd-3a7f-ab41-65d507101cd3",
+        "mb_trackid": "008083c0-3a73-4072-a14d-860eaa628f05",
+        "mb_workid": "3b842196-ff3d-3a37-824c-91bba3327f5d",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Delphium",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Delphium",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800034",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 456.106,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "3a28b4b3-a014-387c-b631-8b9b40b1e17a",
+        "mb_trackid": "7ae7dc7f-852c-4737-bf4c-acb0e5c2ad34",
+        "mb_workid": "df6baf36-adf8-3355-8b57-54aab31e40e3",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Actium",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Actium",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800024",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 228.026,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "fa46639c-a245-39a9-863c-cb0e94f2120b",
+        "mb_trackid": "213d4632-7d0a-4d14-b458-a9cb7fb7dd6a",
+        "mb_workid": "86d092ff-d704-3a4a-b9cb-249d9c1740ae",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pulsewidth",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Pulsewidth",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800025",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 323.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "1aa1c059-2b7b-3fc1-9e19-e80eb922ee90",
+        "mb_trackid": "4c52fe7c-a5f9-4f22-980d-cb79eef521d7",
+        "mb_workid": "618a457f-ffb4-3e69-a244-6284eb2ffeab",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Ageispolis",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Ageispolis",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800026",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 77.4,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "84ba8e01-e8a3-3a8a-8297-9a5747eaecd7",
+        "mb_trackid": "12db16d7-6541-4a3e-9fc1-fa1f27501bbb",
+        "mb_workid": "68271b5b-7eb6-3df6-a71d-f4e16fd32c73",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "i",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "i",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800027",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 365.2,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "1f45cb76-a8c5-31fa-a676-a6f45acb4636",
+        "mb_trackid": "c6f0f3cd-0099-4592-8e68-86cdfff99c6e",
+        "mb_workid": "755ecd14-2819-38be-8745-b0513d03f414",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Green Calx",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Green Calx",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800028",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 293.8,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "da189369-54a2-3768-8904-ad67a619abda",
+        "mb_trackid": "3038681f-15e7-4268-948f-e290540a4393",
+        "mb_workid": "fdf1c37f-cd14-3367-a739-cb8fded0b13b",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Heliosphan",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Heliosphan",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800029",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 463.506,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "c3459f46-737a-35f6-8d32-00244a48b870",
+        "mb_trackid": "365e1251-3776-4a1a-8ef2-d3b52c69cbf7",
+        "mb_workid": "2295db9c-14f2-3d98-b64f-030fa6452c2b",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "We are the music makers",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "We are the music makers",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800030",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 308.733,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "1d541223-2ed2-3449-ad52-c0900d060999",
+        "mb_trackid": "de45845e-0366-4cc5-b72c-d8aca5450617",
+        "mb_workid": "b071dc59-038a-3856-8d2a-dc637f7d38b5",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Schottkey 7th Path",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Schottkey 7th Path",
+        "work_disambig": "",
+        "year": 1992
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Selected Ambient Works 85–92",
+        "album_id": null,
+        "albumartist": "Aphex Twin",
+        "albumartist_credit": "Aphex Twin",
+        "albumartist_sort": "Aphex Twin",
+        "albumartists": [
+          "Aphex Twin"
+        ],
+        "albumartists_credit": [
+          "Aphex Twin"
+        ],
+        "albumartists_sort": [
+          "Aphex Twin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Aphex Twin",
+        "artist_credit": "Aphex Twin",
+        "artist_sort": "Aphex Twin",
+        "artists": [
+          "Aphex Twin"
+        ],
+        "artists_credit": [
+          "Aphex Twin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Aphex Twin"
+        ],
+        "asin": "B0013K8IFU",
+        "barcode": "5055274700076",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMB3922RM",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Richard D.",
+        "composers": [
+          "Richard D. James"
+        ],
+        "composers_ids": [
+          "79a09151-f6cc-48f9-9907-3fdd0b68373f"
+        ],
+        "country": "BE",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "BEZ350800031",
+        "label": "R\u0026S Records",
+        "language": "eng",
+        "length": 434.293,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_albumartistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_albumid": "f5538f56-309a-3322-92bb-54b829c14934",
+        "mb_artistid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+        "mb_artistids": [
+          "f22942a1-6f70-4f48-866e-238cb2308fbd"
+        ],
+        "mb_releasegroupid": "6842c81d-ea77-3dfd-abf7-4323add3f4d4",
+        "mb_releasetrackid": "936abb8d-6ad1-370a-a55f-bc6ac36a7741",
+        "mb_trackid": "3a028d7d-d5ba-40c7-9547-ba6af62a275a",
+        "mb_workid": "94869344-3b55-33c4-bc39-927abdf801e8",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 1992,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Selected Ambient Works 85–92",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Ptolemy",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Ptolemy",
+        "work_disambig": "",
+        "year": 1992
+      }
+    }
+  }
+}

@@ -1,0 +1,1191 @@
+{
+  "id": "real-genre-chic-cest-chic",
+  "input": {
+    "items": [
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 285,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "55e10f6f-d042-4ca4-9fb6-0edce6190897",
+        "title": "Chic Cheer",
+        "track": 1,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 331,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "57acbd93-8745-430e-9c35-4b4c20b3c5d8",
+        "title": "Le Freak",
+        "track": 2,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 305,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "96e3e777-8ca7-4b88-8c72-dd73a4a5f2b4",
+        "title": "Savoir Faire",
+        "track": 3,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 267,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "0e7fa423-26b8-4fd8-b129-ba05d7bd16cc",
+        "title": "Happy Man",
+        "track": 4,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 418,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "5c32b16a-5025-45c6-9e78-67b330a18dac",
+        "title": "I Want Your Love",
+        "track": 5,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 432,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "a7b0ab4a-ae56-4a6b-ba16-450f1690b305",
+        "title": "At Last I Am Free",
+        "track": 6,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 269,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "65352951-b869-460c-ab06-4a254445260d",
+        "title": "Sometimes You Win",
+        "track": 7,
+        "year": 1992
+      },
+      {
+        "album": "C’est Chic",
+        "albumartist": "Chic",
+        "artist": "Chic",
+        "length": 222,
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_trackid": "3152c2b6-bac0-43c7-9fc8-7ba77029919e",
+        "title": "(Funny) Bone",
+        "track": 8,
+        "year": 1992
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/0fe8b085-2f82-4c86-86a1-69e1d040b50a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "arrangers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Edwards, Bernard, Rodgers, Nile",
+        "composers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "composers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT21301689;USAT21304255;USAT29200022",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 285,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "519d31fd-d3f5-3b7c-b0e4-ba61510c531b",
+        "mb_trackid": "55e10f6f-d042-4ca4-9fb6-0edce6190897",
+        "mb_workid": "93c59b09-a0d8-364e-92c8-d5e6d055caec",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Chic Cheer",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Chic Cheer",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "arrangers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT20400864;USAT20615999;USAT21304256;USAT27800012;USRH11803129;USRH11803270",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 331,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "f57422e0-d59d-33ca-a44c-bd929c72e5cd",
+        "mb_trackid": "57acbd93-8745-430e-9c35-4b4c20b3c5d8",
+        "mb_workid": "b8e8c07f-1ff1-3f25-abb0-593d2a303fd7",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Le Freak",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "album version",
+        "tracktotal": 8,
+        "work": "Le Freak",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "arrangers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Edwards, Bernard, Rodgers, Nile",
+        "composers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "composers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT20616000;USAT20901469;USAT21304257;USAT29200024",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 305,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "b3d8d977-2c11-3132-94ac-8129899b34b1",
+        "mb_trackid": "96e3e777-8ca7-4b88-8c72-dd73a4a5f2b4",
+        "mb_workid": "3bdf7077-b1d8-3c7b-bd24-eaea7a509dbf",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Savoir Faire",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Savoir Faire",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT21304258;USAT29200021",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 267,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "6b8f23a1-bfca-3d19-87ed-db0e3e615ef8",
+        "mb_trackid": "0e7fa423-26b8-4fd8-b129-ba05d7bd16cc",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Happy Man",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "arrangers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Edwards, Bernard, Rodgers, Nile",
+        "composers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "composers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "CAU111300726;USAT20616003;USAT21301680;USAT21304259;USAT29200020;USRH11803132",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 418,
+        "lyricists": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "lyricists_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "eb67c038-d011-3181-b299-6ccbcc63a5c7",
+        "mb_trackid": "5c32b16a-5025-45c6-9e78-67b330a18dac",
+        "mb_workid": "4fc9971c-9193-3357-8d6f-315f970aea52",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Want Your Love",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "I Want Your Love",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "arrangers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Edwards, Bernard, Rodgers, Nile",
+        "composers": [
+          "Bernard Edwards",
+          "Nile Rodgers"
+        ],
+        "composers_ids": [
+          "ba7ff664-5c64-4a62-a3e2-63445c1a25db",
+          "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT21304260;USAT29200025",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 432,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "047f2665-01e1-3b7d-a98b-97f35a03184b",
+        "mb_trackid": "a7b0ab4a-ae56-4a6b-ba16-450f1690b305",
+        "mb_workid": "530b75c3-da3f-35c8-8bea-48ea00032589",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "At Last I Am Free",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "At Last I Am Free",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT21304261;USAT29200026",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 269,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "f51689d9-fe43-3f8c-8d6c-de89a6397704",
+        "mb_trackid": "65352951-b869-460c-ab06-4a254445260d",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sometimes You Win",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "C’est Chic",
+        "album_id": null,
+        "albumartist": "Chic",
+        "albumartist_credit": "Chic",
+        "albumartist_sort": "Chic",
+        "albumartists": [
+          "Chic"
+        ],
+        "albumartists_credit": [
+          "Chic"
+        ],
+        "albumartists_sort": [
+          "Chic"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Chic",
+        "artist_credit": "Chic",
+        "artist_sort": "Chic",
+        "artists": [
+          "Chic"
+        ],
+        "artists_credit": [
+          "Chic"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Chic"
+        ],
+        "asin": "B000002IIQ",
+        "barcode": "075678155222",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "7567-81552-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USAT21304262;USAT29200027",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 222,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_albumartistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_albumid": "0fe8b085-2f82-4c86-86a1-69e1d040b50a",
+        "mb_artistid": "a4ed036b-5f18-439c-b1e1-96d205bab255",
+        "mb_artistids": [
+          "a4ed036b-5f18-439c-b1e1-96d205bab255"
+        ],
+        "mb_releasegroupid": "db46b19c-0e97-30de-ba53-7e823104d14a",
+        "mb_releasetrackid": "709541cc-d3e5-375e-80b3-b19abc4f5b79",
+        "mb_trackid": "3152c2b6-bac0-43c7-9fc8-7ba77029919e",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "C’est Chic",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "(Funny) Bone",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "",
+        "work_disambig": "",
+        "year": 1978
+      }
+    }
+  }
+}

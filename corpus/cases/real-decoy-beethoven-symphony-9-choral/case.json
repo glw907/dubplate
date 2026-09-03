@@ -1,0 +1,805 @@
+{
+  "id": "real-decoy-beethoven-symphony-9-choral",
+  "input": {
+    "items": [
+      {
+        "album": "Symphony No. 9, \"Choral\"",
+        "albumartist": "Beethoven",
+        "artist": "Beethoven",
+        "length": 967.133,
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_trackid": "b6cffd07-1041-4192-b551-5a6af0dd52e1",
+        "title": "Allegro Ma Non Troppo, Un Poco Maestoso",
+        "track": 1,
+        "year": 1994
+      },
+      {
+        "album": "Symphony No. 9, \"Choral\"",
+        "albumartist": "Beethoven",
+        "artist": "Beethoven",
+        "length": 589.4,
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_trackid": "8b7e03b2-7c6c-4a6f-bbb5-a0b3edf4b465",
+        "title": "Molto Vivace; Presto",
+        "track": 2,
+        "year": 1994
+      },
+      {
+        "album": "Symphony No. 9, \"Choral\"",
+        "albumartist": "Beethoven",
+        "artist": "Beethoven",
+        "length": 904.36,
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_trackid": "8694c6e8-827e-452a-ac14-bb141e8f45db",
+        "title": "Adagio Molto E Cantabile; Andante Moderato",
+        "track": 3,
+        "year": 1994
+      },
+      {
+        "album": "Symphony No. 9, \"Choral\"",
+        "albumartist": "Beethoven",
+        "artist": "Beethoven",
+        "length": 1473.533,
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_trackid": "173deda0-b1f1-4dac-9d25-901439f394a6",
+        "title": "Presto; Allegro Assai. Choral Finale",
+        "track": 4,
+        "year": 1994
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/bb6fc19a-7506-41be-b1eb-4afa24da91be?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28symphony+no.+9%2C+%5C%22choral%5C%22%29+artist%3A%28beethoven%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/dbacbf5a-2997-46c9-ae00-616f1e39ddf8?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/1edbbfc1-70f9-4db0-8b09-dee32e0d7c70?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/fdbeab55-ab4f-492a-9dd1-802bb573c534?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/7059dc25-435c-426b-a4dc-e8ea9042842a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/57af0e61-6409-4a48-b39b-939f5bb229c3?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/007.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "distance": 0.1754524886877828,
+        "penalties": {
+          "album": 0.05192307692307692,
+          "album_id": 0,
+          "artist": 0.12352941176470589,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "fdbeab55-ab4f-492a-9dd1-802bb573c534",
+        "distance": 0.7190341049884836,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.23923444976076558,
+          "artist": 0.1319022371653951,
+          "missing_tracks": 0.0430622009569378,
+          "tracks": 0.3033853113492593,
+          "year": 0.001449905756125852
+        },
+        "tracks": [
+          0.6364233766233763,
+          0.8583509513742071,
+          0.8434343434343435,
+          0.8321678321678321
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "1edbbfc1-70f9-4db0-8b09-dee32e0d7c70",
+        "distance": 0.7216171116481862,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.25,
+          "artist": 0.1267241379310345,
+          "tracks": 0.33972055992404826,
+          "year": 0.005172413793103448
+        },
+        "tracks": [
+          0.8329809725158562,
+          0.8574938574938574,
+          0.8465909090909091,
+          0.8601398601398601
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "7059dc25-435c-426b-a4dc-e8ea9042842a",
+        "distance": 0.7644073711457304,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.25,
+          "artist": 0.13353658536585367,
+          "tracks": 0.3308707857798767,
+          "year": 0.05
+        },
+        "tracks": [
+          0.7705627705627706,
+          0.8600000000000001,
+          0.8434343434343435,
+          0.8347107438016529
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "dbacbf5a-2997-46c9-ae00-616f1e39ddf8",
+        "distance": 0.7823694176669675,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.2127659574468085,
+          "artist": 0.10321412403802624,
+          "missing_tracks": 0.19148936170212766,
+          "tracks": 0.2748999744800052
+        },
+        "tracks": [
+          0.6909688311688309,
+          0.8583509513742071,
+          0.8434343434343435,
+          0.8373205741626794
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "57af0e61-6409-4a48-b39b-939f5bb229c3",
+        "distance": 0.7990968220969671,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.19011406844106463,
+          "artist": 0.10735853276671885,
+          "missing_tracks": 0.23954372623574144,
+          "tracks": 0.2500732903308487,
+          "year": 0.012007204322593555
+        },
+        "tracks": [
+          0.7705627705627706,
+          0.8583509513742071,
+          0.8434343434343435,
+          0.8161157024793387
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Beethoven Symphony No. 9, \"Choral\"",
+        "album_id": null,
+        "albumartist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "albumartist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "albumartist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "albumartists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "albumartists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "albumartists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "artist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "artist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "artists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "artists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "asin": "",
+        "barcode": "723918910420",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "EVC 9104",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Beethoven, Ludwig van",
+        "composers": [
+          "Ludwig van Beethoven"
+        ],
+        "composers_ids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Everest Records",
+        "language": "eng",
+        "length": 967.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_albumartistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_artistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_artistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_releasegroupid": "31bbbab6-44a0-4f46-beaa-64c7dc58daf9",
+        "mb_releasetrackid": "7ffdb4d6-4852-4f23-890a-f01f6f57f280",
+        "mb_trackid": "b6cffd07-1041-4192-b551-5a6af0dd52e1",
+        "mb_workid": "3308d248-b287-38e9-9718-0119d7a3bf9d",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Beethoven Symphony No. 9, \"Choral\"",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Allegro Ma Non Troppo, Un Poco Maestoso",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "Symphony no. 9 in D minor, op. 125 “Choral”: I. Allegro ma non troppo, un poco maestoso",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Beethoven Symphony No. 9, \"Choral\"",
+        "album_id": null,
+        "albumartist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "albumartist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "albumartist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "albumartists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "albumartists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "albumartists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "artist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "artist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "artists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "artists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "asin": "",
+        "barcode": "723918910420",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "EVC 9104",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Beethoven, Ludwig van",
+        "composers": [
+          "Ludwig van Beethoven"
+        ],
+        "composers_ids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Everest Records",
+        "language": "eng",
+        "length": 589.4,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_albumartistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_artistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_artistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_releasegroupid": "31bbbab6-44a0-4f46-beaa-64c7dc58daf9",
+        "mb_releasetrackid": "586ffad0-d282-40a1-9c14-96ec2e1e1826",
+        "mb_trackid": "8b7e03b2-7c6c-4a6f-bbb5-a0b3edf4b465",
+        "mb_workid": "87f3a5a6-fb92-381b-892b-5fc50ed0f2c1",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Beethoven Symphony No. 9, \"Choral\"",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Molto Vivace; Presto",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "Symphony no. 9 in D minor, op. 125 “Choral”: II. Scherzo. Molto vivace – Presto",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Beethoven Symphony No. 9, \"Choral\"",
+        "album_id": null,
+        "albumartist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "albumartist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "albumartist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "albumartists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "albumartists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "albumartists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "artist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "artist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "artists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "artists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "asin": "",
+        "barcode": "723918910420",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "EVC 9104",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Beethoven, Ludwig van",
+        "composers": [
+          "Ludwig van Beethoven"
+        ],
+        "composers_ids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Everest Records",
+        "language": "eng",
+        "length": 904.36,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_albumartistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_artistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_artistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_releasegroupid": "31bbbab6-44a0-4f46-beaa-64c7dc58daf9",
+        "mb_releasetrackid": "29c479f1-bc60-497e-8cc9-9cfb8d1dbb53",
+        "mb_trackid": "8694c6e8-827e-452a-ac14-bb141e8f45db",
+        "mb_workid": "4ebf3fc1-4dd4-361b-a441-bf1dc9421e34",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Beethoven Symphony No. 9, \"Choral\"",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Adagio Molto E Cantabile; Andante Moderato",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "Symphony no. 9 in D minor, op. 125 “Choral”: III. Adagio molto e cantabile – Andante moderato – Tempo I – Andante moderato – Adagio – Lo stesso tempo",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Beethoven Symphony No. 9, \"Choral\"",
+        "album_id": null,
+        "albumartist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "albumartist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "albumartist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "albumartists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "albumartists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "albumartists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ludwig van Beethoven, Josef Krips, London Symphony Orchestra",
+        "artist_credit": "Ludwig van Beethoven, Josef Krips, The London Symphony Orchestra",
+        "artist_sort": "Beethoven, Ludwig van, Krips, Josef, London Symphony Orchestra",
+        "artists": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "London Symphony Orchestra"
+        ],
+        "artists_credit": [
+          "Ludwig van Beethoven",
+          "Josef Krips",
+          "The London Symphony Orchestra"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beethoven, Ludwig van",
+          "Krips, Josef",
+          "London Symphony Orchestra"
+        ],
+        "asin": "",
+        "barcode": "723918910420",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "EVC 9104",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Beethoven, Ludwig van",
+        "composers": [
+          "Ludwig van Beethoven"
+        ],
+        "composers_ids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9"
+        ],
+        "country": "",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Everest Records",
+        "language": "eng",
+        "length": 1473.533,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_albumartistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_albumid": "bb6fc19a-7506-41be-b1eb-4afa24da91be",
+        "mb_artistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_artistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9",
+          "da422d60-352a-4731-935c-fd96df4351d4",
+          "38712b4c-0fd4-4c65-8c7a-45676fecc973"
+        ],
+        "mb_releasegroupid": "31bbbab6-44a0-4f46-beaa-64c7dc58daf9",
+        "mb_releasetrackid": "12c37575-9b6b-45ab-b5c3-67446f2832c3",
+        "mb_trackid": "173deda0-b1f1-4dac-9d25-901439f394a6",
+        "mb_workid": "3761b925-82b2-3a61-9581-57751dee2e9e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Beethoven Symphony No. 9, \"Choral\"",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Presto; Allegro Assai. Choral Finale",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "Symphony no. 9 in D minor, op. 125 “Choral”: IV. Finale. Presto – Allegro assai",
+        "work_disambig": "",
+        "year": 1994
+      }
+    }
+  }
+}

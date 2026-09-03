@@ -921,6 +921,52 @@ sub-axis row (the dossier assigns none to Task 12), so the
 decoy-resourcing question does not arise here; see Tasks 4, 6, and 7
 for that axis's three attempts and their outcomes.
 
+### Task 13 (batch 10)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-backstreet-boys-series` | VA/box-set | `ed534e8d-a6fe-4b4f-9e5d-f5c202240dd5` | yes | no | Backstreet Boys, *The Box Set Series* (4 discs, 48 tracks); capture-confirmed 4 discs; a clean zero-distance match. |
+| `real-compilation-eagles-greatest-hits` | classical/compilation | `a636b16c-01ba-416a-b04c-b3ed41280753` | no | no | Eagles, *Their Greatest Hits 1971-1975* (10 tracks); a clean zero-distance match. The release carries no parseable date, so `year` is absent from the record rather than present at zero, the same shape `real-nonlatin-vandi` (Task 4) exercises. |
+| `real-decoy-beethoven-symphony-9-choral` | two-release sub-axis | `bb6fc19a-7506-41be-b1eb-4afa24da91be` | no | no | Josef Krips / LSO, *Beethoven Symphony No. 9, "Choral"*; items authored ambiguously (`album`, `artist`, and `albumartist` all stripped to `Symphony No. 9, "Choral"` / `Beethoven`) to force beets' own text-search fallback. See the finding below: the named decoy actually surfaced inside the 5-result search window, and the matcher still correctly picked its own captured source (`medium`, `skip`, distance `0.1755`, nonzero `album` and `artist` penalties). |
+| `real-genre-aphex-twin-saw85-92` | genre/era spread | `f5538f56-309a-3322-92bb-54b829c14934` | no | no | Aphex Twin, *Selected Ambient Works 85-92* (BE 2008 CD; ambient/electronic, 13 tracks); a clean zero-distance match. |
+| `real-genre-chic-cest-chic` | genre/era spread | `0fe8b085-2f82-4c86-86a1-69e1d040b50a` | no | no | Chic, *C'est Chic* (US 1992 CD; disco/funk, 8 tracks); a clean zero-distance match. |
+| `real-noise-neil-young-de1996` | MB-noise | `56406106-bbb5-45a9-9f10-0d2076110f90` | no | no | Neil Young, *Neil Young* (DE 1996, live); MB Status: Bootleg. Authored as a partial rip (2 of 11 tracks dropped via `--overrides`); matched its own correct source at `medium` on a nonzero `missing_tracks` penalty (`0.0566`). |
+| `real-nonlatin-tvxq-christmas-gift` | non-Latin | `8ffffea0-5126-4c4e-bda2-ef7eea1d5c62` | no | no | TVXQ, *Christmas Gift From TVXQ!* (Korean; artist-credit is natively the hangul form 동방신기 itself, with documented `locale=en`/`ja`/`zh` aliases); a genuine, small nonzero `artist` string distance (`0.0306`) survives well inside `strong`. |
+| `real-reissue-songs-key-of-life-2013` | reissue/remaster | `7b169780-da9d-4e39-a96b-81d1e0edc598` | yes | no | Stevie Wonder, *Songs in the Key of Life* (2013 SHM-CD reissue, 2 discs, 21 tracks); capture-confirmed release date 2013-12-18 against the release-group's own first-release-date 1976-09-28; a clean zero-distance match. |
+
+Six of the eight rows above matched their own captured source and land
+`strong`/`apply`; `real-decoy-beethoven-symphony-9-choral` and
+`real-noise-neil-young-de1996` also matched their own captured source
+but land `medium`/`skip` per their own rows above (nonzero `album` and
+`artist` penalties for the decoy row, a nonzero `missing_tracks`
+penalty for the noise row -- neither a wrong match). No confident
+wrong match appeared, so this batch owes no `adjudications.json` row.
+**Task 13 delivers all 8 dossier rows**; no reserve substitution was
+needed.
+
+**The two-release sub-axis finding (Task 13).** The dossier's Task 13
+row for this axis, `real-decoy-beethoven-symphony-9-choral`
+(`bb6fc19a-7506-41be-b1eb-4afa24da91be`, decoy
+`1edbbfc1-70f9-4db0-8b09-dee32e0d7c70`, Roger Norrington / London
+Classical Players), was attempted with one override variant: ambiguating
+`album`, `artist`, and `albumartist` to the generic `Symphony No. 9,
+"Choral"` / `Beethoven` (the first attempt ambiguated `artist` alone and
+left `albumartist` at its full original credit string, which is the
+field beets' own search-query builder actually reads; the retry that
+folded `albumartist` into the same override is what forced the
+fallback). Unlike Tasks 4 and 6, where the named decoy never appeared
+among either search's five candidates, this row's named decoy did
+surface inside the 5-result window, alongside three other Beethoven's
+Ninth pressings the search also named. The matcher still correctly
+picked its own captured source (`medium`, `skip`, distance `0.1755`)
+over all four: the named decoy sat at distance `0.7216`, and the other
+three ranged from `0.7190` to `0.7824`, none remotely competitive. This
+is the second two-release row to actually surface its named decoy
+(after Task 7's `real-decoy-mozart-requiem`) and the second to confirm
+the matcher rejects it correctly. Converged over three capture rounds:
+the primary ID lookup, then a search-fallback round (`limit=5`) and its
+four named-candidate release lookups.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

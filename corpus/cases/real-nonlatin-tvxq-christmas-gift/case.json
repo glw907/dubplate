@@ -1,0 +1,1175 @@
+{
+  "id": "real-nonlatin-tvxq-christmas-gift",
+  "input": {
+    "items": [
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 61.867,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "86e09193-7e2a-4093-877d-722e9869065a",
+        "title": "Jesus, Joy Of Man's Desiring (Accapella version)",
+        "track": 1,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 174.933,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "871e6512-fed5-4130-b923-1b4bee92943a",
+        "title": "The First Noel",
+        "track": 2,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 247.133,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "b5c992f3-0aa8-4b60-8723-226422a0c798",
+        "title": "마법의 성",
+        "track": 3,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 224.493,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "d397b7fc-cc5c-4105-937b-e321d812e97d",
+        "title": "기도문 '매일 우리가 하는 말은' (Narration)",
+        "track": 4,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 105.533,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "d09b71bd-bcd0-4188-949c-602b3a6a67e2",
+        "title": "글로리아 높으신 이의 탄생",
+        "track": 5,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 110.707,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "a841b00f-c196-47de-93cb-654a34b9787c",
+        "title": "Santa Claus Is Comin' To Town",
+        "track": 6,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 171.36,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "c6ceaa83-ba51-45b9-b18e-116a00f63592",
+        "title": "고요한밤 거룩한밤",
+        "track": 7,
+        "year": 2004
+      },
+      {
+        "album": "Christmas Gift From TVXQ!",
+        "albumartist": "동방신기",
+        "artist": "동방신기",
+        "length": 245.533,
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_trackid": "c619ed90-d908-4703-952c-27a532e74ffa",
+        "title": "마법의 성 (Instrumental)",
+        "track": 8,
+        "year": 2004
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/8ffffea0-5126-4c4e-bda2-ef7eea1d5c62?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "distance": 0.030612244897959183,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0.030612244897959183,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bach, Johann Sebastian",
+        "composers": [
+          "Johann Sebastian Bach"
+        ],
+        "composers_ids": [
+          "24f1766e-9635-4d58-a4d4-9413f9f98a4c"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802395",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 61.867,
+        "lyricists": [
+          "Robert Bridges"
+        ],
+        "lyricists_ids": [
+          "64569554-bf8f-4b44-814f-5532ef018088"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "c8f31cd3-7407-4037-bf8b-a8a258d358ef",
+        "mb_trackid": "86e09193-7e2a-4093-877d-722e9869065a",
+        "mb_workid": "3010fa08-aee8-4f65-8f52-d15839f8b920",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "Jesus, Joy Of Man's Desiring (Accapella version)",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Jesu, Joy of Man’s Desiring",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional]",
+        "composers": [
+          "[traditional]"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802396",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 174.933,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "cff84041-5cac-4235-bc54-421c8c1ed0fc",
+        "mb_trackid": "871e6512-fed5-4130-b923-1b4bee92943a",
+        "mb_workid": "09a26fd1-e6dd-4ded-a68b-55d2691b4e92",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "The First Noel",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "The First Noel",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Kim, Gwangjin",
+        "composers": [
+          "김광진"
+        ],
+        "composers_ids": [
+          "e99893a1-ba5f-49ee-9e52-3de13f1018b8"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802397",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 247.133,
+        "lyricists": [
+          "김광진"
+        ],
+        "lyricists_ids": [
+          "e99893a1-ba5f-49ee-9e52-3de13f1018b8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "dc17e2ae-35b1-44c5-a3ce-3a012a5b6204",
+        "mb_trackid": "b5c992f3-0aa8-4b60-8723-226422a0c798",
+        "mb_workid": "e91484b5-606a-4d4d-ae3a-14d3f3369279",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "마법의 성",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "마법의 성",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802398",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 224.493,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "aeaa6c6a-d1c0-46d3-a23e-35eca34b9cbf",
+        "mb_trackid": "d397b7fc-cc5c-4105-937b-e321d812e97d",
+        "mb_workid": "",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "기도문 '매일 우리가 하는 말은' (Narration)",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional]",
+        "composers": [
+          "[traditional]"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802399",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 105.533,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "dc9e5169-6a86-4d0a-bc2e-53eeb9e104b7",
+        "mb_trackid": "d09b71bd-bcd0-4188-949c-602b3a6a67e2",
+        "mb_workid": "32c5579e-e670-485e-ac5f-6719bed57e90",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "글로리아 높으신 이의 탄생",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "글로리아 높으신 이의 탄생 (Angels we have heard on high)",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Coots, J. Fred",
+        "composers": [
+          "J. Fred Coots"
+        ],
+        "composers_ids": [
+          "3bcb90e6-c8d9-463d-870a-3cc1e480a060"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802400",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 110.707,
+        "lyricists": [
+          "Haven Gillespie"
+        ],
+        "lyricists_ids": [
+          "d0693759-d13d-4661-871d-0eb8500acecc"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "a4e79bdf-8f32-4760-9d1e-8464abd04a04",
+        "mb_trackid": "a841b00f-c196-47de-93cb-654a34b9787c",
+        "mb_workid": "b3e49473-899d-3f08-9f06-2afc70f85e2e",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "Santa Claus Is Comin' To Town",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Santa Claus Is Coming to Town",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gruber, Franz Xaver",
+        "composers": [
+          "Franz Xaver Gruber"
+        ],
+        "composers_ids": [
+          "4122e107-a90c-4ff3-8223-51cf490c022c"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802401",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 171.36,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "35027468-100d-453e-86bb-4ef5e925daf7",
+        "mb_trackid": "c6ceaa83-ba51-45b9-b18e-116a00f63592",
+        "mb_workid": "9dc870f4-b72b-450f-9e69-3f8a4fe0dfd7",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "고요한밤 거룩한밤",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "고요한밤 거룩한밤 (Silent Night Holy Night)",
+        "work_disambig": "",
+        "year": 2004
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Christmas Gift From TVXQ!",
+        "album_id": null,
+        "albumartist": "東方神起",
+        "albumartist_credit": "동방신기",
+        "albumartist_sort": "Tohoshinki",
+        "albumartists": [
+          "東方神起"
+        ],
+        "albumartists_credit": [
+          "동방신기"
+        ],
+        "albumartists_sort": [
+          "Tohoshinki"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "ep",
+        "albumtypes": [
+          "ep"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "東方神起",
+        "artist_credit": "동방신기",
+        "artist_sort": "Tohoshinki",
+        "artists": [
+          "東方神起"
+        ],
+        "artists_credit": [
+          "동방신기"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Tohoshinki"
+        ],
+        "asin": "",
+        "barcode": "888735895074",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Kim, Gwangjin",
+        "composers": [
+          "김광진"
+        ],
+        "composers_ids": [
+          "e99893a1-ba5f-49ee-9e52-3de13f1018b8"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 6,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802402",
+        "label": "SM Entertainment",
+        "language": "mul",
+        "length": 245.533,
+        "lyricists": [
+          "김광진"
+        ],
+        "lyricists_ids": [
+          "e99893a1-ba5f-49ee-9e52-3de13f1018b8"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_albumartistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_albumid": "8ffffea0-5126-4c4e-bda2-ef7eea1d5c62",
+        "mb_artistid": "05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+        "mb_artistids": [
+          "05cbaf37-6dc2-4f71-a0ce-d633447d90c3"
+        ],
+        "mb_releasegroupid": "afe264b5-8c57-3a0a-accd-400026863571",
+        "mb_releasetrackid": "f32fd522-c1a4-4aa9-8648-6ad77833aeef",
+        "mb_trackid": "c619ed90-d908-4703-952c-27a532e74ffa",
+        "mb_workid": "e91484b5-606a-4d4d-ae3a-14d3f3369279",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 6,
+        "original_month": 12,
+        "original_year": 2004,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Christmas gift from 東方神起",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Qaaa",
+        "style": "",
+        "subtitle": "",
+        "title": "마법의 성 (Instrumental)",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "마법의 성",
+        "work_disambig": "",
+        "year": 2004
+      }
+    }
+  }
+}
