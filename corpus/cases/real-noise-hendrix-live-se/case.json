@@ -1,0 +1,1194 @@
+{
+  "id": "real-noise-hendrix-live-se",
+  "input": {
+    "items": [
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 189,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "55ef1420-d86a-449b-9a2f-c43e44082dde",
+        "title": "Little Wing",
+        "track": 1,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 187,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "73327613-bb05-4e26-bb93-e1ded38de5eb",
+        "title": "Purple Haze",
+        "track": 2,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 646,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "d58f3305-c4d3-452e-87db-b8f7fa591295",
+        "title": "Bleeding Heart (with Jim Morrison)",
+        "track": 3,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 219,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "a84275c1-4bb6-4c86-bf0c-a41c5510b5d1",
+        "title": "Fire",
+        "track": 4,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix \u0026 Jack Bruce",
+        "length": 81,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "7958892a-5809-4aae-9c33-b52c87277adf",
+        "title": "Wild Thing",
+        "track": 5,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 212,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "49c00607-4857-4591-a7bb-7323c6807179",
+        "title": "Morrison's Lament (with Jim Morrison)",
+        "track": 6,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 398,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "9ea5dd93-14f1-4ae5-b55f-06166d22f400",
+        "title": "Uranus Rock",
+        "track": 7,
+        "year": 0
+      },
+      {
+        "album": "Jimi Hendrix Live!",
+        "albumartist": "Jimi Hendrix",
+        "artist": "Jimi Hendrix",
+        "length": 397,
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_trackid": "07c61083-79fd-4287-bc0a-a70372bdddf6",
+        "title": "The Sunshine Of Your Love",
+        "track": 8,
+        "year": 0
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/a0eda4e5-eb69-41d3-ac3f-16a4f7232db0?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 189,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "db57881c-b651-3de4-8c01-b7c2851d131c",
+        "mb_trackid": "55ef1420-d86a-449b-9a2f-c43e44082dde",
+        "mb_workid": "7beb0f9d-1a5a-3bba-83a2-f527c3aaa5f4",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Little Wing",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Little Wing",
+        "work_disambig": "",
+        "year": 0
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 187,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "ab85f41c-c47f-37a4-85ac-76bd2a299066",
+        "mb_trackid": "73327613-bb05-4e26-bb93-e1ded38de5eb",
+        "mb_workid": "a0315950-33b7-35b0-a0ca-42f1ad80b213",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Purple Haze",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Purple Haze",
+        "work_disambig": "",
+        "year": 0
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "James, Elmore",
+        "composers": [
+          "Elmore James"
+        ],
+        "composers_ids": [
+          "6fbd2cfb-5f9c-497c-8e06-3c6668367681"
+        ],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 646,
+        "lyricists": [
+          "Elmore James"
+        ],
+        "lyricists_ids": [
+          "6fbd2cfb-5f9c-497c-8e06-3c6668367681"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "d14a47a5-3efa-3edf-b51f-c96c365ceadd",
+        "mb_trackid": "d58f3305-c4d3-452e-87db-b8f7fa591295",
+        "mb_workid": "c9d9f73f-ff99-38cb-900b-01e00fbab1e7",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Bleeding Heart (with Jim Morrison)",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Bleeding Heart",
+        "work_disambig": "",
+        "year": 0
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hendrix, Jimi",
+        "composers": [
+          "Jimi Hendrix"
+        ],
+        "composers_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 219,
+        "lyricists": [
+          "Jimi Hendrix"
+        ],
+        "lyricists_ids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "50121bf4-ba23-3d05-83da-2ca8487d4a49",
+        "mb_trackid": "a84275c1-4bb6-4c86-bf0c-a41c5510b5d1",
+        "mb_workid": "ef334da9-4b23-3046-a321-cf93a75cd842",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fire",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Fire",
+        "work_disambig": "",
+        "year": 0
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix \u0026 Jack Bruce",
+        "artist_credit": "Jimi Hendrix \u0026 Jack Bruce",
+        "artist_sort": "Hendrix, Jimi \u0026 Bruce, Jack",
+        "artists": [
+          "Jimi Hendrix",
+          "Jack Bruce"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix",
+          "Jack Bruce"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi",
+          "Bruce, Jack"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Taylor, Chip",
+        "composers": [
+          "Chip Taylor"
+        ],
+        "composers_ids": [
+          "df66124c-0c71-40ca-b5c1-0992c1f57f39"
+        ],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 81,
+        "lyricists": [
+          "Chip Taylor"
+        ],
+        "lyricists_ids": [
+          "df66124c-0c71-40ca-b5c1-0992c1f57f39"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+          "94a24504-3548-4bde-a89b-273d277d194e"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "0d4dedfe-8674-364b-bbf2-d89860da5070",
+        "mb_trackid": "7958892a-5809-4aae-9c33-b52c87277adf",
+        "mb_workid": "0d4c9430-7751-3748-9a72-57280037d1b4",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wild Thing",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Wild Thing",
+        "work_disambig": "",
+        "year": 0
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 212,
+        "lyricists": [
+          "Jim Morrison"
+        ],
+        "lyricists_ids": [
+          "c6619f89-5454-4e2d-aa19-b5596ba3b4c6"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "4c9d4d6e-a63a-3d3f-885e-cdf9236af892",
+        "mb_trackid": "49c00607-4857-4591-a7bb-7323c6807179",
+        "mb_workid": "0ca321e4-be75-39b4-9b24-78ed660559a8",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Morrison's Lament (with Jim Morrison)",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Morrison's Lament",
+        "work_disambig": "",
+        "year": 0
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 398,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "29bf867d-e750-39b5-b9ba-8b6776e2563e",
+        "mb_trackid": "9ea5dd93-14f1-4ae5-b55f-06166d22f400",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Uranus Rock",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "",
+        "work_disambig": "",
+        "year": 0
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jimi Hendrix Live!",
+        "album_id": null,
+        "albumartist": "Jimi Hendrix",
+        "albumartist_credit": "Jimi Hendrix",
+        "albumartist_sort": "Hendrix, Jimi",
+        "albumartists": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_credit": [
+          "Jimi Hendrix"
+        ],
+        "albumartists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Jimi Hendrix",
+        "artist_credit": "Jimi Hendrix",
+        "artist_sort": "Hendrix, Jimi",
+        "artists": [
+          "Jimi Hendrix"
+        ],
+        "artists_credit": [
+          "Jimi Hendrix"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Hendrix, Jimi"
+        ],
+        "asin": "B00000GAPP",
+        "barcode": "8712177029341",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GSS 5138",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "SE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Golden Stars",
+        "language": "eng",
+        "length": 397,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_albumartistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_albumid": "a0eda4e5-eb69-41d3-ac3f-16a4f7232db0",
+        "mb_artistid": "06fb1c8b-566e-4cb2-985b-b467c90781d4",
+        "mb_artistids": [
+          "06fb1c8b-566e-4cb2-985b-b467c90781d4"
+        ],
+        "mb_releasegroupid": "11dcd61e-3246-4169-9461-2e397a5a4518",
+        "mb_releasetrackid": "79ac87b5-f490-3232-a16f-78d79a37c3c0",
+        "mb_trackid": "07c61083-79fd-4287-bc0a-a70372bdddf6",
+        "mb_workid": "b5bbb92f-770b-3f5c-9dde-e3f332fdaa84",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 0,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jimi Hendrix Live!",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Sunshine Of Your Love",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Sunshine of Your Love",
+        "work_disambig": "",
+        "year": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,1977 @@
+{
+  "id": "real-nonlatin-babymetal",
+  "input": {
+    "items": [
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 348.813,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "d7691306-4174-4430-be9e-356d83e4710d",
+        "title": "BABYMETAL DEATH",
+        "track": 1,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 248.693,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "af340f07-9e39-46d0-8120-d52ac7c11bb7",
+        "title": "メギツネ",
+        "track": 2,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 232.706,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "dc51a031-9394-401b-9189-8f664e7b7be3",
+        "title": "ギミチョコ!!",
+        "track": 3,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 252.24,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "135309f0-7fb1-4eae-9321-3919c0c52aad",
+        "title": "いいね!",
+        "track": 4,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 235.266,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "1f04995e-00f3-4f3a-8da3-a04964045011",
+        "title": "紅月 -アカツキ- (Unfinished ver.)",
+        "track": 5,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 226.533,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "d626f074-affa-47ed-9f1f-724763ff31b7",
+        "title": "ド・キ・ド・キ☆モーニング",
+        "track": 6,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 197.96,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "d92f78f1-90cf-480f-a364-57b44c6ff94c",
+        "title": "おねだり大作戦",
+        "track": 7,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 244.853,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "25d1e209-aeb9-4305-9550-7a0a9a733b17",
+        "title": "4の歌 (444 ver.)",
+        "track": 8,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 199.346,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "d345552b-0376-47f2-a869-1bbd7f97880e",
+        "title": "ウ・キ・ウ・キ★ミッドナイト",
+        "track": 9,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 237.56,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "730141c9-03f7-4caf-a2f1-85f5e5c9e715",
+        "title": "Catch me if you can",
+        "track": 10,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 216.68,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "a2ba364f-95f6-4ff9-be1a-fec0f622c69c",
+        "title": "悪夢の輪舞曲",
+        "track": 11,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 242.88,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "a0df4876-b0b3-4b5c-a7a5-384c7530041d",
+        "title": "ヘドバンギャー!!",
+        "track": 12,
+        "year": 2014
+      },
+      {
+        "album": "BABYMETAL",
+        "albumartist": "BABYMETAL",
+        "artist": "BABYMETAL",
+        "length": 366.053,
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_trackid": "8b7df45f-90a8-41de-a599-d2d33e151859",
+        "title": "イジメ、ダメ、ゼッタイ",
+        "track": 13,
+        "year": 2014
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/354a6d88-df30-4df3-953a-dd640ef9be5a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "ゆよゆっぺ"
+        ],
+        "arrangers_ids": [
+          "fc65606d-5ec2-4492-8c48-e914a787f9da"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "KITSUNE of METAL GOD",
+        "composers": [
+          "KITSUNE of METAL GOD"
+        ],
+        "composers_ids": [
+          "c265ce47-e2c8-4421-9461-922ee06bf508"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01217602;SMRUS0022563",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 348.813,
+        "lyricists": [
+          "KITSUNE of METAL GOD"
+        ],
+        "lyricists_ids": [
+          "c265ce47-e2c8-4421-9461-922ee06bf508"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "64631b4c-e8fd-4334-94b3-503a8d4e8fd9",
+        "mb_trackid": "d7691306-4174-4430-be9e-356d83e4710d",
+        "mb_workid": "afc6824c-653a-48f8-88f8-5ef762330c08",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "BABYMETAL DEATH",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "BABYMETAL DEATH",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "ゆよゆっぺ"
+        ],
+        "arrangers_ids": [
+          "fc65606d-5ec2-4492-8c48-e914a787f9da"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "NORiMETAL",
+        "composers": [
+          "NORiMETAL"
+        ],
+        "composers_ids": [
+          "1fa43ddb-e506-4ecb-8455-4554e2c849d7"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01306901;SMRUS0022564",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 248.693,
+        "lyricists": [
+          "NORiMETAL",
+          "渡辺未来"
+        ],
+        "lyricists_ids": [
+          "1fa43ddb-e506-4ecb-8455-4554e2c849d7",
+          "e9cb45c0-5732-4f8e-98f6-b885a959198b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "a234f14a-3900-4e67-bcbb-fee4469cd942",
+        "mb_trackid": "af340f07-9e39-46d0-8120-d52ac7c11bb7",
+        "mb_workid": "1aece767-c8e3-4abe-8ffd-572c8818431e",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "メギツネ",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "メギツネ",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "ゆよゆっぺ"
+        ],
+        "arrangers_ids": [
+          "fc65606d-5ec2-4492-8c48-e914a787f9da"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Yuyoyuppe",
+        "composers": [
+          "ゆよゆっぺ"
+        ],
+        "composers_ids": [
+          "fc65606d-5ec2-4492-8c48-e914a787f9da"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01401403;SMRUS0022573",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 216.68,
+        "lyricists": [
+          "ゆよゆっぺ"
+        ],
+        "lyricists_ids": [
+          "fc65606d-5ec2-4492-8c48-e914a787f9da"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "ba50c8a4-3627-47a7-90cf-4004fb63cc6b",
+        "mb_trackid": "a2ba364f-95f6-4ff9-be1a-fec0f622c69c",
+        "mb_workid": "15adcb16-652c-42b6-b176-7633b073691b",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "悪夢の輪舞曲",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "悪夢の輪舞曲",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "NARASAKI"
+        ],
+        "arrangers_ids": [
+          "71a707de-a665-4ad5-917b-7735e73c465d"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "NARASAKI",
+        "composers": [
+          "NARASAKI"
+        ],
+        "composers_ids": [
+          "71a707de-a665-4ad5-917b-7735e73c465d"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01209901;SMRUS0022574",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 242.88,
+        "lyricists": [
+          "EDOMETAL",
+          "NAKAMETAL"
+        ],
+        "lyricists_ids": [
+          "c9be8bcb-92c9-4daf-87ef-af7cf84f49be",
+          "40fbfa41-de64-4aaf-a74c-9fe7eb59352b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "a018707e-86a5-4aac-a838-b767b079ecab",
+        "mb_trackid": "a0df4876-b0b3-4b5c-a7a5-384c7530041d",
+        "mb_workid": "55b50bcb-d1f7-4a71-aa61-0e983ff89110",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "ヘドバンギャー!!",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "ヘドバンギャー！！",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "教頭"
+        ],
+        "arrangers_ids": [
+          "063bfc23-39a5-42a8-aad6-118d20885d48"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "KxBxMETAL, TSUBOMETAL, Yoda, Takeru",
+        "composers": [
+          "KxBxMETAL",
+          "TSUBOMETAL",
+          "要田健"
+        ],
+        "composers_ids": [
+          "09f2e97c-5180-4bc9-aeb5-f9d5460f249d",
+          "ffd2ac9b-5ae3-44dc-a326-8aae699f7eab",
+          "9b45300e-7ae7-41c6-9ae0-d25dbc9049f2"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01217601;SMRUS0022575",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 366.053,
+        "lyricists": [
+          "NAKAMETAL",
+          "TSUBOMETAL"
+        ],
+        "lyricists_ids": [
+          "40fbfa41-de64-4aaf-a74c-9fe7eb59352b",
+          "ffd2ac9b-5ae3-44dc-a326-8aae699f7eab"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "5db36b3f-9f16-4b91-af4c-2e5976b2c4fc",
+        "mb_trackid": "8b7df45f-90a8-41de-a599-d2d33e151859",
+        "mb_workid": "cfce9e3d-3ee5-4d5b-897c-9a2a8f5cd85e",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "イジメ、ダメ、ゼッタイ",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "イジメ、ダメ、ゼッタイ",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "上田剛士"
+        ],
+        "arrangers_ids": [
+          "31f8b91d-9c8e-4eb4-bd47-605e92a0e9e1"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ueda, Takeshi",
+        "composers": [
+          "上田剛士"
+        ],
+        "composers_ids": [
+          "31f8b91d-9c8e-4eb4-bd47-605e92a0e9e1"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01401401;SMRUS0022565",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 232.706,
+        "lyricists": [
+          "KxBxMETAL",
+          "渡辺未来"
+        ],
+        "lyricists_ids": [
+          "09f2e97c-5180-4bc9-aeb5-f9d5460f249d",
+          "e9cb45c0-5732-4f8e-98f6-b885a959198b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "b2040fb5-30ee-403c-a594-d5c2df2b3c75",
+        "mb_trackid": "dc51a031-9394-401b-9189-8f664e7b7be3",
+        "mb_workid": "22288264-a5a6-43c9-af87-cd0405a90069",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "ギミチョコ!!",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "ギミチョコ！！",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "嘉生大樹"
+        ],
+        "arrangers_ids": [
+          "97df6361-d396-485b-b8e4-6fa9762bd35e"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Mish‐Mosh",
+        "composers": [
+          "Mish‐Mosh"
+        ],
+        "composers_ids": [
+          "e205495d-eba0-4be1-a9a3-0061f70722cf"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01202601;SMRUS0022566",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 252.24,
+        "lyricists": [
+          "中田カオス"
+        ],
+        "lyricists_ids": [
+          "829e3dd4-7c38-4792-b2d7-6ee0fcc327af"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "5061c9dd-ba9f-4038-ad3b-7ccbdf3a097a",
+        "mb_trackid": "135309f0-7fb1-4eae-9321-3919c0c52aad",
+        "mb_workid": "464e2adb-5595-4592-94a0-bafc975fb1dc",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "いいね!",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "いいね！",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "教頭"
+        ],
+        "arrangers_ids": [
+          "063bfc23-39a5-42a8-aad6-118d20885d48"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "TSUBOMETAL",
+        "composers": [
+          "TSUBOMETAL"
+        ],
+        "composers_ids": [
+          "ffd2ac9b-5ae3-44dc-a326-8aae699f7eab"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 235.266,
+        "lyricists": [
+          "NAKAMETAL",
+          "TSUBOMETAL"
+        ],
+        "lyricists_ids": [
+          "40fbfa41-de64-4aaf-a74c-9fe7eb59352b",
+          "ffd2ac9b-5ae3-44dc-a326-8aae699f7eab"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "9e3e90ba-4f4b-43f2-a411-1278341ee83d",
+        "mb_trackid": "1f04995e-00f3-4f3a-8da3-a04964045011",
+        "mb_workid": "aaa2ebd2-f465-4f19-a24c-322a475096a5",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "紅月 -アカツキ- (Unfinished ver.)",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "紅月-アカツキ-",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "村カワ基成",
+          "SOH (Oh! S-D)"
+        ],
+        "arrangers_ids": [
+          "8f794b3b-fed0-447c-80f9-e77602f9cddf",
+          "2f3add38-b9db-4537-a41f-e4ad36346e04"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Murakawa, Motonari, Norizou",
+        "composers": [
+          "村カワ基成",
+          "のりぞー"
+        ],
+        "composers_ids": [
+          "8f794b3b-fed0-447c-80f9-e77602f9cddf",
+          "6367e43d-ac59-4e9a-ba1a-fc226a095e39"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01100906;SMRUS0022568",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 226.533,
+        "lyricists": [
+          "NAKAMETAL"
+        ],
+        "lyricists_ids": [
+          "40fbfa41-de64-4aaf-a74c-9fe7eb59352b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "3d509721-8b52-4aab-94bc-9ab24a73f2bd",
+        "mb_trackid": "d626f074-affa-47ed-9f1f-724763ff31b7",
+        "mb_workid": "7671799d-8bc2-473b-b4b1-0f31462d22cb",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "ド・キ・ド・キ☆モーニング",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "ド・キ・ド・キ☆モーニング",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "KxBxMETAL",
+          "tatsuo"
+        ],
+        "arrangers_ids": [
+          "09f2e97c-5180-4bc9-aeb5-f9d5460f249d",
+          "58489f8a-2a2d-4c7d-b6ee-cda093855ced"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "TEAM-K",
+        "composers": [
+          "TEAM-K"
+        ],
+        "composers_ids": [
+          "2bf30ec1-ec57-4b0b-a006-7a9227ab863f"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01306902;SMRUS0022569",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 197.96,
+        "lyricists": [
+          "FUJI-METAL",
+          "中田カオス",
+          "RYU‐METAL"
+        ],
+        "lyricists_ids": [
+          "56fe284f-a90f-4294-864a-954b205bfe96",
+          "829e3dd4-7c38-4792-b2d7-6ee0fcc327af",
+          "9511fcd8-eaef-4997-ba16-cff22b5a9b9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "9de8a2c0-f497-4f7b-871d-4ae05886fab8",
+        "mb_trackid": "d92f78f1-90cf-480f-a364-57b44c6ff94c",
+        "mb_workid": "51420433-6bfc-4c3c-bec2-bbe8de57a31d",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "おねだり大作戦",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "おねだり大作戦",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "KOBAMETAL",
+          "tatsuo"
+        ],
+        "arrangers_ids": [
+          "5b747d5e-bf69-4633-b7e1-035dadaaa530",
+          "58489f8a-2a2d-4c7d-b6ee-cda093855ced"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "BLACK BABYMETAL",
+        "composers": [
+          "BLACK BABYMETAL"
+        ],
+        "composers_ids": [
+          "9e8de997-c891-46ad-a0b4-0963800d4c56"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 244.853,
+        "lyricists": [
+          "BLACK BABYMETAL"
+        ],
+        "lyricists_ids": [
+          "9e8de997-c891-46ad-a0b4-0963800d4c56"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "df943e46-4aae-4ebc-9439-278a67c4be79",
+        "mb_trackid": "25d1e209-aeb9-4305-9550-7a0a9a733b17",
+        "mb_workid": "67230f3e-2757-4f14-b1d7-3e4d470c6efa",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "4の歌 (444 ver.)",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "4の歌",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "ゆよゆっぺ"
+        ],
+        "arrangers_ids": [
+          "fc65606d-5ec2-4492-8c48-e914a787f9da"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "TEAM-K",
+        "composers": [
+          "TEAM-K"
+        ],
+        "composers_ids": [
+          "2bf30ec1-ec57-4b0b-a006-7a9227ab863f"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01209902;SMRUS0022571",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 199.346,
+        "lyricists": [
+          "FUJI-METAL",
+          "中田カオス",
+          "RYU‐METAL"
+        ],
+        "lyricists_ids": [
+          "56fe284f-a90f-4294-864a-954b205bfe96",
+          "829e3dd4-7c38-4792-b2d7-6ee0fcc327af",
+          "9511fcd8-eaef-4997-ba16-cff22b5a9b9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "2166b88b-70dc-4f49-bdf1-dd0ad1a10834",
+        "mb_trackid": "d345552b-0376-47f2-a869-1bbd7f97880e",
+        "mb_workid": "c3a8c005-18fc-4124-b190-cce2fcad932c",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "ウ・キ・ウ・キ★ミッドナイト",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "ウ・キ・ウ・キ★ミッドナイト",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "BABYMETAL",
+        "album_id": null,
+        "albumartist": "BABYMETAL",
+        "albumartist_credit": "BABYMETAL",
+        "albumartist_sort": "BABYMETAL",
+        "albumartists": [
+          "BABYMETAL"
+        ],
+        "albumartists_credit": [
+          "BABYMETAL"
+        ],
+        "albumartists_sort": [
+          "BABYMETAL"
+        ],
+        "albumdisambig": "Apocalypse Limited Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "NARASAKI"
+        ],
+        "arrangers_ids": [
+          "71a707de-a665-4ad5-917b-7735e73c465d"
+        ],
+        "artist": "BABYMETAL",
+        "artist_credit": "BABYMETAL",
+        "artist_sort": "BABYMETAL",
+        "artists": [
+          "BABYMETAL"
+        ],
+        "artists_credit": [
+          "BABYMETAL"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "BABYMETAL"
+        ],
+        "asin": "",
+        "barcode": "4988061080581",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "PPTF-8058",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "NARASAKI",
+        "composers": [
+          "NARASAKI"
+        ],
+        "composers_ids": [
+          "71a707de-a665-4ad5-917b-7735e73c465d"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 26,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPTF01218001;SMRUS0022572",
+        "label": "TOY’S FACTORY",
+        "language": "jpn",
+        "length": 237.56,
+        "lyricists": [
+          "EDOMETAL"
+        ],
+        "lyricists_ids": [
+          "c9be8bcb-92c9-4daf-87ef-af7cf84f49be"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_albumartistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_albumid": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+        "mb_artistid": "27e2997f-f7a1-4353-bcc4-57b9274fa9a4",
+        "mb_artistids": [
+          "27e2997f-f7a1-4353-bcc4-57b9274fa9a4"
+        ],
+        "mb_releasegroupid": "4bd02db1-3592-4d15-9aa5-23c9591e49ce",
+        "mb_releasetrackid": "80e84abe-7eba-48e3-aaaa-21b8d497b35a",
+        "mb_trackid": "730141c9-03f7-4caf-a2f1-85f5e5c9e715",
+        "mb_workid": "b8a2e86b-4d32-4d61-af1b-0bc0106bca58",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 26,
+        "original_month": 2,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "BABYMETAL",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Jpan",
+        "style": "",
+        "subtitle": "",
+        "title": "Catch me if you can",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 13,
+        "work": "Catch me if you can",
+        "work_disambig": "",
+        "year": 2014
+      }
+    }
+  }
+}

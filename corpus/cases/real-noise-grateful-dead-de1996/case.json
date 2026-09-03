@@ -1,0 +1,1193 @@
+{
+  "id": "real-noise-grateful-dead-de1996",
+  "input": {
+    "items": [
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 318,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "0bc24d9e-686e-4047-bc75-e5dbb9e2f2de",
+        "title": "I Need a Miracle",
+        "track": 1,
+        "year": 1996
+      },
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 614,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "103e02d0-e352-47c2-bd54-1260590e77b7",
+        "title": "Stella Blue",
+        "track": 2,
+        "year": 1996
+      },
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 343,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "c97324a8-e8e6-46d6-882f-c2544915cbd7",
+        "title": "Sugar Magnolia",
+        "track": 3,
+        "year": 1996
+      },
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 542,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "b098ea14-879d-42fc-9297-07a789180c24",
+        "title": "Same Thing",
+        "track": 5,
+        "year": 1996
+      },
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 412,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "9f2af176-3c4b-4d04-a182-91595ee80a08",
+        "title": "Lazy River Road",
+        "track": 6,
+        "year": 1996
+      },
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 651,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "544e01f9-92cc-425f-a30e-cd59f5469d3b",
+        "title": "Feel Like a Stranger",
+        "track": 8,
+        "year": 1996
+      },
+      {
+        "album": "Grateful Dead",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "length": 372,
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_trackid": "a1f1f84f-4f61-4606-a724-1fd00e27e923",
+        "title": "Jack-A-Roe",
+        "track": 9,
+        "year": 1996
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/bdf92574-72f3-4a7c-acd3-0c5970c83542?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28grateful+dead%29+artist%3A%28grateful+dead%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/e8235020-36f5-4bd6-a466-b3f103fd20a8?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/016.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/3d5ed1b6-d3dd-4c71-9218-c5564eabdae2?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/017.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/4f316d09-8ee2-4501-8fd8-47f227e1a261?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/018.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/95015dc5-bca7-4851-8894-6cf5d01e7bfc?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/019.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/80a00da9-f968-4ef0-a773-0a43a467f9a5?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/020.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "distance": 0.06474820143884892,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "missing_tracks": 0.06474820143884892,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "e8235020-36f5-4bd6-a466-b3f103fd20a8",
+        "distance": 0.8242521367521368,
+        "penalties": {
+          "album": 0.08413461538461538,
+          "album_id": 0.24038461538461536,
+          "artist": 0.08413461538461538,
+          "tracks": 0.32905982905982906,
+          "unmatched_tracks": 0.08653846153846152
+        },
+        "tracks": [
+          0.8388888888888889,
+          0.8222222222222223,
+          0.8444444444444444,
+          0.9166666666666666
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "4f316d09-8ee2-4501-8fd8-47f227e1a261",
+        "distance": 0.8310943898707851,
+        "penalties": {
+          "album": 0.08875739644970414,
+          "album_id": 0.24038461538461536,
+          "artist": 0.08413461538461538,
+          "tracks": 0.3312793011133886,
+          "unmatched_tracks": 0.08653846153846152
+        },
+        "tracks": [
+          0.8024691358024691,
+          0.8376068376068376,
+          0.8444444444444444,
+          0.9607843137254901
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "95015dc5-bca7-4851-8894-6cf5d01e7bfc",
+        "distance": 0.8677410088664204,
+        "penalties": {
+          "album": 0.06809338521400779,
+          "album_id": 0.19455252918287938,
+          "missing_tracks": 0.10505836575875488,
+          "tracks": 0.48058147579249044,
+          "year": 0.019455252918287938
+        },
+        "tracks": [
+          0.9102564102564101,
+          0.9102564102564101,
+          0.8443223443223442,
+          0.8937728937728937,
+          0.8796844181459567,
+          0.858974358974359,
+          0.8782051282051283
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "80a00da9-f968-4ef0-a773-0a43a467f9a5",
+        "distance": 0.8777801409820126,
+        "penalties": {
+          "album": 0.11029411764705882,
+          "album_id": 0.28409090909090906,
+          "artist": 0.1278409090909091,
+          "tracks": 0.09419056878949926,
+          "unmatched_tracks": 0.2045454545454545,
+          "year": 0.056818181818181816
+        },
+        "tracks": [
+          0.8288770053475936
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "3d5ed1b6-d3dd-4c71-9218-c5564eabdae2",
+        "distance": 0.891246890463037,
+        "penalties": {
+          "album": 0.05573248407643312,
+          "album_id": 0.15923566878980894,
+          "artist": 0.08084272415482606,
+          "missing_tracks": 0.17197452229299365,
+          "tracks": 0.39161435739101336,
+          "year": 0.03184713375796178
+        },
+        "tracks": [
+          0.9090909090909091,
+          0.8660287081339714,
+          0.8674325674325675,
+          0.8787878787878788,
+          0.8636363636363636,
+          0.8770053475935828,
+          0.8863636363636364
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 4,
+      "4": 5,
+      "5": 7,
+      "6": 8
+    },
+    "extra_items": [],
+    "extra_tracks": [
+      3,
+      6
+    ],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Weir, Bob",
+        "composers": [
+          "Bob Weir"
+        ],
+        "composers_ids": [
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 318,
+        "lyricists": [
+          "John Perry Barlow"
+        ],
+        "lyricists_ids": [
+          "66714aa1-f384-498a-bf6e-28a7c4d42dc4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "5658e059-512a-443e-bbe0-3f97c4d68f15",
+        "mb_trackid": "0bc24d9e-686e-4047-bc75-e5dbb9e2f2de",
+        "mb_workid": "3e9b104c-037e-48fb-b13f-dcf096a3f635",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Need a Miracle",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "I Need a Miracle",
+        "work_disambig": "",
+        "year": 1996
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 614,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "6a7d362f-a3f8-4af9-8eb9-e3f3b48d350a",
+        "mb_trackid": "103e02d0-e352-47c2-bd54-1260590e77b7",
+        "mb_workid": "19c2a3f7-ab17-3c79-ae21-e96f026528b5",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Stella Blue",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "Stella Blue",
+        "work_disambig": "",
+        "year": 1996
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Weir, Bob",
+        "composers": [
+          "Bob Weir"
+        ],
+        "composers_ids": [
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 343,
+        "lyricists": [
+          "Robert Hunter",
+          "Bob Weir"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10",
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "3a0e2a79-2a71-4711-9e92-472dcec4d79d",
+        "mb_trackid": "c97324a8-e8e6-46d6-882f-c2544915cbd7",
+        "mb_workid": "b321773a-9280-4ea2-bf81-05cd3c9c3ab8",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sugar Magnolia",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "Sugar Magnolia",
+        "work_disambig": "",
+        "year": 1996
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dixon, Willie",
+        "composers": [
+          "Willie Dixon"
+        ],
+        "composers_ids": [
+          "ff4c8d42-4871-4778-885b-d41b01245133"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 542,
+        "lyricists": [
+          "Willie Dixon"
+        ],
+        "lyricists_ids": [
+          "ff4c8d42-4871-4778-885b-d41b01245133"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "90e43e93-6329-41e2-be29-e3bab3666279",
+        "mb_trackid": "b098ea14-879d-42fc-9297-07a789180c24",
+        "mb_workid": "f801e968-bb64-489d-b153-72190fbc5a99",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Same Thing",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "The Same Thing",
+        "work_disambig": "",
+        "year": 1996
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 412,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "e6fbaca4-6538-43b0-8ec1-eb6ad5f85870",
+        "mb_trackid": "9f2af176-3c4b-4d04-a182-91595ee80a08",
+        "mb_workid": "c859a6c3-8def-4147-950b-347951df7ce4",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Lazy River Road",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "Lazy River Road",
+        "work_disambig": "",
+        "year": 1996
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Weir, Bob",
+        "composers": [
+          "Bob Weir"
+        ],
+        "composers_ids": [
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 651,
+        "lyricists": [
+          "John Perry Barlow"
+        ],
+        "lyricists_ids": [
+          "66714aa1-f384-498a-bf6e-28a7c4d42dc4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "ed37ed66-bf82-41ba-b417-86c1ecbb0a80",
+        "mb_trackid": "544e01f9-92cc-425f-a30e-cd59f5469d3b",
+        "mb_workid": "0b685a7f-bd98-4ac0-a61a-1755a5a3a248",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Feel Like a Stranger",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "Feel Like a Stranger",
+        "work_disambig": "",
+        "year": 1996
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Dead",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "artist name etched in acryl package",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4016445013679",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "40.90367",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional]",
+        "composers": [
+          "[traditional]"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Imtrat",
+        "language": "eng",
+        "length": 372,
+        "lyricists": [
+          "[traditional]"
+        ],
+        "lyricists_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "bdf92574-72f3-4a7c-acd3-0c5970c83542",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "397ff8fb-3a22-4ba2-89eb-0a71b52ddb4f",
+        "mb_releasetrackid": "4aab9c49-aac1-48d5-8451-0f47a884a4ec",
+        "mb_trackid": "a1f1f84f-4f61-4606-a724-1fd00e27e923",
+        "mb_workid": "438c0ea1-bef9-40ba-9595-38c817f879a2",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1996,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Dead",
+        "releasegroupdisambig": "imm 40.90367",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jack-A-Roe",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 9,
+        "work": "Jack‐A‐Roe",
+        "work_disambig": "",
+        "year": 1996
+      }
+    }
+  }
+}

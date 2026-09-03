@@ -1,0 +1,1195 @@
+{
+  "id": "real-genre-dolly-parton-jolene",
+  "input": {
+    "items": [
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 162.293,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "c546d32b-03d9-4cc9-b7a0-bd039404d669",
+        "title": "Jolene",
+        "track": 1,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 177.96,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "92f2ba50-8045-4fa9-a4a4-2235d8fca21e",
+        "title": "I Will Always Love You",
+        "track": 2,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 196.626,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "ed1c31ec-f702-47d8-957e-3ef65444118e",
+        "title": "Lonely Comin’ Down",
+        "track": 3,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 115.906,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "67d345db-e516-466b-85b1-e87c3adcf70a",
+        "title": "It Must Be You",
+        "track": 4,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 128.133,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "b0fd1304-eeea-461d-95c7-8e8a3fd869a9",
+        "title": "When Someone Wants to Leave",
+        "track": 5,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 141.106,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "91239ce0-064d-4878-adeb-82afec72a06f",
+        "title": "River of Happiness",
+        "track": 6,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 167.36,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "a9f088fe-f795-48e0-b9f1-b2db7c06559e",
+        "title": "Early Morning Breeze",
+        "track": 7,
+        "year": 1987
+      },
+      {
+        "album": "Jolene",
+        "albumartist": "Dolly Parton",
+        "artist": "Dolly Parton",
+        "length": 138.973,
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_trackid": "70819837-f15d-4d6c-82cf-90dfec4d3bc6",
+        "title": "Highlight of My Life",
+        "track": 8,
+        "year": 1987
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/2ae4521e-6913-43f4-939b-74c2993eebd9?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Parton, Dolly",
+        "composers": [
+          "Dolly Parton"
+        ],
+        "composers_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRHD0900815;USRN19400058;USRN19600096",
+        "label": "RCA",
+        "language": "eng",
+        "length": 162.293,
+        "lyricists": [
+          "Dolly Parton"
+        ],
+        "lyricists_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "9d0da890-d36d-43b6-b1eb-259db2cf97ea",
+        "mb_trackid": "c546d32b-03d9-4cc9-b7a0-bd039404d669",
+        "mb_workid": "d2507d33-4bc2-3ac6-93d3-e79ad24a9712",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jolene",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Jolene",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Parton, Dolly",
+        "composers": [
+          "Dolly Parton"
+        ],
+        "composers_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN17300007;USRN19400403;USRN19600178",
+        "label": "RCA",
+        "language": "eng",
+        "length": 177.96,
+        "lyricists": [
+          "Dolly Parton"
+        ],
+        "lyricists_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "99aa6282-a39e-46bb-84a9-faeb8b5d28ed",
+        "mb_trackid": "92f2ba50-8045-4fa9-a4a4-2235d8fca21e",
+        "mb_workid": "e4dfadfd-4b8f-3080-88cf-9c3c82e4cbdd",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Will Always Love You",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "1973 version",
+        "tracktotal": 8,
+        "work": "I Will Always Love You",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wagoner, Porter",
+        "composers": [
+          "Porter Wagoner"
+        ],
+        "composers_ids": [
+          "942123a3-df28-463f-9f6e-202b69b8e253"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN19400060",
+        "label": "RCA",
+        "language": "eng",
+        "length": 196.626,
+        "lyricists": [
+          "Porter Wagoner"
+        ],
+        "lyricists_ids": [
+          "942123a3-df28-463f-9f6e-202b69b8e253"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "930d5f15-4c36-4c26-92cd-d1031235a7a4",
+        "mb_trackid": "ed1c31ec-f702-47d8-957e-3ef65444118e",
+        "mb_workid": "b779bfc3-f90e-4caf-9369-8f3316814270",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Lonely Comin’ Down",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Lonely Comin’ Down",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Tosti, Blaise",
+        "composers": [
+          "Blaise Tosti"
+        ],
+        "composers_ids": [
+          "56568a23-e037-4063-9e5c-0c9d79110e20"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN19400061",
+        "label": "RCA",
+        "language": "eng",
+        "length": 115.906,
+        "lyricists": [
+          "Blaise Tosti"
+        ],
+        "lyricists_ids": [
+          "56568a23-e037-4063-9e5c-0c9d79110e20"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "214d308d-6b07-4395-9e4d-edb481cfb60e",
+        "mb_trackid": "67d345db-e516-466b-85b1-e87c3adcf70a",
+        "mb_workid": "59fc679f-4424-4ab3-83b0-28517f4fb64a",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "It Must Be You",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "It Must Be You",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Parton, Dolly",
+        "composers": [
+          "Dolly Parton"
+        ],
+        "composers_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN19400062",
+        "label": "RCA",
+        "language": "eng",
+        "length": 128.133,
+        "lyricists": [
+          "Dolly Parton"
+        ],
+        "lyricists_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "0a2fcf57-8c25-43b2-9b8a-8af76a75bbb6",
+        "mb_trackid": "b0fd1304-eeea-461d-95c7-8e8a3fd869a9",
+        "mb_workid": "7e282433-a6f9-4fa1-a1de-8ae461af76b7",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "When Someone Wants to Leave",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "When Someone Wants to Leave",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Parton, Dolly",
+        "composers": [
+          "Dolly Parton"
+        ],
+        "composers_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN19400063",
+        "label": "RCA",
+        "language": "eng",
+        "length": 141.106,
+        "lyricists": [
+          "Dolly Parton"
+        ],
+        "lyricists_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "59e27076-44a8-4c48-9ba4-94e951b739ec",
+        "mb_trackid": "91239ce0-064d-4878-adeb-82afec72a06f",
+        "mb_workid": "4de95175-8741-4782-8953-9c2e10a9b1e1",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "River of Happiness",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "River of Happiness",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Parton, Dolly",
+        "composers": [
+          "Dolly Parton"
+        ],
+        "composers_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN19400064",
+        "label": "RCA",
+        "language": "eng",
+        "length": 167.36,
+        "lyricists": [
+          "Dolly Parton"
+        ],
+        "lyricists_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "e6528d06-94cb-4c9e-94ba-294d33732529",
+        "mb_trackid": "a9f088fe-f795-48e0-b9f1-b2db7c06559e",
+        "mb_workid": "36cedd5f-8fe7-4a0f-940e-915cb5a2ba62",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Early Morning Breeze",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Early Morning Breeze",
+        "work_disambig": "",
+        "year": 1974
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Jolene",
+        "album_id": null,
+        "albumartist": "Dolly Parton",
+        "albumartist_credit": "Dolly Parton",
+        "albumartist_sort": "Parton, Dolly",
+        "albumartists": [
+          "Dolly Parton"
+        ],
+        "albumartists_credit": [
+          "Dolly Parton"
+        ],
+        "albumartists_sort": [
+          "Parton, Dolly"
+        ],
+        "albumdisambig": "Sound Value series",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Dolly Parton",
+        "artist_credit": "Dolly Parton",
+        "artist_sort": "Parton, Dolly",
+        "artists": [
+          "Dolly Parton"
+        ],
+        "artists_credit": [
+          "Dolly Parton"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Parton, Dolly"
+        ],
+        "asin": "B000002WFR",
+        "barcode": "078635598025",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "07863 55980-2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Parton, Dolly",
+        "composers": [
+          "Dolly Parton"
+        ],
+        "composers_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 4,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USRN19400065",
+        "label": "RCA",
+        "language": "eng",
+        "length": 138.973,
+        "lyricists": [
+          "Dolly Parton"
+        ],
+        "lyricists_ids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_albumartistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_albumid": "2ae4521e-6913-43f4-939b-74c2993eebd9",
+        "mb_artistid": "1d543e07-d0d2-4834-a8db-d65c50c2a856",
+        "mb_artistids": [
+          "1d543e07-d0d2-4834-a8db-d65c50c2a856"
+        ],
+        "mb_releasegroupid": "e13af55a-84e8-31d5-a4cd-f5681616235b",
+        "mb_releasetrackid": "ac7111ac-629d-43f9-a68e-a91ed4c49f69",
+        "mb_trackid": "70819837-f15d-4d6c-82cf-90dfec4d3bc6",
+        "mb_workid": "7a63a201-38c5-42b4-8e60-e3c38c3a6d69",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1974,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Jolene",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Highlight of My Life",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Highlight of My Life",
+        "work_disambig": "",
+        "year": 1974
+      }
+    }
+  }
+}

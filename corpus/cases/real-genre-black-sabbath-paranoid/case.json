@@ -1,0 +1,1249 @@
+{
+  "id": "real-genre-black-sabbath-paranoid",
+  "input": {
+    "items": [
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 478.493,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "6db17e6e-94d8-4794-9364-c761ad667fb1",
+        "title": "War Pigs",
+        "track": 1,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 172.866,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "868e3b55-4e4a-475f-94a8-020a6edc0aa2",
+        "title": "Paranoid",
+        "track": 2,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 273.666,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "e2c5d227-90aa-4cc4-b1cc-ba7d412f05fe",
+        "title": "Planet Caravan",
+        "track": 3,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 357.866,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "a15e2d0a-efcb-4f4f-ad54-22a4879bbcf9",
+        "title": "Iron Man",
+        "track": 4,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 292.64,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "107c5e33-547b-4cfb-b326-59023c369c4a",
+        "title": "Electric Funeral",
+        "track": 5,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 427.866,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "5541020c-f657-44b8-958f-a5e2c2a42e11",
+        "title": "Hand of Doom",
+        "track": 6,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 151.226,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "b4829586-0ff3-4376-b2b8-f42dbbc9e885",
+        "title": "Rat Salad",
+        "track": 7,
+        "year": 1991
+      },
+      {
+        "album": "Paranoid",
+        "albumartist": "Black Sabbath",
+        "artist": "Black Sabbath",
+        "length": 374.266,
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_trackid": "d244cc78-53af-4024-b743-4b2387dc55e0",
+        "title": "Fairies Wear Boots",
+        "track": 8,
+        "year": 1991
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/89f60472-e469-417a-abc6-54ffa72c19d5?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142435;GB5KW1601272;GBAJE7000063;USWB10202642;USWB11304627;USWB19900212",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 478.493,
+        "lyricists": [
+          "Geezer Butler"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "cb8ba912-569f-4172-85e0-b1ecacf74c09",
+        "mb_trackid": "6db17e6e-94d8-4794-9364-c761ad667fb1",
+        "mb_workid": "12b53203-64af-3a94-b3ec-11fad7c7d809",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "War Pigs",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "War Pigs",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142433;GB5KW1601263;GBAJE7000055;GBAJE7000057;USAR17800224;USWB10202640;USWB11304628;USWB19900213",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 172.866,
+        "lyricists": [
+          "Geezer Butler"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "9107ebbe-d034-4ace-a69a-b4149fe2058a",
+        "mb_trackid": "868e3b55-4e4a-475f-94a8-020a6edc0aa2",
+        "mb_workid": "7949591a-49c1-31c3-85a8-33d7e6065698",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Paranoid",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Paranoid",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142432;GB5KW1602022;GBAJE7000084;USWB11304629;USWB19900214",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 273.666,
+        "lyricists": [
+          "Geezer Butler"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "7592bb44-500e-4b78-87c2-5c676e3b33cc",
+        "mb_trackid": "e2c5d227-90aa-4cc4-b1cc-ba7d412f05fe",
+        "mb_workid": "0416c284-809d-303b-a903-39821fbe334e",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Planet Caravan",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Planet Caravan",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142436;GB5KW1601265;GBAJE7000085;USUG11101026;USWB10302179;USWB11304630;USWB19900215",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 357.866,
+        "lyricists": [
+          "Geezer Butler"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "26bd85be-194f-492a-a67b-85d0a7c250a3",
+        "mb_trackid": "a15e2d0a-efcb-4f4f-ad54-22a4879bbcf9",
+        "mb_workid": "4a43511c-af64-32c4-9b83-21ab0d02cf31",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Iron Man",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Iron Man",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142434;GB5KW1601289;GBAJE7000086;USWB11304631;USWB19900216",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 292.64,
+        "lyricists": [
+          "Geezer Butler"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "47af0bb0-8162-4e4b-aec5-52fa1c9aeee7",
+        "mb_trackid": "107c5e33-547b-4cfb-b326-59023c369c4a",
+        "mb_workid": "fd924dca-bfc8-3e58-aff5-fda9d2e55b62",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Electric Funeral",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Electric Funeral",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142438;GB5KW1602023;GBAJE7000087;USWB11304632;USWB19900217",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 427.866,
+        "lyricists": [
+          "Geezer Butler"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "574f0f70-1271-4d51-b777-6f64db8b5c2c",
+        "mb_trackid": "5541020c-f657-44b8-958f-a5e2c2a42e11",
+        "mb_workid": "8aacf2e9-62ab-30a6-b10b-69abf788447d",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hand of Doom",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Hand of Doom",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142431;GB5KW1601270;GBAJE7000088;USWB11304633;USWB19900218",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 151.226,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "ca0a3d48-12d8-40c5-a483-2d7020cadabf",
+        "mb_trackid": "b4829586-0ff3-4376-b2b8-f42dbbc9e885",
+        "mb_workid": "50bbee19-8648-419d-a344-6759417b7a6d",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Rat Salad",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Rat Salad",
+        "work_disambig": "",
+        "year": 1970
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Paranoid",
+        "album_id": null,
+        "albumartist": "Black Sabbath",
+        "albumartist_credit": "Black Sabbath",
+        "albumartist_sort": "Black Sabbath",
+        "albumartists": [
+          "Black Sabbath"
+        ],
+        "albumartists_credit": [
+          "Black Sabbath"
+        ],
+        "albumartists_sort": [
+          "Black Sabbath"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Black Sabbath",
+        "artist_credit": "Black Sabbath",
+        "artist_sort": "Black Sabbath",
+        "artists": [
+          "Black Sabbath"
+        ],
+        "artists_credit": [
+          "Black Sabbath"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Black Sabbath"
+        ],
+        "asin": "B007ZKNESI",
+        "barcode": "4988004032899",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "TECP-23893",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill, Butler, Geezer, Iommi, Tony, Osbourne, Ozzy, Ward, Bill",
+        "composers": [
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward",
+          "Geezer Butler",
+          "Tony Iommi",
+          "Ozzy Osbourne",
+          "Bill Ward"
+        ],
+        "composers_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605",
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "e5fa0175-2e93-4ca7-90c3-33f239381252",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934",
+          "9082aea0-ee30-4175-8795-6540a8fd3605"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 18,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "AUXN22142437;GB5KW1601268;GBAJE7000089;USWB11304634;USWB19900219",
+        "label": "Metal Mania",
+        "language": "eng",
+        "length": 374.266,
+        "lyricists": [
+          "Geezer Butler",
+          "Ozzy Osbourne"
+        ],
+        "lyricists_ids": [
+          "123814ce-f7f7-44c9-b84d-0088b1e230a4",
+          "8aa5b65a-5b3c-4029-92bf-47a544356934"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_albumartistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_albumid": "89f60472-e469-417a-abc6-54ffa72c19d5",
+        "mb_artistid": "5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+        "mb_artistids": [
+          "5182c1d9-c7d2-4dad-afa0-ccfeada921a8"
+        ],
+        "mb_releasegroupid": "cc053745-c447-3566-8f27-bed5438c9133",
+        "mb_releasetrackid": "bd8e15da-05ee-4b76-aa53-72c0cee562c1",
+        "mb_trackid": "d244cc78-53af-4024-b743-4b2387dc55e0",
+        "mb_workid": "3a1f6308-4cf4-463d-9c65-69dc0545502a",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 18,
+        "original_month": 9,
+        "original_year": 1970,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Paranoid",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fairies Wear Boots",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "original stereo studio mix",
+        "tracktotal": 8,
+        "work": "Jack the Stripper",
+        "work_disambig": "",
+        "year": 1970
+      }
+    }
+  }
+}

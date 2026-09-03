@@ -685,10 +685,10 @@ risk, since no reserve remains behind it.
 | `real-reissue-blood-on-the-tracks-2003` | reissue/remaster | `b0851322-d298-418e-a741-d5479a0e50cb` | yes | no | Bob Dylan, *Blood on the Tracks* (2003 CD reissue); capture-confirmed release date 2003 against the release-group's own first-release-date 1975-01-20; a clean zero-distance match. |
 | `real-reissue-rumours-deluxe-2013` | reissue/remaster | `76bd530b-5a1d-4cca-92e6-883b8871ef06` | yes | no | Fleetwood Mac, *Rumours* (2013 deluxe reissue, 3 discs); capture-confirmed release date 2013-01-25 against the release-group's own first-release-date 1977-02-04; a clean zero-distance match. |
 
-All eight rows above matched their own captured source (`apply`, either
-recommendation): seven land `strong`, and `real-noise-bowie-us1967`
-lands `medium` per its own row above. No confident wrong match
-appeared, so this batch owes no `adjudications.json` row: a
+All eight rows above matched their own captured source: seven land
+`strong`/`apply`, and `real-noise-bowie-us1967` lands `medium`/`skip`
+per its own row above. No confident wrong match appeared, so this
+batch owes no `adjudications.json` row: a
 search-fallback case whose top candidate is anything other than its own
 correct release is this stratum's tier-one finding class, and none of
 the eight reached that shape. **Task 5 delivers all 8 dossier rows**;
@@ -706,11 +706,10 @@ no reserve substitution was needed.
 | `real-nonlatin-utada-first-love` | non-Latin | `932c04f9-925a-45fc-847d-0da6a7b4e7a5` | no | yes | Hikaru Utada, *First Love* (Japanese; romanized artist-credit "Hikaru Utada" carrying a documented `locale=ja` alias "宇多田ヒカル"); matched its own correct source but landed `medium`, not `strong`, on a nonzero `artist` string distance (`0.0722`). Task 18's host release for the future `#6358` alias-selection verification. |
 | `real-reissue-nevermind-2011` | reissue/remaster | `237b8564-c726-4cb0-b804-348c30697325` | yes | yes | Nirvana, *Nevermind* (2011 20th-anniversary CD); capture-confirmed release date 2011-09-23 against the release-group's own first-release-date 1991-09-24; a clean zero-distance match. |
 
-All seven promoted rows above matched their own captured source
-(`apply`, either recommendation): six land `strong`, and
-`real-nonlatin-utada-first-love` lands `medium` per its own row above.
-No confident wrong match appeared, so this batch owes no
-`adjudications.json` row.
+All seven promoted rows above matched their own captured source: six
+land `strong`/`apply`, and `real-nonlatin-utada-first-love` lands
+`medium`/`skip` per its own row above. No confident wrong match
+appeared, so this batch owes no `adjudications.json` row.
 
 **The two-release sub-axis finding (Task 6).** The dossier's Task 6 row
 for this axis, `real-decoy-vivaldi-four-seasons`
@@ -760,6 +759,29 @@ source at `0.0939`; the matcher never came close to preferring it. This
 axis's sole reserve was already spent by Task 4, so this row's own
 success means the axis closes at its full 6-primary quota with no
 reserve left unused behind it.
+
+### Task 8 (batch 5)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-nuggets-1965-1968` | VA/box-set | `f5ebc3e1-4c2d-46d1-8f42-563a3fdc3653` | yes | no | *Nuggets: Original Artyfacts From the First Psychedelic Era* (Various Artists, 5 discs, 70 tracks); capture-confirmed 5 discs. A genuine, tiny nonzero `tracks` string distance (`0.0026`) survives well inside `strong`, and its `comp: true` credit carries no `artist` penalty key at all, the same VA shape `real-boxset-woodstock-25th` (Task 5) exercises. |
+| `real-classical-karajan-beethoven-89` | classical/compilation | `cb2d9dc2-0d6b-4dd2-9724-dbbf97ede73e` | no | yes | Herbert von Karajan and the Berlin Philharmonic, Beethoven's 8th and 9th symphonies; a clean zero-distance match, a conductor+orchestra artist-credit shape distinct from the axis's solo-performer rows. A file-tag subject for pass 2d. |
+| `real-genre-black-sabbath-paranoid` | genre/era spread | `89f60472-e469-417a-abc6-54ffa72c19d5` | no | no | Black Sabbath, *Paranoid* (JP 1991 CD; heavy metal); a clean zero-distance match. |
+| `real-genre-dolly-parton-jolene` | genre/era spread | `2ae4521e-6913-43f4-939b-74c2993eebd9` | no | no | Dolly Parton, *Jolene* (US 1987 CD; country); a clean zero-distance match. |
+| `real-noise-grateful-dead-de1996` | MB-noise | `bdf92574-72f3-4a7c-acd3-0c5970c83542` | no | no | Grateful Dead, *Grateful Dead* (DE 1996, live); MB Status: Bootleg. Authored as a partial rip (2 of 9 tracks dropped via `--overrides`); matched its own correct source at `medium` on a nonzero `missing_tracks` penalty (`0.0647`). Converged over three capture rounds: the primary ID lookup, then a search-fallback round (`limit=5`) and its five named-candidate release lookups, two of which needed a retry past a transient MusicBrainz `503`. |
+| `real-noise-hendrix-live-se` | MB-noise | `a0eda4e5-eb69-41d3-ac3f-16a4f7232db0` | no | no | Jimi Hendrix, *Jimi Hendrix Live!* (SE, undated); an Official release whose document carries no release date at all, so `year` is absent from the record rather than present at zero, distinct from `real-noise-bowie-us1967`'s (Task 5) length-absent shape. Matched its own correct source cleanly (`strong`). |
+| `real-nonlatin-babymetal` | non-Latin | `354a6d88-df30-4df3-953a-dd640ef9be5a` | no | no | BABYMETAL, *BABYMETAL* (Japanese; artist-credit carries documented `locale=ja` aliases "ベビーメタル" and "Bebīmetaru"); a clean zero-distance match. |
+| `real-reissue-abbey-road-2019` | reissue/remaster | `9fcd541a-a9ab-41c0-a6aa-13979c93301d` | yes | no | The Beatles, *Abbey Road* (2019 mix); capture-confirmed release date 2019-08-08 against the release-group's own first-release-date 1969-09-26; a clean zero-distance match. |
+
+All eight rows above matched their own captured source: seven land
+`strong`/`apply`, and `real-noise-grateful-dead-de1996` lands
+`medium`/`skip` per its own row above. No confident wrong match
+appeared, so this batch owes no `adjudications.json` row. **Task 8
+delivers all 8 dossier rows**; no reserve substitution was needed. This
+batch carries no two-release sub-axis row (the dossier assigns none to
+Task 8), so the decoy-resourcing question the conductor raised for this
+batch does not arise here; see Tasks 4, 6, and 7 above for that axis's
+three attempts and their outcomes.
 
 ## The canonicalization rule
 
