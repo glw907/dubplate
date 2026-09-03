@@ -1,0 +1,1445 @@
+{
+  "id": "real-genre-bb-king-live-regal",
+  "input": {
+    "items": [
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 189.133,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "e87236ae-1a47-4646-b605-e5d6a7fe468e",
+        "title": "Every Day I Have the Blues",
+        "track": 1,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 249.64,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "3c82a9db-9c99-4787-bca6-6551ec01b6b1",
+        "title": "Sweet Little Angel",
+        "track": 2,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 189.333,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "18cfa4b0-61a1-4a11-a121-3df3cadeee52",
+        "title": "It’s My Own Fault",
+        "track": 3,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 214.96,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "865d01f9-4810-4543-83a4-eda236c1481a",
+        "title": "How Blue Can You Get?",
+        "track": 4,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 181.8,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "15fb7b37-bde3-46cb-9bb9-6b96b68fce9e",
+        "title": "Please Love Me",
+        "track": 5,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 159.173,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "928be528-cf7c-45af-8487-bb29711e8d65",
+        "title": "You Upset Me Baby",
+        "track": 6,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 383.333,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "6f01882b-b2ef-43a0-97ba-072ecbbf40a9",
+        "title": "Worry, Worry",
+        "track": 7,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 104.466,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "b10acd9e-78b1-4d5d-a737-f696efedbd9b",
+        "title": "Woke Up This Mornin’",
+        "track": 8,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 273.16,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "555e061f-e281-4e64-962b-2f6948953f8a",
+        "title": "You Done Lost Your Good Thing Now",
+        "track": 9,
+        "year": 1997
+      },
+      {
+        "album": "Live at the Regal",
+        "albumartist": "B.B. King",
+        "artist": "B.B. King",
+        "length": 158.333,
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_trackid": "20963dcb-4c15-4228-b8bc-2dd5b822a116",
+        "title": "Help the Poor",
+        "track": 10,
+        "year": 1997
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/0364504e-544d-43c1-ae8b-8d905a48c0d6?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Memphis Slim",
+        "composers": [
+          "Memphis Slim"
+        ],
+        "composers_ids": [
+          "e4cfb284-9ab1-47f0-a725-082f84275a16"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 189.133,
+        "lyricists": [
+          "Memphis Slim"
+        ],
+        "lyricists_ids": [
+          "e4cfb284-9ab1-47f0-a725-082f84275a16"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "4a53ec92-1ccf-470d-9cea-e1db2e64a2fd",
+        "mb_trackid": "e87236ae-1a47-4646-b605-e5d6a7fe468e",
+        "mb_workid": "e0a1f5f9-c888-3bd3-bb00-4529d9fa9cb5",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Every Day I Have the Blues",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "Everyday I Have the Blues",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 249.64,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "7196b748-a767-44fd-95aa-3e2aacd48395",
+        "mb_trackid": "3c82a9db-9c99-4787-bca6-6551ec01b6b1",
+        "mb_workid": "db7f3255-69d8-3f8c-887d-14abb563027e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sweet Little Angel",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "Sweet Little Angel",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hooker, John Lee",
+        "composers": [
+          "John Lee Hooker"
+        ],
+        "composers_ids": [
+          "b0122194-c49a-46a1-ade7-84d1d76bd8e9"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 189.333,
+        "lyricists": [
+          "John Lee Hooker"
+        ],
+        "lyricists_ids": [
+          "b0122194-c49a-46a1-ade7-84d1d76bd8e9"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "22d87d8b-23c0-4d08-aad2-025de4249d89",
+        "mb_trackid": "18cfa4b0-61a1-4a11-a121-3df3cadeee52",
+        "mb_workid": "6a11d064-170d-4e77-bd84-307dd6f8bd6e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "It’s My Own Fault",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "It’s My Own Fault",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Feather, Leonard",
+        "composers": [
+          "Leonard Feather"
+        ],
+        "composers_ids": [
+          "7b1f4382-fc71-435e-8ed7-e41ad8014b22"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 214.96,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "915ecab9-ebfd-4059-800a-a49102c2026b",
+        "mb_trackid": "865d01f9-4810-4543-83a4-eda236c1481a",
+        "mb_workid": "5121b496-96ea-36bb-9d81-65410c3c6288",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "How Blue Can You Get?",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "How Blue Can You Get?",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16449164",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 181.8,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "307f5bab-e087-413e-a689-c8eee790ec02",
+        "mb_trackid": "15fb7b37-bde3-46cb-9bb9-6b96b68fce9e",
+        "mb_workid": "5dde0e7c-2c67-4ee3-9af7-fbe1047d1510",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Please Love Me",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "Please Love Me",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 159.173,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "1fcf8168-9d81-4a8d-9b22-8df8db23e35d",
+        "mb_trackid": "928be528-cf7c-45af-8487-bb29711e8d65",
+        "mb_workid": "40453390-7b04-4f56-a6ff-24a2cb29c737",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "You Upset Me Baby",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "You Upset Me Baby",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 383.333,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "448ff1d1-d2f8-47ab-b862-911c44bb0c9c",
+        "mb_trackid": "6f01882b-b2ef-43a0-97ba-072ecbbf40a9",
+        "mb_workid": "342ce62a-9dc9-4374-8cc3-c70d62e9e090",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Worry, Worry",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "Worry, Worry",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "King, B.B.",
+        "composers": [
+          "B.B. King"
+        ],
+        "composers_ids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 104.466,
+        "lyricists": [
+          "B.B. King"
+        ],
+        "lyricists_ids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "b93890ac-816d-43af-9f20-7201142f7bb5",
+        "mb_trackid": "b10acd9e-78b1-4d5d-a737-f696efedbd9b",
+        "mb_workid": "77d3aa37-bfb6-42e6-ba14-149051db1d91",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Woke Up This Mornin’",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "Woke Up This Mornin’",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 273.16,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "3a7748b7-f324-4891-a267-c8bcb44709e2",
+        "mb_trackid": "555e061f-e281-4e64-962b-2f6948953f8a",
+        "mb_workid": "db189d4b-20a4-49fe-a888-f872bc6c210a",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "You Done Lost Your Good Thing Now",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "You’ve Done Lost You’re Good Thing Now",
+        "work_disambig": "",
+        "year": 1965
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Live at the Regal",
+        "album_id": null,
+        "albumartist": "B.B. King",
+        "albumartist_credit": "B.B. King",
+        "albumartist_sort": "King, B.B.",
+        "albumartists": [
+          "B.B. King"
+        ],
+        "albumartists_credit": [
+          "B.B. King"
+        ],
+        "albumartists_sort": [
+          "King, B.B."
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [
+          "Sid Feller"
+        ],
+        "arrangers_ids": [
+          "2ead1058-1aae-43c5-a5ba-7069b2f3de0a"
+        ],
+        "artist": "B.B. King",
+        "artist_credit": "B.B. King",
+        "artist_sort": "King, B.B.",
+        "artists": [
+          "B.B. King"
+        ],
+        "artists_credit": [
+          "B.B. King"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "King, B.B."
+        ],
+        "asin": "",
+        "barcode": "008811164621",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "MCAD-11646",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Singleton, Charles",
+        "composers": [
+          "Charles Singleton"
+        ],
+        "composers_ids": [
+          "b98d9cb9-dab6-451e-aea2-0a184f35c860"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMC16412004",
+        "label": "MCA Records",
+        "language": "eng",
+        "length": 158.333,
+        "lyricists": [
+          "Charles Singleton"
+        ],
+        "lyricists_ids": [
+          "b98d9cb9-dab6-451e-aea2-0a184f35c860"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_albumartistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_albumid": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+        "mb_artistid": "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3",
+        "mb_artistids": [
+          "dcb03ce3-67a5-4eb3-b2d1-2a12d93a38f3"
+        ],
+        "mb_releasegroupid": "a4d2a86c-bbd6-352b-b9fa-f9da86df842c",
+        "mb_releasetrackid": "806b7fe0-0e56-49d8-9c15-ceb570d2b1c0",
+        "mb_trackid": "20963dcb-4c15-4228-b8bc-2dd5b822a116",
+        "mb_workid": "103d7a6b-b758-4be5-be36-feb7eb94e1d9",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1965,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Live at the Regal",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Help the Poor",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "live, 1964-11-21, Regal Theater, Chicago, Illinois, USA",
+        "tracktotal": 10,
+        "work": "Help the Poor",
+        "work_disambig": "",
+        "year": 1965
+      }
+    }
+  }
+}

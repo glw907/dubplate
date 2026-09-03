@@ -89,10 +89,13 @@ Pass 2b's own cases: 61 of them across 15 shape families
 section (b)), each a synthetic release built through `harness synth`
 rather than a live capture: matcher-behavior coverage, where the smoke
 corpus above is machinery coverage. Together with the smoke corpus's
-seven live cases, the corpus commits 68 cases total, the count `ls
-corpus/cases | wc -l` reads directly off the tree (no case counts
-itself twice: every id under `corpus/cases/` appears in exactly one
-family table below or the smoke table above). Every row names the
+seven live cases, the structural and smoke strata commit 68 cases;
+pass 2c's real-catalog stratum (below) adds to that total batch by
+batch, so `ls corpus/cases | wc -l` is always the count to read off
+the tree directly (no case counts itself twice: every id under
+`corpus/cases/` appears in exactly one
+family table below, the smoke table above, or the real-catalog
+stratum's own table further down). Every row names the
 case's family, the structural shape it exercises, and its hand-edit
 column: an edit to the generated `responses/001.json` made before the
 case's first freeze, reached only for a shape `ReleaseSpec` cannot
@@ -597,6 +600,78 @@ candidate its branch needs.
 | `rec-none-small-gap` | the same two-candidate construction, but the second release's own album, artist, track titles, lengths, and year are set to match the items' (already-overridden) values exactly: only `album_id` fires on it (`distance: 0.2778`, the equality penalty every search-found candidate whose id differs from the items' own `mb_albumid` always pays), landing *below* the first candidate's own `distance: 0.2915`. Both candidates clear `medium_rec_thresh`; their gap, `0.0137`, falls short of `rec_gap_thresh`: `_recommendation`'s final `else` branch, the "no conclusion" case, none, skip. | `responses/002.json` and `responses/003.json`, the same two-extra-response shape as `rec-gap-low` |
 | `rec-strong-medium-boundary` | a 2-track release with the first item's `length` overridden by an exactly-solved offset (`track_length` ratio 0.96 of `track_length_max`, the smaller candidate denominator a 2-track release gives making 0.04 reachable through this single component at all): `distance: 0.0400002`, 2e-7 above `strong_rec_thresh`. `_recommendation`'s `min_dist < strong_rec_thresh` is strict, so this resolves medium, not strong, despite sitting far closer to the strong boundary than any other case in the corpus; `internal/harness/analysis/proximity.json` acknowledges the flag by name. Medium, skip. | none |
 
+## The real-catalog stratum
+
+Pass 2c's own cases (Tasks 4 through 15): 96 primary real MusicBrainz
+releases plus 12 reserve rows, selected against explicit per-axis
+quotas and recorded in
+`docs/superpowers/research/2026-09-03-real-catalog-selection.md` (the
+selection dossier), which a capture batch task never re-decides. Where
+the smoke corpus proves the capture-derive loop's own machinery and
+the structural stratum proves the matcher's code paths against
+synthetic releases, this stratum proves conformance against real MB
+document shapes: real artist-credit joins, real disc counts, real
+pseudo-releases, real search-fallback noise. Seven axes: classical/
+compilation (10), reissue/remaster (14, fact-verified date divergence),
+VA/box-set (14, fact-verified disc count), non-Latin (12, fact-verified
+alias), MB-noise (14), genre/era spread (26), and the two-release
+sub-axis (6, fact-verified clean capture plus a decoy).
+
+**Authoring a captured case**: see "Authoring a captured case" below
+(under "The seed-items tool") for the full loop -- seed, or resume from
+the dossier's own kept `corpus/staging/` directory for a fact-verified
+row, project `Input.Items` through `harness seed-items`, derive to
+zero misses, promote, then write the owed ledger rows. A row whose
+dossier `Item shape` reads "clean rip" is authored with no
+`--overrides` at all: the captured response's own tags, projected
+verbatim, is the point.
+
+### Task 4 (batch 1)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-rachmaninov-complete` | VA/box-set | `4bf5255b-3354-424b-95e1-c0cab112e4b7` | yes | no | a 32-disc, 470-track box set (*Rachmaninov: The Complete Works*), the corpus's largest single release by a wide margin; a genuine, tiny nonzero `artist` string distance survives well inside `strong`. |
+| `real-genre-bb-king-live-regal` | genre/era spread | `0364504e-544d-43c1-ae8b-8d905a48c0d6` | no | no | B.B. King, *Live at the Regal* (US 1997 CD; blues, 1965 recording), a clean single-artist live release. |
+| `real-genre-public-enemy-nation-millions` | genre/era spread | `02cfa32b-e22b-48a9-8a74-0fb4a8dbf221` | no | yes | Public Enemy, *It Takes a Nation of Millions to Hold Us Back* (CA 1988 CD; hip-hop), a file-tag subject for pass 2d. |
+| `real-noise-hendrix-gb1996` | MB-noise | `8421d976-12b2-47bb-88e8-9b2746283554` | no | no | Jimi Hendrix, *Jimi Hendrix* (GB 1996, 2 discs); an official compilation sharing its title and near-identical track counts with a distinct GB 1992 pressing of the same name, the near-duplicate-catalog shape. |
+| `real-nonlatin-vandi` | non-Latin | `aa3a7756-b8ac-4a53-ba92-ac6d6700a0ad` | no | no | Despina Vandi, *Despina Vandi* (Greek; native Greek artist-credit carrying a documented `locale=el` alias and a `locale=en` romanized alias); the substitute for the rejected `real-nonlatin-ddt` candidate (the dossier's "Rejected candidates" section). The release carries no parseable date, so `year` is absent from the record rather than present at zero. |
+| `real-reissue-dark-side-of-the-moon-2010` | reissue/remaster | `a773d9ee-9930-4bf8-8e79-51a755396e25` | yes | no | Pink Floyd, *The Dark Side of the Moon* (2010 CD reissue); capture-confirmed release date 2010 against the release-group's own first-release-date 1973-03-24. |
+| `real-reissue-in-utero-2013` | reissue/remaster | `c2e80db3-bd09-4dd3-981c-f1b5378eaab0` | yes | no | Nirvana, *In Utero* (2013 20th-anniversary remaster); capture-confirmed release date 2013-07-30 against the release-group's own first-release-date 1993-09-14. |
+
+Every row above matched its own captured source cleanly (`strong`,
+`apply`): a confident wrong match is structurally unreachable for the
+confident-band majority, whose candidate pool is the release its items
+were seeded from, so this table's headline value is conformance
+breadth over real document shapes, not a matcher finding.
+
+**The two-release sub-axis finding (Task 4).** The dossier's Task 4 row
+for this axis, `real-decoy-beethoven-symphony-5`
+(`f394e886-5485-4b66-9b7c-ca45b4734b6e`, decoy
+`8d198198-f3c5-4d26-9765-4441de8118f6`), and its sole axis reserve,
+`real-decoy-mozart-piano-concerto-21`
+(`91356ead-4fa6-4f62-b1d6-608ee4235b8a`, decoy
+`8a08db35-7609-49c3-8adb-c2458f4b464e`), were both attempted. Items
+were authored with a generic, deliberately ambiguous `album`/`artist`
+override (stripping the release's specific work-coupling or performer
+detail) to knock the ID lookup off `strong` and force beets' own
+text-search fallback, per "How a real-catalog case gets made"'s
+two-release paragraph. Neither attempt's search response (beets' own
+WS/2 search, `limit=5`) named the specific decoy MBID the dossier
+recorded, across five total override variants (two on the primary row,
+three on the reserve, one recovering from a transient 503). The
+dossier's decoys were identified by browsing musicbrainz.org's
+human-facing search UI, which ranks and paginates differently from the
+WS/2 search endpoint's own 5-result window pinned beets actually
+queries; neither named release ranked inside that window for the
+search terms tried. Per the mechanism's own escape hatch ("If a
+candidate row cannot be made to surface its decoy through search
+alone, that is a finding to report in the dossier row, not a case to
+force"), neither candidate was forced into a case, and both staging
+directories were discarded. **Task 4 delivers 7 cases instead of 8**,
+and the two-release sub-axis's sole reserve row is now spent: a later
+task's own two-release row should budget for the same WS/2-ranking
+risk, since no reserve remains behind it.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
@@ -941,7 +1016,7 @@ and file I/O, against a fake fetcher.
 
 Two verbs, matching the capture-derive loop's two halves:
 
-- **`harness capture --mbid <release> --out corpus/cases/<id>`** seeds
+- **`harness capture --mbid <release> --out corpus/staging/<id>`** seeds
   a case: it fetches the release lookup at beets' own maximal `inc=`
   (`RELEASE_INCLUDES`, mechanics study Q5) rather than the minimal set
   today's matcher happens to read, so a future matcher improvement

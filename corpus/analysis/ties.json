@@ -226,6 +226,62 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-rachmaninov-complete",
+      "album_id": "4bf5255b-3354-424b-95e1-c0cab112e4b7",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1,
+      "difference": 1,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-bb-king-live-regal",
+      "album_id": "0364504e-544d-43c1-ae8b-8d905a48c0d6",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5064935064935063,
+      "difference": 1.5064935064935063,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-public-enemy-nation-millions",
+      "album_id": "02cfa32b-e22b-48a9-8a74-0fb4a8dbf221",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.5,
+      "unique": true
+    },
+    {
+      "case_id": "real-noise-hendrix-gb1996",
+      "album_id": "8421d976-12b2-47bb-88e8-9b2746283554",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3714285714285712,
+      "difference": 1.3714285714285712,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-vandi",
+      "album_id": "aa3a7756-b8ac-4a53-ba92-ac6d6700a0ad",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2054545454545453,
+      "difference": 1.2054545454545453,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-dark-side-of-the-moon-2010",
+      "album_id": "a773d9ee-9930-4bf8-8e79-51a755396e25",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5340909090909092,
+      "difference": 1.5340909090909092,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-in-utero-2013",
+      "album_id": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5034896331738437,
+      "difference": 1.5034896331738437,
+      "unique": true
+    },
+    {
       "case_id": "rec-gap-low",
       "album_id": "b848535b-101e-4249-8a1f-02605f4d4a62",
       "optimal_cost": 0,
