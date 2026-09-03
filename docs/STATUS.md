@@ -53,11 +53,15 @@ Pass 2b is executing from its plan (revision 2, committed 415c4d9;
 14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
 ruling: machinery tasks 1-3 first, then a staleness check of case
 tasks 4-13 against the shipped machinery before dispatching them.
-Accepted: 2b-1 (cec3c12; echo, freeze verb, schema v2 re-freeze) and
-2b-2 (6090b6c + 182a5b4, one fix round; synth builder, authoring
-loop, weights validation). Next: 2b-3 on opus (tie detector,
-proximity flag, claims checker, component tool; plan sanctions a
-3a/3b split if it grows). Then the batched simplifier (explicitly:
-consolidate maximalReleaseInclude and canonicalizeQuery duplicated
-across synth/capture), then the staleness check of case tasks 4-13.
-Spend: 2a closed ≈1.75M/5M; 2b ≈1.35M of 6M.
+Machinery tasks 2b-1..3 all accepted (cec3c12, 6090b6c+182a5b4,
+4c99825): echo + freeze verb + schema v2; synth builder + authoring
+loop; proximity flag, tie detector, claims checker, component table
+(72 rows). Finding: clean-match + multi-disc have genuinely tied
+assignments, pinned; rung 3's solver must mirror lapjv tie-breaking.
+Next: batched simplifier (consolidate maximalReleaseInclude +
+canonicalizeQuery synth/capture dupes), then the staleness check of
+case tasks 4-13. Named Task 13 inputs: family 14's zero-candidate
+case wedges BOTH ties.json (needs a skip row shape) and the claims
+checker (LoadClaims rejects empty best_album_id); derive_ties.py
+should self-enforce PYTHONHASHSEED like derive_oracle.py.
+Spend: 2a closed ≈1.75M/5M; 2b ≈1.7M of 6M.
