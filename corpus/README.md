@@ -175,6 +175,15 @@ claimed zero must be present in the record at 0.0 rather than absent,
 since beets adds a key at 0.0 and still counts it in the normalizer's
 denominator.
 
+**`min_candidates: 0` declares the zero-candidate mode**, the shape a
+case whose only candidate release was dropped by beets' own
+`_add_candidate` (a zero-track release) needs: `best_album_id` is left
+out entirely (there is no best candidate to name one from), and the
+checker asserts the record's candidate list is actually empty rather
+than treating zero as a trivially-satisfied lower bound, so the mode
+can never mask a case whose candidate list is merely degraded rather
+than genuinely empty.
+
 ### `proximity.json`, the threshold-proximity flag
 
 The flag is pure Go and needs nothing but the committed record. It
@@ -224,6 +233,14 @@ number rather than a silent flip.
 The gate checks coverage and adjudication: every corpus case has a row,
 every tied row carries a disposition (`excluded` or `pinned`) with a
 reason, and no row claims a uniqueness its own recorded costs deny.
+
+**A case whose record carries no candidate gets a skipped row**
+(`"status": "skipped"`) instead of a measured one, mirroring
+`proximity.json`'s own skip: there is no candidate to ask the tie
+question about, so `DeriveTies` never starts the replay stub for it. A
+skipped row carries no `album_id`, no cost fields, and no
+`disposition`, but still carries a written `reason`; a case with no row
+at all is still a missing-coverage failure, skipped or not.
 
 Two live smoke cases are genuinely tied. `should-ask` and
 `should-reject` both corrupt several items into interchangeable garbage,
@@ -399,6 +416,18 @@ under, and a `media` list of per-medium track lists (`title`, `length`,
 artist id on the release credit, the sole signal beets' musicbrainz
 plugin reads to set `AlbumInfo.va`), a per-track `artist_credit`
 override, `label` / `catalog_number`, and `disambiguation`.
+
+**`original_date` moves the release-group's own first-release-date away
+from `date`**, the field a year-penalty reissue case (family 7) needs:
+absent, the release-group's first-release-date equals `date` (today's
+behavior, no divergence between a release and its group's original
+date); a non-empty value names the group's own earlier or later
+original date directly; an explicit empty string omits the
+release-group's first-release-date entirely, the "no original date on
+record" shape. Every derived item's own `year` tag still comes from
+`date` alone (`original_date` never touches item generation), so a
+case that wants the items themselves to diverge from both dates still
+reaches for an `overrides` entry on `year`.
 
 **Items are derived from the release by default, then perturbed.** The
 common shape across almost every family is "a correct item set with

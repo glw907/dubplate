@@ -35,13 +35,21 @@ type tieInput struct {
 // DeriveTies measures whether the optimal track assignment for c's best
 // candidate is unique, returning the ledger row for it. The case must
 // already carry a derived record: Candidates[0] is the selector, so a
-// case that has never been frozen has no candidate to ask about.
+// case that has never been frozen has no candidate to ask about. A
+// record carrying no candidate at all (a zero-track release, dropped
+// by beets' own _add_candidate) has no tie question to ask either;
+// DeriveTies returns a [analysis.TieSkipped] row for it instead of an
+// error, and never starts the replay stub or the Python derivation.
 func DeriveTies(ctx context.Context, c *cassette.Case, opts Options) (analysis.TieEntry, error) {
 	if c.Expected == nil {
 		return analysis.TieEntry{}, fmt.Errorf("oracle: ties %s: case carries no derived record", c.ID)
 	}
 	if len(c.Expected.Candidates) == 0 {
-		return analysis.TieEntry{}, fmt.Errorf("oracle: ties %s: record carries no candidate to measure", c.ID)
+		return analysis.TieEntry{
+			CaseID: c.ID,
+			Status: analysis.TieSkipped,
+			Reason: "record carries no candidate; a zero-track release is dropped by beets' own _add_candidate before the tie question can be asked",
+		}, nil
 	}
 	best := c.Expected.Candidates[0]
 

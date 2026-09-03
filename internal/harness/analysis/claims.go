@@ -26,7 +26,12 @@ const ClaimsFileName = "claims.json"
 // a claim written against the behavior the case exists to exercise can
 // tell the difference.
 //
-// MinCandidates defaults to 1 when absent. The remaining optional
+// MinCandidates defaults to 1 when absent. Set to 0 with BestAlbumID
+// left empty, it declares the zero-candidate mode: the case's record
+// carries no candidate at all (a zero-track release, dropped by beets'
+// own _add_candidate), so there is no best candidate to name and
+// [CheckClaims] asserts the empty list directly instead of treating
+// zero as a trivially-satisfied lower bound. The remaining optional
 // fields are per family: Assignment, ExtraItemsLen, and ExtraTracksLen
 // for the assignment family, AppliedFields for the per_disc_numbering
 // cases.
@@ -43,19 +48,29 @@ type Claims struct {
 }
 
 // LoadClaims reads the claims file in a case directory. A missing file
-// is an error: every committed case carries one.
+// is an error: every committed case carries one. best_album_id is
+// required unless the claims declare [Claims.declaresZeroCandidates],
+// the zero-candidate mode a case whose only candidate was dropped by
+// beets' own _add_candidate has to state instead of naming one.
 func LoadClaims(dir string) (*Claims, error) {
 	var c Claims
 	if err := readJSON(filepath.Join(dir, ClaimsFileName), &c); err != nil {
 		return nil, fmt.Errorf("claims: %w", err)
 	}
-	if c.BestAlbumID == "" {
+	if c.BestAlbumID == "" && !c.declaresZeroCandidates() {
 		return nil, errors.New("claims: best_album_id: missing")
 	}
 	if c.Recommendation == "" {
 		return nil, errors.New("claims: recommendation: missing")
 	}
 	return &c, nil
+}
+
+// declaresZeroCandidates reports whether c states the zero-candidate
+// claims mode: min_candidates explicitly 0 and no best_album_id, since
+// a record with no candidate has no best one to name.
+func (c *Claims) declaresZeroCandidates() bool {
+	return c.MinCandidates != nil && *c.MinCandidates == 0 && c.BestAlbumID == ""
 }
 
 // CheckClaims reports every claim exp fails to satisfy. A penalty key
@@ -65,6 +80,21 @@ func LoadClaims(dir string) (*Claims, error) {
 // about a case (the mechanics study, Q2).
 func CheckClaims(exp *cassette.Expected, c *Claims) error {
 	var errs []error
+
+	if c.declaresZeroCandidates() {
+		// The mode names the record's shape directly rather than folding
+		// into the ordinary "at least minCandidates" check below: min 0 is
+		// trivially satisfied by any candidate count, so without this
+		// explicit assertion the mode would wave through a degraded case
+		// whose candidate list is nonempty but the author never noticed.
+		if len(exp.Candidates) != 0 {
+			errs = append(errs, fmt.Errorf("claims: min_candidates: 0 declares the record carries no candidate, but it carries %d", len(exp.Candidates)))
+		}
+		if exp.Recommendation != c.Recommendation {
+			errs = append(errs, fmt.Errorf("claims: recommendation = %q, want %q", exp.Recommendation, c.Recommendation))
+		}
+		return errors.Join(errs...)
+	}
 
 	minCandidates := 1
 	if c.MinCandidates != nil {

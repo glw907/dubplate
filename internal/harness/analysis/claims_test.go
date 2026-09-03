@@ -88,3 +88,49 @@ func TestCheckClaimsRefusesToVerifyAnEmptyCandidateList(t *testing.T) {
 		t.Errorf("error %q does not name the empty candidate list", err)
 	}
 }
+
+// TestCheckClaimsZeroCandidateMode proves the declared zero-candidate
+// mode (min_candidates: 0, best_album_id absent) does what it claims
+// rather than trivially passing on any candidate count: it accepts a
+// record that carries no candidate at all, and it rejects one that
+// carries a candidate the claim never expected, which is the mutation
+// that proves the mode cannot mask a degraded normal case.
+func TestCheckClaimsZeroCandidateMode(t *testing.T) {
+	c, err := LoadClaims("testdata/claims/zero-candidates")
+	if err != nil {
+		t.Fatalf("LoadClaims: %v", err)
+	}
+
+	t.Run("a record with genuinely no candidate satisfies the claim", func(t *testing.T) {
+		exp := loadRecord(t, "records/zero-candidates.json")
+		if err := CheckClaims(exp, c); err != nil {
+			t.Fatalf("CheckClaims: %v", err)
+		}
+	})
+
+	t.Run("a record carrying a candidate fails the claim", func(t *testing.T) {
+		exp := loadRecord(t, "claims/record.json")
+		exp.Recommendation = "none" // isolate the candidate-count assertion from the unrelated recommendation mismatch
+		err := CheckClaims(exp, c)
+		if err == nil {
+			t.Fatal("CheckClaims accepted a zero-candidate claim against a record that carries a candidate")
+		}
+		if !strings.Contains(err.Error(), "carries 1") {
+			t.Errorf("error %q does not name the candidate count the claim failed to mask", err)
+		}
+	})
+}
+
+// TestLoadClaimsAllowsZeroCandidateModeWithNoBestAlbumID proves the
+// best_album_id gate LoadClaims otherwise enforces is lifted only when
+// min_candidates: 0 is declared, not simply whenever the field is
+// absent.
+func TestLoadClaimsAllowsZeroCandidateModeWithNoBestAlbumID(t *testing.T) {
+	c, err := LoadClaims("testdata/claims/zero-candidates")
+	if err != nil {
+		t.Fatalf("LoadClaims rejected a zero-candidate claims file: %v", err)
+	}
+	if c.BestAlbumID != "" {
+		t.Errorf("best_album_id = %q, want empty", c.BestAlbumID)
+	}
+}

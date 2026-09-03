@@ -22,6 +22,12 @@ const (
 	TiePinned = "pinned"
 )
 
+// TieSkipped marks a row for a case whose record carries no candidate
+// to ask the tie question about: a zero-track release is dropped by
+// beets' own _add_candidate before assignment ever runs, so there is
+// no cost matrix to solve. Mirrors ProximitySkipped.
+const TieSkipped = "skipped"
+
 // TieLedger is corpus/analysis/ties.json: one row per corpus case,
 // written by internal/harness/oracle's derive_ties.py driver, checked
 // here. lapjv picks one optimal assignment; when several assignments
@@ -40,15 +46,23 @@ type TieLedger struct {
 // OptimalCost is the assignment problem's optimum, BestForbiddenCost
 // the cheapest re-solve that forbids one of the optimum's own pairs,
 // and Difference their gap.
+//
+// Status is empty for an ordinary measured row and [TieSkipped] for a
+// case whose record carries no candidate to measure: AlbumID,
+// OptimalCost, BestForbiddenCost, Difference, Unique, and Disposition
+// carry no meaning on a skipped row, and Reason takes the place
+// Disposition's reason would otherwise hold, mirroring
+// ProximityEntry's flagged/skipped shape.
 type TieEntry struct {
 	CaseID            string  `json:"case_id"`
-	AlbumID           string  `json:"album_id"` // the candidate the tie question was asked of, Candidates[0]
-	OptimalCost       float64 `json:"optimal_cost"`
-	BestForbiddenCost float64 `json:"best_forbidden_cost"`
-	Difference        float64 `json:"difference"`
-	Unique            bool    `json:"unique"`
-	Disposition       string  `json:"disposition,omitempty"` // excluded | pinned; required when Unique is false
-	Reason            string  `json:"reason,omitempty"`
+	Status            string  `json:"status,omitempty"`   // "" (measured) | skipped
+	AlbumID           string  `json:"album_id,omitempty"` // the candidate the tie question was asked of, Candidates[0]; empty on a skipped row
+	OptimalCost       float64 `json:"optimal_cost,omitempty"`
+	BestForbiddenCost float64 `json:"best_forbidden_cost,omitempty"`
+	Difference        float64 `json:"difference,omitempty"`
+	Unique            bool    `json:"unique,omitempty"`
+	Disposition       string  `json:"disposition,omitempty"` // excluded | pinned; required when Unique is false, forbidden on a skipped row
+	Reason            string  `json:"reason,omitempty"`      // required when Disposition is set, or when Status is skipped
 }
 
 // LoadTieLedger reads corpus/analysis/ties.json from path.
@@ -98,6 +112,10 @@ func CheckTieLedger(caseIDs []string, l *TieLedger) error {
 }
 
 func checkTieEntry(e TieEntry) []error {
+	if e.Status == TieSkipped {
+		return checkSkippedTieEntry(e)
+	}
+
 	var errs []error
 	if e.AlbumID == "" {
 		errs = append(errs, fmt.Errorf("tie ledger: %s: album_id: missing", e.CaseID))
@@ -119,6 +137,24 @@ func checkTieEntry(e TieEntry) []error {
 	}
 	if e.Reason == "" {
 		errs = append(errs, fmt.Errorf("tie ledger: %s: tied and dispositioned with no reason", e.CaseID))
+	}
+	return errs
+}
+
+// checkSkippedTieEntry validates a row for a case whose record carries
+// no candidate: it must carry neither an album_id nor a disposition
+// (there is nothing to measure, so neither means anything), and it
+// must carry a reason in the same slot a tied row's Reason occupies.
+func checkSkippedTieEntry(e TieEntry) []error {
+	var errs []error
+	if e.AlbumID != "" {
+		errs = append(errs, fmt.Errorf("tie ledger: %s: skipped, but carries album_id %q; a skipped case measures no candidate", e.CaseID, e.AlbumID))
+	}
+	if e.Disposition != "" {
+		errs = append(errs, fmt.Errorf("tie ledger: %s: skipped, but carries disposition %q; a skipped case is never tied", e.CaseID, e.Disposition))
+	}
+	if e.Reason == "" {
+		errs = append(errs, fmt.Errorf("tie ledger: %s: skipped with no reason", e.CaseID))
 	}
 	return errs
 }

@@ -22,6 +22,17 @@ func TestCheckTieLedger(t *testing.T) {
 	inconsistentCosts := unique
 	inconsistentCosts.Difference = 0.25
 
+	skipped := TieEntry{CaseID: "no-candidate", Status: TieSkipped, Reason: "record carries no candidate to measure"}
+
+	skippedNoReason := skipped
+	skippedNoReason.Reason = ""
+
+	skippedWithAlbumID := skipped
+	skippedWithAlbumID.AlbumID = "aaaa"
+
+	skippedWithDisposition := skipped
+	skippedWithDisposition.Disposition = TiePinned
+
 	tests := []struct {
 		name    string
 		caseIDs []string
@@ -79,6 +90,35 @@ func TestCheckTieLedger(t *testing.T) {
 			caseIDs: []string{"clean"},
 			ledger:  TieLedger{Entries: []TieEntry{unique, unique}},
 			wantHas: "listed twice",
+		},
+		{
+			name:    "a skipped row with a written reason",
+			caseIDs: []string{"no-candidate"},
+			ledger:  TieLedger{Entries: []TieEntry{skipped}},
+		},
+		{
+			name:    "a skipped row with no reason",
+			caseIDs: []string{"no-candidate"},
+			ledger:  TieLedger{Entries: []TieEntry{skippedNoReason}},
+			wantHas: "skipped with no reason",
+		},
+		{
+			name:    "a skipped row still carrying an album_id",
+			caseIDs: []string{"no-candidate"},
+			ledger:  TieLedger{Entries: []TieEntry{skippedWithAlbumID}},
+			wantHas: "skipped, but carries album_id",
+		},
+		{
+			name:    "a skipped row still carrying a disposition",
+			caseIDs: []string{"no-candidate"},
+			ledger:  TieLedger{Entries: []TieEntry{skippedWithDisposition}},
+			wantHas: "skipped, but carries disposition",
+		},
+		{
+			name:    "a skipped case with no row at all is still missing",
+			caseIDs: []string{"no-candidate"},
+			ledger:  TieLedger{},
+			wantHas: "no-candidate: missing",
 		},
 	}
 	for _, tt := range tests {

@@ -135,6 +135,54 @@ func TestGeneratedCaseRoundTripsThroughRealDerivation(t *testing.T) {
 	}
 }
 
+// TestGeneratedCaseWithEarlierOriginalDateDerivesANonzeroYearPenalty
+// proves OriginalDate reaches a real derivation, not only the
+// generated document. beets/autotag/distance.py's year branch (with
+// preferred.original_year unset, the default both corpus profiles
+// leave it at) scores zero whenever the items' own year matches either
+// the release's year or the release-group's original year, so items
+// carrying the release's own year alone are not enough: this spec also
+// overrides every item's "year" tag away from both the release date's
+// year (1999, from Date) and the release-group's original year (1975,
+// from OriginalDate), landing on the diff/diff_max ratio branch, which
+// is where a nonzero "year" component comes from.
+func TestGeneratedCaseWithEarlierOriginalDateDerivesANonzeroYearPenalty(t *testing.T) {
+	original := "1975-06-15"
+	spec := minimalSpec()
+	spec.OriginalDate = &original
+	spec.Overrides = []Override{
+		{Op: OpField, Index: 0, Fields: cassette.ItemFields{"year": 1980}},
+		{Op: OpField, Index: 1, Fields: cassette.ItemFields{"year": 1980}},
+	}
+
+	c, doc, err := Build("synth-original-date-roundtrip", spec)
+	if err != nil {
+		t.Fatalf("Build: %v", err)
+	}
+
+	dir := t.TempDir()
+	writeCase(t, dir, c, doc)
+
+	loaded, err := cassette.LoadCase(dir)
+	if err != nil {
+		t.Fatalf("LoadCase: %v", err)
+	}
+
+	opts := venvOptions(t)
+	opts.Dir = dir
+
+	exp, err := oracle.Derive(context.Background(), loaded, opts)
+	if err != nil {
+		t.Fatalf("Derive: %v", err)
+	}
+	if len(exp.Candidates) == 0 {
+		t.Fatal("candidates = 0, want the single looked-up release")
+	}
+	if got := exp.Candidates[0].Penalties["year"]; got == 0 {
+		t.Errorf("year penalty = 0, want nonzero: items carry %s's year while the release-group's original date is %s", spec.Date, original)
+	}
+}
+
 // TestMalformedReleaseDocumentFailsLoudly proves a generated case
 // whose response body beets cannot parse never sneaks a plausible-
 // looking record past a derivation: it drops the "text-representation"

@@ -350,6 +350,48 @@ func TestBuildReleaseDocumentIsValidJSON(t *testing.T) {
 	}
 }
 
+// TestBuildOriginalDateOverridesTheReleaseGroupDate proves the three
+// shapes OriginalDate expresses: absent keeps the release-group's
+// first-release-date equal to Date (today's behavior), a non-empty
+// value replaces it, and an explicit empty string omits it, distinct
+// from leaving the field out of the spec at all.
+func TestBuildOriginalDateOverridesTheReleaseGroupDate(t *testing.T) {
+	earlier := "1975-06-15"
+	empty := ""
+
+	tests := []struct {
+		name         string
+		originalDate *string
+		want         string
+	}{
+		{"absent keeps the release-group date equal to the release date", nil, "1999-03-02"},
+		{"a non-empty value overrides it", &earlier, earlier},
+		{"an explicit empty string omits it", &empty, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			spec := minimalSpec()
+			spec.OriginalDate = tt.originalDate
+
+			_, doc, err := Build("original-date-test", spec)
+			if err != nil {
+				t.Fatalf("Build: %v", err)
+			}
+			var probe struct {
+				ReleaseGroup struct {
+					FirstReleaseDate string `json:"first-release-date"`
+				} `json:"release-group"`
+			}
+			if err := json.Unmarshal(doc, &probe); err != nil {
+				t.Fatalf("decode release document: %v", err)
+			}
+			if probe.ReleaseGroup.FirstReleaseDate != tt.want {
+				t.Errorf("release-group first-release-date = %q, want %q", probe.ReleaseGroup.FirstReleaseDate, tt.want)
+			}
+		})
+	}
+}
+
 func TestPseudoUUIDIsDeterministic(t *testing.T) {
 	a := pseudoUUID("seed-one")
 	b := pseudoUUID("seed-one")

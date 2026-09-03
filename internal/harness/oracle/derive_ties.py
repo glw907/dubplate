@@ -18,6 +18,7 @@ artist. That is what makes a tied case worth detecting.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 from typing import Any
@@ -128,6 +129,12 @@ def measure(config_path: str, input_path: str) -> dict[str, Any]:
 def main() -> None:
     if len(sys.argv) != 3:
         raise SystemExit("usage: derive_ties.py <config.yaml> <input.json>")
+    # Mirrors derive_oracle.py's own self-check: the Go adapter sets the
+    # seed on every invocation, so an unset one is a broken invocation to
+    # catch here rather than a slow drift to discover in a corpus diff
+    # (defense in depth for a hand-run against this script directly).
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        raise SystemExit("derive_ties.py: PYTHONHASHSEED must be 0")
 
     real_stdout = sys.stdout
     sys.stdout = sys.stderr

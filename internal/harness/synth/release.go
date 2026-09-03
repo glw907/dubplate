@@ -169,6 +169,11 @@ type wsRelease struct {
 // buildRelease renders spec's release into the WS/2 document pinned
 // beets fetches at its ID-lookup request.
 func buildRelease(spec *ReleaseSpec) *wsRelease {
+	firstReleaseDate := spec.Date
+	if spec.OriginalDate != nil {
+		firstReleaseDate = *spec.OriginalDate
+	}
+
 	labelInfo := []wsLabelInfo{}
 	if spec.Label != "" || spec.CatalogNumber != "" {
 		entry := wsLabelInfo{}
@@ -242,7 +247,7 @@ func buildRelease(spec *ReleaseSpec) *wsRelease {
 			Title:            spec.Album,
 			PrimaryType:      "Album",
 			SecondaryTypes:   []string{},
-			FirstReleaseDate: spec.Date,
+			FirstReleaseDate: firstReleaseDate,
 			Disambiguation:   "",
 			Aliases:          []string{},
 		},

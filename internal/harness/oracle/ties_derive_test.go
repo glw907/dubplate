@@ -95,6 +95,38 @@ func TestTieLedgerMatchesTheCorpus(t *testing.T) {
 	}
 }
 
+// TestDeriveTiesSkipsARecordWithNoCandidate proves the skip path
+// directly, ahead of any family 14 case landing: a case whose derived
+// record carries no candidate (the shape a zero-track release leaves
+// behind once beets' own _add_candidate drops it) returns a skipped
+// row instead of erroring, and never starts the replay stub or
+// launches derive_ties.py to get there. It carries no oracle build tag
+// dependency of its own, but lives in this file because it is the
+// tie driver's own skip-path proof.
+func TestDeriveTiesSkipsARecordWithNoCandidate(t *testing.T) {
+	c := &cassette.Case{
+		ID:       "no-candidate-test",
+		Expected: &cassette.Expected{Candidates: nil},
+	}
+
+	entry, err := DeriveTies(context.Background(), c, Options{})
+	if err != nil {
+		t.Fatalf("DeriveTies: %v", err)
+	}
+	if entry.CaseID != c.ID {
+		t.Errorf("case_id = %q, want %q", entry.CaseID, c.ID)
+	}
+	if entry.Status != analysis.TieSkipped {
+		t.Errorf("status = %q, want %q", entry.Status, analysis.TieSkipped)
+	}
+	if entry.AlbumID != "" {
+		t.Errorf("album_id = %q, want empty on a skipped row", entry.AlbumID)
+	}
+	if entry.Reason == "" {
+		t.Error("skipped row carries no reason")
+	}
+}
+
 // writeTieLedger rewrites path from entries, carrying every committed
 // disposition and reason forward: those are the human half of the
 // ledger and a re-measurement has nothing to say about them.

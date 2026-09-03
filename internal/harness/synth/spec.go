@@ -60,9 +60,24 @@ type ReleaseSpec struct {
 	// beets' musicbrainz plugin uses to set AlbumInfo.va.
 	VariousArtists bool `json:"various_artists,omitempty"`
 	// Date is the release date, "YYYY-MM-DD"; it also seeds every
-	// derived item's "year" tag and the release-group's
-	// first-release-date.
+	// derived item's "year" tag and, absent an OriginalDate override,
+	// the release-group's first-release-date.
 	Date string `json:"date"`
+	// OriginalDate overrides the release-group's own first-release-date,
+	// the value a profile with original_date: yes (estate.yaml) makes
+	// pinned beets read as AlbumInfo.original_year. Absent (nil) keeps
+	// today's behavior: the release-group's first-release-date equals
+	// Date, so there is no divergence between a release's own date and
+	// its group's original date. A non-empty value names an earlier (or
+	// later) original date directly, the shape a reissue case needs to
+	// drive a year-penalty branch (corpus/README.md's "The synth tool").
+	// The empty string is a distinct, explicit value: it omits the
+	// release-group's first-release-date entirely, the "no original date
+	// on record" branch. A pointer, rather than a bare string, is what
+	// lets that explicit empty string be told apart from the field being
+	// left out of the spec altogether, which a plain string cannot
+	// express.
+	OriginalDate *string `json:"original_date,omitempty"`
 	// Country is the release's WS/2 country code (for example "US").
 	Country string `json:"country"`
 	// Label and CatalogNumber populate a single label-info entry when
