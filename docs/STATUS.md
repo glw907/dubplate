@@ -56,15 +56,15 @@ tasks 4-13 against the shipped machinery before dispatching them.
 Pass 2b is CLOSED (HISTORY has the ledger; commits cec3c12 →
 2219b19): all machinery, 61 structural cases, 68 total, everything
 re-deriving byte-exact; ≈5.8M of 6M spent, the 12M grant untouched.
-Next per the overnight grants: plan pass 2c just-in-time on the
-quiet tree (real-catalog stratum ~80-150 live-captured cases,
-adversarial stratum seeded from known-oracle-bug classes,
-stock-config stratum per ruling 3, #6358 alias verification,
-file-level applied-tag derivation for rung 8, version-bump
-differential doc, re-capture chore doc, oracle-bug ledger and
-adjudication formats), then execute: overnight captures at anonymous
-1 req/s, strata authoring, the FIRST adjudication batch prepared and
-waiting for Geoff (never self-adjudicated).
+Pass 2c is planned (plans/2026-09-03-rung-2c-catalog-adversarial.md,
+revision 2, committed 25f0006 with review + inventory; 21 tasks,
+8M ceiling, checkpoint per task, one owner touchpoint: the
+adjudication batch at close, non-blocking) and EXECUTING. The fold
+split file-level derivation + chore docs to a future pass 2d with
+findings pre-ruled (recorded in the plan's Task 20 HISTORY draft).
+Front: tasks 1-2 (ledger formats; harness seed-items), then the
+dossier, twelve 8-case live capture batches (anonymous 1 req/s),
+adversarial strata, #6358/locale, stock-config 19a/19b, close.
 Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
 12M if needed; after 2b closes, proceed into 2c fully - plan
 just-in-time, run the live real-catalog captures (anonymous 1 req/s),
