@@ -617,7 +617,13 @@ are marked [E].
    roster (gruvbox pair, nord, dracula, catppuccin; the rest
    deferred to the escape hatch) live in
    research/2026-09-03-theme-collection-brief.md, a standing
-   input to this rung's plan.
+   input to this rung's plan. Added requirement (Geoff,
+   2026-09-03): the roster also carries a matching theme for
+   each target streamer's FACTORY DEFAULT, since the common
+   adopter never re-themes the streamer - one matching
+   Navidrome's Dark (its verified default) and one matching
+   Jellyfin's dark, both extracted from the apps' own open
+   theme sources as variable blocks.
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
