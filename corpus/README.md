@@ -956,16 +956,19 @@ field beets' own search-query builder actually reads; the retry that
 folded `albumartist` into the same override is what forced the
 fallback). Unlike Tasks 4 and 6, where the named decoy never appeared
 among either search's five candidates, this row's named decoy did
-surface inside the 5-result window, alongside three other Beethoven's
+surface inside the 5-result window, alongside four other Beethoven's
 Ninth pressings the search also named. The matcher still correctly
 picked its own captured source (`medium`, `skip`, distance `0.1755`)
-over all four: the named decoy sat at distance `0.7216`, and the other
-three ranged from `0.7190` to `0.7824`, none remotely competitive. This
+over all five: the named decoy sat at distance `0.7216`, and the other
+four ranged from `0.7190` to `0.7991`, none remotely competitive. This
 is the second two-release row to actually surface its named decoy
 (after Task 7's `real-decoy-mozart-requiem`) and the second to confirm
 the matcher rejects it correctly. Converged over three capture rounds:
 the primary ID lookup, then a search-fallback round (`limit=5`) and its
-four named-candidate release lookups.
+five named-candidate release lookups. Because the dossier's originally
+named decoy surfaced inside beets' own 5-result search window unaided,
+no same-release-group re-sourcing was needed for this row, disposing of
+the decoy sub-axis re-sourcing ruling (`docs/STATUS.md`) for Task 13.
 
 ## The canonicalization rule
 
