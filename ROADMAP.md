@@ -82,6 +82,14 @@ bootstrap; pre-setup-VPS option map). **Runs after `dubplate-organizer`**
 (resequenced 2026-09-01, was after `uploader`) so it packages the final
 two-binary shape rather than an intermediate. The `oss-pair` write-up below
 doubles as its demand test.
+Carried option (Geoff, 2026-09-03): evaluate a Wails desktop app as a
+third head on the shared engine: the existing Svelte UI in each OS's
+own webview (native shell, single small binary per platform; macOS
+notarized DMG, Windows signed installer, Linux Flatpak pinning
+WebKitGTK), runnable embedded (engine in-process, no server) or as a
+client of a hosted estate over the versioned API. Sequencing is firm:
+the bubbletea TUI local organizer builds first after the server; the
+Wails head waits beyond that.
 
 ## Someday
 
