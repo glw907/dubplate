@@ -1,0 +1,31 @@
+{
+  "created": "2026-09-03T00:00:00.000Z",
+  "count": 1,
+  "offset": 0,
+  "releases": [
+    {
+      "id": "789b36e3-27ae-4a1b-9405-50ea9ef6cfc0",
+      "score": 88,
+      "title": "5519 Marrow Quill",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "name": "2287 Osprey Vantage",
+          "artist": {
+            "id": "8d5f6e0a-8f0e-4e6a-9f1a-2c3d4e5f6a7b",
+            "name": "2287 Osprey Vantage",
+            "sort-name": "2287 Osprey Vantage"
+          }
+        }
+      ],
+      "release-group": {
+        "id": "6a7b8c9d-0e1f-4a2b-9c3d-4e5f6a7b8c9d",
+        "title": "Ashgrove Continuum",
+        "primary-type": "Album"
+      },
+      "date": "2014-04-09",
+      "country": "US",
+      "track-count": 3
+    }
+  ]
+}

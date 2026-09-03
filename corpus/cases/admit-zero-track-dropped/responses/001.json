@@ -1,0 +1,60 @@
+{
+  "id": "edb69baa-7a91-4298-9c9e-7e7980f2002e",
+  "title": "Hollow Ferry",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "GB",
+  "date": "2015-11-02",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Isolde Wrenfield",
+      "joinphrase": "",
+      "artist": {
+        "id": "c8a19ec5-9844-07bf-ab06-394d8edf821a",
+        "name": "Isolde Wrenfield",
+        "sort-name": "Isolde Wrenfield",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "e13fb970-25bf-2f3b-3aca-f0d4db26a61a",
+    "title": "Hollow Ferry",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-11-02",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-11-02",
+      "area": {
+        "id": "71c1c096-457d-8a7a-2d4b-85c71ee29619",
+        "name": "GB",
+        "iso-3166-1-codes": [
+          "GB"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 0,
+      "tracks": []
+    }
+  ]
+}

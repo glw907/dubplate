@@ -1,0 +1,151 @@
+{
+  "id": "789b36e3-27ae-4a1b-9405-50ea9ef6cfc0",
+  "title": "5519 Marrow Quill",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2014-04-09",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "2287 Osprey Vantage",
+      "joinphrase": "",
+      "artist": {
+        "id": "dc9ee026-0cff-e5d7-8c73-eaec8c2574b8",
+        "name": "2287 Osprey Vantage",
+        "sort-name": "2287 Osprey Vantage",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "edd9ff17-47bd-66b6-f0a6-83e2a798fd6a",
+    "title": "5519 Marrow Quill",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2014-04-09",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2014-04-09",
+      "area": {
+        "id": "45d1727c-f9a1-ac31-fb7d-99aa601ed129",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "89261c09-4625-0682-087e-f1d5b4374f6f",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 202000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9f63c364-f889-14ae-1e4f-004ae31bed20",
+            "title": "Slate Grey",
+            "length": 202000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "2287 Osprey Vantage",
+                "joinphrase": "",
+                "artist": {
+                  "id": "dc9ee026-0cff-e5d7-8c73-eaec8c2574b8",
+                  "name": "2287 Osprey Vantage",
+                  "sort-name": "2287 Osprey Vantage",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "079ba055-fa86-fd7e-8e56-587194fef4f0",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 191000,
+          "artist-credit": null,
+          "recording": {
+            "id": "84e142da-c562-445e-9a56-3fe1fb3ba759",
+            "title": "Meridian Line",
+            "length": 191000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "2287 Osprey Vantage",
+                "joinphrase": "",
+                "artist": {
+                  "id": "dc9ee026-0cff-e5d7-8c73-eaec8c2574b8",
+                  "name": "2287 Osprey Vantage",
+                  "sort-name": "2287 Osprey Vantage",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "fd098ab3-1413-bf49-7fd5-46419e87d72f",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 233000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5cb22f69-8c87-4422-0a9a-a6c9ac48ef13",
+            "title": "Talbrook Rise",
+            "length": 233000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "2287 Osprey Vantage",
+                "joinphrase": "",
+                "artist": {
+                  "id": "dc9ee026-0cff-e5d7-8c73-eaec8c2574b8",
+                  "name": "2287 Osprey Vantage",
+                  "sort-name": "2287 Osprey Vantage",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

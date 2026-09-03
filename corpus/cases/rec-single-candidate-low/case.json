@@ -1,0 +1,473 @@
+{
+  "id": "rec-single-candidate-low",
+  "input": {
+    "items": [
+      {
+        "album": "9204 Ledger Kappa",
+        "albumartist": "7731 Bramble Torque",
+        "artist": "Oskar Fenwright",
+        "length": 213,
+        "mb_albumid": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "title": "Marrow Bloom",
+        "track": 1,
+        "year": 2013
+      },
+      {
+        "album": "9204 Ledger Kappa",
+        "albumartist": "7731 Bramble Torque",
+        "artist": "Oskar Fenwright",
+        "length": 199,
+        "mb_albumid": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "title": "Verdant Field",
+        "track": 2,
+        "year": 2013
+      },
+      {
+        "album": "9204 Ledger Kappa",
+        "albumartist": "7731 Bramble Torque",
+        "artist": "Oskar Fenwright",
+        "length": 236,
+        "mb_albumid": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "title": "Fenwright Hall",
+        "track": 3,
+        "year": 2013
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/9ee93342-39bf-48d3-ab6f-00723977ba35?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%289204+ledger+kappa%29+artist%3A%287731+bramble+torque%29",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "low",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "distance": 0.2803921568627451,
+        "penalties": {
+          "album": 0.13333333333333336,
+          "album_id": 0,
+          "artist": 0.14705882352941177,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Marrow Verdant",
+        "album_id": null,
+        "albumartist": "Oskar Fenwright",
+        "albumartist_credit": "Oskar Fenwright",
+        "albumartist_sort": "Oskar Fenwright",
+        "albumartists": [
+          "Oskar Fenwright"
+        ],
+        "albumartists_credit": [
+          "Oskar Fenwright"
+        ],
+        "albumartists_sort": [
+          "Oskar Fenwright"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Oskar Fenwright",
+        "artist_credit": "Oskar Fenwright",
+        "artist_sort": "Oskar Fenwright",
+        "artists": [
+          "Oskar Fenwright"
+        ],
+        "artists_credit": [
+          "Oskar Fenwright"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Oskar Fenwright"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 213,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "mb_albumartistids": [
+          "fc0d0976-e269-8885-ba08-9c39b28af2b0"
+        ],
+        "mb_albumid": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "mb_artistid": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "mb_artistids": [
+          "fc0d0976-e269-8885-ba08-9c39b28af2b0"
+        ],
+        "mb_releasegroupid": "82914a66-9b58-cb3f-1ef9-c8fa6f055d8e",
+        "mb_releasetrackid": "e63c1ca4-96e7-6b9c-3063-a6fa7580473c",
+        "mb_trackid": "936af400-b1d4-d1bd-f412-49bffa112155",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 8,
+        "original_year": 2013,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Marrow Verdant",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Marrow Bloom",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Marrow Verdant",
+        "album_id": null,
+        "albumartist": "Oskar Fenwright",
+        "albumartist_credit": "Oskar Fenwright",
+        "albumartist_sort": "Oskar Fenwright",
+        "albumartists": [
+          "Oskar Fenwright"
+        ],
+        "albumartists_credit": [
+          "Oskar Fenwright"
+        ],
+        "albumartists_sort": [
+          "Oskar Fenwright"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Oskar Fenwright",
+        "artist_credit": "Oskar Fenwright",
+        "artist_sort": "Oskar Fenwright",
+        "artists": [
+          "Oskar Fenwright"
+        ],
+        "artists_credit": [
+          "Oskar Fenwright"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Oskar Fenwright"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 199,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "mb_albumartistids": [
+          "fc0d0976-e269-8885-ba08-9c39b28af2b0"
+        ],
+        "mb_albumid": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "mb_artistid": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "mb_artistids": [
+          "fc0d0976-e269-8885-ba08-9c39b28af2b0"
+        ],
+        "mb_releasegroupid": "82914a66-9b58-cb3f-1ef9-c8fa6f055d8e",
+        "mb_releasetrackid": "dea98706-4893-cf32-c891-e8301c03b269",
+        "mb_trackid": "763d748c-d2aa-7dc4-2796-33fd8243b135",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 8,
+        "original_year": 2013,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Marrow Verdant",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Verdant Field",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Marrow Verdant",
+        "album_id": null,
+        "albumartist": "Oskar Fenwright",
+        "albumartist_credit": "Oskar Fenwright",
+        "albumartist_sort": "Oskar Fenwright",
+        "albumartists": [
+          "Oskar Fenwright"
+        ],
+        "albumartists_credit": [
+          "Oskar Fenwright"
+        ],
+        "albumartists_sort": [
+          "Oskar Fenwright"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Oskar Fenwright",
+        "artist_credit": "Oskar Fenwright",
+        "artist_sort": "Oskar Fenwright",
+        "artists": [
+          "Oskar Fenwright"
+        ],
+        "artists_credit": [
+          "Oskar Fenwright"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Oskar Fenwright"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 236,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "mb_albumartistids": [
+          "fc0d0976-e269-8885-ba08-9c39b28af2b0"
+        ],
+        "mb_albumid": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+        "mb_artistid": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "mb_artistids": [
+          "fc0d0976-e269-8885-ba08-9c39b28af2b0"
+        ],
+        "mb_releasegroupid": "82914a66-9b58-cb3f-1ef9-c8fa6f055d8e",
+        "mb_releasetrackid": "4bac60b9-9ece-418c-4fcf-fb42ac882b15",
+        "mb_trackid": "eca5a6cf-dc96-41ae-4301-2f1f500586e0",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 8,
+        "original_year": 2013,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Marrow Verdant",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Fenwright Hall",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2013
+      }
+    }
+  }
+}

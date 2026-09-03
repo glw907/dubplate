@@ -1,6 +1,23 @@
 {
   "entries": [
     {
+      "case_id": "admit-duplicate-candidate",
+      "album_id": "64d79b35-57f2-409d-a5d3-cdd7dc21d5a0",
+      "optimal_cost": 0.375,
+      "best_forbidden_cost": 1.3583333333333334,
+      "difference": 0.9833333333333334,
+      "unique": true
+    },
+    {
+      "case_id": "admit-zero-track-dropped",
+      "status": "skipped",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0,
+      "difference": 0,
+      "unique": false,
+      "reason": "record carries no candidate; a zero-track release is dropped by beets' own _add_candidate before the tie question can be asked"
+    },
+    {
       "case_id": "assign-extra-item",
       "album_id": "4e4ec843-7eb9-582a-bc84-746ca7c9f61f",
       "optimal_cost": 0,
@@ -206,6 +223,46 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.3333333333333333,
       "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "rec-gap-low",
+      "album_id": "b848535b-101e-4249-8a1f-02605f4d4a62",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3166666666666667,
+      "difference": 1.3166666666666667,
+      "unique": true
+    },
+    {
+      "case_id": "rec-max-rec-missing-tracks-downgrade",
+      "album_id": "39d3d0a4-d11c-4a8b-9690-0ae4ec1a5f1f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.46349206349206346,
+      "difference": 0.46349206349206346,
+      "unique": true
+    },
+    {
+      "case_id": "rec-none-small-gap",
+      "album_id": "789b36e3-27ae-4a1b-9405-50ea9ef6cfc0",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2722222222222224,
+      "difference": 1.2722222222222224,
+      "unique": true
+    },
+    {
+      "case_id": "rec-single-candidate-low",
+      "album_id": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3388888888888888,
+      "difference": 1.3388888888888888,
+      "unique": true
+    },
+    {
+      "case_id": "rec-strong-medium-boundary",
+      "album_id": "e716da4a-3fcf-45f0-9fbf-bbcb7eb16d03",
+      "optimal_cost": 0.3200015999999999,
+      "best_forbidden_cost": 1.2273504273504272,
+      "difference": 0.9073488273504273,
       "unique": true
     },
     {

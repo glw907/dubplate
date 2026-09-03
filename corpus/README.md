@@ -524,6 +524,76 @@ in both cases, not present at 0.
 | `track-id-matched` | the first item's `mb_trackid` overridden to its own candidate track's `recording.id`, copied verbatim out of the generated response before the first freeze: `track_id` reads 0 for that item, `tracks: 0`, distance 0, strong. | none |
 | `track-id-mismatched` | the same shape with the first item's `mb_trackid` overridden to an unrelated, well-formed id instead: `track_id` fires at full weight relative to the item's other three active components (`track_title`, `track_length`, `track_index`), `track_id: 0.4545` on that item alone, folding into `tracks: 0.0505`, crossing out of strong (the search fallback returns empty, the routine default), medium, skip. | none |
 
+### Family 14: candidate admission filters
+
+`admit-*`, 2 cases. `match.py`'s `_add_candidate` (l.331-380), the gate
+every candidate AlbumInfo passes through before `assign_items`/`distance`
+ever run on it: discard a release with zero tracks, and discard a
+release whose `(data_source, album_id)` identifier already sits in the
+results dict. Both filters run on a *fetched* `AlbumInfo`, after its own
+release lookup, so neither shape is reachable through `ReleaseSpec`
+alone; both cases hand-edit a response after synth (staleness-
+corrections ruling 3). `_add_candidate`'s duplicate check is provably
+unobservable in the derived record's candidate count on its own—
+`candidates: dict[identifier, AlbumMatch]` already overwrites a repeat
+key even without the explicit `if info.album_id and info.identifier in
+results: return` line, since assignment to the same dict key is
+idempotent—so `admit-duplicate-candidate`'s witness lives in the
+committed fixture itself: `responses/002.json`, a search document
+listing the same release id twice, verbatim, plus the request log
+proving the derivation needed no third release-lookup response to
+answer both entries (the shared URL replays the same committed body for
+every fetch, `internal/harness/stub`'s own stateless replay), the same
+request-log-as-witness move the corrections doc's ruling 5 sanctions
+for family 3's misflag case.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `admit-duplicate-candidate` | a 3-track release with every item's `data_source` overridden to `"Bandcamp"` (family 5's own recipe, `distance: 0.0875`, medium), falling to the search fallback: the hand-authored `responses/002.json` lists the release's own id twice in one search document rather than the routine empty result. Both entries resolve to the same fetched `AlbumInfo` (the stub replays `responses/001.json` for every request to that URL, no new response needed); `_add_candidate` admits the first and discards the second as a duplicate, leaving exactly one candidate in the record, identical to what a genuinely empty search would have produced. | `responses/002.json` is a non-empty search document (the release's own id, twice), reached only by hand: `harness synth` never emits a non-empty search body itself |
+| `admit-zero-track-dropped` | a normal 3-track release, synthesized and derived once to seed a well-formed response, then `responses/001.json` hand-edited to empty every medium's `tracks` array (`track-count: 0`) before the case's own freeze: the musicbrainz plugin parses a zero-track `AlbumInfo`, `_add_candidate` discards it outright (`if not info.tracks: return`), and the ID-lookup search never adds a single candidate. The routine empty search fallback finds nothing either, so the record carries no candidate at all: `recommendation: none`, `candidates: []`, the `min_candidates: 0` claims mode (`internal/harness/analysis/claims.go`), a skipped row in `ties.json` (auto-derived by `derive_ties.py`, staleness-corrections ruling 1), and a named skip in `proximity.json` (the flag's own zero-candidate guard, `internal/harness/analysis/proximity.go`'s `Flag`). | `responses/001.json`'s three `media[].tracks` arrays emptied (and `track-count` zeroed) after the first synth pass, before the case's own freeze |
+
+### Family 15: the recommendation and threshold boundary
+
+`rec-*`, 5 cases. `match.py:269-323`'s `_recommendation` and
+`config_default.yaml:167-169`'s threshold defaults (`strong_rec_thresh:
+0.04`, `medium_rec_thresh: 0.25`, `rec_gap_thresh: 0.25`), exercising
+every branch the function can take once a candidate set is fixed:
+single-candidate `low`, the large-gap `low`, the narrow-gap `none`
+("no conclusion"), and the `max_rec` downgrade—plus one case
+deliberately engineered to land within `internal/harness/analysis`'s
+own `ProximityEpsilon` (1e-6) of `strong_rec_thresh`, proving the
+`min_dist < strong_rec_thresh` comparison's strict inequality resolves
+a boundary-adjacent distance to medium, never strong. beets ships no
+unit test for `_recommendation` at all, so every shape here is modeled
+from the source and the shipped defaults, not ported. Every distance is
+computed by hand against the pinned `distance.py` before authoring: the
+album-level formula is `raw/D` where `D = album(3) + album_id(5) +
+artist(3) + N*tracks(2) + year(1)` for an N-track, single-medium,
+plain release (every other component absent), and a per-track
+`track_length` divergence is continuous and exactly solvable (`item`
+carries an arbitrary float length, so the ratio `diff/track_length_max`
+can be tuned to any real value in [0, 1]), which is what makes the
+strong/medium boundary case reachable to within `ProximityEpsilon` at
+all. `rec-max-rec-missing-tracks-downgrade` is deliberately distinct
+from family 2's own `complete-max-rec-boundary`: that case dilutes
+`unmatched_tracks` (an extra, unmatched item) across a large candidate;
+this one dilutes `missing_tracks` (a dropped item, leaving one candidate
+track unmatched) the same way, the downgrade's other configured key
+(`config_default.yaml`'s `max_rec` names both). No case in this family
+hand-edits a generated response's own release document; `rec-gap-low`
+and `rec-none-small-gap` each hand-author a non-empty search result and
+a second release's own full lookup response, the same two-extra-
+response shape family 10 uses, to give `_recommendation` the second
+candidate its branch needs.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `rec-single-candidate-low` | a 3-track release with every item's `album`/`albumartist` overridden to unrelated text: `distance: 0.2804` (`album: 0.1333`, `artist: 0.1471`), past `medium_rec_thresh`. The routine empty search fallback leaves exactly one candidate, so `_recommendation` takes its `elif len(results) == 1` branch: `low`, skip. | none |
+| `rec-max-rec-missing-tracks-downgrade` | a 12-track release with its first item dropped (`overrides: [{"op":"missing","index":0}]`): `missing_tracks: 0.0258` is the record's only nonzero penalty, `distance: 0.0258`, which basic thresholding alone would call strong—but `missing_tracks` sits in `max_rec`'s own table, so `_recommendation`'s downgrade loop caps the verdict at medium regardless of the raw distance, medium, skip. | none |
+| `rec-gap-low` | a 3-track release with every item's `album`/`albumartist` overridden (`distance: 0.3229`), falling to the search fallback: a hand-authored non-empty search result names one unrelated second release, fetched with its own full lookup (`responses/003.json`), scoring far worse against the same items (`distance: 0.9010`, driven by `album_id`'s own equality penalty plus its own album/artist/track mismatches). The gap between the two, `0.578`, clears `rec_gap_thresh` (0.25): `_recommendation`'s `elif results[1].distance - min_dist >= rec_gap_thresh` branch, low, skip. | `responses/002.json` (non-empty search result) and `responses/003.json` (the second candidate's own release lookup), family 10's own two-extra-response shape |
+| `rec-none-small-gap` | the same two-candidate construction, but the second release's own album, artist, track titles, lengths, and year are set to match the items' (already-overridden) values exactly: only `album_id` fires on it (`distance: 0.2778`, the equality penalty every search-found candidate whose id differs from the items' own `mb_albumid` always pays), landing *below* the first candidate's own `distance: 0.2915`. Both candidates clear `medium_rec_thresh`; their gap, `0.0137`, falls short of `rec_gap_thresh`: `_recommendation`'s final `else` branch, the "no conclusion" case, none, skip. | `responses/002.json` and `responses/003.json`, the same two-extra-response shape as `rec-gap-low` |
+| `rec-strong-medium-boundary` | a 2-track release with the first item's `length` overridden by an exactly-solved offset (`track_length` ratio 0.96 of `track_length_max`, the smaller candidate denominator a 2-track release gives making 0.04 reachable through this single component at all): `distance: 0.0400002`, 2e-7 above `strong_rec_thresh`. `_recommendation`'s `min_dist < strong_rec_thresh` is strict, so this resolves medium, not strong, despite sitting far closer to the strong boundary than any other case in the corpus; `internal/harness/analysis/proximity.json` acknowledges the flag by name. Medium, skip. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

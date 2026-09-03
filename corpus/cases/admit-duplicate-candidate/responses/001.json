@@ -1,0 +1,151 @@
+{
+  "id": "64d79b35-57f2-409d-a5d3-cdd7dc21d5a0",
+  "title": "Coalbrook Sessions",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2017-03-22",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Fen Ambrose",
+      "joinphrase": "",
+      "artist": {
+        "id": "08f9d8f4-dae3-0ab6-0a8f-971295e6907b",
+        "name": "Fen Ambrose",
+        "sort-name": "Fen Ambrose",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "205b6dd7-335b-38c0-923f-181c26d7ba24",
+    "title": "Coalbrook Sessions",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2017-03-22",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2017-03-22",
+      "area": {
+        "id": "1d8d39ab-6500-a98e-9937-26863dcfa79e",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "4808d12d-8e2b-442b-c4ac-a223f8a2f6c9",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 201000,
+          "artist-credit": null,
+          "recording": {
+            "id": "62f65f6f-5340-e9dd-6cfd-585d844133b2",
+            "title": "Coal Dust",
+            "length": 201000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fen Ambrose",
+                "joinphrase": "",
+                "artist": {
+                  "id": "08f9d8f4-dae3-0ab6-0a8f-971295e6907b",
+                  "name": "Fen Ambrose",
+                  "sort-name": "Fen Ambrose",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "b4d5f868-4403-3ee2-d3d0-b11bfbc86f4a",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 187000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7b77b8e5-7311-3f0f-c44a-313667875100",
+            "title": "Brook Line",
+            "length": 187000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fen Ambrose",
+                "joinphrase": "",
+                "artist": {
+                  "id": "08f9d8f4-dae3-0ab6-0a8f-971295e6907b",
+                  "name": "Fen Ambrose",
+                  "sort-name": "Fen Ambrose",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d4111013-a9b4-4e0c-3173-10dceee13425",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 244000,
+          "artist-credit": null,
+          "recording": {
+            "id": "83794ce8-7fa9-d8e1-0c4b-aba1efbbc96a",
+            "title": "Session Two",
+            "length": 244000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Fen Ambrose",
+                "joinphrase": "",
+                "artist": {
+                  "id": "08f9d8f4-dae3-0ab6-0a8f-971295e6907b",
+                  "name": "Fen Ambrose",
+                  "sort-name": "Fen Ambrose",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

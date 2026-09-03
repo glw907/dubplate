@@ -1,0 +1,93 @@
+{
+  "id": "admit-zero-track-dropped",
+  "input": {
+    "items": [
+      {
+        "album": "Hollow Ferry",
+        "albumartist": "Isolde Wrenfield",
+        "artist": "Isolde Wrenfield",
+        "length": 205,
+        "mb_albumid": "edb69baa-7a91-4298-9c9e-7e7980f2002e",
+        "title": "Ferry Crossing",
+        "track": 1,
+        "year": 2015
+      },
+      {
+        "album": "Hollow Ferry",
+        "albumartist": "Isolde Wrenfield",
+        "artist": "Isolde Wrenfield",
+        "length": 189,
+        "mb_albumid": "edb69baa-7a91-4298-9c9e-7e7980f2002e",
+        "title": "Hollow Bell",
+        "track": 2,
+        "year": 2015
+      },
+      {
+        "album": "Hollow Ferry",
+        "albumartist": "Isolde Wrenfield",
+        "artist": "Isolde Wrenfield",
+        "length": 227,
+        "mb_albumid": "edb69baa-7a91-4298-9c9e-7e7980f2002e",
+        "title": "Wrenfield Dusk",
+        "track": 3,
+        "year": 2015
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/edb69baa-7a91-4298-9c9e-7e7980f2002e?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28hollow+ferry%29+artist%3A%28isolde+wrenfield%29",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "none",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [],
+    "assignment": {},
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {}
+  }
+}

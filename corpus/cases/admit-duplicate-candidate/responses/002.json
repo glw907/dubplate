@@ -1,0 +1,55 @@
+{
+  "created": "2026-09-03T00:00:00.000Z",
+  "count": 2,
+  "offset": 0,
+  "releases": [
+    {
+      "id": "64d79b35-57f2-409d-a5d3-cdd7dc21d5a0",
+      "score": 100,
+      "title": "Coalbrook Sessions",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "name": "Fen Ambrose",
+          "artist": {
+            "id": "8d5f6e0a-8f0e-4e6a-9f1a-2c3d4e5f6a7b",
+            "name": "Fen Ambrose",
+            "sort-name": "Fen Ambrose"
+          }
+        }
+      ],
+      "release-group": {
+        "id": "6a7b8c9d-0e1f-4a2b-9c3d-4e5f6a7b8c9d",
+        "title": "Coalbrook Sessions",
+        "primary-type": "Album"
+      },
+      "date": "2017-03-22",
+      "country": "US",
+      "track-count": 3
+    },
+    {
+      "id": "64d79b35-57f2-409d-a5d3-cdd7dc21d5a0",
+      "score": 100,
+      "title": "Coalbrook Sessions",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "name": "Fen Ambrose",
+          "artist": {
+            "id": "8d5f6e0a-8f0e-4e6a-9f1a-2c3d4e5f6a7b",
+            "name": "Fen Ambrose",
+            "sort-name": "Fen Ambrose"
+          }
+        }
+      ],
+      "release-group": {
+        "id": "6a7b8c9d-0e1f-4a2b-9c3d-4e5f6a7b8c9d",
+        "title": "Coalbrook Sessions",
+        "primary-type": "Album"
+      },
+      "date": "2017-03-22",
+      "country": "US",
+      "track-count": 3
+    }
+  ]
+}

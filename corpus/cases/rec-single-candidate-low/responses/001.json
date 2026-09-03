@@ -1,0 +1,151 @@
+{
+  "id": "9ee93342-39bf-48d3-ab6f-00723977ba35",
+  "title": "Marrow Verdant",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2013-08-14",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Oskar Fenwright",
+      "joinphrase": "",
+      "artist": {
+        "id": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+        "name": "Oskar Fenwright",
+        "sort-name": "Oskar Fenwright",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "82914a66-9b58-cb3f-1ef9-c8fa6f055d8e",
+    "title": "Marrow Verdant",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2013-08-14",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2013-08-14",
+      "area": {
+        "id": "dfd37e81-6d32-13c3-52a3-994af1036812",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "e63c1ca4-96e7-6b9c-3063-a6fa7580473c",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 213000,
+          "artist-credit": null,
+          "recording": {
+            "id": "936af400-b1d4-d1bd-f412-49bffa112155",
+            "title": "Marrow Bloom",
+            "length": 213000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Oskar Fenwright",
+                "joinphrase": "",
+                "artist": {
+                  "id": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+                  "name": "Oskar Fenwright",
+                  "sort-name": "Oskar Fenwright",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "dea98706-4893-cf32-c891-e8301c03b269",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 199000,
+          "artist-credit": null,
+          "recording": {
+            "id": "763d748c-d2aa-7dc4-2796-33fd8243b135",
+            "title": "Verdant Field",
+            "length": 199000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Oskar Fenwright",
+                "joinphrase": "",
+                "artist": {
+                  "id": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+                  "name": "Oskar Fenwright",
+                  "sort-name": "Oskar Fenwright",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4bac60b9-9ece-418c-4fcf-fb42ac882b15",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 236000,
+          "artist-credit": null,
+          "recording": {
+            "id": "eca5a6cf-dc96-41ae-4301-2f1f500586e0",
+            "title": "Fenwright Hall",
+            "length": 236000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Oskar Fenwright",
+                "joinphrase": "",
+                "artist": {
+                  "id": "fc0d0976-e269-8885-ba08-9c39b28af2b0",
+                  "name": "Oskar Fenwright",
+                  "sort-name": "Oskar Fenwright",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

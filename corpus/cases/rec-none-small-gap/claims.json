@@ -1,0 +1,6 @@
+{
+  "best_album_id": "789b36e3-27ae-4a1b-9405-50ea9ef6cfc0",
+  "recommendation": "none",
+  "penalty_keys_nonzero": ["album_id"],
+  "penalty_keys_zero": ["album", "artist", "tracks", "year"]
+}

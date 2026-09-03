@@ -1,0 +1,8 @@
+{
+  "best_album_id": "39d3d0a4-d11c-4a8b-9690-0ae4ec1a5f1f",
+  "recommendation": "medium",
+  "penalty_keys_nonzero": ["missing_tracks"],
+  "penalty_keys_zero": ["album", "album_id", "artist", "tracks", "year"],
+  "extra_items_len": 0,
+  "extra_tracks_len": 1
+}

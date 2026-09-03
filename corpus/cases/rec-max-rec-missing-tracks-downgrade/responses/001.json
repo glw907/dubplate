@@ -1,0 +1,421 @@
+{
+  "id": "39d3d0a4-d11c-4a8b-9690-0ae4ec1a5f1f",
+  "title": "Twelvefold Harbor",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2019-06-30",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Renna Sable",
+      "joinphrase": "",
+      "artist": {
+        "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+        "name": "Renna Sable",
+        "sort-name": "Renna Sable",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "1a5d4b5e-131d-ff30-2d3c-73638b0d4831",
+    "title": "Twelvefold Harbor",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2019-06-30",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2019-06-30",
+      "area": {
+        "id": "e0b2147f-688a-885d-5ad0-43b17e877971",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 12,
+      "tracks": [
+        {
+          "id": "036ed6d2-8abd-10b5-bddb-23bc94b1376e",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 181000,
+          "artist-credit": null,
+          "recording": {
+            "id": "27b32dff-fa69-baf1-8791-c01c0bc4c939",
+            "title": "Aiden",
+            "length": 181000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d4383bb4-680e-b555-abee-94fbfa0ef1e0",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 182000,
+          "artist-credit": null,
+          "recording": {
+            "id": "efe895df-3d7f-01b2-963c-950d23087b28",
+            "title": "Birchwood",
+            "length": 182000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "c6943cda-ddd6-97de-0498-867867a32393",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 183000,
+          "artist-credit": null,
+          "recording": {
+            "id": "c5031ef5-2562-6ad4-ef84-9323cbb9e2b3",
+            "title": "Cascade",
+            "length": 183000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d38c8419-9ab7-6744-8c25-2e4c47aea2ff",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 184000,
+          "artist-credit": null,
+          "recording": {
+            "id": "b6b6ccd0-3e3b-ca05-d9c0-b1dc3bb7df9b",
+            "title": "Driftline",
+            "length": 184000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e4e02081-22d7-0f59-46c9-15d55745bd51",
+          "position": "5",
+          "number": "5",
+          "title": "",
+          "length": 185000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0a90dd88-7f93-d19f-fa1c-82bf85b68bfc",
+            "title": "Ember",
+            "length": 185000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "1431074b-88a0-5b19-3092-be7f2ea50366",
+          "position": "6",
+          "number": "6",
+          "title": "",
+          "length": 186000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d42eece2-62b8-46b7-7776-7b7a5be66345",
+            "title": "Fallow",
+            "length": 186000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "86eca351-c3b6-7586-aea0-00a87dd4dd7c",
+          "position": "7",
+          "number": "7",
+          "title": "",
+          "length": 187000,
+          "artist-credit": null,
+          "recording": {
+            "id": "adfc1832-f531-043d-1eb0-47514e41ac6b",
+            "title": "Granite",
+            "length": 187000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a88ed65a-ab00-4e99-4379-9dec8f085588",
+          "position": "8",
+          "number": "8",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f15f0566-5338-78a7-2393-199b0989ddfa",
+            "title": "Harbor",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "17ff32a7-f889-550e-f4cb-ff0f96898929",
+          "position": "9",
+          "number": "9",
+          "title": "",
+          "length": 189000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ac99bc5f-d79c-8576-576e-831c3a080c5a",
+            "title": "Ivory",
+            "length": 189000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "90334662-ea44-6a9b-b00c-3cf0abee155a",
+          "position": "10",
+          "number": "10",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e27cfd9e-290b-c26d-aef4-0cf7c1a521fe",
+            "title": "Juniper",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "381b278a-aef9-9a5e-37c5-9dd53d466663",
+          "position": "11",
+          "number": "11",
+          "title": "",
+          "length": 191000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f2b25a2c-9699-ab62-94a4-ff2c9708b31b",
+            "title": "Kestrel",
+            "length": 191000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d8132529-32e6-4681-66f6-220f897026b2",
+          "position": "12",
+          "number": "12",
+          "title": "",
+          "length": 192000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9e7398e2-5516-ef83-7d8a-9661c57e51a6",
+            "title": "Lantern",
+            "length": 192000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Renna Sable",
+                "joinphrase": "",
+                "artist": {
+                  "id": "57e8c0ea-9e0e-069d-a70a-d6f7a35529ec",
+                  "name": "Renna Sable",
+                  "sort-name": "Renna Sable",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

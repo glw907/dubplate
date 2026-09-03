@@ -1,3 +1,15 @@
 {
-  "entries": []
+  "entries": [
+    {
+      "case_id": "admit-zero-track-dropped",
+      "status": "skipped",
+      "reason": "the release beets looks up carries zero tracks (hand-edited into responses/001.json after synth); _add_candidate discards it before assignment, so the record carries no candidate to measure a boundary against, mirroring the tie ledger's own named skip for this case"
+    },
+    {
+      "case_id": "rec-strong-medium-boundary",
+      "status": "flagged",
+      "boundaries": ["strong_rec_thresh"],
+      "reason": "engineered via a single track's length divergence (2-track release, ratio bound at 0.96 of track_length_max) to land distance at 0.0400002, 2e-7 above strong_rec_thresh: the case's own point is proving match.py's strict less-than resolves this to medium, not strong"
+    }
+  ]
 }
