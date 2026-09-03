@@ -135,27 +135,58 @@ func TestGeneratedCaseRoundTripsThroughRealDerivation(t *testing.T) {
 	}
 }
 
-// TestGeneratedCaseWithEarlierOriginalDateDerivesANonzeroYearPenalty
+// TestGeneratedCaseWithEarlierOriginalDateDerivesASmallerYearPenalty
 // proves OriginalDate reaches a real derivation, not only the
-// generated document. beets/autotag/distance.py's year branch (with
+// generated document, by discriminating on its value rather than
+// merely its presence. beets/autotag/distance.py's year branch (with
 // preferred.original_year unset, the default both corpus profiles
 // leave it at) scores zero whenever the items' own year matches either
 // the release's year or the release-group's original year, so items
 // carrying the release's own year alone are not enough: this spec also
 // overrides every item's "year" tag away from both the release date's
 // year (1999, from Date) and the release-group's original year (1975,
-// from OriginalDate), landing on the diff/diff_max ratio branch, which
-// is where a nonzero "year" component comes from.
-func TestGeneratedCaseWithEarlierOriginalDateDerivesANonzeroYearPenalty(t *testing.T) {
-	original := "1975-06-15"
-	spec := minimalSpec()
-	spec.OriginalDate = &original
-	spec.Overrides = []Override{
+// when OriginalDate is set), landing on the diff/diff_max ratio branch,
+// which is where a nonzero "year" component comes from. Deriving the
+// identical spec twice, once with OriginalDate set and once left nil,
+// shows the derived output actually changes with the field: an earlier
+// original year widens distance.py's diff_max denominator, so the
+// OriginalDate run's penalty must land strictly below the nil run's. A
+// test that only checked "nonzero" would still pass with OriginalDate
+// deleted from release.go entirely, since the nil run alone is already
+// nonzero (both years differ from the item's overridden year).
+func TestGeneratedCaseWithEarlierOriginalDateDerivesASmallerYearPenalty(t *testing.T) {
+	yearOverrides := []Override{
 		{Op: OpField, Index: 0, Fields: cassette.ItemFields{"year": 1980}},
 		{Op: OpField, Index: 1, Fields: cassette.ItemFields{"year": 1980}},
 	}
 
-	c, doc, err := Build("synth-original-date-roundtrip", spec)
+	withOriginal := minimalSpec()
+	original := "1975-06-15"
+	withOriginal.OriginalDate = &original
+	withOriginal.Overrides = yearOverrides
+	withPenalty := derivedYearPenalty(t, "synth-original-date-set", withOriginal)
+
+	withoutOriginal := minimalSpec()
+	withoutOriginal.Overrides = yearOverrides
+	withoutPenalty := derivedYearPenalty(t, "synth-original-date-nil", withoutOriginal)
+
+	if withPenalty == 0 {
+		t.Errorf("year penalty (OriginalDate set) = 0, want nonzero")
+	}
+	if withoutPenalty == 0 {
+		t.Errorf("year penalty (OriginalDate nil) = 0, want nonzero")
+	}
+	if withPenalty >= withoutPenalty {
+		t.Errorf("year penalty (OriginalDate set) = %v, want strictly less than the OriginalDate-nil penalty %v: an earlier original year should widen distance.py's diff_max denominator", withPenalty, withoutPenalty)
+	}
+}
+
+// derivedYearPenalty builds and derives spec under id, returning the
+// single candidate's "year" penalty component.
+func derivedYearPenalty(t *testing.T, id string, spec *ReleaseSpec) float64 {
+	t.Helper()
+
+	c, doc, err := Build(id, spec)
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
@@ -178,9 +209,7 @@ func TestGeneratedCaseWithEarlierOriginalDateDerivesANonzeroYearPenalty(t *testi
 	if len(exp.Candidates) == 0 {
 		t.Fatal("candidates = 0, want the single looked-up release")
 	}
-	if got := exp.Candidates[0].Penalties["year"]; got == 0 {
-		t.Errorf("year penalty = 0, want nonzero: items carry %s's year while the release-group's original date is %s", spec.Date, original)
-	}
+	return exp.Candidates[0].Penalties["year"]
 }
 
 // TestMalformedReleaseDocumentFailsLoudly proves a generated case

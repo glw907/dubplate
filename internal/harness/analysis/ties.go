@@ -57,10 +57,10 @@ type TieEntry struct {
 	CaseID            string  `json:"case_id"`
 	Status            string  `json:"status,omitempty"`   // "" (measured) | skipped
 	AlbumID           string  `json:"album_id,omitempty"` // the candidate the tie question was asked of, Candidates[0]; empty on a skipped row
-	OptimalCost       float64 `json:"optimal_cost,omitempty"`
-	BestForbiddenCost float64 `json:"best_forbidden_cost,omitempty"`
-	Difference        float64 `json:"difference,omitempty"`
-	Unique            bool    `json:"unique,omitempty"`
+	OptimalCost       float64 `json:"optimal_cost"`
+	BestForbiddenCost float64 `json:"best_forbidden_cost"`
+	Difference        float64 `json:"difference"`
+	Unique            bool    `json:"unique"`
 	Disposition       string  `json:"disposition,omitempty"` // excluded | pinned; required when Unique is false, forbidden on a skipped row
 	Reason            string  `json:"reason,omitempty"`      // required when Disposition is set, or when Status is skipped
 }
