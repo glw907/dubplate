@@ -2,42 +2,53 @@
 
 ## Current state
 
-The greenfield dubplate-server build is the one active initiative, past
-its pivot: rung 1 (foundation) landed 2026-09-02, freezing the pre-pivot
-`cmd/`/`internal/`/`web/`/`e2e/` trees under `_salvage/` (tag
-`pre-greenfield`, read-only) and standing up `cmd/dubplate-server` with
-`internal/config`'s owned wall, `check`, and `doctor`. The family system
-is NOT live and will not be until the new server launches complete, Go
-matcher included. The box (5.78.148.42) runs Navidrome + cloudflared +
-the four guardian timers only; FileBrowser, the uploader serve, its
-Access apps, and the inbox hostname are all retired (2026-09-02).
-Remote: github.com/glw907/dubplate (private).
+The greenfield dubplate-server build is the one active initiative.
+Rungs 1 (foundation) and 2's passes 2a-2b are closed; pass 2c's
+real-catalog stratum is complete: corpus at 162 cases, 94 of the
+dossier's 96 primary rows (both misses recorded with reasons), all
+twelve capture batches accepted, zero divergences owed, everything
+re-deriving byte-exact. The two-code-lane execution model is
+ratified, adversarially folded, and governs from here (CLAUDE.md's
+re-keyed Build process section;
+specs/2026-09-03-parallel-build-approach.md revision 2). The family
+system is NOT live until launch. The box (5.78.148.42) runs
+Navidrome + cloudflared + guardian timers only. Remote:
+github.com/glw907/dubplate (private); 98 commits unpushed - push on
+Geoff's word.
 
 ## Rules for a new session in this repo
 
-1. The rulings doc (research/2026-09-02-greenfield-server-rulings.md)
-   carries the ratified rulings and approach A; read it first.
-2. Process: the build runs in session-scale arcs per CLAUDE.md's
-   "Build process" section: one session per arc, no clears inside
-   one, plans just-in-time, workflow mode a standing grant.
-3. Governing architecture: the ratified build spec
-   (specs/2026-09-02-greenfield-server-build.md, revision 2.1) owns
-   the 17-rung ladder; the organizer spec still governs purview, API
-   shape, and the ops seam. The login spec is source material; its
-   two reviews (research/2026-09-02-login-spec-reviews/) are auth
-   birth requirements, and the build spec wins every conflict.
-4. Process rule (Geoff, 2026-09-02): specs go to Geoff for review
-   BEFORE any adversarial review round or plan.
-5. The box is production for Geoff's own listening; quiet-box check
-   before writes; the library and beets DB stay protected by the
-   timers and R2 backups throughout the build.
+1. Read CLAUDE.md's Build process (re-keyed 2026-09-03), then the
+   parallel-approach spec above, then this file. The rulings doc
+   (research/2026-09-02-greenfield-server-rulings.md) grounds it all.
+2. The build spec (specs/2026-09-02-greenfield-server-build.md,
+   rev 2.1 as amended 2026-09-03) owns the ladder; the organizer
+   spec governs purview; specs go to Geoff BEFORE adversarial review.
+3. The live-executor check is the lane registry below, not pgrep.
+4. Box is production; quiet-box check before writes.
+
+## Lane registry
+
+- lane-1 (code, main tree): IDLE. Next: 2c tasks 16-17 (adversarial
+  strata probing the four pending bug hypotheses), 18 (locale +
+  #6358), 19a/19b (stock-config), 20 (close + Geoff's MARKDOWN
+  adjudication batch); all sequential (corpus-ledger contention).
+  Then 2d (plans/2026-09-03-rung-2d-file-level.md rev 2, ready).
+- lane-2 (code, worktree): BLOCKED until Phase 0a (fifteen
+  reverse-edge cells, research dispatch), 0b (rung 1b config
+  wall-row registry, own small plan), 0c (theme-variable contract +
+  embedded fonts) land per the folded proposal.
+- doc lane (main tree): IDLE.
 
 ## Open items (carried)
 
-- Rewrite post-mortem still owed.
-- Two albums in /srv/music/review/2026-08-31/geoff/ await manual review.
-- Age store: FILEBROWSER_ADMIN_PASSWORD orphaned (delete at next
-  sweep). Box: stale failed units, cosmetic; `systemctl reset-failed`.
+- Geoff at 2c close: the adjudication batch (four hypothesis rows +
+  any strata divergences). bug-threshold-boundary already disposed
+  oracle-correct by Geoff, in the ledger.
+- Rewrite post-mortem still owed; two albums in
+  /srv/music/review/2026-08-31/geoff/ await manual review;
+  FILEBROWSER_ADMIN_PASSWORD orphaned in age store; stale failed
+  units on the box (cosmetic).
 
 ## Pinned versions (looked up 2026-08-30)
 
@@ -47,47 +58,4 @@ Remote: github.com/glw907/dubplate (private).
 | cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
 | beets (box, via uv) | PyPI `beets` | `2.13.1` |
 
-### Next action (evidence-arc session)
-
-Pass 2b is executing from its plan (revision 2, committed 415c4d9;
-14 tasks, 61 synthetic cases, no owner touchpoints). Conductor seam
-ruling: machinery tasks 1-3 first, then a staleness check of case
-tasks 4-13 against the shipped machinery before dispatching them.
-Pass 2b is CLOSED (HISTORY has the ledger; commits cec3c12 →
-2219b19): all machinery, 61 structural cases, 68 total, everything
-re-deriving byte-exact; ≈5.8M of 6M spent, the 12M grant untouched.
-Pass 2c is planned (plans/2026-09-03-rung-2c-catalog-adversarial.md,
-revision 2, committed 25f0006 with review + inventory; 21 tasks,
-8M ceiling, checkpoint per task, one owner touchpoint: the
-adjudication batch at close, non-blocking) and EXECUTING. The fold
-split file-level derivation + chore docs to a future pass 2d with
-findings pre-ruled (recorded in the plan's Task 20 HISTORY draft).
-Done: 2c-1 (ledgers + checkers + 5 hypotheses), 2c-2 + facts channel
-(693d737, de1bf85), 2c-3 the dossier (e238293 + 74bed2d + 1b953c3:
-96 primary + 12 reserve rows, all fact-verified axes re-checked by
-the reviewer; 52 staged candidate dirs await the batches; Task 18
-host: real-nonlatin-utada-first-love). Quads 1-2 (batches 1-8)
-landed 62 of 64 cases, corpus at 130, zero divergences owed. Geoff's
-morning rulings applied: markdown adjudication batches;
-bug-threshold-boundary disposed oracle-correct (in the ledger);
-decoy sub-axis re-sourced same-release-group; theming and
-format-config rulings recorded in the spec. BATTERY STAND-DOWN (2026-09-03 ~13:10): the 11% watchdog fired
-mid-quad-3; the workflow was stopped cleanly. Landed before the
-stop: the derive 90m timeout (e27ec13), batch-4 reword (0d59821),
-batches 9-10 (0d88dbd, e8c26f2; corpus 146). Batch 11's implementer
-was killed mid-run (its half-written README edit reverted; tree
-clean). RESUME on AC power with:
-Workflow({scriptPath: ".../workflows/scripts/pass-execute-wf_7b67a426-6f1.js",
-resumeFromRunId: "wf_7b67a426-6f1", args: <the quad-3 args verbatim
-from the script file>}) - tasks 12-13 replay from cache, batch 11
-re-runs fresh (per the rung-1 orphan lesson, re-review batch 11
-fully). Then: batch 12, adversarial strata, #6358/locale,
-stock-config, close with Geoff's markdown batch.
-Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
-12M if needed; after 2b closes, proceed into 2c fully - plan
-just-in-time, run the live real-catalog captures (anonymous 1 req/s),
-author strata, and leave the first adjudication batch PREPARED and
-WAITING for his morning (never self-adjudicate). Extension: continue
-until a substantive input-gate; at such a gate, pivot to other tasks
-that advance the build without input rather than idling.
-Spend: 2a ≈1.75M/5M; 2b ≈3.5M (ceiling now 12M).
+Spend: 2a ≈1.75M/5M; 2b ≈5.8M/6M; 2c ≈5.4M/8M so far.
