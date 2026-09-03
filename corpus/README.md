@@ -896,6 +896,31 @@ none to Task 11), so the decoy-resourcing question does not arise
 here; see Tasks 4, 6, and 7 for that axis's three attempts and their
 outcomes.
 
+### Task 12 (batch 9)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-now-jukebox-classics` | VA/box-set | `c482f8d6-5788-471d-8a43-15e70438c0e5` | yes | no | *Now That's What I Call Jukebox Classics* (Various Artists, 4 discs, 100 tracks); capture-confirmed 4 discs. A genuine, tiny nonzero `tracks` string distance (`0.0013`) survives well inside `strong`, and its `comp: true` credit carries no `artist` penalty key at all, the same VA shape `real-boxset-stax-volt-singles` (Task 11) exercises. |
+| `real-classical-ashkenazy-nocturnes` | classical/compilation | `d2c9e620-83cc-32a3-a451-b5c695e805d1` | no | no | Vladimir Ashkenazy performing Chopin's Nocturnes (2-disc classical release, 21 tracks); a genuine, small nonzero `artist` string distance (`0.0143`) survives well inside `strong`, distinct from the axis's solo-instrument and conductor/orchestra rows in prior tasks. |
+| `real-compilation-abba-gold` | classical/compilation | `52cdc6f2-5942-430b-aff9-4c3496e1f893` | no | no | ABBA, *Gold: Greatest Hits* (a pop compilation with a non-Anglo-American artist of origin, Sweden); a clean zero-distance match. |
+| `real-genre-donna-summer-bad-girls` | genre/era spread | `3ace4fec-c949-460d-8af4-cd4b18749509` | no | no | Donna Summer, *Bad Girls* (US 1990 CD; disco); a clean zero-distance match. |
+| `real-genre-earth-wind-fire-way-of-world` | genre/era spread | `de2beff8-98a3-4030-a89e-e3e73d34a81a` | no | no | Earth, Wind & Fire, *That's the Way of the World* (US 1988 CD; soul/funk); a clean zero-distance match. |
+| `real-noise-live-pink-floyd-it1990` | MB-noise | `95e1a37c-6058-4d76-881f-f1c5033f925f` | no | no | Pink Floyd, *The Live Pink Floyd* (IT 1990, 1 disc, 5 tracks); MB Status: Bootleg, dossier item shape "sparse metadata". Matched its own captured source cleanly: every field projects and matches exactly, distance 0, strong, the same "sparse metadata is not itself a distance-moving property" reading Task 9's `real-noise-grateful-live-it1993` row already states. |
+| `real-nonlatin-girls-generation` | non-Latin | `e0e72b32-abe2-41da-95eb-ffba407145a9` | no | no | Girls' Generation, *Girls' Generation* (Korean; artist-credit is natively the hangul form itself, 소녀시대, with a documented `locale=en` alias "Girls' Generation"). Landed `medium`/`skip` on a nonzero `artist` string distance (`0.0765`) alone -- every other penalty key sits at zero -- which kept the id-based candidate below `strong_rec_thresh` and triggered beets' own search fallback. The matcher still correctly picked its own captured source over the four named decoy candidates the search surfaced, the nearest of which sat at `0.2253`, nowhere close to competitive. Converged over three capture rounds: the search itself (`limit=5`), a round of four named-candidate release lookups, and one further release lookup the search response also named. |
+| `real-reissue-catch-a-fire-deluxe` | reissue/remaster | `c6875ad6-bfd5-427c-a0e3-da7262b3d702` | yes | no | Bob Marley & The Wailers, *Catch a Fire* (2001 deluxe edition, 2 discs, 20 tracks); capture-confirmed release date 2001-01 against the release-group's own first-release-date 1973-04-13; a clean zero-distance match. |
+
+Seven of the eight rows above matched their own captured source and
+land `strong`/`apply`; `real-nonlatin-girls-generation` also matched
+its own captured source but lands `medium`/`skip` per its own row
+above (a nonzero `artist` string distance, not a wrong match -- it
+correctly rejected every decoy the search fallback surfaced). No
+confident wrong match appeared, so this batch owes no
+`adjudications.json` row. **Task 12 delivers all 8 dossier rows**; no
+reserve substitution was needed. This batch carries no two-release
+sub-axis row (the dossier assigns none to Task 12), so the
+decoy-resourcing question does not arise here; see Tasks 4, 6, and 7
+for that axis's three attempts and their outcomes.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

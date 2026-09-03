@@ -1,0 +1,2153 @@
+{
+  "id": "real-genre-donna-summer-bad-girls",
+  "input": {
+    "items": [
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 314.76,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "edade689-702e-4f66-9d0a-6d6af776acf8",
+        "title": "Hot Stuff",
+        "track": 1,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 295.106,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "5ba2c636-c4c1-4d51-8836-f58535bdf004",
+        "title": "Bad Girls",
+        "track": 2,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 239.026,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "b1c43607-3bc2-4d1a-a860-1c3a82452585",
+        "title": "Love Will Always Find You",
+        "track": 3,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 269.506,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "1686d169-bf31-49a0-8030-6c7e52bce756",
+        "title": "Walk Away",
+        "track": 4,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 280.8,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "d01d9cda-f3ac-48ca-8f6c-c10523c4e1aa",
+        "title": "Dim All the Lights",
+        "track": 5,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 276.533,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "9432bda1-3d1b-4669-9c95-a6d978856d49",
+        "title": "Journey to the Center of Your Heart",
+        "track": 6,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 252.226,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "d0ac4f91-fc7f-4bfc-8326-574d1cf8ca7e",
+        "title": "One Night in a Lifetime",
+        "track": 7,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 281.173,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "bcaf18b3-1b45-425f-8376-555fdf78eedf",
+        "title": "Can't Get to Sleep at Night",
+        "track": 8,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 214.693,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "741e115f-042c-4ca6-90bd-9052ec6744f6",
+        "title": "On My Honor",
+        "track": 9,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 305.64,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "d9e74cdf-1429-4555-a636-6c0aa852ce50",
+        "title": "There Will Always Be a You",
+        "track": 10,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 361.16,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "a52421b3-ecd9-48a2-a077-a4bb64bebfd7",
+        "title": "All Through the Night",
+        "track": 11,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 238.573,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "7258c5c6-bd51-4f29-9d93-03ad21f69f9a",
+        "title": "My Baby Understands",
+        "track": 12,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 292.733,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "b66f0fb9-b53e-4e78-9d07-ce34c186a375",
+        "title": "Our Love",
+        "track": 13,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 277.493,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "3d9097b8-168e-4416-a05a-9085acc2a1a6",
+        "title": "Lucky",
+        "track": 14,
+        "year": 1990
+      },
+      {
+        "album": "Bad Girls",
+        "albumartist": "Donna Summer",
+        "artist": "Donna Summer",
+        "length": 387.134,
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_trackid": "621e2fb2-46d5-434c-899e-83f02e63470a",
+        "title": "Sunset People",
+        "track": 15,
+        "year": 1990
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/3ace4fec-c949-460d-8af4-cd4b18749509?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR20201153;USMR17989008",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 314.76,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "1000fb4b-4e22-48e1-b13f-18abc2bc2bc1",
+        "mb_trackid": "edade689-702e-4f66-9d0a-6d6af776acf8",
+        "mb_workid": "f3721449-43b2-395e-8248-4deac6d84f4e",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hot Stuff",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "album version",
+        "tracktotal": 15,
+        "work": "Hot Stuff",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR20300379;USPR37900069;USRC11601540",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 295.106,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "3c1af0d8-e4d7-4bf4-8c3d-488545d803aa",
+        "mb_trackid": "5ba2c636-c4c1-4d51-8836-f58535bdf004",
+        "mb_workid": "e8fa5920-029c-4542-ac8b-f95eee4508ff",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [
+          "Dj Iraí Campos"
+        ],
+        "remixers_ids": [
+          "33e77e48-a799-493d-b5ee-9c35a970136f"
+        ],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Bad Girls",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "album / 12″ single version",
+        "tracktotal": 15,
+        "work": "Bad Girls",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125589",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 361.16,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "58435f12-f08c-4f9a-b0fd-12676e30a090",
+        "mb_trackid": "a52421b3-ecd9-48a2-a077-a4bb64bebfd7",
+        "mb_workid": "75eef491-0292-4266-9204-c23c039743e6",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "All Through the Night",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "All Through the Night",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Summer, Donna",
+        "composers": [
+          "Donna Summer"
+        ],
+        "composers_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR37970022",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 238.573,
+        "lyricists": [
+          "Donna Summer"
+        ],
+        "lyricists_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "18f0c321-5491-4a1a-a304-e51fa29b7a06",
+        "mb_trackid": "7258c5c6-bd51-4f29-9d93-03ad21f69f9a",
+        "mb_workid": "0d696a32-3fe6-4420-b579-2046de2c5ed0",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "My Baby Understands",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "My Baby Understands",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Moroder, Giorgio",
+        "composers": [
+          "Giorgio Moroder"
+        ],
+        "composers_ids": [
+          "38dd6337-19ae-4793-ab4b-313eff523457"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125591",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 292.733,
+        "lyricists": [
+          "Donna Summer"
+        ],
+        "lyricists_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "3ca3537d-5474-4be0-a512-6da3dce0571e",
+        "mb_trackid": "b66f0fb9-b53e-4e78-9d07-ce34c186a375",
+        "mb_workid": "a049c402-e481-438f-a57e-201fae58fda1",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Our Love",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Our Love",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Moroder, Giorgio",
+        "composers": [
+          "Giorgio Moroder"
+        ],
+        "composers_ids": [
+          "38dd6337-19ae-4793-ab4b-313eff523457"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125592",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 277.493,
+        "lyricists": [
+          "Joe Esposito",
+          "Eddie Hokenson",
+          "Bruce Sudano",
+          "Donna Summer"
+        ],
+        "lyricists_ids": [
+          "1d50c118-cab9-4eca-9d9c-1e7734c2cf32",
+          "9b6c5ec2-f317-43dd-a025-662fea331b3a",
+          "d35d0c57-5df7-49e1-bcfa-f000e9229090",
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "44c2d146-a1a3-441f-9951-2ec9b2ee0a8a",
+        "mb_trackid": "3d9097b8-168e-4416-a05a-9085acc2a1a6",
+        "mb_workid": "c33ed040-7a80-4e43-9e4c-0fb61c2ef021",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Lucky",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Lucky",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR20201040",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 387.134,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "582ec791-15f6-4d93-98ef-2be2579b8870",
+        "mb_trackid": "621e2fb2-46d5-434c-899e-83f02e63470a",
+        "mb_workid": "df5c0d7a-7613-41b9-9f3c-62676a63ea5b",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sunset People",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Sunset People",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Moroder, Giorgio",
+        "composers": [
+          "Giorgio Moroder"
+        ],
+        "composers_ids": [
+          "38dd6337-19ae-4793-ab4b-313eff523457"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125595",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 239.026,
+        "lyricists": [
+          "Pete Bellotte"
+        ],
+        "lyricists_ids": [
+          "31721fa4-d6bc-4f09-b0bb-464b27e2ad3c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "a0b010f6-35a0-4726-8f9e-d9b0aff2b217",
+        "mb_trackid": "b1c43607-3bc2-4d1a-a860-1c3a82452585",
+        "mb_workid": "b8666f6a-deb3-45ac-a531-ec359031e44f",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Love Will Always Find You",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Love Will Always Find You",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bellotte, Pete, Faltermeyer, Harold",
+        "composers": [
+          "Pete Bellotte",
+          "Harold Faltermeyer"
+        ],
+        "composers_ids": [
+          "31721fa4-d6bc-4f09-b0bb-464b27e2ad3c",
+          "3bd08e76-bf53-4b16-82ee-63f95ca5cdae"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USIR20300377",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 269.506,
+        "lyricists": [
+          "Pete Bellotte"
+        ],
+        "lyricists_ids": [
+          "31721fa4-d6bc-4f09-b0bb-464b27e2ad3c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "9bb8874e-c88e-4cb5-a1a5-03b653caa212",
+        "mb_trackid": "1686d169-bf31-49a0-8030-6c7e52bce756",
+        "mb_workid": "1ff1bf02-4d66-4477-a397-e3448a5815c8",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Walk Away",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Walk Away",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Summer, Donna",
+        "composers": [
+          "Donna Summer"
+        ],
+        "composers_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USPR37908054",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 280.8,
+        "lyricists": [
+          "Donna Summer"
+        ],
+        "lyricists_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "f6b3bc07-41d7-4382-9a06-dfb1a6f5c923",
+        "mb_trackid": "d01d9cda-f3ac-48ca-8f6c-c10523c4e1aa",
+        "mb_workid": "d11b1190-caaf-4b63-bd9d-a81c69490032",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dim All the Lights",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Dim All the Lights",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Moroder, Giorgio",
+        "composers": [
+          "Giorgio Moroder"
+        ],
+        "composers_ids": [
+          "38dd6337-19ae-4793-ab4b-313eff523457"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125598",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 276.533,
+        "lyricists": [
+          "Pete Bellotte"
+        ],
+        "lyricists_ids": [
+          "31721fa4-d6bc-4f09-b0bb-464b27e2ad3c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "5d4cf9ee-b5bc-4662-91b7-3614696c78bc",
+        "mb_trackid": "9432bda1-3d1b-4669-9c95-a6d978856d49",
+        "mb_workid": "2caebaa1-95b6-462c-8dff-5f0d56a16192",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Journey to the Center of Your Heart",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Journey to the Centre of Your Heart",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bellotte, Pete, Faltermeyer, Harold",
+        "composers": [
+          "Pete Bellotte",
+          "Harold Faltermeyer"
+        ],
+        "composers_ids": [
+          "31721fa4-d6bc-4f09-b0bb-464b27e2ad3c",
+          "3bd08e76-bf53-4b16-82ee-63f95ca5cdae"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125599",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 252.226,
+        "lyricists": [
+          "Pete Bellotte"
+        ],
+        "lyricists_ids": [
+          "31721fa4-d6bc-4f09-b0bb-464b27e2ad3c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "c061353f-8be3-4842-9a5a-5ed596e57d9e",
+        "mb_trackid": "d0ac4f91-fc7f-4bfc-8326-574d1cf8ca7e",
+        "mb_workid": "7cf46442-bcd7-47b7-ab6b-e6ff4c13cffe",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "One Night in a Lifetime",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "One Night in a Lifetime",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125600",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 281.173,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "870f153d-0bec-47de-b98c-0a1953fba6d9",
+        "mb_trackid": "bcaf18b3-1b45-425f-8376-555fdf78eedf",
+        "mb_workid": "18471c82-d806-4866-bf8f-9d086a86bf81",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Can't Get to Sleep at Night",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "Can’t Get to Sleep at Night",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Faltermeyer, Harold, Summer, Donna",
+        "composers": [
+          "Harold Faltermeyer",
+          "Donna Summer"
+        ],
+        "composers_ids": [
+          "3bd08e76-bf53-4b16-82ee-63f95ca5cdae",
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125601",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 214.693,
+        "lyricists": [
+          "Bruce Sudano",
+          "Donna Summer"
+        ],
+        "lyricists_ids": [
+          "d35d0c57-5df7-49e1-bcfa-f000e9229090",
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "77578c81-9616-4e07-8a74-997cb8cf3866",
+        "mb_trackid": "741e115f-042c-4ca6-90bd-9052ec6744f6",
+        "mb_workid": "b82c3020-5ad0-4801-88c8-3f859127eb75",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "On My Honor",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "On My Honor",
+        "work_disambig": "",
+        "year": 1979
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Bad Girls",
+        "album_id": null,
+        "albumartist": "Donna Summer",
+        "albumartist_credit": "Donna Summer",
+        "albumartist_sort": "Summer, Donna",
+        "albumartists": [
+          "Donna Summer"
+        ],
+        "albumartists_credit": [
+          "Donna Summer"
+        ],
+        "albumartists_sort": [
+          "Summer, Donna"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Donna Summer",
+        "artist_credit": "Donna Summer",
+        "artist_sort": "Summer, Donna",
+        "artists": [
+          "Donna Summer"
+        ],
+        "artists_credit": [
+          "Donna Summer"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Summer, Donna"
+        ],
+        "asin": "",
+        "barcode": "042282255723",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "822 557-2 M-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Summer, Donna",
+        "composers": [
+          "Donna Summer"
+        ],
+        "composers_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USWWW0125588",
+        "label": "Casablanca Records",
+        "language": "eng",
+        "length": 305.64,
+        "lyricists": [
+          "Donna Summer"
+        ],
+        "lyricists_ids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_albumartistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_albumid": "3ace4fec-c949-460d-8af4-cd4b18749509",
+        "mb_artistid": "b60527cc-54f3-4bbe-a01b-dcf34c95ae14",
+        "mb_artistids": [
+          "b60527cc-54f3-4bbe-a01b-dcf34c95ae14"
+        ],
+        "mb_releasegroupid": "f7568cc7-4c09-3a47-abbc-593e7aaac7d6",
+        "mb_releasetrackid": "9b517e0f-e07c-4eb3-a72d-7bc3493e42aa",
+        "mb_trackid": "d9e74cdf-1429-4555-a636-6c0aa852ce50",
+        "mb_workid": "b6eeb4f0-aa9b-4490-a880-fd9f67aed9b5",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 4,
+        "original_year": 1979,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Bad Girls",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "There Will Always Be a You",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 15,
+        "work": "There Will Always Be a You",
+        "work_disambig": "",
+        "year": 1979
+      }
+    }
+  }
+}

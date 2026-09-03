@@ -1,0 +1,776 @@
+{
+  "id": "real-noise-live-pink-floyd-it1990",
+  "input": {
+    "items": [
+      {
+        "album": "The Live Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "length": 247.133,
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_trackid": "d32a6103-1e46-4691-a8d3-104ae0502b3f",
+        "title": "Reaction in G",
+        "track": 1,
+        "year": 1990
+      },
+      {
+        "album": "The Live Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "length": 672.04,
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_trackid": "83f77de7-8cdb-413d-9c1c-2a887ee2c2e2",
+        "title": "Pow R. Toc H.",
+        "track": 2,
+        "year": 1990
+      },
+      {
+        "album": "The Live Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "length": 278.16,
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_trackid": "d423dfe0-6c91-4317-bb1e-ba120b75c417",
+        "title": "An Old Woman With a Casket",
+        "track": 3,
+        "year": 1990
+      },
+      {
+        "album": "The Live Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "length": 532.706,
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_trackid": "a73fc20e-a8c4-4504-b4d0-72855a90bc1a",
+        "title": "Set the Controls for the Heart of the Sun",
+        "track": 4,
+        "year": 1990
+      },
+      {
+        "album": "The Live Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "length": 840.893,
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_trackid": "f4fc3219-3a5e-46c6-a5a6-b5cc2489bec1",
+        "title": "Interstellar Overdrive",
+        "track": 5,
+        "year": 1990
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/95e1a37c-6058-4d76-881f-f1c5033f925f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Live Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BG CD 014",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Bull Dog",
+        "language": "eng",
+        "length": 247.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "75991efc-0461-3c41-9b23-b81f72c3df89",
+        "mb_releasetrackid": "41dcf9ba-94b5-3eea-b657-72f00d7572b3",
+        "mb_trackid": "d32a6103-1e46-4691-a8d3-104ae0502b3f",
+        "mb_workid": "fff9cefc-d3fb-4b31-a0b5-3968e1121eb7",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1990,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Live Pink Floyd",
+        "releasegroupdisambig": "live, 1967-11-13: Oude-Ahoy Hallen, Rotterdam, The Netherlands",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Reaction in G",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1967-11-13: Ahoy Heliport, Rotterdam, Netherlands",
+        "tracktotal": 5,
+        "work": "Reaction in G",
+        "work_disambig": "",
+        "year": 1990
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Live Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BG CD 014",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Barrett, Syd, Mason, Nick, Waters, Roger, Wright, Richard",
+        "composers": [
+          "Syd Barrett",
+          "Nick Mason",
+          "Roger Waters",
+          "Richard Wright"
+        ],
+        "composers_ids": [
+          "12327d75-47d5-45d9-84c2-3760b9210c17",
+          "d6c37074-0155-46a3-8af2-338a4f625afc",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "6f7e36da-79d8-4219-990d-8e9224d04ebc"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Bull Dog",
+        "language": "eng",
+        "length": 672.04,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "75991efc-0461-3c41-9b23-b81f72c3df89",
+        "mb_releasetrackid": "ff1a48a8-20b2-3d08-b722-526dd8f8224e",
+        "mb_trackid": "83f77de7-8cdb-413d-9c1c-2a887ee2c2e2",
+        "mb_workid": "df2d00b6-7490-3319-ab13-d171d68bc680",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1990,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Live Pink Floyd",
+        "releasegroupdisambig": "live, 1967-11-13: Oude-Ahoy Hallen, Rotterdam, The Netherlands",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pow R. Toc H.",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1967-11-13: Oude-Ahoy Hallen, Rotterdam, Netherlands",
+        "tracktotal": 5,
+        "work": "Pow R. Toc H.",
+        "work_disambig": "",
+        "year": 1990
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Live Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BG CD 014",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Barrett, Syd",
+        "composers": [
+          "Syd Barrett"
+        ],
+        "composers_ids": [
+          "12327d75-47d5-45d9-84c2-3760b9210c17"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Bull Dog",
+        "language": "eng",
+        "length": 278.16,
+        "lyricists": [
+          "Syd Barrett"
+        ],
+        "lyricists_ids": [
+          "12327d75-47d5-45d9-84c2-3760b9210c17"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "75991efc-0461-3c41-9b23-b81f72c3df89",
+        "mb_releasetrackid": "4beff334-2448-36cd-8dad-41f3ba831628",
+        "mb_trackid": "d423dfe0-6c91-4317-bb1e-ba120b75c417",
+        "mb_workid": "83dd7f55-ac7b-48e0-a927-e23f3a60159a",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1990,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Live Pink Floyd",
+        "releasegroupdisambig": "live, 1967-11-13: Oude-Ahoy Hallen, Rotterdam, The Netherlands",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "An Old Woman With a Casket",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1967-11-13: Ahoy Heliport, Rotterdam, Netherlands",
+        "tracktotal": 5,
+        "work": "Scream Thy Last Scream",
+        "work_disambig": "",
+        "year": 1990
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Live Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BG CD 014",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Bull Dog",
+        "language": "eng",
+        "length": 532.706,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "75991efc-0461-3c41-9b23-b81f72c3df89",
+        "mb_releasetrackid": "bdf75279-5976-35c6-a365-53b3e681d2ad",
+        "mb_trackid": "a73fc20e-a8c4-4504-b4d0-72855a90bc1a",
+        "mb_workid": "d3302d28-9720-35b4-a423-74569bccaf73",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1990,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Live Pink Floyd",
+        "releasegroupdisambig": "live, 1967-11-13: Oude-Ahoy Hallen, Rotterdam, The Netherlands",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Set the Controls for the Heart of the Sun",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "live, 1967-11-13: Ahoy Heliport, Rotterdam, Netherlands",
+        "tracktotal": 5,
+        "work": "Set the Controls for the Heart of the Sun",
+        "work_disambig": "",
+        "year": 1990
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "The Live Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BG CD 014",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Barrett, Syd, Mason, Nick, Waters, Roger, Wright, Richard",
+        "composers": [
+          "Syd Barrett",
+          "Nick Mason",
+          "Roger Waters",
+          "Richard Wright"
+        ],
+        "composers_ids": [
+          "12327d75-47d5-45d9-84c2-3760b9210c17",
+          "d6c37074-0155-46a3-8af2-338a4f625afc",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "6f7e36da-79d8-4219-990d-8e9224d04ebc"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Bull Dog",
+        "language": "eng",
+        "length": 840.893,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "75991efc-0461-3c41-9b23-b81f72c3df89",
+        "mb_releasetrackid": "4131599a-7f4d-31c2-9a32-ea745c7c2d8d",
+        "mb_trackid": "f4fc3219-3a5e-46c6-a5a6-b5cc2489bec1",
+        "mb_workid": "5548659f-43e8-30b9-9a90-701bcaadeef6",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1990,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "The Live Pink Floyd",
+        "releasegroupdisambig": "live, 1967-11-13: Oude-Ahoy Hallen, Rotterdam, The Netherlands",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Interstellar Overdrive",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "live, 1967-11-13: Ahoy Heliport, Rotterdam, Netherlands",
+        "tracktotal": 5,
+        "work": "Interstellar Overdrive",
+        "work_disambig": "",
+        "year": 1990
+      }
+    }
+  }
+}

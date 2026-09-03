@@ -266,6 +266,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-now-jukebox-classics",
+      "album_id": "c482f8d6-5788-471d-8a43-15e70438c0e5",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2,
+      "difference": 1.2,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-nuggets-1965-1968",
       "album_id": "f5ebc3e1-4c2d-46d1-8f42-563a3fdc3653",
       "optimal_cost": 0,
@@ -306,6 +314,14 @@
       "unique": true
     },
     {
+      "case_id": "real-classical-ashkenazy-nocturnes",
+      "album_id": "d2c9e620-83cc-32a3-a451-b5c695e805d1",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0806451612903227,
+      "difference": 1.0806451612903227,
+      "unique": true
+    },
+    {
       "case_id": "real-classical-gould-goldberg-1981",
       "album_id": "00383a0d-7ea6-4554-8d9f-5df3e3074e4f",
       "optimal_cost": 0,
@@ -335,6 +351,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.1433566433566433,
       "difference": 1.1433566433566433,
+      "unique": true
+    },
+    {
+      "case_id": "real-compilation-abba-gold",
+      "album_id": "52cdc6f2-5942-430b-aff9-4c3496e1f893",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4354066985645932,
+      "difference": 1.4354066985645932,
       "unique": true
     },
     {
@@ -423,6 +447,22 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5454545454545454,
       "difference": 1.5454545454545454,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-donna-summer-bad-girls",
+      "album_id": "3ace4fec-c949-460d-8af4-cd4b18749509",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4928229665071768,
+      "difference": 1.4928229665071768,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-earth-wind-fire-way-of-world",
+      "album_id": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5683393939393937,
+      "difference": 1.5683393939393937,
       "unique": true
     },
     {
@@ -554,6 +594,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-live-pink-floyd-it1990",
+      "album_id": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.8133142857142859,
+      "difference": 1.8133142857142859,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-pink-floyd-de1994",
       "album_id": "030654bc-4039-4030-905a-fac00a8a9b94",
       "optimal_cost": 0,
@@ -610,6 +658,14 @@
       "unique": true
     },
     {
+      "case_id": "real-nonlatin-girls-generation",
+      "album_id": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.5,
+      "unique": true
+    },
+    {
       "case_id": "real-nonlatin-hamasaki-ayumi",
       "album_id": "21e8a65f-9568-40c6-9d61-a6715e5124e7",
       "optimal_cost": 8.222900550429962,
@@ -663,6 +719,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5291866028708134,
       "difference": 1.5291866028708134,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-catch-a-fire-deluxe",
+      "album_id": "c6875ad6-bfd5-427c-a0e3-da7262b3d702",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1,
+      "difference": 1,
       "unique": true
     },
     {

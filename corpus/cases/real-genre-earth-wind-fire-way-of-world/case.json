@@ -1,0 +1,1189 @@
+{
+  "id": "real-genre-earth-wind-fire-way-of-world",
+  "input": {
+    "items": [
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 163,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "7d418f2a-d819-479b-8ab1-656a9efaa3e1",
+        "title": "Shining Star",
+        "track": 1,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 342,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "7862547b-93bc-4696-96b3-db3595a65726",
+        "title": "That’s the Way of the World",
+        "track": 2,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 198.2,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "c351940d-36a6-4b71-a15b-ef542c828578",
+        "title": "Happy Feelin’",
+        "track": 3,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 395,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "419c58a3-768f-4b57-b002-97d213b0a318",
+        "title": "All About Love",
+        "track": 4,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 219,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "125525c4-7fce-4bde-96a4-aee4dd2df0fb",
+        "title": "Yearnin’ Learnin’",
+        "track": 5,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 299.36,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "eaf013dd-0000-4ee6-a7fb-0ae40288e9c2",
+        "title": "Reasons",
+        "track": 6,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 309.373,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "9c597830-d577-4fe9-aec9-d643e3636fbf",
+        "title": "Africano",
+        "track": 7,
+        "year": 1988
+      },
+      {
+        "album": "That’s the Way of the World",
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "artist": "Earth, Wind \u0026 Fire",
+        "length": 378.493,
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_trackid": "c129e3f4-3653-467a-a67f-c33bc912e6cb",
+        "title": "See the Light",
+        "track": 8,
+        "year": 1988
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/de2beff8-98a3-4030-a89e-e3e73d34a81a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Earth, Wind \u0026 Fire",
+          "Charles Stepney"
+        ],
+        "arrangers_ids": [
+          "535afeda-2538-435d-9dd1-5e10be586774",
+          "1bc69d11-fd48-4866-8999-adeeb283f08c"
+        ],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USMI17500629;USSM17400206;USSM17400579;USSM17500629;USSM19701868;USSM19803681",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 163,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "fb2fc11b-77b7-4050-9061-69cd8d11402c",
+        "mb_trackid": "7d418f2a-d819-479b-8ab1-656a9efaa3e1",
+        "mb_workid": "c99f02eb-27f6-3b0c-aad9-b366d27c5371",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Shining Star",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Shining Star",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Earth, Wind \u0026 Fire",
+          "Charles Stepney"
+        ],
+        "arrangers_ids": [
+          "535afeda-2538-435d-9dd1-5e10be586774",
+          "1bc69d11-fd48-4866-8999-adeeb283f08c"
+        ],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10214606;USSM17400205;USSM17400502;USSM17500558;USSM17500628;USSM19803682",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 342,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "12ee2467-0020-4fae-8a98-bb35d6ee5d3a",
+        "mb_trackid": "7862547b-93bc-4696-96b3-db3595a65726",
+        "mb_workid": "001da00b-d7b8-38fe-867a-9a24ca093f7f",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "That’s the Way of the World",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "That’s the Way of the World",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Earth, Wind \u0026 Fire",
+          "Charles Stepney"
+        ],
+        "arrangers_ids": [
+          "535afeda-2538-435d-9dd1-5e10be586774",
+          "1bc69d11-fd48-4866-8999-adeeb283f08c"
+        ],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Bailey, Philip, McKay, Al, White, Maurice",
+        "composers": [
+          "Philip Bailey",
+          "Al McKay",
+          "Maurice White"
+        ],
+        "composers_ids": [
+          "f4b25300-be93-49bc-9d44-15f9de480f50",
+          "20ed1946-1317-4f9e-ae72-817548b4ace2",
+          "e16cc224-7803-46cb-8615-ccf9068199a1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 198.2,
+        "lyricists": [
+          "Larry Dunn",
+          "Verdine White"
+        ],
+        "lyricists_ids": [
+          "089c8b5a-ce58-403f-a2b1-83f3688a4dd0",
+          "25cf214c-0fb4-45e7-b58b-bf975d2a3eef"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "bf1672bd-2612-49cc-80bd-21c1e2ee1074",
+        "mb_trackid": "c351940d-36a6-4b71-a15b-ef542c828578",
+        "mb_workid": "4eb291c6-fe4a-4749-a1b8-4d1b3a8636fd",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Happy Feelin’",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Happy Feelin’",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 395,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "ab8d397d-66e2-4b9c-9818-bf91c52c5fbd",
+        "mb_trackid": "419c58a3-768f-4b57-b002-97d213b0a318",
+        "mb_workid": "7fb38e17-c7aa-4fb9-8a83-7f13d62fb581",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "All About Love",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "extended version",
+        "tracktotal": 8,
+        "work": "All About Love",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Earth, Wind \u0026 Fire",
+          "Charles Stepney"
+        ],
+        "arrangers_ids": [
+          "535afeda-2538-435d-9dd1-5e10be586774",
+          "1bc69d11-fd48-4866-8999-adeeb283f08c"
+        ],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17400663",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 219,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "dad11a8f-5c46-45c4-91b1-8d467252bc44",
+        "mb_trackid": "125525c4-7fce-4bde-96a4-aee4dd2df0fb",
+        "mb_workid": "10921525-265f-4453-b596-542caf446de2",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Yearnin’ Learnin’",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Yearnin’ Learnin’",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Earth, Wind \u0026 Fire",
+          "Charles Stepney"
+        ],
+        "arrangers_ids": [
+          "535afeda-2538-435d-9dd1-5e10be586774",
+          "1bc69d11-fd48-4866-8999-adeeb283f08c"
+        ],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17400204;USSM17400664;USSM17500630;USSM19803690",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 299.36,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "48f0fc80-f217-4a04-96b9-a5a289e8dba7",
+        "mb_trackid": "eaf013dd-0000-4ee6-a7fb-0ae40288e9c2",
+        "mb_workid": "1621b0e9-edf6-4423-bbf4-a815507e8df0",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Reasons",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Reasons",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [
+          "Earth, Wind \u0026 Fire",
+          "Charles Stepney"
+        ],
+        "arrangers_ids": [
+          "535afeda-2538-435d-9dd1-5e10be586774",
+          "1bc69d11-fd48-4866-8999-adeeb283f08c"
+        ],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17400665",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 309.373,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "d370a634-5cb0-451c-92ab-462adc9dee3e",
+        "mb_trackid": "9c597830-d577-4fe9-aec9-d643e3636fbf",
+        "mb_workid": "6a6eeb5e-783b-4a5f-93cb-dc76ea68f544",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Africano",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Africano",
+        "work_disambig": "",
+        "year": 1975
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "That’s the Way of the World",
+        "album_id": null,
+        "albumartist": "Earth, Wind \u0026 Fire",
+        "albumartist_credit": "Earth, Wind \u0026 Fire",
+        "albumartist_sort": "Earth, Wind \u0026 Fire",
+        "albumartists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumartists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "soundtrack"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Earth, Wind \u0026 Fire",
+        "artist_credit": "Earth, Wind \u0026 Fire",
+        "artist_sort": "Earth, Wind \u0026 Fire",
+        "artists": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_credit": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Earth, Wind \u0026 Fire"
+        ],
+        "asin": "",
+        "barcode": "074643328029",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CK 33280",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 378.493,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_albumartistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_albumid": "de2beff8-98a3-4030-a89e-e3e73d34a81a",
+        "mb_artistid": "535afeda-2538-435d-9dd1-5e10be586774",
+        "mb_artistids": [
+          "535afeda-2538-435d-9dd1-5e10be586774"
+        ],
+        "mb_releasegroupid": "e9845207-8ae3-36db-b0e1-2efcdb46687d",
+        "mb_releasetrackid": "6bca0fb8-d552-41ad-8be5-b3a52bb0b744",
+        "mb_trackid": "c129e3f4-3653-467a-a67f-c33bc912e6cb",
+        "mb_workid": "c979fe49-0a8a-4dba-b5aa-a2c8e8cb7741",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 3,
+        "original_year": 1975,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "That’s the Way of the World",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "See the Light",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "See the Light",
+        "work_disambig": "",
+        "year": 1975
+      }
+    }
+  }
+}
