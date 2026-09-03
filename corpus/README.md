@@ -796,8 +796,8 @@ three attempts and their outcomes.
 | `real-nonlatin-hamasaki-ayumi` | non-Latin | `d30ced90-bd8e-4b52-9c9e-7ccabc511d0f` | no | no | Ayumi Hamasaki, *HAMASAKI AYUMI* (Japanese; native kanji artist-credit 浜崎あゆみ with a documented `locale=en` alias "Ayumi Hamasaki"). Landed `low`/`skip` on a completely unrelated release, not its own captured source. See the finding below. |
 | `real-reissue-pet-sounds-1990` | reissue/remaster | `4a1f176d-4e05-4276-9afb-d9324d31601f` | yes | no | The Beach Boys, *Pet Sounds* (1990 CD reissue); capture-confirmed release date 1990 against the release-group's own first-release-date 1966-05-16; a clean zero-distance match. |
 
-Seven of the eight rows above matched their own captured source: six
-land `strong`/`apply`, and `real-nonlatin-hamasaki-ayumi` (below) is the
+Seven of the eight rows above matched their own captured source and
+land `strong`/`apply`; `real-nonlatin-hamasaki-ayumi` (below) is the
 exception. No confident (`strong`) wrong match appeared, so this batch
 owes no `adjudications.json` row under the standing findings duty, which
 is scoped to a `strong` recommendation on a wrong release; the one
