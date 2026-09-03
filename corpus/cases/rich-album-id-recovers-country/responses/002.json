@@ -1,0 +1,31 @@
+{
+  "created": "2026-09-03T00:00:00.000Z",
+  "count": 1,
+  "offset": 0,
+  "releases": [
+    {
+      "id": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+      "score": 100,
+      "title": "Harrow Vale Session",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "name": "Petra Lindqvist",
+          "artist": {
+            "id": "3f2e1d0c-9b8a-7c6d-5e4f-3a2b1c0d9e8f",
+            "name": "Petra Lindqvist",
+            "sort-name": "Petra Lindqvist"
+          }
+        }
+      ],
+      "release-group": {
+        "id": "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f",
+        "title": "Harrow Vale Session",
+        "primary-type": "Album"
+      },
+      "date": "2011-02-14",
+      "country": "DE",
+      "track-count": 3
+    }
+  ]
+}

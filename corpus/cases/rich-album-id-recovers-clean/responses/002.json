@@ -1,0 +1,31 @@
+{
+  "created": "2026-09-03T00:00:00.000Z",
+  "count": 1,
+  "offset": 0,
+  "releases": [
+    {
+      "id": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+      "score": 100,
+      "title": "Tidewell Chronicle",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "name": "Marek Colvin",
+          "artist": {
+            "id": "8d5f6e0a-8f0e-4e6a-9f1a-2c3d4e5f6a7b",
+            "name": "Marek Colvin",
+            "sort-name": "Marek Colvin"
+          }
+        }
+      ],
+      "release-group": {
+        "id": "6a7b8c9d-0e1f-4a2b-9c3d-4e5f6a7b8c9d",
+        "title": "Tidewell Chronicle",
+        "primary-type": "Album"
+      },
+      "date": "2016-09-09",
+      "country": "CA",
+      "track-count": 3
+    }
+  ]
+}

@@ -1,0 +1,468 @@
+{
+  "id": "rich-country-item-absent",
+  "input": {
+    "items": [
+      {
+        "album": "Cinder Bay Wanderings",
+        "albumartist": "Orla Ashgrove",
+        "artist": "Orla Ashgrove",
+        "length": 176,
+        "mb_albumid": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "title": "Harbor Light",
+        "track": 1,
+        "year": 2012
+      },
+      {
+        "album": "Cinder Bay Wanderings",
+        "albumartist": "Orla Ashgrove",
+        "artist": "Orla Ashgrove",
+        "length": 203,
+        "mb_albumid": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "title": "Cinder Path",
+        "track": 2,
+        "year": 2012
+      },
+      {
+        "album": "Cinder Bay Wanderings",
+        "albumartist": "Orla Ashgrove",
+        "artist": "Orla Ashgrove",
+        "length": 194,
+        "mb_albumid": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "title": "Wander Home",
+        "track": 3,
+        "year": 2012
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/8c2b1c42-052b-4136-89df-32d003c3333a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Cinder Bay Wanderings",
+        "album_id": null,
+        "albumartist": "Orla Ashgrove",
+        "albumartist_credit": "Orla Ashgrove",
+        "albumartist_sort": "Orla Ashgrove",
+        "albumartists": [
+          "Orla Ashgrove"
+        ],
+        "albumartists_credit": [
+          "Orla Ashgrove"
+        ],
+        "albumartists_sort": [
+          "Orla Ashgrove"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Orla Ashgrove",
+        "artist_credit": "Orla Ashgrove",
+        "artist_sort": "Orla Ashgrove",
+        "artists": [
+          "Orla Ashgrove"
+        ],
+        "artists_credit": [
+          "Orla Ashgrove"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Orla Ashgrove"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 9,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 176,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "6501e753-e73c-263a-522a-caac99115fe1",
+        "mb_albumartistids": [
+          "6501e753-e73c-263a-522a-caac99115fe1"
+        ],
+        "mb_albumid": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "mb_artistid": "6501e753-e73c-263a-522a-caac99115fe1",
+        "mb_artistids": [
+          "6501e753-e73c-263a-522a-caac99115fe1"
+        ],
+        "mb_releasegroupid": "f8c10736-0fdf-9f51-aeaa-38585f1c2ab6",
+        "mb_releasetrackid": "6415931b-eb22-ce96-4799-d49b45017972",
+        "mb_trackid": "2c18d3db-70d1-7b1b-ceb3-17622c7b9129",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 9,
+        "original_month": 3,
+        "original_year": 2012,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Cinder Bay Wanderings",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Harbor Light",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2012
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Cinder Bay Wanderings",
+        "album_id": null,
+        "albumartist": "Orla Ashgrove",
+        "albumartist_credit": "Orla Ashgrove",
+        "albumartist_sort": "Orla Ashgrove",
+        "albumartists": [
+          "Orla Ashgrove"
+        ],
+        "albumartists_credit": [
+          "Orla Ashgrove"
+        ],
+        "albumartists_sort": [
+          "Orla Ashgrove"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Orla Ashgrove",
+        "artist_credit": "Orla Ashgrove",
+        "artist_sort": "Orla Ashgrove",
+        "artists": [
+          "Orla Ashgrove"
+        ],
+        "artists_credit": [
+          "Orla Ashgrove"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Orla Ashgrove"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 9,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 203,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "6501e753-e73c-263a-522a-caac99115fe1",
+        "mb_albumartistids": [
+          "6501e753-e73c-263a-522a-caac99115fe1"
+        ],
+        "mb_albumid": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "mb_artistid": "6501e753-e73c-263a-522a-caac99115fe1",
+        "mb_artistids": [
+          "6501e753-e73c-263a-522a-caac99115fe1"
+        ],
+        "mb_releasegroupid": "f8c10736-0fdf-9f51-aeaa-38585f1c2ab6",
+        "mb_releasetrackid": "8752982d-74c3-d238-e18b-b386625290f8",
+        "mb_trackid": "8ece5111-4dd4-cbf3-dc8c-97d7ea1b17cf",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 9,
+        "original_month": 3,
+        "original_year": 2012,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Cinder Bay Wanderings",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Cinder Path",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2012
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Cinder Bay Wanderings",
+        "album_id": null,
+        "albumartist": "Orla Ashgrove",
+        "albumartist_credit": "Orla Ashgrove",
+        "albumartist_sort": "Orla Ashgrove",
+        "albumartists": [
+          "Orla Ashgrove"
+        ],
+        "albumartists_credit": [
+          "Orla Ashgrove"
+        ],
+        "albumartists_sort": [
+          "Orla Ashgrove"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Orla Ashgrove",
+        "artist_credit": "Orla Ashgrove",
+        "artist_sort": "Orla Ashgrove",
+        "artists": [
+          "Orla Ashgrove"
+        ],
+        "artists_credit": [
+          "Orla Ashgrove"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Orla Ashgrove"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 9,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 194,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "6501e753-e73c-263a-522a-caac99115fe1",
+        "mb_albumartistids": [
+          "6501e753-e73c-263a-522a-caac99115fe1"
+        ],
+        "mb_albumid": "8c2b1c42-052b-4136-89df-32d003c3333a",
+        "mb_artistid": "6501e753-e73c-263a-522a-caac99115fe1",
+        "mb_artistids": [
+          "6501e753-e73c-263a-522a-caac99115fe1"
+        ],
+        "mb_releasegroupid": "f8c10736-0fdf-9f51-aeaa-38585f1c2ab6",
+        "mb_releasetrackid": "b7745402-ff6f-5718-5faa-d63c25bc090c",
+        "mb_trackid": "37e666cf-b068-47ef-dec4-1116b2466ebf",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 9,
+        "original_month": 3,
+        "original_year": 2012,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Cinder Bay Wanderings",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wander Home",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2012
+      }
+    }
+  }
+}

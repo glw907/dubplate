@@ -354,6 +354,81 @@ live smoke case's coincidental non-divergence never exercises.
 | `year-matches-original-not-release` | the same release/original-date divergence with every item's `year` overridden to the original year (1978) instead: matching now goes through the tuple's other member, `album_info.original_year`; `year: 0`, distance 0, strong—the natural counterpart to `year-matches-release-not-original`, proving both tuple members independently zero the penalty. | none |
 | `year-reissue-ratio-penalty` | a release/original-date divergence (1999 release, 1975 original) with every item's `year` tag overridden to a third value (1990) matching neither: the ratio `elif` fires with `diff_max` keyed off the true original year 1975, not the release year, `year: 0.0098`, still comfortably strong—the genuine-divergence instance of the ratio branch the live smoke case's coincidental non-divergence never reaches. | none |
 
+### Family 8: country component
+
+`rich-country-*`, 2 cases. `distance.py:496-502`'s `country` branch (the
+`preferred.countries` priority list is empty under both shipped
+profiles, so every case here takes the `elif likelies["country"] and
+album_info.country` string-distance path, never the priority one),
+exercising `add_string` on a two-letter code. `harness synth` never
+sets a derived item's own `country` tag, so the item-absent direction
+of the family's one-sided case is free; the candidate-absent direction
+would need a response hand-edit, since `ReleaseSpec.Country` is a
+required field (unlike `Label`/`CatalogNumber`/`Disambiguation` below),
+so it is not attempted here (staleness-corrections Task 10 note). No
+case in this family hand-edits a generated response.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `rich-country-mismatch` | a release with `country: "GB"`; every item's `country` overridden to `"US"`: `country: 0.027`, the sole nonzero component, still strong. | none |
+| `rich-country-item-absent` | the same shape with no item-side `country` override at all: `likelies["country"]` is falsy, so the branch never fires and `country` is absent from the record's penalties entirely, distance 0, strong. | none |
+
+### Family 9: label, catalog number, and album disambiguation components
+
+`rich-tags-*`, 3 cases. `distance.py:505-518`'s three structurally
+identical `add_string` branches (`label`, `catalognum`,
+`albumdisambig`), each gated on `likelies[field] and
+album_info.field`. `ReleaseSpec.Label`, `.CatalogNumber`, and
+`.Disambiguation` are all optional (`omitempty`), so both the
+present-both and the one-sided shapes are reachable directly through
+the spec; no case in this family hand-edits a generated response.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `rich-tags-present-match` | a release carrying a label, catalog number, and disambiguation comment; every item overridden to the same three values verbatim: all three components present at 0, distance 0, strong. | none |
+| `rich-tags-present-mismatch` | the same release with every item overridden to three different values instead: all three components fire nonzero (`albumdisambig: 0.021`, `catalognum: 0.026`, `label: 0.015`), distance 0.062, crossing out of strong (the search fallback returns empty, the routine default), medium, skip. | none |
+| `rich-tags-item-absent` | the same release with no item-side overrides for any of the three fields at all: all three `likelies[field]` values are falsy, so all three components are absent from the record's penalties, distance 0, strong. | none |
+
+### Family 10: `album_id` component and the wrong-ID-then-search-recovers path
+
+`rich-album-id-recovers-*`, 2 cases, the pass's only shapes whose
+search response deliberately returns a release. `distance.py:521-524`
+fires `add_equality("album_id", likelies["mb_albumid"],
+album_info.album_id)` for every candidate; on an ordinary ID-lookup
+candidate the two sides are always the same value by construction (the
+looked-up release's own id), so the component reads 0 in every other
+case in this corpus. The only way to observe it fire is the recovery
+path itself: an item set that carries a genuinely wrong, unanimous
+`mb_albumid` (so `match_by_id` still finds a consensus and issues the
+lookup, per match.py:252-266) resolving to a real but unrelated
+release, scoring poorly enough that the ID match never returns early
+(match.py:436-442) and the search fallback runs, finds the correct
+release, and fetches it with its own full release lookup
+(match.py:432-442, `metadata_plugins.candidates`'s
+`albums_for_ids` follow-up)—a second candidate that still carries
+the item set's own wrong `mb_albumid` as its `likelies` value, firing
+`album_id` nonzero even on the winning candidate. Every request pinned
+beets issues still resolves to a committed 200 per the Global
+Constraint: the wrong release's own lookup, the non-empty search
+result, and the recovered release's own lookup are three separate
+response files, one more than the routine empty-search default costs.
+Both cases go through `harness synth`'s independent-items mode
+(`ReleaseSpec.Items` set directly): the item set is built once against
+a normal, correctly-tagged release spec, then its `mb_albumid` is
+substituted to the wrong value before it becomes the case's own
+`items`, and `allow_album_id_override` is never needed on this route,
+since the fencing rule only guards the `Overrides` path. Both
+candidates in the frozen record demonstrate the same contrast: the
+looked-up (wrong) release scores heavily across `album`/`artist`/
+`tracks`/`year` with `album_id: 0`, while the recovered (correct)
+release scores 0 on every field except `album_id` (and, in the second
+case, `country`), and wins on distance regardless.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `rich-album-id-recovers-clean` | items match the recovered release's content exactly (title, length, track, artist, album, year) except the shared wrong `mb_albumid`: after recovery, `album_id: 0.278` is the sole nonzero penalty on the winning candidate, isolating the component cleanly; `distance: 0.278`, `recommendation: none` (`match.py`'s own gap-threshold branch: past `medium_rec_thresh` with a single-candidate margin over the wrong release too small to call it `low`), skip. | none |
+| `rich-album-id-recovers-country` | the same recovery shape with every item's `country` also overridden to mismatch the recovered release's own (folding family 8's component into the recovery path): the winning candidate carries both `album_id: 0.270` and `country: 0.027` nonzero, `distance: 0.297`, `recommendation: none`, skip. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

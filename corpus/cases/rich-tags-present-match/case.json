@@ -1,0 +1,480 @@
+{
+  "id": "rich-tags-present-match",
+  "input": {
+    "items": [
+      {
+        "album": "Nettle Row Broadcasts",
+        "albumartist": "Vesna Corrigan",
+        "albumdisambig": "reissue",
+        "artist": "Vesna Corrigan",
+        "catalognum": "BCR-221",
+        "label": "Basalt Colonnade Records",
+        "length": 210,
+        "mb_albumid": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "title": "Nettle Row",
+        "track": 1,
+        "year": 2018
+      },
+      {
+        "album": "Nettle Row Broadcasts",
+        "albumartist": "Vesna Corrigan",
+        "albumdisambig": "reissue",
+        "artist": "Vesna Corrigan",
+        "catalognum": "BCR-221",
+        "label": "Basalt Colonnade Records",
+        "length": 197,
+        "mb_albumid": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "title": "Broadcast Hour",
+        "track": 2,
+        "year": 2018
+      },
+      {
+        "album": "Nettle Row Broadcasts",
+        "albumartist": "Vesna Corrigan",
+        "albumdisambig": "reissue",
+        "artist": "Vesna Corrigan",
+        "catalognum": "BCR-221",
+        "label": "Basalt Colonnade Records",
+        "length": 182,
+        "mb_albumid": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "title": "Static Bloom",
+        "track": 3,
+        "year": 2018
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/54cafabc-119c-47dc-88af-754be5ca4232?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "albumdisambig": 0,
+          "artist": 0,
+          "catalognum": 0,
+          "label": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nettle Row Broadcasts",
+        "album_id": null,
+        "albumartist": "Vesna Corrigan",
+        "albumartist_credit": "Vesna Corrigan",
+        "albumartist_sort": "Vesna Corrigan",
+        "albumartists": [
+          "Vesna Corrigan"
+        ],
+        "albumartists_credit": [
+          "Vesna Corrigan"
+        ],
+        "albumartists_sort": [
+          "Vesna Corrigan"
+        ],
+        "albumdisambig": "reissue",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vesna Corrigan",
+        "artist_credit": "Vesna Corrigan",
+        "artist_sort": "Vesna Corrigan",
+        "artists": [
+          "Vesna Corrigan"
+        ],
+        "artists_credit": [
+          "Vesna Corrigan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vesna Corrigan"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BCR-221",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Basalt Colonnade Records",
+        "language": "eng",
+        "length": 210,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "412a7259-5b97-bab0-0577-a4af15fed88a",
+        "mb_albumartistids": [
+          "412a7259-5b97-bab0-0577-a4af15fed88a"
+        ],
+        "mb_albumid": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "mb_artistid": "412a7259-5b97-bab0-0577-a4af15fed88a",
+        "mb_artistids": [
+          "412a7259-5b97-bab0-0577-a4af15fed88a"
+        ],
+        "mb_releasegroupid": "9efac62e-3e43-e13a-660d-5cf52629f849",
+        "mb_releasetrackid": "8a9b3dd9-5539-6d6b-5933-601420bdea5d",
+        "mb_trackid": "fa06cd10-01d4-ef73-22b8-0c27e29ddda7",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 8,
+        "original_year": 2018,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nettle Row Broadcasts",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Nettle Row",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2018
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nettle Row Broadcasts",
+        "album_id": null,
+        "albumartist": "Vesna Corrigan",
+        "albumartist_credit": "Vesna Corrigan",
+        "albumartist_sort": "Vesna Corrigan",
+        "albumartists": [
+          "Vesna Corrigan"
+        ],
+        "albumartists_credit": [
+          "Vesna Corrigan"
+        ],
+        "albumartists_sort": [
+          "Vesna Corrigan"
+        ],
+        "albumdisambig": "reissue",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vesna Corrigan",
+        "artist_credit": "Vesna Corrigan",
+        "artist_sort": "Vesna Corrigan",
+        "artists": [
+          "Vesna Corrigan"
+        ],
+        "artists_credit": [
+          "Vesna Corrigan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vesna Corrigan"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BCR-221",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Basalt Colonnade Records",
+        "language": "eng",
+        "length": 197,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "412a7259-5b97-bab0-0577-a4af15fed88a",
+        "mb_albumartistids": [
+          "412a7259-5b97-bab0-0577-a4af15fed88a"
+        ],
+        "mb_albumid": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "mb_artistid": "412a7259-5b97-bab0-0577-a4af15fed88a",
+        "mb_artistids": [
+          "412a7259-5b97-bab0-0577-a4af15fed88a"
+        ],
+        "mb_releasegroupid": "9efac62e-3e43-e13a-660d-5cf52629f849",
+        "mb_releasetrackid": "f8d4e82e-3a37-b692-70f2-170f372d1bff",
+        "mb_trackid": "52285c86-a716-75f3-5046-49ab41078a22",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 8,
+        "original_year": 2018,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nettle Row Broadcasts",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Broadcast Hour",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2018
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nettle Row Broadcasts",
+        "album_id": null,
+        "albumartist": "Vesna Corrigan",
+        "albumartist_credit": "Vesna Corrigan",
+        "albumartist_sort": "Vesna Corrigan",
+        "albumartists": [
+          "Vesna Corrigan"
+        ],
+        "albumartists_credit": [
+          "Vesna Corrigan"
+        ],
+        "albumartists_sort": [
+          "Vesna Corrigan"
+        ],
+        "albumdisambig": "reissue",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vesna Corrigan",
+        "artist_credit": "Vesna Corrigan",
+        "artist_sort": "Vesna Corrigan",
+        "artists": [
+          "Vesna Corrigan"
+        ],
+        "artists_credit": [
+          "Vesna Corrigan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vesna Corrigan"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "BCR-221",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Basalt Colonnade Records",
+        "language": "eng",
+        "length": 182,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "412a7259-5b97-bab0-0577-a4af15fed88a",
+        "mb_albumartistids": [
+          "412a7259-5b97-bab0-0577-a4af15fed88a"
+        ],
+        "mb_albumid": "54cafabc-119c-47dc-88af-754be5ca4232",
+        "mb_artistid": "412a7259-5b97-bab0-0577-a4af15fed88a",
+        "mb_artistids": [
+          "412a7259-5b97-bab0-0577-a4af15fed88a"
+        ],
+        "mb_releasegroupid": "9efac62e-3e43-e13a-660d-5cf52629f849",
+        "mb_releasetrackid": "26ebf658-aea8-0721-d39c-2537d77062bb",
+        "mb_trackid": "8e3a35cd-d04f-a64d-8850-30bb4a4cb450",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 8,
+        "original_year": 2018,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nettle Row Broadcasts",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Static Bloom",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2018
+      }
+    }
+  }
+}

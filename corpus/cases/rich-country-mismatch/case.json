@@ -1,0 +1,472 @@
+{
+  "id": "rich-country-mismatch",
+  "input": {
+    "items": [
+      {
+        "album": "Slate Harbor Sessions",
+        "albumartist": "Feldspar Rowan",
+        "artist": "Feldspar Rowan",
+        "country": "US",
+        "length": 201,
+        "mb_albumid": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "title": "Low Tide Signal",
+        "track": 1,
+        "year": 2015
+      },
+      {
+        "album": "Slate Harbor Sessions",
+        "albumartist": "Feldspar Rowan",
+        "artist": "Feldspar Rowan",
+        "country": "US",
+        "length": 188,
+        "mb_albumid": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "title": "Granite Weather",
+        "track": 2,
+        "year": 2015
+      },
+      {
+        "album": "Slate Harbor Sessions",
+        "albumartist": "Feldspar Rowan",
+        "artist": "Feldspar Rowan",
+        "country": "US",
+        "length": 219,
+        "mb_albumid": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "title": "Coastal Static",
+        "track": 3,
+        "year": 2015
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/4829e09d-980a-4542-a3b6-da05d0cc91dc?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "distance": 0.02702702702702703,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "country": 0.02702702702702703,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Slate Harbor Sessions",
+        "album_id": null,
+        "albumartist": "Feldspar Rowan",
+        "albumartist_credit": "Feldspar Rowan",
+        "albumartist_sort": "Feldspar Rowan",
+        "albumartists": [
+          "Feldspar Rowan"
+        ],
+        "albumartists_credit": [
+          "Feldspar Rowan"
+        ],
+        "albumartists_sort": [
+          "Feldspar Rowan"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Feldspar Rowan",
+        "artist_credit": "Feldspar Rowan",
+        "artist_sort": "Feldspar Rowan",
+        "artists": [
+          "Feldspar Rowan"
+        ],
+        "artists_credit": [
+          "Feldspar Rowan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Feldspar Rowan"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 201,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "mb_albumartistids": [
+          "3b479d07-4b5c-406a-4a59-462631767aee"
+        ],
+        "mb_albumid": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "mb_artistid": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "mb_artistids": [
+          "3b479d07-4b5c-406a-4a59-462631767aee"
+        ],
+        "mb_releasegroupid": "0a37af69-a2e4-7334-f1d0-126c7b0af048",
+        "mb_releasetrackid": "f304aa51-2ecc-ee11-d363-9730d214c601",
+        "mb_trackid": "ea2678cf-4a06-a9a1-39b9-c27316550f62",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Slate Harbor Sessions",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Low Tide Signal",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Slate Harbor Sessions",
+        "album_id": null,
+        "albumartist": "Feldspar Rowan",
+        "albumartist_credit": "Feldspar Rowan",
+        "albumartist_sort": "Feldspar Rowan",
+        "albumartists": [
+          "Feldspar Rowan"
+        ],
+        "albumartists_credit": [
+          "Feldspar Rowan"
+        ],
+        "albumartists_sort": [
+          "Feldspar Rowan"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Feldspar Rowan",
+        "artist_credit": "Feldspar Rowan",
+        "artist_sort": "Feldspar Rowan",
+        "artists": [
+          "Feldspar Rowan"
+        ],
+        "artists_credit": [
+          "Feldspar Rowan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Feldspar Rowan"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 188,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "mb_albumartistids": [
+          "3b479d07-4b5c-406a-4a59-462631767aee"
+        ],
+        "mb_albumid": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "mb_artistid": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "mb_artistids": [
+          "3b479d07-4b5c-406a-4a59-462631767aee"
+        ],
+        "mb_releasegroupid": "0a37af69-a2e4-7334-f1d0-126c7b0af048",
+        "mb_releasetrackid": "4f94e98c-defc-2e73-4cee-1ca8a8386936",
+        "mb_trackid": "ef38410e-1974-f0fc-8812-65ace2fbd324",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Slate Harbor Sessions",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Granite Weather",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Slate Harbor Sessions",
+        "album_id": null,
+        "albumartist": "Feldspar Rowan",
+        "albumartist_credit": "Feldspar Rowan",
+        "albumartist_sort": "Feldspar Rowan",
+        "albumartists": [
+          "Feldspar Rowan"
+        ],
+        "albumartists_credit": [
+          "Feldspar Rowan"
+        ],
+        "albumartists_sort": [
+          "Feldspar Rowan"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Feldspar Rowan",
+        "artist_credit": "Feldspar Rowan",
+        "artist_sort": "Feldspar Rowan",
+        "artists": [
+          "Feldspar Rowan"
+        ],
+        "artists_credit": [
+          "Feldspar Rowan"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Feldspar Rowan"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 12,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 219,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "mb_albumartistids": [
+          "3b479d07-4b5c-406a-4a59-462631767aee"
+        ],
+        "mb_albumid": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+        "mb_artistid": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "mb_artistids": [
+          "3b479d07-4b5c-406a-4a59-462631767aee"
+        ],
+        "mb_releasegroupid": "0a37af69-a2e4-7334-f1d0-126c7b0af048",
+        "mb_releasetrackid": "4e767e14-c0ea-7faa-4ef8-490bc0ed40bc",
+        "mb_trackid": "40a26ae7-3c74-e9f0-f748-1ea1eb819d82",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 12,
+        "original_month": 5,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Slate Harbor Sessions",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Coastal Static",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      }
+    }
+  }
+}

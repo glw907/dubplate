@@ -1,0 +1,158 @@
+{
+  "id": "f9aca3eb-f142-40d1-8f2e-60f1f311eb49",
+  "title": "Founder's Creek Tapes",
+  "status": "Official",
+  "disambiguation": "radio edit",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2019-11-02",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Iona Petrel",
+      "joinphrase": "",
+      "artist": {
+        "id": "6fba13f1-14d0-10bf-1ecb-0b15debd2088",
+        "name": "Iona Petrel",
+        "sort-name": "Iona Petrel",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "1a4a6ed1-9212-6be1-8fa6-5e278141b5bb",
+    "title": "Founder's Creek Tapes",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2019-11-02",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [
+    {
+      "catalog-number": "QLR-004",
+      "label": {
+        "name": "Quarry Line Records"
+      }
+    }
+  ],
+  "release-events": [
+    {
+      "date": "2019-11-02",
+      "area": {
+        "id": "4ddbf0e6-a3e5-b501-8b4b-f37e90ecd297",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "b6c251b5-cf36-63ef-bca7-e031868ed86d",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e7e43a6c-4e3f-b26b-73ae-3513ec5c5a16",
+            "title": "Founder's Creek",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Iona Petrel",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6fba13f1-14d0-10bf-1ecb-0b15debd2088",
+                  "name": "Iona Petrel",
+                  "sort-name": "Iona Petrel",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "6c0b4ad2-081f-0d8a-3f59-5374e6b31b31",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 191000,
+          "artist-credit": null,
+          "recording": {
+            "id": "190a0f01-faa0-d9a9-6438-fd27e4aabd90",
+            "title": "Tape Hiss",
+            "length": 191000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Iona Petrel",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6fba13f1-14d0-10bf-1ecb-0b15debd2088",
+                  "name": "Iona Petrel",
+                  "sort-name": "Iona Petrel",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "f5760694-dc4e-ba1e-f064-f3e6d02b9f07",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 224000,
+          "artist-credit": null,
+          "recording": {
+            "id": "830fe626-a54b-7695-cdc3-20d0f3850b83",
+            "title": "Quarry Line",
+            "length": 224000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Iona Petrel",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6fba13f1-14d0-10bf-1ecb-0b15debd2088",
+                  "name": "Iona Petrel",
+                  "sort-name": "Iona Petrel",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

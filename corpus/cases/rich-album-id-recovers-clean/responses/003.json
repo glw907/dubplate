@@ -1,0 +1,151 @@
+{
+  "id": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+  "title": "Tidewell Chronicle",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "CA",
+  "date": "2016-09-09",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Marek Colvin",
+      "joinphrase": "",
+      "artist": {
+        "id": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "name": "Marek Colvin",
+        "sort-name": "Marek Colvin",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "e1081a13-e576-2fe2-944b-c0cc50413abe",
+    "title": "Tidewell Chronicle",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-09-09",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-09-09",
+      "area": {
+        "id": "8719b0d8-30f1-5771-cef4-91bf98671128",
+        "name": "CA",
+        "iso-3166-1-codes": [
+          "CA"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "44f67e1a-f96d-6c34-8748-edf53f64b9a2",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5cdd9daa-a968-3f52-10cf-c21bd07b9cd7",
+            "title": "Low Water Mark",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marek Colvin",
+                "joinphrase": "",
+                "artist": {
+                  "id": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+                  "name": "Marek Colvin",
+                  "sort-name": "Marek Colvin",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0d76466-ff1f-a3c9-6889-537b63e06825",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "68ff2169-4a7c-866d-084d-54976eb4a020",
+            "title": "Anchor Song",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marek Colvin",
+                "joinphrase": "",
+                "artist": {
+                  "id": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+                  "name": "Marek Colvin",
+                  "sort-name": "Marek Colvin",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "910d2805-fd18-f0d9-523e-b366f7717a41",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 215000,
+          "artist-credit": null,
+          "recording": {
+            "id": "69b672d2-f962-9290-cfed-a3b3cf8a94a4",
+            "title": "North Fade",
+            "length": 215000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marek Colvin",
+                "joinphrase": "",
+                "artist": {
+                  "id": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+                  "name": "Marek Colvin",
+                  "sort-name": "Marek Colvin",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

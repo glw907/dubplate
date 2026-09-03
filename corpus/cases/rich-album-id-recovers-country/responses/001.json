@@ -1,0 +1,151 @@
+{
+  "id": "6d4abca6-edbd-4db0-8b3a-b213f5e5afd7",
+  "title": "Foghorn Ledger",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2009-07-22",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Baste Corrigan",
+      "joinphrase": "",
+      "artist": {
+        "id": "945c04a0-2e5a-e0f4-182a-e18bf7d9d622",
+        "name": "Baste Corrigan",
+        "sort-name": "Baste Corrigan",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "b80ed2bf-36f7-6974-39ad-17c1272e8970",
+    "title": "Foghorn Ledger",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2009-07-22",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2009-07-22",
+      "area": {
+        "id": "421686eb-c472-adad-9ae8-bd0bafa4fcf0",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "8dec57ec-6647-908d-f372-0edf85e7b190",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9171a5c9-7353-5be8-f6d2-96875082d61b",
+            "title": "Ledger Line",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Baste Corrigan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "945c04a0-2e5a-e0f4-182a-e18bf7d9d622",
+                  "name": "Baste Corrigan",
+                  "sort-name": "Baste Corrigan",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "0abd019b-e8e9-46b2-25a4-e84d80ce8ad2",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "08b1dc68-3e30-d4f6-9272-a7b8226b011c",
+            "title": "Hollow Static",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Baste Corrigan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "945c04a0-2e5a-e0f4-182a-e18bf7d9d622",
+                  "name": "Baste Corrigan",
+                  "sort-name": "Baste Corrigan",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "1abcfa6f-a471-a4df-e575-abbb4c3136f1",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 215000,
+          "artist-credit": null,
+          "recording": {
+            "id": "29d51543-2d9c-7317-ee34-b1f7acbddbc3",
+            "title": "Foghorn Drift",
+            "length": 215000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Baste Corrigan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "945c04a0-2e5a-e0f4-182a-e18bf7d9d622",
+                  "name": "Baste Corrigan",
+                  "sort-name": "Baste Corrigan",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

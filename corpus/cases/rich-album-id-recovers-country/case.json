@@ -1,0 +1,500 @@
+{
+  "id": "rich-album-id-recovers-country",
+  "input": {
+    "items": [
+      {
+        "album": "Harrow Vale Session",
+        "albumartist": "Petra Lindqvist",
+        "artist": "Petra Lindqvist",
+        "country": "US",
+        "length": 190,
+        "mb_albumid": "6d4abca6-edbd-4db0-8b3a-b213f5e5afd7",
+        "title": "Cistern Bloom",
+        "track": 1,
+        "year": 2011
+      },
+      {
+        "album": "Harrow Vale Session",
+        "albumartist": "Petra Lindqvist",
+        "artist": "Petra Lindqvist",
+        "country": "US",
+        "length": 205,
+        "mb_albumid": "6d4abca6-edbd-4db0-8b3a-b213f5e5afd7",
+        "title": "Vale Static",
+        "track": 2,
+        "year": 2011
+      },
+      {
+        "album": "Harrow Vale Session",
+        "albumartist": "Petra Lindqvist",
+        "artist": "Petra Lindqvist",
+        "country": "US",
+        "length": 178,
+        "mb_albumid": "6d4abca6-edbd-4db0-8b3a-b213f5e5afd7",
+        "title": "Vellum Hour",
+        "track": 3,
+        "year": 2011
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/6d4abca6-edbd-4db0-8b3a-b213f5e5afd7?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28harrow+vale+session%29+artist%3A%28petra+lindqvist%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/6450209b-6b3c-4b9d-a669-d30b0350beb1?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "none",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+        "distance": 0.2972972972972973,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.2702702702702703,
+          "artist": 0,
+          "country": 0.02702702702702703,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "6d4abca6-edbd-4db0-8b3a-b213f5e5afd7",
+        "distance": 0.4756403462285815,
+        "penalties": {
+          "album": 0.13354531001589826,
+          "album_id": 0,
+          "artist": 0.16216216216216217,
+          "country": 0,
+          "tracks": 0.17357357357357356,
+          "year": 0.006359300476947535
+        },
+        "tracks": [
+          0.5972222222222222,
+          0.20833333333333334,
+          0.7999999999999999
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harrow Vale Session",
+        "album_id": null,
+        "albumartist": "Petra Lindqvist",
+        "albumartist_credit": "Petra Lindqvist",
+        "albumartist_sort": "Petra Lindqvist",
+        "albumartists": [
+          "Petra Lindqvist"
+        ],
+        "albumartists_credit": [
+          "Petra Lindqvist"
+        ],
+        "albumartists_sort": [
+          "Petra Lindqvist"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Lindqvist",
+        "artist_credit": "Petra Lindqvist",
+        "artist_sort": "Petra Lindqvist",
+        "artists": [
+          "Petra Lindqvist"
+        ],
+        "artists_credit": [
+          "Petra Lindqvist"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Lindqvist"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 190,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "mb_albumartistids": [
+          "e3d42cff-6381-f3c0-68ad-1219dbc00ccf"
+        ],
+        "mb_albumid": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+        "mb_artistid": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "mb_artistids": [
+          "e3d42cff-6381-f3c0-68ad-1219dbc00ccf"
+        ],
+        "mb_releasegroupid": "b000d461-9816-0f09-1f40-c36058bded3f",
+        "mb_releasetrackid": "5ae2cb34-65ea-ddc7-18d8-a7a42de47d9e",
+        "mb_trackid": "498c65aa-cdd4-cc55-a6b5-4f8076f38223",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 2,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harrow Vale Session",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Cistern Bloom",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harrow Vale Session",
+        "album_id": null,
+        "albumartist": "Petra Lindqvist",
+        "albumartist_credit": "Petra Lindqvist",
+        "albumartist_sort": "Petra Lindqvist",
+        "albumartists": [
+          "Petra Lindqvist"
+        ],
+        "albumartists_credit": [
+          "Petra Lindqvist"
+        ],
+        "albumartists_sort": [
+          "Petra Lindqvist"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Lindqvist",
+        "artist_credit": "Petra Lindqvist",
+        "artist_sort": "Petra Lindqvist",
+        "artists": [
+          "Petra Lindqvist"
+        ],
+        "artists_credit": [
+          "Petra Lindqvist"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Lindqvist"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 205,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "mb_albumartistids": [
+          "e3d42cff-6381-f3c0-68ad-1219dbc00ccf"
+        ],
+        "mb_albumid": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+        "mb_artistid": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "mb_artistids": [
+          "e3d42cff-6381-f3c0-68ad-1219dbc00ccf"
+        ],
+        "mb_releasegroupid": "b000d461-9816-0f09-1f40-c36058bded3f",
+        "mb_releasetrackid": "4575c83f-0b13-e97d-f963-16bdd298625c",
+        "mb_trackid": "06ad491d-fbdf-34ad-5dde-38861178b72c",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 2,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harrow Vale Session",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Vale Static",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Harrow Vale Session",
+        "album_id": null,
+        "albumartist": "Petra Lindqvist",
+        "albumartist_credit": "Petra Lindqvist",
+        "albumartist_sort": "Petra Lindqvist",
+        "albumartists": [
+          "Petra Lindqvist"
+        ],
+        "albumartists_credit": [
+          "Petra Lindqvist"
+        ],
+        "albumartists_sort": [
+          "Petra Lindqvist"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Lindqvist",
+        "artist_credit": "Petra Lindqvist",
+        "artist_sort": "Petra Lindqvist",
+        "artists": [
+          "Petra Lindqvist"
+        ],
+        "artists_credit": [
+          "Petra Lindqvist"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Lindqvist"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 14,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 178,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "mb_albumartistids": [
+          "e3d42cff-6381-f3c0-68ad-1219dbc00ccf"
+        ],
+        "mb_albumid": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+        "mb_artistid": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "mb_artistids": [
+          "e3d42cff-6381-f3c0-68ad-1219dbc00ccf"
+        ],
+        "mb_releasegroupid": "b000d461-9816-0f09-1f40-c36058bded3f",
+        "mb_releasetrackid": "5dcc0e18-eb65-8659-1e4e-f4e8ce1ff4c2",
+        "mb_trackid": "662ed486-d493-a9fe-fe0a-bacdf95674ee",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 2,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 2,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Harrow Vale Session",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Vellum Hour",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      }
+    }
+  }
+}

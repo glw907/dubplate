@@ -209,6 +209,62 @@
       "unique": true
     },
     {
+      "case_id": "rich-album-id-recovers-clean",
+      "album_id": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1944444444444444,
+      "difference": 1.1944444444444444,
+      "unique": true
+    },
+    {
+      "case_id": "rich-album-id-recovers-country",
+      "album_id": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2944444444444445,
+      "difference": 1.2944444444444445,
+      "unique": true
+    },
+    {
+      "case_id": "rich-country-item-absent",
+      "album_id": "8c2b1c42-052b-4136-89df-32d003c3333a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.9333333333333332,
+      "difference": 0.9333333333333332,
+      "unique": true
+    },
+    {
+      "case_id": "rich-country-mismatch",
+      "album_id": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2571428571428571,
+      "difference": 1.2571428571428571,
+      "unique": true
+    },
+    {
+      "case_id": "rich-tags-item-absent",
+      "album_id": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.309090909090909,
+      "difference": 1.309090909090909,
+      "unique": true
+    },
+    {
+      "case_id": "rich-tags-present-match",
+      "album_id": "54cafabc-119c-47dc-88af-754be5ca4232",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2905982905982907,
+      "difference": 1.2905982905982907,
+      "unique": true
+    },
+    {
+      "case_id": "rich-tags-present-mismatch",
+      "album_id": "f9aca3eb-f142-40d1-8f2e-60f1f311eb49",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3025641025641026,
+      "difference": 1.3025641025641026,
+      "unique": true
+    },
+    {
       "case_id": "should-ask",
       "album_id": "4b3d18cc-8937-36f4-8de0-481088be58e6",
       "optimal_cost": 1.7962962962962963,

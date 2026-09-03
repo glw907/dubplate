@@ -1,0 +1,151 @@
+{
+  "id": "4829e09d-980a-4542-a3b6-da05d0cc91dc",
+  "title": "Slate Harbor Sessions",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "GB",
+  "date": "2015-05-12",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Feldspar Rowan",
+      "joinphrase": "",
+      "artist": {
+        "id": "3b479d07-4b5c-406a-4a59-462631767aee",
+        "name": "Feldspar Rowan",
+        "sort-name": "Feldspar Rowan",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "0a37af69-a2e4-7334-f1d0-126c7b0af048",
+    "title": "Slate Harbor Sessions",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-05-12",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-05-12",
+      "area": {
+        "id": "4bb14f8c-3be1-3dca-5ac8-16049954a56b",
+        "name": "GB",
+        "iso-3166-1-codes": [
+          "GB"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "f304aa51-2ecc-ee11-d363-9730d214c601",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 201000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ea2678cf-4a06-a9a1-39b9-c27316550f62",
+            "title": "Low Tide Signal",
+            "length": 201000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Feldspar Rowan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3b479d07-4b5c-406a-4a59-462631767aee",
+                  "name": "Feldspar Rowan",
+                  "sort-name": "Feldspar Rowan",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4f94e98c-defc-2e73-4cee-1ca8a8386936",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ef38410e-1974-f0fc-8812-65ace2fbd324",
+            "title": "Granite Weather",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Feldspar Rowan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3b479d07-4b5c-406a-4a59-462631767aee",
+                  "name": "Feldspar Rowan",
+                  "sort-name": "Feldspar Rowan",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4e767e14-c0ea-7faa-4ef8-490bc0ed40bc",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 219000,
+          "artist-credit": null,
+          "recording": {
+            "id": "40a26ae7-3c74-e9f0-f748-1ea1eb819d82",
+            "title": "Coastal Static",
+            "length": 219000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Feldspar Rowan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3b479d07-4b5c-406a-4a59-462631767aee",
+                  "name": "Feldspar Rowan",
+                  "sort-name": "Feldspar Rowan",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

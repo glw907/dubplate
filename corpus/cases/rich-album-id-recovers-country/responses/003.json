@@ -1,0 +1,151 @@
+{
+  "id": "6450209b-6b3c-4b9d-a669-d30b0350beb1",
+  "title": "Harrow Vale Session",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "DE",
+  "date": "2011-02-14",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Petra Lindqvist",
+      "joinphrase": "",
+      "artist": {
+        "id": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+        "name": "Petra Lindqvist",
+        "sort-name": "Petra Lindqvist",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "b000d461-9816-0f09-1f40-c36058bded3f",
+    "title": "Harrow Vale Session",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2011-02-14",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2011-02-14",
+      "area": {
+        "id": "773f6429-27e5-fb1b-fd98-fcd7853a988c",
+        "name": "DE",
+        "iso-3166-1-codes": [
+          "DE"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "5ae2cb34-65ea-ddc7-18d8-a7a42de47d9e",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "498c65aa-cdd4-cc55-a6b5-4f8076f38223",
+            "title": "Cistern Bloom",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Lindqvist",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+                  "name": "Petra Lindqvist",
+                  "sort-name": "Petra Lindqvist",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4575c83f-0b13-e97d-f963-16bdd298625c",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "06ad491d-fbdf-34ad-5dde-38861178b72c",
+            "title": "Vale Static",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Lindqvist",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+                  "name": "Petra Lindqvist",
+                  "sort-name": "Petra Lindqvist",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "5dcc0e18-eb65-8659-1e4e-f4e8ce1ff4c2",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 178000,
+          "artist-credit": null,
+          "recording": {
+            "id": "662ed486-d493-a9fe-fe0a-bacdf95674ee",
+            "title": "Vellum Hour",
+            "length": 178000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Lindqvist",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e3d42cff-6381-f3c0-68ad-1219dbc00ccf",
+                  "name": "Petra Lindqvist",
+                  "sort-name": "Petra Lindqvist",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

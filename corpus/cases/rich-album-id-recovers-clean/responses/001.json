@@ -1,0 +1,151 @@
+{
+  "id": "30f2d135-f679-4d2b-9c3a-7c30d1e02847",
+  "title": "Cobalt Fen Static",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2013-04-18",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Yara Thistlewood",
+      "joinphrase": "",
+      "artist": {
+        "id": "4377b2b2-43eb-ee1b-3079-c52f0c58498c",
+        "name": "Yara Thistlewood",
+        "sort-name": "Yara Thistlewood",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "6145438c-8f05-ac42-2440-e341af1eec28",
+    "title": "Cobalt Fen Static",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2013-04-18",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2013-04-18",
+      "area": {
+        "id": "7e0f9550-6bc6-b311-df76-83e3c1dd4c06",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "880317c3-aeda-9163-93d9-184e2abc0899",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "fc488200-ed31-77ed-5179-9186f2b9c8ac",
+            "title": "Salt Line",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Yara Thistlewood",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4377b2b2-43eb-ee1b-3079-c52f0c58498c",
+                  "name": "Yara Thistlewood",
+                  "sort-name": "Yara Thistlewood",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "03708e15-5d8e-e204-d305-d0c5fadb588f",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9f7e244e-0872-a201-7012-b391ccfac5a0",
+            "title": "Drift Hollow",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Yara Thistlewood",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4377b2b2-43eb-ee1b-3079-c52f0c58498c",
+                  "name": "Yara Thistlewood",
+                  "sort-name": "Yara Thistlewood",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "7f2439d2-f6c5-ee8c-9280-62e17a19b85b",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5f80214a-1e0a-1952-b3fb-ebcc4044a2ed",
+            "title": "Rust Choir",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Yara Thistlewood",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4377b2b2-43eb-ee1b-3079-c52f0c58498c",
+                  "name": "Yara Thistlewood",
+                  "sort-name": "Yara Thistlewood",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

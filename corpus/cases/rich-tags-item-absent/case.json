@@ -1,0 +1,468 @@
+{
+  "id": "rich-tags-item-absent",
+  "input": {
+    "items": [
+      {
+        "album": "Willowmere Transmissions",
+        "albumartist": "Casimir Thane",
+        "artist": "Casimir Thane",
+        "length": 199,
+        "mb_albumid": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "title": "Willowmere",
+        "track": 1,
+        "year": 2014
+      },
+      {
+        "album": "Willowmere Transmissions",
+        "albumartist": "Casimir Thane",
+        "artist": "Casimir Thane",
+        "length": 186,
+        "mb_albumid": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "title": "Signal Drift",
+        "track": 2,
+        "year": 2014
+      },
+      {
+        "album": "Willowmere Transmissions",
+        "albumartist": "Casimir Thane",
+        "artist": "Casimir Thane",
+        "length": 211,
+        "mb_albumid": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "title": "Echo Sandbar",
+        "track": 3,
+        "year": 2014
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ecd60fc6-dc94-4da3-9001-03044ae66a29?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Willowmere Transmissions",
+        "album_id": null,
+        "albumartist": "Casimir Thane",
+        "albumartist_credit": "Casimir Thane",
+        "albumartist_sort": "Casimir Thane",
+        "albumartists": [
+          "Casimir Thane"
+        ],
+        "albumartists_credit": [
+          "Casimir Thane"
+        ],
+        "albumartists_sort": [
+          "Casimir Thane"
+        ],
+        "albumdisambig": "limited edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Casimir Thane",
+        "artist_credit": "Casimir Thane",
+        "artist_sort": "Casimir Thane",
+        "artists": [
+          "Casimir Thane"
+        ],
+        "artists_credit": [
+          "Casimir Thane"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Casimir Thane"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "SEL-017",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Sandbar Echo Label",
+        "language": "eng",
+        "length": 199,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "46d04273-7eb9-0550-5f85-c8d06ea19824",
+        "mb_albumartistids": [
+          "46d04273-7eb9-0550-5f85-c8d06ea19824"
+        ],
+        "mb_albumid": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "mb_artistid": "46d04273-7eb9-0550-5f85-c8d06ea19824",
+        "mb_artistids": [
+          "46d04273-7eb9-0550-5f85-c8d06ea19824"
+        ],
+        "mb_releasegroupid": "df962f69-83ed-4914-dc25-c96ea5a71974",
+        "mb_releasetrackid": "b6da589a-12e7-7588-4fa3-3c4213467fd4",
+        "mb_trackid": "62dc1fa3-cf57-7ff6-45a4-1de54bdfd508",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Willowmere Transmissions",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Willowmere",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Willowmere Transmissions",
+        "album_id": null,
+        "albumartist": "Casimir Thane",
+        "albumartist_credit": "Casimir Thane",
+        "albumartist_sort": "Casimir Thane",
+        "albumartists": [
+          "Casimir Thane"
+        ],
+        "albumartists_credit": [
+          "Casimir Thane"
+        ],
+        "albumartists_sort": [
+          "Casimir Thane"
+        ],
+        "albumdisambig": "limited edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Casimir Thane",
+        "artist_credit": "Casimir Thane",
+        "artist_sort": "Casimir Thane",
+        "artists": [
+          "Casimir Thane"
+        ],
+        "artists_credit": [
+          "Casimir Thane"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Casimir Thane"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "SEL-017",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Sandbar Echo Label",
+        "language": "eng",
+        "length": 186,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "46d04273-7eb9-0550-5f85-c8d06ea19824",
+        "mb_albumartistids": [
+          "46d04273-7eb9-0550-5f85-c8d06ea19824"
+        ],
+        "mb_albumid": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "mb_artistid": "46d04273-7eb9-0550-5f85-c8d06ea19824",
+        "mb_artistids": [
+          "46d04273-7eb9-0550-5f85-c8d06ea19824"
+        ],
+        "mb_releasegroupid": "df962f69-83ed-4914-dc25-c96ea5a71974",
+        "mb_releasetrackid": "9c0c20ef-9952-ff6b-969e-cfbe34bbf875",
+        "mb_trackid": "439f9212-62e9-bfd9-810e-7f75442b8d44",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Willowmere Transmissions",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Signal Drift",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Willowmere Transmissions",
+        "album_id": null,
+        "albumartist": "Casimir Thane",
+        "albumartist_credit": "Casimir Thane",
+        "albumartist_sort": "Casimir Thane",
+        "albumartists": [
+          "Casimir Thane"
+        ],
+        "albumartists_credit": [
+          "Casimir Thane"
+        ],
+        "albumartists_sort": [
+          "Casimir Thane"
+        ],
+        "albumdisambig": "limited edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Casimir Thane",
+        "artist_credit": "Casimir Thane",
+        "artist_sort": "Casimir Thane",
+        "artists": [
+          "Casimir Thane"
+        ],
+        "artists_credit": [
+          "Casimir Thane"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Casimir Thane"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "SEL-017",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Sandbar Echo Label",
+        "language": "eng",
+        "length": 211,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "46d04273-7eb9-0550-5f85-c8d06ea19824",
+        "mb_albumartistids": [
+          "46d04273-7eb9-0550-5f85-c8d06ea19824"
+        ],
+        "mb_albumid": "ecd60fc6-dc94-4da3-9001-03044ae66a29",
+        "mb_artistid": "46d04273-7eb9-0550-5f85-c8d06ea19824",
+        "mb_artistids": [
+          "46d04273-7eb9-0550-5f85-c8d06ea19824"
+        ],
+        "mb_releasegroupid": "df962f69-83ed-4914-dc25-c96ea5a71974",
+        "mb_releasetrackid": "5f4b57f2-0486-757c-90d5-73cd8d1ee4f6",
+        "mb_trackid": "50255f76-dc52-4ffe-e500-ca554b2056d5",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 1,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 1,
+        "original_year": 2014,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Willowmere Transmissions",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Echo Sandbar",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2014
+      }
+    }
+  }
+}

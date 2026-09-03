@@ -1,0 +1,495 @@
+{
+  "id": "rich-album-id-recovers-clean",
+  "input": {
+    "items": [
+      {
+        "album": "Tidewell Chronicle",
+        "albumartist": "Marek Colvin",
+        "artist": "Marek Colvin",
+        "length": 200,
+        "mb_albumid": "30f2d135-f679-4d2b-9c3a-7c30d1e02847",
+        "title": "Low Water Mark",
+        "track": 1,
+        "year": 2016
+      },
+      {
+        "album": "Tidewell Chronicle",
+        "albumartist": "Marek Colvin",
+        "artist": "Marek Colvin",
+        "length": 180,
+        "mb_albumid": "30f2d135-f679-4d2b-9c3a-7c30d1e02847",
+        "title": "Anchor Song",
+        "track": 2,
+        "year": 2016
+      },
+      {
+        "album": "Tidewell Chronicle",
+        "albumartist": "Marek Colvin",
+        "artist": "Marek Colvin",
+        "length": 215,
+        "mb_albumid": "30f2d135-f679-4d2b-9c3a-7c30d1e02847",
+        "title": "North Fade",
+        "track": 3,
+        "year": 2016
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/30f2d135-f679-4d2b-9c3a-7c30d1e02847?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28tidewell+chronicle%29+artist%3A%28marek+colvin%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/15657bd9-b9d7-4b26-972c-8a243fbcabec?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "none",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+        "distance": 0.2777777777777778,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.2777777777777778,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "30f2d135-f679-4d2b-9c3a-7c30d1e02847",
+        "distance": 0.45132153612545767,
+        "penalties": {
+          "album": 0.14705882352941177,
+          "album_id": 0,
+          "artist": 0.13333333333333336,
+          "tracks": 0.1581088664421998,
+          "year": 0.012820512820512822
+        },
+        "tracks": [
+          0.4583333333333333,
+          0.4646464646464647,
+          0.5
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Tidewell Chronicle",
+        "album_id": null,
+        "albumartist": "Marek Colvin",
+        "albumartist_credit": "Marek Colvin",
+        "albumartist_sort": "Marek Colvin",
+        "albumartists": [
+          "Marek Colvin"
+        ],
+        "albumartists_credit": [
+          "Marek Colvin"
+        ],
+        "albumartists_sort": [
+          "Marek Colvin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marek Colvin",
+        "artist_credit": "Marek Colvin",
+        "artist_sort": "Marek Colvin",
+        "artists": [
+          "Marek Colvin"
+        ],
+        "artists_credit": [
+          "Marek Colvin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marek Colvin"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "CA",
+        "data_source": "MusicBrainz",
+        "day": 9,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 200,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "mb_albumartistids": [
+          "993328c8-14d4-4a12-dfbd-db715496eeb6"
+        ],
+        "mb_albumid": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+        "mb_artistid": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "mb_artistids": [
+          "993328c8-14d4-4a12-dfbd-db715496eeb6"
+        ],
+        "mb_releasegroupid": "e1081a13-e576-2fe2-944b-c0cc50413abe",
+        "mb_releasetrackid": "44f67e1a-f96d-6c34-8748-edf53f64b9a2",
+        "mb_trackid": "5cdd9daa-a968-3f52-10cf-c21bd07b9cd7",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 9,
+        "original_month": 9,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Tidewell Chronicle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Low Water Mark",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Tidewell Chronicle",
+        "album_id": null,
+        "albumartist": "Marek Colvin",
+        "albumartist_credit": "Marek Colvin",
+        "albumartist_sort": "Marek Colvin",
+        "albumartists": [
+          "Marek Colvin"
+        ],
+        "albumartists_credit": [
+          "Marek Colvin"
+        ],
+        "albumartists_sort": [
+          "Marek Colvin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marek Colvin",
+        "artist_credit": "Marek Colvin",
+        "artist_sort": "Marek Colvin",
+        "artists": [
+          "Marek Colvin"
+        ],
+        "artists_credit": [
+          "Marek Colvin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marek Colvin"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "CA",
+        "data_source": "MusicBrainz",
+        "day": 9,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 180,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "mb_albumartistids": [
+          "993328c8-14d4-4a12-dfbd-db715496eeb6"
+        ],
+        "mb_albumid": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+        "mb_artistid": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "mb_artistids": [
+          "993328c8-14d4-4a12-dfbd-db715496eeb6"
+        ],
+        "mb_releasegroupid": "e1081a13-e576-2fe2-944b-c0cc50413abe",
+        "mb_releasetrackid": "c0d76466-ff1f-a3c9-6889-537b63e06825",
+        "mb_trackid": "68ff2169-4a7c-866d-084d-54976eb4a020",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 9,
+        "original_month": 9,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Tidewell Chronicle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Anchor Song",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Tidewell Chronicle",
+        "album_id": null,
+        "albumartist": "Marek Colvin",
+        "albumartist_credit": "Marek Colvin",
+        "albumartist_sort": "Marek Colvin",
+        "albumartists": [
+          "Marek Colvin"
+        ],
+        "albumartists_credit": [
+          "Marek Colvin"
+        ],
+        "albumartists_sort": [
+          "Marek Colvin"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marek Colvin",
+        "artist_credit": "Marek Colvin",
+        "artist_sort": "Marek Colvin",
+        "artists": [
+          "Marek Colvin"
+        ],
+        "artists_credit": [
+          "Marek Colvin"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marek Colvin"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "CA",
+        "data_source": "MusicBrainz",
+        "day": 9,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 215,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "mb_albumartistids": [
+          "993328c8-14d4-4a12-dfbd-db715496eeb6"
+        ],
+        "mb_albumid": "15657bd9-b9d7-4b26-972c-8a243fbcabec",
+        "mb_artistid": "993328c8-14d4-4a12-dfbd-db715496eeb6",
+        "mb_artistids": [
+          "993328c8-14d4-4a12-dfbd-db715496eeb6"
+        ],
+        "mb_releasegroupid": "e1081a13-e576-2fe2-944b-c0cc50413abe",
+        "mb_releasetrackid": "910d2805-fd18-f0d9-523e-b366f7717a41",
+        "mb_trackid": "69b672d2-f962-9290-cfed-a3b3cf8a94a4",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 9,
+        "original_month": 9,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Tidewell Chronicle",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "North Fade",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      }
+    }
+  }
+}
