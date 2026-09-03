@@ -11,7 +11,7 @@ and validates it.
 ```
 corpus/
   manifest.json          # pins the corpus's meaning; see below
-  profiles/               # beets config profiles (arrives with pass 2a Task 2)
+  profiles/               # beets config profiles: estate.yaml, stock.yaml
   cases/
     <id>/
       case.json           # the case's metadata: input, request log, expected record
