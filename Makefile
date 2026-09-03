@@ -32,9 +32,11 @@ check: vet lint test tidy-check
 # the frozen corpus records and never touches Python. cmd/harness/...
 # is named explicitly because its own oracle-tagged tests (harness
 # freeze's real-venv coverage, and future case-authoring tools) sit
-# outside package oracle.
+# outside package oracle. -timeout is explicit and generous (90m): the
+# full oracle package run already takes ~585s and only grows as the
+# corpus does, past go test's 10m per-binary default.
 derive:
-	go test -tags oracle ./internal/harness/... ./cmd/harness/...
+	go test -tags oracle -timeout 90m ./internal/harness/... ./cmd/harness/...
 
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
