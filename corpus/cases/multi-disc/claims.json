@@ -1,0 +1,33 @@
+{
+  "applied_fields": {
+    "0": {
+      "disc": 1,
+      "disctotal": 2,
+      "track": 1,
+      "tracktotal": 13
+    },
+    "13": {
+      "disc": 2,
+      "disctotal": 2,
+      "track": 1,
+      "tracktotal": 13
+    },
+    "25": {
+      "disc": 2,
+      "disctotal": 2,
+      "track": 13,
+      "tracktotal": 13
+    }
+  },
+  "best_album_id": "8eb1532a-bccb-4cc4-b590-5be19386a6f7",
+  "extra_items_len": 0,
+  "extra_tracks_len": 0,
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "artist",
+    "tracks",
+    "year"
+  ],
+  "recommendation": "strong"
+}

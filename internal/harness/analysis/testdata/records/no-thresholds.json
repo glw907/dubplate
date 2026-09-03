@@ -1,0 +1,35 @@
+{
+  "action": "apply",
+  "applied_fields": {},
+  "assignment": {
+    "0": 0
+  },
+  "candidates": [
+    {
+      "album_id": "aaaaaaaa-0000-0000-0000-000000000001",
+      "distance": 0.0,
+      "penalties": {
+        "album": 0,
+        "tracks": 0.0
+      },
+      "source": "MusicBrainz",
+      "tracks": [
+        0.0
+      ]
+    }
+  ],
+  "config_hash": "0000",
+  "echoed_date": "2026-09-02",
+  "extra_items": [],
+  "extra_tracks": [],
+  "recommendation": "strong",
+  "thresholds": {
+    "max_rec": {},
+    "medium_rec_thresh": 0,
+    "rec_gap_thresh": 0,
+    "strong_rec_thresh": 0
+  },
+  "weights": {
+    "album": 3.0
+  }
+}

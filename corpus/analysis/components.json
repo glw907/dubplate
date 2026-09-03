@@ -1,0 +1,1616 @@
+{
+  "beets": "2.13.1",
+  "shim_version": "1",
+  "rows": [
+    {
+      "id": "add/basic",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            1
+          ]
+        ],
+        "key": "add"
+      },
+      "output": {
+        "penalties": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_equality/0",
+      "method": "add_equality",
+      "args": {
+        "calls": [
+          [
+            "ghi",
+            [
+              "abc",
+              "def",
+              "ghi"
+            ]
+          ]
+        ],
+        "key": "equality"
+      },
+      "output": {
+        "penalties": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_equality/1",
+      "method": "add_equality",
+      "args": {
+        "calls": [
+          [
+            "ghi",
+            [
+              "abc",
+              "def",
+              "ghi"
+            ]
+          ],
+          [
+            "xyz",
+            [
+              "abc",
+              "def",
+              "ghi"
+            ]
+          ]
+        ],
+        "key": "equality"
+      },
+      "output": {
+        "penalties": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_equality/2",
+      "method": "add_equality",
+      "args": {
+        "calls": [
+          [
+            "ghi",
+            [
+              "abc",
+              "def",
+              "ghi"
+            ]
+          ],
+          [
+            "xyz",
+            [
+              "abc",
+              "def",
+              "ghi"
+            ]
+          ],
+          [
+            "abc",
+            {
+              "ignorecase": true,
+              "regex": "ABC"
+            }
+          ]
+        ],
+        "key": "equality"
+      },
+      "output": {
+        "penalties": [
+          0,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_expr/0",
+      "method": "add_expr",
+      "args": {
+        "calls": [
+          [
+            true
+          ]
+        ],
+        "key": "expr"
+      },
+      "output": {
+        "penalties": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_expr/1",
+      "method": "add_expr",
+      "args": {
+        "calls": [
+          [
+            true
+          ],
+          [
+            false
+          ]
+        ],
+        "key": "expr"
+      },
+      "output": {
+        "penalties": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_number/0",
+      "method": "add_number",
+      "args": {
+        "calls": [
+          [
+            1,
+            1
+          ]
+        ],
+        "key": "number"
+      },
+      "output": {
+        "penalties": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_number/1",
+      "method": "add_number",
+      "args": {
+        "calls": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "key": "number"
+      },
+      "output": {
+        "penalties": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_number/2",
+      "method": "add_number",
+      "args": {
+        "calls": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "key": "number"
+      },
+      "output": {
+        "penalties": [
+          0,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_number/3",
+      "method": "add_number",
+      "args": {
+        "calls": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            -1,
+            2
+          ]
+        ],
+        "key": "number"
+      },
+      "output": {
+        "penalties": [
+          0,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_priority/0",
+      "method": "add_priority",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "abc"
+          ]
+        ],
+        "key": "priority"
+      },
+      "output": {
+        "penalties": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_priority/1",
+      "method": "add_priority",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "abc"
+          ],
+          [
+            "def",
+            [
+              "abc",
+              "def"
+            ]
+          ]
+        ],
+        "key": "priority"
+      },
+      "output": {
+        "penalties": [
+          0,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": "add_priority/2",
+      "method": "add_priority",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "abc"
+          ],
+          [
+            "def",
+            [
+              "abc",
+              "def"
+            ]
+          ],
+          [
+            "gh",
+            [
+              "ab",
+              "cd",
+              "ef",
+              {
+                "ignorecase": true,
+                "regex": "GH"
+              }
+            ]
+          ]
+        ],
+        "key": "priority"
+      },
+      "output": {
+        "penalties": [
+          0,
+          0.5,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "add_priority/3",
+      "method": "add_priority",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "abc"
+          ],
+          [
+            "def",
+            [
+              "abc",
+              "def"
+            ]
+          ],
+          [
+            "gh",
+            [
+              "ab",
+              "cd",
+              "ef",
+              {
+                "ignorecase": true,
+                "regex": "GH"
+              }
+            ]
+          ],
+          [
+            "xyz",
+            [
+              "abc",
+              "def"
+            ]
+          ]
+        ],
+        "key": "priority"
+      },
+      "output": {
+        "penalties": [
+          0,
+          0.5,
+          0.75,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_ratio/0",
+      "method": "add_ratio",
+      "args": {
+        "calls": [
+          [
+            25,
+            100
+          ]
+        ],
+        "key": "ratio"
+      },
+      "output": {
+        "penalties": [
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "add_ratio/1",
+      "method": "add_ratio",
+      "args": {
+        "calls": [
+          [
+            25,
+            100
+          ],
+          [
+            10,
+            5
+          ]
+        ],
+        "key": "ratio"
+      },
+      "output": {
+        "penalties": [
+          0.25,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_ratio/2",
+      "method": "add_ratio",
+      "args": {
+        "calls": [
+          [
+            25,
+            100
+          ],
+          [
+            10,
+            5
+          ],
+          [
+            -5,
+            5
+          ]
+        ],
+        "key": "ratio"
+      },
+      "output": {
+        "penalties": [
+          0.25,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_ratio/3",
+      "method": "add_ratio",
+      "args": {
+        "calls": [
+          [
+            25,
+            100
+          ],
+          [
+            10,
+            5
+          ],
+          [
+            -5,
+            5
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "key": "ratio"
+      },
+      "output": {
+        "penalties": [
+          0.25,
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_string/0",
+      "method": "add_string",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "bcd"
+          ]
+        ],
+        "key": "string"
+      },
+      "output": {
+        "penalties": [
+          0.66666666666666663
+        ]
+      }
+    },
+    {
+      "id": "add_string/1",
+      "method": "add_string",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "bcd"
+          ],
+          [
+            "abc",
+            null
+          ]
+        ],
+        "key": "string"
+      },
+      "output": {
+        "penalties": [
+          0.66666666666666663,
+          1
+        ]
+      }
+    },
+    {
+      "id": "add_string/2",
+      "method": "add_string",
+      "args": {
+        "calls": [
+          [
+            "abc",
+            "bcd"
+          ],
+          [
+            "abc",
+            null
+          ],
+          [
+            null,
+            null
+          ]
+        ],
+        "key": "string"
+      },
+      "output": {
+        "penalties": [
+          0.66666666666666663,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "aggregate/normalized",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            "album",
+            0.5
+          ],
+          [
+            "media",
+            0.25
+          ],
+          [
+            "media",
+            0.75
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "distance": 0.5,
+        "items": [
+          [
+            "album",
+            0.33333333333333331
+          ],
+          [
+            "media",
+            0.16666666666666666
+          ]
+        ],
+        "max_distance": 6,
+        "per_key": {
+          "album": 0.33333333333333331,
+          "media": 0.16666666666666666
+        },
+        "raw_distance": 3
+      }
+    },
+    {
+      "id": "aggregate/one-penalty",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            "album",
+            0.5
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "distance": 0.5,
+        "items": [
+          [
+            "album",
+            0.5
+          ]
+        ],
+        "max_distance": 4,
+        "per_key": {
+          "album": 0.5
+        },
+        "raw_distance": 2
+      }
+    },
+    {
+      "id": "aggregate/zero-added-key",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            "data_source",
+            0
+          ],
+          [
+            "album",
+            0.5
+          ],
+          [
+            "medium",
+            0.25
+          ],
+          [
+            "medium",
+            0.75
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "distance": 0.40000000000000002,
+        "items": [
+          [
+            "album",
+            0.20000000000000001
+          ],
+          [
+            "medium",
+            0.20000000000000001
+          ]
+        ],
+        "max_distance": 10,
+        "per_key": {
+          "album": 0.20000000000000001,
+          "data_source": 0,
+          "medium": 0.20000000000000001
+        },
+        "raw_distance": 4
+      }
+    },
+    {
+      "id": "aggregate/sorted-penalties",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            "album",
+            0.1875
+          ],
+          [
+            "medium",
+            0.75
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "distance": 0.375,
+        "items": [
+          [
+            "medium",
+            0.25
+          ],
+          [
+            "album",
+            0.125
+          ]
+        ],
+        "max_distance": 6,
+        "per_key": {
+          "album": 0.125,
+          "medium": 0.25
+        },
+        "raw_distance": 2.25
+      }
+    },
+    {
+      "id": "aggregate/sorted-penalties-tied",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            "album",
+            0.375
+          ],
+          [
+            "medium",
+            0.75
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "distance": 0.5,
+        "items": [
+          [
+            "album",
+            0.25
+          ],
+          [
+            "medium",
+            0.25
+          ]
+        ],
+        "max_distance": 6,
+        "per_key": {
+          "album": 0.25,
+          "medium": 0.25
+        },
+        "raw_distance": 3
+      }
+    },
+    {
+      "id": "aggregate/all-zero-weights",
+      "method": "add",
+      "args": {
+        "calls": [
+          [
+            "zero_weighted",
+            1
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2,
+          "zero_weighted": 0
+        }
+      },
+      "output": {
+        "distance": 0,
+        "items": [],
+        "max_distance": 0,
+        "per_key": {
+          "zero_weighted": 0
+        },
+        "raw_distance": 0
+      }
+    },
+    {
+      "id": "aggregate/empty",
+      "method": "add",
+      "args": {
+        "calls": [],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "distance": 0,
+        "items": [],
+        "max_distance": 0,
+        "per_key": {},
+        "raw_distance": 0
+      }
+    },
+    {
+      "id": "generic_penalty_keys/excludes-zero-penalties",
+      "method": "generic_penalty_keys",
+      "args": {
+        "calls": [
+          [
+            "album",
+            0.5
+          ],
+          [
+            "label",
+            0
+          ],
+          [
+            "medium",
+            0.25
+          ]
+        ],
+        "weights": {
+          "album": 4,
+          "data_source": 2,
+          "medium": 2
+        }
+      },
+      "output": {
+        "keys": [
+          "album",
+          "medium"
+        ]
+      }
+    },
+    {
+      "id": "string_dist/matching/0",
+      "method": "string_dist",
+      "args": [
+        "Some String",
+        "Some String"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/1",
+      "method": "string_dist",
+      "args": [
+        "Some String",
+        "Some.String!"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/2",
+      "method": "string_dist",
+      "args": [
+        "Some String",
+        "sOME sTring"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/3",
+      "method": "string_dist",
+      "args": [
+        "My Song (EP)",
+        "My Song"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/4",
+      "method": "string_dist",
+      "args": [
+        "The Song Title",
+        "Song Title, The"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/5",
+      "method": "string_dist",
+      "args": [
+        "A Song Title",
+        "Song Title, A"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/6",
+      "method": "string_dist",
+      "args": [
+        "An Album Title",
+        "Album Title, An"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/7",
+      "method": "string_dist",
+      "args": [
+        "",
+        ""
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/8",
+      "method": "string_dist",
+      "args": [
+        "Untitled",
+        "[Untitled]"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/9",
+      "method": "string_dist",
+      "args": [
+        "And",
+        "\u0026"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/matching/10",
+      "method": "string_dist",
+      "args": [
+        "\u00e9\u00e1\u00f1",
+        "ean"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/different",
+      "method": "string_dist",
+      "args": [
+        "Some String",
+        "Totally Different"
+      ],
+      "output": {
+        "distance": 0.8125
+      }
+    },
+    {
+      "id": "string_dist/relative/0/far",
+      "method": "string_dist",
+      "args": [
+        "XXX Band Name",
+        "Band Name"
+      ],
+      "output": {
+        "distance": 0.27272727272727271
+      }
+    },
+    {
+      "id": "string_dist/relative/0/near",
+      "method": "string_dist",
+      "args": [
+        "The Band Name",
+        "Band Name"
+      ],
+      "output": {
+        "distance": 0.027272727272727271
+      }
+    },
+    {
+      "id": "string_dist/relative/1/far",
+      "method": "string_dist",
+      "args": [
+        "One .Two.",
+        "One"
+      ],
+      "output": {
+        "distance": 0.5
+      }
+    },
+    {
+      "id": "string_dist/relative/1/near",
+      "method": "string_dist",
+      "args": [
+        "One (Two)",
+        "One"
+      ],
+      "output": {
+        "distance": 0.14999999999999999
+      }
+    },
+    {
+      "id": "string_dist/relative/2/far",
+      "method": "string_dist",
+      "args": [
+        "One .Two.",
+        "One"
+      ],
+      "output": {
+        "distance": 0.5
+      }
+    },
+    {
+      "id": "string_dist/relative/2/near",
+      "method": "string_dist",
+      "args": [
+        "One [Two]",
+        "One"
+      ],
+      "output": {
+        "distance": 0.14999999999999999
+      }
+    },
+    {
+      "id": "string_dist/relative/3/far",
+      "method": "string_dist",
+      "args": [
+        "My Song blah Someone",
+        "My Song"
+      ],
+      "output": {
+        "distance": 0.6470588235294118
+      }
+    },
+    {
+      "id": "string_dist/relative/3/near",
+      "method": "string_dist",
+      "args": [
+        "My Song feat Someone",
+        "My Song"
+      ],
+      "output": {
+        "distance": 0.064705882352941183
+      }
+    },
+    {
+      "id": "string_dist/solo/0",
+      "method": "string_dist",
+      "args": [
+        "The ",
+        ""
+      ],
+      "output": {
+        "distance": 0.10000000000000001
+      }
+    },
+    {
+      "id": "string_dist/solo/1",
+      "method": "string_dist",
+      "args": [
+        "(EP)",
+        "(EP)"
+      ],
+      "output": {
+        "distance": 0
+      }
+    },
+    {
+      "id": "string_dist/solo/2",
+      "method": "string_dist",
+      "args": [
+        ", An",
+        ""
+      ],
+      "output": {
+        "distance": 1
+      }
+    },
+    {
+      "id": "track_distance/identical",
+      "method": "track_distance",
+      "args": {
+        "incl_artist": true,
+        "item": {
+          "artist": "artist",
+          "title": "title"
+        },
+        "track_info": {
+          "artist": "artist",
+          "title": "title"
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "track_artist": [
+            0
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/tolerate-va",
+      "method": "track_distance",
+      "args": {
+        "incl_artist": true,
+        "item": {
+          "artist": "Various Artists",
+          "title": "title"
+        },
+        "track_info": {
+          "artist": "artist",
+          "title": "title"
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/different-artist",
+      "method": "track_distance",
+      "args": {
+        "incl_artist": true,
+        "item": {
+          "artist": "different artist",
+          "title": "title"
+        },
+        "track_info": {
+          "artist": "artist",
+          "title": "title"
+        }
+      },
+      "output": {
+        "distance": 0.23999999999999999,
+        "penalties": {
+          "track_artist": [
+            0.59999999999999998
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/different-title",
+      "method": "track_distance",
+      "args": {
+        "incl_artist": true,
+        "item": {
+          "artist": "artist",
+          "title": "different title"
+        },
+        "track_info": {
+          "artist": "artist",
+          "title": "title"
+        }
+      },
+      "output": {
+        "distance": 0.38571428571428579,
+        "penalties": {
+          "track_artist": [
+            0
+          ],
+          "track_title": [
+            0.6428571428571429
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/match",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Original",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0.125,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch-reversed",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Other"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Original",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0.125,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch-unknown",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "unknown",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0.125,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch-no-info",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": null,
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0.125,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch-no-original-multiple-sources",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": null
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0.125,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/match-no-original-but-single-source",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": null
+        },
+        "multiple_data_sources": false,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/match-unknown",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "unknown"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "unknown",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch-max-penalty",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 1,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0.25,
+        "penalties": {
+          "data_source": [
+            1
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/mismatch-high-weight",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 5
+        }
+      },
+      "output": {
+        "distance": 0.3125,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/match-no-penalty",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 1
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "data_source": [
+            0
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "track_distance/data_source/match-no-weight",
+      "method": "track_distance",
+      "args": {
+        "data_source_mismatch_penalty": 0.5,
+        "incl_artist": false,
+        "item": {
+          "data_source": "Original"
+        },
+        "multiple_data_sources": true,
+        "track_info": {
+          "data_source": "Other",
+          "title": ""
+        },
+        "weights": {
+          "data_source": 0
+        }
+      },
+      "output": {
+        "distance": 0,
+        "penalties": {
+          "data_source": [
+            0.5
+          ],
+          "track_title": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "add_data_source/match",
+      "method": "add_data_source",
+      "args": {
+        "after": "Original",
+        "before": "Original",
+        "data_source_mismatch_penalty": 0.5,
+        "multiple_data_sources": true,
+        "weights": {
+          "data_source": 2
+        }
+      },
+      "output": {
+        "penalties": {}
+      }
+    },
+    {
+      "id": "add_data_source/mismatch",
+      "method": "add_data_source",
+      "args": {
+        "after": "Other",
+        "before": "Original",
+        "data_source_mismatch_penalty": 0.5,
+        "multiple_data_sources": true,
+        "weights": {
+          "data_source": 2
+        }
+      },
+      "output": {
+        "penalties": {
+          "data_source": [
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "id": "add_data_source/no-before-single-source",
+      "method": "add_data_source",
+      "args": {
+        "after": "Other",
+        "before": null,
+        "data_source_mismatch_penalty": 0.5,
+        "multiple_data_sources": false,
+        "weights": {
+          "data_source": 2
+        }
+      },
+      "output": {
+        "penalties": {}
+      }
+    },
+    {
+      "id": "add_data_source/no-before-multiple-sources",
+      "method": "add_data_source",
+      "args": {
+        "after": "Other",
+        "before": null,
+        "data_source_mismatch_penalty": 0.5,
+        "multiple_data_sources": true,
+        "weights": {
+          "data_source": 2
+        }
+      },
+      "output": {
+        "penalties": {
+          "data_source": [
+            0.5
+          ]
+        }
+      }
+    }
+  ]
+}

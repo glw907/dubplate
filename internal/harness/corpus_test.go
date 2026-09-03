@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/harness/analysis"
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
 
@@ -169,6 +170,92 @@ func TestManifestParsesAndMatchesSchemaVersion(t *testing.T) {
 	}
 	if m.SchemaVersion != wantManifestSchemaVersion {
 		t.Errorf("corpus/manifest.json schema_version = %q, want %q", m.SchemaVersion, wantManifestSchemaVersion)
+	}
+}
+
+// TestEveryCorpusCaseSatisfiesItsClaims reads each case's sibling
+// claims.json and checks it against the committed record. A record that
+// still re-derives byte-identically can nevertheless have stopped
+// exercising the behavior its case exists for; the claims are what
+// notice.
+func TestEveryCorpusCaseSatisfiesItsClaims(t *testing.T) {
+	root := repoRoot(t)
+	forEachCase(t, root, func(t *testing.T, id, dir string, c *cassette.Case) {
+		if c.Expected == nil {
+			t.Fatalf("case %s carries no expected record to check claims against", id)
+		}
+		claims, err := analysis.LoadClaims(dir)
+		if err != nil {
+			t.Fatalf("case %s: %v", id, err)
+		}
+		if err := analysis.CheckClaims(c.Expected, claims); err != nil {
+			t.Errorf("case %s:\n%v", id, err)
+		}
+	})
+}
+
+// TestProximityLedgerAcknowledgesEveryFlaggedCase recomputes the
+// threshold-proximity flag from every committed record and diffs it
+// against corpus/analysis/proximity.json. A flag is not a failure; an
+// unacknowledged flag, and a stale acknowledgment, both are.
+func TestProximityLedgerAcknowledgesEveryFlaggedCase(t *testing.T) {
+	root := repoRoot(t)
+	got := make(map[string]analysis.Proximity)
+	forEachCase(t, root, func(t *testing.T, id, _ string, c *cassette.Case) {
+		if c.Expected == nil {
+			t.Fatalf("case %s carries no expected record to flag", id)
+		}
+		p, err := analysis.Flag(c.Expected)
+		if err != nil {
+			t.Fatalf("case %s: %v", id, err)
+		}
+		got[id] = p
+	})
+
+	ledger, err := analysis.LoadProximityLedger(filepath.Join(root, "corpus", "analysis", "proximity.json"))
+	if err != nil {
+		t.Fatalf("load proximity ledger: %v", err)
+	}
+	if err := analysis.CheckProximityLedger(got, ledger); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestTieLedgerCoversEveryCorpusCase checks the assignment-tie ledger's
+// coverage and its dispositions. The measurements themselves are
+// derived work (internal/harness/oracle's derive_ties.py, under `make
+// derive`); what the gate can prove is that no case is missing from the
+// ledger and no tied case sits there undispositioned.
+func TestTieLedgerCoversEveryCorpusCase(t *testing.T) {
+	root := repoRoot(t)
+	var ids []string
+	for _, dir := range corpusCaseDirs(t, root) {
+		ids = append(ids, filepath.Base(dir))
+	}
+
+	ledger, err := analysis.LoadTieLedger(filepath.Join(root, "corpus", "analysis", "ties.json"))
+	if err != nil {
+		t.Fatalf("load tie ledger: %v", err)
+	}
+	if err := analysis.CheckTieLedger(ids, ledger); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestComponentTableIsWellFormed checks corpus/analysis/components.json
+// for schema validity, row-id uniqueness, its row-count floor, and its
+// per-method coverage. It is deliberately not a conformance check: the
+// Go matcher the table's outputs will be compared against arrives at
+// rung 3, and re-deriving the table is oracle-tagged work under `make
+// derive`.
+func TestComponentTableIsWellFormed(t *testing.T) {
+	root := repoRoot(t)
+	table, err := analysis.LoadComponentTable(filepath.Join(root, "corpus", "analysis", "components.json"))
+	if err != nil {
+		t.Fatalf("load component table: %v", err)
+	}
+	if err := analysis.CheckComponentTable(table); err != nil {
+		t.Error(err)
 	}
 }
 

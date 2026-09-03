@@ -1,0 +1,23 @@
+{
+  "action": "skip",
+  "applied_fields": {},
+  "assignment": {},
+  "candidates": [],
+  "config_hash": "0000",
+  "echoed_date": "2026-09-02",
+  "extra_items": [],
+  "extra_tracks": [],
+  "recommendation": "none",
+  "thresholds": {
+    "max_rec": {
+      "missing_tracks": "medium",
+      "unmatched_tracks": "medium"
+    },
+    "medium_rec_thresh": 0.25,
+    "rec_gap_thresh": 0.25,
+    "strong_rec_thresh": 0.04
+  },
+  "weights": {
+    "album": 3.0
+  }
+}

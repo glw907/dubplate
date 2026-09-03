@@ -12,9 +12,15 @@ and validates it.
 corpus/
   manifest.json          # pins the corpus's meaning; see below
   profiles/               # beets config profiles: estate.yaml, stock.yaml
+  analysis/               # the corpus-wide analyses; see "The analyses"
+    proximity.json
+    ties.json
+    components.json
+    divergences.md
   cases/
     <id>/
       case.json           # the case's metadata: input, request log, expected record
+      claims.json         # what the author claims the record shows
       responses/
         NNN.json           # a verbatim MusicBrainz response body
       misses.json           # transient; see below
@@ -138,6 +144,132 @@ recommendation-boundary config, closing a gap where
 forced a re-derivation of every committed record through the new
 `harness freeze` verb (below); `internal/harness/corpus_test.go`'s
 `wantManifestSchemaVersion` moved with it.
+
+## The analyses
+
+`corpus/analysis/` holds what the corpus knows about itself. Three of
+its files are checked by the repository gate on every run
+(`internal/harness/analysis`, pure Go over committed files, no venv and
+no network); two of those three are also re-derived under `make derive`,
+because measuring them needs beets.
+
+### `claims.json`, one per case
+
+Every committed case carries a sibling `claims.json` naming what its
+author read off the derived record: `best_album_id` and
+`recommendation` always, `min_candidates` (default 1), the family's
+`penalty_keys_nonzero` and `penalty_keys_zero` against the best
+candidate's own penalties, and, where the family calls for it,
+`assignment`, `extra_items_len`, `extra_tracks_len`, and `applied_fields`
+spot values. It deliberately sits outside `cassette.Expected`: the
+record schema is frozen, and a claim is a reading of a record rather
+than part of one.
+
+The claims are what keep a degraded case from freezing green. A case
+whose candidate list collapsed, whose best release changed, or whose
+family penalty stopped firing still re-derives to a self-consistent
+record; only a claim written against the behavior the case exists for
+notices. The gate fails on any mismatch, on a case with no
+`claims.json`, and on a claim key no parser recognizes. A claim key
+claimed zero must be present in the record at 0.0 rather than absent,
+since beets adds a key at 0.0 and still counts it in the normalizer's
+denominator.
+
+### `proximity.json`, the threshold-proximity flag
+
+The flag is pure Go and needs nothing but the committed record. It
+computes the best distance `d`, and the gap to the second candidate
+where there is one, and flags a case when `d` sits within 1e-6 of the
+record's own `strong_rec_thresh` or `medium_rec_thresh`, or the gap
+within 1e-6 of `rec_gap_thresh`. The thresholds come from the record's
+echo, never from a constant: a case derived under a profile that moves a
+boundary is measured against the boundary it actually scored under. A
+record carrying no candidate at all (a zero-track candidate release is
+dropped by beets' `_add_candidate`) is a named skip, never an index into
+an empty list.
+
+The epsilon is the mechanics study's: beets compares the strong
+threshold with a strict `<` and the medium one with `<=`, and no float
+tolerance papers over a comparison-direction disagreement.
+
+**A flag is not a failure; an unacknowledged flag is.** The gate
+recomputes every case's flag and diffs it against this ledger, failing
+on a case flagged but unlisted, a listed case no longer flagged, listed
+boundaries that have moved, and a listed case with no written reason. No
+case in the smoke corpus is flagged today, so the ledger is empty and
+the flag's own proof that it fires lives in
+`internal/harness/analysis/testdata/records/`: hand-authored records
+parked exactly on a boundary, which are never corpus cases.
+
+### `ties.json`, the assignment-tie detector
+
+`lap.lapjv` picks one optimal assignment. When several assignments share
+the minimal cost, a Go solver may pick a different one, so ladder entry
+2 requires every tied case to be excluded or pinned. The detector splits
+across the build-tag boundary because its raw material does: measuring
+uniqueness needs the full item-by-track cost matrix at
+`incl_artist=False`, which only beets can compute.
+
+`internal/harness/oracle/derive_ties.py` starts the same replay stub and
+rendered profile a derivation runs under, fetches the best candidate's
+tracks through the plugin's own `album_for_id` (`Candidates[0].AlbumID`
+is the selector for every case), and builds `assign_items`' matrix
+exactly as beets does, `lap.lapjv`'s `extend_cost` padding included. It
+then solves for the optimal cost `z`, and for each assigned pair
+re-solves with that pair forbidden, giving `z_ij`. The optimum is unique
+exactly when `min z_ij > z + 1e-9`. All three numbers are recorded, not
+only the verdict, so a case that becomes tied later shows up as a moved
+number rather than a silent flip.
+
+The gate checks coverage and adjudication: every corpus case has a row,
+every tied row carries a disposition (`excluded` or `pinned`) with a
+reason, and no row claims a uniqueness its own recorded costs deny.
+
+Two live smoke cases are genuinely tied. `should-ask` and
+`should-reject` both corrupt several items into interchangeable garbage,
+and permuting those items among their tracks costs exactly the same;
+both are pinned, with the reasoning in their rows.
+
+### `components.json`, the component derivation table
+
+`internal/harness/oracle/derive_component.py` is the second, narrower
+beets entry point: no stub, no `tag_album`, no MusicBrainz response, and
+no rendered profile, because a call to a distance primitive touches none
+of them. It reads literal argument tuples mirroring
+`test/autotag/test_distance.py`'s parametrize tables, calls the real
+`Distance.add_*` method, `string_dist`, or `track_distance` per row, and
+emits row id, method, arguments, and observed output. Coverage spans
+every adder, the raw/max/normalized arithmetic including the
+zero-weight denominator rule and the key added at 0.0, the
+`generic_penalty_keys` exclusion, `string_dist`'s full pipeline, the
+`SD_PATTERNS` relative-weight rows, and the whole
+`TestDataSourceDistance` parameter space, which the tool reaches
+in-process by overriding `distance_weights` and swapping
+`find_metadata_source_plugins` exactly as beets' own test does. It runs
+under beets' shipped defaults, which is where both corpus profiles leave
+the `match:` surface anyway.
+
+**Be clear about what the gate asserts over it.** The Go matcher those
+outputs will be compared against does not exist until rung 3. The
+gate-resident test checks schema validity, row-id uniqueness,
+non-emptiness, a per-method coverage set, and a row-count floor, and
+nothing more. It is not a conformance check. The re-derive-and-diff
+assertion is oracle-tagged and runs under `make derive`.
+
+### Regenerating a derived ledger
+
+`ties.json` and `components.json` are derived, so they are rewritten
+rather than hand-edited:
+
+```sh
+go test -tags oracle ./internal/harness/oracle -run Ledger -update-ledgers
+go test -tags oracle ./internal/harness/oracle -run Component -update-ledgers
+```
+
+An update carries every tie row's `disposition` and `reason` forward:
+those are human adjudication, and a re-measurement has nothing to say
+about them. `proximity.json` has no derived half at all, so its rows are
+written by hand; the gate names exactly which ones are owed.
 
 ## Config profiles
 
