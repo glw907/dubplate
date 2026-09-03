@@ -65,4 +65,11 @@ smoke cases genuinely tied, pinned; rung 3's solver must mirror
 lapjv tie-breaking. Next: case tasks 4-13 via pass-execute in
 batches of three with STATUS between batches (named deviation from
 per-task checkpoints; compaction risk low), then Task 14 closes.
-Spend: 2a ≈1.75M/5M; 2b ≈2.6M of 6M.
+Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
+12M if needed; after 2b closes, proceed into 2c fully - plan
+just-in-time, run the live real-catalog captures (anonymous 1 req/s),
+author strata, and leave the first adjudication batch PREPARED and
+WAITING for his morning (never self-adjudicate). Extension: continue
+until a substantive input-gate; at such a gate, pivot to other tasks
+that advance the build without input rather than idling.
+Spend: 2a ≈1.75M/5M; 2b ≈3.5M (ceiling now 12M).
