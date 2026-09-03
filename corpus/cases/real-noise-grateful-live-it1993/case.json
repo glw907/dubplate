@@ -1,0 +1,1940 @@
+{
+  "id": "real-noise-grateful-live-it1993",
+  "input": {
+    "items": [
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 197,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "7e3447ca-eaae-4e1a-8b55-e4fb65fca1f3",
+        "title": "Out in the Cold, Rain and Snow",
+        "track": 1,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 625,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "7d5fb94b-08cb-4fbc-8b6c-961f5a990898",
+        "title": "I’ve Got a Friend",
+        "track": 2,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 122,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "1f804a42-63ea-4c87-908f-9fcab5cc96c3",
+        "title": "The Other One",
+        "track": 3,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 588,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "7a36aeb5-75d7-44ff-a2dd-a0735cc9a7b6",
+        "title": "Cryptical Envelopement",
+        "track": 4,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 508,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "3b937f59-72e2-4685-a825-eb5e412b1606",
+        "title": "The Other One (reprise)",
+        "track": 5,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 397,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "186c18f5-f373-4eb5-9bb6-d066b0b56da6",
+        "title": "St. Stephen",
+        "track": 6,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 430,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "ab3f480d-58c5-4ade-b769-f89d7c93799a",
+        "title": "The Eleven",
+        "track": 7,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 1,
+        "length": 278,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "fe8030e3-26e6-43a1-bc2e-f14cf93a6368",
+        "title": "Mountains of the Moon",
+        "track": 8,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 2,
+        "length": 335,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "055f2711-662e-457f-976e-f0acf2eedba9",
+        "title": "Cosmic Charlie",
+        "track": 1,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 2,
+        "length": 349,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "baf70b9f-2816-4359-af16-ea6d7a97652f",
+        "title": "Doin’ That Rag",
+        "track": 2,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 2,
+        "length": 678,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "5496ee57-2892-4d11-b301-58e622f22f03",
+        "title": "New Potatoe Caboose",
+        "track": 3,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 2,
+        "length": 240,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "c845a1c1-069b-4921-bdfd-933931afa897",
+        "title": "Dupree’s Diamond Blues",
+        "track": 4,
+        "year": 1993
+      },
+      {
+        "album": "Grateful Live",
+        "albumartist": "Grateful Dead",
+        "artist": "Grateful Dead",
+        "disc": 2,
+        "length": 1350,
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_trackid": "a8e794ed-53cf-4462-b171-e48f815964bc",
+        "title": "Dark Star",
+        "track": 5,
+        "year": 1993
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/eeb46066-a549-4838-95e5-fc0fe175407a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "[traditional]",
+        "composers": [
+          "[traditional]"
+        ],
+        "composers_ids": [
+          "9be7f096-97ec-4615-8957-8d40b5dcbc41"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 197,
+        "lyricists": [
+          "Obray Ramsey"
+        ],
+        "lyricists_ids": [
+          "4ace12bf-e7ec-4cb6-ab38-597e4445ac45"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "69fdcd30-ca6c-4642-bd05-ac253ec6320a",
+        "mb_trackid": "7e3447ca-eaae-4e1a-8b55-e4fb65fca1f3",
+        "mb_workid": "64b868aa-847b-4b70-99b0-3cf64e5862a9",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Out in the Cold, Rain and Snow",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1967-06-18: Monterey County Fairgrounds, Monterey, CA, USA",
+        "tracktotal": 8,
+        "work": "Cold Rain \u0026 Snow",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 625,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "45a6c8fa-364a-4a16-baac-37ee6230a215",
+        "mb_trackid": "7d5fb94b-08cb-4fbc-8b6c-961f5a990898",
+        "mb_workid": "48e2d1e9-d14e-49a9-a950-3434c817a55e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I’ve Got a Friend",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1967-06-18: Monterey County Fairgrounds, Monterey, CA, USA",
+        "tracktotal": 8,
+        "work": "Viola Lee Blues",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Lesh, Phil",
+        "composers": [
+          "Phil Lesh"
+        ],
+        "composers_ids": [
+          "ea3d1341-bb3c-4784-bbf6-f71ebfd17e46"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 678,
+        "lyricists": [
+          "Robert Peterson"
+        ],
+        "lyricists_ids": [
+          "194b3bcc-08b6-41a7-be76-7dc8b46451c2"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "cb72da23-2184-49ef-b1d9-6850d40f6802",
+        "mb_trackid": "5496ee57-2892-4d11-b301-58e622f22f03",
+        "mb_workid": "28cc9477-60f5-4ef3-96ce-caddf6de8677",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "New Potatoe Caboose",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 5,
+        "work": "New Potato Caboose",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 240,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "eca784eb-7b2b-4958-840d-357faa9e95b9",
+        "mb_trackid": "c845a1c1-069b-4921-bdfd-933931afa897",
+        "mb_workid": "db00a048-0de0-4419-bcd8-c842abf8ec10",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dupree’s Diamond Blues",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 5,
+        "work": "Dupree’s Diamond Blues",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry, Hart, Mickey, Kreutzmann, Bill, Lesh, Phil, McKernan, Ron “Pigpen”, Weir, Bob",
+        "composers": [
+          "Jerry Garcia",
+          "Mickey Hart",
+          "Bill Kreutzmann",
+          "Phil Lesh",
+          "Ron “Pigpen” McKernan",
+          "Bob Weir"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5",
+          "915e673d-eff5-479a-a917-2fecfc26dc2e",
+          "2d44035b-0516-44e8-8542-e9372a5a0bc8",
+          "ea3d1341-bb3c-4784-bbf6-f71ebfd17e46",
+          "4ae1e75f-ed0a-40e4-a084-0f07d7ca0b7c",
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 1350,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "3f746c02-1e55-41a7-a705-c3eb7a45e883",
+        "mb_trackid": "a8e794ed-53cf-4462-b171-e48f815964bc",
+        "mb_workid": "bcf790b8-8b0e-4bd8-b970-912336bfa7c6",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dark Star",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 5,
+        "work": "Dark Star",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 122,
+        "lyricists": [
+          "Jerry Garcia"
+        ],
+        "lyricists_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "8fa01c9c-d5ca-475e-bfa2-cca6c5fad99f",
+        "mb_trackid": "1f804a42-63ea-4c87-908f-9fcab5cc96c3",
+        "mb_workid": "8fdef018-8c9f-435e-b2ac-04752737023b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Other One",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 8,
+        "work": "Cryptical Envelopment",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Kreutzmann, Bill, Weir, Bob",
+        "composers": [
+          "Bill Kreutzmann",
+          "Bob Weir"
+        ],
+        "composers_ids": [
+          "2d44035b-0516-44e8-8542-e9372a5a0bc8",
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 588,
+        "lyricists": [
+          "Bob Weir"
+        ],
+        "lyricists_ids": [
+          "c8a63580-9e6b-4852-bf93-c09760035e76"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "e967d22d-9bd7-475b-b0b9-ed61ec79049c",
+        "mb_trackid": "7a36aeb5-75d7-44ff-a2dd-a0735cc9a7b6",
+        "mb_workid": "a3cbc549-ef15-4982-8749-d2a9f8b6c2dc",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Cryptical Envelopement",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 8,
+        "work": "The Other One",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 508,
+        "lyricists": [
+          "Jerry Garcia"
+        ],
+        "lyricists_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "de3442c7-86d0-4d0e-88e7-d8507df02a14",
+        "mb_trackid": "3b937f59-72e2-4685-a825-eb5e412b1606",
+        "mb_workid": "8fdef018-8c9f-435e-b2ac-04752737023b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Other One (reprise)",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 8,
+        "work": "Cryptical Envelopment",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry, Lesh, Phil",
+        "composers": [
+          "Jerry Garcia",
+          "Phil Lesh"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5",
+          "ea3d1341-bb3c-4784-bbf6-f71ebfd17e46"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 397,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "bc6764a7-526e-4308-ab2e-8f02c312b7d9",
+        "mb_trackid": "186c18f5-f373-4eb5-9bb6-d066b0b56da6",
+        "mb_workid": "2c0848e7-a1b3-49f7-9963-ae6faee83799",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "St. Stephen",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 8,
+        "work": "St. Stephen",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Lesh, Phil",
+        "composers": [
+          "Phil Lesh"
+        ],
+        "composers_ids": [
+          "ea3d1341-bb3c-4784-bbf6-f71ebfd17e46"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 430,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "7b04b407-a1dd-44b0-bfc9-3285ecf73690",
+        "mb_trackid": "ab3f480d-58c5-4ade-b769-f89d7c93799a",
+        "mb_workid": "4e1724c4-4293-4613-b883-0010e97519d7",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Eleven",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 8,
+        "work": "The Eleven",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 278,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "9bddca4b-f13c-454e-9e98-8ab6afa8d476",
+        "mb_trackid": "fe8030e3-26e6-43a1-bc2e-f14cf93a6368",
+        "mb_workid": "9ce5e938-da39-494e-a63e-7af3e00b236b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mountains of the Moon",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 8,
+        "work": "Mountains of the Moon",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 335,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "9d087507-e977-4372-b26a-65c7cc7f253a",
+        "mb_trackid": "055f2711-662e-457f-976e-f0acf2eedba9",
+        "mb_workid": "c0c27a5e-c089-4b36-bc4f-769b59aee2a3",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Cosmic Charlie",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 5,
+        "work": "Cosmic Charlie",
+        "work_disambig": "",
+        "year": 1993
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Grateful Live",
+        "album_id": null,
+        "albumartist": "Grateful Dead",
+        "albumartist_credit": "Grateful Dead",
+        "albumartist_sort": "Grateful Dead",
+        "albumartists": [
+          "Grateful Dead"
+        ],
+        "albumartists_credit": [
+          "Grateful Dead"
+        ],
+        "albumartists_sort": [
+          "Grateful Dead"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Grateful Dead",
+        "artist_credit": "Grateful Dead",
+        "artist_sort": "Grateful Dead",
+        "artists": [
+          "Grateful Dead"
+        ],
+        "artists_credit": [
+          "Grateful Dead"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Grateful Dead"
+        ],
+        "asin": "",
+        "barcode": "4011222931672",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "930167",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Garcia, Jerry",
+        "composers": [
+          "Jerry Garcia"
+        ],
+        "composers_ids": [
+          "1ecff755-607d-4130-9a8a-8873f27e5de5"
+        ],
+        "country": "IT",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Nota Blu",
+        "language": "eng",
+        "length": 349,
+        "lyricists": [
+          "Robert Hunter"
+        ],
+        "lyricists_ids": [
+          "e9b419b5-ab8f-425c-8214-a7259e6efe10"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_albumartistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_albumid": "eeb46066-a549-4838-95e5-fc0fe175407a",
+        "mb_artistid": "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6",
+        "mb_artistids": [
+          "6faa7ca7-0d99-4a5e-bfa6-1fd5037520c6"
+        ],
+        "mb_releasegroupid": "26d00561-d542-4997-9de2-979cdbb95313",
+        "mb_releasetrackid": "4e30fe37-f235-4ad2-a181-2f7b0ed04a03",
+        "mb_trackid": "baf70b9f-2816-4359-af16-ea6d7a97652f",
+        "mb_workid": "c349f6c3-a55d-4f5c-96e9-4d6cb374442d",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Grateful Live",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Doin’ That Rag",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1969-03-01: Fillmore West, San Francisco, CA, USA",
+        "tracktotal": 5,
+        "work": "Doin’ That Rag",
+        "work_disambig": "",
+        "year": 1993
+      }
+    }
+  }
+}

@@ -1,0 +1,1271 @@
+{
+  "id": "real-genre-metallica-master-of-puppets",
+  "input": {
+    "items": [
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 314.2,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "3bfda26a-49fa-4bc4-a4d6-8bbfa0767ab7",
+        "title": "Battery",
+        "track": 1,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 518.333,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "0151d8a4-50c8-4036-b824-4a4f4b140e8e",
+        "title": "Master of Puppets",
+        "track": 2,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 398.84,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "f5267fe1-5cb6-47f7-8df2-e6e8f09fa7ad",
+        "title": "The Thing That Should Not Be",
+        "track": 3,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 389.893,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "a20860e9-7636-422b-a9cd-2da671b242a8",
+        "title": "Welcome Home (Sanitarium)",
+        "track": 4,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 497.706,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "93ae3251-d9b5-46ee-9849-7b16d5e57d8b",
+        "title": "Disposable Heroes",
+        "track": 5,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 343.866,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "2d9a5b40-f5e6-4499-ab7a-567fe3b42ab9",
+        "title": "Leper Messiah",
+        "track": 6,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 509,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "b6cbe414-8b21-4600-8588-f6a80fd7043a",
+        "title": "Orion",
+        "track": 7,
+        "year": 1999
+      },
+      {
+        "album": "Master of Puppets",
+        "albumartist": "Metallica",
+        "artist": "Metallica",
+        "length": 330,
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_trackid": "01ea1189-e0d2-48a0-9dc2-c615785a5ae0",
+        "title": "Damage, Inc.",
+        "track": 8,
+        "year": 1999
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/4c183eb6-1258-4a9f-b8e4-9f9e94187b6b?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC9900024;QMKHM1600218",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 314.2,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "a98addbc-85a0-3344-984a-0be5fc210c8d",
+        "mb_trackid": "3bfda26a-49fa-4bc4-a4d6-8bbfa0767ab7",
+        "mb_workid": "a13a4029-ecd5-3930-b673-96ae651ea519",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Battery",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Battery",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Burton, Cliff, Hammett, Kirk, Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "Cliff Burton",
+          "Kirk Hammett",
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "7a77627e-78f3-489f-827a-7caea3342bba",
+          "4c45495f-b9f3-4d03-9fac-d44c8a77f5de",
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600001;QMKHM1600219",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 518.333,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "eb01bbd3-9a74-3556-9548-bbb57a5decde",
+        "mb_trackid": "0151d8a4-50c8-4036-b824-4a4f4b140e8e",
+        "mb_workid": "19ec21de-2d93-390c-98b0-b68d98c4baf5",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Master of Puppets",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Master of Puppets",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hammett, Kirk, Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "Kirk Hammett",
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "4c45495f-b9f3-4d03-9fac-d44c8a77f5de",
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600003;QMKHM1600220",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 398.84,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "57db4421-88cb-3ea7-945e-e487b69add26",
+        "mb_trackid": "f5267fe1-5cb6-47f7-8df2-e6e8f09fa7ad",
+        "mb_workid": "845c7fe0-e11d-3e7b-ad42-814e5c285e13",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Thing That Should Not Be",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "The Thing That Should Not Be",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hammett, Kirk, Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "Kirk Hammett",
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "4c45495f-b9f3-4d03-9fac-d44c8a77f5de",
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600002;QMKHM1600221",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 389.893,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "58f354d1-1d24-3046-9ae4-f67404bc9f17",
+        "mb_trackid": "a20860e9-7636-422b-a9cd-2da671b242a8",
+        "mb_workid": "6193e612-7482-3698-a84d-f3684d183264",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Welcome Home (Sanitarium)",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Welcome Home (Sanitarium)",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hammett, Kirk, Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "Kirk Hammett",
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "4c45495f-b9f3-4d03-9fac-d44c8a77f5de",
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600005;QMKHM1600222",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 497.706,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "b765f9ad-cda1-3a53-9828-6ba3da0216f3",
+        "mb_trackid": "93ae3251-d9b5-46ee-9849-7b16d5e57d8b",
+        "mb_workid": "3c08e882-e98c-3889-a3c5-6854d35e3e2f",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Disposable Heroes",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Disposable Heroes",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600006;QMKHM1600223",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 343.866,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "e2c34000-053c-3e65-bbcd-f6800bcba9a0",
+        "mb_trackid": "2d9a5b40-f5e6-4499-ab7a-567fe3b42ab9",
+        "mb_workid": "830e90d3-eb79-3f0a-a395-59b61ec29973",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Leper Messiah",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Leper Messiah",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Burton, Cliff, Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "Cliff Burton",
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "7a77627e-78f3-489f-827a-7caea3342bba",
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600007;QMKHM1600224",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 509,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "6ad3028a-a677-3449-a935-d928c0ad1656",
+        "mb_trackid": "b6cbe414-8b21-4600-8588-f6a80fd7043a",
+        "mb_workid": "4bd346e7-814a-3af7-a538-faf17da70981",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Orion",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Orion",
+        "work_disambig": "",
+        "year": 1986
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Master of Puppets",
+        "album_id": null,
+        "albumartist": "Metallica",
+        "albumartist_credit": "Metallica",
+        "albumartist_sort": "Metallica",
+        "albumartists": [
+          "Metallica"
+        ],
+        "albumartists_credit": [
+          "Metallica"
+        ],
+        "albumartists_sort": [
+          "Metallica"
+        ],
+        "albumdisambig": "DCC Compact Classics",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "arrangers_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "artist": "Metallica",
+        "artist_credit": "Metallica",
+        "artist_sort": "Metallica",
+        "artists": [
+          "Metallica"
+        ],
+        "artists_credit": [
+          "Metallica"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Metallica"
+        ],
+        "asin": "B00000JCRH",
+        "barcode": "010963113327",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "GZS-1133",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Burton, Cliff, Hammett, Kirk, Hetfield, James, Ulrich, Lars",
+        "composers": [
+          "Cliff Burton",
+          "Kirk Hammett",
+          "James Hetfield",
+          "Lars Ulrich"
+        ],
+        "composers_ids": [
+          "7a77627e-78f3-489f-827a-7caea3342bba",
+          "4c45495f-b9f3-4d03-9fac-d44c8a77f5de",
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f",
+          "e2190b35-1181-44f6-8587-4c04123a6f30"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "GBAMC8600008;QMKHM1600225",
+        "label": "DCC Compact Classics",
+        "language": "eng",
+        "length": 330,
+        "lyricists": [
+          "James Hetfield"
+        ],
+        "lyricists_ids": [
+          "68c34082-c1d5-4399-af9b-3921ca0a6a1f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_albumartistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_albumid": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+        "mb_artistid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+        "mb_artistids": [
+          "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
+        ],
+        "mb_releasegroupid": "3d00fb45-f8ab-3436-a8e1-b4bfc4d66913",
+        "mb_releasetrackid": "449405bb-9c22-3b62-b5d4-5d655492dba3",
+        "mb_trackid": "01ea1189-e0d2-48a0-9dc2-c615785a5ae0",
+        "mb_workid": "4ec34a05-99aa-3299-a0c4-922c1e255810",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 3,
+        "original_year": 1986,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Master of Puppets",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Damage, Inc.",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 8,
+        "work": "Damage, Inc.",
+        "work_disambig": "",
+        "year": 1986
+      }
+    }
+  }
+}

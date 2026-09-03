@@ -226,6 +226,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-beethoven-for-all",
+      "album_id": "d3a68c3c-aa06-4c29-906a-c938c07a33bb",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1873256935303018,
+      "difference": 1.1873256935303018,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-dylan-bootleg-1-3",
       "album_id": "1a6fdee5-5250-4d6a-ad39-6cd9721862d7",
       "optimal_cost": 0,
@@ -282,6 +290,14 @@
       "unique": true
     },
     {
+      "case_id": "real-classical-gould-goldberg-1981",
+      "album_id": "00383a0d-7ea6-4554-8d9f-5df3e3074e4f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1188811188811187,
+      "difference": 1.1188811188811187,
+      "unique": true
+    },
+    {
       "case_id": "real-classical-karajan-beethoven-89",
       "album_id": "cb2d9dc2-0d6b-4dd2-9724-dbbf97ede73e",
       "optimal_cost": 0,
@@ -290,11 +306,27 @@
       "unique": true
     },
     {
+      "case_id": "real-compilation-beatles-1967-1970",
+      "album_id": "acd971e6-d23f-414b-aeea-25812c72fe5b",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
       "case_id": "real-decoy-mozart-requiem",
       "album_id": "a67b8f8d-c524-4634-9473-9a1d75519bf8",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.1875,
       "difference": 1.1875,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-bad-brains",
+      "album_id": "dcf077df-8856-4961-a0a0-e181a794ca61",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.5,
       "unique": true
     },
     {
@@ -362,6 +394,14 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-metallica-master-of-puppets",
+      "album_id": "4c183eb6-1258-4a9f-b8e4-9f9e94187b6b",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5557312252964428,
+      "difference": 1.5557312252964428,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-public-enemy-nation-millions",
       "album_id": "02cfa32b-e22b-48a9-8a74-0fb4a8dbf221",
       "optimal_cost": 0,
@@ -399,6 +439,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 0.7860962566844919,
       "difference": 0.7860962566844919,
+      "unique": true
+    },
+    {
+      "case_id": "real-noise-grateful-live-it1993",
+      "album_id": "eeb46066-a549-4838-95e5-fc0fe175407a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3802083333333333,
+      "difference": 1.3802083333333333,
       "unique": true
     },
     {
@@ -447,6 +495,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4545454545454546,
       "difference": 1.4545454545454546,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-hamasaki-ayumi",
+      "album_id": "21e8a65f-9568-40c6-9d61-a6715e5124e7",
+      "optimal_cost": 8.222900550429962,
+      "best_forbidden_cost": 8.227490568255273,
+      "difference": 0.004590017825311321,
       "unique": true
     },
     {
@@ -511,6 +567,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5,
       "difference": 1.5,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-pet-sounds-1990",
+      "album_id": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4343434343434345,
+      "difference": 1.4343434343434345,
       "unique": true
     },
     {

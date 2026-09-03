@@ -1,0 +1,2349 @@
+{
+  "id": "real-reissue-pet-sounds-1990",
+  "input": {
+    "items": [
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 144.706,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "9944d2a3-3e5f-4947-9447-833d8dc3759e",
+        "title": "Wouldn’t It Be Nice",
+        "track": 1,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 151.293,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "d07b976c-d533-4e74-bebf-88a2934b19fc",
+        "title": "You Still Believe in Me",
+        "track": 2,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 147.6,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "8848217d-2c7d-423f-a3ea-3c2d9fb4e686",
+        "title": "That’s Not Me",
+        "track": 3,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 172.533,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "a815b842-2e9c-41d9-bd0b-aecc0c187fc3",
+        "title": "Don’t Talk (Put Your Head on My Shoulder)",
+        "track": 4,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 184.866,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "857fc29d-c779-4979-9088-5d3ee200e957",
+        "title": "I’m Waiting for the Day",
+        "track": 5,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 138.133,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "25c254af-8bea-4e06-a76c-629fcc454bbc",
+        "title": "Let’s Go Away for Awhile",
+        "track": 6,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 178.04,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "0f4aaf3b-1321-45f4-b6a4-6b3662e599db",
+        "title": "Sloop John B",
+        "track": 7,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 171.226,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "4c2b6a4e-0e03-4516-bb24-4e614a4ac63c",
+        "title": "God Only Knows",
+        "track": 8,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 189,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "b4e229c2-d9cf-4e60-b65e-4f2d0874a3ee",
+        "title": "I Know There’s an Answer",
+        "track": 9,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 174.2,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "12ae2947-0f29-474d-a7c2-cfa4c1f8201a",
+        "title": "Here Today",
+        "track": 10,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 192.24,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "9d6e07a6-424e-49a7-a53d-2f59277cf87e",
+        "title": "I Just Wasn’t Made for These Times",
+        "track": 11,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 142.133,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "6dac8d8c-e091-4c69-97fe-fe14ed24eac8",
+        "title": "Pet Sounds",
+        "track": 12,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 171.2,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "12069769-765e-4804-ad4f-be8f4933fc38",
+        "title": "Caroline, No",
+        "track": 13,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 50.666,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "1460221f-daab-4e5c-a2ea-fc4203cbd441",
+        "title": "Unreleased Backgrounds",
+        "track": 14,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 197.693,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "6c4e1b94-a21d-4658-8d79-d1d32e5dd011",
+        "title": "Hang On to Your Ego",
+        "track": 15,
+        "year": 1990
+      },
+      {
+        "album": "Pet Sounds",
+        "albumartist": "The Beach Boys",
+        "artist": "The Beach Boys",
+        "length": 173,
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_trackid": "d1687195-08b7-49ac-a5d9-5f38dbf74eea",
+        "title": "Trombone Dixie",
+        "track": 16,
+        "year": 1990
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/4a1f176d-4e05-4276-9afb-d9324d31601f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA20000220;USCA21201930;USCA29600659;USCA29900675",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 144.706,
+        "lyricists": [
+          "Tony Asher",
+          "Mike Love",
+          "Brian Wilson"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510",
+          "f032428d-9454-4044-a83c-9a34cbfa6244",
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "301e4a91-4fdc-437a-8540-1d3911876a4f",
+        "mb_trackid": "9944d2a3-3e5f-4947-9447-833d8dc3759e",
+        "mb_workid": "8d9c97e9-dde0-3f8d-bfd4-4af58ad2c910",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wouldn’t It Be Nice",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Wouldn’t It Be Nice",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201931;USCA29600671",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 151.293,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "64c0383a-cb26-4913-9275-f44b2a05a0b7",
+        "mb_trackid": "d07b976c-d533-4e74-bebf-88a2934b19fc",
+        "mb_workid": "1697832d-a3d2-335b-bc10-c4097d6b367f",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "You Still Believe in Me",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "You Still Believe in Me",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201940;USCA29600664",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 192.24,
+        "lyricists": [
+          "Tony Asher"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "38603711-047d-41c8-bcfb-e48acdf834d4",
+        "mb_trackid": "9d6e07a6-424e-49a7-a53d-2f59277cf87e",
+        "mb_workid": "13b02e0f-8845-3d81-ba8c-4b6f01ba2ad6",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Just Wasn’t Made for These Times",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "I Just Wasn’t Made for These Times",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201941;USCA29600668",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 142.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "b134b73e-df53-491d-8254-55947e0c259c",
+        "mb_trackid": "6dac8d8c-e091-4c69-97fe-fe14ed24eac8",
+        "mb_workid": "a9302662-9413-39b3-8e5f-561c6b782c23",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pet Sounds",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Pet Sounds",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201727;USCA29600660",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 171.2,
+        "lyricists": [
+          "Tony Asher"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "a61bf3e7-7a79-4ddd-9170-9378409ea55f",
+        "mb_trackid": "12069769-765e-4804-ad4f-be8f4933fc38",
+        "mb_workid": "81461c06-2f59-3e07-9ded-b313874f8c60",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Caroline, No",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Caroline, No",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 50.666,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "2ecfdfc9-d63c-48c9-8b4d-fefe3fc8efe5",
+        "mb_trackid": "1460221f-daab-4e5c-a2ea-fc4203cbd441",
+        "mb_workid": "cbcda827-5883-4ea1-a122-ca450d021886",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Unreleased Backgrounds",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "mono",
+        "tracktotal": 16,
+        "work": "Unreleased Backgrounds",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Love, Mike, Sachen, Terry, Wilson, Brian",
+        "composers": [
+          "Mike Love",
+          "Terry Sachen",
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "f032428d-9454-4044-a83c-9a34cbfa6244",
+          "16dc4e41-69c1-4f20-8761-92991f0e0e84",
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA29000226;USCA29300402",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 197.693,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "0445d085-b95b-4035-87fd-a2e55d71c578",
+        "mb_trackid": "6c4e1b94-a21d-4658-8d79-d1d32e5dd011",
+        "mb_workid": "ffa2c9de-85dd-3b78-b6c0-cc30a837c456",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hang On to Your Ego",
+        "track": 15,
+        "track_alt": "15",
+        "trackdisambig": "mono",
+        "tracktotal": 16,
+        "work": "Hang On to Your Ego",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 173,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "c812ea3c-edf5-4c66-ba4b-2e85b7da8e0e",
+        "mb_trackid": "d1687195-08b7-49ac-a5d9-5f38dbf74eea",
+        "mb_workid": "215cddfb-c97a-47d4-8acc-c53239c551d2",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Trombone Dixie",
+        "track": 16,
+        "track_alt": "16",
+        "trackdisambig": "mono",
+        "tracktotal": 16,
+        "work": "Trombone Dixie",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201932;USCA29600670",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 147.6,
+        "lyricists": [
+          "Tony Asher"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "ddb85c8a-50bc-48b5-a918-9dfd8a18570f",
+        "mb_trackid": "8848217d-2c7d-423f-a3ea-3c2d9fb4e686",
+        "mb_workid": "ed212405-f284-3a97-bb93-c75b8c99ab5b",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "That’s Not Me",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "That’s Not Me",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201933;USCA29600661",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 172.533,
+        "lyricists": [
+          "Tony Asher"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "819bf2f0-fe44-4b44-8158-519abffc8d8a",
+        "mb_trackid": "a815b842-2e9c-41d9-bd0b-aecc0c187fc3",
+        "mb_workid": "319fc203-893c-3141-8871-7ece4fe98990",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Don’t Talk (Put Your Head on My Shoulder)",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Don’t Talk (Put Your Head on My Shoulder)",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201934;USCA29600666",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 184.866,
+        "lyricists": [
+          "Mike Love"
+        ],
+        "lyricists_ids": [
+          "f032428d-9454-4044-a83c-9a34cbfa6244"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "309ecc6e-dc14-4095-a725-cda8dd32961e",
+        "mb_trackid": "857fc29d-c779-4979-9088-5d3ee200e957",
+        "mb_workid": "9c2489bb-c7af-3aa6-9b17-e5f206909c64",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I’m Waiting for the Day",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "I’m Waiting for the Day",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201806;USCA21201935;USCA29600667",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 138.133,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "b8e4802f-e756-4144-9970-55eb397f09b7",
+        "mb_trackid": "25c254af-8bea-4e06-a76c-629fcc454bbc",
+        "mb_workid": "0da2e009-4c4e-3b84-9bd2-3949ab8e7f88",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Let’s Go Away for Awhile",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Let’s Go Away for Awhile",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201936;USCA29600669",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 178.04,
+        "lyricists": [
+          "Brian Wilson"
+        ],
+        "lyricists_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "eb7b289e-4075-421c-be21-457e798da9ea",
+        "mb_trackid": "0f4aaf3b-1321-45f4-b6a4-6b3662e599db",
+        "mb_workid": "8d885c3d-cee7-31a3-beec-b0aa2b91287e",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sloop John B",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Sloop John B",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201937;USCA28600056;USCA29600662",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 171.226,
+        "lyricists": [
+          "Tony Asher"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "c6bb161c-13d9-424c-aa24-061003806402",
+        "mb_trackid": "4c2b6a4e-0e03-4516-bb24-4e614a4ac63c",
+        "mb_workid": "75869198-e882-383d-bca4-b3f304c69ca2",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "God Only Knows",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "God Only Knows",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201938;USCA29600665",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 189,
+        "lyricists": [
+          "Mike Love",
+          "Terry Sachen"
+        ],
+        "lyricists_ids": [
+          "f032428d-9454-4044-a83c-9a34cbfa6244",
+          "16dc4e41-69c1-4f20-8761-92991f0e0e84"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "3eb8e14f-a168-4d95-9cd8-72ad83e5e4a7",
+        "mb_trackid": "b4e229c2-d9cf-4e60-b65e-4f2d0874a3ee",
+        "mb_workid": "12eddc7a-62c7-396b-936e-c423262e427b",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Know There’s an Answer",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "I Know There’s an Answer",
+        "work_disambig": "",
+        "year": 1966
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pet Sounds",
+        "album_id": null,
+        "albumartist": "The Beach Boys",
+        "albumartist_credit": "The Beach Boys",
+        "albumartist_sort": "Beach Boys, The",
+        "albumartists": [
+          "The Beach Boys"
+        ],
+        "albumartists_credit": [
+          "The Beach Boys"
+        ],
+        "albumartists_sort": [
+          "Beach Boys, The"
+        ],
+        "albumdisambig": "on back: UK: CD FA 3298 PM 516 PRINTED IN HOLLAND",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Brian Wilson"
+        ],
+        "arrangers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "artist": "The Beach Boys",
+        "artist_credit": "The Beach Boys",
+        "artist_sort": "Beach Boys, The",
+        "artists": [
+          "The Beach Boys"
+        ],
+        "artists_credit": [
+          "The Beach Boys"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Beach Boys, The"
+        ],
+        "asin": "",
+        "barcode": "0077774842129",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CDP 7 48421 2",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Wilson, Brian",
+        "composers": [
+          "Brian Wilson"
+        ],
+        "composers_ids": [
+          "634fe78e-fc6b-4b2a-ba83-c8c66e13a8aa"
+        ],
+        "country": "XE",
+        "data_source": "MusicBrainz",
+        "day": 16,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USCA21201939;USCA29600663",
+        "label": "Capitol Records",
+        "language": "eng",
+        "length": 174.2,
+        "lyricists": [
+          "Tony Asher"
+        ],
+        "lyricists_ids": [
+          "41c9a213-7975-48ec-bd82-da16f99aa510"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_albumartistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_albumid": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+        "mb_artistid": "ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+        "mb_artistids": [
+          "ebfc1398-8d96-47e3-82c3-f782abcdb13d"
+        ],
+        "mb_releasegroupid": "fdd96703-7b21-365e-bdea-38029fbeb84e",
+        "mb_releasetrackid": "bf8ae27b-964e-412b-8444-67a8cc56c17d",
+        "mb_trackid": "12ae2947-0f29-474d-a7c2-cfa4c1f8201a",
+        "mb_workid": "9a0be546-cea1-361a-a74d-bfc8fde64efd",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 16,
+        "original_month": 5,
+        "original_year": 1966,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pet Sounds",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Here Today",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "stereo",
+        "tracktotal": 16,
+        "work": "Here Today",
+        "work_disambig": "",
+        "year": 1966
+      }
+    }
+  }
+}

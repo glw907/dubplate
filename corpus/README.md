@@ -783,6 +783,71 @@ Task 8), so the decoy-resourcing question the conductor raised for this
 batch does not arise here; see Tasks 4, 6, and 7 above for that axis's
 three attempts and their outcomes.
 
+### Task 9 (batch 6)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-beethoven-for-all` | VA/box-set | `d3a68c3c-aa06-4c29-906a-c938c07a33bb` | yes | no | *Beethoven for All: Symphonies 1-9*, Barenboim / West-Eastern Divan Orchestra (5 discs, 37 tracks); capture-confirmed 5 discs. A genuine, tiny nonzero `artist` string distance (`0.0054`) survives well inside `strong`. |
+| `real-classical-gould-goldberg-1981` | classical/compilation | `00383a0d-7ea6-4554-8d9f-5df3e3074e4f` | no | no | Glenn Gould, *The Goldberg Variations* (1981 recording, 33 tracks); a composer;performer artist-credit join distinct from Karajan's (Task 8) conductor+orchestra shape and Beethoven for All's own conductor+soloist+orchestra join above. A genuine, tiny nonzero `artist` string distance (`0.0199`) survives well inside `strong`. |
+| `real-compilation-beatles-1967-1970` | classical/compilation | `acd971e6-d23f-414b-aeea-25812c72fe5b` | no | no | The Beatles, *1967-1970* ("Blue Album", 28 tracks); a canonical single-artist compilation, a clean zero-distance match. |
+| `real-genre-bad-brains` | genre/era spread | `dcf077df-8856-4961-a0a0-e181a794ca61` | no | no | Bad Brains, *Bad Brains* (US 1982 ROIR cassette; hardcore punk); a clean zero-distance match. |
+| `real-genre-metallica-master-of-puppets` | genre/era spread | `4c183eb6-1258-4a9f-b8e4-9f9e94187b6b` | no | no | Metallica, *Master of Puppets* (US 1999 CD; thrash metal); a clean zero-distance match. |
+| `real-noise-grateful-live-it1993` | MB-noise | `eeb46066-a549-4838-95e5-fc0fe175407a` | no | no | Grateful Dead, *Grateful Live* (IT 1993, 2 discs, 13 tracks); MB Status: Bootleg, dossier item shape "sparse metadata". Matched its own captured source cleanly: every field, including the year-only `1993` date, projects and matches exactly, distance 0, strong. Sparse MB metadata is not itself a distance-moving property; it only matters when a case's item set is authored independently of the response it derives against (as `real-noise-bowie-us1967`, Task 5, was). |
+| `real-nonlatin-hamasaki-ayumi` | non-Latin | `d30ced90-bd8e-4b52-9c9e-7ccabc511d0f` | no | no | Ayumi Hamasaki, *HAMASAKI AYUMI* (Japanese; native kanji artist-credit 浜崎あゆみ with a documented `locale=en` alias "Ayumi Hamasaki"). Landed `low`/`skip` on a completely unrelated release, not its own captured source. See the finding below. |
+| `real-reissue-pet-sounds-1990` | reissue/remaster | `4a1f176d-4e05-4276-9afb-d9324d31601f` | yes | no | The Beach Boys, *Pet Sounds* (1990 CD reissue); capture-confirmed release date 1990 against the release-group's own first-release-date 1966-05-16; a clean zero-distance match. |
+
+Seven of the eight rows above matched their own captured source: six
+land `strong`/`apply`, and `real-nonlatin-hamasaki-ayumi` (below) is the
+exception. No confident (`strong`) wrong match appeared, so this batch
+owes no `adjudications.json` row under the standing findings duty, which
+is scoped to a `strong` recommendation on a wrong release; the one
+finding below lands `low`. **Task 9 delivers all 8 dossier rows**; no
+reserve substitution was needed. This batch carries no two-release
+sub-axis row (the dossier assigns none to Task 9), so the
+decoy-resourcing question does not arise here; see Tasks 4, 6, and 7 for
+that axis's three attempts and their outcomes.
+
+**The `ignore_video_tracks` finding (`real-nonlatin-hamasaki-ayumi`).**
+The dossier's own MBID, `d30ced90-bd8e-4b52-9c9e-7ccabc511d0f`, is a
+DVD-Video release (a music-video compilation, medium format
+`DVD-Video`, 45 tracks): a genuine, real MusicBrainz document shape the
+corpus had not yet captured. Every item was projected directly from
+that document with no `--overrides`, matching the dossier's "clean rip"
+item shape. The ID lookup never scored the release at all: beets'
+shipped default `ignore_video_tracks: yes`
+(`config_default.yaml:202`, unmodified by either `estate.yaml` or
+`stock.yaml`) drops every track whose recording is marked `video` in
+`MusicBrainzPlugin.get_tracks_from_medium`
+(`beetsplug/musicbrainz.py:578`), which for a video-medium release
+empties `AlbumInfo.tracks` to zero. `_add_candidate`'s own "Discard
+albums with zero tracks" filter (`match.py:347-349`) then drops the
+candidate outright before a distance is ever computed, so the case's
+own captured source can never appear as a candidate under either
+shipped profile. The record's own request log proves the search
+fallback found the release's own near-duplicate video pressing too
+(`e6dc1b8d-...`, same title, same 45 tracks, also `DVD-Video`) and two
+further video/Blu-ray pressings (`f2df2b98-...`, `03929792-...`, a
+COUNTDOWN LIVE release at 24 tracks each), every one of them dropped
+the same way; the sole surviving candidate,
+`21e8a65f-9568-40c6-9d61-a6715e5124e7` (*Crystal Melody*, a 12-track
+Bootleg CD, an unrelated release), is the only fetched document whose
+medium is audio. It lands `low`, not `strong` (distance `0.836`, every
+penalty key nonzero: `album 0.034`, `album_id 0.091`, `artist 0.050`,
+`tracks 0.300`, `unmatched_tracks 0.361`), so this is not a confident
+wrong match and owes no `adjudications.json` row under the batch's own
+standing findings duty; the record correctly signals low confidence
+even though it names the wrong release, rather than confidently
+misidentifying it. The case is kept rather than replaced from the
+axis's reserve: the loop converged to a genuine zero-misses record with
+no authoring defect, and a "clean rip" item shape is not itself a
+promise of a `strong` verdict (`real-nonlatin-utada-first-love`, Task
+6, already lands `medium` on the same premise). This is a real,
+reproducible edge distinct from all five of Task 1's seeded
+`oracle_bugs.json` hypotheses (none of which concerns video-medium
+releases), so no new hypothesis row is authored here; a later pass
+authoring `oracle_bugs.json` rows is where a sixth hypothesis, if
+warranted, belongs.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
