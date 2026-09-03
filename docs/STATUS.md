@@ -71,12 +71,18 @@ landed 62 of 64 cases, corpus at 130, zero divergences owed. Geoff's
 morning rulings applied: markdown adjudication batches;
 bug-threshold-boundary disposed oracle-correct (in the ledger);
 decoy sub-axis re-sourced same-release-group; theming and
-format-config rulings recorded in the spec. Carried into quad 3's
-first task: add an explicit -timeout to the derive target (full
-derive ~585s now brushes go test's 10m default; next batch crosses
-it) and reword batch 4's README apply overclaim (3 rows are
-medium/skip). Next: quad 3 (batches 9-12), adversarial strata,
-#6358/locale, stock-config, close with Geoff's markdown batch.
+format-config rulings recorded in the spec. BATTERY STAND-DOWN (2026-09-03 ~13:10): the 11% watchdog fired
+mid-quad-3; the workflow was stopped cleanly. Landed before the
+stop: the derive 90m timeout (e27ec13), batch-4 reword (0d59821),
+batches 9-10 (0d88dbd, e8c26f2; corpus 146). Batch 11's implementer
+was killed mid-run (its half-written README edit reverted; tree
+clean). RESUME on AC power with:
+Workflow({scriptPath: ".../workflows/scripts/pass-execute-wf_7b67a426-6f1.js",
+resumeFromRunId: "wf_7b67a426-6f1", args: <the quad-3 args verbatim
+from the script file>}) - tasks 12-13 replay from cache, batch 11
+re-runs fresh (per the rung-1 orphan lesson, re-review batch 11
+fully). Then: batch 12, adversarial strata, #6358/locale,
+stock-config, close with Geoff's markdown batch.
 Overnight grants (Geoff, 2026-09-02, ~9h away): 2b ceiling raised to
 12M if needed; after 2b closes, proceed into 2c fully - plan
 just-in-time, run the live real-catalog captures (anonymous 1 req/s),
