@@ -601,9 +601,10 @@ are marked [E].
    components or template overrides stay ruled out (ruling 8's
    no-plugin-ABI fork). Starting theme roster (Geoff, 2026-09-03; a
    starting roster, revisable cheaply until the picker ships): dark
-   (estate default) and light as the system-following pair, dim,
-   night, black (the high-contrast dark), nord, coffee, retro (the
-   one personality pick).
+   (the shipped default for adopters) and light as the
+   system-following pair, dim, night, black (the high-contrast
+   dark), nord, coffee, retro (the one personality pick, and the
+   estate's own configured default per Geoff, 2026-09-03).
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
@@ -664,7 +665,13 @@ are marked [E].
     availability coupling recorded at the seam. The band is L
     because the rung carries the initiative's densest security
     surface, including three carried blockers from the login
-    security review.
+    security review. Estate theming note (Geoff, 2026-09-03): set
+    Navidrome's default UI theme via its config to the closest
+    warm/retro built-in, chosen with eyes on it at this rung's
+    attended pass (Navidrome ships a fixed theme set with no custom
+    CSS hook; literal parity with the estate's DaisyUI retro theme
+    is out of scope, and proxy-side CSS injection is refused as
+    fragile).
 13. **Decision and review queues** (M). Persisted decision records
     serializing candidates, distances, and penalty breakdowns; the
     queue verbs (`list pending`, `answer`, `defer`) with a minimal
