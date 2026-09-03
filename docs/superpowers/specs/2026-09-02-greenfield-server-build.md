@@ -589,7 +589,17 @@ are marked [E].
    failing track rejects the batch, and no partial album is ever
    admitted. This rung carries an attended moment the process section
    counts: the uploader UI gates on the visual-fidelity chain,
-   Geoff's before/after included.
+   Geoff's before/after included. Theming ruling (Geoff, 2026-09-03),
+   binding here and on every later web surface: theming is data,
+   never code. Every component is authored against DaisyUI theme
+   variables from day one (no hardcoded colors); the theme-variable
+   contract is the documented customization API (class names and DOM
+   are not); three tiers ship over the build: per-user theme choice
+   (data-theme), operator branding as config-rendered CSS variables
+   at serve time (no Node, no rebuild, per universality), and an
+   optional operator CSS file served after the bundle. User-supplied
+   components or template overrides stay ruled out (ruling 8's
+   no-plugin-ABI fork).
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the
