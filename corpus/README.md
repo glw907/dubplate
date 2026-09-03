@@ -317,6 +317,43 @@ hand-edits a generated response; every shape is expressible through
 | `media-uneven-split` | a two-medium release with a 4-track and a 2-track disc (disctotal/media overrides matching, as `media-baseline`): distance 0, strong, and its applied `track`/`tracktotal` diverge correctly per disc under `per_disc_numbering` (disc 1: `track` 1-4 of `tracktotal: 4`; disc 2: `track` 1-2 of `tracktotal: 2`), proving the even 13+13 smoke split was not load-bearing for that mechanism. | none |
 | `media-medium-mismatch` | the same shape as `media-baseline` (no disctotal/media overrides) with one item's `disc` field overridden from its real disc (1) to the wrong one (2): `track_distance`'s `medium` component fires for that track alone (folded into `tracks: 0.0119`, `penalty_keys_nonzero: ["tracks"]`, since `medium` is never itself a top-level penalty key, distance.py:526-530), still strong. The applied `disc` for that item reads 1, the candidate's own value, not the item's wrong tag. | none |
 
+### Family 7: year-penalty branches
+
+`year-*`, 4 cases. `distance.py:472-493`'s year-penalty branch, beyond
+the live smoke corpus's own `year-penalty` case (`corpus/README.md`'s
+"The smoke corpus" table), which corrupts only the item tag year
+against a release whose release-group first-release-date happens to
+equal its own release date, so `album_info.original_year` and
+`album_info.year` are the same number there and the ratio branch's
+`diff_max` is never actually keyed off a distinct original year. Every
+case here uses `ReleaseSpec.original_date` (`harness synth`'s own
+mechanism for a genuine release/original-date divergence) rather than
+hand-editing the release-group date, per the pass 2b staleness
+corrections (ruling 2). `preferred.original_year: yes`'s own branch
+(`distance.py:472-478`) is out of reach under both shipped profiles
+and is not attempted here (2c's own inventory item). No case in this
+family hand-edits a generated response; `year-original-absent-flat-penalty`'s
+routine empty-search fallback (its year penalty alone crosses it out
+of `strong`) is the sanctioned default, never a named hand-edit.
+
+The elif's own `if` clause (`likelies["year"] in (album_info.year,
+album_info.original_year)`) checks two distinct tuple members, so a
+case matching by the release year alone and a case matching by the
+original year alone are different code paths worth telling apart, not
+one shape counted twice; `year-matches-release-not-original` and
+`year-matches-original-not-release` are that pair, both zero. The
+remaining two cases are the branch's other two outcomes: no original
+year on record at all (the flat 1.0 `else`) and a genuine
+original/release divergence landing on the ratio `elif`, which the
+live smoke case's coincidental non-divergence never exercises.
+
+| id | shape | hand-edit |
+| --- | --- | --- |
+| `year-original-absent-flat-penalty` | a release with no `original_date` (`original_date: ""`, the explicit-absent shape) and every item's `year` overridden away from the release year: `album_info.original_year` is falsy, so `distance()` takes the `else` branch and adds the flat `year: 1.0` penalty outright, `distance: 0.0556`, crossing out of `strong` (the search fallback returns empty, the routine default), medium, skip. | none |
+| `year-matches-release-not-original` | a release whose `original_date` names a genuinely earlier year (1978) than its own release date (2015): every item's `year` tag is left at its release-derived default, which already equals the release year, not the original one, matching via the tuple's `album_info.year` member; `year: 0`, distance 0, strong. | none |
+| `year-matches-original-not-release` | the same release/original-date divergence with every item's `year` overridden to the original year (1978) instead: matching now goes through the tuple's other member, `album_info.original_year`; `year: 0`, distance 0, strong—the natural counterpart to `year-matches-release-not-original`, proving both tuple members independently zero the penalty. | none |
+| `year-reissue-ratio-penalty` | a release/original-date divergence (1999 release, 1975 original) with every item's `year` tag overridden to a third value (1990) matching neither: the ratio `elif` fires with `diff_max` keyed off the true original year 1975, not the release year, `year: 0.0098`, still comfortably strong—the genuine-divergence instance of the ratio branch the live smoke case's coincidental non-divergence never reaches. | none |
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

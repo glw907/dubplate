@@ -325,11 +325,43 @@
       "unique": true
     },
     {
+      "case_id": "year-matches-original-not-release",
+      "album_id": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2424242424242424,
+      "difference": 1.2424242424242424,
+      "unique": true
+    },
+    {
+      "case_id": "year-matches-release-not-original",
+      "album_id": "9a470e8d-7405-47da-bb2f-e651ddb936ca",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3790849673202612,
+      "difference": 1.3790849673202612,
+      "unique": true
+    },
+    {
+      "case_id": "year-original-absent-flat-penalty",
+      "album_id": "eed39cf0-e694-473e-b9e9-656cdf1ec5d5",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3675213675213673,
+      "difference": 1.3675213675213673,
+      "unique": true
+    },
+    {
       "case_id": "year-penalty",
       "album_id": "3c19711b-b9df-495b-a610-634b1fc48763",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5,
       "difference": 1.5,
+      "unique": true
+    },
+    {
+      "case_id": "year-reissue-ratio-penalty",
+      "album_id": "c537b0d2-be49-4cf4-9fc9-9a43f934314c",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1717171717171717,
+      "difference": 1.1717171717171717,
       "unique": true
     }
   ]

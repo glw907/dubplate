@@ -1,0 +1,468 @@
+{
+  "id": "year-matches-original-not-release",
+  "input": {
+    "items": [
+      {
+        "album": "Tidewater Echoes",
+        "albumartist": "Petra Solberg",
+        "artist": "Petra Solberg",
+        "length": 195,
+        "mb_albumid": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "title": "Echo Channel",
+        "track": 1,
+        "year": 1978
+      },
+      {
+        "album": "Tidewater Echoes",
+        "albumartist": "Petra Solberg",
+        "artist": "Petra Solberg",
+        "length": 205,
+        "mb_albumid": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "title": "Tideglass",
+        "track": 2,
+        "year": 1978
+      },
+      {
+        "album": "Tidewater Echoes",
+        "albumartist": "Petra Solberg",
+        "artist": "Petra Solberg",
+        "length": 230,
+        "mb_albumid": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "title": "Undertow",
+        "track": 3,
+        "year": 1978
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/175fbe8b-85fc-4865-9b66-2e6ddc6ca60b?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-02",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Tidewater Echoes",
+        "album_id": null,
+        "albumartist": "Petra Solberg",
+        "albumartist_credit": "Petra Solberg",
+        "albumartist_sort": "Petra Solberg",
+        "albumartists": [
+          "Petra Solberg"
+        ],
+        "albumartists_credit": [
+          "Petra Solberg"
+        ],
+        "albumartists_sort": [
+          "Petra Solberg"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Solberg",
+        "artist_credit": "Petra Solberg",
+        "artist_sort": "Petra Solberg",
+        "artists": [
+          "Petra Solberg"
+        ],
+        "artists_credit": [
+          "Petra Solberg"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Solberg"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 195,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "mb_albumartistids": [
+          "3c7fecc1-dad7-5828-4a85-1aa7541d023f"
+        ],
+        "mb_albumid": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "mb_artistid": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "mb_artistids": [
+          "3c7fecc1-dad7-5828-4a85-1aa7541d023f"
+        ],
+        "mb_releasegroupid": "07efe00f-c9fd-3afe-3959-1dbb03067eb4",
+        "mb_releasetrackid": "78f2199f-a48d-78f5-1dbe-9074b43998d3",
+        "mb_trackid": "7245166e-2e15-69f0-ffa2-65b660a9e316",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Tidewater Echoes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Echo Channel",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Tidewater Echoes",
+        "album_id": null,
+        "albumartist": "Petra Solberg",
+        "albumartist_credit": "Petra Solberg",
+        "albumartist_sort": "Petra Solberg",
+        "albumartists": [
+          "Petra Solberg"
+        ],
+        "albumartists_credit": [
+          "Petra Solberg"
+        ],
+        "albumartists_sort": [
+          "Petra Solberg"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Solberg",
+        "artist_credit": "Petra Solberg",
+        "artist_sort": "Petra Solberg",
+        "artists": [
+          "Petra Solberg"
+        ],
+        "artists_credit": [
+          "Petra Solberg"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Solberg"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 205,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "mb_albumartistids": [
+          "3c7fecc1-dad7-5828-4a85-1aa7541d023f"
+        ],
+        "mb_albumid": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "mb_artistid": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "mb_artistids": [
+          "3c7fecc1-dad7-5828-4a85-1aa7541d023f"
+        ],
+        "mb_releasegroupid": "07efe00f-c9fd-3afe-3959-1dbb03067eb4",
+        "mb_releasetrackid": "50a9cf7e-4070-82b5-e395-f79a4ae1fee4",
+        "mb_trackid": "99649b4d-3101-244a-73be-0f774978573c",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Tidewater Echoes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tideglass",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 1978
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Tidewater Echoes",
+        "album_id": null,
+        "albumartist": "Petra Solberg",
+        "albumartist_credit": "Petra Solberg",
+        "albumartist_sort": "Petra Solberg",
+        "albumartists": [
+          "Petra Solberg"
+        ],
+        "albumartists_credit": [
+          "Petra Solberg"
+        ],
+        "albumartists_sort": [
+          "Petra Solberg"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Petra Solberg",
+        "artist_credit": "Petra Solberg",
+        "artist_sort": "Petra Solberg",
+        "artists": [
+          "Petra Solberg"
+        ],
+        "artists_credit": [
+          "Petra Solberg"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Petra Solberg"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 230,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "mb_albumartistids": [
+          "3c7fecc1-dad7-5828-4a85-1aa7541d023f"
+        ],
+        "mb_albumid": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+        "mb_artistid": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "mb_artistids": [
+          "3c7fecc1-dad7-5828-4a85-1aa7541d023f"
+        ],
+        "mb_releasegroupid": "07efe00f-c9fd-3afe-3959-1dbb03067eb4",
+        "mb_releasetrackid": "9a03c898-606d-36f1-f91f-85d710d71d05",
+        "mb_trackid": "045b9fce-fc67-23f1-e490-d9777b55ff48",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 1978,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Tidewater Echoes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Undertow",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 1978
+      }
+    }
+  }
+}

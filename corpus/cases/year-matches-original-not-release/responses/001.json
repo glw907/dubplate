@@ -1,0 +1,151 @@
+{
+  "id": "175fbe8b-85fc-4865-9b66-2e6ddc6ca60b",
+  "title": "Tidewater Echoes",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-08-01",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Petra Solberg",
+      "joinphrase": "",
+      "artist": {
+        "id": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+        "name": "Petra Solberg",
+        "sort-name": "Petra Solberg",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "07efe00f-c9fd-3afe-3959-1dbb03067eb4",
+    "title": "Tidewater Echoes",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "1978-11-03",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-08-01",
+      "area": {
+        "id": "865786b7-5813-3266-5b2c-fa9d79b490eb",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "78f2199f-a48d-78f5-1dbe-9074b43998d3",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7245166e-2e15-69f0-ffa2-65b660a9e316",
+            "title": "Echo Channel",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Solberg",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+                  "name": "Petra Solberg",
+                  "sort-name": "Petra Solberg",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "50a9cf7e-4070-82b5-e395-f79a4ae1fee4",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "99649b4d-3101-244a-73be-0f774978573c",
+            "title": "Tideglass",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Solberg",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+                  "name": "Petra Solberg",
+                  "sort-name": "Petra Solberg",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "9a03c898-606d-36f1-f91f-85d710d71d05",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "045b9fce-fc67-23f1-e490-d9777b55ff48",
+            "title": "Undertow",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Petra Solberg",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3c7fecc1-dad7-5828-4a85-1aa7541d023f",
+                  "name": "Petra Solberg",
+                  "sort-name": "Petra Solberg",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
