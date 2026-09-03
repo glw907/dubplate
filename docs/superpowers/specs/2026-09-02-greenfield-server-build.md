@@ -167,6 +167,19 @@ becomes the config core's contract. The estate's
 `env/dubplate.env.template` is an instance of the wall, never its
 definition.
 
+- **Defaults discipline (Geoff, 2026-09-03):** every key that
+  carries a default ships a SENSIBLE, RESEARCH-BACKED one, and the
+  rationale is recorded where the key is defined (the config
+  package's doc comment names the basis; non-obvious defaults get
+  their research done by the rung that ships the knob, cited in
+  that rung's plan or a research doc). Examples of the bar: match
+  thresholds default to pinned beets' own shipped values (the
+  corpus is the citation); the intake format allowlist's shipped
+  default derives from what household uploaders actually hold,
+  researched at rung 7 within the tag I/O bound; the theme default
+  and roster carry the theme-collection brief. A default with no
+  stated basis is a review finding.
+
 ## The Go bar
 
 The bar is exemplary, not conforming. Stdlib idiom is the default
