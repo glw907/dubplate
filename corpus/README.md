@@ -49,8 +49,8 @@ the harness.
 
 Seven cases, chosen for machinery coverage (proving the capture-derive
 loop, the stub, and the shim round-trip correctly) rather than matcher
-coverage (pass 2b's structural stratum, roughly 60-120 cases, is where
-matcher behavior itself gets exercised). Every case was captured live
+coverage (pass 2b's structural stratum, 61 cases, is where matcher
+behavior itself gets exercised). Every case was captured live
 against MusicBrainz WS/2 through `harness capture` (1 request per
 second, identified User-Agent), derived through `oracle.Derive` via
 `make derive`, and iterated through the capture-derive loop until its
@@ -673,12 +673,12 @@ because measuring them needs beets.
 Every committed case carries a sibling `claims.json` naming what its
 author read off the derived record: `best_album_id` and
 `recommendation` always, `min_candidates` (default 1), the family's
-`penalty_keys_nonzero` and `penalty_keys_zero` against the best
-candidate's own penalties, and, where the family calls for it,
-`assignment`, `extra_items_len`, `extra_tracks_len`, and `applied_fields`
-spot values. It deliberately sits outside `cassette.Expected`: the
-record schema is frozen, and a claim is a reading of a record rather
-than part of one.
+`penalty_keys_nonzero`, `penalty_keys_zero`, and `penalty_keys_absent`
+against the best candidate's own penalties, and, where the family
+calls for it, `assignment`, `extra_items_len`, `extra_tracks_len`, and
+`applied_fields` spot values. It deliberately sits outside
+`cassette.Expected`: the record schema is frozen, and a claim is a
+reading of a record rather than part of one.
 
 The claims are what keep a degraded case from freezing green. A case
 whose candidate list collapsed, whose best release changed, or whose
@@ -688,7 +688,9 @@ notices. The gate fails on any mismatch, on a case with no
 `claims.json`, and on a claim key no parser recognizes. A claim key
 claimed zero must be present in the record at 0.0 rather than absent,
 since beets adds a key at 0.0 and still counts it in the normalizer's
-denominator.
+denominator. A key claimed absent is the counterpart: it must not
+appear in the best candidate's penalty map at all, distinguishing a
+key beets never added from one added and zeroed.
 
 **`min_candidates: 0` declares the zero-candidate mode**, the shape a
 case whose only candidate release was dropped by beets' own
