@@ -290,6 +290,14 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-stax-volt-singles",
+      "album_id": "54d131cf-79f4-49db-83d1-4176f97a2e3a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2037037037037037,
+      "difference": 1.2037037037037037,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-woodstock-25th",
       "album_id": "c5a03147-c173-43ca-b19a-cff9d1249c81",
       "optimal_cost": 0,
@@ -322,6 +330,14 @@
       "unique": true
     },
     {
+      "case_id": "real-classical-yo-yo-ma-cello-suites",
+      "album_id": "36133601-f212-4ebe-92a2-a2c6af6d92b1",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1433566433566433,
+      "difference": 1.1433566433566433,
+      "unique": true
+    },
+    {
       "case_id": "real-compilation-beatles-1967-1970",
       "album_id": "acd971e6-d23f-414b-aeea-25812c72fe5b",
       "optimal_cost": 0,
@@ -335,6 +351,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4545454545454546,
       "difference": 1.4545454545454546,
+      "unique": true
+    },
+    {
+      "case_id": "real-compilation-queen-greatest-hits-ii",
+      "album_id": "92655853-3fcc-3491-b166-0c932420f594",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4100000000000001,
+      "difference": 1.4100000000000001,
       "unique": true
     },
     {
@@ -450,6 +474,22 @@
       "unique": true
     },
     {
+      "case_id": "real-genre-sly-family-stone-riot",
+      "album_id": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5019607843137257,
+      "difference": 1.5019607843137257,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-toots-maytals-funky-kingston",
+      "album_id": "eb60958d-0777-45ea-8985-2bb613fd2efc",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4727272727272727,
+      "difference": 1.4727272727272727,
+      "unique": true
+    },
+    {
       "case_id": "real-genre-wu-tang-36-chambers",
       "album_id": "f711b6b2-1dca-442f-ac69-69009141f60c",
       "optimal_cost": 0,
@@ -514,6 +554,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-pink-floyd-de1994",
+      "album_id": "030654bc-4039-4030-905a-fac00a8a9b94",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.6805555555555555,
+      "difference": 0.6805555555555555,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-velvet-underground-us1986",
       "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
       "optimal_cost": 0,
@@ -543,6 +591,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4545454545454546,
       "difference": 1.4545454545454546,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-blackpink",
+      "album_id": "ea3cb8fd-0c2a-41d5-a3c7-b4c91cf659bf",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.190909090909091,
+      "difference": 1.190909090909091,
       "unique": true
     },
     {
@@ -655,6 +711,14 @@
       "optimal_cost": 0,
       "best_forbidden_cost": 1.309090909090909,
       "difference": 1.309090909090909,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-whats-going-on-2021",
+      "album_id": "b17ab157-9871-4c94-bd04-147bf86f33d3",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.152978056426332,
+      "difference": 1.152978056426332,
       "unique": true
     },
     {

@@ -872,6 +872,30 @@ none to Task 10), so the decoy-resourcing question does not arise
 here; see Tasks 4, 6, and 7 for that axis's three attempts and their
 outcomes.
 
+### Task 11 (batch 8)
+
+| id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
+| --- | --- | --- | --- | --- | --- |
+| `real-boxset-stax-volt-singles` | VA/box-set | `54d131cf-79f4-49db-83d1-4176f97a2e3a` | yes | no | *The Complete Stax/Volt Singles: 1959-1968* (Various Artists, 9 discs); capture-confirmed 9 discs. A genuine, tiny nonzero `tracks` string distance (`0.0038`) survives well inside `strong`, and its `comp: true` credit carries no `artist` penalty key at all, the same VA shape `real-boxset-woodstock-25th` (Task 5) and `real-boxset-nuggets-1965-1968` (Task 8) exercise. |
+| `real-classical-yo-yo-ma-cello-suites` | classical/compilation | `36133601-f212-4ebe-92a2-a2c6af6d92b1` | no | no | Yo-Yo Ma, *Six Evolutions: Bach Cello Suites* (2018 CD; a modern solo-instrument classical release); a clean zero-distance match, a solo-performer artist-credit shape distinct from the axis's conductor/orchestra and multi-performer rows (Tasks 8-10). |
+| `real-compilation-queen-greatest-hits-ii` | classical/compilation | `92655853-3fcc-3491-b166-0c932420f594` | no | no | Queen, *Greatest Hits II* (a single-artist rock compilation covering the band's 1980s output); a clean zero-distance match. |
+| `real-genre-sly-family-stone-riot` | genre/era spread | `96fe2af1-e61b-4201-bc77-07ba312bdbf7` | no | no | Sly & the Family Stone, *There's a Riot Goin' On* (JP 1997 CD; funk/soul); a clean zero-distance match. |
+| `real-genre-toots-maytals-funky-kingston` | genre/era spread | `eb60958d-0777-45ea-8985-2bb613fd2efc` | no | no | Toots & The Maytals, *Funky Kingston* (US 1975 original vinyl; reggae/ska); a clean zero-distance match. |
+| `real-noise-pink-floyd-de1994` | MB-noise | `030654bc-4039-4030-905a-fac00a8a9b94` | no | no | Pink Floyd, *Pink Floyd* (DE 1994, 3 discs, live); MB Status: Bootleg. Authored as a partial rip (3 of 33 tracks dropped via `--overrides`, one per disc); matched its own correct source at distance `0.0361`, comfortably under `strong_rec_thresh` (0.04) -- but `missing_tracks` sits in `max_rec`'s own downgrade table, capping the verdict at medium regardless of the raw distance, the same downgrade family 2's `complete-max-rec-boundary` and family 15's `rec-max-rec-missing-tracks-downgrade` cases exercise, here reached on a real MB document shape rather than a synthetic one. Converged over two capture rounds, each needing a retry past a transient MusicBrainz `503`: the primary ID lookup, then a search-fallback round (`limit=5`) and its four named-candidate release lookups. |
+| `real-nonlatin-blackpink` | non-Latin | `ea3cb8fd-0c2a-41d5-a3c7-b4c91cf659bf` | no | no | BLACKPINK, *BLACKPINK* (Korean; artist-credit carries a documented `locale=ko` alias "블랙핑크" among a very large documented alias set); a clean zero-distance match. |
+| `real-reissue-whats-going-on-2021` | reissue/remaster | `b17ab157-9871-4c94-bd04-147bf86f33d3` | yes | no | Marvin Gaye, *What's Going On* (2021 digital reissue); capture-confirmed release date 2021-01-22 against the release-group's own first-release-date 1971-05-20; a clean zero-distance match. |
+
+Seven of the eight rows above matched their own captured source and
+land `strong`/`apply`; `real-noise-pink-floyd-de1994` also matched its
+own captured source but lands `medium`/`skip` per its own row above
+(the `max_rec` downgrade, not a wrong match). No confident wrong match
+appeared, so this batch owes no `adjudications.json` row. **Task 11
+delivers all 8 dossier rows**; no reserve substitution was needed.
+This batch carries no two-release sub-axis row (the dossier assigns
+none to Task 11), so the decoy-resourcing question does not arise
+here; see Tasks 4, 6, and 7 for that axis's three attempts and their
+outcomes.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

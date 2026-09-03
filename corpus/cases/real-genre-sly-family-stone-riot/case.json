@@ -1,0 +1,1755 @@
+{
+  "id": "real-genre-sly-family-stone-riot",
+  "input": {
+    "items": [
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 241,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "b6e141f6-cf99-4c40-8af2-205711f8cbd1",
+        "title": "Luv N' Haight",
+        "track": 1,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 311,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "9c7ce621-fb0f-47ee-954f-126ba46b69e9",
+        "title": "Just Like A Baby",
+        "track": 2,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 180,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "6d0f2180-a88e-4d41-85bc-a0bdbfa72dc1",
+        "title": "Poet",
+        "track": 3,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 185,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "e007b469-f424-490b-b3f2-ff21f12d1989",
+        "title": "Family Affair",
+        "track": 4,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 525,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "a0a3e347-8e06-4891-af45-912525f9d763",
+        "title": "Africa Talks To You \"The Asphalt Jungle\"",
+        "track": 5,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 8,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "63b23c7f-95ec-45b3-b335-26398058b5d8",
+        "title": "There's A Riot Goin' On",
+        "track": 6,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 209,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "685f2f18-7b78-4066-a177-586b7f264ce3",
+        "title": "Brave \u0026 Strong",
+        "track": 7,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 174,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "bab50084-038e-4e72-aa24-236f3a783b52",
+        "title": "(You Caught Me) Smilin'",
+        "track": 8,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 181,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "a48e7072-d177-42f7-908d-e2e44e9fbf0a",
+        "title": "Time",
+        "track": 9,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 239,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "29473841-5434-42bf-938a-36d905a8f2c7",
+        "title": "Spaced Cowboy",
+        "track": 10,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 176,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "62887274-2945-4493-84a9-cd8a0dfee542",
+        "title": "Runnin' Away",
+        "track": 11,
+        "year": 1997
+      },
+      {
+        "album": "There’s a Riot Goin’ On",
+        "albumartist": "Sly \u0026 the Family Stone",
+        "artist": "Sly \u0026 the Family Stone",
+        "length": 435,
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_trackid": "45a38b40-8b82-4dc3-b26f-1881b3a70ec0",
+        "title": "Thank You For Talkin' To Me Africa",
+        "track": 12,
+        "year": 1997
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/96fe2af1-e61b-4201-bc77-07ba312bdbf7?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100395",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 241,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "37af8d35-b95d-4e3d-94c4-20a21536622b",
+        "mb_trackid": "b6e141f6-cf99-4c40-8af2-205711f8cbd1",
+        "mb_workid": "19ee9d0d-4d4c-4ba1-acb4-e9b78760b6e4",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Luv N' Haight",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Luv n’ Haight",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100396",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 311,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "c272f6f4-330d-406e-8da1-271006433309",
+        "mb_trackid": "9c7ce621-fb0f-47ee-954f-126ba46b69e9",
+        "mb_workid": "33edcbf5-1d0c-435f-b5c3-db4a54092c7c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Just Like A Baby",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Just Like a Baby",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100405",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 176,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "b7dbfbc6-7f53-459c-8b79-a752743ec858",
+        "mb_trackid": "62887274-2945-4493-84a9-cd8a0dfee542",
+        "mb_workid": "66e07c3c-d07b-41cc-b335-80faef114c59",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Runnin' Away",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Runnin’ Away",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17101660;USSM19501660",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 435,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "2890c9ba-664e-4dab-9bcf-33e57d9453f6",
+        "mb_trackid": "45a38b40-8b82-4dc3-b26f-1881b3a70ec0",
+        "mb_workid": "40f11788-30ef-4ae6-a86f-0ff54353a92e",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Thank You For Talkin' To Me Africa",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Thank You for Talkin’ to Me Africa",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100397",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 180,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "9701ffce-7458-468f-a4b8-4a57fe6bfb08",
+        "mb_trackid": "6d0f2180-a88e-4d41-85bc-a0bdbfa72dc1",
+        "mb_workid": "28082c5e-1d51-467e-a1fa-dae39cf14e8a",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Poet",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Poet",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10020383;USSM17100398",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 185,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "1ffbf838-a0ee-4e31-8de9-3926c30ffcea",
+        "mb_trackid": "e007b469-f424-490b-b3f2-ff21f12d1989",
+        "mb_workid": "f5e57bf0-61a5-351a-8efb-d4554f965a81",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Family Affair",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Family Affair",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100399",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 525,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "7ef30420-4dc9-4052-a9ca-ccbf9c01bea5",
+        "mb_trackid": "a0a3e347-8e06-4891-af45-912525f9d763",
+        "mb_workid": "574c4022-47e1-466a-aca7-7bdf282b0b25",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Africa Talks To You \"The Asphalt Jungle\"",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Africa Talks to You “The Asphalt Jungle”",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10603287",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 8,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "d0c956c2-6eef-4783-afec-aac7ac7c1b31",
+        "mb_trackid": "63b23c7f-95ec-45b3-b335-26398058b5d8",
+        "mb_workid": "5c7ecd03-7882-4e95-a376-30230b93b1fe",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "There's A Riot Goin' On",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "There’s a Riot Goin’ On",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100401",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 209,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "c42ac900-03a1-40fc-b7b2-74bc41771972",
+        "mb_trackid": "685f2f18-7b78-4066-a177-586b7f264ce3",
+        "mb_workid": "51d86065-d116-4d52-b361-f7e0835dd77d",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Brave \u0026 Strong",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Brave \u0026 Strong",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100402",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 174,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "0455a5ed-b907-4031-bee2-8a3af606c642",
+        "mb_trackid": "bab50084-038e-4e72-aa24-236f3a783b52",
+        "mb_workid": "23757933-b550-4fbd-a0b2-ab4b5ab1e043",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "(You Caught Me) Smilin'",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "(You Caught Me) Smilin’",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100403",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 181,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "f15b4213-7b17-488d-af30-7750ce46f654",
+        "mb_trackid": "a48e7072-d177-42f7-908d-e2e44e9fbf0a",
+        "mb_workid": "f865214b-01f8-47f1-a7be-c070a9b5048c",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Time",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Time",
+        "work_disambig": "",
+        "year": 1971
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "There’s a Riot Goin’ On",
+        "album_id": null,
+        "albumartist": "Sly \u0026 the Family Stone",
+        "albumartist_credit": "Sly \u0026 the Family Stone",
+        "albumartist_sort": "Sly \u0026 the Family Stone",
+        "albumartists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumartists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Sly \u0026 the Family Stone",
+        "artist_credit": "Sly \u0026 the Family Stone",
+        "artist_sort": "Sly \u0026 the Family Stone",
+        "artists": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_credit": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Sly \u0026 the Family Stone"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "ESCA 7632",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Stone, Sly",
+        "composers": [
+          "Sly Stone"
+        ],
+        "composers_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 20,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM17100404",
+        "label": "Epic/Sony",
+        "language": "eng",
+        "length": 239,
+        "lyricists": [
+          "Sly Stone"
+        ],
+        "lyricists_ids": [
+          "a833e001-7c3b-491f-b7d4-2ef367837b95"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_albumartistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_albumid": "96fe2af1-e61b-4201-bc77-07ba312bdbf7",
+        "mb_artistid": "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea",
+        "mb_artistids": [
+          "b7ec4c54-1f93-4bf2-957f-7b9921ab84ea"
+        ],
+        "mb_releasegroupid": "d8b8448a-2634-3e92-ac86-cf55e018f825",
+        "mb_releasetrackid": "3925232e-27cf-454c-9250-1d09d79f877e",
+        "mb_trackid": "29473841-5434-42bf-938a-36d905a8f2c7",
+        "mb_workid": "2839a24e-6b4f-45a2-9fc9-dfaaf3a5ba8e",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 20,
+        "original_month": 11,
+        "original_year": 1971,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "There’s a Riot Goin’ On",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Spaced Cowboy",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Spaced Cowboy",
+        "work_disambig": "",
+        "year": 1971
+      }
+    }
+  }
+}

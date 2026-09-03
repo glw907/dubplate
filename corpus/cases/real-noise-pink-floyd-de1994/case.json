@@ -1,0 +1,4494 @@
+{
+  "id": "real-noise-pink-floyd-de1994",
+  "input": {
+    "items": [
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 190,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "0bfd94ea-07da-4469-97a9-17333b8b3d73",
+        "title": "In the Flesh",
+        "track": 1,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 189,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "9b3bc583-b459-40af-ae44-485e1555cd84",
+        "title": "The Thin Ice",
+        "track": 2,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 313,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "5d792d60-1902-4834-9115-c8da793097f0",
+        "title": "Another Brick in the Wall, Part I",
+        "track": 3,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 364,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "755e8ec0-8723-4a9b-99b3-510017d7e2bf",
+        "title": "Another Brick in the Wall, Part II",
+        "track": 5,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 458,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "da3e5897-25d9-44bd-b29f-d2cd001790e8",
+        "title": "Mother",
+        "track": 6,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 213,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "bae3fd64-189d-4552-aad3-26324a993926",
+        "title": "Goodbye Blue Sky",
+        "track": 7,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 247,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "5931db6a-f349-465f-9a51-e1db3b45955c",
+        "title": "What Shall We Do From?",
+        "track": 8,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 282,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "c10dff43-4c6a-4369-8821-ce85fb8274ad",
+        "title": "Young Lust",
+        "track": 9,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 241,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "a846e9ad-64cf-4c3c-934a-7ad8b9219c81",
+        "title": "One of My Turns",
+        "track": 10,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 1,
+        "length": 227,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "a6f1bfb5-f71a-4558-8125-24816539b5a8",
+        "title": "Don’t Leave Me Now / Empty Spaces",
+        "track": 11,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 441,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "97a7fdec-0ca9-438e-8ec1-6d17c6c37c6c",
+        "title": "Comfortably Numb",
+        "track": 1,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 158,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "2f90e6b6-98a7-4c0c-b1e4-e5e66ba5691a",
+        "title": "The Show Must Go On",
+        "track": 2,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 269,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "39ac9f10-6e3a-4b90-84b7-22a659058a79",
+        "title": "In the Flesh, Part II",
+        "track": 3,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 384,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "bfca4703-27e6-49ae-a052-dc69e8f54c05",
+        "title": "Run Like Hell",
+        "track": 4,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 409,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "a9273bb7-1a3f-49f1-8adf-088bd7e65421",
+        "title": "Stop / The Trial",
+        "track": 6,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 227,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "71f4604e-86fd-4d0c-8c5f-570779fee091",
+        "title": "Outside the Wall",
+        "track": 7,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 647,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "02612fe6-b367-4d44-a84b-dedf1fcd63a7",
+        "title": "Sheep",
+        "track": 8,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 87,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "a875319e-df5c-43c0-9a7d-d9a117c1fe7f",
+        "title": "Pigs on the Wing, Part I",
+        "track": 9,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 138,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "97a5d9e7-64a0-4653-8719-00a1059456e9",
+        "title": "Pigs on the Wing, Part II",
+        "track": 10,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 2,
+        "length": 576,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "a0816f66-b7fd-4bfc-8411-0f4397aa6562",
+        "title": "Dogs",
+        "track": 11,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 274,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "eee3bae1-e5e0-4a0a-b575-3eaf5481374f",
+        "title": "Another Brick in the Wall, Part III",
+        "track": 1,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 94,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "86eede7e-1e8f-4e03-b53c-eeb42a64445e",
+        "title": "Goodbye Cruel World",
+        "track": 2,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 204,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "df1233f3-4d55-435e-b1a8-545970f1a894",
+        "title": "Hey You",
+        "track": 3,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 189,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "67ce1770-7389-4d78-97b2-8646de566c5a",
+        "title": "Is There Anybody Out There?",
+        "track": 4,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 228,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "33c47f71-5840-4a1d-a485-0c7f67f94575",
+        "title": "Nobody Home",
+        "track": 5,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 70,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "b7890f71-9655-418f-9068-b427f0c6a786",
+        "title": "Vera",
+        "track": 6,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 695,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "7fa9ebd8-bf05-48e7-b8ad-c90bdfacd95b",
+        "title": "Shine On You Crazy Diamond, Part I–V",
+        "track": 8,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 445,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "ffd61831-5d30-4d94-aeff-fbbe69c04d0d",
+        "title": "Welcome to the Machine",
+        "track": 9,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 327,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "9148c1b8-5aa7-44b5-82e0-d2c8cca84f05",
+        "title": "Have a Cigar",
+        "track": 10,
+        "year": 1994
+      },
+      {
+        "album": "Pink Floyd",
+        "albumartist": "Pink Floyd",
+        "artist": "Pink Floyd",
+        "disc": 3,
+        "length": 361,
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_trackid": "6c853a4b-ce6f-47ca-b460-0c7e0b6d6f3e",
+        "title": "Wish You Were Here",
+        "track": 11,
+        "year": 1994
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/030654bc-4039-4030-905a-fac00a8a9b94?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28pink+floyd%29+artist%3A%28pink+floyd%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ecd89d9c-eb2d-4257-bb6c-c2f95377e77a?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/95e1a37c-6058-4d76-881f-f1c5033f925f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/7046bb9a-0551-431c-bba5-4ab3b9d15f77?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/047ca6cd-94d5-442d-8c65-0879506bffbe?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/007.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "distance": 0.03614457831325301,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "missing_tracks": 0.03614457831325301,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "ecd89d9c-eb2d-4257-bb6c-c2f95377e77a",
+        "distance": 0.7425822460934821,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.14044943820224717,
+          "artist": 0,
+          "tracks": 0.15744827893704297,
+          "unmatched_tracks": 0.4382022471910112,
+          "year": 0.00648228176318064
+        },
+        "tracks": [
+          0.6386904761904763,
+          0.7658730158730158,
+          0.7535714285714286,
+          0.6444444444444445
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "047ca6cd-94d5-442d-8c65-0879506bffbe",
+        "distance": 0.7668735585402252,
+        "penalties": {
+          "album": 0.03125000000000001,
+          "album_id": 0.13020833333333334,
+          "artist": 0,
+          "tracks": 0.22404948446615114,
+          "unmatched_tracks": 0.375,
+          "year": 0.00636574074074074
+        },
+        "tracks": [
+          0.7619047619047619,
+          0.7916666666666666,
+          0.6055555555555555,
+          0.7607142857142857,
+          0.7115384615384616,
+          0.6703703703703704
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "95e1a37c-6058-4d76-881f-f1c5033f925f",
+        "distance": 0.7766851166851166,
+        "penalties": {
+          "album": 0.02600051975051975,
+          "album_id": 0.13513513513513514,
+          "artist": 0,
+          "tracks": 0.2071410533910534,
+          "unmatched_tracks": 0.40540540540540543,
+          "year": 0.003003003003003003
+        },
+        "tracks": [
+          0.7083333333333334,
+          0.8027083333333334,
+          0.7023809523809524,
+          0.8409090909090908,
+          0.7777777777777778
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "7046bb9a-0551-431c-bba5-4ab3b9d15f77",
+        "distance": 0.8231782478030691,
+        "penalties": {
+          "album": 0.011239981426523733,
+          "album_id": 0.03516174402250352,
+          "artist": 0,
+          "missing_tracks": 0.49367088607594944,
+          "tracks": 0.2809653562071575,
+          "year": 0.002140280070934997
+        },
+        "tracks": [
+          0.7200000000000001,
+          0.7029239766081871,
+          0.703125,
+          0.7708333333333334,
+          0.6666666666666666,
+          0.6818181818181818,
+          0.7758620689655172,
+          0.5833333333333334,
+          0.6333333333333333,
+          0.6444444444444445,
+          0.6115079365079366,
+          0.75,
+          0.6666666666666666,
+          0.6,
+          0.6,
+          0.6023076923076923,
+          0.6044444444444445,
+          0.6,
+          0.6,
+          0.6529411764705882,
+          0.6,
+          0.6,
+          0.7064285714285714,
+          0.7,
+          0.7,
+          0.7,
+          0.7,
+          0.7,
+          0.7,
+          0.7
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 11,
+      "11": 12,
+      "12": 13,
+      "13": 14,
+      "14": 16,
+      "15": 17,
+      "16": 18,
+      "17": 19,
+      "18": 20,
+      "19": 21,
+      "2": 2,
+      "20": 22,
+      "21": 23,
+      "22": 24,
+      "23": 25,
+      "24": 26,
+      "25": 27,
+      "26": 29,
+      "27": 30,
+      "28": 31,
+      "29": 32,
+      "3": 4,
+      "4": 5,
+      "5": 6,
+      "6": 7,
+      "7": 8,
+      "8": 9,
+      "9": 10
+    },
+    "extra_items": [],
+    "extra_tracks": [
+      3,
+      15,
+      28
+    ],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 190,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "ea3602a7-2f4c-4d9c-bce2-4a1c6dea5b82",
+        "mb_trackid": "0bfd94ea-07da-4469-97a9-17333b8b3d73",
+        "mb_workid": "9b45b65a-b910-3cd3-9133-74ea9a08471c",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "In the Flesh",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "In the Flesh?",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 189,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "8866dcff-7c9c-46b1-a3eb-e97be4413bf0",
+        "mb_trackid": "9b3bc583-b459-40af-ae44-485e1555cd84",
+        "mb_workid": "15686692-2ba6-39a3-a2b3-a4b3dc2af576",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Thin Ice",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "The Thin Ice",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 441,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "42588e18-a4bc-4634-b464-7cc4b726a38f",
+        "mb_trackid": "97a7fdec-0ca9-438e-8ec1-6d17c6c37c6c",
+        "mb_workid": "bf480571-a0a5-3294-9260-90edef09ae3f",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Comfortably Numb",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Comfortably Numb",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 158,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "5d2757e8-fe16-4779-9853-ced1f07cfcbe",
+        "mb_trackid": "2f90e6b6-98a7-4c0c-b1e4-e5e66ba5691a",
+        "mb_workid": "5c8a13b7-c48f-32df-bc51-097bef32b19d",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Show Must Go On",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "The Show Must Go On",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 269,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "9b0cb5e5-6b45-4faf-a1fb-1556516d1c0d",
+        "mb_trackid": "39ac9f10-6e3a-4b90-84b7-22a659058a79",
+        "mb_workid": "81810049-2340-4dc0-b36f-e85a4211dff7",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "In the Flesh, Part II",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "In the Flesh",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 384,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "09f9ece6-28fa-4b2c-9528-0a1c4cc44b9d",
+        "mb_trackid": "bfca4703-27e6-49ae-a052-dc69e8f54c05",
+        "mb_workid": "e2d49846-8f96-3c54-85ea-072408d9077c",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Run Like Hell",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Run Like Hell",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger, Ezrin, Bob, Waters, Roger",
+        "composers": [
+          "Roger Waters",
+          "Bob Ezrin",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "d0135fd6-a79a-4ec2-a379-52b2e4a628f1",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 409,
+        "lyricists": [
+          "Roger Waters",
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "92ffb370-35a6-456e-8c10-164b28652ffb",
+        "mb_trackid": "a9273bb7-1a3f-49f1-8adf-088bd7e65421",
+        "mb_workid": "ebb469a0-34bd-3094-9c36-cc05c7396300",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Stop / The Trial",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "The Trial",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 227,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "0beefb88-ae5d-43f2-b2ec-93b644eef5b2",
+        "mb_trackid": "71f4604e-86fd-4d0c-8c5f-570779fee091",
+        "mb_workid": "783a1b57-82fe-3ca5-923d-dea1c067e5fc",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Outside the Wall",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Outside the Wall",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "16": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 647,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "394cba6d-c153-4be6-b8b4-7ec36cb85e66",
+        "mb_trackid": "02612fe6-b367-4d44-a84b-dedf1fcd63a7",
+        "mb_workid": "afda1dbb-f907-3626-87bd-17cf87c5cace",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sheep",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Sheep",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "17": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 87,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "d57aec45-0b0c-4c60-952c-df6a78221f6f",
+        "mb_trackid": "a875319e-df5c-43c0-9a7d-d9a117c1fe7f",
+        "mb_workid": "6abf45ca-83c6-3650-af50-63d4f45248a3",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pigs on the Wing, Part I",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Pigs on the Wing, Part 1",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "18": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 138,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "5e4788d9-0f2f-43cb-b83f-d0e988739e1b",
+        "mb_trackid": "97a5d9e7-64a0-4653-8719-00a1059456e9",
+        "mb_workid": "73c213ba-b2cf-3bc4-8b17-52befb812065",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pigs on the Wing, Part II",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Pigs on the Wing, Part 2",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "19": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 576,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "f574f642-33d8-4ebc-b8e5-687bddbdbfc5",
+        "mb_trackid": "a0816f66-b7fd-4bfc-8411-0f4397aa6562",
+        "mb_workid": "a4ae404b-9c82-3b16-8d4c-65ed05276ae7",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dogs",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Dogs",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 313,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "579d3168-5639-4970-9979-7bc64a4d3dce",
+        "mb_trackid": "5d792d60-1902-4834-9115-c8da793097f0",
+        "mb_workid": "ad99e7f5-6828-303e-9209-d9ddcd7bd626",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Brick in the Wall, Part I",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Another Brick in the Wall, Part 1",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "20": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 274,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "ff9c9b73-d191-4a88-9400-68871a9acc1e",
+        "mb_trackid": "eee3bae1-e5e0-4a0a-b575-3eaf5481374f",
+        "mb_workid": "99c1086b-7400-456d-ad43-9969520bd8ee",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Brick in the Wall, Part III",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Another Brick in the Wall, Part 3",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "21": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 94,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "2067a98d-75bc-4e60-b376-cf97d9ca4db6",
+        "mb_trackid": "86eede7e-1e8f-4e03-b53c-eeb42a64445e",
+        "mb_workid": "f641de5b-728d-3542-bbb8-d32b9ce53107",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Goodbye Cruel World",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Goodbye Cruel World",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "22": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 204,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "e12f2156-24ca-4e66-962c-9a381a044d40",
+        "mb_trackid": "df1233f3-4d55-435e-b1a8-545970f1a894",
+        "mb_workid": "f7d5beba-103b-37e9-994d-52c57c68655b",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Hey You",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Hey You",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "23": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 189,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "fe097b14-8015-4ec7-b19e-0ef425dd7af4",
+        "mb_trackid": "67ce1770-7389-4d78-97b2-8646de566c5a",
+        "mb_workid": "c267022f-c70a-3e6c-b424-d3d96d0819a5",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Is There Anybody Out There?",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Is There Anybody Out There?",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "24": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 228,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "076e4a33-7d7c-4380-a71e-209e6a67899c",
+        "mb_trackid": "33c47f71-5840-4a1d-a485-0c7f67f94575",
+        "mb_workid": "48d6820d-3456-3018-90ab-8f369ea398a5",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Nobody Home",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Nobody Home",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "25": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 70,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "77b02eed-e4bc-4cf0-8fca-0cc4f3ad9e7a",
+        "mb_trackid": "b7890f71-9655-418f-9068-b427f0c6a786",
+        "mb_workid": "1fd1ecc6-0030-3854-a7ca-34a9f4017073",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Vera",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Vera",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "26": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger, Wright, Richard",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters",
+          "Richard Wright"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "6f7e36da-79d8-4219-990d-8e9224d04ebc"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 695,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "9845ead1-3ffa-4f8f-8f51-4be7c5673aab",
+        "mb_trackid": "7fa9ebd8-bf05-48e7-b8ad-c90bdfacd95b",
+        "mb_workid": "1ef32041-f08a-3615-af5c-b960bfaf7235",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Shine On You Crazy Diamond, Part I–V",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "live, 1987-09-2?: Rosemont Horizon, Rosemont, IL, USA",
+        "tracktotal": 11,
+        "work": "Shine On You Crazy Diamond, Parts I–V",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "27": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 445,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "be812267-b3b0-472f-90ab-9e8f739ef45e",
+        "mb_trackid": "ffd61831-5d30-4d94-aeff-fbbe69c04d0d",
+        "mb_workid": "0af0552f-cbe2-306b-a8cf-4f939df6eb67",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Welcome to the Machine",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Welcome to the Machine",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "28": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 327,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "428a6d43-cee6-425a-b85a-e82d59f96616",
+        "mb_trackid": "9148c1b8-5aa7-44b5-82e0-d2c8cca84f05",
+        "mb_workid": "1966a367-a2d9-319c-9702-f0bc141e3050",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Have a Cigar",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Have a Cigar",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "29": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 3,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 361,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "5330105a-1a11-4aad-9082-a82f379cdca5",
+        "mb_trackid": "6c853a4b-ce6f-47ca-b460-0c7e0b6d6f3e",
+        "mb_workid": "4c776465-ac6b-3d7d-8fd0-c91bf8e89322",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Wish You Were Here",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "live, 1977-05-09: Oakland Coliseum, Oakland, CA, USA",
+        "tracktotal": 11,
+        "work": "Wish You Were Here",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 364,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "03ba8893-9990-4a8c-8da4-392da8edff6b",
+        "mb_trackid": "755e8ec0-8723-4a9b-99b3-510017d7e2bf",
+        "mb_workid": "e4207803-df79-37ca-9825-4f92bf6cea89",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Brick in the Wall, Part II",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Another Brick in the Wall, Part 2",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 458,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "7340a7f3-2fb4-470b-98e0-f492e40076b9",
+        "mb_trackid": "da3e5897-25d9-44bd-b29f-d2cd001790e8",
+        "mb_workid": "a37f8c1a-bf0c-3ac3-8dc2-f1b8d5522d5e",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mother",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Mother",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 213,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "323d6fdb-7840-4552-9a02-eefd648b285e",
+        "mb_trackid": "bae3fd64-189d-4552-aad3-26324a993926",
+        "mb_workid": "4cabd763-29df-3df6-b3f8-0e9b5571d859",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Goodbye Blue Sky",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Goodbye Blue Sky",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 247,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "0f842471-c76a-4e42-a1b3-6c26ca0138ef",
+        "mb_trackid": "5931db6a-f349-465f-9a51-e1db3b45955c",
+        "mb_workid": "e5c2b139-166c-488e-98a4-b81eaa86327f",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "What Shall We Do From?",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "What Shall We Do Now?",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gilmour, David, Waters, Roger",
+        "composers": [
+          "David Gilmour",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "1dce970e-34bc-48b2-ab51-48d87544a4c2",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 282,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "383960f6-9dde-450a-8eef-bd795df38217",
+        "mb_trackid": "c10dff43-4c6a-4369-8821-ce85fb8274ad",
+        "mb_workid": "d7bf11f9-fd4b-3688-96b2-93d5ebf30ca4",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Young Lust",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Young Lust",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger",
+        "composers": [
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 241,
+        "lyricists": [
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "d1ff7c77-5bc6-4726-ae83-0fe145afd170",
+        "mb_trackid": "a846e9ad-64cf-4c3c-934a-7ad8b9219c81",
+        "mb_workid": "ec2d56cb-638c-30a2-af9e-579759a79b6a",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "One of My Turns",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "One of My Turns",
+        "work_disambig": "",
+        "year": 1994
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Pink Floyd",
+        "album_id": null,
+        "albumartist": "Pink Floyd",
+        "albumartist_credit": "Pink Floyd",
+        "albumartist_sort": "Pink Floyd",
+        "albumartists": [
+          "Pink Floyd"
+        ],
+        "albumartists_credit": [
+          "Pink Floyd"
+        ],
+        "albumartists_sort": [
+          "Pink Floyd"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pink Floyd",
+        "artist_credit": "Pink Floyd",
+        "artist_sort": "Pink Floyd",
+        "artists": [
+          "Pink Floyd"
+        ],
+        "artists_credit": [
+          "Pink Floyd"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pink Floyd"
+        ],
+        "asin": "",
+        "barcode": "4017858000096",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "0103008 ASC",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Waters, Roger, Waters, Roger",
+        "composers": [
+          "Roger Waters",
+          "Roger Waters"
+        ],
+        "composers_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 3,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "PR‐Records",
+        "language": "eng",
+        "length": 227,
+        "lyricists": [
+          "Roger Waters",
+          "Roger Waters"
+        ],
+        "lyricists_ids": [
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b",
+          "0f50beab-d77d-4f0f-ac26-0b87d3e9b11b"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_albumartistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_albumid": "030654bc-4039-4030-905a-fac00a8a9b94",
+        "mb_artistid": "83d91898-7763-47d7-b03b-b92132375c47",
+        "mb_artistids": [
+          "83d91898-7763-47d7-b03b-b92132375c47"
+        ],
+        "mb_releasegroupid": "936e8b3f-22c7-4758-89f8-626684a3d9c4",
+        "mb_releasetrackid": "f95a50e1-d331-4c2b-9cf0-686ca24e2d5d",
+        "mb_trackid": "a6f1bfb5-f71a-4558-8125-24816539b5a8",
+        "mb_workid": "b59c0672-8ff2-3289-adf2-98e8d98be317",
+        "media": "CD",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1994,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Pink Floyd",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Don’t Leave Me Now / Empty Spaces",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "live, 1980-02-28: Nassau Coliseum, Uniondale, NY, USA",
+        "tracktotal": 11,
+        "work": "Empty Spaces",
+        "work_disambig": "",
+        "year": 1994
+      }
+    }
+  }
+}
