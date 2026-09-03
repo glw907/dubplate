@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# fakeshim: stands in for pass 2a Task 3's real derive_oracle.py so
+# internal/harness/oracle's tests can prove the Go adapter's contract
+# without a Python venv. It ignores the config and input file paths
+# it is invoked with (argv $1, $2) and emits one fixed, well-formed
+# oracle JSON document to stdout, matching cassette.Expected exactly.
+#
+# Three environment variables let a test bend that fixed document
+# just enough to fire each of Derive's own validations, without
+# turning this into a second shim:
+#   FAKESHIM_DATE       overrides echoed_date (default 2024-01-15)
+#   FAKESHIM_OMIT_HASH  when set, drops config_hash from the document
+#   FAKESHIM_CALL_LOG   when set, this invocation appends one line to
+#                        it, so a test can prove exactly one process ran
+#   FAKESHIM_ENV_LOG     when set, this invocation writes
+#                        PYTHONHASHSEED's value to it, so a test can
+#                        prove the adapter set it
+set -euo pipefail
+
+if [ -n "${FAKESHIM_CALL_LOG:-}" ]; then
+  echo "call" >>"$FAKESHIM_CALL_LOG"
+fi
+if [ -n "${FAKESHIM_ENV_LOG:-}" ]; then
+  echo "${PYTHONHASHSEED:-}" >"$FAKESHIM_ENV_LOG"
+fi
+
+date="${FAKESHIM_DATE:-2024-01-15}"
+
+config_hash_field=""
+if [ -z "${FAKESHIM_OMIT_HASH:-}" ]; then
+  config_hash_field='"config_hash": "fakeshim-deadbeef",'
+fi
+
+cat <<EOF
+{
+  "recommendation": "strong",
+  "action": "apply",
+  "echoed_date": "${date}",
+  ${config_hash_field}
+  "candidates": [
+    {
+      "source": "MusicBrainz",
+      "album_id": "00000000-0000-0000-0000-000000000000",
+      "distance": 0.01,
+      "penalties": {"source": 0.0, "album": 0.01},
+      "tracks": [0.0, 0.0]
+    }
+  ],
+  "assignment": {"0": 0, "1": 1},
+  "extra_items": [],
+  "extra_tracks": [],
+  "applied_fields": {"album": "Example Album", "year": 2020}
+}
+EOF

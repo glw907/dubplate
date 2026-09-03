@@ -1,0 +1,24 @@
+# estate.yaml: dubplate's live import profile
+# (config/beets-config.yaml), reduced to the subset that can move a
+# match verdict. The full key-by-key transform, with every stripped
+# key's reason, is documented in corpus/README.md ("Config profiles");
+# do not add a key here without adding it there too.
+#
+# directory and library are box paths, not corpus data: the
+# placeholders below are substituted by internal/harness/oracle at
+# derivation time, pointed at a per-run scratch directory.
+# musicbrainz: is not written here at all; the adapter appends it at
+# derivation time, pointed at the running replay stub instead of the
+# live API.
+directory: "{{DUBPLATE_LIBRARY_DIR}}"
+library: "{{DUBPLATE_LIBRARY_DB}}"
+
+import:
+  quiet_fallback: skip
+  none_rec_action: skip
+  timid: no
+
+original_date: yes
+per_disc_numbering: yes
+
+plugins: musicbrainz

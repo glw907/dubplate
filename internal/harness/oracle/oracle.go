@@ -1,0 +1,247 @@
+// Package oracle drives beets against a [cassette.Case]: the adapter
+// half lives here in Go, the shim half in Python (arriving in pass
+// 2a's Task 3), because the shim is the code that actually knows
+// beets, and a future beets bump must be able to edit only this
+// package. Derive owns the whole run: rendering the case's config
+// profile against a [stub.Server], launching exactly one shim
+// process, and validating the record the shim reports before handing
+// it back as a [cassette.Expected].
+package oracle
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
+	"github.com/glw907/dubplate/internal/harness/cassette"
+	"github.com/glw907/dubplate/internal/harness/stub"
+)
+
+// Options carries the pinned Python venv and, for tests, a shim
+// override.
+type Options struct {
+	Venv string // path to the pinned uv venv; unused when Shim is set
+	Shim string // shim executable path; empty means the package's own shim
+}
+
+// metadataSourcePlugins are the beets plugins that supply match
+// candidates (beetsplug/musicbrainz.py and its siblings); fetchart,
+// embedart, and replaygain never count even if a profile listed them,
+// since they are matching-inert.
+var metadataSourcePlugins = map[string]bool{
+	"musicbrainz": true,
+	"discogs":     true,
+	"spotify":     true,
+	"deezer":      true,
+	"beatport":    true,
+}
+
+// loadProfile reads the named profile's raw YAML from corpus/profiles
+// under the repository root. Tests substitute this var to exercise
+// Derive against profile content the checked-in corpus never carries.
+var loadProfile = func(name string) ([]byte, error) {
+	root, err := repoRoot()
+	if err != nil {
+		return nil, err
+	}
+	return os.ReadFile(filepath.Join(root, "corpus", "profiles", name+".yaml"))
+}
+
+// caseDir resolves c's on-disk directory, corpus/cases/<ID> under the
+// repository root, the same directory [cassette.LoadCase] read it
+// from. Tests substitute this var to point at a scratch fixture
+// instead of the checked-in corpus.
+var caseDir = func(c *cassette.Case) (string, error) {
+	root, err := repoRoot()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(root, "corpus", "cases", c.ID), nil
+}
+
+// repoRoot walks up from the working directory to the nearest
+// ancestor holding go.mod, so profile and case lookup works whether
+// the caller runs from the repository root (`make derive`) or from a
+// package directory (`go test`).
+func repoRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("oracle: locate repo root: %w", err)
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("oracle: locate repo root: no go.mod above %s", dir)
+		}
+		dir = parent
+	}
+}
+
+// Derive runs the oracle for one case: it renders the case's config
+// profile with the stub's MusicBrainz host substituted, starts a
+// replay [stub.Server] over the case's captured responses, launches
+// exactly one shim process with PYTHONHASHSEED=0 in its environment,
+// and decodes and validates the record before returning it.
+//
+// Derive fails loudly, never silently, when the shim's echoed
+// evaluation date disagrees with c.EvalDate, when the shim omits its
+// config hash, or when the rendered profile does not load exactly
+// one metadata-source plugin.
+func Derive(ctx context.Context, c *cassette.Case, opts Options) (*cassette.Expected, error) {
+	dir, err := caseDir(c)
+	if err != nil {
+		return nil, err
+	}
+
+	srv, err := stub.New(c, dir)
+	if err != nil {
+		return nil, fmt.Errorf("oracle: start stub for %s: %w", c.ID, err)
+	}
+	defer func() { _ = srv.Close() }()
+
+	scratch, err := os.MkdirTemp("", "dubplate-oracle-*")
+	if err != nil {
+		return nil, fmt.Errorf("oracle: scratch dir: %w", err)
+	}
+	defer func() { _ = os.RemoveAll(scratch) }()
+
+	profile, err := renderProfile(c.Profile, scratch, filepath.Join(scratch, "library.db"), srv.Addr())
+	if err != nil {
+		return nil, err
+	}
+	profilePath := filepath.Join(scratch, "config.yaml")
+	if err := os.WriteFile(profilePath, profile, 0o644); err != nil {
+		return nil, fmt.Errorf("oracle: write rendered profile: %w", err)
+	}
+
+	inputPath := filepath.Join(scratch, "input.json")
+	if err := writeShimInput(inputPath, c); err != nil {
+		return nil, err
+	}
+
+	exp, err := runShim(ctx, opts, profilePath, inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("oracle: derive %s: %w", c.ID, err)
+	}
+
+	if exp.EchoedDate != c.EvalDate {
+		return nil, fmt.Errorf("oracle: derive %s: shim echoed date %q, case wants %q", c.ID, exp.EchoedDate, c.EvalDate)
+	}
+	if exp.ConfigHash == "" {
+		return nil, fmt.Errorf("oracle: derive %s: shim omitted its config hash", c.ID)
+	}
+	return exp, nil
+}
+
+// renderProfile loads the named profile, substitutes its box-path
+// placeholders with libDir/libDB and appends a musicbrainz: block
+// pointed at host (the Q5 seam: {host, https: no, ratelimit: 100}),
+// after checking the profile resolves to exactly one metadata source.
+func renderProfile(name, libDir, libDB, host string) ([]byte, error) {
+	raw, err := loadProfile(name)
+	if err != nil {
+		return nil, fmt.Errorf("oracle: load profile %s: %w", name, err)
+	}
+
+	rendered := strings.NewReplacer(
+		"{{DUBPLATE_LIBRARY_DIR}}", libDir,
+		"{{DUBPLATE_LIBRARY_DB}}", libDB,
+	).Replace(string(raw))
+
+	if n := countMetadataSources(rendered); n != 1 {
+		return nil, fmt.Errorf("oracle: profile %s: rendered plugins line names %d metadata sources, want exactly 1", name, n)
+	}
+
+	rendered += fmt.Sprintf("\nmusicbrainz:\n  host: %q\n  https: no\n  ratelimit: 100\n", host)
+	return []byte(rendered), nil
+}
+
+// countMetadataSources returns how many recognized metadata-source
+// plugins profile's plugins: line names. It returns 0 when the
+// profile carries no plugins: line at all.
+func countMetadataSources(profile string) int {
+	for line := range strings.SplitSeq(profile, "\n") {
+		rest, ok := strings.CutPrefix(strings.TrimSpace(line), "plugins:")
+		if !ok {
+			continue
+		}
+		n := 0
+		for p := range strings.FieldsSeq(rest) {
+			if metadataSourcePlugins[p] {
+				n++
+			}
+		}
+		return n
+	}
+	return 0
+}
+
+// shimInput is the envelope Derive writes for the shim to read: the
+// case's synthetic items plus the evaluation date the shim must pin
+// its own process clock to.
+type shimInput struct {
+	CaseID   string                `json:"case_id"`
+	EvalDate string                `json:"eval_date"`
+	Items    []cassette.ItemFields `json:"items"`
+}
+
+func writeShimInput(path string, c *cassette.Case) error {
+	data, err := json.Marshal(shimInput{CaseID: c.ID, EvalDate: c.EvalDate, Items: c.Input.Items})
+	if err != nil {
+		return fmt.Errorf("oracle: encode shim input: %w", err)
+	}
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return fmt.Errorf("oracle: write shim input: %w", err)
+	}
+	return nil
+}
+
+// runShim launches exactly one shim process against the rendered
+// profile and input, decodes its stdout as a [cassette.Expected], and
+// reports the shim's stderr on failure.
+func runShim(ctx context.Context, opts Options, profilePath, inputPath string) (*cassette.Expected, error) {
+	cmd, err := shimCommand(ctx, opts, profilePath, inputPath)
+	if err != nil {
+		return nil, err
+	}
+	cmd.Env = append(os.Environ(), "PYTHONHASHSEED=0")
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("run shim: %w: %s", err, stderr.String())
+	}
+
+	var exp cassette.Expected
+	if err := json.Unmarshal(stdout.Bytes(), &exp); err != nil {
+		return nil, fmt.Errorf("decode shim output: %w", err)
+	}
+	return &exp, nil
+}
+
+// shimCommand builds the shim invocation: opts.Shim exec'd directly
+// when set (tests point it at testdata/fakeshim), or, when empty, the
+// venv's python3 running the package's own shim script (Task 3's
+// derive_oracle.py, which does not exist yet). This branch is
+// untested until Task 3 lands the script it points at.
+func shimCommand(ctx context.Context, opts Options, args ...string) (*exec.Cmd, error) {
+	if opts.Shim != "" {
+		return exec.CommandContext(ctx, opts.Shim, args...), nil
+	}
+	root, err := repoRoot()
+	if err != nil {
+		return nil, err
+	}
+	python := filepath.Join(opts.Venv, "bin", "python3")
+	script := filepath.Join(root, "internal", "harness", "oracle", "derive_oracle.py")
+	return exec.CommandContext(ctx, python, append([]string{script}, args...)...), nil
+}

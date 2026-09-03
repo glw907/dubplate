@@ -75,3 +75,53 @@ not defaulted.
 A profile edit, or a beets/dependency version bump, is a
 corpus-revalidation event exactly like any other pin change: whatever
 in the manifest disagrees with the new venv is what `Reconcile` names.
+
+## Config profiles
+
+`corpus/profiles/estate.yaml` derives from `config/beets-config.yaml`,
+dubplate's live import profile, under the transform below: every
+verdict-moving key survives verbatim, every key that only affects
+importer execution or output layout is dropped, and the plugin set
+narrows to the single metadata source the corpus's design requires
+(ruling 3: multi-source ordering would break tie reproducibility). A
+profile edit is a corpus-revalidation event exactly like a beets
+version bump (`corpus/manifest.json`'s `profile_hashes` is what
+detects it), so this table is the record a reviewer checks a profile
+change against, not decoration.
+
+| `config/beets-config.yaml` key | estate.yaml fate | reason |
+| --- | --- | --- |
+| `directory` | box path, replaced by the `{{DUBPLATE_LIBRARY_DIR}}` placeholder | never a corpus value; `internal/harness/oracle` substitutes a per-run scratch path at derivation time |
+| `library` | box path, replaced by the `{{DUBPLATE_LIBRARY_DB}}` placeholder | same |
+| `import.move` | dropped | import-execution behavior; the oracle runs no importer and moves no files |
+| `import.write` | dropped | import-execution behavior; the oracle never writes a tag to disk |
+| `import.quiet_fallback` | kept verbatim | the quiet-mode trio: verdict-moving (governs what a non-interactive run resolves an ambiguous match to) |
+| `import.none_rec_action` | kept verbatim | quiet-mode trio |
+| `import.timid` | kept verbatim | quiet-mode trio |
+| `import.group_albums` | dropped | the corpus tests the matcher from the (items, responses) boundary, below the importer's own grouping step (mechanics study, "Item order and the group_albums pre-step") |
+| `original_date` | kept verbatim | verdict-moving: controls which year the year penalty evaluates against |
+| `per_disc_numbering` | kept verbatim | verdict-moving: affects multi-disc track distance and assignment |
+| `paths.*` | dropped | output filename templates; the matcher never reads them |
+| `plugins` | reduced to `musicbrainz` alone | the single-metadata-source constraint; `fetchart`, `embedart`, and `replaygain` are matching-inert per the mechanics study but import-active, so they cannot ride even reduced |
+| `fetchart.*` | dropped | config for a plugin no longer loaded |
+| `replaygain.*` | dropped | same |
+| `embedart.*` | dropped | same |
+| `match:*` | absent from both files, kept "verbatim" at beets' shipped defaults | `config/beets-config.yaml` sets no `match:` override, so estate.yaml runs the whole distance/threshold surface at beets' defaults too |
+| `musicbrainz:*` | absent from the checked-in file; injected at derivation time | `config/beets-config.yaml` sets no `musicbrainz:` override either; the adapter appends `musicbrainz: {host: "<stub addr>", https: no, ratelimit: 100}` when it renders the profile, pointing the run at the running replay stub instead of the live API (the Q5 seam) |
+
+`corpus/profiles/stock.yaml` is the defaults profile: `plugins:
+musicbrainz` and nothing else, not even the box-path placeholders.
+Every other surface, including `match:`, runs at whatever beets ships
+as its own default. It exists for the same single-source reason as
+estate's `plugins:` line, on a config that never overrode any of the
+matcher's other knobs to begin with.
+
+Both profiles are plain YAML text; `internal/harness/oracle` renders
+one by substituting the `{{DUBPLATE_LIBRARY_DIR}}` /
+`{{DUBPLATE_LIBRARY_DB}}` placeholders (a no-op on stock.yaml, which
+carries neither), then appending the `musicbrainz:` stub-host block.
+The adapter rejects a rendered profile whose `plugins:` line resolves
+to anything other than exactly one recognized metadata-source plugin,
+so a profile edit that reintroduces a second source, or drops
+`musicbrainz` entirely, fails loudly at derivation time rather than
+silently changing which source produced a case's `Expected` record.

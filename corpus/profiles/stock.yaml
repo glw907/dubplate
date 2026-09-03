@@ -1,0 +1,5 @@
+# stock.yaml: the defaults profile. Nothing but the single-source
+# plugin line the corpus's design requires (see corpus/README.md,
+# "Config profiles"); every other surface runs at whatever beets
+# ships as its own default.
+plugins: musicbrainz
