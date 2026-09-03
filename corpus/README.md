@@ -89,18 +89,24 @@ Pass 2b's own cases, roughly 60-120 of them across 15 shape families
 section (b)), each a synthetic release built through `harness synth`
 rather than a live capture: matcher-behavior coverage, where the smoke
 corpus above is machinery coverage. Every row names the case's family,
-the structural shape it exercises, and any hand-edit its README-blessed
-escape hatch used (corpus/README.md, "Authoring a synthetic case",
-step 3). This table is filled in family by family as each case-authoring
-task lands; Task 14 rewrites it whole once every family is committed.
+the structural shape it exercises, and its hand-edit column: an edit to
+the generated `responses/001.json` made before the case's first freeze,
+reached only for a shape `ReleaseSpec` cannot otherwise express (the
+response hand-edit escape hatch, staleness-corrections ruling 3). The
+routine empty-search fallback response a fallthrough case adds (a
+hand-written empty search result plus a hand-added `requests` entry,
+"Authoring a synthetic case" step 3 below) is the sanctioned default and
+is never itself a named hand-edit. This table is filled in family by
+family as each case-authoring task lands; Task 14 rewrites it whole once
+every family is committed.
 
 ### Family 1: assignment and ordering
 
 `assign-*`, 8 cases. `test/autotag/test_match.py`'s `TestAssignment`
 (`test_assign_tracks`'s five params plus
 `test_order_works_when_track_names_are_entirely_wrong`), exercising
-`assign_items` (match.py:53-81) directly. No case in this family hand-
-edits a generated response; every shape is expressible through
+`assign_items` (match.py:53-81) directly. No case in this family
+hand-edits a generated response; every shape is expressible through
 `ReleaseSpec`'s `items` (an independent, deliberately reordered item
 set) or `overrides` (`missing`/`extra`) alone.
 
@@ -113,7 +119,7 @@ set) or `overrides` (`missing`/`extra`) alone.
 | `assign-extra-item` | a 3-track release plus one `extra` item unrelated to any track, becoming `extra_items` (carrying the release's own `mb_albumid` per the fencing rule). | none |
 | `assign-large-garbled` | a 12-track release whose every item carries the same wrong title and a length perturbed within `track_length_grace` of its true track, so the title component cannot discriminate and only length separates a correct pairing from an incorrect one; `assign_items`'s optimum still recovers the identity mapping, proving the solver's result survives large, uniform per-pair costs. | none |
 | `assign-multi-extra-items` | a 3-track release plus two `extra` items, both unmatched (`extra_items` length 2): the single-extra-item shape generalizes to more than one. | none |
-| `assign-multi-extra-tracks` | a 5-track release with two non-adjacent candidate tracks left unmatched (`extra_tracks` length 2): the single-extra-track shape generalizes to more than one. Note: `assign_items` never returns both a nonzero `extra_items` and a nonzero `extra_tracks` from the same call (its leftover set is one-sided, on whichever of items/tracks is longer), so a case combining the two is not an expressible shape and is not attempted here. |
+| `assign-multi-extra-tracks` | a 5-track release with two non-adjacent candidate tracks left unmatched (`extra_tracks` length 2): the single-extra-track shape generalizes to more than one. Note: `assign_items` never returns both a nonzero `extra_items` and a nonzero `extra_tracks` from the same call (its leftover set is one-sided, on whichever of items/tracks is longer), so a case combining the two is not an expressible shape and is not attempted here. | none |
 
 ## The canonicalization rule
 
