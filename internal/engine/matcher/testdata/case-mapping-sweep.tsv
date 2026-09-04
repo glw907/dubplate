@@ -1,0 +1,72 @@
+# Every code point where Python's full-case str.lower() and Go's
+# simple-case strings.ToLower() disagree, with the post-strip form
+# pinned beets 2.13.1 produces for each: lower, transliterate through
+# unidecode 1.4.0, lower again, strip to [a-z0-9].
+#
+# Swept all 1112064 valid code points (surrogates excluded) against the
+# venv at tools/venv/.venv; 56 diverge.  One of them, U+0130, is the
+# full-versus-simple case mapping difference the sweep went looking for.
+# The other 55 are a Unicode version skew: Go 1.27 carries Unicode
+# 17.0.0 case tables and CPython 3.13 carries 15.1.0.
+#
+# TestStringDistCaseMappingSweep replays these through the Go pipeline
+# and names the two rows, U+A7CB and U+A7DC, where the post-strip forms
+# do not agree.
+#
+# codepoint<TAB>python-lower<TAB>go-lower<TAB>beets-post-strip
+0130	i\u0307	i	i
+1C89	\u1c89	\u1c8a	
+A7CB	\ua7cb	\u0264	
+A7CC	\ua7cc	\ua7cd	
+A7CE	\ua7ce	\ua7cf	
+A7D2	\ua7d2	\ua7d3	
+A7D4	\ua7d4	\ua7d5	
+A7DA	\ua7da	\ua7db	
+A7DC	\ua7dc	\u019b	
+10D50	\U00010d50	\U00010d70	
+10D51	\U00010d51	\U00010d71	
+10D52	\U00010d52	\U00010d72	
+10D53	\U00010d53	\U00010d73	
+10D54	\U00010d54	\U00010d74	
+10D55	\U00010d55	\U00010d75	
+10D56	\U00010d56	\U00010d76	
+10D57	\U00010d57	\U00010d77	
+10D58	\U00010d58	\U00010d78	
+10D59	\U00010d59	\U00010d79	
+10D5A	\U00010d5a	\U00010d7a	
+10D5B	\U00010d5b	\U00010d7b	
+10D5C	\U00010d5c	\U00010d7c	
+10D5D	\U00010d5d	\U00010d7d	
+10D5E	\U00010d5e	\U00010d7e	
+10D5F	\U00010d5f	\U00010d7f	
+10D60	\U00010d60	\U00010d80	
+10D61	\U00010d61	\U00010d81	
+10D62	\U00010d62	\U00010d82	
+10D63	\U00010d63	\U00010d83	
+10D64	\U00010d64	\U00010d84	
+10D65	\U00010d65	\U00010d85	
+16EA0	\U00016ea0	\U00016ebb	
+16EA1	\U00016ea1	\U00016ebc	
+16EA2	\U00016ea2	\U00016ebd	
+16EA3	\U00016ea3	\U00016ebe	
+16EA4	\U00016ea4	\U00016ebf	
+16EA5	\U00016ea5	\U00016ec0	
+16EA6	\U00016ea6	\U00016ec1	
+16EA7	\U00016ea7	\U00016ec2	
+16EA8	\U00016ea8	\U00016ec3	
+16EA9	\U00016ea9	\U00016ec4	
+16EAA	\U00016eaa	\U00016ec5	
+16EAB	\U00016eab	\U00016ec6	
+16EAC	\U00016eac	\U00016ec7	
+16EAD	\U00016ead	\U00016ec8	
+16EAE	\U00016eae	\U00016ec9	
+16EAF	\U00016eaf	\U00016eca	
+16EB0	\U00016eb0	\U00016ecb	
+16EB1	\U00016eb1	\U00016ecc	
+16EB2	\U00016eb2	\U00016ecd	
+16EB3	\U00016eb3	\U00016ece	
+16EB4	\U00016eb4	\U00016ecf	
+16EB5	\U00016eb5	\U00016ed0	
+16EB6	\U00016eb6	\U00016ed1	
+16EB7	\U00016eb7	\U00016ed2	
+16EB8	\U00016eb8	\U00016ed3	
