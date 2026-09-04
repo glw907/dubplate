@@ -22,10 +22,13 @@ import (
 // Expected.AppliedFields. The subject set and which case resolves to
 // which committed row is [analysis.FileTagSubjects]' own concern, not
 // re-decided here; this only turns that list into DeriveFileTags'
-// input shape.
-func loadFileTagSubjects(t *testing.T, root string) []FileTagSubject {
+// input shape. The cases the subjects were projected from come back
+// alongside them, keyed by id, so a caller checking a derived ledger
+// against the corpus does not read the same twelve cases twice.
+func loadFileTagSubjects(t *testing.T, root string) ([]FileTagSubject, map[string]*cassette.Case) {
 	t.Helper()
 	subjects := make([]FileTagSubject, 0, len(analysis.FileTagSubjects))
+	cases := make(map[string]*cassette.Case, len(analysis.FileTagSubjects))
 	for _, s := range analysis.FileTagSubjects {
 		dir := filepath.Join(root, "corpus", "cases", s.CaseID)
 		c, err := cassette.LoadCase(dir)
@@ -48,8 +51,9 @@ func loadFileTagSubjects(t *testing.T, root string) []FileTagSubject {
 			ItemIndex:     s.ItemIndex,
 			AppliedFields: fields,
 		})
+		cases[s.CaseID] = c
 	}
-	return subjects
+	return subjects, cases
 }
 
 // TestFileTagsLedgerMatchesTheCorpus re-derives the file-level
@@ -66,7 +70,7 @@ func TestFileTagsLedgerMatchesTheCorpus(t *testing.T) {
 	}
 	path := filepath.Join(root, "corpus", "analysis", "file_tags.json")
 
-	subjects := loadFileTagSubjects(t, root)
+	subjects, cases := loadFileTagSubjects(t, root)
 	raw, err := DeriveFileTags(context.Background(), opts, subjects)
 	if err != nil {
 		t.Fatalf("DeriveFileTags: %v", err)
@@ -76,15 +80,6 @@ func TestFileTagsLedgerMatchesTheCorpus(t *testing.T) {
 		t.Fatalf("decode derived ledger: %v", err)
 	}
 
-	cases := make(map[string]*cassette.Case, len(subjects))
-	for _, s := range subjects {
-		dir := filepath.Join(root, "corpus", "cases", s.CaseID)
-		c, err := cassette.LoadCase(dir)
-		if err != nil {
-			t.Fatalf("LoadCase(%s): %v", dir, err)
-		}
-		cases[s.CaseID] = c
-	}
 	if err := analysis.CheckFileTagLedger(cases, &derived); err != nil {
 		t.Fatalf("the freshly derived ledger does not satisfy its own schema:\n%v", err)
 	}
@@ -129,7 +124,7 @@ func TestFileTagsLedgerReDerivationCatchesAPerturbation(t *testing.T) {
 	}
 	path := filepath.Join(root, "corpus", "analysis", "file_tags.json")
 
-	subjects := loadFileTagSubjects(t, root)
+	subjects, _ := loadFileTagSubjects(t, root)
 	raw, err := DeriveFileTags(context.Background(), opts, subjects)
 	if err != nil {
 		t.Fatalf("DeriveFileTags: %v", err)

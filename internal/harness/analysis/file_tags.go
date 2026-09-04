@@ -123,8 +123,6 @@ func CheckFileTagLedger(cases map[string]*cassette.Case, l *FileTagLedger) error
 	readonly := make(map[string]bool, len(l.ReadonlyFields))
 	for _, f := range l.ReadonlyFields {
 		readonly[f] = true
-	}
-	for _, f := range l.ReadonlyFields {
 		if _, ok := l.Template[f]; !ok {
 			errs = append(errs, fmt.Errorf("file tag ledger: template block is missing read-only field %q", f))
 		}
