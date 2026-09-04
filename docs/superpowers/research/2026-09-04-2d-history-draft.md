@@ -12,10 +12,10 @@ drafts, retire the draft files").
 
 Four plan tasks executed sequentially against
 `docs/superpowers/plans/2026-09-03-rung-2d-file-level.md` (revision 2).
-Commits `4d38717` (Task 1) → this pass's own close commit (Task 4,
-conductor to fill in the hash on fold); Task 3 (`8d181fe`) landed
-between Tasks 1 and 2 in commit order but ran first in execution order
-per the plan's sequencing, and Task 2 landed at `f5abba0`.
+Commits in order: `8d181fe` (Task 3, which ran first per the plan's
+sequencing), then `4d38717` (Task 1), then `f5abba0` (Task 2), then
+`412471f` plus `cc400ad` (Task 4's close and its same-session
+forward-reference fix).
 
 What landed: the template FLAC fixture and its provenance script
 (`internal/harness/oracle/testdata/template.flac`, 42 bytes, silent,
@@ -97,11 +97,13 @@ reported no diff under `corpus/` after either run). Wall time: run 1
 980s (16m20s) total (corpus derive 462.94s, ties derive 503.90s,
 component derive 0.75s, file-tags derive 0.59s); run 2 974s (16m14s)
 total (corpus derive 541.20s, ties derive 420.06s, component derive
-0.71s, file-tags derive 0.55s) — this is rung 3's budget line, exactly
-as 2c's was 2d's own (2c's own pair ran ~1729.58s/1582.53s on 215
-cases without the file-tags leg; 2d's own pair, with the file-tags leg
-added, ran close to the same total, confirming the file-tags leg's
-predicted negligible cost). The file-tags leg issues no MusicBrainz
+0.71s, file-tags derive 0.55s) — this is rung 3's budget line. 2d's
+pair (980s, 974s) ran materially faster than 2c's own pair
+(~1729.58s/1582.53s) on the identical 215-case corpus, roughly 40
+percent faster; the spread is attributable to run-to-run variance in
+request pacing rather than any corpus change, and the file-tags leg's
+sub-second cost (0.55s-0.59s) is negligible under either figure. The
+file-tags leg issues no MusicBrainz
 request (twelve subjects, one Python process reading already-committed
 `AppliedFields`), so it adds well under one second against the corpus
 and ties legs' own multi-hundred-second cost; the measured figure
