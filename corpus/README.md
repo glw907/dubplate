@@ -1578,9 +1578,14 @@ importer execution or output layout is dropped, and the plugin set
 narrows to the single metadata source the corpus's design requires
 (ruling 3: multi-source ordering would break tie reproducibility). A
 profile edit is a corpus-revalidation event exactly like a beets
-version bump (`corpus/manifest.json`'s `profile_hashes` is what
-detects it), so this table is the record a reviewer checks a profile
-change against, not decoration.
+version bump, so this table is the record a reviewer checks a profile
+change against, not decoration. `corpus/manifest.json`'s
+`profile_hashes` carries a per-profile content hash (today only
+`locale`, added at Task 18), but nothing in the gate or the derivation
+path computes or checks it yet; the reconciliation that would make a
+profile edit fail loudly the way a beets version pin already does is
+scoped follow-on work, not something this table's presence implies is
+built.
 
 | `config/beets-config.yaml` key | estate.yaml fate | reason |
 | --- | --- | --- |
@@ -1609,15 +1614,26 @@ as its own default. It exists for the same single-source reason as
 estate's `plugins:` line, on a config that never overrode any of the
 matcher's other knobs to begin with.
 
-Both profiles are plain YAML text; `internal/harness/oracle` renders
-one by substituting the `{{DUBPLATE_LIBRARY_DIR}}` /
-`{{DUBPLATE_LIBRARY_DB}}` placeholders (a no-op on stock.yaml, which
-carries neither), then appending the `musicbrainz:` stub-host block.
-The adapter rejects a rendered profile whose `plugins:` line resolves
-to anything other than exactly one recognized metadata-source plugin,
-so a profile edit that reintroduces a second source, or drops
-`musicbrainz` entirely, fails loudly at derivation time rather than
-silently changing which source produced a case's `Expected` record.
+`corpus/profiles/locale.yaml` (Task 18) is `stock.yaml` plus exactly
+two keys, `import.languages` and `import.ignored_alias_types`, and
+nothing else: the settings the #6358 alias-regression verification
+needs to make `_preferred_alias` (`beetsplug/musicbrainz.py:128-155`)
+reachable at all, since it reads `config['import']['languages']`
+directly and that list is empty under both `estate.yaml` and
+`stock.yaml`. It is a new file rather than an edit to either existing
+profile, so no other case's rendered profile, and no other case's
+frozen record, changes.
+
+All three profiles are plain YAML text; `internal/harness/oracle`
+renders one by substituting the `{{DUBPLATE_LIBRARY_DIR}}` /
+`{{DUBPLATE_LIBRARY_DB}}` placeholders (a no-op on `stock.yaml` and
+`locale.yaml`, which carry neither), then appending the `musicbrainz:`
+stub-host block. The adapter rejects a rendered profile whose
+`plugins:` line resolves to anything other than exactly one recognized
+metadata-source plugin, so a profile edit that reintroduces a second
+source, or drops `musicbrainz` entirely, fails loudly at derivation
+time rather than silently changing which source produced a case's
+`Expected` record.
 
 ## The capture tool
 

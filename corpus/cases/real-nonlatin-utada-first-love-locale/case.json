@@ -1,0 +1,1965 @@
+{
+  "id": "real-nonlatin-utada-first-love-locale",
+  "input": {
+    "items": [
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 328.6,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "5a62caad-0ccb-4a77-822c-2701f6d42e08",
+        "title": "Automatic",
+        "track": 1,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 277.666,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "5c5e7749-9ee2-4827-854f-01189e834100",
+        "title": "Movin’ on without you",
+        "track": 2,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 259.173,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "eb222829-b5eb-46f2-8823-26a91986d91c",
+        "title": "In My Room",
+        "track": 3,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 257.293,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "5138e6be-39b2-46bf-a306-d3b5ee983a18",
+        "title": "First Love",
+        "track": 4,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 302.44,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "6fb988fe-4b7e-4225-8da3-7c7a3e629949",
+        "title": "甘いワナ ～Paint It, Black",
+        "track": 5,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 326.293,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "7de5cd2c-cb9e-40e0-bdf7-768c757b3a35",
+        "title": "time will tell",
+        "track": 6,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 237.24,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "5c7fd9eb-31af-4878-ad5e-97d3014f496a",
+        "title": "Never Let Go",
+        "track": 7,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 260.693,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "836a2a6a-6a45-447c-9ac7-5203fb36be34",
+        "title": "B \u0026 C",
+        "track": 8,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 321.8,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "07af0cb6-3f56-4c71-ae7b-88b0667a092f",
+        "title": "Another Chance",
+        "track": 9,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 16.773,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "8469fe74-c0b3-4cb3-a626-b31526e76f97",
+        "title": "Interlude",
+        "track": 10,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada",
+        "length": 382.066,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "b9593332-6447-4cad-b546-c1ecdccca512",
+        "title": "Give Me A Reason",
+        "track": 11,
+        "year": 2017
+      },
+      {
+        "album": "First Love",
+        "albumartist": "Hikaru Utada",
+        "artist": "Hikaru Utada \u0026 ジョニー・ビシャス",
+        "length": 277,
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_trackid": "3a7e7e76-7708-4ac6-978a-b9cfeea86489",
+        "title": "Automatic (Johnny Vicious remix)",
+        "track": 12,
+        "year": 2017
+      }
+    ]
+  },
+  "profile": "locale",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/932c04f9-925a-45fc-847d-0da6a7b4e7a5?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28first+love%29+arid%3A%2889ad4ac3%5C-39f7%5C-470e%5C-963a%5C-56509c546377%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/2375a576-650b-47fb-939b-7c15afc989eb?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/a87189fd-0c95-4f0a-8ad4-4a8638ff11e0?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/7b9226e3-2250-461e-93f0-96596243cf68?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/40fff6c2-fbf1-446e-ad4a-fb2d822224fd?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/8848cf80-8f5e-4174-9510-6731dcfd94b3?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/007.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "2adf05884bcc504837b30cbaed0676f93277ca800640a2814d7bfbf8e943bed2",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "distance": 0.07222222222222223,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0.07222222222222223,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "7b9226e3-2250-461e-93f0-96596243cf68",
+        "distance": 0.8142875670553865,
+        "penalties": {
+          "album": 0.0250208507089241,
+          "album_id": 0.2293577981651376,
+          "tracks": 0.30302818423637057,
+          "unmatched_tracks": 0.2201834862385321,
+          "year": 0.03669724770642202
+        },
+        "tracks": [
+          0.7471759010220549,
+          0.8596019365250135,
+          0.9230769230769231,
+          0.7731524475524476
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "40fff6c2-fbf1-446e-ad4a-fb2d822224fd",
+        "distance": 0.8226531172055743,
+        "penalties": {
+          "album": 0.013879250520471894,
+          "album_id": 0.1272264631043257,
+          "missing_tracks": 0.1603053435114504,
+          "tracks": 0.5085194137588939,
+          "year": 0.012722646310432571
+        },
+        "tracks": [
+          0.760576923076923,
+          0.8758391608391609,
+          0.8485903237034459,
+          0.8054298642533937,
+          0.8185404339250494,
+          0.8974358974358974,
+          0.823076923076923,
+          0.8557029177718832,
+          0.9316239316239316,
+          0.7668997668997668,
+          0.801352493660186,
+          0.8073378440957039
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "8848cf80-8f5e-4174-9510-6731dcfd94b3",
+        "distance": 0.8317303403209074,
+        "penalties": {
+          "album": 0.014204545454545454,
+          "album_id": 0.13020833333333334,
+          "missing_tracks": 0.14062500000000003,
+          "tracks": 0.5258591281996953,
+          "year": 0.020833333333333336
+        },
+        "tracks": [
+          0.8479120879120879,
+          0.8823964497041421,
+          0.8811188811188811,
+          0.8833474218089603,
+          0.754079254079254,
+          0.7785832628909551,
+          0.8735879505110274,
+          0.8541497975708503,
+          0.834319526627219,
+          0.8676687297376952,
+          0.8046071575483341,
+          0.8347247419247419
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "2375a576-650b-47fb-939b-7c15afc989eb",
+        "distance": 0.8527205991251707,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.1016260162601626,
+          "missing_tracks": 0.3292682926829268,
+          "tracks": 0.4167449893690732,
+          "year": 0.00508130081300813
+        },
+        "tracks": [
+          0.8566433566433567,
+          0.8694638694638694,
+          0.8543471853816681,
+          0.8358974358974359,
+          0.8739495798319327,
+          0.8623481781376517,
+          0.8834498834498834,
+          0.8604895104895106,
+          0.8789743589743589,
+          0.8300929839391379,
+          0.7975524475524475,
+          0.8487179487179488
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "a87189fd-0c95-4f0a-8ad4-4a8638ff11e0",
+        "distance": 0.8540534617687298,
+        "penalties": {
+          "album": 0.03731343283582089,
+          "album_id": 0.12437810945273631,
+          "missing_tracks": 0.1791044776119403,
+          "tracks": 0.49584450654484913,
+          "year": 0.01741293532338308
+        },
+        "tracks": [
+          0.8643356643356643,
+          0.839799331103679,
+          0.8002344988344988,
+          0.7808800493624022,
+          0.8411242603550295,
+          0.8706293706293706,
+          0.7375664335664336,
+          0.7926447552447551,
+          0.8654945054945055,
+          0.8834498834498834,
+          0.8203335126412049,
+          0.8699823165340407
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "河野圭",
+          "西平彰",
+          "Taka \u0026 Speedy"
+        ],
+        "arrangers_ids": [
+          "70907452-4fe3-4a1e-9946-4567200e876c",
+          "d42debf4-8e3e-43cb-9ed9-0a5e87c0244b",
+          "0c289a1a-d995-4aac-86ef-098e80b85c2b"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400151;JPTO09901640",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 328.6,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "ddc7c640-31b5-482f-ad99-d030b2f429bf",
+        "mb_trackid": "5a62caad-0ccb-4a77-822c-2701f6d42e08",
+        "mb_workid": "a51059c5-3293-361f-8d40-3a50f86cb4f4",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Automatic",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Automatic",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "村山晋一郎"
+        ],
+        "arrangers_ids": [
+          "cbcf7736-aae6-4359-bab9-ec944ccbe896"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400152;JPTO00400347;JPTO09837900;JPTO09901650",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 277.666,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "ca9da78a-10d8-49c0-8e8f-210dbaa78043",
+        "mb_trackid": "5c5e7749-9ee2-4827-854f-01189e834100",
+        "mb_workid": "2d7065d6-701b-3975-8cdd-9dcebc89a896",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Movin’ on without you",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Movin’ on without you",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "西平彰"
+        ],
+        "arrangers_ids": [
+          "d42debf4-8e3e-43cb-9ed9-0a5e87c0244b"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400161;JPTO09901740",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 382.066,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "96993776-8f6f-495f-9a34-2b81256079d4",
+        "mb_trackid": "b9593332-6447-4cad-b546-c1ecdccca512",
+        "mb_workid": "4eccb4b4-895a-339f-8fd7-da081777f827",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Give Me A Reason",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Give Me A Reason",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "宇多田ヒカル \u0026 Johnny Vicious",
+        "artist_credit": "Hikaru Utada \u0026 ジョニー・ビシャス",
+        "artist_sort": "うただヒカル \u0026 Vicious, Johnny",
+        "artists": [
+          "宇多田ヒカル",
+          "Johnny Vicious"
+        ],
+        "artists_credit": [
+          "Hikaru Utada",
+          "ジョニー・ビシャス"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル",
+          "Vicious, Johnny"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400536;JPTO09901750",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 277,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429",
+          "4e1edd59-6648-45ae-9f85-a240b3689496"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "90c32a82-dbe7-4e22-b1a6-423b28a96907",
+        "mb_trackid": "3a7e7e76-7708-4ac6-978a-b9cfeea86489",
+        "mb_workid": "a51059c5-3293-361f-8d40-3a50f86cb4f4",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [
+          "Johnny Vicious"
+        ],
+        "remixers_ids": [
+          "4e1edd59-6648-45ae-9f85-a240b3689496"
+        ],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Automatic (Johnny Vicious remix)",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Automatic",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "村山晋一郎"
+        ],
+        "arrangers_ids": [
+          "cbcf7736-aae6-4359-bab9-ec944ccbe896"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400153;JPTO09901660",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 259.173,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "30e2254d-2b2b-4d08-a95f-b4ad8f43324d",
+        "mb_trackid": "eb222829-b5eb-46f2-8823-26a91986d91c",
+        "mb_workid": "691e740b-f191-30e4-8ca0-81900e8f9b64",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "In My Room",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "In My Room",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "河野圭"
+        ],
+        "arrangers_ids": [
+          "70907452-4fe3-4a1e-9946-4567200e876c"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400154;JPTO00400348;JPTO09901670",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 257.293,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "ede3cc7e-58b7-4b1a-9226-3bc0d349f8a2",
+        "mb_trackid": "5138e6be-39b2-46bf-a306-d3b5ee983a18",
+        "mb_workid": "9d4558da-208a-3a35-a685-2892c6b7ddc3",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "First Love",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "single version",
+        "tracktotal": 12,
+        "work": "First Love",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "西平彰"
+        ],
+        "arrangers_ids": [
+          "d42debf4-8e3e-43cb-9ed9-0a5e87c0244b"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400155;JPTO09901680",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 302.44,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "fbf5f092-cf73-4b5c-b3e2-637c298a97e6",
+        "mb_trackid": "6fb988fe-4b7e-4225-8da3-7c7a3e629949",
+        "mb_workid": "c49b7ffc-784e-3a96-912f-e2b1b3bc46d6",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "甘いワナ ～Paint It, Black",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "甘いワナ",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "磯村淳",
+          "森俊之"
+        ],
+        "arrangers_ids": [
+          "45af3913-d176-4bf9-9d42-1ec3fddf1f86",
+          "6547d3e4-8f1c-4453-bcc3-ad71a31d1259"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400156;JPTO00400345;JPTO09831510;JPTO09901690",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 326.293,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "6d10fa24-e65d-44fc-9eba-99095dc45b2d",
+        "mb_trackid": "7de5cd2c-cb9e-40e0-bdf7-768c757b3a35",
+        "mb_workid": "84805d81-be77-305c-b72a-46a7a47c15f9",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "time will tell",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "time will tell",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "河野圭"
+        ],
+        "arrangers_ids": [
+          "70907452-4fe3-4a1e-9946-4567200e876c"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Miller, Dominic, Sting, Utada, Hikaru",
+        "composers": [
+          "Dominic Miller",
+          "Sting",
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b65c975f-4eaa-4bd4-9d10-704a80e92548",
+          "7944ed53-2a58-4035-9b93-140a71e41c34",
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400157;JPTO09901700",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 237.24,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "07007da5-ec34-4508-9ffc-4df097fe8eb6",
+        "mb_trackid": "5c7fd9eb-31af-4878-ad5e-97d3014f496a",
+        "mb_workid": "ffbe1ec4-db76-3a12-a959-99ddc56de8d5",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Never Let Go",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Never Let Go",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "西平彰",
+          "Taka \u0026 Speedy"
+        ],
+        "arrangers_ids": [
+          "d42debf4-8e3e-43cb-9ed9-0a5e87c0244b",
+          "0c289a1a-d995-4aac-86ef-098e80b85c2b"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400158;JPTO09901710",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 260.693,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "d2ead54a-f008-4f77-ac91-e2cafb5a26c7",
+        "mb_trackid": "836a2a6a-6a45-447c-9ac7-5203fb36be34",
+        "mb_workid": "191665ed-6df7-380b-ad43-601c8f82a5ea",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "B \u0026 C",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "B\u0026C",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "西平彰",
+          "Taka \u0026 Speedy"
+        ],
+        "arrangers_ids": [
+          "d42debf4-8e3e-43cb-9ed9-0a5e87c0244b",
+          "0c289a1a-d995-4aac-86ef-098e80b85c2b"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400159;JPTO09901720",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 321.8,
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyricists_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "ee29c8f7-dbfb-407a-bd24-3f7e628cf569",
+        "mb_trackid": "07af0cb6-3f56-4c71-ae7b-88b0667a092f",
+        "mb_workid": "8b419a02-4275-34bb-9033-d3c4b47dd1ae",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Another Chance",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Another Chance",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "First Love",
+        "album_id": null,
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "うただヒカル",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "うただヒカル"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "うただヒカル",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "うただヒカル"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "composers_ids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPPO01400160;JPTO09901730",
+        "label": "Virgin Music",
+        "language": "eng",
+        "length": 16.773,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "c57fa7eb-fff4-4138-9a99-4c587a7544dd",
+        "mb_trackid": "8469fe74-c0b3-4cb3-a626-b31526e76f97",
+        "mb_workid": "aff6bb43-44cf-4174-9546-05d65048be45",
+        "media": "Digital Media",
+        "month": 12,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "First Love",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Interlude",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Interlude",
+        "work_disambig": "",
+        "year": 2017
+      }
+    }
+  }
+}

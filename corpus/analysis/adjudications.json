@@ -233,6 +233,19 @@
       "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Distinct from Task 18's #6358 regression check; this case's divergence is invisible to a quiet-mode import (strong/apply), which is itself worth the owner's attention when ruling on this hypothesis.",
       "adjudicator": "agent",
       "date": "2026-09-03"
+    },
+    {
+      "id": "adj-real-nonlatin-utada-first-love-locale",
+      "subject": {
+        "case_id": "real-nonlatin-utada-first-love-locale"
+      },
+      "suspected": "#6358 reports that a documented, primary, locale-specific artist alias is silently ignored after mbsync, implicating _preferred_alias (beetsplug/musicbrainz.py:128-155), gated by import.languages and reachable from both mbsync and the importer's own candidate-building. real-nonlatin-utada-first-love-locale is byte-identical to real-nonlatin-utada-first-love in Input.Items and responses/, differing only by profile: corpus/profiles/locale.yaml sets import.languages: [ja] and import.ignored_alias_types: [] where estate.yaml leaves both empty. Between the two derived records, artist_sort, albumartist_sort, artists_sort, and albumartists_sort all shift from the Latinized \"Utada, Hikaru\" (the artist entity's own default sort_name, applied under estate) to \"うただヒカル\" (the sort_name carried by the release's documented locale=ja alias, confirmed via `harness seed-items --facts` against the case's own captured, unedited response). best_album_id, recommendation (medium), action (skip), and the artist penalty (0.072222, the sole nonzero key) are identical across both records, so the shift is isolated to the fields _preferred_alias actually touches, with no other change in verdict or scoring.",
+      "citation": "#6358 (primary locale aliases ignored after mbsync, 2026)",
+      "release_truth": "The release documents a locale=ja alias for its credited artist, carrying its own hiragana sort_name \"うただヒカル\" (confirmed via seed-items --facts). A listener whose beets config sets import.languages to include \"ja\" would reasonably expect that alias to be preferred; the locale sibling's record shows it is, contradicting #6358's report of the alias being ignored at pinned beets 2.13.1.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only (M6). The evidence is the two committed, byte-identical-input records' own derived output; the sort-name shift is the isolated, mechanistic proof that _preferred_alias fires and its selected alias's fields propagate, for Geoff to confirm as oracle-correct on the paired bug-locale-alias-ignored hypothesis row.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
     }
   ]
 }

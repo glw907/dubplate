@@ -110,6 +110,24 @@
       "reason": "Adjudicated by the owner: the probe case rec-strong-medium-boundary shows expected recommendation behavior at pinned beets 2.13.1; the reported boundary strictness (#5458) is not reproduced. Ruling taken in-session 2026-09-03, recorded by the conductor.",
       "adjudicator": "Geoff",
       "date": "2026-09-03"
+    },
+    {
+      "id": "bug-locale-alias-ignored",
+      "bug_class": "locale-specific artist alias silently ignored (distinct from bug-nonlatin-alias-selection's entity-name-over-release-credit substitution: this hypothesis targets _preferred_alias itself, gated by import.languages)",
+      "citation": "#6358 (primary locale aliases ignored after mbsync, 2026)",
+      "probe_case_ids": [
+        "real-nonlatin-utada-first-love",
+        "real-nonlatin-utada-first-love-locale"
+      ],
+      "reproduced": "no",
+      "reproduced_reason": "Read via `gh issue view 6358 --repo beetbox/beets` before authoring (Global Constraints' sanctioned non-/ws/2 read). The report and its thread implicate MusicBrainzPlugin's own album_info/track_info -> _parse_artist_credits -> _preferred_alias chain (beetsplug/musicbrainz.py:128-155, 301-357), which mbsync and the importer's own candidate-building both call identically; the issue is not mbsync-scoped, so the hypothesis was probed rather than filed not-attempted. The two sibling cases share byte-identical Input.Items and responses/, differing only in profile: estate (import.languages: [], today's default) versus locale (import.languages: [ja], ignored_alias_types: []; corpus/profiles/locale.yaml). Both siblings derive the same best_album_id, recommendation (medium), action (skip), and artist penalty (0.072222, the sole nonzero key) -- confirming the profile swap changed nothing about candidate selection or scoring. Within applied_fields, artist, albumartist, artist_credit, and albumartist_credit read identically in both records (\"宇多田ヒカル\" / \"Hikaru Utada\"), because bug-nonlatin-alias-selection's own mechanism already sources the artist entity's canonical name for those fields regardless of import.languages, leaving no headroom for _preferred_alias to move them further. Where headroom exists -- artist_sort, albumartist_sort, artists_sort, and albumartists_sort, which under estate all read the Latinized \"Utada, Hikaru\" (the artist entity's own default sort_name) -- the locale sibling shows all four shift to \"うただヒカル\", the sort_name carried by the release's own documented locale=ja alias (confirmed via `harness seed-items --facts`). That shift is only reachable when _preferred_alias returns a non-nil match, which requires import.languages to carry a matching locale: it is the direct, isolated evidence that the mechanism is reachable and functioning at pinned beets 2.13.1, contradicting #6358's report that a locale alias is silently ignored.",
+      "adjudication_refs": [
+        "adj-real-nonlatin-utada-first-love-locale"
+      ],
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only (M6), even though the evidence points one way. The two case ids are the evidence that _preferred_alias works at 2.13.1, for Geoff to confirm as oracle-correct.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
     }
   ]
 }

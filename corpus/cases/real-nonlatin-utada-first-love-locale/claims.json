@@ -1,0 +1,19 @@
+{
+  "best_album_id": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+  "recommendation": "medium",
+  "penalty_keys_nonzero": [
+    "artist"
+  ],
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "tracks",
+    "year"
+  ],
+  "applied_fields": {
+    "0": {
+      "artist_sort": "うただヒカル",
+      "albumartist_sort": "うただヒカル"
+    }
+  }
+}

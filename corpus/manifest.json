@@ -6,5 +6,7 @@
   "lap": "0.5.13",
   "numpy": "2.5.2",
   "shim_version": "1",
-  "profile_hashes": {}
+  "profile_hashes": {
+    "locale": "f94f68e3a8b6eafc23c9b2d8aa0576eec3330f0a4603383b453d144e59a56ee2"
+  }
 }

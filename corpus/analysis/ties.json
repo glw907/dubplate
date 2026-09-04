@@ -970,6 +970,14 @@
       "unique": true
     },
     {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "album_id": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4949494949494948,
+      "difference": 1.4949494949494948,
+      "unique": true
+    },
+    {
       "case_id": "real-nonlatin-vandi",
       "album_id": "aa3a7756-b8ac-4a53-ba92-ac6d6700a0ad",
       "optimal_cost": 0,

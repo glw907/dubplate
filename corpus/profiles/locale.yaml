@@ -1,0 +1,13 @@
+# locale.yaml: stock.yaml (the single-source plugin line) plus the
+# two import.* settings Task 18's #6358 alias-regression probe needs
+# to make _preferred_alias (beetsplug/musicbrainz.py:128-155) reachable
+# at all: import.languages, empty and therefore unconditionally
+# unreachable under both estate.yaml and stock.yaml, and
+# import.ignored_alias_types, beets' own default (empty), stated
+# explicitly rather than left implicit. Nothing else moves; see
+# corpus/README.md, "Config profiles".
+plugins: musicbrainz
+import:
+  languages:
+    - ja
+  ignored_alias_types: []
