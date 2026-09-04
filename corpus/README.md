@@ -1073,17 +1073,22 @@ headline finding is a clean bill, not a wrong match.
 
 ## The adversarial stratum
 
-Pass 2c's crafted cases (Tasks 16 and 17): synthetic releases built
+Pass 2c's crafted cases (Tasks 16 through 18): synthetic releases built
 through `harness synth`, each one designed to make a *known*
-pinned-beets matching defect actually change a verdict. The
-alias-mis-selection hypothesis (below) is this stratum's one exception
-to that shape: rather than a synthetic case of its own, it is probed
-against four already-committed real-catalog cases (Task 4's
-`real-nonlatin-*` rows), since real alias arrays are the whole point of
-that class and a synthetic release cannot carry MusicBrainz's own
-alias data. Where the structural stratum proves the matcher's code
-paths and the real-catalog stratum proves conformance over real
-document shapes, this stratum proves that the oracle is measurably
+pinned-beets matching defect actually change a verdict. Two hypotheses
+in this stratum depart from that shape. The alias-mis-selection
+hypothesis (below) is probed against four already-committed
+real-catalog cases (Task 4's `real-nonlatin-*` rows) rather than a
+synthetic case of its own, since real alias arrays are the whole point
+of that class and a synthetic release cannot carry MusicBrainz's own
+alias data. Task 18's `#6358` locale-toggle regression check (below) is
+probed through one new case, `real-nonlatin-utada-first-love-locale`,
+that is itself a real capture rather than a synth-built one: the
+mechanism it probes, `_preferred_alias`, needs a real release's own
+documented locale alias to fire at all. Where the structural stratum
+proves the matcher's code paths and the real-catalog stratum proves
+conformance over real document shapes, this stratum proves that the
+oracle is measurably
 wrong in named places, which is what ladder entry 2's ruling 2 (tier
 one is measured against release truth where the oracle is
 known-defective) exists for. Every case here carries a row in
@@ -1285,6 +1290,42 @@ Each row's own entry in the real-catalog non-Latin axis table above
 carries its full capture provenance (MBID, script, documented alias
 set); this table restates only the fields the hypothesis turns on.
 
+### Task 18: the `#6358` locale-toggle regression check
+
+`real-nonlatin-utada-first-love-locale`, probing `oracle_bugs.json`'s
+`bug-locale-alias-ignored` (`#6358`, primary locale aliases silently
+ignored after `mbsync`) directly, distinct from the entity-name-over-
+release-credit substitution `bug-nonlatin-alias-selection` probes
+above: this hypothesis targets `_preferred_alias`
+(`beetsplug/musicbrainz.py:128-155`) itself, gated by
+`import.languages`, which "Alias and transliteration mis-selection"
+above already found structurally unreachable under both shipped
+profiles (`estate`, `stock`) because both leave `import.languages`
+empty. `corpus/profiles/locale.yaml` (`stock.yaml` plus
+`import.languages: [ja]` and `import.ignored_alias_types: []`, "Config
+profiles" below) makes the mechanism reachable, and this case is the
+A/B experiment: `real-nonlatin-utada-first-love-locale` is
+byte-identical to its host, `real-nonlatin-utada-first-love` (Task 6),
+in `Input.Items` and `responses/`, differing only in `profile`.
+
+| id | twin | profile | verdict vs twin | applied-field divergence |
+| --- | --- | --- | --- | --- |
+| `real-nonlatin-utada-first-love-locale` | `real-nonlatin-utada-first-love` | `locale` | identical (`medium`/`skip`, distance `0.072222`, `artist` the sole nonzero penalty) | `artist_sort`/`albumartist_sort`/`artists_sort`/`albumartists_sort` (item 0): estate `Utada, Hikaru` (the artist entity's own default sort name), locale `うただヒカル` (the sort name carried by the release's own documented `locale=ja` alias, confirmed via `harness seed-items --facts`); `artist`/`albumartist`/`artist_credit`/`albumartist_credit` unchanged (`宇多田ヒカル`/`Hikaru Utada`) in both records |
+
+The shift is isolated to the fields `_preferred_alias` actually
+touches: `best_album_id`, `recommendation`, `action`, and the `artist`
+penalty are identical across both records, so toggling
+`import.languages` changed neither candidate selection nor scoring,
+only the sort-name fields the mechanism writes once it fires. This is
+the mechanism firing and its selected alias propagating, at pinned
+beets 2.13.1, direct evidence against `#6358`'s report that a locale
+alias is silently ignored (`corpus/analysis/oracle_bugs.json`'s
+`bug-locale-alias-ignored` row, `pending-adjudication`, owner-only). No
+`adv-*` case is authored for this hypothesis: an A/B pair over a real
+captured release's own documented alias is the probe, the same reason
+the alias-mis-selection hypothesis above reaches for already-committed
+real-catalog cases rather than a synthetic one.
+
 ## The stock-config stratum
 
 Pass 2c's stock-config siblings: Task 19a's 28 mandatory rows below,
@@ -1473,6 +1514,38 @@ tie, since each sibling's assignment is identical to its twin's.
 `proximity.json` gained no new entries: none of the 8 siblings' records
 fall within the boundary epsilon of any recommendation threshold, the
 same as their twins.
+
+### Corpus totals and byte growth (Task 20, pass close)
+
+`ls corpus/cases | wc -l` is 215, read off the tree rather than
+assembled from any task's own arithmetic: 7 smoke plus 61 structural
+(pass 2b) plus 94 real-catalog primary rows (Tasks 4 through 15) plus
+17 adversarial cases (16 `adv-*`, Tasks 16 and 17, plus Task 18's one
+locale-toggle case) plus 36 stock-config siblings (28 mandatory, Task
+19a, plus 8 supplementary, Task 19b).
+
+The committed corpus held 4.0 MB across 114 response files before this
+pass; it now holds **81.3 MB across 351 response files**, well past
+the 10-15 MB landing point the plan projected. The overshoot is not a
+response-count story (351 against a plan that expected roughly 96 + 36
+= 132 new files, close to what landed) but a response-*size* story: the
+VA/box-set axis's largest releases serialize their entire tracklist
+inline in a single WS/2 release document, and a handful of them are
+enormous by track count alone -- `real-boxset-rachmaninov-complete`
+(32 discs, 470 tracks, a 9.1 MB `responses/` directory on its own),
+`real-boxset-scriabin-complete` (18 discs, 321 tracks, 3.1 MB), and
+`real-boxset-mahler-complete` (16 discs, 133 tracks, 1.7 MB) alone
+account for roughly 14 MB, and Task 19a's mandatory-sibling rule
+(`cp -r`, "its own `responses/`... copied verbatim") doubles every one
+of them for its stock twin. `real-decoy-tchaikovsky-swan-lake` (4.2
+MB) is the other outlier, driven by its own search-fallback round
+capturing several full release-lookup documents rather than the
+routine empty result. The plan's 10-15 MB projection weighted response
+*count* by shape (`~1.4 per case`, `36 stock siblings duplicating their
+twin's bytes`) but did not model response *size* against the axis's
+own largest releases; a later pass sizing corpus byte growth should
+budget per-axis by the largest release's own track count, not by a
+flat per-case average.
 
 ## The canonicalization rule
 
@@ -1743,20 +1816,34 @@ is something else (a human name) may carry a disposition other than
 ships a fixture proving it fires: an `adjudicator: "agent"` row cannot
 be committed carrying `oracle-wrong` or any other ruled disposition.
 
-**Five known-oracle-bug hypotheses are seeded now**, all at
-`not-attempted` except one: the featuring-pattern (`"ft"`) false
-positive (`742ebdf69`, `7b59604c5`, `19d091440`); the
-parenthetical/remix near-duplicate discount (`#5868`), its own
-hypothesis distinct from the featuring-pattern row since the
-adversarial stratum authors it as a separate case class; non-Latin,
-pseudo-release, and alias mis-selection (`#1916`, `#6358`); per-pair
-track-assignment rejection gaps (`#2981`, `#6078`); and
-threshold-boundary strictness (`#5458`), which lands immediately at
-`reproduced: "no"` because pass 2b's `rec-strong-medium-boundary` case
-and `proximity.json` already cover it by construction; no new case
-probes it. All five sit at `disposition: "pending-adjudication"`, since
-disposition is owner-only even where the reasoning already looks
-settled.
+**Six known-oracle-bug hypotheses are seeded now**, four reproduced and
+two not:
+
+- the featuring-pattern (`"ft"`) false positive (`742ebdf69`,
+  `7b59604c5`, `19d091440`), reproduced;
+- the parenthetical/remix near-duplicate discount (`#5868`), its own
+  hypothesis distinct from the featuring-pattern row since the
+  adversarial stratum authors it as a separate case class, reproduced;
+- non-Latin, pseudo-release, and alias mis-selection (`#1916`,
+  `#6358`), reproduced against two of Task 4's already-committed
+  `real-nonlatin-*` cases;
+- per-pair track-assignment rejection gaps (`#2981`, `#6078`),
+  reproduced;
+- threshold-boundary strictness (`#5458`), which landed at `reproduced:
+  "no"` because pass 2b's `rec-strong-medium-boundary` case and
+  `proximity.json` already cover it by construction (no new case
+  probes it), and is the corpus's one hypothesis already ruled:
+  `disposition: "oracle-correct"`, `adjudicator: "Geoff"` (2026-09-03);
+- Task 18's locale-specific alias silently ignored (`#6358`, the
+  `_preferred_alias` mechanism itself, distinct from the
+  entity-name-over-release-credit substitution the non-Latin row above
+  probes), `reproduced: "no"` -- the paired-case evidence shows the
+  mechanism firing correctly at pinned beets 2.13.1 once
+  `import.languages` makes it reachable, contradicting the report.
+
+Every hypothesis but `bug-threshold-boundary` sits at
+`disposition: "pending-adjudication"`, since disposition is owner-only
+even where the written evidence already points one way.
 
 ## Config profiles
 
