@@ -1578,6 +1578,326 @@ own largest releases; a later pass sizing corpus byte growth should
 budget per-axis by the largest release's own track count, not by a
 flat per-case average.
 
+## The whole-corpus case inventory
+
+Deferred from 2c's Task 20 to this pass's close (2c's own carry-forward
+note: "the whole-corpus README rewrite happens again at 2d's close,
+once, to add the file-tags section"; this section is the case-inventory
+half of that deferral). Every one of the 215 committed cases already
+appears in exactly one family, task-batch, or stratum table above (the
+structural stratum's own note states the invariant: no case counts
+itself twice, in one family table, the smoke table, the real-catalog
+stratum's own table, or the adversarial stratum's three case tables).
+This section is a flat, whole-corpus index over the same 215 rows,
+built for lookup rather than for narrative; it names every case's `id`,
+stratum, and family or axis in one place and does not duplicate the
+per-case prose already written into the sections above.
+
+**Built mechanically, not by re-reading every case.** Every row's `id`,
+`profile`, and `eval_date` came from a script pass over each case's own
+`corpus/cases/<id>/case.json` (its `id`, `profile`, and `eval_date`
+fields only, never its `input`, `requests`, or `expected` records);
+every row's stratum and family/axis came from cross-referencing each id
+against the family, task-batch, adversarial, and stock-config tables
+already committed above, never from re-deriving a classification by
+reading a case body. `real-catalog`'s family/axis column is the id's
+own captured axis (`real-<axis>-<release>`: `boxset`, `classical`,
+`compilation`, `decoy`, `genre`, `noise`, `nonlatin`, `reissue`), a more
+direct handle than the batch-task numbering the capture tasks used and
+in need of no further lookup. The `file-tags` column marks the twelve
+subjects `corpus/analysis/file_tags.json` covers ("`file_tags.json`,
+the file-level applied-tag ledger" below); `structural`'s family column
+abbreviates to `F1`-`F15` against the legend below, matching the family
+headers' own numbering above.
+
+**Profile and `eval_date` are near-invariant per stratum**, worth
+stating once rather than read row by row: every case runs the `estate`
+profile except the 36 `stock-config` siblings (`stock`) and the one
+locale-toggle case (`locale`); every structural-stratum case's
+`eval_date` reads `2026-09-02` for families 1-7 (pass 2b's own cases)
+and `2026-09-03` for families 8-15 (pass 2c's later additions), every
+smoke case reads `2026-09-02`, and every real-catalog, adversarial, and
+stock-config case reads `2026-09-03` (pass 2c's capture and synth
+work). The columns are still printed per row below because the
+invariant is a summary of the data, not a substitute for it; re-run the
+extraction (`jq -r '[.id,.profile,.eval_date] | @tsv' corpus/cases/*/case.json`)
+before trusting it after a pass that adds or removes a case.
+
+Family legend (`structural` rows only, matching the family headers above):
+
+| code | family |
+| --- | --- |
+| F1 | assignment and ordering |
+| F2 | album completeness |
+| F3 | various artists and artist handling |
+| F4 | string-distance edges |
+| F5 | single-source `data_source` penalty |
+| F6 | media/mediums/disc structure |
+| F7 | year-penalty branches |
+| F8 | country component |
+| F9 | label, catalog number, and album disambiguation components |
+| F10 | `album_id` component and the wrong-ID-then-search-recovers path |
+| F11 | track length |
+| F12 | `track_index` per-disc-vs-absolute tolerance |
+| F13 | `track_id` component |
+| F14 | candidate admission filters |
+| F15 | the recommendation and threshold boundary |
+
+### Smoke (7)
+
+See the machinery-coverage corpus, "The smoke corpus" above.
+
+| id | family/axis | profile | eval_date | file-tags |
+| --- | --- | --- | --- | --- |
+| `clean-match` | machinery smoke | estate | 2026-09-02 | Y |
+| `multi-disc` | machinery smoke | estate | 2026-09-02 |  |
+| `non-latin-pseudo-release` | machinery smoke | estate | 2026-09-02 | Y |
+| `should-ask` | machinery smoke | estate | 2026-09-02 |  |
+| `should-reject` | machinery smoke | estate | 2026-09-02 |  |
+| `various-artists` | machinery smoke | estate | 2026-09-02 |  |
+| `year-penalty` | machinery smoke | estate | 2026-09-02 |  |
+
+### Structural (61)
+
+See pass 2b's 15 shape families, "The structural stratum" above.
+
+| id | family/axis | profile | eval_date | file-tags |
+| --- | --- | --- | --- | --- |
+| `admit-duplicate-candidate` | F14 | estate | 2026-09-03 |  |
+| `admit-zero-track-dropped` | F14 | estate | 2026-09-03 |  |
+| `assign-extra-item` | F1 | estate | 2026-09-02 |  |
+| `assign-extra-track-leading` | F1 | estate | 2026-09-02 |  |
+| `assign-extra-track-middle` | F1 | estate | 2026-09-02 |  |
+| `assign-extra-track-trailing` | F1 | estate | 2026-09-02 |  |
+| `assign-large-garbled` | F1 | estate | 2026-09-02 |  |
+| `assign-multi-extra-items` | F1 | estate | 2026-09-02 |  |
+| `assign-multi-extra-tracks` | F1 | estate | 2026-09-02 |  |
+| `assign-scrambled-order` | F1 | estate | 2026-09-02 |  |
+| `complete-combined-over-scrambled` | F2 | estate | 2026-09-02 |  |
+| `complete-combined-short-scrambled` | F2 | estate | 2026-09-02 |  |
+| `complete-max-rec-boundary` | F2 | estate | 2026-09-02 |  |
+| `complete-over-one` | F2 | estate | 2026-09-02 |  |
+| `complete-over-two` | F2 | estate | 2026-09-02 |  |
+| `complete-short-one` | F2 | estate | 2026-09-02 |  |
+| `complete-short-two` | F2 | estate | 2026-09-02 |  |
+| `datasrc-album-penalty` | F5 | estate | 2026-09-02 |  |
+| `datasrc-one-track-penalty` | F5 | estate | 2026-09-02 |  |
+| `media-baseline` | F6 | estate | 2026-09-02 |  |
+| `media-disctotal-mismatch` | F6 | estate | 2026-09-02 |  |
+| `media-format-mismatch` | F6 | estate | 2026-09-02 |  |
+| `media-medium-mismatch` | F6 | estate | 2026-09-02 |  |
+| `media-uneven-split` | F6 | estate | 2026-09-02 | Y |
+| `nonva-va-artists-misflag` | F3 | estate | 2026-09-02 |  |
+| `rec-gap-low` | F15 | estate | 2026-09-03 |  |
+| `rec-max-rec-missing-tracks-downgrade` | F15 | estate | 2026-09-03 |  |
+| `rec-none-small-gap` | F15 | estate | 2026-09-03 |  |
+| `rec-single-candidate-low` | F15 | estate | 2026-09-03 |  |
+| `rec-strong-medium-boundary` | F15 | estate | 2026-09-03 |  |
+| `rich-album-id-recovers-clean` | F10 | estate | 2026-09-03 |  |
+| `rich-album-id-recovers-country` | F10 | estate | 2026-09-03 |  |
+| `rich-country-item-absent` | F8 | estate | 2026-09-03 |  |
+| `rich-country-mismatch` | F8 | estate | 2026-09-03 |  |
+| `rich-tags-item-absent` | F9 | estate | 2026-09-03 |  |
+| `rich-tags-present-match` | F9 | estate | 2026-09-03 |  |
+| `rich-tags-present-mismatch` | F9 | estate | 2026-09-03 |  |
+| `strdist-ampersand` | F4 | estate | 2026-09-02 |  |
+| `strdist-article-rotation` | F4 | estate | 2026-09-02 |  |
+| `strdist-diacritic-translit` | F4 | estate | 2026-09-02 |  |
+| `strdist-ep-strip` | F4 | estate | 2026-09-02 |  |
+| `strdist-feat-strip` | F4 | estate | 2026-09-02 |  |
+| `track-id-matched` | F13 | estate | 2026-09-03 |  |
+| `track-id-mismatched` | F13 | estate | 2026-09-03 |  |
+| `track-index-absolute-matches` | F12 | estate | 2026-09-03 |  |
+| `track-index-mismatch-and-absent` | F12 | estate | 2026-09-03 |  |
+| `track-index-per-disc-matches` | F12 | estate | 2026-09-03 |  |
+| `track-length-beyond-grace-under-max` | F11 | estate | 2026-09-03 |  |
+| `track-length-beyond-max` | F11 | estate | 2026-09-03 |  |
+| `track-length-candidate-absent` | F11 | estate | 2026-09-03 |  |
+| `track-length-within-grace` | F11 | estate | 2026-09-03 |  |
+| `va-exact` | F3 | estate | 2026-09-02 | Y |
+| `va-missing-track-artists` | F3 | estate | 2026-09-02 |  |
+| `va-nonva-correct` | F3 | estate | 2026-09-02 |  |
+| `va-nonva-wrong` | F3 | estate | 2026-09-02 |  |
+| `va-track-mismatch-all` | F3 | estate | 2026-09-02 |  |
+| `va-track-mismatch-one` | F3 | estate | 2026-09-02 |  |
+| `year-matches-original-not-release` | F7 | estate | 2026-09-02 |  |
+| `year-matches-release-not-original` | F7 | estate | 2026-09-02 |  |
+| `year-original-absent-flat-penalty` | F7 | estate | 2026-09-02 |  |
+| `year-reissue-ratio-penalty` | F7 | estate | 2026-09-02 | Y |
+
+### Real-catalog (94)
+
+See pass 2c's eight capture axes, "The real-catalog stratum" above.
+
+| id | family/axis | profile | eval_date | file-tags |
+| --- | --- | --- | --- | --- |
+| `real-boxset-backstreet-boys-series` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-beethoven-for-all` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-dylan-bootleg-1-3` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-james-brown-star-time` | boxset | estate | 2026-09-03 | Y |
+| `real-boxset-mahler-complete` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-mel-kim-singles` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-miles-davis-series` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-now-jukebox-classics` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-nuggets-1965-1968` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-rachmaninov-complete` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-scriabin-complete` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-stax-volt-singles` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-trojan-marley-covers` | boxset | estate | 2026-09-03 |  |
+| `real-boxset-woodstock-25th` | boxset | estate | 2026-09-03 |  |
+| `real-classical-ashkenazy-nocturnes` | classical | estate | 2026-09-03 |  |
+| `real-classical-gould-goldberg-1981` | classical | estate | 2026-09-03 |  |
+| `real-classical-karajan-beethoven-89` | classical | estate | 2026-09-03 | Y |
+| `real-classical-perlman-four-seasons` | classical | estate | 2026-09-03 |  |
+| `real-classical-yo-yo-ma-cello-suites` | classical | estate | 2026-09-03 |  |
+| `real-compilation-abba-gold` | compilation | estate | 2026-09-03 |  |
+| `real-compilation-beatles-1967-1970` | compilation | estate | 2026-09-03 |  |
+| `real-compilation-eagles-greatest-hits` | compilation | estate | 2026-09-03 |  |
+| `real-compilation-marley-legend` | compilation | estate | 2026-09-03 |  |
+| `real-compilation-queen-greatest-hits-ii` | compilation | estate | 2026-09-03 |  |
+| `real-decoy-beethoven-symphony-9-choral` | decoy | estate | 2026-09-03 |  |
+| `real-decoy-chopin-nocturnes` | decoy | estate | 2026-09-03 |  |
+| `real-decoy-mozart-requiem` | decoy | estate | 2026-09-03 | Y |
+| `real-decoy-tchaikovsky-swan-lake` | decoy | estate | 2026-09-03 |  |
+| `real-genre-aphex-twin-saw85-92` | genre | estate | 2026-09-03 |  |
+| `real-genre-bad-brains` | genre | estate | 2026-09-03 |  |
+| `real-genre-bb-king-live-regal` | genre | estate | 2026-09-03 |  |
+| `real-genre-black-sabbath-paranoid` | genre | estate | 2026-09-03 |  |
+| `real-genre-bob-marley-exodus` | genre | estate | 2026-09-03 |  |
+| `real-genre-brian-eno-ambient1` | genre | estate | 2026-09-03 |  |
+| `real-genre-buena-vista-social-club` | genre | estate | 2026-09-03 |  |
+| `real-genre-burna-boy-african-giant` | genre | estate | 2026-09-03 |  |
+| `real-genre-celia-cruz-johnny` | genre | estate | 2026-09-03 |  |
+| `real-genre-chic-cest-chic` | genre | estate | 2026-09-03 |  |
+| `real-genre-daft-punk-discovery` | genre | estate | 2026-09-03 |  |
+| `real-genre-dolly-parton-jolene` | genre | estate | 2026-09-03 |  |
+| `real-genre-donna-summer-bad-girls` | genre | estate | 2026-09-03 |  |
+| `real-genre-earth-wind-fire-way-of-world` | genre | estate | 2026-09-03 |  |
+| `real-genre-fela-kuti-zombie` | genre | estate | 2026-09-03 |  |
+| `real-genre-joao-gilberto-chega-de-saudade` | genre | estate | 2026-09-03 |  |
+| `real-genre-johnny-cash-folsom-prison` | genre | estate | 2026-09-03 |  |
+| `real-genre-kraftwerk-trans-europe-express` | genre | estate | 2026-09-03 |  |
+| `real-genre-manu-chao-clandestino` | genre | estate | 2026-09-03 |  |
+| `real-genre-metallica-master-of-puppets` | genre | estate | 2026-09-03 |  |
+| `real-genre-public-enemy-nation-millions` | genre | estate | 2026-09-03 | Y |
+| `real-genre-sex-pistols-bollocks` | genre | estate | 2026-09-03 |  |
+| `real-genre-skepta-konnichiwa` | genre | estate | 2026-09-03 |  |
+| `real-genre-sly-family-stone-riot` | genre | estate | 2026-09-03 |  |
+| `real-genre-toots-maytals-funky-kingston` | genre | estate | 2026-09-03 |  |
+| `real-genre-wu-tang-36-chambers` | genre | estate | 2026-09-03 |  |
+| `real-noise-bowie-us1967` | noise | estate | 2026-09-03 |  |
+| `real-noise-dylan-bootleg` | noise | estate | 2026-09-03 | Y |
+| `real-noise-grateful-dead-de1996` | noise | estate | 2026-09-03 |  |
+| `real-noise-grateful-live-it1993` | noise | estate | 2026-09-03 |  |
+| `real-noise-hendrix-gb1996` | noise | estate | 2026-09-03 |  |
+| `real-noise-hendrix-live-se` | noise | estate | 2026-09-03 |  |
+| `real-noise-led-zeppelin-honeydrippers` | noise | estate | 2026-09-03 |  |
+| `real-noise-live-pink-floyd-it1990` | noise | estate | 2026-09-03 |  |
+| `real-noise-neil-young-de1996` | noise | estate | 2026-09-03 |  |
+| `real-noise-pink-floyd-de1994` | noise | estate | 2026-09-03 |  |
+| `real-noise-prince-unreleased-mixes` | noise | estate | 2026-09-03 |  |
+| `real-noise-rolling-stones-es2004` | noise | estate | 2026-09-03 |  |
+| `real-noise-velvet-underground-us1986` | noise | estate | 2026-09-03 |  |
+| `real-noise-zappa-cucamonga` | noise | estate | 2026-09-03 |  |
+| `real-nonlatin-alla-pugacheva-vol1` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-anna-vissi-essential` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-babymetal` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-blackpink` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-bts-map-of-soul-7` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-girls-generation` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-hamasaki-ayumi` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-tvxq-christmas-gift` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-utada-first-love` | nonlatin | estate | 2026-09-03 | Y |
+| `real-nonlatin-vandi` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-x-japan-art-of-life` | nonlatin | estate | 2026-09-03 |  |
+| `real-nonlatin-zemfira` | nonlatin | estate | 2026-09-03 |  |
+| `real-reissue-abbey-road-2019` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-are-you-experienced-1987` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-blood-on-the-tracks-2003` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-catch-a-fire-deluxe` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-dark-side-of-the-moon-2010` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-doolittle-2008` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-in-utero-2013` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-nevermind-2011` | reissue | estate | 2026-09-03 | Y |
+| `real-reissue-pet-sounds-1990` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-rumours-deluxe-2013` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-songs-key-of-life-2013` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-ten-2009` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-thriller-25` | reissue | estate | 2026-09-03 |  |
+| `real-reissue-whats-going-on-2021` | reissue | estate | 2026-09-03 |  |
+
+### Adversarial (17)
+
+See known-oracle-bug probes plus the locale-toggle regression check, "The adversarial stratum" above.
+
+| id | family/axis | profile | eval_date | file-tags |
+| --- | --- | --- | --- | --- |
+| `adv-assign-cycle-rehearsal-reel` | assign-rejection-gap | estate | 2026-09-03 |  |
+| `adv-assign-double-swap-broadcast` | assign-rejection-gap | estate | 2026-09-03 |  |
+| `adv-assign-endpoint-swap-demo-pass` | assign-rejection-gap | estate | 2026-09-03 |  |
+| `adv-assign-swap-field-recording` | assign-rejection-gap | estate | 2026-09-03 |  |
+| `adv-assign-swap-session-tape` | assign-rejection-gap | estate | 2026-09-03 |  |
+| `adv-assign-tight-margin-archive-disc` | assign-rejection-gap | estate | 2026-09-03 |  |
+| `adv-ft-craft-titles` | ft-pattern | estate | 2026-09-03 |  |
+| `adv-ft-draft-colon` | ft-pattern | estate | 2026-09-03 |  |
+| `adv-ft-gift-space` | ft-pattern | estate | 2026-09-03 |  |
+| `adv-ft-left-colon` | ft-pattern | estate | 2026-09-03 |  |
+| `adv-ft-soft-onesided` | ft-pattern | estate | 2026-09-03 |  |
+| `adv-ft-theft-artist` | ft-pattern | estate | 2026-09-03 |  |
+| `adv-remix-both-sides` | remix/parenthetical | estate | 2026-09-03 |  |
+| `adv-remix-bracket` | remix/parenthetical | estate | 2026-09-03 |  |
+| `adv-remix-onesided` | remix/parenthetical | estate | 2026-09-03 |  |
+| `adv-remix-track-titles` | remix/parenthetical | estate | 2026-09-03 |  |
+| `real-nonlatin-utada-first-love-locale` | locale-toggle (#6358) | locale | 2026-09-03 |  |
+
+### Stock-config (36)
+
+See siblings proving verdict parity against the `stock` profile, "The stock-config stratum" above.
+
+| id | family/axis | profile | eval_date | file-tags |
+| --- | --- | --- | --- | --- |
+| `real-boxset-backstreet-boys-series-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-beethoven-for-all-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-dylan-bootleg-1-3-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-james-brown-star-time-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-mahler-complete-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-mel-kim-singles-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-miles-davis-series-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-now-jukebox-classics-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-nuggets-1965-1968-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-rachmaninov-complete-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-scriabin-complete-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-stax-volt-singles-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-trojan-marley-covers-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-boxset-woodstock-25th-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-classical-gould-goldberg-1981-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-compilation-marley-legend-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-decoy-tchaikovsky-swan-lake-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-genre-burna-boy-african-giant-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-genre-johnny-cash-folsom-prison-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-noise-velvet-underground-us1986-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-nonlatin-babymetal-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-nonlatin-zemfira-stock` | supplementary sibling | stock | 2026-09-03 |  |
+| `real-reissue-abbey-road-2019-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-are-you-experienced-1987-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-blood-on-the-tracks-2003-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-catch-a-fire-deluxe-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-dark-side-of-the-moon-2010-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-doolittle-2008-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-in-utero-2013-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-nevermind-2011-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-pet-sounds-1990-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-rumours-deluxe-2013-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-songs-key-of-life-2013-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-ten-2009-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-thriller-25-stock` | mandatory sibling | stock | 2026-09-03 |  |
+| `real-reissue-whats-going-on-2021-stock` | mandatory sibling | stock | 2026-09-03 |  |
+
+`7 + 61 + 94 + 17 + 36 = 215`, matching `ls corpus/cases | wc -l` read
+off the tree directly. All twelve `file-tags` marks above are the
+subjects named in "`file_tags.json`, the file-level applied-tag
+ledger" below, cross-referenced here rather than re-derived.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw
@@ -1993,6 +2313,89 @@ two not:
 Every hypothesis but `bug-threshold-boundary` sits at
 `disposition: "pending-adjudication"`, since disposition is owner-only
 even where the written evidence already points one way.
+
+## Handoff to rung 8: what pure-Go FLAC tag writing may assume
+
+Ladder entry 8 names its own precondition: pure-Go FLAC tag writing
+"proven against the corpus's expected applied tag sets from rung 2."
+This section states, in writing, exactly what rung 8's implementer may
+now assume from pass 2d and no more.
+
+**The corpus carries expected applied tags at two altitudes, and they
+are not interchangeable.**
+
+1. **`Expected.AppliedFields`, on every one of the 215 committed
+   cases**, is the in-memory record `match.apply_metadata()` produces:
+   what beets decided to set on an `Item`, before any write. This is
+   not a conformance target for a file-tag writer. It carries fields
+   `Item.write()` never touches at all (bookkeeping and read-derived
+   values outside `Item._media_fields`), and it says nothing about what
+   actually lands in a container, because it was never written to one.
+2. **`corpus/analysis/file_tags.json`, on the twelve subjects named
+   in "The whole-corpus case inventory" above and detailed in
+   "`file_tags.json`, the file-level applied-tag ledger" below**, is
+   what pinned beets' own write path actually put into a real FLAC
+   container and what an independent `mediafile.MediaFile(path)` read
+   back afterward. This is the conformance target.
+
+**The writable-set rows are the conformance target; the read-only
+`template` block is never one.** Every subject row in `file_tags.json`
+carries values only for the 69-key writable set (the ledger's own
+`writable_fields` header, reproduced here so rung 8 has it without a
+second lookup): `acoustid_fingerprint`, `acoustid_id`, `album`,
+`albumartist`, `albumartist_credit`, `albumartist_sort`,
+`albumartists`, `albumartists_credit`, `albumartists_sort`,
+`albumdisambig`, `albumstatus`, `albumtype`, `albumtypes`,
+`arrangers`, `artist`, `artist_credit`, `artist_sort`, `artists`,
+`artists_credit`, `artists_sort`, `asin`, `barcode`, `bpm`,
+`catalognum`, `comments`, `comp`, `composer_sort`, `composers`,
+`country`, `day`, `disc`, `disctitle`, `disctotal`, `encoder`,
+`genres`, `grouping`, `initial_key`, `isrc`, `label`, `language`,
+`lyricists`, `lyrics`, `mb_albumartistid`, `mb_albumartistids`,
+`mb_albumid`, `mb_artistid`, `mb_artistids`, `mb_releasegroupid`,
+`mb_releasetrackid`, `mb_trackid`, `mb_workid`, `media`, `month`,
+`original_day`, `original_month`, `original_year`,
+`r128_album_gain`, `r128_track_gain`, `remixers`, `rg_album_gain`,
+`rg_album_peak`, `rg_track_gain`, `rg_track_peak`, `script`,
+`subtitle`, `title`, `track`, `tracktotal`, `year`. A pure-Go writer
+proves conformance by writing these fields and reading them back the
+same way `derive_file_tags.py` did.
+
+The nine-key read-only remainder — `bitdepth`, `bitrate`,
+`bitrate_mode`, `channels`, `encoder_info`, `encoder_settings`,
+`format`, `length`, `samplerate` — sits once in the ledger's shared
+`template` block, never in a subject row, and is never a per-subject
+target for any writer: these are audio properties a reader gets from
+the container's own `STREAMINFO`, not from anything `Item.write()`
+ever sets. Concretely, `length` reads back `0.0` on the vendored
+template blob regardless of a subject's own `AppliedFields.length`; a
+rung 8 conformance test that expects a writer to reproduce a read-only
+key against a case's own value is testing a fact the corpus never
+established.
+
+**The pin and its failure mode.** `mediafile==0.17.0` is pinned in
+`corpus/manifest.json` (`schema_version` `3`), and `Reconcile`'s
+`pinned` tuple and `versionProbe` string both name it: a `mediafile`
+bump the corpus has not re-derived against fails `make derive` loudly
+rather than silently drifting.
+
+**Where the fixture lives.** The vendored template FLAC is
+`internal/harness/oracle/testdata/template.flac` (42 bytes, silent,
+untagged), authored once by the committed
+`internal/harness/oracle/testdata/gen_template_flac.py` (see "The
+file-tags fixture" above for its provenance and the pure-`mutagen`
+authoring route). `derive_file_tags.py` and its Go driver,
+`internal/harness/oracle/file_tags.go`, are the derivation; the
+generated ledger is `corpus/analysis/file_tags.json`, regenerated per
+"Regenerating a derived ledger" above and never hand-edited.
+
+**Non-scope, stated as plainly as the scope above.** 2d ships the
+evidence, not the mapping study. The close read of beets' own
+apply-metadata field mapping against the `mediafile` tag layer — which
+writable-set key maps to which FLAC Vorbis comment or block, and how a
+pure-Go writer should represent each — is rung 8's own plan-opening
+work, per ladder entry 8. So is the wazero-taglib spike. Nothing in
+2d evaluates, prototypes, or rules out either.
 
 ## Config profiles
 

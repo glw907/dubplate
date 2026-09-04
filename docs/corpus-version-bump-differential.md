@@ -80,17 +80,34 @@ not estimated:
 | corpus (`oracle.Derive`) | 215 | 351 | 215 x 1.04s + 0.25s x (351 - 215) = 223.6s + 34.0s | 257.6s (~4.3 min) |
 | ties (`DeriveTies`) | 215 | 351 | same formula, same request replay, its own stub | 257.6s (~4.3 min) |
 | **corpus + ties total** | | | | **515.2s (~8.6 min)** |
-| file-tags (`derive_file_tags.py`) | 12 subjects | 0 (no network) | not yet measured—filled below by pass 2d's Task 4 from its own `GOFLAGS=-count=1 make derive` run | **[owed by Task 4]** |
+| file-tags (`derive_file_tags.py`) | 12 subjects | 0 (no network) | no inter-request floor applies (no MusicBrainz call at all) | 0.55s-0.59s measured (two independent `GOFLAGS=-count=1` runs, pass 2d's Task 4, 2026-09-04) |
 
 The file-tags leg issues no MusicBrainz request at all (twelve subjects, one
 Python process, reading already-committed `Expected.AppliedFields` off the
 corpus rather than deriving anything from a stub), so no inter-request floor
-applies to it and its cost does not belong in the table above by formula; it
-still owes a measured wall-clock number, which is what the placeholder marks.
+applies to it and its cost does not belong in the table above by formula. Its
+measured wall time above (Task 4's own two clean-tree derive runs) confirms
+the prediction: negligible next to the corpus and ties legs, never the
+bottleneck a re-derivation needs to budget for.
 Re-run the corpus and requests counts (`ls corpus/cases | wc -l`; sum each
 case's `requests` array length) before trusting this table again—the
 committed corpus grows across rungs, and a stale count here silently
 under-prices the next differential run.
+
+**The corpus and ties rows above are the M8 formula's floor, not a
+measurement, and pass 2d's own close measured the real thing.** Two
+independent uncached (`GOFLAGS=-count=1`) full `make derive` runs against
+the committed 215-case corpus (`docs/HISTORY.md`'s 2d entry has the full
+breakdown) landed at 980s and 974s total, both well above this table's
+257.6s-per-leg formula floor: corpus derive measured 462.94s and 541.20s
+against the floor's 257.6s, ties derive 503.90s and 420.06s against the
+same 257.6s. The formula prices the client's own inter-request wait, which
+is a floor on wall time, not a prediction of it; real per-request Python,
+beets, and MusicBrainz-response-parsing overhead sits on top of that floor
+and roughly doubled it here. A version-bump differential run should budget
+against the measured figure, not the formula table above, which exists to
+show the floor is dominated by network-request pacing rather than by case
+count alone.
 
 ## No network in this doc
 
