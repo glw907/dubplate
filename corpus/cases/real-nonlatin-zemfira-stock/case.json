@@ -1,0 +1,2039 @@
+{
+  "id": "real-nonlatin-zemfira-stock",
+  "input": {
+    "items": [
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 285.333,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "3808291a-6591-4919-bf13-077b7190bf90",
+        "title": "Pochemu",
+        "track": 1,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 155.52,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "2a6af08c-5ec9-4d5f-af30-131779476842",
+        "title": "Sneg",
+        "track": 2,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 225.506,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "9e6b14f8-6ac1-451e-8547-31886331bbf4",
+        "title": "Sinoptik",
+        "track": 3,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 207.32,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "b3c36bfb-1c25-4af6-99e6-b9c9734cdb5d",
+        "title": "Romashki",
+        "track": 4,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 193.28,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "e5a2a7dd-cb14-43d5-90ae-e6c72d8b3e57",
+        "title": "Maechki",
+        "track": 5,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 215.693,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "b03249f9-6544-4fb6-a110-f033b115332f",
+        "title": "SPID",
+        "track": 6,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 189.373,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "8e0fcecf-d7a5-4f13-9811-060955df6231",
+        "title": "Rumba",
+        "track": 7,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 168.133,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "d62663a8-c3d9-4b91-a981-443f307d4774",
+        "title": "Skandal",
+        "track": 8,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 211.346,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "7054ac54-28e5-4c6f-b510-c107570ac6a4",
+        "title": "Neposhloe",
+        "track": 9,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 178.56,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "60d0b8ec-340e-47dc-a98d-4ce0e4b6cc2b",
+        "title": "Pripevochka",
+        "track": 10,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 233.133,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "b8ee211a-ad32-464b-8fff-ea143b804de5",
+        "title": "-140",
+        "track": 11,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 166.333,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "f61f9167-91d2-4152-8b32-c44fdee87d3a",
+        "title": "Arivederchi",
+        "track": 12,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 166.56,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "04e1eb67-8f04-4c48-85b1-963fd194a480",
+        "title": "Rakety",
+        "track": 13,
+        "year": 0
+      },
+      {
+        "album": "Zemfira",
+        "albumartist": "Земфира",
+        "artist": "Земфира",
+        "length": 238.146,
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_trackid": "907958a5-6a21-499e-8741-bfb4c5adc3d2",
+        "title": "Zemfira",
+        "track": 14,
+        "year": 0
+      }
+    ]
+  },
+  "profile": "stock",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/41bbc503-6f3c-4ef0-894e-b7d05d8df7d4?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/d2519293-b0d9-43d8-a669-d52796161c7f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "ca321f1cb078529cecad206cd4073d6aeb6502c5db5185f4e0010ca44118da92",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82119967",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 285.333,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "bbcb458c-1907-4a2b-b30b-6fb84108c204",
+        "mb_trackid": "3808291a-6591-4919-bf13-077b7190bf90",
+        "mb_workid": "4bd4438d-930c-4365-8160-d4e0ce8d68c9",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pochemu",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Почему",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82119968",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 155.52,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "eda296e9-35a3-49aa-90f6-34fa7963f5cf",
+        "mb_trackid": "2a6af08c-5ec9-4d5f-af30-131779476842",
+        "mb_workid": "22b06ba4-9aef-4c4d-bc75-dc69f4ae436a",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sneg",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Снег",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120007",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 233.133,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "5ec25065-d6cb-47e7-85a1-e5b863590dce",
+        "mb_trackid": "b8ee211a-ad32-464b-8fff-ea143b804de5",
+        "mb_workid": "9da42f37-8555-4cec-be3d-8989c8e16248",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "-140",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "-140",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120008",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 166.333,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "c8d2d403-bb78-4b94-968f-bcba225e0474",
+        "mb_trackid": "f61f9167-91d2-4152-8b32-c44fdee87d3a",
+        "mb_workid": "e5eb03f2-15a0-4d9d-835a-7821738b8b8f",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Arivederchi",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Ариведерчи",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 166.56,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "651e2e5b-215d-496f-bf88-2a63cd1064c4",
+        "mb_trackid": "04e1eb67-8f04-4c48-85b1-963fd194a480",
+        "mb_workid": "cbb42000-413f-48d9-9f31-1c7a3f54c8e2",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Rakety",
+        "track": 13,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Ракеты",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120010",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 238.146,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "bdc0dde2-cd5d-4e74-ad54-4f679c37aca8",
+        "mb_trackid": "907958a5-6a21-499e-8741-bfb4c5adc3d2",
+        "mb_workid": "97df0f5b-bd82-439e-933e-2880c8eb1232",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Zemfira",
+        "track": 14,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Земфира",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82119969",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 225.506,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "1e8cee3f-ca72-40f0-be1b-9c03ca4b5595",
+        "mb_trackid": "9e6b14f8-6ac1-451e-8547-31886331bbf4",
+        "mb_workid": "67f5c3e5-7089-4e9b-a394-0ded348a096e",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Sinoptik",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Синоптик",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82119970",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 207.32,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "0881c43b-c004-4e69-a82f-5e48ab4c3e4f",
+        "mb_trackid": "b3c36bfb-1c25-4af6-99e6-b9c9734cdb5d",
+        "mb_workid": "642dc85c-e883-4e47-b6ec-9553a62de882",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Romashki",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Ромашки",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82119971",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 193.28,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "921a4de8-77e6-4f91-8e22-d5fb24d93d07",
+        "mb_trackid": "e5a2a7dd-cb14-43d5-90ae-e6c72d8b3e57",
+        "mb_workid": "a29b23b4-609a-4b89-b120-1def63de9f7f",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Maechki",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Маечки",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120002",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 215.693,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "76f206d9-e0f1-4517-9d3b-1d0896502956",
+        "mb_trackid": "b03249f9-6544-4fb6-a110-f033b115332f",
+        "mb_workid": "8f21dfb6-9ed8-4657-8dc1-4c2c621e4bf1",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "SPID",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "СПИД",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120003",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 189.373,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "22094612-e080-4bb4-9e9b-9b2228bcf578",
+        "mb_trackid": "8e0fcecf-d7a5-4f13-9811-060955df6231",
+        "mb_workid": "fa702fbf-4677-4031-bc40-740b13e01732",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Rumba",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Румба",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120004",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 168.133,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "1159954c-df5c-4804-be22-9cbac6cd9d8f",
+        "mb_trackid": "d62663a8-c3d9-4b91-a981-443f307d4774",
+        "mb_workid": "52b3a0a6-31d7-42f6-b374-f9cb50927c1f",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Skandal",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Скандал",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120005",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 211.346,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "dd9fb183-b841-4618-b800-bf6c09d3ff36",
+        "mb_trackid": "7054ac54-28e5-4c6f-b510-c107570ac6a4",
+        "mb_workid": "861027d3-ddd9-409d-b192-7baff8b85c46",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Neposhloe",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Непошлое",
+        "work_disambig": "",
+        "year": 1999
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Zemfira",
+        "album_id": null,
+        "albumartist": "Земфира",
+        "albumartist_credit": "Земфира",
+        "albumartist_sort": "Zemfira",
+        "albumartists": [
+          "Земфира"
+        ],
+        "albumartists_credit": [
+          "Земфира"
+        ],
+        "albumartists_sort": [
+          "Zemfira"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Земфира",
+        "artist_credit": "Земфира",
+        "artist_sort": "Zemfira",
+        "artists": [
+          "Земфира"
+        ],
+        "artists_credit": [
+          "Земфира"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Zemfira"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "DMI 3151-1",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ramazanova, Zemfira",
+        "composers": [
+          "Земфира Рамазанова"
+        ],
+        "composers_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "country": "RU",
+        "data_source": "MusicBrainz",
+        "day": 10,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "FR6V82120006",
+        "label": "DMI Records",
+        "language": "rus",
+        "length": 178.56,
+        "lyricists": [
+          "Земфира Рамазанова"
+        ],
+        "lyricists_ids": [
+          "7f5c2724-07d4-4bb8-856c-5e2928f77d9e"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_albumartistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_albumid": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+        "mb_artistid": "cec59910-2d12-46ec-8e39-85ca06acb0ed",
+        "mb_artistids": [
+          "cec59910-2d12-46ec-8e39-85ca06acb0ed"
+        ],
+        "mb_releasegroupid": "59b2e306-e8e4-3b4a-9444-f02fc82a0f25",
+        "mb_releasetrackid": "d4feb932-19bd-4463-b524-2fa793dde32a",
+        "mb_trackid": "60d0b8ec-340e-47dc-a98d-4ce0e4b6cc2b",
+        "mb_workid": "af27382e-b559-4030-9724-9feb8bc6ae47",
+        "media": "CD",
+        "month": 5,
+        "mtime": 0,
+        "original_day": 10,
+        "original_month": 5,
+        "original_year": 1999,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Земфира",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pripevochka",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 14,
+        "work": "Припевочка",
+        "work_disambig": "",
+        "year": 1999
+      }
+    }
+  }
+}

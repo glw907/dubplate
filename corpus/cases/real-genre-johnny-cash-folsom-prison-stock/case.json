@@ -1,0 +1,2365 @@
+{
+  "id": "real-genre-johnny-cash-folsom-prison-stock",
+  "input": {
+    "items": [
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 162,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "f05926b6-95a7-4980-8266-77ebe33343a1",
+        "title": "Folsom Prison Blues",
+        "track": 1,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 185,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "b870b59f-97f9-47a4-b6d5-00ace20341f6",
+        "title": "Dark as Dungeon",
+        "track": 2,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 97,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "b3accb1a-0f53-489f-bf6e-d0c04524fb52",
+        "title": "I Still Miss Someone",
+        "track": 3,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 182,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "3add7c0d-a615-4a93-b47c-a385166f60da",
+        "title": "Cocaine Blues",
+        "track": 4,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 211,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "a9b800c7-05ab-4341-8018-c2448a8e1cda",
+        "title": "25 Minutes to Go",
+        "track": 5,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 183,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "0d67e160-5343-43d4-9a65-3a17153c4efe",
+        "title": "Orange Blossom Special",
+        "track": 6,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 236,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "25e9c75c-d014-4ddf-8df4-54215ee568ea",
+        "title": "The Long Black Veil",
+        "track": 7,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 130,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "31a392a8-9892-439c-b2b4-fc062f49d9d1",
+        "title": "Send a Picture of Mother",
+        "track": 8,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 113,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "663c6dcb-45e2-4c67-ac39-9e249d5bab86",
+        "title": "The Wall",
+        "track": 9,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 77,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "97932a3b-8470-4fdc-bac2-4fe5b255f3a7",
+        "title": "Dirty Old Egg-Sucking Dog",
+        "track": 10,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 159,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "8209a432-74c6-4e33-9e10-c3d652c90ebd",
+        "title": "Flushed From the Bathroom of Your Heart",
+        "track": 11,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash feat. June Carter",
+        "length": 176,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "2dcdc1af-d6e1-49c8-bbc2-ce8ad0fe2b55",
+        "title": "Jackson",
+        "track": 12,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash feat. June Carter",
+        "length": 160,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "4c9aaed9-990f-4f58-a46c-b4f1f8616b0c",
+        "title": "Give My Love to Rose",
+        "track": 13,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 102,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "c35176c9-a4fc-4da0-a505-f8ffb743cb29",
+        "title": "I Got Stripes",
+        "track": 14,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 177,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "91ed4165-5409-4e7a-93a6-01b2d3774214",
+        "title": "Green Green Grass of Home",
+        "track": 15,
+        "year": 1968
+      },
+      {
+        "album": "At Folsom Prison",
+        "albumartist": "Johnny Cash",
+        "artist": "Johnny Cash",
+        "length": 334,
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_trackid": "a9207116-ab7f-44e5-9a4e-118adc66d128",
+        "title": "Greystone Chapel",
+        "track": 16,
+        "year": 1968
+      }
+    ]
+  },
+  "profile": "stock",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/89efce77-e3a9-4a7d-8be7-0eadfbdfa28e?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "ca321f1cb078529cecad206cd4073d6aeb6502c5db5185f4e0010ca44118da92",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cash, Johnny",
+        "composers": [
+          "Johnny Cash"
+        ],
+        "composers_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10802940;USSM16800410;USSM16800962;USSM16801298",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 162,
+        "lyricists": [
+          "Johnny Cash"
+        ],
+        "lyricists_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "ca1bce21-e69a-3283-a181-6685c60984fb",
+        "mb_trackid": "f05926b6-95a7-4980-8266-77ebe33343a1",
+        "mb_workid": "8bd3625e-a993-3388-bfb2-23dc1350fa4d",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Folsom Prison Blues",
+        "track": 1,
+        "track_alt": "A1",
+        "trackdisambig": "live, 1968-01-13: Folsom Prison, Folsom, CA, USA",
+        "tracktotal": 16,
+        "work": "Folsom Prison Blues",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Travis, Merle",
+        "composers": [
+          "Merle Travis"
+        ],
+        "composers_ids": [
+          "13da4ed2-7344-49aa-aa73-004826896c5c"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10802941;USSM16801300",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 185,
+        "lyricists": [
+          "Merle Travis"
+        ],
+        "lyricists_ids": [
+          "13da4ed2-7344-49aa-aa73-004826896c5c"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "7aec19fb-1167-31d4-b3d0-dc378ea321d2",
+        "mb_trackid": "b870b59f-97f9-47a4-b6d5-00ace20341f6",
+        "mb_workid": "feca9feb-b4f3-3c45-b71c-1bcfecf15c80",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dark as Dungeon",
+        "track": 2,
+        "track_alt": "A2",
+        "trackdisambig": "live, 1968‐01‐13: Folsom State Prison, Folsom, CA, USA",
+        "tracktotal": 16,
+        "work": "Dark as a Dungeon",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Clement, Jack",
+        "composers": [
+          "Jack Clement"
+        ],
+        "composers_ids": [
+          "cf28141b-700b-4d95-9476-309abaa85f85"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM11202083",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 159,
+        "lyricists": [
+          "Jack Clement"
+        ],
+        "lyricists_ids": [
+          "cf28141b-700b-4d95-9476-309abaa85f85"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "7abb1478-11c7-3828-a249-69f630c6ea8c",
+        "mb_trackid": "8209a432-74c6-4e33-9e10-c3d652c90ebd",
+        "mb_workid": "43de2f05-326e-35dd-937f-a3bbb3fa1ba4",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Flushed From the Bathroom of Your Heart",
+        "track": 11,
+        "track_alt": "B4",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Flushed From the Bathroom of Your Heart",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash feat. June Carter Cash",
+        "artist_credit": "Johnny Cash feat. June Carter",
+        "artist_sort": "Cash, Johnny feat. Carter Cash, June",
+        "artists": [
+          "Johnny Cash",
+          "June Carter Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash",
+          "June Carter"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny",
+          "Carter Cash, June"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Leiber, Jerry, Wheeler, Billy Edd, Leiber, Jerry, Wheeler, Billy Edd",
+        "composers": [
+          "Jerry Leiber",
+          "Billy Edd Wheeler",
+          "Jerry Leiber",
+          "Billy Edd Wheeler"
+        ],
+        "composers_ids": [
+          "24252d8a-38e7-4358-bfe7-70d845f156ba",
+          "762fc18c-0fa0-45ad-92f8-b1ebac065677",
+          "24252d8a-38e7-4358-bfe7-70d845f156ba",
+          "762fc18c-0fa0-45ad-92f8-b1ebac065677"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM11202084",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 176,
+        "lyricists": [
+          "Jerry Leiber",
+          "Billy Edd Wheeler",
+          "Jerry Leiber",
+          "Billy Edd Wheeler"
+        ],
+        "lyricists_ids": [
+          "24252d8a-38e7-4358-bfe7-70d845f156ba",
+          "762fc18c-0fa0-45ad-92f8-b1ebac065677",
+          "24252d8a-38e7-4358-bfe7-70d845f156ba",
+          "762fc18c-0fa0-45ad-92f8-b1ebac065677"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+          "4ee75011-678b-46e0-b8e1-8ef47e5b7379"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "66851c92-be87-3c6f-b2be-07407530597b",
+        "mb_trackid": "2dcdc1af-d6e1-49c8-bbc2-ce8ad0fe2b55",
+        "mb_workid": "d7350d43-b74b-35fa-8cfd-bafdcfee2901",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jackson",
+        "track": 12,
+        "track_alt": "B5",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Jackson",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash feat. June Carter Cash",
+        "artist_credit": "Johnny Cash feat. June Carter",
+        "artist_sort": "Cash, Johnny feat. Carter Cash, June",
+        "artists": [
+          "Johnny Cash",
+          "June Carter Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash",
+          "June Carter"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny",
+          "Carter Cash, June"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cash, Johnny",
+        "composers": [
+          "Johnny Cash"
+        ],
+        "composers_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16801310",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 160,
+        "lyricists": [
+          "Johnny Cash"
+        ],
+        "lyricists_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+          "4ee75011-678b-46e0-b8e1-8ef47e5b7379"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "25b22ab8-764a-3c63-95b1-d49dbd05ef02",
+        "mb_trackid": "4c9aaed9-990f-4f58-a46c-b4f1f8616b0c",
+        "mb_workid": "d0f2c6b0-1fbf-3fdd-9057-9e8774d51641",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Give My Love to Rose",
+        "track": 13,
+        "track_alt": "B6",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, CA, USA",
+        "tracktotal": 16,
+        "work": "Give My Love to Rose",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cash, Johnny, Williams, Charlie",
+        "composers": [
+          "Johnny Cash",
+          "Charlie Williams"
+        ],
+        "composers_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+          "2eee3392-7e10-42d8-9297-b6f1c49c9171"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10802998",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 102,
+        "lyricists": [
+          "Johnny Cash",
+          "Charlie Williams"
+        ],
+        "lyricists_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+          "2eee3392-7e10-42d8-9297-b6f1c49c9171"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "b7821231-5d46-3998-95a1-91f177119468",
+        "mb_trackid": "c35176c9-a4fc-4da0-a505-f8ffb743cb29",
+        "mb_workid": "a4d5d446-e230-382f-b9b5-e989da71756c",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Got Stripes",
+        "track": 14,
+        "track_alt": "B7",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "I Got Stripes",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Putman, Claude “Curly”, Jr.",
+        "composers": [
+          "Claude “Curly” Putman, Jr."
+        ],
+        "composers_ids": [
+          "05da2f6e-8e59-46e9-945c-60cfd60cc93f"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM11202085",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 177,
+        "lyricists": [
+          "Claude “Curly” Putman, Jr."
+        ],
+        "lyricists_ids": [
+          "05da2f6e-8e59-46e9-945c-60cfd60cc93f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "c026fe16-0f99-3a6e-b226-b228349f35e0",
+        "mb_trackid": "91ed4165-5409-4e7a-93a6-01b2d3774214",
+        "mb_workid": "c3ba1aae-6a44-308b-993f-8fa2206564fb",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Green Green Grass of Home",
+        "track": 15,
+        "track_alt": "B8",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Green, Green Grass of Home",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Sherley, Glen, Sherley, Glen",
+        "composers": [
+          "Glen Sherley",
+          "Glen Sherley"
+        ],
+        "composers_ids": [
+          "f625a2b1-21b5-4f7b-b7d7-e3280df4b87d",
+          "f625a2b1-21b5-4f7b-b7d7-e3280df4b87d"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM11202086",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 334,
+        "lyricists": [
+          "Glen Sherley",
+          "Glen Sherley"
+        ],
+        "lyricists_ids": [
+          "f625a2b1-21b5-4f7b-b7d7-e3280df4b87d",
+          "f625a2b1-21b5-4f7b-b7d7-e3280df4b87d"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "67a330b4-8983-3842-a2f6-aa94fe527fe5",
+        "mb_trackid": "a9207116-ab7f-44e5-9a4e-118adc66d128",
+        "mb_workid": "9ddda63c-6b12-3c3e-b1cd-2c28100acab8",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Greystone Chapel",
+        "track": 16,
+        "track_alt": "B9",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Greystone Chapel",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cash, Johnny, Cash, Roy Jr.",
+        "composers": [
+          "Johnny Cash",
+          "Roy Cash Jr."
+        ],
+        "composers_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+          "68e0829c-a773-4253-b0e0-1cca684a649a"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16801301",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 97,
+        "lyricists": [
+          "Roy Cash Jr."
+        ],
+        "lyricists_ids": [
+          "68e0829c-a773-4253-b0e0-1cca684a649a"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "441759fe-74e5-3e64-a7ad-730c9f01d10a",
+        "mb_trackid": "b3accb1a-0f53-489f-bf6e-d0c04524fb52",
+        "mb_workid": "cb1b5631-2798-3549-a3cd-99be9a17fb56",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "I Still Miss Someone",
+        "track": 3,
+        "track_alt": "A3",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "I Still Miss Someone",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Arnall, T.J.",
+        "composers": [
+          "T.J. Arnall"
+        ],
+        "composers_ids": [
+          "39970612-b825-4dca-8ec2-50b41dda58f1"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM11202082;USSM16801302",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 182,
+        "lyricists": [
+          "T.J. Arnall"
+        ],
+        "lyricists_ids": [
+          "39970612-b825-4dca-8ec2-50b41dda58f1"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "491ef185-9b06-3e68-ad14-8e5bbd9e36e5",
+        "mb_trackid": "3add7c0d-a615-4a93-b47c-a385166f60da",
+        "mb_workid": "da57492a-a6d7-3e7e-a7ae-76fcd95a6357",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Cocaine Blues",
+        "track": 4,
+        "track_alt": "A4",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Cocaine Blues",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Silverstein, Shel",
+        "composers": [
+          "Shel Silverstein"
+        ],
+        "composers_ids": [
+          "1ce887e7-a9ca-4545-bb75-5af9cea6c862"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16801449",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 211,
+        "lyricists": [
+          "Shel Silverstein"
+        ],
+        "lyricists_ids": [
+          "1ce887e7-a9ca-4545-bb75-5af9cea6c862"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "2dd82236-b44d-3500-9694-fe9a9be3fbce",
+        "mb_trackid": "a9b800c7-05ab-4341-8018-c2448a8e1cda",
+        "mb_workid": "3906b9da-7ac0-3d87-abbf-8d76ece3bf69",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "25 Minutes to Go",
+        "track": 5,
+        "track_alt": "A5",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "25 Minutes to Go",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Rouse, Ervin",
+        "composers": [
+          "Ervin Rouse"
+        ],
+        "composers_ids": [
+          "93603662-11ee-49cc-a162-01aaa94ceabd"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16801303",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 183,
+        "lyricists": [
+          "Ervin Rouse"
+        ],
+        "lyricists_ids": [
+          "93603662-11ee-49cc-a162-01aaa94ceabd"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "b3f93b28-d51d-36fb-9eb5-3ccb9f2287dd",
+        "mb_trackid": "0d67e160-5343-43d4-9a65-3a17153c4efe",
+        "mb_workid": "68d7568d-36a3-3ea4-b10e-4c2afa26f419",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Orange Blossom Special",
+        "track": 6,
+        "track_alt": "A6",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Orange Blossom Special",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Dill, Danny, Wilkin, Marijohn",
+        "composers": [
+          "Danny Dill",
+          "Marijohn Wilkin"
+        ],
+        "composers_ids": [
+          "7aa0ffeb-40ed-480b-bc44-169948a88f3e",
+          "c66e5dec-4271-443d-93bc-1a652e25f03f"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM16801304",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 236,
+        "lyricists": [
+          "Danny Dill",
+          "Marijohn Wilkin"
+        ],
+        "lyricists_ids": [
+          "7aa0ffeb-40ed-480b-bc44-169948a88f3e",
+          "c66e5dec-4271-443d-93bc-1a652e25f03f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "86484f3f-9576-3b5b-8d1f-032feba09cb5",
+        "mb_trackid": "25e9c75c-d014-4ddf-8df4-54215ee568ea",
+        "mb_workid": "412d3909-1f2c-30e6-b009-daba36723dbd",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Long Black Veil",
+        "track": 7,
+        "track_alt": "A7",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "The Long Black Veil",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cash, Johnny",
+        "composers": [
+          "Johnny Cash"
+        ],
+        "composers_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10201553;USSM16801450",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 130,
+        "lyricists": [
+          "Johnny Cash"
+        ],
+        "lyricists_ids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "df3b596b-94e5-3e3b-8ff0-6e68ac46a661",
+        "mb_trackid": "31a392a8-9892-439c-b2b4-fc062f49d9d1",
+        "mb_workid": "07434dcc-2e97-3b2b-9e5f-c4071d7ab387",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Send a Picture of Mother",
+        "track": 8,
+        "track_alt": "B1",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Send a Picture of Mother",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Howard, Harlan",
+        "composers": [
+          "Harlan Howard"
+        ],
+        "composers_ids": [
+          "960b2cd7-6ae3-4479-8518-6b68081730c3"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USG4X0800128",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 113,
+        "lyricists": [
+          "Harlan Howard"
+        ],
+        "lyricists_ids": [
+          "960b2cd7-6ae3-4479-8518-6b68081730c3"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "b3ec87fd-e33e-3de9-87ab-bce5084ef554",
+        "mb_trackid": "663c6dcb-45e2-4c67-ac39-9e249d5bab86",
+        "mb_workid": "d2059e75-1951-37c8-bdae-b730fbaca6c8",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "The Wall",
+        "track": 9,
+        "track_alt": "B2",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "The Wall",
+        "work_disambig": "",
+        "year": 1968
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "At Folsom Prison",
+        "album_id": null,
+        "albumartist": "Johnny Cash",
+        "albumartist_credit": "Johnny Cash",
+        "albumartist_sort": "Cash, Johnny",
+        "albumartists": [
+          "Johnny Cash"
+        ],
+        "albumartists_credit": [
+          "Johnny Cash"
+        ],
+        "albumartists_sort": [
+          "Cash, Johnny"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "live"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Johnny Cash",
+        "artist_credit": "Johnny Cash",
+        "artist_sort": "Cash, Johnny",
+        "artists": [
+          "Johnny Cash"
+        ],
+        "artists_credit": [
+          "Johnny Cash"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Cash, Johnny"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "CS 9639",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Clement, Jack",
+        "composers": [
+          "Jack Clement"
+        ],
+        "composers_ids": [
+          "cf28141b-700b-4d95-9476-309abaa85f85"
+        ],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 0,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10104893",
+        "label": "Columbia",
+        "language": "eng",
+        "length": 77,
+        "lyricists": [
+          "Jack Clement"
+        ],
+        "lyricists_ids": [
+          "cf28141b-700b-4d95-9476-309abaa85f85"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_albumartistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_albumid": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+        "mb_artistid": "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86",
+        "mb_artistids": [
+          "d43d12a1-2dc9-4257-a2fd-0a3bb1081b86"
+        ],
+        "mb_releasegroupid": "6b4ea595-3378-3019-be5f-058412670791",
+        "mb_releasetrackid": "f2669522-574e-348f-b940-ac204c5b194d",
+        "mb_trackid": "97932a3b-8470-4fdc-bac2-4fe5b255f3a7",
+        "mb_workid": "b3821036-ef40-3357-b7db-be2a6ab600fc",
+        "media": "12\" Vinyl",
+        "month": 0,
+        "mtime": 0,
+        "original_day": 0,
+        "original_month": 0,
+        "original_year": 1968,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "At Folsom Prison",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dirty Old Egg-Sucking Dog",
+        "track": 10,
+        "track_alt": "B3",
+        "trackdisambig": "live, 1968-01-13: Folsom State Prison, Folsom, California, USA",
+        "tracktotal": 16,
+        "work": "Dirty Old Egg‐Suckin’ Dog",
+        "work_disambig": "",
+        "year": 1968
+      }
+    }
+  }
+}

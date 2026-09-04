@@ -594,6 +594,14 @@
       "unique": true
     },
     {
+      "case_id": "real-classical-gould-goldberg-1981-stock",
+      "album_id": "00383a0d-7ea6-4554-8d9f-5df3e3074e4f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1188811188811187,
+      "difference": 1.1188811188811187,
+      "unique": true
+    },
+    {
       "case_id": "real-classical-karajan-beethoven-89",
       "album_id": "cb2d9dc2-0d6b-4dd2-9724-dbbf97ede73e",
       "optimal_cost": 0,
@@ -650,6 +658,14 @@
       "unique": true
     },
     {
+      "case_id": "real-compilation-marley-legend-stock",
+      "album_id": "f7da6448-0f6a-4569-90aa-920e7439815e",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4545454545454546,
+      "difference": 1.4545454545454546,
+      "unique": true
+    },
+    {
       "case_id": "real-compilation-queen-greatest-hits-ii",
       "album_id": "92655853-3fcc-3491-b166-0c932420f594",
       "optimal_cost": 0,
@@ -683,6 +699,14 @@
     },
     {
       "case_id": "real-decoy-tchaikovsky-swan-lake",
+      "album_id": "19bbaf85-3aef-469b-95b6-1de1a4802683",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2396694214876034,
+      "difference": 1.2396694214876034,
+      "unique": true
+    },
+    {
+      "case_id": "real-decoy-tchaikovsky-swan-lake-stock",
       "album_id": "19bbaf85-3aef-469b-95b6-1de1a4802683",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.2396694214876034,
@@ -747,6 +771,14 @@
     },
     {
       "case_id": "real-genre-burna-boy-african-giant",
+      "album_id": "c077002c-e55d-46cd-b7d9-09cb1e41d751",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3246753246753247,
+      "difference": 1.3246753246753247,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-burna-boy-african-giant-stock",
       "album_id": "c077002c-e55d-46cd-b7d9-09cb1e41d751",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.3246753246753247,
@@ -819,6 +851,14 @@
     },
     {
       "case_id": "real-genre-johnny-cash-folsom-prison",
+      "album_id": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4265734265734267,
+      "difference": 1.4265734265734267,
+      "unique": true
+    },
+    {
+      "case_id": "real-genre-johnny-cash-folsom-prison-stock",
       "album_id": "89efce77-e3a9-4a7d-8be7-0eadfbdfa28e",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4265734265734267,
@@ -1002,6 +1042,14 @@
       "unique": true
     },
     {
+      "case_id": "real-noise-velvet-underground-us1986-stock",
+      "album_id": "9258ac80-8f65-4699-b8f0-1e05ea815110",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5064935064935063,
+      "difference": 1.5064935064935063,
+      "unique": true
+    },
+    {
       "case_id": "real-noise-zappa-cucamonga",
       "album_id": "90bee536-450c-4120-b3b1-b11a116375ed",
       "optimal_cost": 0,
@@ -1027,6 +1075,14 @@
     },
     {
       "case_id": "real-nonlatin-babymetal",
+      "album_id": "354a6d88-df30-4df3-953a-dd640ef9be5a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4545454545454546,
+      "difference": 1.4545454545454546,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-babymetal-stock",
       "album_id": "354a6d88-df30-4df3-953a-dd640ef9be5a",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4545454545454546,
@@ -1107,6 +1163,14 @@
     },
     {
       "case_id": "real-nonlatin-zemfira",
+      "album_id": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4126060606060606,
+      "difference": 1.4126060606060606,
+      "unique": true
+    },
+    {
+      "case_id": "real-nonlatin-zemfira-stock",
       "album_id": "41bbc503-6f3c-4ef0-894e-b7d05d8df7d4",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.4126060606060606,

@@ -1287,9 +1287,9 @@ set); this table restates only the fields the hypothesis turns on.
 
 ## The stock-config stratum
 
-Pass 2c's stock-config siblings (Task 19a; Task 19b's 8-case
-supplementary sample is a separate, later task and not part of this
-section). Ladder entry 2's ruling 3 holds tier one over the stock
+Pass 2c's stock-config siblings: Task 19a's 28 mandatory rows below,
+plus Task 19b's 8-case supplementary sample further down this section.
+Ladder entry 2's ruling 3 holds tier one over the stock
 config, not only over `estate`, and this stratum is what makes that
 claim checkable rather than merely asserted. Each sibling is a fully
 self-contained case directory: its own `case.json` with
@@ -1394,6 +1394,71 @@ tie, since each sibling's assignment is identical to its twin's.
 `proximity.json` gained no new entries: none of the 28 siblings'
 records fall within the boundary epsilon of any recommendation
 threshold, the same as their twins.
+
+### Task 19b: the supplementary sample
+
+Task 19a's 28 rows are exactly the two axes carrying the two
+fact-verified divergent config keys (reissue/remaster's
+`original_date`, VA/box-set's `per_disc_numbering`), so they prove
+ruling 3 only over those two axes. Task 19b draws 8 further siblings
+from the five real-catalog axes the mandatory 28 never touch, which is
+what gives ruling 3's "tier one holds over stock" claim its promised
+breadth: coverage over the confident-band majority of the corpus, not
+only its two divergent-key axes.
+
+**Stratification.** classical/compilation (2: one classical row, one
+compilation row), non-Latin (2, two distinct scripts), MB-noise (1),
+genre/era spread (2), two-release sub-axis (1) -- 8 total, weighted
+toward the two largest non-mandatory axes (genre/era spread's 26 rows,
+classical/compilation's 10) while still seating MB-noise (14) and the
+smallest, structurally distinct two-release sub-axis (4 delivered
+rows). Each row is an ordinary confident match: the same clean
+`strong`/`apply` shape (or, for the two-release row, the axis's own
+correctly-`medium` decoy-rejection shape) its twin already carries in
+the tables above, never a further-adversarial elaboration on top of
+it.
+
+| id | twin | axis | verdict vs twin | applied-field divergence |
+| --- | --- | --- | --- | --- |
+| `real-classical-gould-goldberg-1981-stock` | `real-classical-gould-goldberg-1981` | classical/compilation | identical (`strong`/`apply`, distance `0.019893899204244034`) | `year` (item 0): estate `1982`, stock `2004` |
+| `real-compilation-marley-legend-stock` | `real-compilation-marley-legend` | classical/compilation | identical (`strong`/`apply`, distance `0`) | `month`/`day` (item 0): estate `5`/`8`, stock `0`/`0` (`year` unchanged at `1984`) |
+| `real-nonlatin-babymetal-stock` | `real-nonlatin-babymetal` | non-Latin | identical (`strong`/`apply`, distance `0`) | none |
+| `real-nonlatin-zemfira-stock` | `real-nonlatin-zemfira` | non-Latin | identical (`strong`/`apply`, distance `0`) | none |
+| `real-noise-velvet-underground-us1986-stock` | `real-noise-velvet-underground-us1986` | MB-noise | identical (`strong`/`apply`, distance `0`) | `year`/`month`/`day` (item 0): estate `1969`-`3`-`1`, stock `1986` (year-only) |
+| `real-genre-johnny-cash-folsom-prison-stock` | `real-genre-johnny-cash-folsom-prison` | genre/era spread | identical (`strong`/`apply`, distance `0`) | none |
+| `real-genre-burna-boy-african-giant-stock` | `real-genre-burna-boy-african-giant` | genre/era spread | identical (`strong`/`apply`, distance `0`) | `day` (item 0): estate `25`, stock `26` (`year`/`month` unchanged at `2019`-`7`) |
+| `real-decoy-tchaikovsky-swan-lake-stock` | `real-decoy-tchaikovsky-swan-lake` | two-release sub-axis | identical (`medium`/`skip`, distance `0.04135338345864662`) | `year`/`month`/`day` (item 0): estate `1984` (year-only), stock `2013`-`10`-`2` |
+
+**Zero of 8 siblings diverge from their twin on recommendation,
+distance, or action**, the same tier-one result Task 19a's 28 already
+established, now over axes those 28 never exercised.
+
+**A finding Task 19a's 28-of-28 result could not show: the
+`applied_fields` divergence itself is not universal.** Five of the
+eight rows above move `year` (and, where the captured edition carries
+finer date precision than the release-group's original date record or
+vice versa, `month`/`day` alongside it) exactly as every one of Task
+19a's 28 reissue/box-set siblings did. The other three
+(`real-nonlatin-babymetal-stock`, `real-nonlatin-zemfira-stock`,
+`real-genre-johnny-cash-folsom-prison-stock`) show no divergence
+anywhere in the record, not even in `applied_fields`: each twin's own
+captured edition already carries the release-group's own original
+release date, so `original_date` (estate `yes`, stock `no`) has
+nothing to move between the two profiles when the release-group's
+first-release-date and the edition's own release date coincide. Task
+19a's mandatory 28 could never show this gap, because every
+reissue/remaster row was selected specifically for having a
+fact-verified divergent release date; this supplementary sample, drawn
+without that selection pressure, is what surfaces it.
+
+**No `adjudications.json` row.** Zero verdict divergences, the same as
+Task 19a, leaves nothing to adjudicate. `ties.json` gained the required
+8 generated rows (`go test -tags oracle ./internal/harness/oracle -run
+TestTieLedgerMatchesTheCorpus -update-ledgers`); none introduced a new
+tie, since each sibling's assignment is identical to its twin's.
+`proximity.json` gained no new entries: none of the 8 siblings' records
+fall within the boundary epsilon of any recommendation threshold, the
+same as their twins.
 
 ## The canonicalization rule
 
