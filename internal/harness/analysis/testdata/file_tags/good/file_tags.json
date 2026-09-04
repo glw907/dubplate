@@ -1,0 +1,112 @@
+{
+  "shim_version": "1",
+  "beets_version": "2.13.1",
+  "writable_fields": [
+    "title",
+    "artist"
+  ],
+  "readonly_fields": [
+    "length"
+  ],
+  "template": {
+    "length": 0.0
+  },
+  "rows": [
+    {
+      "case_id": "clean-match",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "media-uneven-split",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "va-exact",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "non-latin-pseudo-release",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "year-reissue-ratio-penalty",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-classical-karajan-beethoven-89",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-reissue-nevermind-2011",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-boxset-james-brown-star-time",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-genre-public-enemy-nation-millions",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    },
+    {
+      "case_id": "real-decoy-mozart-requiem",
+      "item_index": 0,
+      "values": {
+        "title": "x",
+        "artist": "y"
+      }
+    }
+  ]
+}

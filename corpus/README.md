@@ -737,7 +737,7 @@ with no reserve remaining behind any later two-release row.
 | id | axis | MBID | mandatory stock sibling | file-tag subject | what it exercises |
 | --- | --- | --- | --- | --- | --- |
 | `real-boxset-dylan-bootleg-1-3` | VA/box-set | `1a6fdee5-5250-4d6a-ad39-6cd9721862d7` | yes | no | Bob Dylan, *The Bootleg Series, Volumes 1-3* (3 discs, 58 tracks); capture-confirmed 3 discs; a clean zero-distance match. |
-| `real-decoy-mozart-requiem` | two-release sub-axis | `a67b8f8d-c524-4634-9473-9a1d75519bf8` | no | no | Bach Choir and Orchestra of the Netherlands, *Requiem Mozart*; items authored ambiguously (`album`/`artist` stripped to "Mozart Requiem" / "Mozart") to force beets' own text-search fallback. See the finding below: unlike Tasks 4 and 6, this row's named decoy actually surfaced inside the 5-result search window, and the matcher still correctly picked its own captured source (`medium`, `skip`, distance `0.0939`, nonzero `album` and `artist` penalties). |
+| `real-decoy-mozart-requiem` | two-release sub-axis | `a67b8f8d-c524-4634-9473-9a1d75519bf8` | no | yes (pass 2d substitution, see below) | Bach Choir and Orchestra of the Netherlands, *Requiem Mozart*; items authored ambiguously (`album`/`artist` stripped to "Mozart Requiem" / "Mozart") to force beets' own text-search fallback. See the finding below: unlike Tasks 4 and 6, this row's named decoy actually surfaced inside the 5-result search window, and the matcher still correctly picked its own captured source (`medium`, `skip`, distance `0.0939`, nonzero `album` and `artist` penalties). |
 | `real-genre-daft-punk-discovery` | genre/era spread | `44e85a85-77d7-3e2e-8416-65a27d2aef68` | no | no | Daft Punk, *Discovery* (GB 2001 CD; electronic/house); a clean zero-distance match. |
 | `real-genre-johnny-cash-folsom-prison` | genre/era spread | `89efce77-e3a9-4a7d-8be7-0eadfbdfa28e` | no | no | Johnny Cash, *At Folsom Prison* (US 1968 original vinyl; country, live); a clean zero-distance match. |
 | `real-noise-dylan-bootleg` | MB-noise | `df215f20-28d7-4455-894e-52d913c58d04` | no | yes | Bob Dylan, *The Bootleg* (DE 1995); MB Status: Bootleg. Authored as a partial rip (4 of 24 tracks dropped via `--overrides`); matched its own correct source at `medium` on a nonzero `missing_tracks` penalty (`0.0647`). A file-tag subject for pass 2d. |
@@ -1822,17 +1822,85 @@ non-emptiness, a per-method coverage set, and a row-count floor, and
 nothing more. It is not a conformance check. The re-derive-and-diff
 assertion is oracle-tagged and runs under `make derive`.
 
+### `file_tags.json`, the file-level applied-tag ledger
+
+`internal/harness/oracle/derive_file_tags.py` (pass 2d's Task 1, "The
+file-tags fixture" above) is the third, narrowest beets entry point: it
+writes each subject's recorded fields into a fresh copy of the vendored
+template FLAC and reads the result back through an independent
+`mediafile.MediaFile` parse. `file_tags.json` covers twelve named
+subjects, not the whole corpus, because deriving a row needs a real
+file write and read-back rather than an in-memory call, the same reason
+`components.json` covers a fixed method set rather than every case.
+
+**The twelve subjects.** Five come from the smoke/structural strata
+(`clean-match`, `media-uneven-split`, `va-exact`,
+`non-latin-pseudo-release`, `year-reissue-ratio-penalty`) and seven from
+the real-catalog stratum (`real-classical-karajan-beethoven-89`,
+`real-reissue-nevermind-2011`, `real-boxset-james-brown-star-time`,
+`real-nonlatin-utada-first-love`, `real-noise-dylan-bootleg`,
+`real-genre-public-enemy-nation-millions`, `real-decoy-mozart-requiem`).
+Each row derives from the case's own item index 0.
+`internal/harness/analysis.FileTagSubjects` is the one home for this
+list; `internal/harness/corpus_test.go`'s gate-resident check and
+`internal/harness/oracle`'s re-derive test both read it rather than
+each carrying an independent copy.
+
+**The twelfth subject is a ruled substitution, not the dossier's own
+row.** The dossier named `real-decoy-beethoven-symphony-5` as the
+two-release sub-axis's file-tag subject, but that id never resolved to
+a committed case: pass 2c's Task 4 attempted it twice (and its sole
+axis reserve, `real-decoy-mozart-piano-concerto-21`, once more) and the
+named decoy never surfaced inside beets' own 5-result search window on
+any attempt, so per the two-release mechanism's own escape hatch
+neither candidate was forced into a case ("The two-release sub-axis
+finding (Task 4)" above). A file-tags subject has to be a committed
+case, so the conductor ruled a replacement, chosen from the axis's four
+other committed decoy cases
+(`real-decoy-beethoven-symphony-9-choral`, `real-decoy-tchaikovsky-swan-lake`,
+`real-decoy-chopin-nocturnes`, `real-decoy-mozart-requiem`;
+`real-decoy-vivaldi-four-seasons` was never committed either, Task 6's
+own finding, so it was never in contention) by which of them carries a
+non-empty `Expected.AppliedFields` record, and, among the eligible
+rows, the most distinctive applied tag shape.
+
+**Every one of the four committed decoy cases is eligible.**
+`applied_fields` is populated by `derive_oracle.py`'s own
+`applied_fields()` helper whenever the case's best candidate exists at
+all (`match.apply_metadata()` runs unconditionally on
+`proposal.candidates[0]`); it is empty only when a case's candidate
+list is itself empty. All four committed decoy cases resolve a
+candidate (`medium`/`skip`, per their own "two-release sub-axis
+finding" writeups), so `action` alone does not distinguish them:
+checked directly against each case's own `case.json`, `action` reads
+`skip` and `applied_fields` still carries a full per-item record on all
+four (4, 13, 12, and 24 items respectively). Among the eligible four,
+`real-decoy-mozart-requiem` carries the most distinctive applied tag
+shape by a wide margin: 24 items against a single-disc release whose
+titles are long, Latin liturgical, multi-movement headings ("III.
+SEQUENTIA: - Lacrimosa", "VIII: COMMUNIO: Lux aeterna") spanning two
+distinct movement-numbering conventions and two distinct
+`albumartist_credit` strings within the same album, against the
+runner-up `real-decoy-tchaikovsky-swan-lake`'s 13 items and Cyrillic
+`artist` field. `real-decoy-mozart-requiem` is the ruled twelfth
+subject.
+
 ### Regenerating a derived ledger
 
-`ties.json` and `components.json` are derived, so they are rewritten
-rather than hand-edited:
+`ties.json`, `components.json`, and `file_tags.json` are derived, so
+they are rewritten rather than hand-edited:
 
 ```sh
 go test -tags oracle ./internal/harness/oracle -run Ledger -update-ledgers
 go test -tags oracle ./internal/harness/oracle -run Component -update-ledgers
+go test -tags oracle ./internal/harness/oracle -run FileTags -update-ledgers
 ```
 
-An update carries every tie row's `disposition` and `reason` forward:
+A regeneration is expected to be a no-op unless the venv's pins moved
+(a `mediafile` or `beets` bump for `file_tags.json`); the re-derive
+test diffs the fresh run against the committed file and fails loudly
+with a pointer back to this command whenever the two disagree. An
+update carries every tie row's `disposition` and `reason` forward:
 those are human adjudication, and a re-measurement has nothing to say
 about them. `proximity.json` has no derived half at all, so its rows are
 written by hand; the gate names exactly which ones are owed.

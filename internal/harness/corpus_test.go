@@ -259,6 +259,30 @@ func TestComponentTableIsWellFormed(t *testing.T) {
 	}
 }
 
+// TestFileTagLedgerIsWellFormed checks corpus/analysis/file_tags.json:
+// every row resolves into a committed case's own applied_fields at the
+// row's item index, every row's value keys sit inside the ledger's own
+// writable_fields header and never carry a read-only key, and the row
+// set is exactly the twelve named analysis.FileTagSubjects. It is
+// deliberately not a conformance check: the numbers themselves are
+// oracle-tagged work under `make derive`, matching
+// TestComponentTableIsWellFormed's own discipline.
+func TestFileTagLedgerIsWellFormed(t *testing.T) {
+	root := repoRoot(t)
+	cases := make(map[string]*cassette.Case)
+	forEachCase(t, root, func(t *testing.T, id, _ string, c *cassette.Case) {
+		cases[id] = c
+	})
+
+	ledger, err := analysis.LoadFileTagLedger(filepath.Join(root, "corpus", "analysis", "file_tags.json"))
+	if err != nil {
+		t.Fatalf("load file tag ledger: %v", err)
+	}
+	if err := analysis.CheckFileTagLedger(cases, ledger); err != nil {
+		t.Error(err)
+	}
+}
+
 // TestAdjudicationsLedgerIsWellFormed checks corpus/analysis/adjudications.json:
 // every subject case id resolves to a committed case, every row carries
 // a recognized disposition with its required evidence, and only a

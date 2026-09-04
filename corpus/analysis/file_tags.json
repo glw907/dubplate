@@ -1,0 +1,1304 @@
+{
+  "shim_version": "1",
+  "beets_version": "2.13.1",
+  "writable_fields": [
+    "acoustid_fingerprint",
+    "acoustid_id",
+    "album",
+    "albumartist",
+    "albumartist_credit",
+    "albumartist_sort",
+    "albumartists",
+    "albumartists_credit",
+    "albumartists_sort",
+    "albumdisambig",
+    "albumstatus",
+    "albumtype",
+    "albumtypes",
+    "arrangers",
+    "artist",
+    "artist_credit",
+    "artist_sort",
+    "artists",
+    "artists_credit",
+    "artists_sort",
+    "asin",
+    "barcode",
+    "bpm",
+    "catalognum",
+    "comments",
+    "comp",
+    "composer_sort",
+    "composers",
+    "country",
+    "day",
+    "disc",
+    "disctitle",
+    "disctotal",
+    "encoder",
+    "genres",
+    "grouping",
+    "initial_key",
+    "isrc",
+    "label",
+    "language",
+    "lyricists",
+    "lyrics",
+    "mb_albumartistid",
+    "mb_albumartistids",
+    "mb_albumid",
+    "mb_artistid",
+    "mb_artistids",
+    "mb_releasegroupid",
+    "mb_releasetrackid",
+    "mb_trackid",
+    "mb_workid",
+    "media",
+    "month",
+    "original_day",
+    "original_month",
+    "original_year",
+    "r128_album_gain",
+    "r128_track_gain",
+    "remixers",
+    "rg_album_gain",
+    "rg_album_peak",
+    "rg_track_gain",
+    "rg_track_peak",
+    "script",
+    "subtitle",
+    "title",
+    "track",
+    "tracktotal",
+    "year"
+  ],
+  "readonly_fields": [
+    "bitdepth",
+    "bitrate",
+    "bitrate_mode",
+    "channels",
+    "encoder_info",
+    "encoder_settings",
+    "format",
+    "length",
+    "samplerate"
+  ],
+  "template": {
+    "bitdepth": 16,
+    "bitrate": 0,
+    "bitrate_mode": "",
+    "channels": 1,
+    "encoder_info": "",
+    "encoder_settings": "",
+    "format": "FLAC",
+    "length": 0,
+    "samplerate": 44100
+  },
+  "rows": [
+    {
+      "case_id": "clean-match",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Rumours",
+        "albumartist": "Fleetwood Mac",
+        "albumartist_credit": "Fleetwood Mac",
+        "albumartist_sort": "Fleetwood Mac",
+        "albumartists": [
+          "Fleetwood Mac"
+        ],
+        "albumartists_credit": [
+          "Fleetwood Mac"
+        ],
+        "albumartists_sort": [
+          "Fleetwood Mac"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Fleetwood Mac",
+        "artist_credit": "Fleetwood Mac",
+        "artist_sort": "Fleetwood Mac",
+        "artists": [
+          "Fleetwood Mac"
+        ],
+        "artists_credit": [
+          "Fleetwood Mac"
+        ],
+        "artists_sort": [
+          "Fleetwood Mac"
+        ],
+        "asin": "",
+        "barcode": "075990301024",
+        "bpm": 0,
+        "catalognum": "03010-2",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Buckingham, Lindsey",
+        "composers": [
+          "Lindsey Buckingham"
+        ],
+        "country": "GB",
+        "day": 4,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "USWB10101367;USWB10202616;USWB10400045;USWB11301110;USWB19900177",
+        "label": "Warner Bros. Records",
+        "language": "eng",
+        "lyricists": [
+          "Lindsey Buckingham"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "bd13909f-1c29-4c27-a874-d4aaf27c5b1a",
+        "mb_albumartistids": [
+          "bd13909f-1c29-4c27-a874-d4aaf27c5b1a"
+        ],
+        "mb_albumid": "1a8c4ac3-6f47-4570-aedb-f1928a0498ea",
+        "mb_artistid": "bd13909f-1c29-4c27-a874-d4aaf27c5b1a",
+        "mb_artistids": [
+          "bd13909f-1c29-4c27-a874-d4aaf27c5b1a"
+        ],
+        "mb_releasegroupid": "416bb5e5-c7d1-3977-8fd7-7c9daf6c2be6",
+        "mb_releasetrackid": "938db19d-de3b-4ce5-9104-6e91a1633074",
+        "mb_trackid": "b25f351b-206f-4297-95bd-78459b704144",
+        "mb_workid": "cf17bb02-0d41-39b1-b0f4-9bd4e60c17b5",
+        "media": "CD",
+        "month": 2,
+        "original_day": 4,
+        "original_month": 2,
+        "original_year": 1977,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Second Hand News",
+        "track": 1,
+        "tracktotal": 11,
+        "year": 1977
+      }
+    },
+    {
+      "case_id": "media-uneven-split",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Split Horizon",
+        "albumartist": "Odette Fenn",
+        "albumartist_credit": "Odette Fenn",
+        "albumartist_sort": "Odette Fenn",
+        "albumartists": [
+          "Odette Fenn"
+        ],
+        "albumartists_credit": [
+          "Odette Fenn"
+        ],
+        "albumartists_sort": [
+          "Odette Fenn"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Odette Fenn",
+        "artist_credit": "Odette Fenn",
+        "artist_sort": "Odette Fenn",
+        "artists": [
+          "Odette Fenn"
+        ],
+        "artists_credit": [
+          "Odette Fenn"
+        ],
+        "artists_sort": [
+          "Odette Fenn"
+        ],
+        "asin": "",
+        "barcode": null,
+        "bpm": 0,
+        "catalognum": null,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": null,
+        "country": "US",
+        "day": 1,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "lyricists": null,
+        "lyrics": "",
+        "mb_albumartistid": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+        "mb_albumartistids": [
+          "61cc98a6-fb09-c1e6-de66-3a037c1aedc8"
+        ],
+        "mb_albumid": "6cdd8070-54ab-4e1a-9da5-d789dcf10c3c",
+        "mb_artistid": "61cc98a6-fb09-c1e6-de66-3a037c1aedc8",
+        "mb_artistids": [
+          "61cc98a6-fb09-c1e6-de66-3a037c1aedc8"
+        ],
+        "mb_releasegroupid": "e0835da5-e25f-f700-be63-647287dda089",
+        "mb_releasetrackid": "b0a09f67-b4de-c6d1-8194-11ef8b79fa71",
+        "mb_trackid": "5b31bbed-d740-3c19-bbeb-bc7402b42c29",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "original_day": 1,
+        "original_month": 9,
+        "original_year": 2019,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Split Horizon",
+        "track": 1,
+        "tracktotal": 4,
+        "year": 2019
+      }
+    },
+    {
+      "case_id": "va-exact",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Harbor Lantern Sessions",
+        "albumartist": "Various Artists",
+        "albumartist_credit": "Various Artists",
+        "albumartist_sort": "Various Artists",
+        "albumartists": [
+          "Various Artists"
+        ],
+        "albumartists_credit": [
+          "Various Artists"
+        ],
+        "albumartists_sort": [
+          "Various Artists"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Nova Ridge",
+        "artist_credit": "Nova Ridge",
+        "artist_sort": "Nova Ridge",
+        "artists": [
+          "Nova Ridge"
+        ],
+        "artists_credit": [
+          "Nova Ridge"
+        ],
+        "artists_sort": [
+          "Nova Ridge"
+        ],
+        "asin": "",
+        "barcode": null,
+        "bpm": 0,
+        "catalognum": null,
+        "comments": "",
+        "comp": true,
+        "composer_sort": "",
+        "composers": null,
+        "country": "US",
+        "day": 20,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "lyricists": null,
+        "lyrics": "",
+        "mb_albumartistid": "89ad4ac3-39f7-470e-963a-56509c546377",
+        "mb_albumartistids": [
+          "89ad4ac3-39f7-470e-963a-56509c546377"
+        ],
+        "mb_albumid": "796b5580-c491-5652-a2b8-333f7669e35c",
+        "mb_artistid": "b2380246-099f-9210-b4b9-f755a96311b9",
+        "mb_artistids": [
+          "b2380246-099f-9210-b4b9-f755a96311b9"
+        ],
+        "mb_releasegroupid": "88298893-8c4d-6797-3c11-8f3fde6f5f0a",
+        "mb_releasetrackid": "0c44220f-bb40-5a8c-39ed-f948c1de7d8f",
+        "mb_trackid": "9be62ba6-e84b-c869-6df8-ff000222be53",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 5,
+        "original_day": 20,
+        "original_month": 5,
+        "original_year": 2016,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Salt Line",
+        "track": 1,
+        "tracktotal": 3,
+        "year": 2016
+      }
+    },
+    {
+      "case_id": "non-latin-pseudo-release",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "GAME",
+        "albumartist": "Perfume",
+        "albumartist_credit": "Perfume",
+        "albumartist_sort": "Perfume",
+        "albumartists": [
+          "Perfume"
+        ],
+        "albumartists_credit": [
+          "Perfume"
+        ],
+        "albumartists_sort": [
+          "Perfume"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Pseudo-Release",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "中田ヤスタカ"
+        ],
+        "artist": "Perfume",
+        "artist_credit": "Perfume",
+        "artist_sort": "Perfume",
+        "artists": [
+          "Perfume"
+        ],
+        "artists_credit": [
+          "Perfume"
+        ],
+        "artists_sort": [
+          "Perfume"
+        ],
+        "asin": "B00132S3SK",
+        "barcode": "4988008972436",
+        "bpm": 0,
+        "catalognum": "TKCA-73325",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Nakata, Yasutaka",
+        "composers": [
+          "中田ヤスタカ"
+        ],
+        "country": "JP",
+        "day": 16,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "JPTK00709290",
+        "label": "JAPAN RECORD",
+        "language": "jpn",
+        "lyricists": [
+          "中田ヤスタカ"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_albumartistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_albumid": "d344ccfb-2892-431e-a2a2-6df93b266a72",
+        "mb_artistid": "486067ad-56d6-48b5-957b-d6cfe3e1af73",
+        "mb_artistids": [
+          "486067ad-56d6-48b5-957b-d6cfe3e1af73"
+        ],
+        "mb_releasegroupid": "f7c02dc1-24e2-3790-b454-d71335820c25",
+        "mb_releasetrackid": "289c3a99-e32a-4741-94a1-f672f678af0e",
+        "mb_trackid": "c78ea507-2bb3-4b01-a5b3-7e72b6097628",
+        "mb_workid": "f6297a1e-92e1-31bf-a550-53726d91e140",
+        "media": "CD",
+        "month": 4,
+        "original_day": 16,
+        "original_month": 4,
+        "original_year": 2008,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Polyrhythm",
+        "track": 1,
+        "tracktotal": 12,
+        "year": 2008
+      }
+    },
+    {
+      "case_id": "year-reissue-ratio-penalty",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Founders Bay",
+        "albumartist": "Iwo Callahan",
+        "albumartist_credit": "Iwo Callahan",
+        "albumartist_sort": "Iwo Callahan",
+        "albumartists": [
+          "Iwo Callahan"
+        ],
+        "albumartists_credit": [
+          "Iwo Callahan"
+        ],
+        "albumartists_sort": [
+          "Iwo Callahan"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Iwo Callahan",
+        "artist_credit": "Iwo Callahan",
+        "artist_sort": "Iwo Callahan",
+        "artists": [
+          "Iwo Callahan"
+        ],
+        "artists_credit": [
+          "Iwo Callahan"
+        ],
+        "artists_sort": [
+          "Iwo Callahan"
+        ],
+        "asin": "",
+        "barcode": null,
+        "bpm": 0,
+        "catalognum": null,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": null,
+        "country": "US",
+        "day": 15,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "lyricists": null,
+        "lyrics": "",
+        "mb_albumartistid": "3758ec52-0278-c31d-e541-9c887a1298f7",
+        "mb_albumartistids": [
+          "3758ec52-0278-c31d-e541-9c887a1298f7"
+        ],
+        "mb_albumid": "c537b0d2-be49-4cf4-9fc9-9a43f934314c",
+        "mb_artistid": "3758ec52-0278-c31d-e541-9c887a1298f7",
+        "mb_artistids": [
+          "3758ec52-0278-c31d-e541-9c887a1298f7"
+        ],
+        "mb_releasegroupid": "9f68f2c7-c665-cd0d-f3c4-e1c44e25f6a0",
+        "mb_releasetrackid": "d6d7eee4-d4c2-c8fc-9b9b-23945cde9fd0",
+        "mb_trackid": "1242ce7f-38af-a329-f4a2-0cb47ca59414",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "original_day": 15,
+        "original_month": 6,
+        "original_year": 1975,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Founders Bay",
+        "track": 1,
+        "tracktotal": 3,
+        "year": 1975
+      }
+    },
+    {
+      "case_id": "real-classical-karajan-beethoven-89",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Beethoven Symphony No. 8 \u0026 9 - Herbert von Karajan Berlin Philharmonic",
+        "albumartist": "Herbert von Karajan \u0026 Berliner Philharmoniker",
+        "albumartist_credit": "Herbert von Karajan \u0026 Berliner Philharmoniker",
+        "albumartist_sort": "Karajan, Herbert von \u0026 Berliner Philharmoniker",
+        "albumartists": [
+          "Herbert von Karajan",
+          "Berliner Philharmoniker"
+        ],
+        "albumartists_credit": [
+          "Herbert von Karajan",
+          "Berliner Philharmoniker"
+        ],
+        "albumartists_sort": [
+          "Karajan, Herbert von",
+          "Berliner Philharmoniker"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Ludwig van Beethoven",
+        "artist_credit": "Ludwig van Beethoven",
+        "artist_sort": "Beethoven, Ludwig van",
+        "artists": [
+          "Ludwig van Beethoven"
+        ],
+        "artists_credit": [
+          "Ludwig van Beethoven"
+        ],
+        "artists_sort": [
+          "Beethoven, Ludwig van"
+        ],
+        "asin": "",
+        "barcode": null,
+        "bpm": 0,
+        "catalognum": "23087",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Beethoven, Ludwig van",
+        "composers": [
+          "Ludwig van Beethoven"
+        ],
+        "country": "XW",
+        "day": null,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "DEF056201670;DEF056201671",
+        "label": "High Definition Tape Transfers",
+        "language": "eng",
+        "lyricists": null,
+        "lyrics": "",
+        "mb_albumartistid": "d2ced2f1-6b58-47cf-ae87-5943e2ab6d99",
+        "mb_albumartistids": [
+          "d2ced2f1-6b58-47cf-ae87-5943e2ab6d99",
+          "dea28aa9-1086-4ffa-8739-0ccc759de1ce"
+        ],
+        "mb_albumid": "cb2d9dc2-0d6b-4dd2-9724-dbbf97ede73e",
+        "mb_artistid": "1f9df192-a621-4f54-8850-2c5373b7eac9",
+        "mb_artistids": [
+          "1f9df192-a621-4f54-8850-2c5373b7eac9"
+        ],
+        "mb_releasegroupid": "1fb98eec-20e2-4bdf-8f65-19f5ce0e622c",
+        "mb_releasetrackid": "ebf72103-fb53-4a61-8812-f2d65fc37e7f",
+        "mb_trackid": "3bef1099-83e0-43f3-9f53-9c112450f10d",
+        "mb_workid": "c510d90f-df95-3df8-9ce5-69041c6d876d",
+        "media": "Digital Media",
+        "month": null,
+        "original_day": null,
+        "original_month": null,
+        "original_year": 2025,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Symphony no. 8 in F major, op. 93: I. Allegro vivace e con brio",
+        "track": 1,
+        "tracktotal": 9,
+        "year": 2025
+      }
+    },
+    {
+      "case_id": "real-reissue-nevermind-2011",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt, Grohl, Dave, Novoselic, Krist",
+        "composers": [
+          "Kurt Cobain",
+          "Dave Grohl",
+          "Krist Novoselic"
+        ],
+        "country": "AU",
+        "day": 24,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "USGF19942501",
+        "label": "Geffen Records",
+        "language": "",
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "bf89208c-ecea-4323-a19a-371bf7611866",
+        "mb_trackid": "5fb524f1-8cc8-4c04-a921-e34c0a911ea7",
+        "mb_workid": "9840e142-269d-3fa3-9805-041a9235c18a",
+        "media": "CD",
+        "month": 9,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "",
+        "subtitle": "",
+        "title": "Smells Like Teen Spirit",
+        "track": 1,
+        "tracktotal": 12,
+        "year": 1991
+      }
+    },
+    {
+      "case_id": "real-boxset-james-brown-star-time",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Star Time",
+        "albumartist": "James Brown",
+        "albumartist_credit": "James Brown",
+        "albumartist_sort": "Brown, James",
+        "albumartists": [
+          "James Brown"
+        ],
+        "albumartists_credit": [
+          "James Brown"
+        ],
+        "albumartists_sort": [
+          "Brown, James"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album",
+          "compilation"
+        ],
+        "arrangers": null,
+        "artist": "James Brown",
+        "artist_credit": "James Brown",
+        "artist_sort": "Brown, James",
+        "artists": [
+          "James Brown"
+        ],
+        "artists_credit": [
+          "James Brown"
+        ],
+        "artists_sort": [
+          "Brown, James"
+        ],
+        "asin": "B000001G1E",
+        "barcode": "042284910828",
+        "bpm": 0,
+        "catalognum": "849 108-2",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Brown, James, Terry, Johnny",
+        "composers": [
+          "James Brown",
+          "Johnny Terry"
+        ],
+        "country": "US",
+        "day": 7,
+        "disc": 1,
+        "disctitle": "Mr. Dynamite",
+        "disctotal": 4,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "USF065600010;USUM70736645",
+        "label": "Polydor",
+        "language": "eng",
+        "lyricists": [
+          "James Brown",
+          "Johnny Terry"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "20ff3303-4fe2-4a47-a1b6-291e26aa3438",
+        "mb_albumartistids": [
+          "20ff3303-4fe2-4a47-a1b6-291e26aa3438"
+        ],
+        "mb_albumid": "248e85fc-894d-42b0-a4ff-2c96b9f1e384",
+        "mb_artistid": "20ff3303-4fe2-4a47-a1b6-291e26aa3438",
+        "mb_artistids": [
+          "20ff3303-4fe2-4a47-a1b6-291e26aa3438"
+        ],
+        "mb_releasegroupid": "7f5132f0-1d58-3d83-be6a-e32d22219e17",
+        "mb_releasetrackid": "b2cd2254-e236-3f10-8eef-f5aff551b6b9",
+        "mb_trackid": "c6c3a4dd-0c98-4da3-b1da-6b1ee4abc0c0",
+        "mb_workid": "8d10e4df-522b-3a9b-9896-9a062e6ef247",
+        "media": "CD",
+        "month": 5,
+        "original_day": 7,
+        "original_month": 5,
+        "original_year": 1991,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Please Please Please",
+        "track": 1,
+        "tracktotal": 24,
+        "year": 1991
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "First Love",
+        "albumartist": "宇多田ヒカル",
+        "albumartist_credit": "Hikaru Utada",
+        "albumartist_sort": "Utada, Hikaru",
+        "albumartists": [
+          "宇多田ヒカル"
+        ],
+        "albumartists_credit": [
+          "Hikaru Utada"
+        ],
+        "albumartists_sort": [
+          "Utada, Hikaru"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "河野圭",
+          "西平彰",
+          "Taka \u0026 Speedy"
+        ],
+        "artist": "宇多田ヒカル",
+        "artist_credit": "Hikaru Utada",
+        "artist_sort": "Utada, Hikaru",
+        "artists": [
+          "宇多田ヒカル"
+        ],
+        "artists_credit": [
+          "Hikaru Utada"
+        ],
+        "artists_sort": [
+          "Utada, Hikaru"
+        ],
+        "asin": "",
+        "barcode": "00602567242154",
+        "bpm": 0,
+        "catalognum": null,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Utada, Hikaru",
+        "composers": [
+          "宇多田ヒカル"
+        ],
+        "country": "XW",
+        "day": 10,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "JPPO01400151;JPTO09901640",
+        "label": "Virgin Music",
+        "language": "eng",
+        "lyricists": [
+          "宇多田ヒカル"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_albumartistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_albumid": "932c04f9-925a-45fc-847d-0da6a7b4e7a5",
+        "mb_artistid": "b539e453-c4fe-47e3-8a07-8517eac74429",
+        "mb_artistids": [
+          "b539e453-c4fe-47e3-8a07-8517eac74429"
+        ],
+        "mb_releasegroupid": "c60fcd45-9420-30aa-98e5-2bffb894021a",
+        "mb_releasetrackid": "ddc7c640-31b5-482f-ad99-d030b2f429bf",
+        "mb_trackid": "5a62caad-0ccb-4a77-822c-2701f6d42e08",
+        "mb_workid": "a51059c5-3293-361f-8d40-3a50f86cb4f4",
+        "media": "Digital Media",
+        "month": 3,
+        "original_day": 10,
+        "original_month": 3,
+        "original_year": 1999,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Automatic",
+        "track": 1,
+        "tracktotal": 12,
+        "year": 1999
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Bob Dylan - The Bootleg",
+        "albumartist": "Bob Dylan",
+        "albumartist_credit": "Bob Dylan",
+        "albumartist_sort": "Dylan, Bob",
+        "albumartists": [
+          "Bob Dylan"
+        ],
+        "albumartists_credit": [
+          "Bob Dylan"
+        ],
+        "albumartists_sort": [
+          "Dylan, Bob"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Bootleg",
+        "albumtype": "other",
+        "albumtypes": [
+          "other"
+        ],
+        "arrangers": null,
+        "artist": "Bob Dylan",
+        "artist_credit": "Bob Dylan",
+        "artist_sort": "Dylan, Bob",
+        "artists": [
+          "Bob Dylan"
+        ],
+        "artists_credit": [
+          "Bob Dylan"
+        ],
+        "artists_sort": [
+          "Dylan, Bob"
+        ],
+        "asin": "",
+        "barcode": null,
+        "bpm": 0,
+        "catalognum": null,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Fuller, Jesse",
+        "composers": [
+          "Jesse Fuller"
+        ],
+        "country": "DE",
+        "day": null,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "lyricists": [
+          "Jesse Fuller"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_albumartistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_albumid": "df215f20-28d7-4455-894e-52d913c58d04",
+        "mb_artistid": "72c536dc-7137-4477-a521-567eeb840fa8",
+        "mb_artistids": [
+          "72c536dc-7137-4477-a521-567eeb840fa8"
+        ],
+        "mb_releasegroupid": "a7f36833-3649-3a94-a046-7cbbe185886b",
+        "mb_releasetrackid": "4cb3b7f6-1a6b-3f3a-b911-4403428de1d5",
+        "mb_trackid": "323c571f-717f-4370-9fb4-9508757fef6e",
+        "mb_workid": "50214f6e-87fd-4067-9a5f-b3e8e1b748c5",
+        "media": "",
+        "month": null,
+        "original_day": null,
+        "original_month": null,
+        "original_year": 1995,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "You're No Good",
+        "track": 1,
+        "tracktotal": 24,
+        "year": 1995
+      }
+    },
+    {
+      "case_id": "real-genre-public-enemy-nation-millions",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "It Takes a Nation of Millions to Hold Us Back",
+        "albumartist": "Public Enemy",
+        "albumartist_credit": "Public Enemy",
+        "albumartist_sort": "Public Enemy",
+        "albumartists": [
+          "Public Enemy"
+        ],
+        "albumartists_credit": [
+          "Public Enemy"
+        ],
+        "albumartists_sort": [
+          "Public Enemy"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "Public Enemy",
+        "artist_credit": "Public Enemy",
+        "artist_sort": "Public Enemy",
+        "artists": [
+          "Public Enemy"
+        ],
+        "artists_credit": [
+          "Public Enemy"
+        ],
+        "artists_sort": [
+          "Public Enemy"
+        ],
+        "asin": "B00000DS9Q",
+        "barcode": "074644430325",
+        "bpm": 0,
+        "catalognum": "BFCK 44303",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": null,
+        "country": "CA",
+        "day": 28,
+        "disc": 1,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "USDJ28800013",
+        "label": "Columbia",
+        "language": "eng",
+        "lyricists": null,
+        "lyrics": "",
+        "mb_albumartistid": "bf2e15d0-4b77-469e-bfb4-f8414415baca",
+        "mb_albumartistids": [
+          "bf2e15d0-4b77-469e-bfb4-f8414415baca"
+        ],
+        "mb_albumid": "02cfa32b-e22b-48a9-8a74-0fb4a8dbf221",
+        "mb_artistid": "bf2e15d0-4b77-469e-bfb4-f8414415baca",
+        "mb_artistids": [
+          "bf2e15d0-4b77-469e-bfb4-f8414415baca"
+        ],
+        "mb_releasegroupid": "01921d99-9d15-3fce-8734-46e58327cfb7",
+        "mb_releasetrackid": "1df893ea-7d9e-456a-b666-add633f63c83",
+        "mb_trackid": "8099c6b8-567c-47a8-8433-e03bdc164801",
+        "mb_workid": "abe254a4-ae53-462a-845a-c62e3e489ce8",
+        "media": "CD",
+        "month": 6,
+        "original_day": 28,
+        "original_month": 6,
+        "original_year": 1988,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "Latn",
+        "subtitle": "",
+        "title": "Countdown to Armageddon",
+        "track": 1,
+        "tracktotal": 16,
+        "year": 1988
+      }
+    },
+    {
+      "case_id": "real-decoy-mozart-requiem",
+      "item_index": 0,
+      "values": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "album": "Requiem Mozart",
+        "albumartist": "The Bach Choir \u0026 Bach Orchestra of the Netherlands, Olga Zinovieva, Sytse Buwalda, Martinus Leusink, Thilo Dahlmann \u0026 Pieter Jan Leusink",
+        "albumartist_credit": "The Bach Choir \u0026 Bach Orchestra of the Netherlands, Olga Zinovieva, Sytse Buwalda, Martinus Leusink, Thilo Dahlmann \u0026 Pieter Jan Leusink",
+        "albumartist_sort": "Bach Choir, The \u0026 Bach Orchestra of the Netherlands, Zinovieva, Olga, Buwalda, Sytse, Leusink, Martinus, Dahlmann, Thilo \u0026 Leusink, Pieter Jan",
+        "albumartists": [
+          "The Bach Choir",
+          "Bach Orchestra of the Netherlands",
+          "Olga Zinovieva",
+          "Sytse Buwalda",
+          "Martinus Leusink",
+          "Thilo Dahlmann",
+          "Pieter Jan Leusink"
+        ],
+        "albumartists_credit": [
+          "The Bach Choir",
+          "Bach Orchestra of the Netherlands",
+          "Olga Zinovieva",
+          "Sytse Buwalda",
+          "Martinus Leusink",
+          "Thilo Dahlmann",
+          "Pieter Jan Leusink"
+        ],
+        "albumartists_sort": [
+          "Bach Choir, The",
+          "Bach Orchestra of the Netherlands",
+          "Zinovieva, Olga",
+          "Buwalda, Sytse",
+          "Leusink, Martinus",
+          "Dahlmann, Thilo",
+          "Leusink, Pieter Jan"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": null,
+        "artist": "The Bach Choir, Bach Orchestra of the Netherlands\u0026Olga Zinovieva, Sytse Buwalda, Martinus Leusink, Thilo Dahlmann,Pieter Jan Leusink",
+        "artist_credit": "The Bach Choir, Bach Orchestra of the Netherlands\u0026Olga Zinovieva, Sytse Buwalda, Martinus Leusink, Thilo Dahlmann,Pieter Jan Leusink",
+        "artist_sort": "Bach Choir, The, Bach Orchestra of the Netherlands\u0026Zinovieva, Olga, Buwalda, Sytse, Leusink, Martinus, Dahlmann, Thilo,Leusink, Pieter Jan",
+        "artists": [
+          "The Bach Choir",
+          "Bach Orchestra of the Netherlands",
+          "Olga Zinovieva",
+          "Sytse Buwalda",
+          "Martinus Leusink",
+          "Thilo Dahlmann",
+          "Pieter Jan Leusink"
+        ],
+        "artists_credit": [
+          "The Bach Choir",
+          "Bach Orchestra of the Netherlands",
+          "Olga Zinovieva",
+          "Sytse Buwalda",
+          "Martinus Leusink",
+          "Thilo Dahlmann",
+          "Pieter Jan Leusink"
+        ],
+        "artists_sort": [
+          "Bach Choir, The",
+          "Bach Orchestra of the Netherlands",
+          "Zinovieva, Olga",
+          "Buwalda, Sytse",
+          "Leusink, Martinus",
+          "Dahlmann, Thilo",
+          "Leusink, Pieter Jan"
+        ],
+        "asin": "",
+        "barcode": null,
+        "bpm": 0,
+        "catalognum": "20601",
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": null,
+        "country": "NL",
+        "day": null,
+        "disc": 1,
+        "disctitle": "REQUIEM MOZART (KV 626)",
+        "disctotal": 2,
+        "encoder": "",
+        "genres": null,
+        "grouping": "",
+        "initial_key": null,
+        "isrc": "",
+        "label": "Amsterdam Classics",
+        "language": "",
+        "lyricists": null,
+        "lyrics": "",
+        "mb_albumartistid": "f9c96f68-3085-4cbd-9f20-0bcc22eb564f",
+        "mb_albumartistids": [
+          "f9c96f68-3085-4cbd-9f20-0bcc22eb564f",
+          "778b6402-117b-4a85-ae99-970809cef160",
+          "4483d64c-5714-4219-b580-4a85a7a22e90",
+          "3b2294c3-1381-49fc-9e89-567d38513f70",
+          "5612db9b-c707-4fe7-9b14-09a3df4a5af0",
+          "4878aaeb-2bf2-4b5b-af64-20daef186925",
+          "4fc4f411-5843-4351-ae31-4f0c569154a0"
+        ],
+        "mb_albumid": "a67b8f8d-c524-4634-9473-9a1d75519bf8",
+        "mb_artistid": "f9c96f68-3085-4cbd-9f20-0bcc22eb564f",
+        "mb_artistids": [
+          "f9c96f68-3085-4cbd-9f20-0bcc22eb564f",
+          "778b6402-117b-4a85-ae99-970809cef160",
+          "4483d64c-5714-4219-b580-4a85a7a22e90",
+          "3b2294c3-1381-49fc-9e89-567d38513f70",
+          "5612db9b-c707-4fe7-9b14-09a3df4a5af0",
+          "4878aaeb-2bf2-4b5b-af64-20daef186925",
+          "4fc4f411-5843-4351-ae31-4f0c569154a0"
+        ],
+        "mb_releasegroupid": "443a7e21-05d9-4bf3-b8e1-5c46b89c3a97",
+        "mb_releasetrackid": "00f4abbb-1fb7-41dd-be60-2081008b447f",
+        "mb_trackid": "7f8395c4-392f-4458-8efc-ebff0d7cad0f",
+        "mb_workid": "",
+        "media": "CD",
+        "month": null,
+        "original_day": null,
+        "original_month": null,
+        "original_year": 2019,
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "remixers": null,
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "script": "",
+        "subtitle": "",
+        "title": "I. INTROITUS: Requiem",
+        "track": 1,
+        "tracktotal": 14,
+        "year": 2019
+      }
+    }
+  ]
+}
