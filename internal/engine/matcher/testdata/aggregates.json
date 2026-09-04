@@ -1,0 +1,126 @@
+[
+  {
+    "name": "zero-added-key-enlarges-the-denominator",
+    "why": "A key added at 0.0 costs nothing in the numerator and its full weight in the denominator, so the denominator counts penalties that were added and never a fixed weight table. Dropping the media key from max gives 3.5/4 = 0.875; summing all twenty shipped weights gives 3.5/35.5.",
+    "weights": {},
+    "calls": [
+      {"key": "album", "dist": 1.0},
+      {"key": "media", "dist": 0.0},
+      {"key": "year", "dist": 0.5}
+    ],
+    "want": {
+      "raw_distance": 3.5,
+      "max_distance": 5.0,
+      "distance": 0.7,
+      "added_keys": ["album", "media", "year"],
+      "per_key": {"album": 0.6, "media": 0.0, "year": 0.1},
+      "nonzero_items": [
+        {"key": "album", "distance": 0.6},
+        {"key": "year", "distance": 0.1}
+      ],
+      "nonzero_keys": ["album", "year"],
+      "generic_penalty_keys": ["album", "year"]
+    }
+  },
+  {
+    "name": "one-key-many-penalties",
+    "why": "AddNumber appends one penalty per unit of difference, so a single key can enlarge the denominator by its weight several times over. Three medium penalties at weight 1.0 plus one album penalty at weight 3.0 is a denominator of 6, not of 4.",
+    "weights": {},
+    "calls": [
+      {"key": "medium", "dist": 1.0},
+      {"key": "medium", "dist": 1.0},
+      {"key": "medium", "dist": 1.0},
+      {"key": "album", "dist": 0.0}
+    ],
+    "want": {
+      "raw_distance": 3.0,
+      "max_distance": 6.0,
+      "distance": 0.5,
+      "added_keys": ["medium", "album"],
+      "per_key": {"medium": 0.5, "album": 0.0},
+      "nonzero_items": [
+        {"key": "medium", "distance": 0.5}
+      ],
+      "nonzero_keys": ["medium"],
+      "generic_penalty_keys": ["medium"]
+    }
+  },
+  {
+    "name": "only-key-carries-weight-zero",
+    "why": "The added-key view keeps a key whose weight is 0.0 and the nonzero view drops it, which is the pair of views port hazard 4 is about. The same fixture makes the denominator zero, so the aggregate must return 0.0 where an unguarded division returns NaN.",
+    "weights": {"album": 0.0},
+    "calls": [
+      {"key": "album", "dist": 1.0}
+    ],
+    "want": {
+      "raw_distance": 0.0,
+      "max_distance": 0.0,
+      "distance": 0.0,
+      "added_keys": ["album"],
+      "per_key": {"album": 0.0},
+      "nonzero_items": [],
+      "nonzero_keys": [],
+      "generic_penalty_keys": []
+    }
+  },
+  {
+    "name": "no-penalties-at-all",
+    "why": "The other reachable zero denominator: an accumulator nothing was added to scores 0.0 rather than NaN.",
+    "weights": {},
+    "calls": [],
+    "want": {
+      "raw_distance": 0.0,
+      "max_distance": 0.0,
+      "distance": 0.0,
+      "added_keys": [],
+      "per_key": {},
+      "nonzero_items": [],
+      "nonzero_keys": [],
+      "generic_penalty_keys": []
+    }
+  },
+  {
+    "name": "nonzero-view-sorts-by-descending-distance",
+    "why": "The two keys are added in ascending order of weighted distance, so an unsorted view or one keyed on (distance, key) puts year first. The added-key and generic views keep insertion order and are the control.",
+    "weights": {},
+    "calls": [
+      {"key": "year", "dist": 1.0},
+      {"key": "album", "dist": 1.0}
+    ],
+    "want": {
+      "raw_distance": 4.0,
+      "max_distance": 4.0,
+      "distance": 1.0,
+      "added_keys": ["year", "album"],
+      "per_key": {"year": 0.25, "album": 0.75},
+      "nonzero_items": [
+        {"key": "album", "distance": 0.75},
+        {"key": "year", "distance": 0.25}
+      ],
+      "nonzero_keys": ["album", "year"],
+      "generic_penalty_keys": ["year", "album"]
+    }
+  },
+  {
+    "name": "equal-distances-break-on-key-ascending",
+    "why": "Both keys weigh 1.0 and carry the same penalty, so only the second sort key can order them, and it orders ascending while the distance orders descending.",
+    "weights": {},
+    "calls": [
+      {"key": "year", "dist": 1.0},
+      {"key": "medium", "dist": 1.0}
+    ],
+    "want": {
+      "raw_distance": 2.0,
+      "max_distance": 2.0,
+      "distance": 1.0,
+      "added_keys": ["year", "medium"],
+      "per_key": {"year": 0.5, "medium": 0.5},
+      "nonzero_items": [
+        {"key": "medium", "distance": 0.5},
+        {"key": "year", "distance": 0.5}
+      ],
+      "nonzero_keys": ["medium", "year"],
+      "generic_penalty_keys": ["year", "medium"]
+    }
+  }
+]
