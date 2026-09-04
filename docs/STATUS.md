@@ -25,9 +25,9 @@ this file. The live-executor check is the lane registry below, not
 
 ## Lane registry
 
-- lane-1 (code, main tree): NEXT ACTION is the rung 3 pass-3a planning
-  gate — rung 3 (the Go matcher) executes only after Geoff reads its
-  revision-2 spec (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`).
+- lane-1 (code, main tree): rung 3 pass 3a plan in drafting (the
+  spec read gate cleared 2026-09-04); execution follows the plan's
+  adversarial review and fold.
 - lane-2 (code, worktree): BLOCKED until Phase 0a/0b/0c land.
 - doc lane (main tree): IDLE. Phase 0a is complete
   (research/2026-09-04-reverse-edge-completion.md: fourteen SOFT,
@@ -38,12 +38,13 @@ this file. The live-executor check is the lane registry below, not
 
 ## Open items (carried)
 
-- **Geoff: the pending adjudication batch** (launch-gate blocking, not
-  pass-close blocking — 19 rows across 5 unruled hypotheses:
-  featuring-pattern, remix/parenthetical, assignment-rejection-gap,
-  non-Latin alias mis-selection, locale alias ignored;
-  `docs/superpowers/research/2026-09-03-adjudication-batch-1.md`) and
-  **the rung 3 spec read** before lane-1 executes rung 3.
+- Adjudication batch 1 is FULLY RULED (Geoff, 2026-09-04, in chat;
+  applied at 37e9db1): H1-H4 oracle-wrong with corrected verdicts,
+  H5 oracle-correct closing #6358 against the pin. Zero pending
+  rows; the launch gate's adjudication item is clear. Rung 3's
+  compat switches for the four oracle-wrong classes default to
+  fixed (ruling A). The rung 3 spec read is also done (accepted
+  2026-09-04): pass 3a's plan is in drafting.
 - `profile_hashes` (m1), the response-status extension, and Tier C
   exclusions (`match.required`/`match.ignored`,
   `preferred.original_year`) stay open, carried since 2b/2c
