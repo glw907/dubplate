@@ -298,10 +298,12 @@ otherwise have been dead struct data.
   now the M8-declared gap documented above rather than an open
   unknown.
 
-Budgets: ≈2.26M subagent tokens (T2 review 74K, batch 1 445K, batch 2
-561K, batch 3 938K, `code-simplifier` 238K) against the 6M starting
-ceiling, plus this close, well under. Attended interaction points:
-zero.
+Budgets: ≈2.84M subagent tokens (T2 review 74K, batch 1 445K, batch 2
+561K, batch 3 938K, `code-simplifier` 238K and its review 63K, the
+close draft 193K, its prose review 63K, and the fold 261K) against the
+6M starting ceiling, well under; conductor context on top. Attended
+interaction points: zero. The one owner touch was a model-default
+change mid-close, unrelated to the pass.
 
 ## Rung 2, pass 2d (File-level applied tags, the version-bump differential, and the whole-corpus README close): file_tags.json over 12 subjects, rung 8 unblocked (2026-09-04)
 
