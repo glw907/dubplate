@@ -166,7 +166,9 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | Session vocabulary and token acquisition | the seam is born at rung 5; non-browser token acquisition stays at rung 14 (the build spec's supersession list governs, over the analysis's 5 → 14 note) | rung 14 |
 | `internal/harness/conform` (added 2026-09-04, per the rung 3 spec's fold) | born by rung 3 pass 3a; rung 3's lane thereafter | the tier 0-2 conformance runners; rung 15's re-run |
 | `internal/harness/oracle` | lane E1 through 2d's close (landed); rung 3 pass 3b adds the derived-AlbumInfo entry point | `make derive`; 3b's ledger |
-| `internal/harness/{cassette,stub,analysis}` | lane E1 as shipped; rung 3 pass 3c makes the ruled `Case.Extra` schema-and-stub change | every conformance consumer |
+| `internal/harness/{cassette,stub,analysis}` | lane E1 as shipped; rung 3 pass 3c makes the ruled `Case.Extra` schema-and-stub change, and rung 3 pass 3b adds the `AlbumInfo` ledger and the `defect_free` block to `analysis` (conductor ruling, 2026-09-04) | every conformance consumer |
+| `internal/harness/corpus_test.go` (conductor ruling, 2026-09-04) | rung 3's lane while rung 3 runs; lane E1 otherwise, as the corpus's own wiring | every gate-resident ledger check |
+| `internal/engine/{matcher,musicbrainz}` (conductor ruling, 2026-09-04; restates the phase-1 lane table's E2 award) | rung 3 (the E2 lane): `matcher` born by 3a, `musicbrainz` born by 3b; no other lane writes either | rung 4's shadow, rung 9's pipeline, rung 15's re-run |
 | `corpus/analysis/*` and `corpus/cases/*` | lane E1 authors; the adjudication stream commits dispositions; rung 3 adds schema only through re-derivation (3b's `defect_free`) | rungs 3, 8, 15 |
 | `tools/unidecode-table/` (conductor ruling, 2026-09-04) | rung 3 pass 3a — the one-time transliteration-table generator; lane E1 owns the rest of `tools/` | the matcher's embedded table's provenance |
 

@@ -26,8 +26,14 @@ Box is production; quiet-box check before writes.
 
 ## Lane registry
 
-- lane-1 (code, main tree): IDLE after 3a's close. Next: 3b or 3c
-  (mutually independent, may swap order); 3d needs all three.
+- lane-1 (code, main tree): EXECUTING pass 3b (translation layer) per
+  `docs/superpowers/plans/2026-09-04-rung-3b-translation.md` (revision 2,
+  review folded, four conductor rulings taken 2026-09-04). Chain: Task 0
+  pre-task, then Tasks 1-8 via pass-execute (sequential, this tree), then
+  code-simplifier, then Task 9's close. Ceiling 6M, flag 4.8M, re-derive
+  after Task 3. If interrupted: read the pass-execute journal, verify the
+  last committed task's review, relaunch fresh from the next task.
+  Next after 3b: 3c; 3d needs all three.
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land.
 - doc lane (main tree): IDLE. Phase 0a is complete.
 
@@ -56,4 +62,4 @@ Box is production; quiet-box check before writes.
 | mediafile (corpus manifest, 2d) | PyPI `mediafile` | `0.17.0` |
 | unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
 
-Spend: 2a ≈1.75M/5M; 2b ≈5.8M/6M; 2c ≈8.2M/8M; 2d ≈1.6M/2.5M; 3a ≈2.26M/6M.
+Spend: 2a ≈1.75M/5M; 2b ≈5.8M/6M; 2c ≈8.2M/8M; 2d ≈1.6M/2.5M; 3a ≈2.84M/6M.
