@@ -29,10 +29,12 @@ this file. The live-executor check is the lane registry below, not
   gate — rung 3 (the Go matcher) executes only after Geoff reads its
   revision-2 spec (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`).
 - lane-2 (code, worktree): BLOCKED until Phase 0a/0b/0c land.
-- doc lane (main tree): EXECUTING Phase 0a (the fifteen
-  reverse-edge cells, one research dispatch) — lane-2's blocking
-  prerequisite. The rung 3 spec's adversarial review is folded
-  (revision 2, research/2026-09-04-rung-3-spec-review.md).
+- doc lane (main tree): IDLE. Phase 0a is complete
+  (research/2026-09-04-reverse-edge-completion.md: fourteen SOFT,
+  one HARD — lane V waits on rung 9's concurrency ruling; permit/
+  forbid section governs lane launches). The rung 3 spec is folded
+  at revision 2 (review at research/2026-09-04-rung-3-spec-review.md).
+  Lane-2 now waits only on Phase 0b (rung 1b) and 0c.
 
 ## Open items (carried)
 
