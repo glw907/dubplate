@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0007-1c4d-4a91-9b02-1d5e7a3c0007",
+  "title": "Glass Harbor (Original Mix)",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Vail Current",
+      "joinphrase": "",
+      "artist": {
+        "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "name": "Vail Current",
+        "sort-name": "Vail Current",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "6bd58d58-c541-ce04-8e96-02b42c2ea889",
+    "title": "Glass Harbor (Original Mix)",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "291f1ee7-b045-043a-aa5a-34cb24074482",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "b1e3d7b5-a5b3-98b4-8a6d-13aa9ce26262",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 212000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5defcc6f-c883-f325-32ea-8a6e36b63238",
+            "title": "Cold Ferry",
+            "length": 212000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e76f54e8-86ee-ef8d-8e2c-0d074edb675f",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ff924887-b616-e466-f177-214d8830f63b",
+            "title": "Tin Roof",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "270f940c-511f-aa4f-4629-4777adbe2ef9",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 231000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5cb4057f-8aac-fe8c-08b4-9c166a5d98ed",
+            "title": "Signal Fire",
+            "length": 231000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0001-1c4d-4a91-9b02-1d5e7a3c0001",
+  "title": "Draft: Northern Lines",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Kestrel Bay",
+      "joinphrase": "",
+      "artist": {
+        "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+        "name": "Kestrel Bay",
+        "sort-name": "Kestrel Bay",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "80486f72-ca04-d3ad-98da-b67bdc3b6c7a",
+    "title": "Draft: Northern Lines",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "c964bf93-74b9-efcd-fa22-b50415fa3c9a",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "c07578a7-5046-96be-1ea4-825291c17752",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 212000,
+          "artist-credit": null,
+          "recording": {
+            "id": "c7d42b59-a65b-e111-8552-ff4fcda047e7",
+            "title": "Cold Ferry",
+            "length": 212000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Kestrel Bay",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+                  "name": "Kestrel Bay",
+                  "sort-name": "Kestrel Bay",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a08c902e-30bd-b1f1-9e28-4f222e70160c",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "09c9e063-ea72-e383-0d07-e6f6102d479c",
+            "title": "Tin Roof",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Kestrel Bay",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+                  "name": "Kestrel Bay",
+                  "sort-name": "Kestrel Bay",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ff76d3a8-a2df-2403-2f81-fe635208cf53",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 231000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e027b37c-0918-c7f2-f0c9-08d646767de1",
+            "title": "Signal Fire",
+            "length": 231000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Kestrel Bay",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+                  "name": "Kestrel Bay",
+                  "sort-name": "Kestrel Bay",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

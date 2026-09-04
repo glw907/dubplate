@@ -1,0 +1,468 @@
+{
+  "id": "adv-ft-craft-titles",
+  "input": {
+    "items": [
+      {
+        "album": "Foundry Notes",
+        "albumartist": "Ash Register",
+        "artist": "Ash Register",
+        "length": 205,
+        "mb_albumid": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "title": "Craft: Winter Kiln",
+        "track": 1,
+        "year": 2015
+      },
+      {
+        "album": "Foundry Notes",
+        "albumartist": "Ash Register",
+        "artist": "Ash Register",
+        "length": 197,
+        "mb_albumid": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "title": "Craft: Salt Ledger",
+        "track": 2,
+        "year": 2015
+      },
+      {
+        "album": "Foundry Notes",
+        "albumartist": "Ash Register",
+        "artist": "Ash Register",
+        "length": 224,
+        "mb_albumid": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "title": "Craft: Paper Moth",
+        "track": 3,
+        "year": 2015
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "distance": 0.00917075163398693,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0.00917075163398693,
+          "year": 0
+        },
+        "tracks": [
+          0.025000000000000005,
+          0.028125,
+          0.029411764705882356
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Foundry Notes",
+        "album_id": null,
+        "albumartist": "Ash Register",
+        "albumartist_credit": "Ash Register",
+        "albumartist_sort": "Ash Register",
+        "albumartists": [
+          "Ash Register"
+        ],
+        "albumartists_credit": [
+          "Ash Register"
+        ],
+        "albumartists_sort": [
+          "Ash Register"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ash Register",
+        "artist_credit": "Ash Register",
+        "artist_sort": "Ash Register",
+        "artists": [
+          "Ash Register"
+        ],
+        "artists_credit": [
+          "Ash Register"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ash Register"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 205,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "mb_albumartistids": [
+          "b6466d23-3373-9e94-b570-69d18aba5857"
+        ],
+        "mb_albumid": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "mb_artistid": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "mb_artistids": [
+          "b6466d23-3373-9e94-b570-69d18aba5857"
+        ],
+        "mb_releasegroupid": "aebad0c6-e8f6-ad34-5a84-1f26e35760f6",
+        "mb_releasetrackid": "55ecb9bd-de66-df2b-3720-bfa1ec55742c",
+        "mb_trackid": "eb0a8fa5-b2d1-2a89-1283-d038f1fb6ca0",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Foundry Notes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Craft: Copper Anvil",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Foundry Notes",
+        "album_id": null,
+        "albumartist": "Ash Register",
+        "albumartist_credit": "Ash Register",
+        "albumartist_sort": "Ash Register",
+        "albumartists": [
+          "Ash Register"
+        ],
+        "albumartists_credit": [
+          "Ash Register"
+        ],
+        "albumartists_sort": [
+          "Ash Register"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ash Register",
+        "artist_credit": "Ash Register",
+        "artist_sort": "Ash Register",
+        "artists": [
+          "Ash Register"
+        ],
+        "artists_credit": [
+          "Ash Register"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ash Register"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 197,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "mb_albumartistids": [
+          "b6466d23-3373-9e94-b570-69d18aba5857"
+        ],
+        "mb_albumid": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "mb_artistid": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "mb_artistids": [
+          "b6466d23-3373-9e94-b570-69d18aba5857"
+        ],
+        "mb_releasegroupid": "aebad0c6-e8f6-ad34-5a84-1f26e35760f6",
+        "mb_releasetrackid": "e6d3c9e0-2778-5d5c-aa1a-23c60f00c136",
+        "mb_trackid": "565f5718-a1c6-b313-e3b6-dc7e2c2c560a",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Foundry Notes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Craft: Bell Foundry",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Foundry Notes",
+        "album_id": null,
+        "albumartist": "Ash Register",
+        "albumartist_credit": "Ash Register",
+        "albumartist_sort": "Ash Register",
+        "albumartists": [
+          "Ash Register"
+        ],
+        "albumartists_credit": [
+          "Ash Register"
+        ],
+        "albumartists_sort": [
+          "Ash Register"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ash Register",
+        "artist_credit": "Ash Register",
+        "artist_sort": "Ash Register",
+        "artists": [
+          "Ash Register"
+        ],
+        "artists_credit": [
+          "Ash Register"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ash Register"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 224,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "mb_albumartistids": [
+          "b6466d23-3373-9e94-b570-69d18aba5857"
+        ],
+        "mb_albumid": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+        "mb_artistid": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "mb_artistids": [
+          "b6466d23-3373-9e94-b570-69d18aba5857"
+        ],
+        "mb_releasegroupid": "aebad0c6-e8f6-ad34-5a84-1f26e35760f6",
+        "mb_releasetrackid": "9b10bb28-63d2-f88e-0eeb-9c210f98eedc",
+        "mb_trackid": "e2b35c4a-c7da-f38a-4579-172cb3275bc0",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Foundry Notes",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Craft: Iron Meridian",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      }
+    }
+  }
+}

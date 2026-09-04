@@ -1,0 +1,25 @@
+{
+  "applied_fields": {
+    "0": {
+      "album": "Harbor Lights"
+    }
+  },
+  "assignment": {
+    "0": 0,
+    "1": 1,
+    "2": 2
+  },
+  "best_album_id": "ad7e0004-1c4d-4a91-9b02-1d5e7a3c0004",
+  "extra_items_len": 0,
+  "extra_tracks_len": 0,
+  "penalty_keys_nonzero": [
+    "album"
+  ],
+  "penalty_keys_zero": [
+    "album_id",
+    "artist",
+    "tracks",
+    "year"
+  ],
+  "recommendation": "strong"
+}

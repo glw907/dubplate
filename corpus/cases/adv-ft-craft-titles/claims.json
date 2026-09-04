@@ -1,0 +1,25 @@
+{
+  "applied_fields": {
+    "0": {
+      "title": "Craft: Copper Anvil"
+    }
+  },
+  "assignment": {
+    "0": 0,
+    "1": 1,
+    "2": 2
+  },
+  "best_album_id": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+  "extra_items_len": 0,
+  "extra_tracks_len": 0,
+  "penalty_keys_nonzero": [
+    "tracks"
+  ],
+  "penalty_keys_zero": [
+    "album",
+    "album_id",
+    "artist",
+    "year"
+  ],
+  "recommendation": "strong"
+}

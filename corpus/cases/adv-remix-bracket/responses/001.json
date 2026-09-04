@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+  "title": "Copper Ledger",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Vail Current",
+      "joinphrase": "",
+      "artist": {
+        "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "name": "Vail Current",
+        "sort-name": "Vail Current",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "de14728a-84f6-04c8-c83b-370362906a9d",
+    "title": "Copper Ledger",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "efa4b76b-ecf4-1af8-0a4f-ab480490db94",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "41382307-c1cf-5431-4b4e-0fa3340f7b1a",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d6e898e2-8db1-4c59-945a-26bd974b4195",
+            "title": "Low Beacon",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "74ec893e-7519-fceb-4e24-4ac69702bc6e",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 199000,
+          "artist-credit": null,
+          "recording": {
+            "id": "89fad56f-d8a7-a4c4-b1bf-9e98d64dbebe",
+            "title": "Drydock",
+            "length": 199000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "4e0ebbe5-b6c8-8d0a-2a73-228d26790311",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 226000,
+          "artist-credit": null,
+          "recording": {
+            "id": "19b5f9bf-59fe-c084-30ab-b45873ffbf0b",
+            "title": "Nightwatch",
+            "length": 226000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

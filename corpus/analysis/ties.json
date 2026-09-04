@@ -18,6 +18,86 @@
       "reason": "record carries no candidate; a zero-track release is dropped by beets' own _add_candidate before the tie question can be asked"
     },
     {
+      "case_id": "adv-ft-craft-titles",
+      "album_id": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+      "optimal_cost": 0.08253676470588237,
+      "best_forbidden_cost": 0.4314950980392157,
+      "difference": 0.34895833333333337,
+      "unique": true
+    },
+    {
+      "case_id": "adv-ft-draft-colon",
+      "album_id": "ad7e0001-1c4d-4a91-9b02-1d5e7a3c0001",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4333333333333336,
+      "difference": 1.4333333333333336,
+      "unique": true
+    },
+    {
+      "case_id": "adv-ft-gift-space",
+      "album_id": "ad7e0003-1c4d-4a91-9b02-1d5e7a3c0003",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2444444444444445,
+      "difference": 1.2444444444444445,
+      "unique": true
+    },
+    {
+      "case_id": "adv-ft-left-colon",
+      "album_id": "ad7e0002-1c4d-4a91-9b02-1d5e7a3c0002",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3313131313131312,
+      "difference": 1.3313131313131312,
+      "unique": true
+    },
+    {
+      "case_id": "adv-ft-soft-onesided",
+      "album_id": "ad7e0004-1c4d-4a91-9b02-1d5e7a3c0004",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4333333333333336,
+      "difference": 1.4333333333333336,
+      "unique": true
+    },
+    {
+      "case_id": "adv-ft-theft-artist",
+      "album_id": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2444444444444445,
+      "difference": 1.2444444444444445,
+      "unique": true
+    },
+    {
+      "case_id": "adv-remix-both-sides",
+      "album_id": "ad7e0007-1c4d-4a91-9b02-1d5e7a3c0007",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4333333333333336,
+      "difference": 1.4333333333333336,
+      "unique": true
+    },
+    {
+      "case_id": "adv-remix-bracket",
+      "album_id": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2444444444444445,
+      "difference": 1.2444444444444445,
+      "unique": true
+    },
+    {
+      "case_id": "adv-remix-onesided",
+      "album_id": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3313131313131312,
+      "difference": 1.3313131313131312,
+      "unique": true
+    },
+    {
+      "case_id": "adv-remix-track-titles",
+      "album_id": "ad7e000a-1c4d-4a91-9b02-1d5e7a3c000a",
+      "optimal_cost": 0.22105263157894736,
+      "best_forbidden_cost": 1.3266081871345028,
+      "difference": 1.1055555555555554,
+      "unique": true
+    },
+    {
       "case_id": "assign-extra-item",
       "album_id": "4e4ec843-7eb9-582a-bc84-746ca7c9f61f",
       "optimal_cost": 0,

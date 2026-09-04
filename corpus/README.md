@@ -94,8 +94,9 @@ pass 2c's real-catalog stratum (below) adds to that total batch by
 batch, so `ls corpus/cases | wc -l` is always the count to read off
 the tree directly (no case counts itself twice: every id under
 `corpus/cases/` appears in exactly one
-family table below, the smoke table above, or the real-catalog
-stratum's own table further down). Every row names the
+family table below, the smoke table above, the real-catalog
+stratum's own table further down, or the adversarial stratum's two
+tables after it). Every row names the
 case's family, the structural shape it exercises, and its hand-edit
 column: an edit to the generated `responses/001.json` made before the
 case's first freeze, reached only for a shape `ReleaseSpec` cannot
@@ -1066,6 +1067,100 @@ hatch, with the axis's sole reserve exhausted by Task 4's own retry).
 Across every delivered case, the matcher rejected every decoy or other
 search-surfaced candidate it was shown, named or not: the axis's
 headline finding is a clean bill, not a wrong match.
+
+## The adversarial stratum
+
+Pass 2c's crafted cases (Tasks 16 and 17): synthetic releases built
+through `harness synth`, each one designed to make a *known* pinned-beets
+matching defect actually change a verdict. Where the structural stratum
+proves the matcher's code paths and the real-catalog stratum proves
+conformance over real document shapes, this stratum proves that the
+oracle is measurably wrong in named places, which is what ladder entry
+2's ruling 2 (tier one is measured against release truth where the
+oracle is known-defective) exists for. Every case here carries a row in
+`corpus/analysis/oracle_bugs.json` under the hypothesis it probes and a
+row in `corpus/analysis/adjudications.json` at `pending-adjudication`;
+both are the owner's to rule on, and neither is self-adjudicated.
+
+**Reproduction is the deliverable, not the case file.** A case that
+freezes cleanly but leaves the verdict where a defect-free matcher would
+have left it has proved nothing, so every row below names two numbers:
+the distance the committed record actually carries, and the distance the
+same record would carry if the defect were fixed. The defect-free figure
+is computed against pinned beets' own `string_dist` with one edit to
+`SD_PATTERNS` and nothing else (a word boundary added before the
+featuring trigger, or the two 0.3-weight bracket patterns removed, which
+is arithmetically the same as charging a parenthetical at full weight).
+The computation is checked both ways: run with `SD_PATTERNS` untouched it
+reproduces every committed record's own penalty to the last digit, which
+is what makes its counterfactual half worth reading. Every case in this
+stratum moves its verdict from `strong`/`apply` to `medium`/`skip`; none
+of the ten failed, and no construction attempt was abandoned.
+
+Two features of the construction are worth stating once, since every row
+below shares them. First, an item set here describes a genuinely
+different release from the candidate it is matched against, and release
+truth is known by construction because both releases are invented for
+the probe. Second, the corpus's `mb_albumid` fencing rule ("The synth
+tool") makes every item carry the candidate's own release id, so
+`album_id` reads 0 and the string components are the only signal the
+matcher has left. That sharpens each probe rather than weakening it: the
+string heuristics are exactly the surface these defects attack.
+
+### The featuring-pattern false positive
+
+`adv-ft-*`, 6 cases, probing `oracle_bugs.json`'s `bug-ft-pattern`
+(`742ebdf69`, `7b59604c5`, `19d091440`). `SD_PATTERNS`' featuring
+discount, `[\[\(]?(featuring|feat|ft)[\. :].+`, has carried no word
+boundary before its trigger since 2010, so it fires on the `ft` inside
+any ordinary English word that ends in those two letters and is followed
+by a space, a period, or a colon: `Draft`, `Left`, `Gift`, `Soft`,
+`Craft`, `Theft`. Everything from that point to the end of the string is
+deleted as though it were a featuring credit, and whatever difference
+lived there is charged at the pattern's 0.1 weight instead of in full.
+
+**These are the false-positive twin of family 4's
+`strdist-feat-strip`, and the difference is the whole point.** There, the
+candidate album really is `Nightbound (feat. Wren Salt)` and the item tag
+really is `Nightbound`: the trigger is a genuine featuring credit, the
+strip is correct, and the 0.1 weight is beets deliberately treating a
+dropped credit as a small divergence rather than a large one. Here the
+trigger is an ordinary word in the middle of a title or a name, nothing
+is a credit, and the same 0.1 weight discards up to 90 percent of a real
+difference between two unrelated releases. The mechanism is identical;
+only the word boundary tells the two apart, and pinned 2.13.1 does not
+have one. No case in this family hand-edits a generated response: the
+defective verdict is `strong`, so beets' own early return retires the
+search fallback and one release document is the whole fixture.
+
+| id | what it probes | derived | defect-free | hand-edit |
+| --- | --- | --- | --- | --- |
+| `adv-ft-draft-colon` | item album `Draft: Ember Wharf` against candidate `Draft: Northern Lines`: the trigger fires on both sides (colon separator), collapsing both to `dra`, so `string_dist` reads 0.061111 against a true 0.611111. | `album: 0.010185`, distance 0.010185185, **strong, apply** | distance 0.101851852, **medium, skip** | none |
+| `adv-ft-left-colon` | item album `Left: A Distant Shore` against candidate `Left: The Harbor Road`: both collapse to `le`, and the two titles share nothing after the trigger, the family's widest gap. `string_dist` reads 0.070588 against a true 0.705882. | `album: 0.011765`, distance 0.011764706, **strong, apply** | distance 0.117647059, **medium, skip** | none |
+| `adv-ft-gift-space` | item album `Gift Wrapped Nights` against candidate `Gift Horse Blues`: the separator class `[\. :]` admits a plain space, so no punctuation is needed at all; both collapse to `gi`. `string_dist` reads 0.064706 against a true 0.647059. | `album: 0.010784`, distance 0.010784314, **strong, apply** | distance 0.107843137, **medium, skip** | none |
+| `adv-ft-soft-onesided` | the one-sided firing: only the item tag `Harbor Lights Soft. Variation` carries a trigger (period separator), the candidate `Harbor Lights` carries none, and the item's whole trailing edition string is deleted as a credit. `string_dist` reads 0.180571 against a true 0.520000, the family's largest surviving penalty. | `album: 0.030095`, distance 0.030095238, **strong, apply** | distance 0.086666667, **medium, skip** | none |
+| `adv-ft-craft-titles` | the per-track path: `track_distance` calls the same `string_dist` for `track_title`, so all three items' `Craft: ...` titles discount against three different `Craft: ...` candidate tracks (0.050000, 0.056250, 0.058824 against true 0.500000, 0.562500, 0.588235). The album title matches exactly on both sides, so `album` reads 0 and the record isolates the per-track path. | `tracks: 0.009171`, distance 0.009170752, **strong, apply** | distance 0.091707516, **medium, skip** | none |
+| `adv-ft-theft-artist` | the album-level `artist` component (distance.py:447-448) runs the same `string_dist`: items credited `Theft Marine` against a candidate credited `Theft Signal`, both collapsing to `the`. `string_dist` reads 0.054545 against a true 0.545455. Both `artist` and `albumartist` are overridden, per family 3's `get_most_common_tags` note. | `artist: 0.009091`, distance 0.009090909, **strong, apply** | distance 0.090909091, **medium, skip** | none |
+
+### The parenthetical and remix near-duplicate discount
+
+`adv-remix-*`, 4 cases, probing `oracle_bugs.json`'s
+`bug-remix-parenthetical` (`#5868`). `SD_PATTERNS` discounts a
+parenthetical (`\(.*?\)`) and a bracketed span (`\[.*?\]`) at weight 0.3,
+which is the right call when the parenthetical is noise and the wrong one
+when it is the only thing that says which release a string names. A remix,
+a rework, an alternate version, and an original mix differ in exactly that
+place and nowhere else, so the discount erases the differentiator and the
+matcher confidently retags one as the other. No case in this family
+hand-edits a generated response, for the same reason the `adv-ft-*` cases
+do not.
+
+| id | what it probes | derived | defect-free | hand-edit |
+| --- | --- | --- | --- | --- |
+| `adv-remix-both-sides` | #5868's literal shape: item album `Glass Harbor (Nocturne Rework)` against candidate `Glass Harbor (Original Mix)`. Both collapse to `glass harbor`, the residual edit distance is 0, and the entire differentiator is charged at 0.3; `string_dist` reads 0.144000 against a true 0.480000. `applied_fields` show the remix rip being retagged as the original mix. | `album: 0.024000`, distance 0.024000000, **strong, apply** | distance 0.080000000, **medium, skip** | none |
+| `adv-remix-onesided` | the ordinary shape of a remix release matched against its original: item album `Salt Meridian (Kite Remix)` against candidate `Salt Meridian`, the pattern firing on the item side alone. `string_dist` reads 0.128571 against a true 0.428571. | `album: 0.021429`, distance 0.021428571, **strong, apply** | distance 0.071428571, **medium, skip** | none |
+| `adv-remix-bracket` | the square-bracket twin, `\[.*?\]` at the same 0.3 weight: item album `Copper Ledger [Nocturne Version]` against candidate `Copper Ledger`. Square brackets are the conventional version marker in a good deal of real rip metadata, so this is the same defect on the other pattern, not a variant shape. `string_dist` reads 0.166667 against a true 0.555556. | `album: 0.027778`, distance 0.027777778, **strong, apply** | distance 0.092592593, **medium, skip** | none |
+| `adv-remix-track-titles` | the per-track twin, and the closest of the four to a real remix rip: every item title is `<original> (Kite Remix)` against the candidate's own original titles (0.150000, 0.142105, 0.150000 against true 0.500000, 0.473684, 0.500000). The album title matches on both sides so the record isolates `track_title`'s own parenthetical discount; a real remix release usually diverges on both fields at once. | `tracks: 0.024561`, distance 0.024561404, **strong, apply** | distance 0.081871345, **medium, skip** | none |
 
 ## The canonicalization rule
 

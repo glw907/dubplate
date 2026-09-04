@@ -4,11 +4,26 @@
       "id": "bug-ft-pattern",
       "bug_class": "featuring-pattern (\"ft\") false positive",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
-      "probe_case_ids": [],
-      "reproduced": "not-attempted",
-      "reproduced_reason": "no probe case authored yet; Task 16 (adv-ft-*, 6 cases) authors the probes: a title containing a trigger word (\"Draft\", \"Left:\", \"Gift\") against a genuinely different candidate the discount tips under threshold.",
+      "probe_case_ids": [
+        "adv-ft-draft-colon",
+        "adv-ft-left-colon",
+        "adv-ft-gift-space",
+        "adv-ft-soft-onesided",
+        "adv-ft-craft-titles",
+        "adv-ft-theft-artist"
+      ],
+      "reproduced": "yes",
+      "reproduced_reason": "Reproduced by all six probe cases (Task 16). Each pairs two genuinely different strings that share a leading word ending in \"ft\" (\"Draft\", \"Left\", \"Gift\", \"Soft\", \"Craft\", \"Theft\"), so SD_PATTERNS' unbounded featuring trigger deletes the rest of both strings and charges the real difference at 0.1. Every case's derived recommendation is strong/apply; recomputed with a word boundary before the trigger, every case's distance lands past strong_rec_thresh (0.04) in the medium band, so all six move the verdict. Per case, derived against defect-free distance: adv-ft-draft-colon 0.010185 / 0.101852; adv-ft-left-colon 0.011765 / 0.117647; adv-ft-gift-space 0.010784 / 0.107843; adv-ft-soft-onesided 0.030095 / 0.086667; adv-ft-craft-titles 0.009171 / 0.091708; adv-ft-theft-artist 0.009091 / 0.090909. The six span the album, track_title, and artist components, both the symmetric and the one-sided firing, and all three members of the trigger's `[\\. :]` separator class.",
+      "adjudication_refs": [
+        "adj-adv-ft-draft-colon",
+        "adj-adv-ft-left-colon",
+        "adj-adv-ft-gift-space",
+        "adj-adv-ft-soft-onesided",
+        "adj-adv-ft-craft-titles",
+        "adj-adv-ft-theft-artist"
+      ],
       "disposition": "pending-adjudication",
-      "reason": "seeded this pass (Task 1) ahead of the adversarial stratum; 2b's strdist-feat-strip already proves the pipeline mechanics for the legitimate feat. strip, and this hypothesis is the false-positive twin.",
+      "reason": "Six probe cases authored this pass (Task 16) reproduce the defect. 2b's strdist-feat-strip already proved the pipeline mechanics for the legitimate feat. strip, where the trigger really is a featuring credit; these are its false-positive twin, where the trigger is an ordinary English word. Disposition stays owner-only.",
       "adjudicator": "agent",
       "date": "2026-09-03"
     },
@@ -16,11 +31,22 @@
       "id": "bug-remix-parenthetical",
       "bug_class": "parenthetical/remix near-duplicate discount",
       "citation": "#5868",
-      "probe_case_ids": [],
-      "reproduced": "not-attempted",
-      "reproduced_reason": "no probe case authored yet; Task 16 (adv-remix-*, 4 cases) authors the probes: an original paired against a remix whose only distinguishing token sits inside the discounted parenthetical.",
+      "probe_case_ids": [
+        "adv-remix-both-sides",
+        "adv-remix-onesided",
+        "adv-remix-bracket",
+        "adv-remix-track-titles"
+      ],
+      "reproduced": "yes",
+      "reproduced_reason": "Reproduced by all four probe cases (Task 16). Each pairs a release against its own remix or alternate version, with the only distinguishing token inside the 0.3-weight parenthetical (or its square-bracket twin), so the discount erases the differentiator. Every case's derived recommendation is strong/apply; recomputed with the parenthetical at full weight, every case lands past strong_rec_thresh (0.04) in the medium band. Per case, derived against defect-free distance: adv-remix-both-sides 0.024000 / 0.080000; adv-remix-onesided 0.021429 / 0.071429; adv-remix-bracket 0.027778 / 0.092593; adv-remix-track-titles 0.024561 / 0.081871. The four span both bracket patterns, the one-sided and both-sides firings, and the album and track_title components.",
+      "adjudication_refs": [
+        "adj-adv-remix-both-sides",
+        "adj-adv-remix-onesided",
+        "adj-adv-remix-bracket",
+        "adj-adv-remix-track-titles"
+      ],
       "disposition": "pending-adjudication",
-      "reason": "split out as its own hypothesis rather than folded into bug-ft-pattern (M7), since Task 16 authors it as a distinct case class from the featuring-pattern false positive.",
+      "reason": "Four probe cases authored this pass (Task 16) reproduce the defect, including #5868's literal shape (an original against its own remix, adv-remix-both-sides) and its per-track twin. Disposition stays owner-only.",
       "adjudicator": "agent",
       "date": "2026-09-03"
     },

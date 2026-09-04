@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+  "title": "Salt Meridian",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Vail Current",
+      "joinphrase": "",
+      "artist": {
+        "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "name": "Vail Current",
+        "sort-name": "Vail Current",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "2066822e-a0e2-3fe4-03dc-eccb8192b67d",
+    "title": "Salt Meridian",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "9db14e0c-4098-9010-d1f5-6125131dc562",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "ec8033ec-76b1-9006-2284-3e6f42721f19",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 204000,
+          "artist-credit": null,
+          "recording": {
+            "id": "07b31de7-d1e4-ab68-3859-d9164b3c24a2",
+            "title": "Slack Water",
+            "length": 204000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ca8a9a91-d78c-0166-7320-19fcd98b12d1",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 217000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e421c002-f40a-01e5-7da5-16ef25d5adcf",
+            "title": "Long Groyne",
+            "length": 217000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "6c72ec2e-fdce-59c5-a351-b510774f5590",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "3174d083-f3a8-2cf8-06b2-8dec609d3c38",
+            "title": "Mooring Bell",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

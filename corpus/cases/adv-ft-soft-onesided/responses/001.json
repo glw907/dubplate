@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0004-1c4d-4a91-9b02-1d5e7a3c0004",
+  "title": "Harbor Lights",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Marrow Line",
+      "joinphrase": "",
+      "artist": {
+        "id": "0ffd1e97-b6de-ac2e-47e5-5276b7a1a870",
+        "name": "Marrow Line",
+        "sort-name": "Marrow Line",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "103cfdc0-09b4-8342-02cc-e91789240dcc",
+    "title": "Harbor Lights",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "5f3134e2-fa15-70b4-e208-36852ed9ce3d",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "8d8bed7f-5c07-f61b-f515-ae57c776659d",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 212000,
+          "artist-credit": null,
+          "recording": {
+            "id": "55c63eb5-6fbc-aee3-0a91-1fae84149fe7",
+            "title": "Cold Ferry",
+            "length": 212000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marrow Line",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0ffd1e97-b6de-ac2e-47e5-5276b7a1a870",
+                  "name": "Marrow Line",
+                  "sort-name": "Marrow Line",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "5115f90b-3f84-95e9-da33-95ae49aa3a1a",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 188000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ca0f822e-94ef-38da-460d-9f4181422b71",
+            "title": "Tin Roof",
+            "length": 188000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marrow Line",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0ffd1e97-b6de-ac2e-47e5-5276b7a1a870",
+                  "name": "Marrow Line",
+                  "sort-name": "Marrow Line",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "24055dc9-b656-c85f-f8a1-d54464a35eb6",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 231000,
+          "artist-credit": null,
+          "recording": {
+            "id": "97bcbcd4-f51c-c14e-04c6-55fafcfc6583",
+            "title": "Signal Fire",
+            "length": 231000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marrow Line",
+                "joinphrase": "",
+                "artist": {
+                  "id": "0ffd1e97-b6de-ac2e-47e5-5276b7a1a870",
+                  "name": "Marrow Line",
+                  "sort-name": "Marrow Line",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

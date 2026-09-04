@@ -1,0 +1,468 @@
+{
+  "id": "adv-remix-bracket",
+  "input": {
+    "items": [
+      {
+        "album": "Copper Ledger [Nocturne Version]",
+        "albumartist": "Vail Current",
+        "artist": "Vail Current",
+        "length": 210,
+        "mb_albumid": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "title": "Low Beacon",
+        "track": 1,
+        "year": 2015
+      },
+      {
+        "album": "Copper Ledger [Nocturne Version]",
+        "albumartist": "Vail Current",
+        "artist": "Vail Current",
+        "length": 199,
+        "mb_albumid": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "title": "Drydock",
+        "track": 2,
+        "year": 2015
+      },
+      {
+        "album": "Copper Ledger [Nocturne Version]",
+        "albumartist": "Vail Current",
+        "artist": "Vail Current",
+        "length": 226,
+        "mb_albumid": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "title": "Nightwatch",
+        "track": 3,
+        "year": 2015
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "distance": 0.027777777777777776,
+        "penalties": {
+          "album": 0.027777777777777776,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Copper Ledger",
+        "album_id": null,
+        "albumartist": "Vail Current",
+        "albumartist_credit": "Vail Current",
+        "albumartist_sort": "Vail Current",
+        "albumartists": [
+          "Vail Current"
+        ],
+        "albumartists_credit": [
+          "Vail Current"
+        ],
+        "albumartists_sort": [
+          "Vail Current"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vail Current",
+        "artist_credit": "Vail Current",
+        "artist_sort": "Vail Current",
+        "artists": [
+          "Vail Current"
+        ],
+        "artists_credit": [
+          "Vail Current"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vail Current"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 210,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_albumartistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_albumid": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "mb_artistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_artistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_releasegroupid": "de14728a-84f6-04c8-c83b-370362906a9d",
+        "mb_releasetrackid": "41382307-c1cf-5431-4b4e-0fa3340f7b1a",
+        "mb_trackid": "d6e898e2-8db1-4c59-945a-26bd974b4195",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Copper Ledger",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Low Beacon",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Copper Ledger",
+        "album_id": null,
+        "albumartist": "Vail Current",
+        "albumartist_credit": "Vail Current",
+        "albumartist_sort": "Vail Current",
+        "albumartists": [
+          "Vail Current"
+        ],
+        "albumartists_credit": [
+          "Vail Current"
+        ],
+        "albumartists_sort": [
+          "Vail Current"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vail Current",
+        "artist_credit": "Vail Current",
+        "artist_sort": "Vail Current",
+        "artists": [
+          "Vail Current"
+        ],
+        "artists_credit": [
+          "Vail Current"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vail Current"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 199,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_albumartistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_albumid": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "mb_artistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_artistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_releasegroupid": "de14728a-84f6-04c8-c83b-370362906a9d",
+        "mb_releasetrackid": "74ec893e-7519-fceb-4e24-4ac69702bc6e",
+        "mb_trackid": "89fad56f-d8a7-a4c4-b1bf-9e98d64dbebe",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Copper Ledger",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Drydock",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Copper Ledger",
+        "album_id": null,
+        "albumartist": "Vail Current",
+        "albumartist_credit": "Vail Current",
+        "albumartist_sort": "Vail Current",
+        "albumartists": [
+          "Vail Current"
+        ],
+        "albumartists_credit": [
+          "Vail Current"
+        ],
+        "albumartists_sort": [
+          "Vail Current"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vail Current",
+        "artist_credit": "Vail Current",
+        "artist_sort": "Vail Current",
+        "artists": [
+          "Vail Current"
+        ],
+        "artists_credit": [
+          "Vail Current"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vail Current"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 226,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_albumartistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_albumid": "ad7e0009-1c4d-4a91-9b02-1d5e7a3c0009",
+        "mb_artistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_artistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_releasegroupid": "de14728a-84f6-04c8-c83b-370362906a9d",
+        "mb_releasetrackid": "4e0ebbe5-b6c8-8d0a-2a73-228d26790311",
+        "mb_trackid": "19b5f9bf-59fe-c084-30ab-b45873ffbf0b",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Copper Ledger",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Nightwatch",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      }
+    }
+  }
+}

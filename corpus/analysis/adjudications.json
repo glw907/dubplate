@@ -1,3 +1,134 @@
 {
-  "entries": []
+  "entries": [
+    {
+      "id": "adj-adv-ft-draft-colon",
+      "subject": {
+        "case_id": "adv-ft-draft-colon"
+      },
+      "suspected": "The featuring pattern `[\\[\\(]?(featuring|feat|ft)[\\. :].+` carries no word boundary before its trigger, so it fires on the \"ft\" inside the ordinary word \"Draft\" on both sides and deletes everything from that point on. \"Draft: Ember Wharf\" and \"Draft: Northern Lines\" both collapse to \"dra\", the residual edit distance is 0, and the entire real difference between the two titles is charged at the pattern's 0.1 weight: string_dist reads 0.061111 where a word-boundary-guarded pattern would leave 0.611111. The derived record reads distance 0.010185185, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.101851852, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "release_truth": "The item set describes a different album, \"Draft: Ember Wharf\", from the candidate release \"Draft: Northern Lines\"; the two share only their leading word. Known by construction, since both releases are invented for this probe. The correct verdict for the pairing is medium (review), never strong (auto-apply), and the record's applied_fields show beets overwriting the item's own album tag with the candidate's title. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-ft-left-colon",
+      "subject": {
+        "case_id": "adv-ft-left-colon"
+      },
+      "suspected": "The same missing word boundary fires on the \"ft\" inside \"Left\". \"Left: A Distant Shore\" and \"Left: The Harbor Road\" both collapse to \"le\", so 94 percent of a genuine title difference is discounted away: string_dist reads 0.070588 where a word-boundary-guarded pattern would leave 0.705882. The two titles share nothing after the trigger word, which is what makes the surviving distance so small relative to the real one. The derived record reads distance 0.011764706, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.117647059, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "release_truth": "The item set describes \"Left: A Distant Shore\"; the candidate release is \"Left: The Harbor Road\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-ft-gift-space",
+      "subject": {
+        "case_id": "adv-ft-gift-space"
+      },
+      "suspected": "The trigger's separator class is `[\\. :]`, so a plain space qualifies and no punctuation is needed at all: the \"ft\" ending \"Gift\" plus the space after it fires the pattern on both \"Gift Wrapped Nights\" and \"Gift Horse Blues\", collapsing both to \"gi\". string_dist reads 0.064706 where a word-boundary-guarded pattern would leave 0.647059. The derived record reads distance 0.010784314, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.107843137, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "release_truth": "The item set describes \"Gift Wrapped Nights\"; the candidate release is \"Gift Horse Blues\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-ft-soft-onesided",
+      "subject": {
+        "case_id": "adv-ft-soft-onesided"
+      },
+      "suspected": "The one-sided half of the defect: only the item's own tag, \"Harbor Lights Soft. Variation\", carries a trigger, and the candidate \"Harbor Lights\" carries none. The pattern still fires, because it only needs one side to change, and it deletes the item's whole trailing edition string as though it were a featuring credit. string_dist reads 0.180571 where a word-boundary-guarded pattern would leave 0.520000. The surviving penalty is the largest of the six ft cases, and still lands inside strong. The derived record reads distance 0.030095238, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.086666667, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "release_truth": "The item set describes a distinct edition, \"Harbor Lights Soft. Variation\", of the candidate release \"Harbor Lights\". Known by construction. The correct verdict is medium (review), never strong (auto-apply); an edition string is exactly the kind of differentiator an importer must not silently discard. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-ft-craft-titles",
+      "subject": {
+        "case_id": "adv-ft-craft-titles"
+      },
+      "suspected": "The discount is not album-only: track_distance calls the same string_dist for track_title, so a trigger inside a track name discounts a per-track difference the same way. All three items carry \"Craft: ...\" titles against three different \"Craft: ...\" candidate tracks; each pair collapses to \"cra\" and pays a tenth of its real distance (0.050000 against 0.500000, 0.056250 against 0.562500, 0.058824 against 0.588235). The album title matches exactly on both sides, so the record isolates the per-track path with album reading 0. The derived record reads distance 0.009170752, recommendation strong, action apply, with tracks as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.091707516, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "release_truth": "The item set is a rip of three different recordings from the candidate's own three, sharing only the \"Craft:\" series prefix. Known by construction. The correct verdict is medium (review), never strong (auto-apply), and applied_fields show every item's title being overwritten with the wrong candidate track's title. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-ft-theft-artist",
+      "subject": {
+        "case_id": "adv-ft-theft-artist"
+      },
+      "suspected": "The album-level artist component (distance.py:447-448) runs the same string_dist, so the discount reaches artist names too. The items' albumartist \"Theft Marine\" and the candidate's \"Theft Signal\" both collapse to \"the\", and string_dist reads 0.054545 where a word-boundary-guarded pattern would leave 0.545455. This is the widest surface of the six: an artist string is the field an importer is least able to recover from once it is written wrong. The derived record reads distance 0.009090909, recommendation strong, action apply, with artist as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.090909091, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
+      "release_truth": "The item set is credited to \"Theft Marine\"; the candidate release is credited to \"Theft Signal\". Known by construction: two unrelated invented artists sharing one leading word. The correct verdict is medium (review), never strong (auto-apply), and applied_fields show both artist and albumartist being overwritten. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-remix-both-sides",
+      "subject": {
+        "case_id": "adv-remix-both-sides"
+      },
+      "suspected": "The parenthetical discount `\\(.*?\\)` at weight 0.3 deletes the only part of either title that says which release it is. \"Glass Harbor (Nocturne Rework)\" and \"Glass Harbor (Original Mix)\" both collapse to \"glass harbor\", the residual edit distance is 0, and the whole differentiator is charged at 0.3: string_dist reads 0.144000 where a full-weight parenthetical would leave 0.480000. This is #5868's shape exactly, an original against its own remix. The derived record reads distance 0.024000000, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.080000000, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "#5868",
+      "release_truth": "The item set is the remix release \"Glass Harbor (Nocturne Rework)\"; the candidate is the original, \"Glass Harbor (Original Mix)\". Known by construction. The correct verdict is medium (review), never strong (auto-apply): applied_fields show the remix rip being retagged as the original mix, which is the concrete harm #5868 reports. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-remix-onesided",
+      "subject": {
+        "case_id": "adv-remix-onesided"
+      },
+      "suspected": "The one-sided parenthetical: the item tag \"Salt Meridian (Kite Remix)\" carries the differentiator and the candidate \"Salt Meridian\" carries none, which is the ordinary shape of a remix release matched against its original. The pattern fires on the item side alone and discounts the whole remix token: string_dist reads 0.128571 where a full-weight parenthetical would leave 0.428571. The derived record reads distance 0.021428571, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.071428571, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "#5868",
+      "release_truth": "The item set is the remix release \"Salt Meridian (Kite Remix)\"; the candidate is the original \"Salt Meridian\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-remix-bracket",
+      "subject": {
+        "case_id": "adv-remix-bracket"
+      },
+      "suspected": "SD_PATTERNS carries a second 0.3-weight discount for square brackets, `\\[.*?\\]`, and it has the same effect on the same shape: \"Copper Ledger [Nocturne Version]\" against the candidate \"Copper Ledger\" discounts the version token away, string_dist reading 0.166667 where a full-weight bracket would leave 0.555556. Square brackets are the conventional edition/version marker in a good deal of real rip metadata, so this is not a variant shape but the same defect on the other pattern. The derived record reads distance 0.027777778, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.092592593, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "#5868",
+      "release_truth": "The item set is the alternate version \"Copper Ledger [Nocturne Version]\"; the candidate is \"Copper Ledger\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-remix-track-titles",
+      "subject": {
+        "case_id": "adv-remix-track-titles"
+      },
+      "suspected": "The per-track twin of the album shape, and the one that matches a real remix rip most closely: every item title is \"<original> (Kite Remix)\" against the candidate's own original titles, and each pair's remix token is discounted at 0.3 (0.150000 against 0.500000, 0.142105 against 0.473684, 0.150000 against 0.500000). The album title is left matching on both sides so the record isolates track_title's own parenthetical discount, with album reading 0; a real remix release usually diverges on both fields at once. The derived record reads distance 0.024561404, recommendation strong, action apply, with tracks as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.081871345, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
+      "citation": "#5868",
+      "release_truth": "The item set is a rip of the Kite Remix versions; the candidate release carries the original recordings. Known by construction. The correct verdict is medium (review), never strong (auto-apply), and applied_fields show every remix title being overwritten with the original's. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    }
+  ]
 }

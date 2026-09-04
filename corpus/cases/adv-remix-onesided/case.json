@@ -1,0 +1,468 @@
+{
+  "id": "adv-remix-onesided",
+  "input": {
+    "items": [
+      {
+        "album": "Salt Meridian (Kite Remix)",
+        "albumartist": "Vail Current",
+        "artist": "Vail Current",
+        "length": 204,
+        "mb_albumid": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "title": "Slack Water",
+        "track": 1,
+        "year": 2015
+      },
+      {
+        "album": "Salt Meridian (Kite Remix)",
+        "albumartist": "Vail Current",
+        "artist": "Vail Current",
+        "length": 217,
+        "mb_albumid": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "title": "Long Groyne",
+        "track": 2,
+        "year": 2015
+      },
+      {
+        "album": "Salt Meridian (Kite Remix)",
+        "albumartist": "Vail Current",
+        "artist": "Vail Current",
+        "length": 190,
+        "mb_albumid": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "title": "Mooring Bell",
+        "track": 3,
+        "year": 2015
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "distance": 0.021428571428571425,
+        "penalties": {
+          "album": 0.021428571428571425,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Salt Meridian",
+        "album_id": null,
+        "albumartist": "Vail Current",
+        "albumartist_credit": "Vail Current",
+        "albumartist_sort": "Vail Current",
+        "albumartists": [
+          "Vail Current"
+        ],
+        "albumartists_credit": [
+          "Vail Current"
+        ],
+        "albumartists_sort": [
+          "Vail Current"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vail Current",
+        "artist_credit": "Vail Current",
+        "artist_sort": "Vail Current",
+        "artists": [
+          "Vail Current"
+        ],
+        "artists_credit": [
+          "Vail Current"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vail Current"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 204,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_albumartistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_albumid": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "mb_artistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_artistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_releasegroupid": "2066822e-a0e2-3fe4-03dc-eccb8192b67d",
+        "mb_releasetrackid": "ec8033ec-76b1-9006-2284-3e6f42721f19",
+        "mb_trackid": "07b31de7-d1e4-ab68-3859-d9164b3c24a2",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Salt Meridian",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Slack Water",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Salt Meridian",
+        "album_id": null,
+        "albumartist": "Vail Current",
+        "albumartist_credit": "Vail Current",
+        "albumartist_sort": "Vail Current",
+        "albumartists": [
+          "Vail Current"
+        ],
+        "albumartists_credit": [
+          "Vail Current"
+        ],
+        "albumartists_sort": [
+          "Vail Current"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vail Current",
+        "artist_credit": "Vail Current",
+        "artist_sort": "Vail Current",
+        "artists": [
+          "Vail Current"
+        ],
+        "artists_credit": [
+          "Vail Current"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vail Current"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 217,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_albumartistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_albumid": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "mb_artistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_artistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_releasegroupid": "2066822e-a0e2-3fe4-03dc-eccb8192b67d",
+        "mb_releasetrackid": "ca8a9a91-d78c-0166-7320-19fcd98b12d1",
+        "mb_trackid": "e421c002-f40a-01e5-7da5-16ef25d5adcf",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Salt Meridian",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Long Groyne",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Salt Meridian",
+        "album_id": null,
+        "albumartist": "Vail Current",
+        "albumartist_credit": "Vail Current",
+        "albumartist_sort": "Vail Current",
+        "albumartists": [
+          "Vail Current"
+        ],
+        "albumartists_credit": [
+          "Vail Current"
+        ],
+        "albumartists_sort": [
+          "Vail Current"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Vail Current",
+        "artist_credit": "Vail Current",
+        "artist_sort": "Vail Current",
+        "artists": [
+          "Vail Current"
+        ],
+        "artists_credit": [
+          "Vail Current"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Vail Current"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 190,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_albumartistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_albumid": "ad7e0008-1c4d-4a91-9b02-1d5e7a3c0008",
+        "mb_artistid": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "mb_artistids": [
+          "f7cf461f-8912-2454-bfba-4b20f9c228e2"
+        ],
+        "mb_releasegroupid": "2066822e-a0e2-3fe4-03dc-eccb8192b67d",
+        "mb_releasetrackid": "6c72ec2e-fdce-59c5-a351-b510774f5590",
+        "mb_trackid": "3174d083-f3a8-2cf8-06b2-8dec609d3c38",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Salt Meridian",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Mooring Bell",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      }
+    }
+  }
+}

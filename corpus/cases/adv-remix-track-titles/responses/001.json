@@ -1,0 +1,151 @@
+{
+  "id": "ad7e000a-1c4d-4a91-9b02-1d5e7a3c000a",
+  "title": "Tidal Register",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Vail Current",
+      "joinphrase": "",
+      "artist": {
+        "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+        "name": "Vail Current",
+        "sort-name": "Vail Current",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "e0a5d969-c6bb-c280-b5d6-1b40cfc4a3c4",
+    "title": "Tidal Register",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "554caef9-d7ed-9575-aa8a-4ecec50ba578",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "45c60f67-5484-6316-5c62-b21f2fb8ca00",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 214000,
+          "artist-credit": null,
+          "recording": {
+            "id": "b96b90cb-9a11-31fd-b549-40c231b6627e",
+            "title": "Iron Wharf",
+            "length": 214000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "04ea0d39-b1c6-8003-bfe1-6e74b5672af8",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 193000,
+          "artist-credit": null,
+          "recording": {
+            "id": "d0226681-b462-ea24-0506-0729a399df0c",
+            "title": "Winter Kiln",
+            "length": 193000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "88ad7078-ffd6-8124-c53d-450d33a3ab85",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 228000,
+          "artist-credit": null,
+          "recording": {
+            "id": "88f7b93d-d46b-6ce5-3b1a-0c3c696d6210",
+            "title": "Paper Moth",
+            "length": 228000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Vail Current",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f7cf461f-8912-2454-bfba-4b20f9c228e2",
+                  "name": "Vail Current",
+                  "sort-name": "Vail Current",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,468 @@
+{
+  "id": "adv-ft-theft-artist",
+  "input": {
+    "items": [
+      {
+        "album": "Quiet Ballast",
+        "albumartist": "Theft Marine",
+        "artist": "Theft Marine",
+        "length": 210,
+        "mb_albumid": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "title": "Low Beacon",
+        "track": 1,
+        "year": 2015
+      },
+      {
+        "album": "Quiet Ballast",
+        "albumartist": "Theft Marine",
+        "artist": "Theft Marine",
+        "length": 199,
+        "mb_albumid": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "title": "Drydock",
+        "track": 2,
+        "year": 2015
+      },
+      {
+        "album": "Quiet Ballast",
+        "albumartist": "Theft Marine",
+        "artist": "Theft Marine",
+        "length": 226,
+        "mb_albumid": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "title": "Nightwatch",
+        "track": 3,
+        "year": 2015
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "distance": 0.00909090909090909,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0.00909090909090909,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Quiet Ballast",
+        "album_id": null,
+        "albumartist": "Theft Signal",
+        "albumartist_credit": "Theft Signal",
+        "albumartist_sort": "Theft Signal",
+        "albumartists": [
+          "Theft Signal"
+        ],
+        "albumartists_credit": [
+          "Theft Signal"
+        ],
+        "albumartists_sort": [
+          "Theft Signal"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Theft Signal",
+        "artist_credit": "Theft Signal",
+        "artist_sort": "Theft Signal",
+        "artists": [
+          "Theft Signal"
+        ],
+        "artists_credit": [
+          "Theft Signal"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Theft Signal"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 210,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "mb_albumartistids": [
+          "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb"
+        ],
+        "mb_albumid": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "mb_artistid": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "mb_artistids": [
+          "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb"
+        ],
+        "mb_releasegroupid": "bcc7a615-cdc0-701a-1656-e002a18ecb37",
+        "mb_releasetrackid": "95f32a6e-eb75-99d2-2234-b4c3f046a0b8",
+        "mb_trackid": "f8eeac9a-534b-595c-f296-7dec8483477e",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Quiet Ballast",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Low Beacon",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Quiet Ballast",
+        "album_id": null,
+        "albumartist": "Theft Signal",
+        "albumartist_credit": "Theft Signal",
+        "albumartist_sort": "Theft Signal",
+        "albumartists": [
+          "Theft Signal"
+        ],
+        "albumartists_credit": [
+          "Theft Signal"
+        ],
+        "albumartists_sort": [
+          "Theft Signal"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Theft Signal",
+        "artist_credit": "Theft Signal",
+        "artist_sort": "Theft Signal",
+        "artists": [
+          "Theft Signal"
+        ],
+        "artists_credit": [
+          "Theft Signal"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Theft Signal"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 199,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "mb_albumartistids": [
+          "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb"
+        ],
+        "mb_albumid": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "mb_artistid": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "mb_artistids": [
+          "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb"
+        ],
+        "mb_releasegroupid": "bcc7a615-cdc0-701a-1656-e002a18ecb37",
+        "mb_releasetrackid": "3feffa38-4600-f1e2-cce1-39afec0bbbd7",
+        "mb_trackid": "564096cc-9068-12f8-03e1-67caa7f7bfd8",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Quiet Ballast",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Drydock",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Quiet Ballast",
+        "album_id": null,
+        "albumartist": "Theft Signal",
+        "albumartist_credit": "Theft Signal",
+        "albumartist_sort": "Theft Signal",
+        "albumartists": [
+          "Theft Signal"
+        ],
+        "albumartists_credit": [
+          "Theft Signal"
+        ],
+        "albumartists_sort": [
+          "Theft Signal"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Theft Signal",
+        "artist_credit": "Theft Signal",
+        "artist_sort": "Theft Signal",
+        "artists": [
+          "Theft Signal"
+        ],
+        "artists_credit": [
+          "Theft Signal"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Theft Signal"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "US",
+        "data_source": "MusicBrainz",
+        "day": 5,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 226,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "mb_albumartistids": [
+          "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb"
+        ],
+        "mb_albumid": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+        "mb_artistid": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "mb_artistids": [
+          "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb"
+        ],
+        "mb_releasegroupid": "bcc7a615-cdc0-701a-1656-e002a18ecb37",
+        "mb_releasetrackid": "9343bf73-b560-a1b1-07f5-e3eb5d34b6ba",
+        "mb_trackid": "e2c792ff-20a8-2a64-3467-a8c000ed5052",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 6,
+        "mtime": 0,
+        "original_day": 5,
+        "original_month": 6,
+        "original_year": 2015,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Quiet Ballast",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Nightwatch",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2015
+      }
+    }
+  }
+}

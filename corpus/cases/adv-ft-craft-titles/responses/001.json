@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
+  "title": "Foundry Notes",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Ash Register",
+      "joinphrase": "",
+      "artist": {
+        "id": "b6466d23-3373-9e94-b570-69d18aba5857",
+        "name": "Ash Register",
+        "sort-name": "Ash Register",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "aebad0c6-e8f6-ad34-5a84-1f26e35760f6",
+    "title": "Foundry Notes",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "9a78fc84-a019-3425-9ecd-ad37ce6717c9",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "55ecb9bd-de66-df2b-3720-bfa1ec55742c",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 205000,
+          "artist-credit": null,
+          "recording": {
+            "id": "eb0a8fa5-b2d1-2a89-1283-d038f1fb6ca0",
+            "title": "Craft: Copper Anvil",
+            "length": 205000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ash Register",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b6466d23-3373-9e94-b570-69d18aba5857",
+                  "name": "Ash Register",
+                  "sort-name": "Ash Register",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e6d3c9e0-2778-5d5c-aa1a-23c60f00c136",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 197000,
+          "artist-credit": null,
+          "recording": {
+            "id": "565f5718-a1c6-b313-e3b6-dc7e2c2c560a",
+            "title": "Craft: Bell Foundry",
+            "length": 197000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ash Register",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b6466d23-3373-9e94-b570-69d18aba5857",
+                  "name": "Ash Register",
+                  "sort-name": "Ash Register",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "9b10bb28-63d2-f88e-0eeb-9c210f98eedc",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 224000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e2b35c4a-c7da-f38a-4579-172cb3275bc0",
+            "title": "Craft: Iron Meridian",
+            "length": 224000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ash Register",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b6466d23-3373-9e94-b570-69d18aba5857",
+                  "name": "Ash Register",
+                  "sort-name": "Ash Register",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

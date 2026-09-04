@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0002-1c4d-4a91-9b02-1d5e7a3c0002",
+  "title": "Left: The Harbor Road",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Kestrel Bay",
+      "joinphrase": "",
+      "artist": {
+        "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+        "name": "Kestrel Bay",
+        "sort-name": "Kestrel Bay",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "7659ea46-541c-0b81-3900-98a7399148c8",
+    "title": "Left: The Harbor Road",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "4a77bde5-2ae0-506a-70c3-b45c20f121bb",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "c9528fe1-db46-d07c-535f-619a5fd44f18",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 204000,
+          "artist-credit": null,
+          "recording": {
+            "id": "1d8ac127-6674-63fb-0199-40531d351756",
+            "title": "Slack Water",
+            "length": 204000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Kestrel Bay",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+                  "name": "Kestrel Bay",
+                  "sort-name": "Kestrel Bay",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "72792912-2239-5b71-bbd7-59e9df9b37e9",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 217000,
+          "artist-credit": null,
+          "recording": {
+            "id": "66b08f32-1a4f-eab3-68af-e196ecae758e",
+            "title": "Long Groyne",
+            "length": 217000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Kestrel Bay",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+                  "name": "Kestrel Bay",
+                  "sort-name": "Kestrel Bay",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "53b3d5c8-64e0-552b-5904-f03c764b5676",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "616dd18d-b8d0-a377-4d2d-3eb691a913bd",
+            "title": "Mooring Bell",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Kestrel Bay",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6d361b04-32cc-981c-1b5e-45fdbf31d931",
+                  "name": "Kestrel Bay",
+                  "sort-name": "Kestrel Bay",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

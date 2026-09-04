@@ -1,0 +1,151 @@
+{
+  "id": "ad7e0006-1c4d-4a91-9b02-1d5e7a3c0006",
+  "title": "Quiet Ballast",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2015-06-05",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Theft Signal",
+      "joinphrase": "",
+      "artist": {
+        "id": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+        "name": "Theft Signal",
+        "sort-name": "Theft Signal",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "bcc7a615-cdc0-701a-1656-e002a18ecb37",
+    "title": "Quiet Ballast",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2015-06-05",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2015-06-05",
+      "area": {
+        "id": "399702ec-8589-2f2a-2d58-35c861026b00",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "95f32a6e-eb75-99d2-2234-b4c3f046a0b8",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f8eeac9a-534b-595c-f296-7dec8483477e",
+            "title": "Low Beacon",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Theft Signal",
+                "joinphrase": "",
+                "artist": {
+                  "id": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+                  "name": "Theft Signal",
+                  "sort-name": "Theft Signal",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "3feffa38-4600-f1e2-cce1-39afec0bbbd7",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 199000,
+          "artist-credit": null,
+          "recording": {
+            "id": "564096cc-9068-12f8-03e1-67caa7f7bfd8",
+            "title": "Drydock",
+            "length": 199000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Theft Signal",
+                "joinphrase": "",
+                "artist": {
+                  "id": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+                  "name": "Theft Signal",
+                  "sort-name": "Theft Signal",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "9343bf73-b560-a1b1-07f5-e3eb5d34b6ba",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 226000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e2c792ff-20a8-2a64-3467-a8c000ed5052",
+            "title": "Nightwatch",
+            "length": 226000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Theft Signal",
+                "joinphrase": "",
+                "artist": {
+                  "id": "19ef3eaa-e7d7-296a-a9ce-26d1bed588cb",
+                  "name": "Theft Signal",
+                  "sort-name": "Theft Signal",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
