@@ -97,8 +97,8 @@ under-prices the next differential run.
 **The corpus and ties rows above are the M8 formula's floor, not a
 measurement, and pass 2d's own close measured the real thing.** Two
 independent uncached (`GOFLAGS=-count=1`) full `make derive` runs against
-the committed 215-case corpus (`docs/HISTORY.md`'s 2d entry has the full
-breakdown) landed at 980s and 974s total, both well above this table's
+the committed 215-case corpus, at pass 2d's Task 4 close (2026-09-04),
+landed at 980s and 974s total, both well above this table's
 257.6s-per-leg formula floor: corpus derive measured 462.94s and 541.20s
 against the floor's 257.6s, ties derive 503.90s and 420.06s against the
 same 257.6s. The formula prices the client's own inter-request wait, which
