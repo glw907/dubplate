@@ -26,11 +26,18 @@ this file. The live-executor check is the lane registry below, not
 
 ## Lane registry
 
-- lane-1 (code, main tree): EXECUTING rung 3 pass 3a (plan rev 2,
-  plans/2026-09-04-rung-3a-scoring-core.md; Task 0 staleness clear,
-  zero drift; 6M starting ceiling re-derived at Task 2's report;
-  opus on Tasks 2 and 4; split decision at the Task 6/7 boundary
-  on the measured number).
+- lane-1 (code, main tree): PAUSED mid-3a for the Fable 5.1 session
+  restart (2026-09-04 ~09:10). Tasks 1-2 committed (28396a7 tunables
+  and vocabulary; 73d5321 the opus accumulator); Task 3 was in
+  flight and stopped cleanly, tree clean. RESUME PROMPT for the
+  restarted session (claude --continue, then /model
+  claude-fable-5-1, then re-arm the FULL guard set per
+  ~/.claude/docs/unattended-work-guards.md restart-recovery):
+  Workflow with scriptPath
+  <session>/workflows/scripts/pass-execute-wf_80ad93a3-9dc.js and
+  resumeFromRunId wf_80ad93a3-9dc — Tasks 1-2 replay cached, Task 3
+  re-runs; then dispatch Tasks 4-6 per the plan, re-deriving the 6M
+  ceiling from Task 2's journal-recorded report first.
 - lane-2 (code, worktree): BLOCKED until Phase 0a/0b/0c land.
 - doc lane (main tree): IDLE. Phase 0a is complete
   (research/2026-09-04-reverse-edge-completion.md: fourteen SOFT,
