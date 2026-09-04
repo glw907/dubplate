@@ -36,12 +36,10 @@ Geoff's word.
 
 ## Lane registry
 
-- lane-1 (code, main tree): HELD AT THE 80% FLAG. Tasks 16-17 done;
-  spend ~6.5M of the 8M ceiling, so the plan's contingent touchpoint
-  fired: Geoff's answer to the combined question below unblocks
-  tasks 18 (locale + #6358), 19a/19b (stock-config), 20 (close +
-  adjudication batch); all sequential (corpus-ledger contention).
-  Then 2d (plans/2026-09-03-rung-2d-file-level.md rev 2, ready).
+- lane-1 (code, main tree): EXECUTING 2c tasks 18, 19a, 19b, 20
+  (one sequential pass-execute workflow; Geoff approved finishing
+  the pass past the 80% flag, hard stop well before 9M). Then 2d
+  (plans/2026-09-03-rung-2d-file-level.md rev 2, ready).
 - lane-2 (code, worktree): BLOCKED until Phase 0a (fifteen
   reverse-edge cells, research dispatch), 0b (rung 1b config
   wall-row registry, own small plan), 0c (theme-variable contract +
@@ -50,11 +48,6 @@ Geoff's word.
 
 ## Open items (carried)
 
-- THE COMBINED QUESTION (80% flag): remaining tasks 18 + 19a/19b +
-  20 are estimated at 1.1-1.6M, landing the pass at ~7.6-8.1M
-  against the 8M re-derived ceiling (the plan's pre-re-derivation
-  figure was 12M). Approve finishing the pass, accepting a possible
-  small overrun of the 8M figure?
 - Geoff at 2c close: the adjudication batch (tasks 16-17 added 18
   pending rows: 10 string-heuristic, 6 assignment, 2 alias
   re-pointed at real-nonlatin twins; plus any earlier strata rows).
