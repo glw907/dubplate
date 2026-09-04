@@ -26,9 +26,11 @@ this file. The live-executor check is the lane registry below, not
 
 ## Lane registry
 
-- lane-1 (code, main tree): rung 3 pass 3a plan in drafting (the
-  spec read gate cleared 2026-09-04); execution follows the plan's
-  adversarial review and fold.
+- lane-1 (code, main tree): EXECUTING rung 3 pass 3a (plan rev 2,
+  plans/2026-09-04-rung-3a-scoring-core.md; Task 0 staleness clear,
+  zero drift; 6M starting ceiling re-derived at Task 2's report;
+  opus on Tasks 2 and 4; split decision at the Task 6/7 boundary
+  on the measured number).
 - lane-2 (code, worktree): BLOCKED until Phase 0a/0b/0c land.
 - doc lane (main tree): IDLE. Phase 0a is complete
   (research/2026-09-04-reverse-edge-completion.md: fourteen SOFT,
