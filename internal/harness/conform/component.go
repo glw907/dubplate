@@ -372,13 +372,23 @@ func decodeOptions(raw json.RawMessage) ([]any, error) {
 // decodeOption decodes one option value: a compiled-regex object
 // ({"regex", "ignorecase"}, fold M-e) becomes a matcher.PatternOption,
 // anchored at position 0 per contract 7; anything else is a literal
-// value compared with Go equality.
+// value compared with Go equality. An object lacking "regex" is a
+// decode failure, never a silent compile of the empty pattern: an
+// empty PatternOption matches every value at position 0, so a missing
+// key would otherwise pass as a match-anything option.
 func decodeOption(raw any) (any, error) {
 	m, ok := raw.(map[string]any)
 	if !ok {
 		return raw, nil
 	}
-	pattern, _ := m["regex"].(string)
+	regex, ok := m["regex"]
+	if !ok {
+		return nil, fmt.Errorf("option object has no %q key", "regex")
+	}
+	pattern, ok := regex.(string)
+	if !ok {
+		return nil, fmt.Errorf("option object %q: got %T, want string", "regex", regex)
+	}
 	ignorecase, _ := m["ignorecase"].(bool)
 	opt, err := matcher.CompilePatternOption(pattern, ignorecase)
 	if err != nil {
@@ -558,43 +568,86 @@ func metadataSourceSet(penalty float64, multiple bool) map[string]float64 {
 	return sources
 }
 
-func decodeTrackInfo(raw map[string]any) *matcher.TrackInfo {
-	return &matcher.TrackInfo{
-		Title:       stringAny(raw, "title"),
-		Artist:      stringAny(raw, "artist"),
-		Length:      floatAny(raw, "length"),
-		Index:       intAny(raw, "index"),
-		MediumIndex: intAny(raw, "medium_index"),
-		Medium:      intAny(raw, "medium"),
-		TrackID:     stringAny(raw, "track_id"),
-		DataSource:  stringAny(raw, "data_source"),
+// decodeTrackInfo builds a matcher.TrackInfo from raw, a track_info or
+// item entry decoded as untyped JSON. A key raw omits reads as the
+// field's zero value (beets' own typed default); a key raw carries
+// under the wrong JSON type is a decode failure, not a silent zero
+// value, because that would mask a corpus authoring bug as a passing
+// row.
+func decodeTrackInfo(raw map[string]any) (*matcher.TrackInfo, error) {
+	var errs []error
+	str := func(key string) string {
+		v, err := stringAny(raw, key)
+		errs = append(errs, err)
+		return v
+	}
+	num := func(key string) int {
+		v, err := intAny(raw, key)
+		errs = append(errs, err)
+		return v
+	}
+	flt := func(key string) float64 {
+		v, err := floatAny(raw, key)
+		errs = append(errs, err)
+		return v
+	}
+	info := &matcher.TrackInfo{
+		Title:       str("title"),
+		Artist:      str("artist"),
+		Length:      flt("length"),
+		Index:       num("index"),
+		MediumIndex: num("medium_index"),
+		Medium:      num("medium"),
+		TrackID:     str("track_id"),
+		DataSource:  str("data_source"),
+	}
+	return info, errors.Join(errs...)
+}
+
+func stringAny(raw map[string]any, key string) (string, error) {
+	// A key that is absent, or present with a JSON null, is beets'
+	// own None: derive_component.py serializes an unset TrackInfo
+	// attribute as null, and that reads as the typed default, the
+	// same as an absent key. Only a present, non-null value of the
+	// wrong JSON type is a decode failure.
+	v, present := raw[key]
+	if !present || v == nil {
+		return "", nil
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "", fmt.Errorf("field %q: got %T, want string", key, v)
+	}
+	return s, nil
+}
+
+func intAny(raw map[string]any, key string) (int, error) {
+	v, present := raw[key]
+	if !present || v == nil {
+		return 0, nil
+	}
+	switch n := v.(type) {
+	case float64:
+		return int(n), nil
+	case int:
+		return n, nil
+	default:
+		return 0, fmt.Errorf("field %q: got %T, want number", key, v)
 	}
 }
 
-func stringAny(raw map[string]any, key string) string {
-	s, _ := raw[key].(string)
-	return s
-}
-
-func intAny(raw map[string]any, key string) int {
-	switch v := raw[key].(type) {
-	case float64:
-		return int(v)
-	case int:
-		return v
-	default:
-		return 0
+func floatAny(raw map[string]any, key string) (float64, error) {
+	v, present := raw[key]
+	if !present || v == nil {
+		return 0, nil
 	}
-}
-
-func floatAny(raw map[string]any, key string) float64 {
-	switch v := raw[key].(type) {
+	switch n := v.(type) {
 	case float64:
-		return v
+		return n, nil
 	case int:
-		return float64(v)
+		return float64(n), nil
 	default:
-		return 0
+		return 0, fmt.Errorf("field %q: got %T, want number", key, v)
 	}
 }
 
@@ -612,7 +665,10 @@ func replayTrackDistance(row analysis.ComponentRow) ReplayOutcome {
 	}
 
 	item := matcher.ProjectItemFields(args.Item)
-	info := decodeTrackInfo(args.TrackInfo)
+	info, err := decodeTrackInfo(args.TrackInfo)
+	if err != nil {
+		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: track_info: %w", row.ID, err)}
+	}
 	dist := matcher.DistanceForTrack(tun, item, info, args.InclArtist)
 
 	var want struct {

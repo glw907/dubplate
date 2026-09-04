@@ -105,10 +105,8 @@ func TestComponentTableReplaysAllRows(t *testing.T) {
 		t.Fatalf("replayed %d of %d committed rows; a row was silently skipped rather than failed", total, summary.TotalRows)
 	}
 
-	for _, method := range componentMethods {
-		if summary.CountByMethod[method] == 0 {
-			t.Errorf("decoder method %q has no replayed row", method)
-		}
+	for _, method := range missingCoverageMethods(summary) {
+		t.Errorf("decoder method %q has no replayed row", method)
 	}
 
 	if len(summary.NearMisses) == 0 {
@@ -135,6 +133,75 @@ func TestComponentDecoderRejectsUnknownMethod(t *testing.T) {
 	}
 	if summary.CountByMethod["add_frobnicate"] != 0 {
 		t.Error("an unknown method must never be counted as replayed")
+	}
+}
+
+// TestComponentDecoderRejectsMissingRegexKey proves decodeOption fails
+// naming the row id and the missing key, rather than compiling the
+// empty pattern (which would match every value at position 0):
+// testdata/missing_regex_key.json carries an add_equality option
+// object with "ignorecase" but no "regex".
+func TestComponentDecoderRejectsMissingRegexKey(t *testing.T) {
+	table := loadFixtureTable(t, "missing_regex_key.json")
+	summary, err := ReplayTable(table)
+	if err == nil {
+		t.Fatal("expected ReplayTable to report the missing-regex-key row as a failure")
+	}
+	msg := err.Error()
+	if !strings.Contains(msg, "fixture/missing-regex-key") || !strings.Contains(msg, "regex") {
+		t.Errorf("error does not name the row id and the missing key: %v", err)
+	}
+	if summary.CountByMethod["add_equality"] != 0 {
+		t.Error("a missing regex key must never be counted as replayed")
+	}
+}
+
+// TestComponentDecoderRejectsWrongTypeTrackInfoField proves a wrongly
+// typed track_info field fails naming the row id and the field,
+// rather than falling back to the zero value:
+// testdata/wrong_type_track_info.json carries track_info.index as a
+// string where the field is a number.
+func TestComponentDecoderRejectsWrongTypeTrackInfoField(t *testing.T) {
+	table := loadFixtureTable(t, "wrong_type_track_info.json")
+	summary, err := ReplayTable(table)
+	if err == nil {
+		t.Fatal("expected ReplayTable to report the wrongly typed track_info row as a failure")
+	}
+	msg := err.Error()
+	if !strings.Contains(msg, "fixture/wrong-type-track-info") || !strings.Contains(msg, "index") {
+		t.Errorf("error does not name the row id and the field: %v", err)
+	}
+	if summary.CountByMethod["track_distance"] != 0 {
+		t.Error("a wrongly typed field must never be counted as replayed")
+	}
+}
+
+// TestComponentDecoderAddMethodRequiresExactlyOneShape proves method
+// "add"'s dispatch (replayAddMethod) fails naming the row id for each
+// of its two error shapes: args carrying neither key nor weights, and
+// args carrying both.
+func TestComponentDecoderAddMethodRequiresExactlyOneShape(t *testing.T) {
+	for _, tt := range []struct {
+		fixture string
+		rowID   string
+	}{
+		{"add_neither_key_nor_weights.json", "fixture/add-neither-key-nor-weights"},
+		{"add_both_key_and_weights.json", "fixture/add-both-key-and-weights"},
+	} {
+		t.Run(tt.fixture, func(t *testing.T) {
+			table := loadFixtureTable(t, tt.fixture)
+			summary, err := ReplayTable(table)
+			if err == nil {
+				t.Fatal("expected ReplayTable to report the row as a failure")
+			}
+			msg := err.Error()
+			if !strings.Contains(msg, tt.rowID) || !strings.Contains(msg, "neither key nor weights, or both") {
+				t.Errorf("error does not name the row id and the shape violation: %v", err)
+			}
+			if summary.CountByMethod["add"] != 0 {
+				t.Error("a malformed add row must never be counted as replayed")
+			}
+		})
 	}
 }
 
@@ -173,15 +240,26 @@ func TestComponentDecoderCatchesMethodWithNoRows(t *testing.T) {
 	if summary.CountByMethod["add_ratio"] != 0 {
 		t.Fatal("fixture unexpectedly exercises add_ratio; the coverage check needs a method with zero rows to prove it fires")
 	}
-	missing := 0
-	for _, method := range componentMethods {
-		if summary.CountByMethod[method] == 0 {
-			missing++
-		}
-	}
-	if missing == 0 {
+	if len(missingCoverageMethods(summary)) == 0 {
 		t.Fatal("expected the per-method coverage check to flag at least one method with no replayed rows")
 	}
+}
+
+// missingCoverageMethods returns, in componentMethods order, every
+// decoder method summary replayed zero rows for. Both
+// TestComponentTableReplaysAllRows (against the committed table) and
+// TestComponentDecoderCatchesMethodWithNoRows (against a fixture
+// missing coverage) call this one function, so the fixture proves the
+// real coverage check fires rather than a parallel reimplementation of
+// it.
+func missingCoverageMethods(summary ReplaySummary) []string {
+	var missing []string
+	for _, method := range componentMethods {
+		if summary.CountByMethod[method] == 0 {
+			missing = append(missing, method)
+		}
+	}
+	return missing
 }
 
 // TestComponentTableBelowFloorFails proves the row-floor check fires,

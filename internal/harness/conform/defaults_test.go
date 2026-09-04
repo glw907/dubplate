@@ -83,6 +83,30 @@ func TestDefaultsCrossCheckCatchesPerturbedWeight(t *testing.T) {
 	}
 }
 
+// TestDefaultsCrossCheckCatchesPerturbedThreshold proves the
+// thresholds half of the M1 cross-check fires and names the key and
+// both values, against a hand-authored perturbation
+// (0.25 -> 0.09 on medium_rec_thresh) rather than anything read from a
+// committed case.
+func TestDefaultsCrossCheckCatchesPerturbedThreshold(t *testing.T) {
+	want := matcher.DefaultTunables()
+	got := cassette.Thresholds{
+		StrongRecThresh: want.StrongRecThresh,
+		MediumRecThresh: 0.09,
+		RecGapThresh:    want.RecGapThresh,
+		MaxRec:          maps.Clone(want.MaxRec),
+	}
+
+	err := CheckCaseThresholds("fixture/perturbed-threshold", want, got)
+	if err == nil {
+		t.Fatal("expected the thresholds cross-check to fire on a perturbed default")
+	}
+	msg := err.Error()
+	if !strings.Contains(msg, "medium_rec_thresh") || !strings.Contains(msg, "0.09") || !strings.Contains(msg, "0.25") {
+		t.Errorf("error does not name medium_rec_thresh and both values: %v", err)
+	}
+}
+
 // TestUnidecodeCheckAgreesWithCommittedManifest reads
 // corpus/manifest.json (read-only) and confirms its pinned unidecode
 // field agrees with the engine's own embedded table version.

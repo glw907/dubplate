@@ -1,0 +1,16 @@
+{
+  "beets": "2.13.1",
+  "shim_version": "1",
+  "rows": [
+    {
+      "id": "fixture/wrong-type-track-info",
+      "method": "track_distance",
+      "args": {
+        "incl_artist": true,
+        "item": {"artist": "artist", "title": "title"},
+        "track_info": {"artist": "artist", "title": "title", "index": "not-a-number"}
+      },
+      "output": {"distance": 0, "penalties": {"track_artist": [0], "track_title": [0]}}
+    }
+  ]
+}

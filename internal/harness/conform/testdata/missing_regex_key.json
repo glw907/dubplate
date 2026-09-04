@@ -1,0 +1,12 @@
+{
+  "beets": "2.13.1",
+  "shim_version": "1",
+  "rows": [
+    {
+      "id": "fixture/missing-regex-key",
+      "method": "add_equality",
+      "args": {"key": "equality", "calls": [["abc", {"ignorecase": true}]]},
+      "output": {"penalties": [0]}
+    }
+  ]
+}

@@ -24,14 +24,22 @@ const forbiddenImportPrefix = "github.com/glw907/dubplate/internal/harness"
 // (naming the file and the import) if any file imports a path under
 // forbiddenImportPrefix. Parsing runs in go/parser's ImportsOnly mode:
 // cheap, and it needs nothing beyond the import block to be
-// syntactically valid.
+// syntactically valid. A testdata subtree is skipped entirely: a
+// fixture's own .go file (an arch-check counter-example, say) is not
+// production code and must never make this walk false-positive.
 func checkNoHarnessImports(root string) error {
 	var errs []error
 	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || !strings.HasSuffix(path, ".go") {
+		if d.IsDir() {
+			if d.Name() == "testdata" {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
 		fset := token.NewFileSet()
@@ -59,14 +67,21 @@ func checkNoHarnessImports(root string) error {
 // checkNoTimeNow walks every .go file under root and fails (naming the
 // file and position) if any file calls time.Now: the evaluation date
 // is an explicit parameter on the album-distance call (contract 9),
-// never a clock read.
+// never a clock read. A testdata subtree is skipped entirely, for the
+// same reason checkNoHarnessImports skips one.
 func checkNoTimeNow(root string) error {
 	var errs []error
 	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || !strings.HasSuffix(path, ".go") {
+		if d.IsDir() {
+			if d.Name() == "testdata" {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
 		fset := token.NewFileSet()
