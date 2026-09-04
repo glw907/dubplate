@@ -1,0 +1,6315 @@
+[
+ {
+  "idx": "105",
+  "repo": "flazzarini/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "genre",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "no",
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "108",
+  "repo": "fracture91/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes",
+   "timid": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "109",
+  "repo": "fradeve/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "left"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 6,
+  "asciify_paths": null,
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "yes",
+   "write": "yes              # write metadata in files"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "116",
+  "repo": "genevieve-me/home-services",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "\"albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "label",
+   "original_year",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "\"albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "124",
+  "repo": "gojun077/jun-dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "genre",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 2,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes  # whether to copy files into library dir when exec `beet import`",
+   "duplicate_action": "ask",
+   "write": "yes  # write ID3 tags to files during `beet import`"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "136",
+  "repo": "hashhar/picard-beets-config",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "singleton"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "__i_album",
+   "__i_artist",
+   "__i_disc",
+   "__i_multidisc",
+   "__i_release_type",
+   "__i_track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "no",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "no",
+   "incremental": "yes",
+   "timid": "yes",
+   "autotag": "yes",
+   "write": "no"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "__i_artist: |",
+   "if albumartist == \"Various Artists\":",
+   "return \"Various Artists\"",
+   "elif albumartist is not None:",
+   "return albumartist",
+   "else:",
+   "return artist",
+   "__i_release_type: |",
+   "if albumtype == \"album\":",
+   "return \"Albums\"",
+   "elif albumtype == \"single\":",
+   "return \"Singles\"",
+   "elif albumtype == \"ep\":",
+   "return \"EPs\"",
+   "elif albumtype == \"compilation\":",
+   "return \"Compilations\"",
+   "elif albumtype == \"soundtrack\":",
+   "return \"Soundtracks\"",
+   "elif albumtype == \"live\":",
+   "return \"Live\"",
+   "else:",
+   "return \"Others\"",
+   "__i_album: |",
+   "if original_year is None and year is None:",
+   "return album",
+   "elif original_year is not None and year is not None:",
+   "# Both available, need to disambiguate if unequal, pick anyone otherwise",
+   "if original_year == year:",
+   "# Pick whatever, doesn't make a difference",
+   "return \"[{year}] - {album}\".format(year=year, album=album)",
+   "else:",
+   "# Disambiguate since both are present and unequal",
+   "return \"[{release_year}] - {album} [{original_year}]\".format(",
+   "release_year=year, album=album, original_year=original_year)",
+   "else:",
+   "# Pick whatever is available",
+   "__year = original_year or year",
+   "return \"[{year}] - {album}\".format(year=__year, album=album)",
+   "__i_multidisc: 1 if disctotal > 1 else 0",
+   "__i_disc: |",
+   "__min_discnum_length = 1",
+   "__total_discnum_length = len(str(disctotal))",
+   "if __total_discnum_length > __min_discnum_length:",
+   "__discnum_pad_length = __total_discnum_length",
+   "else:",
+   "__discnum_pad_length = __min_discnum_length",
+   "__padded_disc = \"Disc {discnum}\".format(",
+   "discnum=str(disc).zfill(__discnum_pad_length))",
+   "if disctitle is not None:",
+   "__disc = \"{disc} - {subtitle}\".format(disc=__padded_disc,",
+   "subtitle=disctitle)",
+   "else:",
+   "__disc = \"{disc}\".format(disc=__padded_disc)",
+   "return __disc",
+   "__i_track: |",
+   "__min_tracknum_length = 2",
+   "__total_tracknum_length = len(str(disctotal))",
+   "if __total_tracknum_length > __min_tracknum_length:",
+   "__tracknum_pad_length = __total_tracknum_length",
+   "else:",
+   "__tracknum_pad_length = __min_tracknum_length",
+   "if track is None:",
+   "__track_num = 1",
+   "else:",
+   "__track_num = track",
+   "__padded_track = \"{track}\".format(",
+   "track=str(__track_num).zfill(__tracknum_pad_length))",
+   "__track = \"{track} - {title}\".format(track=__padded_track, title=title)",
+   "return __track"
+  ],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "13",
+  "repo": "aitvann/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "143",
+  "repo": "ichbean/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "144",
+  "repo": "iforwms/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "original_year",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "154",
+  "repo": "ivanvc/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype",
+   "albumtype"
+  ],
+  "path_key_count": 5,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "disk",
+   "multidisc",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": "cover  # results in \"cover.jpg\"",
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: disctotal > 1"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "156",
+  "repo": "Jampamane/tubejuice",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "15",
+  "repo": "AlexChalk/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc_and_track",
+   "title"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "copy": "yes",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "disc_and_track: u'%02i-%02i' % (disc, track) if",
+   "disctotal > 1 else u'%02i' % (track)"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "161",
+  "repo": "jee-r/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "albumtype",
+   "albumtype",
+   "albumtype",
+   "albumtype",
+   "albumtype",
+   "singleton",
+   "comp",
+   "ext",
+   "ext",
+   "ext",
+   "#ext",
+   "#ext",
+   "#ext"
+  ],
+  "path_key_count": 14,
+  "fields": [
+   "album",
+   "albumartist",
+   "albumpath",
+   "artist",
+   "artist_fallback",
+   "disc",
+   "ep_not_in_title",
+   "fixedyear",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "if"
+  ],
+  "non_default_path_keys": [
+   "albumtype",
+   "albumtype",
+   "albumtype",
+   "albumtype",
+   "albumtype",
+   "singleton",
+   "comp",
+   "ext",
+   "ext",
+   "ext",
+   "#ext",
+   "#ext",
+   "#ext"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": "cover",
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "incremental": "no",
+   "duplicate_action": "remove",
+   "quiet_fallback": "asis",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": true,
+  "field_computations": [
+   "artist_fallback: albumartist if albumartist else artist",
+   "first_album_artist: albumartist.split(';')[0] if albumartist else artist.split(';')[0]",
+   "fixedyear: original_year if original_year else year",
+   "multidisc: |",
+   "disc_numbers = {}",
+   "for item in items:",
+   "disc_numbers[item.disc] = None",
+   "if len(disc_numbers) > 1:",
+   "return 1",
+   "else:",
+   "return 0",
+   "ep_not_in_title: |",
+   "import re",
+   "if re.search(r\"\\bE\\.?P\\b\", album):",
+   "return 0",
+   "else:",
+   "return 1"
+  ],
+  "original_date": true,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "162",
+  "repo": "jeromefaria/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": "no",
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "hardlink": "no",
+   "reflink": "no",
+   "incremental": "yes",
+   "duplicate_action": "skip",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "163",
+  "repo": "jgregoire/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "nosync"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "month",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "nosync"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "incremental": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "166",
+  "repo": "jmatraszek/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "multidisc"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "albumdisambig",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "if"
+  ],
+  "non_default_path_keys": [
+   "multidisc"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "hardlink": "no"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "169",
+  "repo": "johnsmith0x3f/dots",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "albumartist",
+   "artist",
+   "aybum",
+   "title",
+   "track",
+   "tytle"
+  ],
+  "funcs": [
+   "aunique",
+   "substitute",
+   "sunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 6,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "aybum: f\"[{original_year}] {album}\"",
+   "tytle: f\"[{original_year}] {title}\""
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "170",
+  "repo": "joshproehl/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "17",
+  "repo": "aloop/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc_and_track",
+   "original_day",
+   "original_month",
+   "original_year",
+   "title"
+  ],
+  "funcs": [
+   "aunique",
+   "if",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "disc_and_track: u'%02i.%02i' % (disc, track) if disctotal > 1 else u'%02i' % (track)"
+  ],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "180",
+  "repo": "kergoth/Beets-Library",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "ext",
+   "ext"
+  ],
+  "path_key_count": 5,
+  "fields": [
+   "album",
+   "albumartist",
+   "albumartist_credit",
+   "albumartist_credit_case_only",
+   "albumpath",
+   "artist",
+   "artist_credit",
+   "artist_credit_case_only",
+   "path_filename",
+   "source"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "ext",
+   "ext"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 12,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "copy": "yes",
+   "incremental": "yes",
+   "timid": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": true,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "181",
+  "repo": "kevinmarsh/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "182",
+  "repo": "kigster/beatify",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "compilations",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "beats",
+   "genre",
+   "label",
+   "number",
+   "title",
+   "year"
+  ],
+  "funcs": [
+   "asciify",
+   "ifdef",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "compilations",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 12,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "beats: u'-(%03ibpm)' % bpm if bpm > 1 else ''",
+   "multidisc: 1 if disctotal > 1 else 0",
+   "number: u'%02i:%02i' % (disc, track) if",
+   "disctotal > 1 else u'%02i' % (track)"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "190",
+  "repo": "linuxserver/docker-beets",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 10,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "191",
+  "repo": "littlejeem/beets_configs",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "folder",
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "192",
+  "repo": "littlejeem/control_scripts",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "folder",
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "194",
+  "repo": "llego/nixconfig",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 14,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "195",
+  "repo": "lmburns/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype",
+   "genre",
+   "bad"
+  ],
+  "path_key_count": 6,
+  "fields": [
+   "album",
+   "albumartist",
+   "primary_albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype",
+   "genre",
+   "bad"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 18,
+  "asciify_paths": null,
+  "max_filename_length": "255",
+  "art_filename": "cover",
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "primary_albumartist: |",
+   "import re",
+   "return re.split(',|\\s+(feat(.?|uring)|&|x|(Vs|Ft).)', albumartist, 1, flags=re.IGNORECASE)[0]",
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "199",
+  "repo": "Lukas0907/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "19",
+  "repo": "alter2000/.dots",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "no",
+  "import": {
+   "copy": "yes",
+   "incremental": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "202",
+  "repo": "makmonty/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "singleton",
+   "#albumtype",
+   "albumtype",
+   "albumtype"
+  ],
+  "path_key_count": 6,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "original_year",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "singleton",
+   "#albumtype",
+   "albumtype",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "false"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "203",
+  "repo": "malulo95/pi-media-server",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "format",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "true",
+   "duplicate_action": "skip",
+   "write": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "205",
+  "repo": "martadinata666/dockerized",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 10,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "206",
+  "repo": "martijnvermaat/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "disctotal",
+   "comp",
+   "singleton"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "disctotal",
+   "comp",
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "210",
+  "repo": "matias-ceau/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track_"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "incremental": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "211",
+  "repo": "matthewgeng/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes   # Use files in place",
+   "timid": "no #"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "215",
+  "repo": "mgoltzsche/beets-autogenre",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "title"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "true",
+   "incremental": "true",
+   "write": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "216",
+  "repo": "mgoltzsche/beets-webm3u",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "title"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "217",
+  "repo": "mgoltzsche/beets-ytimport",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "title"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "true",
+   "incremental": "true",
+   "quiet_fallback": "asis",
+   "write": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "220",
+  "repo": "mkoskar/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "singleton"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "comp",
+   "singleton"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 6,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "223",
+  "repo": "MrDowntempo/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "albumtype",
+   "comp"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "original_year",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "if",
+   "substitute",
+   "sunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "albumtype",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "reflink": "auto",
+   "timid": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "225",
+  "repo": "mrzool/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 1,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "226",
+  "repo": "mudssky/powershellScripts",
+  "paths_present": true,
+  "path_keys": [
+   "#default",
+   "#singleton",
+   "#comp",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "#playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 24,
+  "fields": [
+   "album",
+   "artist",
+   "has_date",
+   "length",
+   "llgroupname",
+   "singername",
+   "title",
+   "track",
+   "vtubername",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "#default",
+   "#singleton",
+   "#comp",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "#playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "playlist",
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": "no",
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "hardlink": "no",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "22",
+  "repo": "amonks/setup",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "232",
+  "repo": "naibaf0/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "singleton",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "singleton",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes #alle Paths in ascii machen",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes #copy files into the library",
+   "incremental": "no",
+   "write": "yes #metadata tags are written to files"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "237",
+  "repo": "nebtu/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "no",
+   "incremental": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "238",
+  "repo": "Nelyah/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "239",
+  "repo": "neodymium6/music-ingest",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "240",
+  "repo": "Newchair2644/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": "false",
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "link": "no",
+   "hardlink": "no",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "241",
+  "repo": "nguyenmq/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "asciify",
+   "lower"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": true,
+  "replace_rule_count": 4,
+  "asciify_paths": "no",
+  "max_filename_length": "150",
+  "art_filename": "cover",
+  "per_disc_numbering": null,
+  "import": {
+   "incremental": "no",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "244",
+  "repo": "Nitestack/raspberry-pi-5",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "246",
+  "repo": "noah-conway/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "genre",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "autotag": "no"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "247",
+  "repo": "NoahTheDuke/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "252",
+  "repo": "openlab-aux/music-player",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "260",
+  "repo": "pdugan20/clickwheel",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "no",
+   "quiet_fallback": "asis",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "263",
+  "repo": "perminder-klair/musicpipe",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 6,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "no",
+   "duplicate_action": "keep",
+   "quiet_fallback": "asis",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "264",
+  "repo": "philvernon/dotconfig_",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "disctotal",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "hardlink": "yes",
+   "incremental": "yes",
+   "quiet_fallback": "asis",
+   "write": "no"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "266",
+  "repo": "PMuellerCH/ansible-collection-workstation",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "albumartist",
+   "artist",
+   "title"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "false",
+   "copy": "true",
+   "write": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "267",
+  "repo": "pngdeity/pngdeity.github.io",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "false",
+   "autotag": "true",
+   "write": "true"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0",
+   "initial: albumartist[0].upper() + \".\"",
+   "# disc_and_track: '%02i.%02i' % (disc, track) if disctotal > 1 else '%02i' % (track)"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "268",
+  "repo": "polandy/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "albumtype",
+   "albumtype",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "albumtype",
+   "albumtype",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 9,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "271",
+  "repo": "postrockreverb/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "272",
+  "repo": "potyt/dotfiles-common",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 4,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "280",
+  "repo": "rafi/.config",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "albumtype",
+   "singleton"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "albumtype",
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "hardlink": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "281",
+  "repo": "RandomNinjaAtk/arr-scripts",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "true",
+  "max_filename_length": null,
+  "art_filename": "folder",
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "no",
+   "incremental": "no",
+   "duplicate_action": "skip",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "289",
+  "repo": "robled/formalizer",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "folder",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "timid": "yes",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "28",
+  "repo": "arawwad/groovarr",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "duplicate_action": "keep",
+   "quiet_fallback": "asis",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "293",
+  "repo": "RollingStar/dial-beets",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "alb_exotic_type",
+   "alb_orig_year",
+   "alb_orig_year_mm_dd",
+   "alb_promo_boot",
+   "alb_subset_bitrate",
+   "alb_title",
+   "albumartist",
+   "artist",
+   "i_cust_catalog",
+   "i_disc_layer",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if",
+   "solo",
+   "the"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": true,
+  "replace_rule_count": 24,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "'covauto'",
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "duplicate_action": "keep",
+   "timid": "no",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": true,
+  "field_computations": [
+   "i_disc_layer: |",
+   "#do nothing for single-disc releases",
+   "if disctotal > 1:",
+   "if disc != '':",
+   "str_disc = str(disc)",
+   "#pad based on length of highest disc number.",
+   "#ex. if total discs = 2 digits, pad 1 zero for discs 1-9 (01-09)",
+   "legth_to_pad_to = len(str(disctotal))",
+   "return str_disc.zfill(legth_to_pad_to)",
+   "return ''",
+   "i_cust_catalog: |",
+   "def cust_channels():",
+   "if channels == 2:",
+   "#I don't care about stereo sound because of how common it is",
+   "return ''",
+   "elif channels == 1:",
+   "return 'Mono'",
+   "elif channels == 4:",
+   "return 'Quad'",
+   "elif 5 <= channels <= 6:",
+   "return 'Surround'",
+   "else:",
+   "return str(channels) + 'ch'",
+   "#omit formats that are common, or that have the same data as a normal CD",
+   "#nothing special about CD / Web (it's very common on a computer) so just omit it",
+   "#Blu-spec is the same as CD. see",
+   "#https://www.cnet.com/news/blu-spec-cd-format-what-is-it-and-should-you-even-care/",
+   "#Enhanced CD is the same audio-wise as a CD. It just contains data too.",
+   "#CDDA = Redbook = normal CD",
+   "#SHM-CD = conforms to CD spec, data will be the same #https://www.amazon.com/SHM-CD-Super-High-Material-CD/forum/Fx1IPUKC4NE0UXH/Tx112UYCFCW3FPU/1/ref=cm_cd_et_md_pl?_encoding=UTF8&asin=B000G73U5Y&cdMsgID=Mx2Q7J55H8UK0XR&cdMsgNo=6&cdSort=oldest#Mx2Q7J55H8UK0XR",
+   "media_types_to_omit = ['Digital Media', 'CD', 'Blu-spec CD', 'Enhanced CD', 'CDDA', 'SHM-CD', '']",
+   "def item_cust_media():",
+   "#see https://musicbrainz.org/doc/Release/Format",
+   "if media in media_types_to_omit:",
+   "return ''",
+   "#combine hybrid SACD with SACD, see https://en.wikipedia.org/wiki/Super_Audio_CD#Technology",
+   "elif 'SACD' in media:",
+   "return 'SACD'",
+   "#combine all vinyl types into just \"Vinyl\"",
+   "elif 'Vinyl' in media:",
+   "#https://en.wikipedia.org/wiki/VinylDisc",
+   "if media == 'VinylDisc':",
+   "return 'VinylDisc'",
+   "else:",
+   "return 'Vinyl'",
+   "elif 'DVD' in media:",
+   "if media == 'HD-DVD':",
+   "return 'HD-DVD'",
+   "else:",
+   "return 'DVD'",
+   "elif \"USB\" in media:",
+   "return 'USB'",
+   "#DualDisc contains a DVD side and a CD side. this classification will be incorrect if you rip the CD side",
+   "#but why would you do that?",
+   "elif media == \"DualDisc\":",
+   "return \"DVD\"",
+   "else:",
+   "return media",
+   "def reissue():",
+   "if year > original_year:",
+   "if original_year > 0:",
+   "return str(year)",
+   "return ''",
+   "result = ''",
+   "if reissue() != '':",
+   "result = reissue()",
+   "#faster lookup than cust_channels",
+   "if channels != 2:",
+   "if result != '':",
+   "result = result + \" \" + cust_channels()",
+   "else:",
+   "result = cust_channels()",
+   "#faster lookup",
+   "if media not in media_types_to_omit:",
+   "if result != '':",
+   "result = result + ' ' + item_cust_media()",
+   "else:",
+   "result = item_cust_media()",
+   "if result != '':",
+   "return ' (' + result + ')'",
+   "return result",
+   "alb_promo_boot: |",
+   "#official, promo, bootleg, and pseudo-release. we only note the middle two. https://musicbrainz.org/doc/Release#Status",
+   "#speedup, official is most common",
+   "if albumstatus == \"Official\":",
+   "return ''",
+   "#case sensitive. Can use methods like the following link, but albumstatus is *supposed* to only take 1 of 4 values",
+   "# https://stackoverflow.com/questions/319426/how-do-i-do-a-case-insensitive-string-comparison-in-python",
+   "elif 'Promo' in albumstatus:",
+   "return 'Promo'",
+   "elif 'Bootleg' in albumstatus:",
+   "return 'Bootleg'",
+   "else:",
+   "return ''",
+   "alb_exotic_type: |",
+   "#for this and promo_boot, note that musicbrainz seems to store strings as lowercase: 'album'. yet beets seems to use",
+   "#title case: 'Album'. Further research needed.",
+   "#no special noting of albums, EPs, and soundtracks",
+   "if albumtype in {'album', 'ep', 'soundtrack'}:",
+   "return ''",
+   "#special case for proper spacing and caps",
+   "#todo, check that this is being caught properly",
+   "elif 'spokenword' in albumtype:",
+   "return 'Spoken Word'",
+   "else:",
+   "return str.title(albumtype)",
+   "alb_subset_bitrate: |",
+   "#bitrate in kbps that divides between two courses of action",
+   "#does not check every track, but should be a speedup on very large albums (multidisc compilations)",
+   "#for my purposes, don't really need bitrate, just a ballpark",
+   "#change as needed; this treats >150kbps lossy the same as it does FLAC. >321 would make it just FLAC and other high-bitrate formats.",
+   "#320 oddly enough doesn't correctly categorize 320kbps MP3 as being <321 kbps. Try 321?",
+   "br_threshhold = 150",
+   "#dunno where all the beets slowness comes from. this may help or may do nothing",
+   "#set to a very high number (ex. 9999) to check every track",
+   "#would be nice to check how much of a performance boost we get",
+   "max_tracks_to_check = 10",
+   "def sample_tracks(tracks):",
+   "#reproducible randomness for debugging. should be excluded for optimal randomness from album to album.",
+   "#otherwise, any album with same number of tracks will get same sample of track numbers, I think",
+   "from random import seed, sample",
+   "seed(25)",
+   "num_items = len(tracks)",
+   "sample_size = min(max_tracks_to_check, num_items)",
+   "test_tracks = sample(tracks, sample_size)",
+   "return(test_tracks)",
+   "test_tracks = sample_tracks(items)",
+   "sample_size = len(test_tracks)",
+   "total = 0",
+   "for item in test_tracks:",
+   "total += item.bitrate",
+   "album_br_bits_ps = total / sample_size",
+   "#base-10 vs. base-2 debate? seemingly 1000:",
+   "# https://hydrogenaud.io/index.php/topic,12633.0.html",
+   "album_br_kbps = album_br_bits_ps / 1000",
+   "#I don't care once the audio is \"transparent\" - indistinguishable from FLAC",
+   "#so return an empty tag in this case",
+   "if album_br_kbps > br_threshhold:",
+   "return ''",
+   "#only calculate format tag if we need it",
+   "else:",
+   "#return Opus, MP3, \"Mixed\", etc.",
+   "#uses same test_tracks from earlier sample",
+   "alb_format = test_tracks[0].format",
+   "for item in test_tracks[1:(sample_size-1)]:",
+   "if item.format != alb_format:",
+   "alb_format = 'Mixed'",
+   "#Stop looking at items once we know the tracks are not 100% a single format. i.e., once they are \"mixed\"",
+   "return str(int(album_br_kbps)) + 'kbps ' + str(alb_format)",
+   "return str(int(album_br_kbps)) + 'kbps ' + str(alb_format)",
+   "alb_title: |",
+   "#convert allcaps titles to title case, while leaving other titles alone",
+   "s_alb = str(album)",
+   "if s_alb.isupper:",
+   "#any artists who have albums you don't want to change",
+   "#could also be modified to ignore specific albums, and so on. see 'beet fields' from the command line",
+   "allowed_artists = ['573fd3e2-3f61-4329-a6c1-89e20620b0b9']",
+   "if mb_albumartistid not in allowed_artists:",
+   "from titlecase import titlecase",
+   "return titlecase(s_alb)",
+   "return album"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "294",
+  "repo": "roosemberth/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "296",
+  "repo": "ryanakca/ryanakca-dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "format",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "true",
+   "incremental": "true",
+   "quiet_fallback": "skip",
+   "autotag": "true",
+   "write": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "297",
+  "repo": "ryanilano/beets-config",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "# default",
+   "comp",
+   "albumtype",
+   "ext",
+   "mutt",
+   "muttcomp",
+   "VA",
+   "# ext"
+  ],
+  "path_key_count": 9,
+  "fields": [
+   "album",
+   "albumartist",
+   "albumpath",
+   "artist",
+   "custom_media_format",
+   "custom_year",
+   "disc",
+   "multidisc",
+   "mutt_media_format",
+   "original_year",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if",
+   "title"
+  ],
+  "non_default_path_keys": [
+   "# default",
+   "comp",
+   "albumtype",
+   "ext",
+   "mutt",
+   "muttcomp",
+   "VA",
+   "# ext"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": null,
+  "max_filename_length": "155  # unlimited",
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "incremental": "yes",
+   "quiet_fallback": "skip"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0",
+   "custom_media_format: |",
+   "result = []",
+   "if media == 'Digital Media':",
+   "result += ['WEB']",
+   "if media == 'File':",
+   "result += ['WEB']",
+   "elif media.endswith('inyl'):",
+   "result += ['VINYL']",
+   "elif media == 'CDr':",
+   "result += ['CD']",
+   "elif media == 'CD':",
+   "result += [media]",
+   "result += [format]",
+   "if bitdepth == 24:",
+   "result += ['24']",
+   "return \" \".join(result)",
+   "mutt_media_format: |",
+   "result = []",
+   "if media == 'Digital Media':",
+   "result += ['WEB']",
+   "if media == 'File':",
+   "result += ['WEB']",
+   "elif media.endswith('inyl'):",
+   "result += ['VINYL']",
+   "elif media == 'CDr':",
+   "result += ['CD']",
+   "elif media == 'CD':",
+   "result += [media]",
+   "result += [format]",
+   "return \" \".join(result)",
+   "# return a decent release year, avoid original years of 0000",
+   "custom_year: |",
+   "result = ''",
+   "if original_year == 0000:",
+   "result += ''",
+   "elif year > original_year:",
+   "result += str(year) + ''",
+   "if result != '':",
+   "return ' (' + result + ')'"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "298",
+  "repo": "RyanMcG/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "299",
+  "repo": "s0len/solen-ops",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "hardlink": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "29",
+  "repo": "arkq/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "original_year",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": "Folder",
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "300",
+  "repo": "sabrehagen/dotfiles-1",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc_and_track",
+   "title",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "disc_and_track: u'%02i.%02i' % (disc, track) if",
+   "disctotal > 1 else u'%02i' % (track)"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "302",
+  "repo": "santiagosayshey/crate",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "no",
+   "hardlink": "yes",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "305",
+  "repo": "sarumont/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "albumtype",
+   "singleton",
+   "comp",
+   "default",
+   "ext",
+   "ext",
+   "ext",
+   "ext"
+  ],
+  "path_key_count": 8,
+  "fields": [
+   "album",
+   "albumartist",
+   "albumpath",
+   "artist",
+   "disc",
+   "genre",
+   "multidisk",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "albumtype",
+   "singleton",
+   "comp",
+   "ext",
+   "ext",
+   "ext",
+   "ext"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "true",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisk: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "306",
+  "repo": "Schnouki/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype",
+   "albumtype"
+  ],
+  "path_key_count": 5,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "307",
+  "repo": "Schweinepriester/beets-config",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": true,
+  "replace_rule_count": 7,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "copy": "yes # default",
+   "quiet_fallback": "skip # default",
+   "timid": "no # default",
+   "write": "yes # default"
+  },
+  "item_fields_present": true,
+  "album_fields_present": true,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0",
+   "bitrate: |",
+   "total = 0",
+   "for item in items:",
+   "total += item.bitrate",
+   "bitrate = total / len(items)",
+   "return str(bitrate)[:3]"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "30",
+  "repo": "ArtemSmaznov/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "albumtypes",
+   "comp"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "albumtypes",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 13,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "copy": "no         # -c -C",
+   "duplicate_action": "ask",
+   "timid": "no        # -t",
+   "autotag": "yes     # -a",
+   "write": "yes       # -w -W"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "311",
+  "repo": "sezisoro/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "path_artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "path_artist: |",
+   "if albumartist:",
+   "return albumartist",
+   "elif label:",
+   "return label",
+   "else:",
+   "return artist"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "312",
+  "repo": "sffej/tfree87-docker-compose",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "write": "no"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "313",
+  "repo": "sflavelle/dots",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "albumtypes",
+   "comp"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "atypes",
+   "collection",
+   "itemartist",
+   "sfirstartist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "ifdef",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "albumtypes",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": true,
+  "field_computations": [
+   "sfirstartist: return artists[0] if artists else artist",
+   "afirstartist: return albumartists.split(\"\u2400\")[0] if albumartists else albumartist",
+   "itemartist: |",
+   "import re",
+   "ssMatch = re.search(r\"\\((.+)\\)$\", artist)",
+   "if albumartist != artist and albumartist == \"Simon Says\" and ssMatch is not None:",
+   "# If it's one of my mashups and I list the artists in the artist tag,",
+   "# Strip my name and just list the artists used as the 'track artist'",
+   "return '- ' + ssMatch.group()[1:-1] + ' -'",
+   "elif albumartist != artist:",
+   "# Otherwise, just list the artist if it's different from the album artist",
+   "return '- ' + artist + ' -'",
+   "else:",
+   "# Or nothing if the artist is the same as the album artist",
+   "return '-'",
+   "tracks: len(items)"
+  ],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "31",
+  "repo": "aruhier/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc_and_track",
+   "original_year",
+   "title"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "incremental": "no",
+   "quiet_fallback": "asis",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "323",
+  "repo": "sinoroc/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "original_year",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "copy": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "326",
+  "repo": "sometimeskind/music-pipeline",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "duplicate_action": "remove"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "32",
+  "repo": "ashleytowner/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "false",
+   "incremental": "false",
+   "write": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "334",
+  "repo": "svenstaro/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "genre",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "33",
+  "repo": "ashprice/cfg",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "singleton",
+   "genre",
+   "albumtype"
+  ],
+  "path_key_count": 5,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "artist_credit",
+   "atypes",
+   "disc",
+   "multidisc",
+   "original_year",
+   "parent_composer",
+   "parentwork",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if",
+   "ifdef",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "singleton",
+   "genre",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 14,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "cover",
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "duplicate_action": "ask",
+   "timid": "yes",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0",
+   "#  padded_tracknr: \"'{:02n}'.format(track)\"",
+   "first_artist: |",
+   "import re",
+   "return re.split(',|\\s+(feat(.?|uring)|&|(Vs|Ft).)', albumartist, 1, flags=re.IGNORECASE)[0:1][0]",
+   "ft_artist: |",
+   "import re",
+   "match = re.search(',|\\s+(feat(.?|uring)|&|(Vs|Ft).)', artist_credit, flags=re.IGNORECASE)",
+   "if match:",
+   "result = artist_credit[match.end():].strip()",
+   "if result:",
+   "return result",
+   "return None"
+  ],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": true,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "346",
+  "repo": "terry90/soulbeet",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "duplicate_action": "remove"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "348",
+  "repo": "thelaw51/PlaylistBuilder",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "year"
+  ],
+  "funcs": [
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "duplicate_action": "remove",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "351",
+  "repo": "tim-lawson/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no # temp",
+   "copy": "yes # temp",
+   "incremental": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "352",
+  "repo": "TingoL/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "353",
+  "repo": "TomJo2000/.dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "title"
+  ],
+  "funcs": [
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 16,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "true                   # copy don't move",
+   "incremental": "true            # support stopping and resuming imports.",
+   "quiet_fallback": "asis         # ask for input when there's no strong match during automatic imports."
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "354",
+  "repo": "tsbohc/.garden",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "356",
+  "repo": "ttrei/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "albumtype",
+   "comp",
+   "singleton"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "multidisc",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "albumtype",
+   "comp",
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "incremental": "yes",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "357",
+  "repo": "u2pitchjami/mixonaut",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc_and_track",
+   "i_release_type",
+   "label",
+   "original_year",
+   "title"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 10,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "i_release_type: |",
+   "if len(albumtypes) > 1:",
+   "if albumtypes[1] == \"compilation\":",
+   "return \"Compilation\"",
+   "elif albumtypes[1] == \"soundtrack\":",
+   "return \"Soundtrack\"",
+   "elif albumtypes[1] == \"live\":",
+   "return \"Live\"",
+   "elif albumtypes[1] == \"broadcast\":",
+   "return \"Broadcast\"",
+   "elif albumtypes[1] == \"dj-mix\":",
+   "return \"DJ-Mix\"",
+   "elif albumtypes[1] == \"demo\":",
+   "return \"Demo\"",
+   "elif albumtypes[1] == \"mixtape/street\":",
+   "return \"Mixtape\"",
+   "elif albumtypes[1] == \"remix\":",
+   "return \"Remix\"",
+   "if len(albumtypes) > 0:",
+   "if albumtypes[0] == \"album\":",
+   "return \"Album\"",
+   "elif albumtypes[0] == \"single\":",
+   "return \"Single\"",
+   "elif albumtypes[0] == \"ep\":",
+   "return \"EP\"",
+   "return \"Other\"",
+   "disc_and_track: |",
+   "if disctotal > 9:",
+   "return u'%02i-%02i'% (disc, track)",
+   "elif disctotal > 1:",
+   "return u'%01i-%02i' % (disc, track)",
+   "elif tracktotal > 99:",
+   "return u'%03i' % (track)",
+   "elif tracktotal > 9:",
+   "return u'%02i' % (track)",
+   "else:",
+   "return u'%02i' % (track)"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "360",
+  "repo": "viccuad/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 7,
+  "asciify_paths": "no",
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "361",
+  "repo": "viccuad/salt-configs",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 7,
+  "asciify_paths": "no",
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "372",
+  "repo": "WatermelonDriveway/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "original_year",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "373",
+  "repo": "weilbith/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": true,
+  "replace_rule_count": 13,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "383",
+  "repo": "yacoob/beets-container",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "389",
+  "repo": "ymarco/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default"
+  ],
+  "path_key_count": 1,
+  "fields": [
+   "album",
+   "albumartist",
+   "original_year",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "the"
+  ],
+  "non_default_path_keys": [],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "38",
+  "repo": "batjaa/home-server",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 8,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "40",
+  "repo": "belak/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "'albumartist",
+   "comp",
+   "singleton"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc_prefix",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "'albumartist",
+   "comp",
+   "singleton"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 9,
+  "asciify_paths": null,
+  "max_filename_length": "200",
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "incremental": "yes",
+   "timid": "yes",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "disc_prefix: |",
+   "return '%d.' % disc if disctotal and disctotal > 1 else ''"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "41",
+  "repo": "benoitj/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "true"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "42",
+  "repo": "berstearns/mp3i",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "no          # do NOT relocate anything",
+   "copy": "no          # do NOT duplicate 31GB into a new tree",
+   "incremental": "yes  # already-catalogued dirs are skipped; re-runs are cheap",
+   "autotag": "no       # untagged rips have nothing for MusicBrainz to match",
+   "write": "no         # do NOT rewrite tags in your files"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "49",
+  "repo": "brenix/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "genre",
+   "multidisc",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 10,
+  "asciify_paths": "yes",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "incremental": "yes",
+   "quiet_fallback": "asis"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "51",
+  "repo": "brxck/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "52",
+  "repo": "buvis/home",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "albumtype",
+   "comp",
+   "singleton"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "multidisc",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "albumtype",
+   "comp",
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": "true",
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "true",
+  "import": {
+   "move": "true"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "53",
+  "repo": "buzzcola3/music_fix",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "55",
+  "repo": "carnivuth/music_collection",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "albumtype"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "albumartist",
+   "disc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {},
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "59",
+  "repo": "choreutes/nixos-configuration",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "genre",
+   "genre"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "comments",
+   "genre",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "genre",
+   "genre"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "write": "no"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "60",
+  "repo": "cinocode/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype",
+   "albumtype",
+   "albumtype"
+  ],
+  "path_key_count": 6,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype",
+   "albumtype",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "quiet_fallback": "asis"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "66",
+  "repo": "codyopel/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "soundtrack"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "catalognum",
+   "country_code",
+   "media_type",
+   "original_year",
+   "release_type",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "if",
+   "lower"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 19,
+  "asciify_paths": "yes",
+  "max_filename_length": "156",
+  "art_filename": "Folder",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "yes",
+   "link": "no",
+   "timid": "yes",
+   "autotag": "yes",
+   "write": "no"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "# Make sure the release country is in ISO 3166-2 format",
+   "country_code: |",
+   "from pycountry import countries",
+   "alternate_name = {",
+   "'Europe': 'European Union',",
+   "'Russia': 'Russian Federation',",
+   "# FIXME: Implement a way to parse for multiple countries",
+   "#        and make a list of alpha2 codes.",
+   "#      - Need to figure out a seperator character, can't be hypen",
+   "#        or other characters if any that are a part of ISO 3166",
+   "'UK & Europe': 'European Union',",
+   "'UK, Europe & US': 'World Wide',",
+   "'USA & Canada': 'North America'",
+   "}",
+   "custom_alpha2 = {",
+   "# The European Union does not meet the criteria for inclusion",
+   "# in ISO 3166-1, but EU is reserved for the purpose by",
+   "# ISO 3166/MA.",
+   "'European Union': 'EU',",
+   "# ISO 3166 establishes NA as the North American continent code,",
+   "# but it would conflict with the Namibia country code, so use",
+   "# an un-designated code.",
+   "'North America': 'NM',",
+   "'World Wide': 'WW'",
+   "}",
+   "translate_invalid_alpha2 = {",
+   "# Translate musicbrainz's alpha2 code for the European Union",
+   "'XE': 'EU',",
+   "'XW': 'WW'",
+   "}",
+   "if len(country) > 2:",
+   "if country in alternate_name:",
+   "country2 = alternate_name[country]",
+   "else:",
+   "country2 = country",
+   "if country2 in custom_alpha2:",
+   "c = custom_alpha2[country2]",
+   "else:",
+   "try:",
+   "c = countries.get(name=country2).alpha2",
+   "except:",
+   "try:",
+   "c = countries.get(name=custom_alpha2[country2]).alpha2",
+   "except:",
+   "# TODO: maybe this should return XU, because validation",
+   "#       has already failed at this point.",
+   "#     - this should also log files incase a work around",
+   "#       needs to be put in place to handle another",
+   "#       exception.",
+   "c = country2",
+   "# Attempt to fix known invalid ISO 3166 codes",
+   "elif len(country) == 2:",
+   "try:",
+   "c = countries.get(alpha2=country).alpha2",
+   "except:",
+   "if country.upper() in translate_invalid_alpha2:",
+   "c = translate_invalid_alpha2[country]",
+   "else:",
+   "c = country",
+   "else:",
+   "# Incase `country` contains a single character or isn't set,",
+   "# use musicbrainz's code for unknown country.",
+   "c = \"XU\"",
+   "return c",
+   "# Normalize relase types",
+   "release_type: |",
+   "# This is mainly to fix discogs metadata sources which allow multiple",
+   "# entries in the albm type field.",
+   "# FIXME: Should parse strings into an array in order and then match",
+   "#        against a list of excepted keywords and match in order of",
+   "#        preference rather than the first match.",
+   "translate_release_type = {",
+   "# Album",
+   "'album, deluxe edition, enhanced': 'album',",
+   "'album, enhanced': 'album',",
+   "'album, limited edition': 'album',",
+   "'album, reissue': 'album',",
+   "'album, reissue, remastered': 'album',",
+   "'album, remastered': 'album',",
+   "# aunique can't handle conditionals so allow `album repress`",
+   "# until this can be fixed.",
+   "# e.g. if album,catalognum,media_type,release_type,&,year",
+   "#      are identical between to releases, only then apply",
+   "#      a user specified method for handling unique senarios.",
+   "#      (i.e. the artist/album directory paths result in collisions)",
+   "#'album, repress': 'album',",
+   "'album, special edition': 'album',",
+   "'album, unofficial release': 'album',",
+   "'hdcd, album': 'album',",
+   "'lp, album': 'album',",
+   "'mini-album': 'album',",
+   "'mini-album, enhanced': 'album',",
+   "'mini-album, reissue': 'album',",
+   "'mini-album, repress': 'album',",
+   "# Compilation",
+   "'album, compilation': 'compilation',",
+   "'compilation, reissue': 'compilation',",
+   "'promo, compilation': 'compilation',",
+   "# EP",
+   "'ep, limited edition': 'ep',",
+   "'ep, mp3': 'ep',",
+   "'ep, promo, limited edition': 'ep',",
+   "'shape, ep, limited edition': 'ep',",
+   "# Single",
+   "'single, promo': 'single'",
+   "}",
+   "if albumtype.lower() in translate_release_type:",
+   "rt = translate_release_type[albumtype.lower()]",
+   "else:",
+   "rt = albumtype",
+   "return rt",
+   "media_type: |",
+   "translate_media_type = {",
+   "'12 vinyl': 'lp',",
+   "'digital media': 'digital',",
+   "}",
+   "if media.lower() in translate_media_type:",
+   "m = translate_media_type[media.lower()]",
+   "else:",
+   "m = media",
+   "return m"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "69",
+  "repo": "cupkax/beets-config",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": "255 # 0 = unlimited.",
+  "art_filename": null,
+  "per_disc_numbering": "no # The track numbers are incremented throughout a multi disk release.",
+  "import": {
+   "move": "yes",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "78",
+  "repo": "davidsilvasanmartin/music",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "disc",
+   "multidisc",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "79",
+  "repo": "dinojr/configuration",
+  "paths_present": true,
+  "path_keys": [
+   "#default",
+   "default",
+   "singleton",
+   "#comp",
+   "comp"
+  ],
+  "path_key_count": 5,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "#default",
+   "singleton",
+   "#comp",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": true,
+  "field_computations": [
+   "albumformat: |",
+   "formatList = set()",
+   "for item in items:",
+   "formatList.add(str(item.format))",
+   "# formatList=str(list(formatList)).translate(None,' \\'[]') #for python2",
+   "formatList=str(list(formatList)).translate({ord(c): None for c in ' \\'[]'} ) #for python3",
+   "return formatList"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "7",
+  "repo": "abhikjain360/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "leadartist",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "false",
+   "copy": "true",
+   "incremental": "true",
+   "autotag": "true",
+   "write": "true"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "leadartist: ((albumartist or artist) or \"\").split(\", \")[0].split(\" & \")[0].split(\" feat. \")[0].strip()"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": true
+ },
+ {
+  "idx": "80",
+  "repo": "djdembeck/music-workflow",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype_soundtrack"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 10,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "albumart",
+  "per_disc_numbering": "no",
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "timid": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "81",
+  "repo": "dommcdev/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "asciify",
+   "aunique",
+   "the"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "cover",
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "82",
+  "repo": "doronbehar/.config_beets",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "artist",
+   "disc",
+   "isMultiDisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "aunique",
+   "if"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 7,
+  "asciify_paths": "no",
+  "max_filename_length": "0",
+  "art_filename": "cover",
+  "per_disc_numbering": "yes",
+  "import": {
+   "move": "no",
+   "copy": "yes",
+   "link": "no",
+   "incremental": "no",
+   "duplicate_action": "ask",
+   "quiet_fallback": "skip",
+   "timid": "no",
+   "autotag": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "isMultiDisc: |",
+   "u'yes' if",
+   "(int(disctotal) > 1) and (disctotal != '')",
+   "else",
+   "u''"
+  ],
+  "original_date": false,
+  "va_name": true,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "86",
+  "repo": "drewlustro/client-configs",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp"
+  ],
+  "path_key_count": 3,
+  "fields": [
+   "album",
+   "albumartist",
+   "artist",
+   "title",
+   "track",
+   "year"
+  ],
+  "funcs": [
+   "aunique"
+  ],
+  "non_default_path_keys": [
+   "singleton",
+   "comp"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "cover",
+  "per_disc_numbering": null,
+  "import": {
+   "copy": "yes",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "8",
+  "repo": "adammillerio/beets-pipeline",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "comp",
+   "ext",
+   "ext"
+  ],
+  "path_key_count": 4,
+  "fields": [
+   "album",
+   "albumartist",
+   "albumpath",
+   "artist",
+   "disc",
+   "multiartist",
+   "multidisc",
+   "title",
+   "track"
+  ],
+  "funcs": [
+   "if"
+  ],
+  "non_default_path_keys": [
+   "comp",
+   "ext",
+   "ext"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "cover                     # Rename all album art files to cover, e.g., cover.jpg/cover.png",
+  "per_disc_numbering": "yes                 # First track of a subsequent disc will always be 1 instead of N+1 where N is the last track of previous disc",
+  "import": {
+   "move": "yes                             # Move files into the library",
+   "copy": "no                              # Don't copy files into the library",
+   "timid": "yes                            # Timid mode: Ask for confirmation on every tag match",
+   "write": "yes                            # Write metadata to files as ID3 tags"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "multidisc: 1 if disctotal > 1 else 0                  # Create a $multidisc field that is the number of the disc if it is a multi-disc release",
+   "multiartist: 1 if albumartist != artist else 0        # Create a $multiartist boolean that represents if the track artist is not the same as the album artist"
+  ],
+  "original_date": true,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "93",
+  "repo": "eightbitraptor/dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "default",
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "path_key_count": 4,
+  "fields": [],
+  "funcs": [],
+  "non_default_path_keys": [
+   "singleton",
+   "comp",
+   "albumtype"
+  ],
+  "replace_present": true,
+  "replace_rule_count": 5,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": null,
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "quiet_fallback": "skip",
+   "write": "yes"
+  },
+  "item_fields_present": true,
+  "album_fields_present": false,
+  "field_computations": [
+   "disc_and_track: u'%02i.%02i' % (disc, track) if disctotal > 1 else u'%02i' % (track)"
+  ],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ },
+ {
+  "idx": "9",
+  "repo": "A/.dotfiles",
+  "paths_present": true,
+  "path_keys": [
+   "\"folder",
+   "default"
+  ],
+  "path_key_count": 2,
+  "fields": [
+   "album",
+   "artist",
+   "folder",
+   "genre",
+   "title",
+   "track"
+  ],
+  "funcs": [],
+  "non_default_path_keys": [
+   "\"folder"
+  ],
+  "replace_present": false,
+  "replace_rule_count": 0,
+  "asciify_paths": null,
+  "max_filename_length": null,
+  "art_filename": "$albumartist - $album",
+  "per_disc_numbering": null,
+  "import": {
+   "move": "yes",
+   "copy": "no",
+   "incremental": "yes",
+   "autotag": "no",
+   "write": "yes"
+  },
+  "item_fields_present": false,
+  "album_fields_present": false,
+  "field_computations": [],
+  "original_date": false,
+  "va_name": false,
+  "artist_credit": false,
+  "sort_in_paths": false,
+  "the_plugin": false
+ }
+]

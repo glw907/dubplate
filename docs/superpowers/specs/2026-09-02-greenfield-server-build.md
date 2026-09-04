@@ -699,15 +699,20 @@ are marked [E].
     never round-tripped through Go strings, NULL singleton album
     IDs, ledger reconciliation, the no-move dry-run); the legacy
     ledger format captured as a documented fixture while `_salvage/`
-    is legible; layout-parity fixtures proving the beets path-format
-    DSL and query-prefixed collection routing reproduce the estate's
-    computed paths—engine work, because any beets-migrating
-    adopter faces the same question; a corpus-driven path-parity
-    fixture (carried in 2026-09-02, Geoff): render the path formats
-    over rung 2's corpus AppliedFields records through pinned beets
-    and through the new engine, and diff the renderings
-    case-for-case, so organization parity is evidence rather than
-    review; and the first read-only no-move
+    is legible; layout parity, **amended (Geoff, 2026-09-03): the
+    engine does NOT implement or evaluate the beets path-format DSL
+    — the native layout language (see
+    `research/2026-09-03-library-organization-config-direction.md`)
+    is the only engine surface, and beets migration is served by a
+    separate one-time translation tool outside the engine.** Parity
+    is proven at the output level, which the two surviving fixtures
+    already measure: the corpus-driven path-parity fixture (carried
+    in 2026-09-02, Geoff, re-scoped) renders the estate's beets
+    config through pinned beets on the harness side and the
+    translated native config through the new engine over rung 2's
+    corpus AppliedFields records, and diffs the rendered paths
+    case-for-case, so organization parity — and the translator —
+    is evidence rather than review; and the first read-only no-move
     diff against the live library (read-only listing access, R2
     snapshots as the alternative source). A non-empty diff here is a
     rung 9 defect found cheap; the same assertion re-runs at rung 16
