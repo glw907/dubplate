@@ -101,6 +101,18 @@ func (d *Distance) Distance() float64 {
 	return d.RawDistance() / maxDist
 }
 
+// Penalties returns key's individual added penalties, in append order,
+// unweighted and unnormalized: beets' dist._penalties[key]
+// (distance.py:131). It is the one raw view Distance exposes; every
+// other accessor already weights, normalizes, or aggregates. Tier 0's
+// decoder is the caller that needs it: an adder-shape components.json
+// row pins the exact append-order slice a fresh accumulator produces,
+// and a track_distance or add_data_source row pins the same slice per
+// key rather than a weighted value. A key never added returns nil.
+func (d *Distance) Penalties(key string) []float64 {
+	return slices.Clone(d.penalties[key])
+}
+
 // AddedKeys returns every penalty key in insertion order, including
 // keys added at 0.0.
 //

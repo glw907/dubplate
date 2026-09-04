@@ -151,6 +151,26 @@ func TestAddedKeysPreserveInsertionOrder(t *testing.T) {
 	}
 }
 
+func TestPenaltiesReturnsTheRawAppendOrderSlice(t *testing.T) {
+	d := NewDistance(DefaultTunables())
+	d.AddNumber("track_index", 5, 2) // three units of difference: three 1.0 penalties
+
+	if got, want := d.Penalties("track_index"), []float64{1, 1, 1}; !slices.Equal(got, want) {
+		t.Errorf("Penalties(track_index) = %v, want %v", got, want)
+	}
+	if got := d.Penalties("never_added"); got != nil {
+		t.Errorf("Penalties(never_added) = %v, want nil", got)
+	}
+
+	// The slice returned is a copy: mutating it must not reach back
+	// into the accumulator's own state.
+	got := d.Penalties("track_index")
+	got[0] = 99
+	if again := d.Penalties("track_index"); again[0] != 1 {
+		t.Errorf("Penalties(track_index)[0] = %v after an external mutation, want 1 (Penalties must clone)", again[0])
+	}
+}
+
 func TestAddEquality(t *testing.T) {
 	tests := []struct {
 		name    string

@@ -1,0 +1,12 @@
+{
+  "beets": "2.13.1",
+  "shim_version": "1",
+  "rows": [
+    {
+      "id": "fixture/ulp-perturbed",
+      "method": "add_expr",
+      "args": {"key": "expr", "calls": [[true]]},
+      "output": {"penalties": [1.0000000000000002]}
+    }
+  ]
+}

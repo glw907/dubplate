@@ -1,0 +1,12 @@
+{
+  "beets": "2.13.1",
+  "shim_version": "1",
+  "rows": [
+    {
+      "id": "bogus/unknown-method",
+      "method": "add_frobnicate",
+      "args": {"key": "x", "calls": []},
+      "output": {"penalties": []}
+    }
+  ]
+}

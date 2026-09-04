@@ -1,0 +1,18 @@
+{
+  "beets": "2.13.1",
+  "shim_version": "1",
+  "rows": [
+    {
+      "id": "fixture/add-expr",
+      "method": "add_expr",
+      "args": {"key": "expr", "calls": [[true]]},
+      "output": {"penalties": [1]}
+    },
+    {
+      "id": "fixture/string-dist",
+      "method": "string_dist",
+      "args": ["a", "a"],
+      "output": {"distance": 0}
+    }
+  ]
+}
