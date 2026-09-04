@@ -164,6 +164,11 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | The `AppliedFields` type | rung 2's case format pins it | rungs 8, 9 |
 | The theme pairing | rung 12 configures Navidrome first | rung 7 authors to match |
 | Session vocabulary and token acquisition | the seam is born at rung 5; non-browser token acquisition stays at rung 14 (the build spec's supersession list governs, over the analysis's 5 → 14 note) | rung 14 |
+| `internal/harness/conform` (added 2026-09-04, per the rung 3 spec's fold) | born by rung 3 pass 3a; rung 3's lane thereafter | the tier 0-2 conformance runners; rung 15's re-run |
+| `internal/harness/oracle` | lane E1 through 2d's close (landed); rung 3 pass 3b adds the derived-AlbumInfo entry point | `make derive`; 3b's ledger |
+| `internal/harness/{cassette,stub,analysis}` | lane E1 as shipped; rung 3 pass 3c makes the ruled `Case.Extra` schema-and-stub change | every conformance consumer |
+| `corpus/analysis/*` and `corpus/cases/*` | lane E1 authors; the adjudication stream commits dispositions; rung 3 adds schema only through re-derivation (3b's `defect_free`) | rungs 3, 8, 15 |
+| `tools/unidecode-table/` (conductor ruling, 2026-09-04) | rung 3 pass 3a — the one-time transliteration-table generator; lane E1 owns the rest of `tools/` | the matcher's embedded table's provenance |
 
 **Rejected alternatives.**
 

@@ -10,7 +10,8 @@ subjects), and the two standing chore docs
 (`docs/corpus-version-bump-differential.md`,
 `docs/corpus-recapture-chore.md`). The rung 8 handoff lives in
 `corpus/README.md`'s "Handoff to rung 8" section. Six known-oracle-bug
-hypotheses are seeded (one `oracle-correct`, five pending). The
+hypotheses are all ruled (Geoff, 2026-09-03/04: four `oracle-wrong`,
+two `oracle-correct`; zero pending). The
 two-code-lane model governs (CLAUDE.md;
 specs/2026-09-03-parallel-build-approach.md rev 2). The family system
 is NOT live until launch. The box (5.78.148.42) runs Navidrome +
