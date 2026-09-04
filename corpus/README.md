@@ -1619,14 +1619,12 @@ distinct, they do not collapse into the same canonical key.
 
 `corpus/manifest.json` pins every version the corpus's derived
 `Expected` records depend on: the beets version, its
-`unidecode`/`jellyfish`/`lap`/`numpy` dependency versions, the shim's own
-version, and a content hash per config profile. `cassette.LoadManifest`
-parses the file and checks its shape only (a schema version and a beets
-pin must be present); reconciling the dependency and profile pins
-against a live venv is derivation-time work, done by the oracle
-package's `Reconcile` when pass 2a's Task 3 lands. Until then, the
-dependency and profile fields stay empty: they are not yet known,
-not defaulted.
+`unidecode`/`jellyfish`/`lap`/`numpy`/`mediafile` dependency versions,
+the shim's own version, and a content hash per config profile.
+`cassette.LoadManifest` parses the file and checks its shape only (a
+schema version and a beets pin must be present); reconciling the
+dependency and profile pins against a live venv is derivation-time
+work, done by the oracle package's `Reconcile`.
 
 A profile edit, or a beets/dependency version bump, is a
 corpus-revalidation event exactly like any other pin change: whatever
@@ -1640,6 +1638,58 @@ recommendation-boundary config, closing a gap where
 forced a re-derivation of every committed record through the new
 `harness freeze` verb (below); `internal/harness/corpus_test.go`'s
 `wantManifestSchemaVersion` moved with it.
+
+`schema_version` moved from `2` to `3` in rung 2, pass 2d's Task 1:
+`cassette.Manifest` gained a `MediaFile` field pinning
+`mediafile==0.17.0`, the write/read-back layer the file-tags ledger
+(below) depends on, and `Reconcile`'s `pinned` tuple and
+`versionProbe` string both gained their sixth component alongside it.
+**This bump forced no re-freeze.** `Manifest` is corpus metadata, not
+a `cassette.Expected` field, so no committed case's `case.json`
+content changed; the evidence is `make derive` re-deriving all 215
+committed records byte-identically with the new pin in place. This is
+the one place pass 2d's schema event differs from 2b's: a schema bump
+forces a re-freeze only when it moves what `Expected` itself carries,
+never when it only adds a manifest pin nothing in `Expected` echoes.
+
+## The file-tags fixture
+
+`internal/harness/oracle/testdata/template.flac` is a vendored,
+42-byte, valid, silent FLAC container carrying no tags: the four-byte
+`fLaC` signature followed by one last-block STREAMINFO metadata block
+(mono, 44.1kHz, 16-bit, zero samples), the minimum `mediafile`'s
+reader needs to dispatch a file as FLAC. It was authored once by
+`internal/harness/oracle/testdata/gen_template_flac.py`, run as
+`python3 internal/harness/oracle/testdata/gen_template_flac.py` from
+the pinned venv; that script is committed alongside the blob as its
+provenance record and is never invoked by `make derive` or the gate.
+The pure-`mutagen` route needs no `ffmpeg` or `flac` binary at all:
+mutagen only needs the metadata container to be well-formed, and
+mutagen is already a pinned transitive dependency of `mediafile`
+(`tools/venv/requirements.txt`, "via mediafile").
+
+`internal/harness/oracle/derive_file_tags.py` writes each subject's
+item into its own fresh copy of this template and reads the result
+back through an independent `mediafile.MediaFile` parse, per
+`cassette.Expected.AppliedFields`' in-memory record fed forward into a
+real file. The value keys this write/read-back round trip can ever
+report split into two disjoint sets, both computed off the pinned venv
+rather than hardcoded, and both recorded in the file-tags ledger's own
+header (`corpus/analysis/file_tags.json`, see "The analyses" below):
+
+- **The writable set, 69 keys**: `Item._media_fields` intersected with
+  `MediaFile.sorted_fields()`, the fields `MediaFile.update()` actually
+  iterates and therefore the only fields `Item.write()` can ever touch.
+  This is the per-row value dict every subject's ledger row carries.
+- **The read-only remainder, 9 keys**: `bitdepth`, `bitrate`,
+  `bitrate_mode`, `channels`, `encoder_info`, `encoder_settings`,
+  `format`, `length`, `samplerate`. These are audio properties
+  `MediaFile` reports from a container's own STREAMINFO, never written
+  by `Item.write()`; measured concretely, `length` reads back `0.0`
+  regardless of what a subject's own `AppliedFields.length` says. They
+  are recorded once, in the ledger's shared `template` block, since
+  their values are a property of the template blob and never of any
+  subject.
 
 ## The analyses
 

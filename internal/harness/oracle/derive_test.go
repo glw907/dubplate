@@ -190,6 +190,7 @@ func TestReconcileNamesTheDisagreeingComponent(t *testing.T) {
 	}{
 		{"wrong version", func(m *cassette.Manifest) { m.Jellyfish = "0.0.1" }, "jellyfish"},
 		{"unpinned field", func(m *cassette.Manifest) { m.Lap = "" }, "lap"},
+		{"wrong mediafile version", func(m *cassette.Manifest) { m.MediaFile = "0.0.1" }, "mediafile"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

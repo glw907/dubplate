@@ -289,6 +289,9 @@ func TestLoadManifest(t *testing.T) {
 	if m.Beets == "" {
 		t.Error("corpus/manifest.json: Beets is empty")
 	}
+	if m.MediaFile == "" {
+		t.Error("corpus/manifest.json: MediaFile is empty")
+	}
 }
 
 func TestLoadManifestRejectsMissingSchemaVersion(t *testing.T) {

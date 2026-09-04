@@ -17,9 +17,12 @@ import (
 // tables, jellyfish's edit distance, and lap's assignment solver all
 // sit directly in the distance path (the mechanics study, Q1.4), so a
 // silent bump there would change verdicts with nothing in the corpus
-// to show for it.
+// to show for it. mediafile is pass 2d's sixth pin: it is the
+// write/read-back layer the file-tags ledger depends on, so a bump
+// there can move what a real FLAC container ends up holding with
+// nothing in the corpus to show for it either.
 const versionProbe = `import json, importlib.metadata as md
-print(json.dumps({n: md.version(n) for n in ("beets", "unidecode", "jellyfish", "lap", "numpy")}))`
+print(json.dumps({n: md.version(n) for n in ("beets", "unidecode", "jellyfish", "lap", "numpy", "mediafile")}))`
 
 // Reconcile compares the manifest's pinned component versions against
 // the venv the shim would actually run under, and reports every
@@ -45,6 +48,7 @@ func Reconcile(ctx context.Context, m *cassette.Manifest, opts Options) error {
 		{"jellyfish", m.Jellyfish},
 		{"lap", m.Lap},
 		{"numpy", m.Numpy},
+		{"mediafile", m.MediaFile},
 	}
 
 	var disagreements []string

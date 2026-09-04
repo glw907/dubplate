@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# fakevenv/bin/python3: stands in for a real venv interpreter so
+# TestReconcileIgnoresAProbeComponentPinnedNeverChecks can drive
+# Reconcile's venvVersions probe without a real uv venv. It ignores
+# whatever code Reconcile's -c invocation passes it (argv $2) and
+# prints one fixed, well-formed component/version JSON map to stdout.
+#
+#   FAKEVENV_EXTRA_COMPONENT   when set, adds a component of this name
+#                                to the printed map, alongside the six
+#                                real pins, at version "9.9.9"
+set -euo pipefail
+
+versions='{"beets": "2.13.1", "unidecode": "1.4.0", "jellyfish": "1.2.1", "lap": "0.5.13", "numpy": "2.5.2", "mediafile": "0.17.0"'
+if [ -n "${FAKEVENV_EXTRA_COMPONENT:-}" ]; then
+  versions="${versions}, \"${FAKEVENV_EXTRA_COMPONENT}\": \"9.9.9\""
+fi
+versions="${versions}}"
+echo "$versions"

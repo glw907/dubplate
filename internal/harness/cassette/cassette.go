@@ -109,6 +109,7 @@ type Manifest struct {
 	Jellyfish     string            `json:"jellyfish"`
 	Lap           string            `json:"lap"`
 	Numpy         string            `json:"numpy"`
+	MediaFile     string            `json:"mediafile"` // pass 2d's sixth pin: the file-tags ledger's write/read-back layer
 	ShimVersion   string            `json:"shim_version"`
 	ProfileHashes map[string]string `json:"profile_hashes"` // profile name -> content hash
 }
