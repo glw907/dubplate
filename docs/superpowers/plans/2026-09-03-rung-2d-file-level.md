@@ -463,7 +463,15 @@ Model: `sonnet`. Depends on Task 1.
   `real-boxset-james-brown-star-time`,
   `real-nonlatin-utada-first-love`, `real-noise-dylan-bootleg`,
   `real-genre-public-enemy-nation-millions`,
-  `real-decoy-beethoven-symphony-5`. Task 2's job on this half is
+  `real-decoy-beethoven-symphony-5`. **Amended (conductor,
+  2026-09-04): that id was never captured — 2c's Task 4 proved the
+  decoy unreachable through beets' search window and the axis closed
+  7-of-8 with its reserve spent (corpus/README.md, "The two-release
+  sub-axis finding"), a fact this plan predates. The implementer's
+  STOP caught it; the ruling keeps twelve subjects and substitutes a
+  committed two-release decoy case carrying an apply action with
+  non-empty AppliedFields, recorded with its eligibility evidence in
+  the README's file-tags section.** Task 2's job on this half is
   reduced to confirming each of these twelve resolves to a committed
   case, not to re-deriving the set from the dossier. **A named id that
   does not resolve to a committed case is a finding to report and a
