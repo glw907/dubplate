@@ -1,8 +1,0 @@
-{
-  "best_album_id": "b5bed26f-4e2b-48cb-ae9a-057095ec1d01",
-  "recommendation": "strong",
-  "penalty_keys_zero": ["album", "album_id", "artist", "tracks"],
-  "applied_fields": {
-    "0": {"artist": "Алла Пугачёва", "albumartist": "Алла Пугачёва"}
-  }
-}

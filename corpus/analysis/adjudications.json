@@ -209,35 +209,9 @@
       "date": "2026-09-03"
     },
     {
-      "id": "adj-adv-alias-pugacheva-romanized",
-      "subject": {
-        "case_id": "adv-alias-pugacheva-romanized"
-      },
-      "suspected": "_preferred_alias (beetsplug/musicbrainz.py:128-155) iterates config['import']['languages'], empty under both the estate and stock profiles, so its generator expression yields nothing and `next(matches, None)` returns None unconditionally -- no alias is ever even considered a candidate string, regardless of what the response documents. This case captures a real release (Alla Pugacheva, Alla Pugacheva Volume 1, 1970s-era Soviet-era release with no parseable date) whose artist-credit carries a documented locale=en alias \"Alla Pugacheva\" (type: Artist name), confirmed via `harness seed-items --facts` against the case's own captured response, sitting unused in the same document the matcher already has open. The applied artist and albumartist both read the native Cyrillic \"Алла Пугачёва\" (the artist entity's own canonical name, matching this release's own credited display too), distance 0, strong, apply.",
-      "citation": "#1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
-      "release_truth": "For an estate importing into a library whose owner reads Latin script, the documented locale=en alias \"Alla Pugacheva\" is the string a listener would want applied; MusicBrainz already carries it on this exact artist-credit. Confirmed via seed-items --facts against the case's own captured response (never hand-read from responses/*.json). The defect is structural, not a bad judgment call: _preferred_alias cannot select it under either shipped profile because import.languages is empty in both, so the alias is provably unreachable, not merely unpreferred.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own applied_fields plus the case's captured, unedited response (real MusicBrainz data, never hand-edited per the captured-response discipline) and the seed-items --facts alias listing read from it.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
-    },
-    {
-      "id": "adj-adv-alias-xjapan-romanized",
-      "subject": {
-        "case_id": "adv-alias-xjapan-romanized"
-      },
-      "suspected": "The mirror-script instance of the same structural gap: X JAPAN's release \"Art of Life\" (a single 29-minute track, captured as a 1-item case) is already credited \"X JAPAN\" in Latin script on this release, so the applied artist (also \"X JAPAN\", distance 0, strong, apply) happens to read acceptably to a Latin-reading listener -- but the mechanism is identical to adv-alias-pugacheva-romanized's: this artist-credit's own documented aliases (\"X-Japan\", \"iX\", and the katakana エックス ジャパン, confirmed via seed-items --facts against the case's own captured response) are never consulted at all, by the same unconditional-None path through _preferred_alias. This case's acceptable-looking outcome is itself evidence that the selection is not a judgment call: it is the total absence of a selection mechanism, applying whichever string the artist entity's own canonical name field happens to carry, independent of any alias, however well- or poorly-suited.",
-      "citation": "#1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
-      "release_truth": "No preference is expressed or exercised: the applied string here is correct by coincidence (the entity's own canonical name already happens to be the Latin form), not by any mechanism that consulted the documented alternatives. Confirmed via seed-items --facts against the case's own captured, unedited response.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Kept as a probe case despite its benign-looking outcome because the absence of a selection mechanism, not any particular outcome, is the defect under investigation.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
-    },
-    {
       "id": "adj-adv-alias-girls-generation-romanized",
       "subject": {
-        "case_id": "adv-alias-girls-generation-romanized"
+        "case_id": "real-nonlatin-girls-generation"
       },
       "suspected": "A second, related mechanism distinct from _preferred_alias: _parse_artist_credits (beetsplug/musicbrainz.py:301-331) sets album_info.artist from `el['artist']['name']`, the MusicBrainz ARTIST ENTITY's own canonical name field, never from `el['name']`, the specific release's own credited display string. This release's own artist-credit displays the Korean \"소녀시대\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read \"Girls’ Generation\" (English, matching one of the artist's own documented locale=en aliases exactly) -- the release's own credited display is silently discarded, replaced by a string sourced from a different MusicBrainz record entirely (the artist entity, not this release). artist is the record's sole nonzero penalty (0.076471), distance 0.076471, medium, skip: the search fallback (5 candidates total, this release's own re-found lookup winning) never resolves the divergence either.",
       "citation": "#6358 (locale aliases ignored after mbsync, 2026); #1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
@@ -250,11 +224,11 @@
     {
       "id": "adj-adv-alias-vissi-native-greek",
       "subject": {
-        "case_id": "adv-alias-vissi-native-greek"
+        "case_id": "real-nonlatin-anna-vissi-essential"
       },
-      "suspected": "The inverse-script instance of adv-alias-girls-generation-romanized's mechanism, proving the release-credit-versus-entity-name gap is not a one-directional bias: this release's own artist-credit displays the Latin \"Anna Vissi\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read the Greek \"Άννα Βίσση\" -- matching a documented locale=el alias exactly, sourced from the artist entity's own canonical name rather than this release's own credited Latin display. artist is the record's sole nonzero penalty (0.014493), distance 0.014493, strong, apply: the divergence still lands inside the confident band, so a quiet-mode import applies it with no review at all.",
+      "suspected": "The inverse-script instance of real-nonlatin-girls-generation's mechanism, proving the release-credit-versus-entity-name gap is not a one-directional bias: this release's own artist-credit displays the Latin \"Anna Vissi\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read the Greek \"Άννα Βίσση\" -- matching a documented locale=el alias exactly, sourced from the artist entity's own canonical name rather than this release's own credited Latin display. artist is the record's sole nonzero penalty (0.014493), distance 0.014493, strong, apply: the divergence still lands inside the confident band, so a quiet-mode import applies it with no review at all.",
       "citation": "#6358 (locale aliases ignored after mbsync, 2026); #1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
-      "release_truth": "This release's own metadata credits \"Anna Vissi\" in Latin script, the form printed on this specific release; a listener importing it would reasonably expect their tags to match. Confirmed via seed-items --facts against the case's own captured, unedited response. Paired with adv-alias-girls-generation-romanized, the two cases show the same mechanism firing in opposite script directions, which is what rules out a simple \"beets always prefers script X\" explanation.",
+      "release_truth": "This release's own metadata credits \"Anna Vissi\" in Latin script, the form printed on this specific release; a listener importing it would reasonably expect their tags to match. Confirmed via seed-items --facts against the case's own captured, unedited response. Paired with real-nonlatin-girls-generation, the two cases show the same mechanism firing in opposite script directions, which is what rules out a simple \"beets always prefers script X\" explanation.",
       "disposition": "pending-adjudication",
       "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Distinct from Task 18's #6358 regression check; this case's divergence is invisible to a quiet-mode import (strong/apply), which is itself worth the owner's attention when ruling on this hypothesis.",
       "adjudicator": "agent",

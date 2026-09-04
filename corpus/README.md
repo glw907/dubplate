@@ -1070,20 +1070,23 @@ headline finding is a clean bill, not a wrong match.
 
 ## The adversarial stratum
 
-Pass 2c's crafted cases (Tasks 16 and 17): most are synthetic releases
-built through `harness synth`, each one designed to make a *known*
-pinned-beets matching defect actually change a verdict; the four
-alias-mis-selection cases (below) are the stratum's one captured
-exception, since real alias arrays are the whole point of that class.
-Where the structural stratum proves the matcher's code paths and the
-real-catalog stratum proves conformance over real document shapes,
-this stratum proves that the oracle is measurably wrong in named
-places, which is what ladder entry 2's ruling 2 (tier one is measured
-against release truth where the oracle is known-defective) exists
-for. Every case here carries a row in `corpus/analysis/oracle_bugs.json`
-under the hypothesis it probes and a row in
-`corpus/analysis/adjudications.json` at `pending-adjudication`; both
-are the owner's to rule on, and neither is self-adjudicated.
+Pass 2c's crafted cases (Tasks 16 and 17): synthetic releases built
+through `harness synth`, each one designed to make a *known*
+pinned-beets matching defect actually change a verdict. The
+alias-mis-selection hypothesis (below) is this stratum's one exception
+to that shape: rather than a synthetic case of its own, it is probed
+against four already-committed real-catalog cases (Task 4's
+`real-nonlatin-*` rows), since real alias arrays are the whole point of
+that class and a synthetic release cannot carry MusicBrainz's own
+alias data. Where the structural stratum proves the matcher's code
+paths and the real-catalog stratum proves conformance over real
+document shapes, this stratum proves that the oracle is measurably
+wrong in named places, which is what ladder entry 2's ruling 2 (tier
+one is measured against release truth where the oracle is
+known-defective) exists for. Every case here carries a row in
+`corpus/analysis/oracle_bugs.json` under the hypothesis it probes and a
+row in `corpus/analysis/adjudications.json` at `pending-adjudication`;
+both are the owner's to rule on, and neither is self-adjudicated.
 
 **Reproduction is the deliverable, not the case file.** A case that
 freezes cleanly but leaves the record where a defect-free oracle would
@@ -1105,12 +1108,12 @@ different shape of wrongness: the *album-level verdict never moves at
 all*, landing `strong`/`apply` on every one of its six cases, while the
 per-track `assignment` and `applied_fields.title` are provably wrong
 against release truth known by construction—the sharpest evidence
-that class produces, per the plan's own framing. The alias class
-(`adv-alias-*`) proves a third shape again: on real, captured data,
-`artist`/`albumartist` gets silently overwritten with a string other
-than the one release truth (a documented alias, or the release's own
-credited display) would call correct, independent of any threshold
-crossing.
+that class produces, per the plan's own framing. The alias hypothesis
+proves a third shape again: on real, captured data, two of Task 4's
+`real-nonlatin-*` cases show `artist`/`albumartist` silently
+overwritten with a string other than the release's own credited
+display, independent of any threshold crossing; see "Alias and
+transliteration mis-selection" below.
 
 Two features of the construction are worth stating once, since every row
 below shares them. First, an item set here describes a genuinely
@@ -1200,9 +1203,13 @@ correct mapping would never produce. **No case in this family lands
 outside `strong`/`apply`**: the sharpest evidence this class produces
 is that the album-level verdict never signals anything is wrong at all,
 even while individual per-track titles are provably swapped. `ties.json`
-records all six unique (`TieMargin` 1e-9): the wrong mapping is the
-solver's actual, sole optimum, not an artifact of a near-tie the tie
-machinery had to disposition.
+records all six unique: each case's own recorded margin (the cost gap
+between the solver's actual optimum and the cheapest re-solve that
+forbids one of its pairs) clears the harness's `TieMargin` constant
+(`internal/harness/analysis/ties.go:15`, `1e-9`) by many orders of
+magnitude, ranging from 0.053 to 0.32 across the six cases -- the
+wrong mapping is the solver's actual, sole optimum, not an artifact of
+a near-tie the tie machinery had to disposition.
 
 | id | shape | wrong assignment (derived) | correct assignment (would-be) | swapped tracks |
 | --- | --- | --- | --- | --- |
@@ -1215,16 +1222,22 @@ machinery had to disposition.
 
 ### Alias and transliteration mis-selection
 
-`adv-alias-*`, 4 cases, probing `oracle_bugs.json`'s
+No case of its own: this hypothesis, `oracle_bugs.json`'s
 `bug-nonlatin-alias-selection` (`#1916`, romaji/locale transliteration,
-open since 2016; `#6358`, locale aliases ignored after `mbsync`, 2026).
-Distinct from Task 18's `#6358` regression check (one specific
-locale-toggle A/B experiment on a single host release) and from the
-existing `non-latin-pseudo-release` smoke case (which proves only that
-the pseudo-release merge mechanism works, not that the resulting string
-is the one a listener would want), these four **capture** real,
-public MusicBrainz releases through `harness capture`—real alias
-arrays are the whole point—and probe two related mechanisms in
+open since 2016; `#6358`, locale aliases ignored after `mbsync`, 2026),
+is probed against four real-catalog cases Task 4 already committed
+under the non-Latin axis, cross-referenced below rather than
+duplicated as new `adv-*` fixtures. An earlier pass of this task
+captured four byte-identical `adv-alias-*` duplicates of those same
+releases (differing only in id); the conductor's Task 17 escalation
+ruling folded them back into their `real-nonlatin-*` twins, since real
+alias arrays are the whole point of this class and there was nothing a
+second capture of the same release could add. Distinct from Task 18's
+`#6358` regression check (one specific locale-toggle A/B experiment on
+a single host release) and from the existing `non-latin-pseudo-release`
+smoke case (which proves only that the pseudo-release merge mechanism
+works, not that the resulting string is the one a listener would
+want), the four rows below probe two related mechanisms in
 `beetsplug/musicbrainz.py`, both confirmed via `harness seed-items
 --facts` against each case's own captured, unedited response rather
 than by reading `responses/*.json` directly:
@@ -1234,27 +1247,40 @@ than by reading `responses/*.json` directly:
    `config['import']['languages']`, empty under `estate` and `stock`
    alike, so its generator yields nothing and `next(matches, None)`
    returns `None` unconditionally—no alias is ever even considered a
-   candidate string, regardless of what the response documents.
-   `adv-alias-pugacheva-romanized` and `adv-alias-xjapan-romanized`
-   both capture a real artist-credit carrying a documented, better-
-   suited alias that sits unused in the very same response.
+   candidate string, regardless of what the response documents. This
+   is a scoping finding, not a reproduction of the hypothesis by
+   itself: every row below already applies a string that happens to
+   equal either the release's own credit or one of the artist's own
+   aliases, so this unreachability never shows up as a visible
+   divergence on its own in any of the four. Task 18's `locale`
+   profile probes this exact mechanism directly, by toggling
+   `import.languages` against the same alias data.
 2. **`_parse_artist_credits` (musicbrainz.py:301-331) always reads
    `el['artist']['name']`, the MusicBrainz *artist entity's* own
    canonical name, never `el['name']`, the specific *release's* own
    credited display string.** When the two diverge in script—a real,
    observed MusicBrainz data shape, not a corpus invention—the
    applied artist silently discards what the release itself documents.
-   `adv-alias-girls-generation-romanized` and
-   `adv-alias-vissi-native-greek` capture this divergence firing in
-   *both* script directions, which is what rules out a simple "beets
-   always prefers script X" explanation.
+   Two of the four rows below, `real-nonlatin-girls-generation` and
+   `real-nonlatin-anna-vissi-essential`, capture this divergence firing
+   in *both* script directions, which is what rules out a simple
+   "beets always prefers script X" explanation. The other two,
+   `real-nonlatin-alla-pugacheva-vol1` and
+   `real-nonlatin-x-japan-art-of-life`, show no divergence at all: each
+   release's own credited display already equals the artist entity's
+   canonical name, so the applied string is correct, not merely
+   unexamined.
 
-| id | release | MBID | credited display (per `--facts`) | applied artist | documented alias unused | recommendation |
+| case | release | MBID | credited display (per `--facts`) | applied artist | mechanism (2) fires? | recommendation |
 | --- | --- | --- | --- | --- | --- | --- |
-| `adv-alias-pugacheva-romanized` | Alla Pugacheva, *Alla Pugacheva, Volume 1* (Russian, Cyrillic) | `b5bed26f-4e2b-48cb-ae9a-057095ec1d01` | native Cyrillic `Алла Пугачёва` | `Алла Пугачёва` (native; matches the credit) | locale=en `Alla Pugacheva`, never reached (`_preferred_alias` unreachable) | distance 0, **strong, apply** |
-| `adv-alias-xjapan-romanized` | X JAPAN, *Art of Life* (Japanese; single 29-minute track) | `4a56da85-22d2-4ba9-b834-1b736a21ae97` | Latin `X JAPAN` | `X JAPAN` (Latin; matches the credit) | katakana `エックス ジャパン` and `X-Japan`/`iX`, never reached; the acceptable-looking outcome is itself evidence of an absent mechanism, not a working one | distance 0, **strong, apply** |
-| `adv-alias-girls-generation-romanized` | Girls' Generation, *Girls' Generation* (Korean) | `e0e72b32-abe2-41da-95eb-ffba407145a9` | native Hangul `소녀시대` | `Girls’ Generation` (Latin; **diverges from this release's own credit**) | matches a documented locale=en alias exactly, but sourced from the artist entity, not this release | distance 0.076471, `artist` sole nonzero penalty, **medium, skip** |
-| `adv-alias-vissi-native-greek` | Anna Vissi, *The Essential Anna Vissi* (Greek) | `449c9b1f-7b35-4c8c-97f0-3a690b964783` | Latin `Anna Vissi` | `Άννα Βίσση` (Greek; **diverges from this release's own credit**) | matches a documented locale=el alias exactly, but sourced from the artist entity, not this release; the divergence is invisible to a quiet-mode import (`strong, apply`) | distance 0.014493, `artist` sole nonzero penalty, **strong, apply** |
+| `real-nonlatin-alla-pugacheva-vol1` | Alla Pugacheva, *Alla Pugacheva, Volume 1* (Russian, Cyrillic) | `b5bed26f-4e2b-48cb-ae9a-057095ec1d01` | native Cyrillic `Алла Пугачёва` | `Алла Пугачёва` (native; matches the credit) | no—applied string equals the release's own credit | distance 0, **strong, apply** |
+| `real-nonlatin-x-japan-art-of-life` | X JAPAN, *Art of Life* (Japanese; single 29-minute track) | `4a56da85-22d2-4ba9-b834-1b736a21ae97` | Latin `X JAPAN` | `X JAPAN` (Latin; matches the credit) | no—applied string equals the release's own credit; the acceptable-looking outcome is itself evidence of an absent selection mechanism, not a working one | distance 0, **strong, apply** |
+| `real-nonlatin-girls-generation` | Girls' Generation, *Girls' Generation* (Korean) | `e0e72b32-abe2-41da-95eb-ffba407145a9` | native Hangul `소녀시대` | `Girls' Generation` (Latin; **diverges from this release's own credit**) | yes—matches a documented locale=en alias exactly, but sourced from the artist entity, not this release | distance 0.076471, `artist` sole nonzero penalty, **medium, skip** |
+| `real-nonlatin-anna-vissi-essential` | Anna Vissi, *The Essential Anna Vissi* (Greek) | `449c9b1f-7b35-4c8c-97f0-3a690b964783` | Latin `Anna Vissi` | `Άννα Βίσση` (Greek; **diverges from this release's own credit**) | yes—matches a documented locale=el alias exactly, but sourced from the artist entity, not this release; the divergence is invisible to a quiet-mode import (`strong, apply`) | distance 0.014493, `artist` sole nonzero penalty, **strong, apply** |
+
+Each row's own entry in the real-catalog non-Latin axis table above
+carries its full capture provenance (MBID, script, documented alias
+set); this table restates only the fields the hypothesis turns on.
 
 ## The canonicalization rule
 
