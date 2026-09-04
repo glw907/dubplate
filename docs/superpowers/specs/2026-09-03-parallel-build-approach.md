@@ -60,7 +60,15 @@ Phase 0 is three items of different kinds, and the review's blocker was that rev
 - **A requirement recorded in rung 5's spec.** Rung 5 owns the serve shell, the mux, and the ingress strip, and its spec must name the root-level composition order (ingress strip, then path normalization, then prefix routing, then fallthrough), declare the extension point every later consumer adds a file at, and state which of those points the driver's proxy occupies. Building the ingress strip as an unplanned Phase 0 chore would strip the full fresh-context adversarial cycle from the single artifact the whole trust boundary rests on.
 - **A scheduling rule.** No two lanes write `internal/serve` until rung 5 closes. Phase 1's second code slot is lane A (rung 5) or lane T (rung 8), and rung 8 does not touch serve, so the rule costs phase 1 nothing. In phase 3, rung 12 owns the shell after rung 5 and never runs concurrently with another serve-writing lane.
 
-0a, 0b, and 0c are the second code lane's prerequisites, per the ratification. The contested-surface ownership table in section 3 is also written here.
+0a, 0b, and 0c are the second code lane's prerequisites, per the ratification.
+**Phase 0a is complete (2026-09-04):**
+`research/2026-09-04-reverse-edge-completion.md` classifies all
+fifteen cells (fourteen SOFT with paste-ready ownership rows and
+constraint sentences, one HARD: lane V waits on rung 9's
+concurrency ruling at phase 2's opening checkpoint). Its rows and
+its "permit and forbid" section govern lane launches by
+incorporation; a launch checklist reads that document beside this
+spec's table. The contested-surface ownership table in section 3 is also written here.
 
 ### Phase 1: evidence, with the spine's head start
 

@@ -33,6 +33,15 @@ architectural invariants, the package territory, port hazards 1 and 3,
 the accumulation claims, and the bit-identity argument, are settled and
 are not reopened by a later round.
 
+Phase 0a note (2026-09-04): the reverse-edge completion
+(research/2026-09-04-reverse-edge-completion.md, cell (8,3)) corrects
+this spec's tree-allocation claim that lane T writes no
+`internal/harness` or `corpus/` — true of lane A, unproven of lane T.
+Lane T runs beside rung 3 only while its plan states its conformance
+instrument is read-only against both paths; a rung 8 task deriving a
+new corpus record moves to the primary tree. Preferred allocation:
+lane T beside 3a, lane A beside 3b-3d.
+
 Conductor rulings on the fold (2026-09-04): B2's cassette schema half
 is accepted and lands as pass 3c's first task, where the stub half
 already lives — the channel is dormant (zero committed cases carry
