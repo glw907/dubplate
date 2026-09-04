@@ -1,0 +1,23 @@
+[
+  {
+    "name": "known original year",
+    "year": 1975,
+    "originalYear": 1970,
+    "evalYear": 2025,
+    "want": 0.09090909090909091
+  },
+  {
+    "name": "unknown original year falls back to 1889",
+    "year": 1975,
+    "originalYear": 0,
+    "evalYear": 2025,
+    "want": 0.6323529411764706
+  },
+  {
+    "name": "a gap beyond the span clamps to one",
+    "year": 1900,
+    "originalYear": 2000,
+    "evalYear": 2001,
+    "want": 1
+  }
+]
