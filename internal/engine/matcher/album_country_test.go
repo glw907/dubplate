@@ -23,6 +23,7 @@ func TestAddAlbumCountry(t *testing.T) {
 		{"priority: case-insensitive", []string{"gb"}, "", "GB", []float64{0}},
 		{"priority: nothing matches", []string{"GB", "US"}, "", "FR", []float64{1}},
 		{"priority takes precedence over the string fallback", []string{"GB"}, "US", "GB", []float64{0}},
+		{"priority: a pattern later in the value does not match", []string{"GB"}, "", "XGB", []float64{1}},
 	}
 
 	for _, tt := range tests {

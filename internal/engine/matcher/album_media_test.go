@@ -23,6 +23,7 @@ func TestAddAlbumMedia(t *testing.T) {
 		{"priority: a disc-count prefix is tolerated", []string{"CD", "Vinyl"}, "", "2xCD", []float64{0}},
 		{"priority: case-insensitive", []string{"cd"}, "", "CD", []float64{0}},
 		{"priority: nothing matches", []string{"CD", "Vinyl"}, "", "Cassette", []float64{1}},
+		{"priority: a pattern later in the value does not match", []string{"CD"}, "", "Deluxe CD", []float64{1}},
 	}
 
 	for _, tt := range tests {
