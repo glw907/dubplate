@@ -1,5 +1,35 @@
 # Rung 3, Pass 3a (The Scoring Core, `string_dist`, and Tier 0) Implementation Plan
 
+**Revision 2, 2026-09-04:** folds the adversarial plan review
+(`research/2026-09-04-rung-3a-plan-review.md`), blockers B1–B4 (B4 by
+conductor ruling: the fifth contested-surface row), majors M-a through
+M-i, minors m1–m15. The load-bearing resolutions: **Task 6's decoder
+contract is rewritten from `derive_component.py`'s actual emission** —
+dispatch on `method`, with the add-key-versus-weights shape split inside
+method `add` (eleven methods, twelve shapes), the row `weights` map as an
+**override on `Tunables.DistanceWeights`** rather than a complete table,
+and the `get_penalty` stub model wired through `Tunables`' loaded-source
+set (B1–B3). **The `SD_PATTERNS` tier-0 safety claim is deleted** — the
+word-boundary guard is provably invisible to all 72 rows — and replaced by
+Task 4's byte-identity table test plus a discriminating fixture carrying
+both measured figures (M-a). Three corpus-reading assertions move out of
+engine tasks into Task 6 (M-b, M-c, M-d). Contract 7 splits: regex
+**options** anchor, `SD_PATTERNS` never do (M-f). Conform owns its own
+decoder-method set (M-g). The lane-T pairing and the 12M phase-1 figure are
+stated as conditional and as a reservation (M-h). Contract 8's fourteen
+album components ship in thirteen files, `album_extras.go` named as the
+exception (M-i). The minors are folded as editorial; m15 is
+conductor-owed, not a plan edit, and landed at `889d71f`. **The review's
+"Verified sound" list is a second do-not-re-litigate record**: its
+twenty-two items — all twelve arithmetic contracts, the eight adder
+semantics, both component orders, every track fire condition and album
+branch, the twenty weights, every `config_default.yaml` citation, the five
+`unidecode` measurements, the corpus figures, the M2 and m2 resolutions,
+the harness API signatures, the gate coverage claim, and the split-point
+reasoning — are cited below rather than re-derived, and an implementer who
+believes one of them is wrong reports a finding and implements the record
+anyway.
+
 > **For agentic workers:** workflow mode per CLAUDE.md's "Build process"
 > section: pass-execute chain per task, sequential. The conductor consumes
 > reports and never reads diffs inline. Subagents never dispatch other
@@ -11,8 +41,9 @@
 > writes. Rung 3 is not an adversarial-cycle rung (those are 5, 12, and
 > 16), so review scales to the in-chain `diff-reviewer` per task plus the
 > pass-end gate. **This pass runs in the MAIN TREE.** The worktree
-> early-start is dead by the conductor's fold ruling; nothing here may be
-> executed from a worktree.
+> early-start remains an explicitly costed option nobody currently needs
+> (rung 3 spec, revision 2, "Lane placement"; fold, m1); nothing here may
+> be executed from a worktree.
 
 Drafted 2026-09-04 against the rung 3 spec at **revision 2**
 (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`), which is
@@ -38,10 +69,16 @@ twenty distance-weight keys, resolved off the committed records; and m4's
 
 **Phase 0a note.** `research/2026-09-04-reverse-edge-completion.md`'s
 permit/forbid section governs the lane pairing: **lane T beside 3a** is the
-preferred allocation, because 3a writes `internal/engine/matcher` and
-`internal/harness/conform` and touches neither `internal/harness/oracle`
-nor `corpus/`, which is the smallest collision surface in phase 1. That
-preference is a constraint on this plan too: nothing here may write
+preferred allocation *if a second code lane can run at all*, because 3a
+writes `internal/engine/matcher` and `internal/harness/conform` and touches
+neither `internal/harness/oracle` nor `corpus/`, which is the smallest
+collision surface in phase 1. **The pairing is conditional, not the
+committed state** (fold, M-h): `reverse-edge-completion.md`'s own
+precondition is that Phase 0a, 0b, and 0c have all landed, and
+`docs/STATUS.md`'s lane registry records lane-2 as BLOCKED until they do.
+Task 0 item 1 expects 0b and 0c unlanded, so as committed **no lane T runs
+beside 3a**, and this plan neither assumes one nor depends on one. The
+preference is a constraint on this plan either way: nothing here may write
 `corpus/` or `internal/harness/{cassette,stub,analysis,oracle}`.
 `internal/harness/conform` is **new territory 3a births**, and it is the
 only harness path this pass creates or writes.
@@ -76,11 +113,20 @@ Read these before Task 1, in this order:
    the "What the results permit and forbid in phase 1" section.
 5. The tree: `internal/harness/analysis/component.go`,
    `corpus/analysis/components.json`, `internal/harness/cassette/cassette.go`,
-   `internal/harness/corpus_test.go` (for `repoRoot`'s shape, which the
-   conform runner needs), `internal/config`, and `docs/HISTORY.md`'s 2c and
-   2d entries.
+   `internal/harness/corpus_test.go`, `internal/config`, and
+   `docs/HISTORY.md`'s 2c and 2d entries. **`repoRoot` is read for its
+   shape, never called** (fold, m12): it is unexported and test-only
+   (`corpus_test.go:19-36`), so `internal/harness/conform` reimplements the
+   same walk-up-to-`go.mod` helper in its own test file rather than
+   importing anything.
 6. `CLAUDE.md`'s Build process and Gate sections, `docs/STATUS.md`'s lane
    registry, and `corpus/README.md`'s "Config profiles" section.
+7. **`internal/harness/oracle/derive_component.py`, in full, before Task
+   6** — the emitter every `components.json` row comes from, and the
+   authority on the decoder's shapes. Reading oracle territory is
+   permitted and expected; writing it is not. Revision 1's Task 6 was
+   written from the row ids instead and was unexecutable as a result
+   (fold, B1–B3).
 
 ## Goal
 
@@ -153,9 +199,12 @@ the accumulator — before Task 3 dispatches, and again after Task 4 if
 against 6M, and **2c closed at ≈8.2M against its 8M re-derived ceiling with
 the flag overrun approved**; 2d spent ≈1.6M against 2.5M. 3a is nine tasks
 of machinery with no case authoring, no capture, no network, and no
-`make derive`, which is 2d's cost shape at three times 2d's task count.
-6M is ≈665K per task against 2b's ≈415K per-task average on a harder
-surface.
+`make derive`, which is 2d's cost shape at **2.25 times** 2d's task count
+(fold, m7: the earlier "three times" was wrong, and 3 × 1.6M would have
+argued for 4.8M, not 6M). **6M is the rung 3 spec's own proposal** (spec,
+"Band and ceiling"), and the per-task arithmetic supports it rather than
+deriving it: ≈665K per task against 2b's ≈415K per-task average, on a
+harder surface with two `opus` tasks in it.
 
 **Flag at 80% (4.8M):** finish the task in flight, write STATUS, and one
 combined question goes to Geoff before continuing.
@@ -164,14 +213,17 @@ combined question goes to Geoff before continuing.
 cadence, and at nine tasks it is what the conductor sizes the next task
 against — every task reports its own spend and its own gate evidence.
 
-**Phase 1's combined ceiling: 12M**, named here because the spec's m1 fold
+**Phase 1's combined ceiling: 12M, and it is a reservation rather than a
+live sum** (fold, M-h). It is named here because the spec's m1 fold
 requires 3a's plan to state it and because the 80% stop rule has nothing to
 evaluate against inside a lane that cannot see the others' spend. It is
-3a's 6M plus a **6M reservation for the second code slot** (lane T beside
-3a, rung 8, M band). The reservation is a placeholder the conductor
-replaces with lane T's own assigned sub-ceiling at that lane's launch; the
-lane registry records lane-2 as BLOCKED until Phase 0a/0b/0c land, so no
-second sub-ceiling exists to sum today.
+3a's 6M plus a **6M reservation for the second code slot** (lane T, rung 8,
+M band, *if* it launches). The lane registry records lane-2 as BLOCKED
+until Phase 0a/0b/0c land, so **no second sub-ceiling exists to sum
+today**, and 12M is not a figure any spend is currently measured against.
+The conductor replaces the reservation with lane T's own assigned
+sub-ceiling at that lane's launch, and until then 3a's own 6M is the only
+live ceiling.
 
 ## Two resolutions this plan takes rather than discovers
 
@@ -195,10 +247,12 @@ wins.** The evidence, read off the pinned venv:
 - `per_disc_numbering` is read in `TrackInfo.raw_data` (`medium_index` and
   `tracktotal`), in `beets/library/models.py`'s display path, and in the
   importer's display code — nowhere else.
-- `raw_data` and `item_data` are consumed by exactly two call sites outside
-  `hooks.py`: `beets/autotag/match.py`'s `Match.merged_pairs` and
-  `AlbumMatch.apply_album_metadata`, both inside `apply_metadata`, which
-  runs **after** the verdict.
+- `raw_data` and `item_data` are consumed by three call sites outside
+  `hooks.py`, all in `beets/autotag/match.py`: `Match.merged_pairs`,
+  `AlbumMatch.apply_album_metadata` (`:199-201`, a **sibling** of
+  `apply_metadata` rather than a call inside it), and
+  `TrackMatch.apply_metadata` (`:239`). All three run **after** the
+  verdict, so the conclusion is unchanged (fold, m5).
 - The distance path never touches either. `track_index_changed` reads
   `track_info.medium_index` and `track_info.index` as attributes, not
   through `raw_data`; `distance()` and `track_distance()` read no config
@@ -220,6 +274,14 @@ stock-config stratum finding above." The consequence for the port:
 **`Tunables` carries neither key**, and the enumeration in the spec stands
 unamended.
 
+**The README sentence quoted just above is itself imprecise, and the
+drafted correction says so** (fold, m5): `per_disc_numbering` is read in
+`TrackInfo.raw_data` (`hooks.py:421-452`), not in `AlbumInfo.item_data`.
+The replacement text already names both accessors correctly; Task 1's draft
+adds one clause noting that the earlier sentence's single-accessor phrasing
+is what the correction tightens, so the conductor lands a fix rather than a
+contradiction.
+
 The correction is drafted by Task 1 and **landed by the conductor** in its
 batch commit, not written by an implementer: this plan writes nothing under
 `corpus/`, and the house pattern already routes prose drafts through the
@@ -236,7 +298,8 @@ cases echo one weight set, and it carries twenty keys** (`album`,
 `tracks`, `unmatched_tracks`, `year`); all 215 echo one threshold set
 (`0.04` / `0.25` / `0.25`, `max_rec` `{missing_tracks: medium,
 unmatched_tracks: medium}`). Off the pinned venv:
-`beets/config_default.yaml` lines 173–193 are exactly twenty entries. No
+`beets/config_default.yaml` lines **174–193** are exactly twenty entries
+(`:173` is the `distance_weights:` header — fold, m4). No
 document edit is owed — the study is research, not a spec — but 3a's report
 records Q4's count as superseded so a later reader does not re-derive it.
 
@@ -245,15 +308,32 @@ records Q4's count as superseded so a later reader does not re-derive it.
 Ruling A's compat switches live in `compat.go` at **3d**, not here. But two
 of the four `oracle-wrong` hypotheses — `bug-ft-pattern` and
 `bug-remix-parenthetical` — are defects *of `SD_PATTERNS`*, which is 3a's
-file, and the corpus's 72 tier-0 rows encode the **defective** arithmetic
-(`string_dist/relative/3/near` reads `0.06470588235294118` precisely
-because the featuring pattern fires inside the word "song feat"; the
-`relative/1` and `relative/2` pairs are the parenthetical and bracket
-discounts). So:
+file. The corpus's tier-0 `string_dist` rows exercise the featuring,
+parenthetical, and bracket discounts (`relative/3` is the featuring pair,
+`relative/1` and `relative/2` the parenthetical and bracket ones), but
+**they do not exercise the defect**: in
+`string_dist("My Song feat Someone", "My Song")` the pattern fires on the
+standalone word "feat", which is the correct behavior, and the row's
+`0.06470588235294118` is the same under the guarded table. The adjudicated
+defect is `ft` matching *inside another word* — `adj-adv-ft-draft-colon`,
+where "Draft:" is eaten as a featuring credit. So:
 
-- **3a ships beets' behavior exactly**, defect included. Tier 0 is graded
-  in oracle-faithful mode by construction, and a 3a that "fixed"
-  `SD_PATTERNS` would fail tier 0 on its own pass.
+- **3a ships beets' behavior exactly**, defect included.
+- **Tier 0 cannot catch a "fixed" pattern table, and this plan does not
+  claim it can** (fold, M-a). Measured against pinned beets at revision-2
+  drafting time: applying the word-boundary guard named in
+  `adj-adv-ft-draft-colon` changes **zero of the 72 rows**. The guard is
+  invisible to the corpus, so a well-meaning implementer who "corrects"
+  `BeetsSDPatterns` ships a green pass and a wrong matcher. **The guard
+  against that is Task 4's, explicit and byte-level**, not tier 0's by
+  construction: a test asserting `BeetsSDPatterns` is byte-identical to
+  beets' six shipped literals, plus a discriminating fixture that separates
+  the two tables. The discriminating pair and both measured figures, for
+  Task 4's fixture and for 3b's `defect_free` derivation:
+  `string_dist("Draft: Ember Wharf", "Draft: Northern Lines")` =
+  **`0.061111111111111116`** under `BeetsSDPatterns` and
+  **`0.6111111111111112`** under `SDPatternsWordBoundary`. Both figures
+  travel in the pass report.
 - **The fix must be a table swap, not a code edit.** The adjudication rows
   name the correction as a word-boundary guard on the featuring pattern
   (upstream `19d091440`, unreleased at pinned 2.13.1), and 3b derives each
@@ -281,7 +361,19 @@ discounts). So:
   under `corpus/`, `internal/harness/{cassette,stub,analysis,oracle,synth,mbrequest}`,
   `internal/harness/corpus_test.go`, `internal/config`, `cmd/`, or
   `_salvage/`. A task that believes it needs one of those stops and
-  reports.
+  reports. **`tools/` is otherwise lane E1's** — the parallel spec's lane
+  table gives it the whole directory — so `tools/unidecode-table/` is a
+  carve-out held by a written contested-surface row (Task 0 item 4;
+  conductor ruling, 2026-09-04, fold B4), and **nothing else under
+  `tools/` is 3a's**, `tools/venv/` emphatically included: this pass reads
+  the venv and never writes it.
+- **`.gitleaksignore` is conductor-owned and conditionally permitted**
+  (fold, m11). It sits on neither side of the wall above, and Task 3 may
+  need an append if the generated table trips a rule. An append is
+  **drafted by the task and landed by the conductor**, must be strictly
+  **below** the existing `internal/config/keys_test.go:generic-api-key:66`
+  line, and is never a rule disable. An insertion above line 66 reds the
+  gate for every lane at once.
 - **`internal/config` is not edited, and neither is `keys.go`.** Ruling C's
   registration half is hard-inbound on rung 1b (Phase 0b, unlanded — the
   tree still carries `ownedWall` as a slice literal). `Tunables` carries
@@ -424,13 +516,40 @@ re-read at drafting time):
 | `AddString` | `string_dist` |
 | `AddDataSource` | adds `get_penalty(after)` **only when** `before != after` **and** (`before` is set **or** more than one metadata source is loaded); a fresh single-source import adds nothing at all, not even a `0.0`, so the key stays out of the denominator |
 
-**7. A regex option is `.match`, not `.search`.** Python's
-`re.Pattern.match` anchors at position 0. The Go port anchors explicitly
-(`^(?:…)`), never `MatchString` on a bare pattern. Related: `re.I` becomes
-`(?i)`; the media patterns are compiled as `(\d+x)?(<pat>)` case-insensitive
-and the country patterns as `<pat>` case-insensitive. Python's `$` matches
-before a trailing newline while Go's does not; no committed pattern uses
-`$`, and a port that adds one is a finding.
+**6a. `AddEquality` and `AddPriority` wrap a scalar option into a
+one-element list** (fold, M-e). `distance.py:287-288` and `:328-329` are
+`if not isinstance(options, (list, tuple)): options = [options]`, and that
+is not a defensive nicety — it is how `distance()` itself calls both:
+`add_equality("media", album_info.media, likelies["media"])` (`:465`) and
+`add_equality("album_id", likelies["mb_albumid"], album_info.album_id)`
+(`:522-524`) each pass a bare scalar. Tier 0 exercises both forms:
+`add_priority/2`'s first call passes a scalar and its second a list. The Go
+signature accepts one option or many, and `AddPriority`'s
+`1.0 / (len(options) or 1)` divisor is computed **after** the wrap, so a
+scalar option yields a unit of `1.0`.
+
+**7. Regex OPTIONS anchor. `SD_PATTERNS` never do.** These are two
+different regex regimes and conflating them destroys the pattern loop
+(fold, M-f).
+
+- **`Distance._eq`'s options anchor.** A compiled-pattern option to
+  `AddEquality` or `AddPriority` is matched with Python's
+  `re.Pattern.match` (`distance.py:265-267`), which anchors at position 0.
+  The Go port anchors explicitly (`^(?:…)`), never `MatchString` on a bare
+  pattern. Related: `re.I` becomes `(?i)`; the media patterns are compiled
+  as `(\d+x)?(<pat>)` case-insensitive and the country patterns as
+  `<pat>` case-insensitive.
+- **`SD_PATTERNS` are `re.sub`, unanchored and global**
+  (`distance.py:99-100`). The loop deletes **every non-overlapping match
+  over the whole string** — Go's `Regexp.ReplaceAllString` with an
+  unanchored pattern — and anchoring one at `^` would silently break the
+  parenthetical, bracket, featuring, and part discounts. The one pattern
+  that carries `^` carries it in beets' own literal (`^the `), and the port
+  copies the literal rather than adding an anchor of its own.
+
+Python's `$` matches before a trailing newline while Go's does not; no
+committed pattern in either regime uses `$`, and a port that adds one is a
+finding.
 
 **8. Component order is load-bearing, not stylistic.** Which components
 fire and in what order determines the denominator, so a component that
@@ -439,7 +558,10 @@ The fixed track order is `track_length`, `track_title`, `track_artist`,
 `track_index`, `track_id`, `medium`, `data_source`. The fixed album order
 is `artist` (skipped entirely when `album_info.va`), `album`, `media`,
 `mediums`, `year`, `country`, `label`, `catalognum`, `albumdisambig`,
-`album_id`, `tracks`, `missing_tracks`, `unmatched_tracks`, `data_source`.
+`album_id`, `tracks`, `missing_tracks`, `unmatched_tracks`, `data_source`
+— **fourteen album components, shipped in thirteen files**, with
+`missing_tracks` and `unmatched_tracks` sharing `album_extras.go` as Task
+7's one named exception to one-component-one-file (fold, M-i).
 
 **9. The evaluation date is an explicit input, never a clock read.** Both
 year branches divide by a span ending at the evaluation year. `Tunables`
@@ -455,6 +577,17 @@ from each case's `ItemFields`, so the corpus's records already encode that
 projection. The Go `ItemFields` accessor must reproduce it; a Go port that
 treats a missing field as "absent" rather than as `""` changes what
 `plurality` counts and therefore what `likelies` says.
+
+**`data_source` is the one exception, and it is not a counterexample**
+(fold, m6). It lives in `Item._types`, not `Item._fields`
+(`library/models.py:66-70`), so an unset read returns `None`
+(`dbcore/db.py:452-468`) rather than `""`. The outcomes are identical
+through both consumers — `add_data_source` treats `None` as unset, and
+`plurality` counts `None` as its own value — so the port may model it
+either way, but **it is not the example a typed-default test should
+use**. Also: `get_most_common_tags` filters falsy items before counting
+(`values = [item.get(field) for item in items if item]`,
+`util/__init__.py:838`), which the port reproduces.
 
 **11. `plurality` is `Counter.most_common(1)`: ties break by first-seen
 insertion order**, i.e. by item order, which is matcher input. The Go port
@@ -495,11 +628,24 @@ The checklist is the spec's own, per pass. The first three are blockers: a
 3. **Is the lane registry consistent with where this pass intends to run,
    and is the main tree actually free?** The live-executor check is the
    registry, never `pgrep`.
-4. **Have the four contested-surface rows the spec proposes been written
-   into the parallel spec's table by the conductor?** (`internal/harness/conform`,
-   `internal/harness/oracle`, `internal/harness/{cassette,stub,analysis}`,
-   `corpus/analysis/*.json` and `corpus/cases/*`.) Lane-launch checklist
-   item 2 requires a written owner for every surface a lane touches.
+4. **Have the FIVE contested-surface rows been written into the parallel
+   spec's table by the conductor?** Lane-launch checklist item 2 requires a
+   written owner for every surface a lane touches, and this pass touches
+   five. The four the rung 3 spec proposes:
+   `internal/harness/conform`, `internal/harness/oracle`,
+   `internal/harness/{cassette,stub,analysis}`, and `corpus/analysis/*.json`
+   plus `corpus/cases/*`. **The fifth is `tools/unidecode-table/`**, which
+   the review raised as blocker B4 because
+   `parallel-build-approach.md`'s lane table gives all of `tools/` to lane
+   E1. **Conductor ruling, 2026-09-04: the generator keeps its location** —
+   `tools/unidecode-table/` is owned by rung 3 pass 3a as the one-time
+   transliteration-table generator, and lane E1 keeps the rest of `tools/` —
+   **and the row is written into the parallel spec's table before this lane
+   launches**, not discovered at a merge. *(Expected at revision-2 drafting
+   time: all five rows landed at `889d71f`, "Write the five
+   contested-surface rows"; the fifth is
+   `parallel-build-approach.md:171`. Task 0 verifies rather than assumes,
+   and a missing row is a blocker.)*
 5. Does every corpus artifact this plan names exist, at the path and shape
    named? Specifically: `corpus/analysis/components.json` parses as
    `analysis.ComponentTable` with **≥ 72 rows** and covers all eleven
@@ -513,7 +659,11 @@ The checklist is the spec's own, per pass. The first three are blockers: a
    Report the disposition table as read. The drafting-time snapshot is
    above; the ruled-`oracle-wrong` state of `bug-ft-pattern` and
    `bug-remix-parenthetical` is what makes the `SD_PATTERNS`-as-a-value
-   seam load-bearing, so a movement there is a real finding.
+   seam load-bearing, so a movement there is a real finding. *(The review's
+   m15 caught `docs/STATUS.md`'s ruled-hypothesis line stale against
+   `oracle_bugs.json`. That was **conductor-owed and is landed** at
+   `889d71f`, not a plan edit; Task 0 confirms STATUS and the JSON now
+   agree rather than re-reporting the staleness.)*
 8. Have any `ties.json` dispositions or `proximity.json` rows moved?
    (3a grades neither, but 3d inherits both, and a movement is worth
    reporting once.)
@@ -550,21 +700,44 @@ Model: `sonnet`. Births `internal/engine/matcher`.
   `MediumRecThresh` 0.25, `RecGapThresh` 0.25
   (`config_default.yaml:167-169`), `MaxRec`
   `{missing_tracks: medium, unmatched_tracks: medium}` (`:170-172`),
-  `DistanceWeights` — **twenty keys** (`:173-193`, verified; see the m2
-  resolution), `Preferred.Countries` `[]`, `Preferred.Media` `[]`,
+  `DistanceWeights` — **twenty keys at `:174-193`; `:173` is the
+  `distance_weights:` header** (fold, m4; see the m2 resolution),
+  `Preferred.Countries` `[]`, `Preferred.Media` `[]`,
   `Preferred.OriginalYear` `false` (`:194-197`), `Ignored` `[]`,
   `Required` `[]`, `IgnoredMedia` `[]` (`:198-200`), `IgnoreDataTracks`
   `true`, `IgnoreVideoTracks` `true` (`:201-202`), `TrackLengthGrace` 10,
   `TrackLengthMax` 30 (`:203-204`). Outside `match`: `SearchLimit` 5
-  (`metadata_plugins.py:201`, legacy `match.searchlimit` spelling named in
-  the doc comment), `DataSourceMismatchPenalty` 0.5
-  (`metadata_plugins.py:191-195`, legacy `source_weight` spelling named),
-  `ExtraTags` `[]`, `Timid` `false` (`config_default.yaml:27`),
-  `Languages` `[]` (`:32`), `IgnoredAliasTypes` `[]` (`:58`), the loaded
-  metadata source set, and the verdict-to-action trio `Quiet` `false`
-  (`:28`), `QuietFallback` `"skip"` (`:33`), `NoneRecAction` `"ask"`
-  (`:34`). **Verify every line citation against the venv before writing
-  it**; the study's line numbers are research, not a pin.
+  (`metadata_plugins.py:201`; the legacy spelling named in the doc comment
+  is **`musicbrainz.searchlimit`**, the metadata-source plugin's own
+  `match.searchlimit` subkey rather than beets' top-level `match:` —
+  `beetsplug/musicbrainz.py:290-298` reads it and deprecates it by that
+  name, fold m3), `DataSourceMismatchPenalty` 0.5
+  (**the default is `MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_PENALTY`
+  at `metadata_plugins.py:180`, wired into the plugin config at `:202`**;
+  `:190-195` is the `source_weight`-first resolution property, whose legacy
+  spelling the doc comment also names — fold m2), `ExtraTags` `[]`
+  (**no `config_default.yaml` citation exists**: it is the musicbrainz
+  plugin's own `extra_tags: []`, `beetsplug/musicbrainz.py:286`, and the
+  doc comment says so rather than leaving the one uncited field — fold m9),
+  `Timid` `false` (`config_default.yaml:27`), `Languages` `[]` (`:32`),
+  `IgnoredAliasTypes` `[]` (`:58`), the loaded metadata source set, and the
+  verdict-to-action trio `Quiet` `false` (`:28`), `QuietFallback` `"skip"`
+  (`:33`), `NoneRecAction` `"ask"` (`:34`). **Verify every line citation
+  against the venv before writing it**; the study's line numbers are
+  research, not a pin. Every citation other than the four corrected above
+  verified exactly at review time (Verified sound; fold, m4).
+- **`Tunables.MaxRec`'s Go type is `map[string]string`** (fold, m14), for
+  the same reason `cassette.Thresholds.MaxRec` is
+  (`cassette.go:88-93`): the value is a recommendation-level name, not a
+  number, so a `map[string]float64` cannot hold it. Task 6's defaults
+  cross-check compares the two directly, so the types must match.
+- **The `match:` surface carries two keys `Tunables` deliberately omits**
+  (fold, m10): `album_disambig_fields` and `singleton_disambig_fields`
+  (`config_default.yaml:205-206`). Both are display-only, read through
+  `Match.disambig_fields` (`match.py:113-142`) and never on the distance
+  path. **Name them in `Tunables`' doc comment as deliberately excluded**,
+  so a reader checking the "verified-complete" claim against
+  `config_default.yaml` finds the answer rather than a falsification.
 - **Ruling D's blanket rule holds: every default equals pinned beets'
   shipped value at launch, `languages` included.** `Languages: []` makes
   `_preferred_alias` structurally unreachable, which is half of the alias
@@ -612,21 +785,44 @@ Model: `sonnet`. Births `internal/engine/matcher`.
   field, no path, no tag I/O**: rung 3 computes no applied field and writes
   no file. 3b's translation layer is what populates these; 3a defines them
   and their zero values.
+- **`ItemFields` is enumerated, not gestured at** (fold, M-d). The distance
+  path reads **eighteen** item fields, and the struct carries exactly those
+  with beets' own types:
+  - the thirteen `get_most_common_tags` reads, in beets' order
+    (`util/__init__.py:822-836`): `artist` (string), `album` (string),
+    `albumartist` (string), `year` (int), `disctotal` (int), `mb_albumid`
+    (string), `label` (string), `barcode` (string), `catalognum` (string),
+    `country` (string), `media` (string), `albumdisambig` (string),
+    `data_source` (string, and the `_types`-not-`_fields` exception of
+    contract 10's m6 note);
+  - the seven `track_distance` reads (`distance.py:394-424`): `length`
+    (float), `title` (string), `artist` (string — the same field as the
+    first list's, counted once), `track` (int), `mb_trackid` (string),
+    `disc` (int), `data_source` (string — likewise counted once).
+  Eighteen distinct fields, and `artist` and `data_source` are the two the
+  two lists share. A field outside this set is not read by the distance
+  path, and adding one is a finding rather than a convenience.
 - **`ItemFields` projects through beets' typed defaults** (contract 10).
   Ship the accessor with a table-driven test proving an unset string field
-  reads `""` and an unset int field reads `0`, and that the projection
-  matches what a committed case's `Input.Items` map produces for a field it
-  omits. This test is the one with teeth: report the mutation (an accessor
-  returning a sentinel for "absent") that proves it fires.
+  reads `""` and an unset int field reads `0` — **`data_source` is not the
+  field to use as the example** (fold, m6). **The fixture is hand-authored
+  in this package's own `testdata`; this task reads no corpus case**
+  (fold, M-d): the cross-check that the projection matches what a committed
+  case's `Input.Items` map produces for an omitted field is **Task 6's**,
+  where reading `corpus/` is the harness's own business. This test is the
+  one with teeth: report the mutation (an accessor returning a sentinel for
+  "absent") that proves it fires.
 - **Every exported identifier carries a Go Doc Comment** that states intent
   and cites its beets source; vale gates the prose.
 
-**Deliverable count: 4** (`Tunables` with all thirty-odd fields, each
+**Deliverable count: 4** (`Tunables` with its roughly twenty-six fields as
+enumerated above — not "thirty-odd", fold m9 — each
 default carrying a verified citation, and the four-knob deferral recorded;
 the `SD_PATTERNS`-as-a-value seam with its second table for 3b/3d; `info.go`'s
-vocabulary with the typed-default projection proved by a firing fixture;
-the M2 re-verification evidence and the two drafted README cells). Gate
-green; commit. **Report actual token spend.**
+vocabulary, including `ItemFields`' eighteen enumerated fields with beets'
+types and the typed-default projection proved by a hand-authored firing
+fixture; the M2 re-verification evidence and the two drafted README cells).
+Gate green; commit. **Report actual token spend.**
 
 ---
 
@@ -649,6 +845,16 @@ implementation gets silently wrong. Depends on Task 1.
   component fills in (`tracks`). Insertion order is preserved explicitly
   (a key slice beside the map), because `raw_distance` and `max_distance`
   sum over it and Go map iteration is randomized.
+- **`tracks`' key type is stated here, not assumed by Task 7** (fold,
+  m13). Python's `dist.tracks` is `dict[TrackInfo, Distance]`
+  (`distance.py:131`, filled at `:527-530`), keyed by **object identity**,
+  because `TrackInfo` defines no `__hash__` of its own. Go has no value
+  equivalent: `TrackInfo` is a struct and using it as a map key would key
+  by value and collide on two identical candidate tracks. Ship
+  `map[*TrackInfo]*Distance` **or** an index-keyed slice parallel to the
+  pairing — the implementer picks, states the choice in the doc comment,
+  and the choice is load-bearing for Task 7's `tracks` component. A
+  value-keyed map is wrong; say so in the comment.
 - **Eight adders**, exactly as contract 6 specifies: `Add`, `AddEquality`,
   `AddExpr`, `AddNumber`, `AddPriority`, `AddRatio`, `AddString`,
   `AddDataSource`. **`AddExpr` is in the list** (fold, m4) because
@@ -670,31 +876,44 @@ implementation gets silently wrong. Depends on Task 1.
   reads it, so a 3d implementer cannot pick the wrong one by accident.
 - **`GenericPenaltyKeys`** reproduces beets' derived view: for each key
   with a **nonzero** weighted distance, `strings.ReplaceAll` of `album_`
-  → ``, then `track_` → ``, then `_` → ` `, in that order.
-  `components.json`'s `generic_penalty_keys/excludes-zero-penalties` row
-  pins it, including the zero-penalty exclusion.
+  → ``, then `track_` → ``, then `_` → ` `, in that order. The
+  zero-penalty exclusion is part of the contract and gets its own
+  hand-authored case.
 - **`AddNumber`'s multi-unit behavior is a named test**, not an incidental
   consequence: one key, several `1.0` penalties, a denominator inflated by
-  weight per unit. `components.json`'s `add_number/*` rows pin it.
+  weight per unit.
 - **`AddDataSource`'s three-way condition is a named test**: match →
   nothing added at all (not even `0.0`, so the key stays out of the
   denominator); mismatch with a `before` → the penalty; no `before` with a
   single source → nothing; no `before` with multiple sources → the
-  penalty. All four are committed rows (`add_data_source/*`).
-- **Regex options anchor** (contract 7). `AddEquality` and `AddPriority`
-  accept an option that is either a literal value or a compiled anchored
-  pattern; the type that expresses that choice is the implementer's, and
-  the doc comment states that a pattern **matches from position 0** and
-  cites Python's `.match`.
-- **Assertion discipline.** Every arithmetic property above ships a
-  table-driven test, and the task reports **the mutation that proved each
-  can fire** — at minimum: a denominator that counts a fixed weight table
-  instead of added penalties (must fail `aggregate/zero-added-key`); a
-  nonzero view that includes a `0.0` key (must fail
-  `aggregate/all-zero-weights`'s empty `items`); a sort keyed on
-  `(dist, key)` instead of `(-dist, key)` (must fail
-  `aggregate/sorted-penalties`); and a zero-max path returning `NaN`
-  instead of `0.0`.
+  penalty.
+- **Regex options anchor, and only options do** (contract 7).
+  `AddEquality` and `AddPriority` accept an option that is either a literal
+  value or a compiled anchored pattern; the type that expresses that choice
+  is the implementer's, and the doc comment states that a pattern
+  **matches from position 0** and cites Python's `.match`. **Both adders
+  wrap a scalar option into a one-element list before iterating**
+  (contract 6a), and `AddPriority`'s unit divisor is computed after the
+  wrap.
+- **Assertion discipline, against this task's own hand-authored fixtures**
+  (fold, M-b). Every arithmetic property above ships a table-driven test,
+  and the task reports **the mutation that proved each can fire**. The four
+  named mutations, each stated against a fixture this task authors rather
+  than a committed row it may not read:
+  1. a denominator that counts a fixed weight table instead of added
+     penalties — must fail the fixture that adds one key at `0.0` beside
+     two scored keys, where the `0.0` key still enlarges the denominator;
+  2. a nonzero view that includes a `0.0`-weighted key — must fail the
+     fixture whose only key carries weight `0.0`, whose `items` view is
+     **empty** while its added-key view is not;
+  3. a sort keyed on `(dist, key)` instead of `(-dist, key)` — must fail
+     the two-key fixture whose weighted distances differ, and the
+     equal-distance fixture that pins the key tiebreak;
+  4. a zero-max path returning `NaN` instead of `0.0`.
+  The committed rows that pin the same four properties
+  (`aggregate/zero-added-key`, `aggregate/all-zero-weights`,
+  `aggregate/sorted-penalties`, `aggregate/sorted-penalties-tied`,
+  `aggregate/empty`) are **Task 6's** mutation list, not this task's.
 - **This task does not read `components.json`.** Its tests are
   hand-authored from the contracts; Task 6 is what replays the committed
   rows. Two independent expressions of the same arithmetic is the point:
@@ -760,12 +979,20 @@ manifest pins `unidecode` `1.4.0` precisely so this is checkable.
   and state that in the test's doc comment — the property that matters is
   that a table edit or a regeneration against a different `unidecode`
   fails loudly.
-- **The pin is checked against the corpus manifest.** A gate-resident test
-  reads `corpus/manifest.json`'s `unidecode` field (read-only) and fails if
-  it does not equal the table's own recorded version stamp. A `unidecode`
-  bump is a corpus-revalidation event; this is the check that makes it one
-  for the Go side too. **Report the mutation that proved it fires** (a
-  stamp of `1.3.9` against the manifest's `1.4.0`).
+- **The table carries its own exported version stamp; the manifest
+  comparison lands at Task 6** (fold, M-c). This task exports the stamp —
+  the `unidecode` version the generator ran against, recorded in the table
+  and surfaced from package `matcher` — and tests it against the embedded
+  table locally. **It does not read `corpus/manifest.json`**: every other
+  engine task is barred from reading the corpus, `cassette.Manifest` is a
+  harness type, and importing it here would trip the very architecture
+  check Task 6 lands. The comparison of the stamp against
+  `corpus/manifest.json`'s `unidecode` field is a **conform-side test at
+  Task 6**, where reading the corpus is the harness's own business, and it
+  is Task 6 that reports the mutation proving it fires (a stamp of `1.3.9`
+  against the manifest's `1.4.0`). A `unidecode` bump is a
+  corpus-revalidation event; the seam is split across two packages so that
+  the check exists without inverting the dependency.
 - **Levenshtein rides along.** `jellyfish.levenshtein_distance` over the
   stripped ASCII strings is plain integer edit distance with unit costs;
   implement it in this file or in `strdist.go` at Task 4's discretion, with
@@ -774,12 +1001,16 @@ manifest pins `unidecode` `1.4.0` precisely so this is checkable.
 - **If gitleaks flags the generated table**, that is a finding to report,
   and the resolution is a `.gitleaksignore` **append** naming the finding
   in the pass report (per Phase 0a's `(5,2)` row) — never a rule disable,
-  and never an edit that inserts a line above `internal/config/keys_test.go:66`.
+  and never an edit that inserts a line above
+  `internal/config/keys_test.go:66`. **The file is conductor-owned**
+  (fold, m11, and the Global Constraints bullet above): this task drafts
+  the appended line and the conductor lands it in the batch commit.
 
 **Deliverable count: 4** (the committed one-time generator with its
 provenance docstring; the embedded table with its `None`/empty
-distinction; the full-sweep fidelity proof; the manifest pin check with its
-firing mutation, plus Levenshtein). Gate green; commit.
+distinction; the full-sweep fidelity proof; the exported version stamp
+whose manifest comparison lands at Task 6, plus Levenshtein). Gate green;
+commit.
 
 ---
 
@@ -807,6 +1038,37 @@ component's number flows through it. Depends on Tasks 1, 2, and 3.
   `", <word>"` becomes `"<word> <prefix>"`, applied to each string
   independently and to **each of the three words in order**), `&` → `and`,
   then the pattern loop, then `base + penalty`.
+- **`SD_PATTERNS` are never anchored** (contract 7, fold M-f). The pattern
+  loop is `re.sub` in Python — unanchored, all-non-overlapping deletion
+  over the whole string — and the Go port is `Regexp.ReplaceAllString` on
+  the pattern **exactly as beets writes it**. Do not add `^`, do not
+  translate the loop into a match-at-position-0 test, and do not reuse
+  whatever anchoring helper `AddEquality`'s options need: contract 7's
+  anchoring rule belongs to `Distance._eq`'s options and to nothing else.
+  The only `^` in the table is beets' own, in the `^the ` literal.
+- **`BeetsSDPatterns` is byte-identical to beets' six shipped literals, and
+  a test says so** (fold, M-a). Tier 0 **cannot** catch a well-meaning
+  "fix" to the table: applying the word-boundary guard named in
+  `adj-adv-ft-draft-colon` changes zero of the 72 committed rows, so the
+  corpus is blind to exactly the edit most likely to be made. The guard is
+  therefore explicit and lives here:
+  1. a test asserting each of the six pattern strings and its weight is
+     byte-identical to the literal in
+     `beets/autotag/distance.py:35-42` at the pinned version. The six
+     literals are written into the test itself, so an edit to
+     `Tunables`' table has to be made twice to pass and cannot drift
+     silently;
+  2. a **discriminating fixture** that separates the two tables:
+     `string_dist("Draft: Ember Wharf", "Draft: Northern Lines")` is
+     **`0.061111111111111116`** under `BeetsSDPatterns` and
+     **`0.6111111111111112`** under `SDPatternsWordBoundary`, both measured
+     against pinned beets. The test asserts the first against the shipped
+     table and the second against the guarded one, which is what makes
+     `SDPatternsWordBoundary` a tested value rather than dead weight.
+  **Both figures travel in the pass report**, because 3b derives each
+  `defect_free` figure through pinned beets with the one named
+  `SD_PATTERNS` edit and this is the first measured pair it can check
+  itself against.
 - **The pattern loop is the load-bearing part.** For each `(pattern,
   weight)` in `Tunables.StringDistPatterns`, in order: delete every
   non-overlapping match from **both** strings; if **either** changed,
@@ -843,19 +1105,22 @@ component's number flows through it. Depends on Tasks 1, 2, and 3.
   minimum: the article rotations for all three words; `&` → `and`; the
   `(EP)` zero-weight pattern; the featuring discount **as beets computes
   it, defect included**; the parenthetical and bracket discounts; the
-  `part`/`pt.` pattern; and the two solo cases (`"The "` vs `""` → `0.1`,
-  `", An"` vs `""` → `1.0`) that pin the loop's behavior when one side
-  empties.
+  `part`/`pt.` pattern; and the **three** solo cases that pin the loop's
+  behavior when one side empties — `"The "` vs `""`, `"(EP)"` vs `"(EP)"`,
+  and `", An"` vs `""` (fold, m8: `string_dist/solo/*` is three rows, and
+  the `(EP)` pair is one of them rather than a separate item).
 - **Regex compilation happens once**, at package scope or through
   `sync.OnceValue`, never per call, and the patterns compile at init so a
   malformed table is a startup failure rather than a per-call error.
 
-**Deliverable count: 4** (`stringDistBasic` with its strip and empty-pair
+**Deliverable count: 5** (`stringDistBasic` with its strip and empty-pair
 rules; `StringDist`'s full pipeline including the article rotation and the
-`&` rewrite; the pattern loop with adopt-on-positive-delta and its
-hand-authored acceptance suite; port hazards 1 and 2 proved and the
-case-mapping sweep reported). Gate green; commit. **Re-derive the ceiling
-against Task 2's figure and report both.**
+`&` rewrite; the pattern loop with adopt-on-positive-delta, unanchored
+`ReplaceAll` semantics, and its hand-authored acceptance suite; the
+byte-identity table test and the discriminating Draft fixture with both
+measured figures; port hazards 1 and 2 proved and the case-mapping sweep
+reported). Gate green; commit. **Re-derive the ceiling against Task 2's
+figure and report both.**
 
 ---
 
@@ -931,7 +1196,9 @@ the pass rests on. Depends on Tasks 1 through 5. **Births
 - Create: `internal/harness/conform/component.go` + `component_test.go`
   (the typed decoder and the tier-0 replay)
 - Create: `internal/harness/conform/defaults.go` + `defaults_test.go`
-  (the M1 cross-check, in the form that can fire today)
+  (the M1 cross-check in the form that can fire today, plus the
+  `unidecode` manifest pin check and the `ItemFields` corpus cross-check
+  the engine tasks are barred from making)
 - Create: `internal/harness/conform/arch_test.go` + `testdata/` (the
   engine-never-imports-harness and no-`time.Now` checks with their firing
   fixtures)
@@ -945,37 +1212,134 @@ the pass rests on. Depends on Tasks 1 through 5. **Births
   primitives, which is the harness→engine direction the first architectural
   invariant requires; putting it in the engine would invert that dependency
   for a test-only convenience.
-- **The decoder is typed, per method.** `analysis.ComponentRow` keeps
-  `Args` and `Output` as `json.RawMessage` by design, and the corpus README
-  says outright that rung 3 is what gives them their Go types. The shapes,
-  read off the committed table at drafting time:
-  - the seven adder methods (`add`, `add_equality`, `add_expr`,
-    `add_number`, `add_priority`, `add_ratio`, `add_string`): args are
-    `{"calls": [[...], ...], "key": "<name>"}`, output
-    `{"penalties": [...]}` — a **call sequence** against one accumulator,
-    and the output is that key's penalty slice in append order;
-  - the `aggregate/*` and `generic_penalty_keys/*` rows: args are
-    `{"calls": [[key, dist], ...], "weights": {...}}`, output is
-    `{"raw_distance", "max_distance", "distance", "per_key", "items"}` or
-    `{"keys": [...]}` — the aggregates and **both views**, which is exactly
-    what makes tier 0 the place port hazard 4 is caught for the price of a
-    unit test;
-  - `string_dist`: args are a **two-element array** of strings, output
+- **The decoder dispatches on `method`, and inside method `add` on the
+  argument shape: eleven methods, twelve shapes** (fold, B1). The row
+  **id** is a label, not a discriminator, and reading it as one is what
+  revision 1 got wrong: the seven `aggregate/*` rows carry
+  `"method": "add"`, because `derive_component.py:294` and `:312` emit
+  `row(row_id, "add", …)` for them. The committed method counts, recomputed
+  off the tree, are `add` **8** (`add/basic` plus the seven `aggregate/*`),
+  `add_data_source` 4, `add_equality` 3, `add_expr` 2, `add_number` 4,
+  `add_priority` 4, `add_ratio` 4, `add_string` 3, `generic_penalty_keys`
+  1, `string_dist` 23, `track_distance` 16 — 72 in total. So method `add`
+  carries **two incompatible shapes**, and the decoder splits them on
+  `args.key` (the adder shape) versus `args.weights` (the aggregate shape).
+  A row under method `add` carrying neither, or both, is a failure naming
+  the row id. Twelve shapes across eleven methods, in six families —
+  seven methods share the adder family, and the other five each have their
+  own. Read off the committed table and off `derive_component.py` at
+  revision-2 drafting time:
+  - **the adder shape** — method `add` with `args.key`, plus
+    `add_equality`, `add_expr`, `add_number`, `add_priority`, `add_ratio`,
+    `add_string`: args are `{"key": "<name>", "calls": [[...], ...]}`,
+    output `{"penalties": [float, ...]}`. Each row is a **replay of the
+    full call prefix against a fresh accumulator** (`derive_component.py:241-254`
+    rebuilds `Distance()` per row and replays `calls[0..i]`), and the
+    output is that key's penalty slice in append order. **`args.key` is
+    the literal penalty key the adder was called with, not a beets weight
+    key**: the adder tables use `"equality"`, `"expr"`, `"number"`,
+    `"priority"`, `"ratio"`, `"string"`, and `add/basic` uses `"add"`.
+    None is in `distance_weights`, and none needs to be — the adder shape's
+    output is unweighted;
+  - **the aggregate shape** — method `add` with `args.weights`: args are
+    `{"weights": {...}, "calls": [[key, dist], ...]}`, output
+    `{"distance", "raw_distance", "max_distance", "per_key", "items"}` —
+    the aggregates and **both views**, which is what makes tier 0 the place
+    port hazard 4 is caught for the price of a unit test;
+  - **`generic_penalty_keys`**: args are the aggregate shape's
+    `{"weights", "calls"}`, output `{"keys": [string, ...]}`;
+  - **`string_dist`**: args are a **bare two-element JSON array** of
+    strings — not an object — either of which may be `null`; output
     `{"distance": float}`;
-  - `track_distance`: args are `{"incl_artist", "item", "track_info"}` plus
-    optional `weights`, `data_source_mismatch_penalty`, and
-    `multiple_data_sources`, output `{"distance", "penalties"}` where
-    `penalties` is the **per-key penalty slices**, not weighted values;
-  - `add_data_source`: args are `{"before", "after", "weights",
-    "data_source_mismatch_penalty", "multiple_data_sources"}`, output
-    `{"penalties": {...}}` — **an empty object when nothing was added**,
-    which is the case that proves the key stays out of the denominator.
+  - **`track_distance`**: args are `{"incl_artist", "item", "track_info"}`
+    plus optional `weights`, `data_source_mismatch_penalty`, and
+    `multiple_data_sources`; output `{"distance", "penalties"}` where
+    `penalties` is a map of key to **raw penalty slice**, not weighted
+    values;
+  - **`add_data_source`**: args are `{"before", "after", "weights",
+    "data_source_mismatch_penalty", "multiple_data_sources"}`, where
+    `before` and `after` may each be `null`; output `{"penalties": {...}}`
+    — **an empty object when nothing was added**, which is the case that
+    proves the key stays out of the denominator.
   **Read every shape off the committed table at execution time**; the list
   above is a drafting-time reading, not a pin. A row whose method the
-  decoder does not know is a **failure naming the row id**, never a skip.
+  decoder does not know, or whose shape it cannot resolve, is a **failure
+  naming the row id**, never a skip.
+- **A row's `weights` map is an OVERRIDE on `Tunables.DistanceWeights`,
+  not a complete weight table** (fold, B2). `derive_component.py:168-190`
+  is `Distance._weights.update(overrides)` with a restore afterward, so
+  **every key the row does not name keeps beets' shipped default**. Two
+  committed rows prove it decisively, and both are in the mutation list
+  below:
+  - `aggregate/normalized` supplies `{album: 4, data_source: 2, medium: 2}`
+    and then adds two **`media`** penalties. Its `max_distance` of `6` is
+    `1×4 + 2×1.0`, which needs `media`'s shipped default of `1.0`. A
+    decoder using the row's map verbatim computes `3/4 = 0.75` against a
+    committed `0.5`, and fails with no named cause;
+  - `track_distance/data_source/mismatch-high-weight` supplies
+    `{data_source: 5}`; its committed `distance` of `0.3125` is
+    `2.5/8`, which needs `track_title`'s shipped `3.0`.
+  One key in the table is not a beets weight at all: `zero_weighted`,
+  introduced by `aggregate/all-zero-weights` and **removed again rather
+  than restored** by the shim, exists only for that row and only to make a
+  zero denominator reachable. The decoder therefore layers the row's map
+  over `Tunables.DistanceWeights` key by key and tolerates a key beets does
+  not ship.
+- **`get_penalty` and the two-plugin stub are modeled explicitly**
+  (fold, B3). Sixteen rows — the four `add_data_source/*` and the twelve
+  `track_distance/data_source/*` — are unreplayable without it, because
+  beets resolves the mismatch penalty through
+  `metadata_plugins.get_penalty(after)` (`metadata_plugins.py:159-169`),
+  which scans the **loaded** metadata source plugins for one whose
+  `data_source` name equals `after` and falls back to
+  `MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_PENALTY` = `0.5`
+  (`:180`). The derivation's stub (`derive_component.py:193-226`) installs
+  exactly two plugins, named so that `data_source` derives from the class
+  name: **`OriginalPlugin`**, carrying the class default `0.5`, and
+  **`OtherPlugin`**, carrying the row's own
+  `data_source_mismatch_penalty`. When the row's `multiple_data_sources`
+  is `false`, **only `OtherPlugin` is loaded**. So the decoder builds the
+  row's loaded-source set as `{"Original": 0.5, "Other": <row penalty>}`,
+  or `{"Other": <row penalty>}` when `multiple_data_sources` is false, and
+  resolves `after` against it with `0.5` as the fallback. Three committed
+  rows pin the fallback and the single-source branch:
+  `track_distance/data_source/mismatch-unknown` (`after` = `"unknown"`,
+  no such plugin, `0.5`), `.../mismatch-no-info` (`after` = `null`,
+  likewise `0.5`), and `.../match-no-original-but-single-source`
+  (`before` = `null`, one source loaded, **nothing added**).
+  **This wires through `Tunables`' loaded metadata source set**, the field
+  Task 1 already puts on the struct: the decoder populates it per row
+  rather than inventing a parallel mechanism, which is also what makes the
+  field's real shape testable before 3c has a client.
+- **A compiled-regex option is encoded as an object** (fold, M-e).
+  `derive_component.py:35-51` serializes a `Pattern` as
+  `{"regex": "<pattern source>", "ignorecase": <bool>}`, and the decoder
+  must recognize it wherever an `add_equality` or `add_priority` option
+  can appear — `add_equality/2`'s third call and `add_priority/2`'s fourth
+  option are the committed instances. `ignorecase: true` compiles as
+  `(?i)`, and the option **anchors at position 0** per contract 7. An
+  option that is not such an object is a literal value, and a **scalar
+  option is wrapped into a one-element list** before iterating
+  (contract 6a): `add_priority/2` passes a scalar first and a list second,
+  so the decoder cannot assume either form.
+- **Conform owns its own decoder-method set** (fold, M-g).
+  `analysis.componentMethods` is **unexported**
+  (`internal/harness/analysis/component.go:23-35`) and behind the territory
+  wall, so this task neither reads it nor exports it, and the "one derived
+  fact, one home" argument that works for `ComponentRowFloor` cannot work
+  here. Table-side coverage is already enforced on the analysis side by
+  `analysis.CheckComponentTable`, which rejects a table naming a method
+  outside its list. **Conform's own obligation is the mirror of it, stated
+  as two assertions**: every method the decoder knows has **at least one
+  replayed row**, and every row's method is one the decoder knows. A
+  decoder method with zero rows is a failure naming the method — that is
+  what catches a table that quietly loses a method — and an unknown row
+  method is a failure naming the row id. The two lists being separately
+  maintained is the point: they are two independent statements of the same
+  fact, and a disagreement is a gate failure rather than a silent skip.
 - **The row floor is enforced through `analysis.ComponentRowFloor`**, not a
-  second copy of 72: one derived fact, one home. A table below the floor,
-  or a method in `componentMethods` with no replayed row, fails.
+  second copy of 72: one derived fact, one home. A table below the floor
+  fails.
 - **Every one of the 72 rows replays green.** Comparison is **exact float
   equality first**; a row that passes only at 1e-12 relative is reported as
   a written finding naming the component and the suspected operation order
@@ -997,6 +1361,22 @@ the pass rests on. Depends on Tasks 1 through 5. **Births
   defaults transcription error in `Tunables`**, which is the check actually
   worth having, and it names the key and both values when it does. 3d
   extends it with the profile merge; 3a proves the defaults.
+- **The `unidecode` manifest pin check lands here, not in the engine**
+  (fold, M-c). Task 3 exports the transliteration table's own version
+  stamp from package `matcher`; this task reads `corpus/manifest.json`'s
+  `unidecode` field (read-only, through `cassette.Manifest`) and fails if
+  the two differ, naming both values. Reading the corpus from the harness
+  is exactly the permitted direction; reading it from the engine would have
+  tripped this task's own architecture check. **Report the mutation that
+  proved it fires** (a stamp of `1.3.9` against the manifest's `1.4.0`).
+- **The `ItemFields` corpus cross-check lands here too** (fold, M-d). Task
+  1 proves the typed-default projection against its own hand-authored
+  fixture; this task proves the same projection agrees with the corpus, by
+  reading a committed `case.json` and asserting that a field its
+  `Input.Items` map omits reads as the beets typed default through the Go
+  accessor rather than as an absent value. Same reason, same direction:
+  the engine defines the projection, the harness checks it against the
+  data.
 - **The architecture checks, stdlib only.** `arch_test.go` walks
   `internal/engine/...` with `filepath.WalkDir` and `go/parser` in
   `ImportsOnly` mode and fails on any import path under
@@ -1007,24 +1387,47 @@ the pass rests on. Depends on Tasks 1 through 5. **Births
 - **Every checker in this task ships a fixture that makes it fire**, and
   the report names each mutation. At minimum: a row whose `Output` is
   perturbed by one ULP (the replay must fail); a row whose method is
-  unknown (must fail, not skip); a table one row below the floor; a
+  unknown (must fail, not skip); a decoder method with no replayed row
+  (must fail naming the method); a table one row below the floor; a
   `Tunables` weight perturbed from `0.9` to `0.09` (the defaults
-  cross-check must name `missing_tracks` and both values); a violating
-  import; a `time.Now` call. **Fixtures are hand-authored in this package's
-  own `testdata`, never a corpus case.**
+  cross-check must name `missing_tracks` and both values); a stamp of
+  `1.3.9` against the manifest's `1.4.0`; a violating import; a `time.Now`
+  call. **Fixtures are hand-authored in this package's own `testdata`,
+  never a corpus case.**
+- **The four arithmetic mutations Task 2 could not state against the
+  committed table are stated here** (fold, M-b). Task 2 proved each
+  against its own hand-authored fixtures; this task proves the same four
+  against the rows that pin them, and reports both halves agreeing:
+  a denominator counting a fixed weight table instead of added penalties
+  must fail `aggregate/zero-added-key`; a nonzero view including a
+  zero-weighted key must fail `aggregate/all-zero-weights`'s empty
+  `items`; a sort keyed on `(dist, key)` instead of `(-dist, key)` must
+  fail `aggregate/sorted-penalties` and `aggregate/sorted-penalties-tied`;
+  and a zero-max path returning `NaN` must fail `aggregate/empty` and
+  `aggregate/all-zero-weights`. **Two independent expressions of the same
+  arithmetic disagreeing is a finding, not a tolerance.**
 - **Wall time is reported broken down**, with `-count=1`, per the standing
   rule. If the tier-0 leg plus the 215-case defaults read outgrows the
   module gate's tolerance, that is a finding for the conductor — it becomes
   its own leg of `scripts/check.sh` at full scope, never an optional target.
 
-**Deliverable count: 5** (the typed per-method decoder with its
-unknown-method failure; the tier-0 replay green over all 72 rows with
+**Deliverable count: 6** (the typed decoder dispatching on method with the
+add-shape split, the weights-as-override rule, the `get_penalty` stub
+model, and the regex-option encoding, with its unknown-method and
+unknown-shape failures; the tier-0 replay green over all 72 rows with
 exact-equality comparison and a per-method replayed count; the defaults
-cross-check over every committed case with its firing mutation; the two
-architecture checks with their fixtures; the package's own doc comment
-recording why the runner lives on the harness side). Gate green — **and
-from this task on, "gate green" includes tier-0 replay green over all 72
-rows**; commit.
+cross-check over every committed case with its firing mutation; the
+`unidecode` manifest pin check and the `ItemFields` corpus cross-check
+carried here from Tasks 3 and 1; the two architecture checks with their
+fixtures; the package's own doc comment recording why the runner lives on
+the harness side). Gate green — **and from this task on, "gate green"
+includes tier-0 replay green over all 72 rows**; commit.
+
+**This is the task the review found unexecutable as written**, and its
+whole failure was reading the row *ids* rather than the row *methods* and
+the derivation shim. `internal/harness/oracle/derive_component.py` is a
+**primary input for this task**, read in full before the decoder is
+designed; the contracts above are a reading of it, not a substitute for it.
 
 ---
 
@@ -1050,9 +1453,22 @@ Model: `sonnet`. Depends on Tasks 1 through 6.
   `albumdisambig`, `data_source`), the consensus map beside it, and the
   **albumartist-consensus override** of `likelies["artist"]`. Tie-breaking
   is contract 11's first-seen rule, and it gets its own test with a
-  deliberately tied item set.
-- **One component, one file, one test**, in contract 8's fixed order, each
-  with a fire test and a decline test:
+  deliberately tied item set. **Falsy items are filtered before counting**
+  (`util/__init__.py:838`, contract 10's m6 note), which also means
+  `consensus[field]`'s denominator is the filtered count, not the input
+  count.
+- **Fourteen components in thirteen files, with one named exception**
+  (fold, M-i). Contract 8's album order enumerates fourteen components;
+  `missing_tracks` and `unmatched_tracks` share `album_extras.go`, because
+  they are one counting rule read from both ends of the same pairing and
+  splitting them would put half a rule in each file. That is a **deliberate
+  departure from "one component, one file"**, stated here and restated in
+  `album_extras.go`'s doc comment, not an accident of the file list. Every
+  other component is its own file. Both still get their own fire and
+  decline tests, and both appear separately in the declared component
+  slice, so the order test of Task 8 still sees fourteen names.
+- **One component, one file, one test** — with the exception just named —
+  in contract 8's fixed order, each with a fire test and a decline test:
   - `artist` (3.0): **skipped entirely** when `album_info.VA`;
   - `album` (3.0): `AddString`, always;
   - `media` (1.0): only when `album_info.Media`; with `Preferred.Media`
@@ -1097,8 +1513,9 @@ Model: `sonnet`. Depends on Tasks 1 through 6.
   where the code is.
 
 **Deliverable count: 4** (`likelies` with the consensus override and the
-first-seen tie rule proved; the thirteen album components as one file and
-one test each, in beets' fixed order; the year component's three branches
+first-seen tie rule proved; the fourteen album components in thirteen
+files with one test each, in beets' fixed order, `album_extras.go` named
+as the deliberate exception; the year component's three branches
 with the evaluation date as a parameter and the unreachable
 `preferred.original_year` branch graded by a hand-authored fixture; the
 anchored case-insensitive pattern handling for `media` and `country`).
@@ -1182,16 +1599,42 @@ Model: `sonnet`. Depends on Tasks 0 through 8.
   3. **The `SD_PATTERNS`-as-a-value seam**, naming `BeetsSDPatterns`,
      `SDPatternsWordBoundary`, and `Tunables.StringDistPatterns`, so 3b's
      `defect_free` derivation and 3d's compat switch swap a table rather
-     than edit a component.
+     than edit a component. **With it, the two measured figures and the
+     warning that produced them**: the word-boundary guard changes **zero
+     of the 72 tier-0 rows**, so tier 0 is blind to a "fixed" table and
+     Task 4's byte-identity test is the only thing standing between the
+     port and a silent improvement. The discriminating pair,
+     `string_dist("Draft: Ember Wharf", "Draft: Northern Lines")`, reads
+     **`0.061111111111111116`** under `BeetsSDPatterns` and
+     **`0.6111111111111112`** under `SDPatternsWordBoundary`; 3b checks its
+     own `defect_free` derivation against that pair before trusting it
+     (fold, M-a).
   4. **The M2 resolution and the two drafted `corpus/README.md` cells**,
      for the conductor to land; and the note that the mechanics study's Q4
-     "19 keys" is superseded by the tree and by `config_default.yaml:173-193`.
-  5. **The `inclArtist` divergence** between the assignment objective and
+     "19 keys" is superseded by the tree and by
+     `config_default.yaml:174-193` (the twenty entries; `:173` is the
+     header — fold, m4).
+  5. **The four corrected citations**, so no later pass re-derives them:
+     `DataSourceMismatchPenalty`'s default is `metadata_plugins.py:180`
+     wired at `:202`, not `:190-195`; the `SearchLimit` legacy spelling is
+     `musicbrainz.searchlimit`, not a top-level `match:` key; `ExtraTags`
+     lives on the musicbrainz plugin and has no `config_default.yaml`
+     citation; and `match:` carries `album_disambig_fields` /
+     `singleton_disambig_fields`, display-only and deliberately outside
+     `Tunables`.
+  6. **The decoder contract as built** — dispatch on method, the
+     add-shape split, weights-as-override, the `get_penalty` stub model,
+     and the regex-option encoding — because 3c and 3d extend
+     `internal/harness/conform` and would otherwise re-derive it from
+     `derive_component.py` a second and third time.
+  7. **The `inclArtist` divergence** between the assignment objective and
      the final per-track distances, for 3d's tie-mirroring task.
-  6. **The `unidecode` pin check**, so a manifest bump reds the Go side too.
-  7. **Any row that passed at 1e-12 without bit-identity**, with the
+  8. **The `unidecode` pin check**, split across `matcher`'s exported
+     version stamp and conform's manifest comparison, so a manifest bump
+     reds the Go side too.
+  9. **Any row that passed at 1e-12 without bit-identity**, with the
      component and suspected operation order named.
-  8. **The measured tier-0 and gate wall time**, which the version-bump
+  10. **The measured tier-0 and gate wall time**, which the version-bump
      differential doc will want, the same courtesy 2b passed to 2c and 2c
      passed to 2d.
 - **STATUS stays present tense and under 60 lines**; anything historical
@@ -1201,7 +1644,7 @@ Model: `sonnet`. Depends on Tasks 0 through 8.
   and attended interactions against zero, which is this pass's target.
 
 **Deliverable count: 4** (the HISTORY draft in the house shape with its
-eight forward carries; the component coverage table with the declared
+ten forward carries; the component coverage table with the declared
 corpus-coverage gap; the evidence record with broken-down wall time and the
 bit-identity findings list; the STATUS rewrite with the next action). Gate
 green plus tier-0 replay green; commit.
@@ -1211,9 +1654,11 @@ green plus tier-0 replay green; commit.
 ## Execution model
 
 Workflow mode per the standing grant: the pass-execute chain per task,
-**strictly sequential** — nothing here runs in parallel, and the second
-code slot belongs to lane T in its own worktree, not to a second executor
-in this tree. Every task runs implementer → `diff-reviewer` → gate. The
+**strictly sequential** — nothing here runs in parallel, and if a second
+code slot opens at all it belongs to lane T in its own worktree, never to a
+second executor in this tree. **Lane T is blocked until Phase 0a, 0b, and
+0c land** (fold, M-h), so the expected state through this pass is one code
+lane. Every task runs implementer → `diff-reviewer` → gate. The
 conductor dispatches `code-simplifier` over each accepted task's changed Go
 and Python after review and before the pass close, and owns every ledger
 edit, the lane registry, the `corpus/README.md` correction, and the batch
