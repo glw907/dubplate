@@ -1,0 +1,215 @@
+{
+  "id": "adv-alias-xjapan-romanized",
+  "input": {
+    "items": [
+      {
+        "album": "ART OF LIFE",
+        "albumartist": "X JAPAN",
+        "artist": "X JAPAN",
+        "length": 1740.08,
+        "mb_albumid": "4a56da85-22d2-4ba9-b834-1b736a21ae97",
+        "mb_trackid": "9a4e4297-a9bc-4502-a0a9-079df3b4a854",
+        "title": "ART OF LIFE",
+        "track": 1,
+        "year": 1993
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/4a56da85-22d2-4ba9-b834-1b736a21ae97?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "4a56da85-22d2-4ba9-b834-1b736a21ae97",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "ART OF LIFE",
+        "album_id": null,
+        "albumartist": "X JAPAN",
+        "albumartist_credit": "X JAPAN",
+        "albumartist_sort": "X JAPAN",
+        "albumartists": [
+          "X JAPAN"
+        ],
+        "albumartists_credit": [
+          "X JAPAN"
+        ],
+        "albumartists_sort": [
+          "X JAPAN"
+        ],
+        "albumdisambig": "limited edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "X JAPAN",
+        "artist_credit": "X JAPAN",
+        "artist_sort": "X JAPAN",
+        "artists": [
+          "X JAPAN"
+        ],
+        "artists_credit": [
+          "X JAPAN"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "X JAPAN"
+        ],
+        "asin": "",
+        "barcode": "4988029417039",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "AMCM-4170",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "YOSHIKI",
+        "composers": [
+          "YOSHIKI"
+        ],
+        "composers_ids": [
+          "c64da7fc-a073-49fc-a26e-494217afbc6a"
+        ],
+        "country": "JP",
+        "data_source": "MusicBrainz",
+        "day": 25,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "JPAM09301070",
+        "label": "Atlantic",
+        "language": "eng",
+        "length": 1740.08,
+        "lyricists": [
+          "YOSHIKI"
+        ],
+        "lyricists_ids": [
+          "c64da7fc-a073-49fc-a26e-494217afbc6a"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "3f77449d-48e4-4ceb-b869-69af48da877b",
+        "mb_albumartistids": [
+          "3f77449d-48e4-4ceb-b869-69af48da877b"
+        ],
+        "mb_albumid": "4a56da85-22d2-4ba9-b834-1b736a21ae97",
+        "mb_artistid": "3f77449d-48e4-4ceb-b869-69af48da877b",
+        "mb_artistids": [
+          "3f77449d-48e4-4ceb-b869-69af48da877b"
+        ],
+        "mb_releasegroupid": "530b0a17-91b9-3802-8ca0-bd75e46608db",
+        "mb_releasetrackid": "7ba5efa9-8587-4585-837a-a902817057c8",
+        "mb_trackid": "9a4e4297-a9bc-4502-a0a9-079df3b4a854",
+        "mb_workid": "f0d2e727-3f18-3ec7-a28d-c6eabeb53346",
+        "media": "CD",
+        "month": 8,
+        "mtime": 0,
+        "original_day": 25,
+        "original_month": 8,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "ART OF LIFE",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "ART OF LIFE",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 1,
+        "work": "ART OF LIFE",
+        "work_disambig": "",
+        "year": 1993
+      }
+    }
+  }
+}

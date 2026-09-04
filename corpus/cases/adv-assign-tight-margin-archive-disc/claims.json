@@ -1,0 +1,11 @@
+{
+  "best_album_id": "5b9ceea6-5d32-573c-b4cf-6ec6176da3b9",
+  "recommendation": "strong",
+  "penalty_keys_nonzero": ["tracks"],
+  "penalty_keys_zero": ["album", "album_id", "artist", "year"],
+  "assignment": {"0": 1, "1": 0, "2": 2},
+  "applied_fields": {
+    "0": {"title": "Archive Disc 2"},
+    "1": {"title": "Archive Disc 1"}
+  }
+}

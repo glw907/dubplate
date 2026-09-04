@@ -1,0 +1,595 @@
+{
+  "id": "adv-assign-endpoint-swap-demo-pass",
+  "input": {
+    "items": [
+      {
+        "album": "Demo Pass Collection",
+        "albumartist": "Ines Corwall",
+        "artist": "Ines Corwall",
+        "length": 298,
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "title": "Demo Pass",
+        "year": 2017
+      },
+      {
+        "album": "Demo Pass Collection",
+        "albumartist": "Ines Corwall",
+        "artist": "Ines Corwall",
+        "length": 175,
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "title": "Demo Pass",
+        "year": 2017
+      },
+      {
+        "album": "Demo Pass Collection",
+        "albumartist": "Ines Corwall",
+        "artist": "Ines Corwall",
+        "length": 160,
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "title": "Demo Pass",
+        "year": 2017
+      },
+      {
+        "album": "Demo Pass Collection",
+        "albumartist": "Ines Corwall",
+        "artist": "Ines Corwall",
+        "length": 222,
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "title": "Demo Pass",
+        "year": 2017
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/c3b737c4-0b4d-5dcf-8034-682eeb55db06?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "distance": 0.026666666666666665,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0.026666666666666665,
+          "year": 0
+        },
+        "tracks": [
+          0.06666666666666667,
+          0.06666666666666667,
+          0.06666666666666667,
+          0.06666666666666667
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 3,
+      "1": 1,
+      "2": 2,
+      "3": 0
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Demo Pass Collection",
+        "album_id": null,
+        "albumartist": "Ines Corwall",
+        "albumartist_credit": "Ines Corwall",
+        "albumartist_sort": "Ines Corwall",
+        "albumartists": [
+          "Ines Corwall"
+        ],
+        "albumartists_credit": [
+          "Ines Corwall"
+        ],
+        "albumartists_sort": [
+          "Ines Corwall"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ines Corwall",
+        "artist_credit": "Ines Corwall",
+        "artist_sort": "Ines Corwall",
+        "artists": [
+          "Ines Corwall"
+        ],
+        "artists_credit": [
+          "Ines Corwall"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ines Corwall"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 300,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_albumartistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "mb_artistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_artistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_releasegroupid": "98d25dee-1dd6-335b-9d65-86365b2b71a2",
+        "mb_releasetrackid": "cf0b5494-87ad-f7f1-d93c-fef1782fa3d0",
+        "mb_trackid": "5d87ee76-1c79-96ba-334c-7588a26429b8",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 2017,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Demo Pass Collection",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Demo Pass 4",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Demo Pass Collection",
+        "album_id": null,
+        "albumartist": "Ines Corwall",
+        "albumartist_credit": "Ines Corwall",
+        "albumartist_sort": "Ines Corwall",
+        "albumartists": [
+          "Ines Corwall"
+        ],
+        "albumartists_credit": [
+          "Ines Corwall"
+        ],
+        "albumartists_sort": [
+          "Ines Corwall"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ines Corwall",
+        "artist_credit": "Ines Corwall",
+        "artist_sort": "Ines Corwall",
+        "artists": [
+          "Ines Corwall"
+        ],
+        "artists_credit": [
+          "Ines Corwall"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ines Corwall"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 175,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_albumartistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "mb_artistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_artistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_releasegroupid": "98d25dee-1dd6-335b-9d65-86365b2b71a2",
+        "mb_releasetrackid": "41f931e9-2f7d-b077-4673-14e6bbd2ab88",
+        "mb_trackid": "b947998b-ec04-f129-8894-d4603576de84",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 2017,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Demo Pass Collection",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Demo Pass 2",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Demo Pass Collection",
+        "album_id": null,
+        "albumartist": "Ines Corwall",
+        "albumartist_credit": "Ines Corwall",
+        "albumartist_sort": "Ines Corwall",
+        "albumartists": [
+          "Ines Corwall"
+        ],
+        "albumartists_credit": [
+          "Ines Corwall"
+        ],
+        "albumartists_sort": [
+          "Ines Corwall"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ines Corwall",
+        "artist_credit": "Ines Corwall",
+        "artist_sort": "Ines Corwall",
+        "artists": [
+          "Ines Corwall"
+        ],
+        "artists_credit": [
+          "Ines Corwall"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ines Corwall"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 160,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_albumartistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "mb_artistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_artistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_releasegroupid": "98d25dee-1dd6-335b-9d65-86365b2b71a2",
+        "mb_releasetrackid": "39a73f2e-9808-83d3-4cae-40ccbcb3acd6",
+        "mb_trackid": "ae939f22-1b4d-2048-54ed-f5d43cfcd049",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 2017,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Demo Pass Collection",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Demo Pass 3",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2017
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Demo Pass Collection",
+        "album_id": null,
+        "albumartist": "Ines Corwall",
+        "albumartist_credit": "Ines Corwall",
+        "albumartist_sort": "Ines Corwall",
+        "albumartists": [
+          "Ines Corwall"
+        ],
+        "albumartists_credit": [
+          "Ines Corwall"
+        ],
+        "albumartists_sort": [
+          "Ines Corwall"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Ines Corwall",
+        "artist_credit": "Ines Corwall",
+        "artist_sort": "Ines Corwall",
+        "artists": [
+          "Ines Corwall"
+        ],
+        "artists_credit": [
+          "Ines Corwall"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Ines Corwall"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 3,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 220,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_albumartistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_albumid": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+        "mb_artistid": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "mb_artistids": [
+          "7a85d9cc-0558-c85a-9537-66582d551656"
+        ],
+        "mb_releasegroupid": "98d25dee-1dd6-335b-9d65-86365b2b71a2",
+        "mb_releasetrackid": "17c549e7-cb1f-460f-4efa-bbfb32e694b8",
+        "mb_trackid": "9a47b348-ec5d-e0e3-254f-81a606ff8d37",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 3,
+        "original_month": 11,
+        "original_year": 2017,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Demo Pass Collection",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Demo Pass 1",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2017
+      }
+    }
+  }
+}

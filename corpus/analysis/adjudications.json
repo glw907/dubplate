@@ -129,6 +129,136 @@
       "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
       "adjudicator": "agent",
       "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-assign-swap-session-tape",
+      "subject": {
+        "case_id": "adv-assign-swap-session-tape"
+      },
+      "suspected": "assign_items (match.py:53-81) computes a full item-to-track cost matrix from track_distance and hands it to lap.lapjv, which always returns a complete minimum-cost mapping; it never rejects a pair, however costly, and never leaves an item and a track both unmatched when the counts agree. This item set carries the same title (\"Session Tape\") on every item, matching the release's own \"Session Tape A/B/C\" tracks with an identical string_dist value (0.083333) regardless of which track it is paired against -- proven, not merely asserted, by the record's own per-track cost matrix -- so title is mathematically incapable of discriminating a correct pairing from a wrong one, and length is the only signal the solver has left. Item 0's length (222s) sits within track_length_grace (10s) of track 1's length (230s) but 12s outside grace of its own true track 0 (200s); item 1 (208s) is the mirror image. lap.lapjv's own optimum is therefore assignment {0:1, 1:0, 2:2}: items 0 and 1 swapped, item 2 correct. That optimum costs 0.15 total (album distance 0.016667, strong, apply); the correct pairing {0:0, 1:1, 2:2} would have cost 0.47 (album distance 0.052222, medium) had the solver ever considered rejecting the cheaper wrong one, which it structurally cannot.",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2}: item 0 is track 0's own rip, item 1 is track 1's own rip, item 2 is track 2's own rip. Known by construction. applied_fields show item 0 retagged with track 1's title (\"Session Tape B\", correct answer \"Session Tape A\") and item 1 retagged with track 0's title (\"Session Tape A\", correct answer \"Session Tape B\"), while the album-level verdict reads strong/apply throughout -- the album verdict never signals the per-track error at all.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields, plus the hand-verified cost matrix (internal/harness/synth's track_distance formula, checked against pinned beets' distance.py before authoring) proving the wrong mapping is the solver's actual, unique optimum, not an artifact of a near-tie: ties.json records this case unique (TieMargin 1e-9).",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-assign-swap-field-recording",
+      "subject": {
+        "case_id": "adv-assign-swap-field-recording"
+      },
+      "suspected": "The same rejection gap on a 4-track release: every item carries the identical title \"Field Recording\" against the candidate's \"Field Recording 1/2/3/4\", so string_dist against any of the four tracks is the same 0.111111, structurally uninformative. Items 0 and 1 sit within grace of their own true tracks (0, 1); items 2 and 3 are engineered the same way case 1's items 0/1 are: item 2 (322s) sits within grace of track 3 (330s) but 12s outside grace of its own track 2 (300s), and item 3 (308s) is the mirror image. lap.lapjv's unique optimum is {0:0, 1:1, 2:3, 3:2}, total cost 0.16 (album distance 0.016, strong, apply); the correct pairing would have cost 0.48 (album distance 0.048, medium).",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3}. Known by construction. applied_fields show item 2 retagged with track 3's title (\"Field Recording 4\", correct answer \"Field Recording 3\") and item 3 retagged with track 2's title (\"Field Recording 3\", correct answer \"Field Recording 4\"), while items 0 and 1 land correctly and the album-level verdict reads strong/apply throughout.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-assign-cycle-rehearsal-reel",
+      "subject": {
+        "case_id": "adv-assign-cycle-rehearsal-reel"
+      },
+      "suspected": "A genuine 3-cycle rather than a pairwise swap, on a 5-track release: every item shares the title \"Rehearsal Reel\" against the candidate's \"Rehearsal Reel A/B/C/D/E\" (uninformative by the same construction). Items 3 and 4 sit exactly on their own tracks; items 0, 1, and 2 are tuned so the solver's minimum-cost mapping cycles them: item 0 (219s) prefers track 1 (220s) over its own track 0 (200s); item 1 (236s) prefers track 2 (240s) over its own track 1; item 2 (203s) prefers track 0 (200s) over its own track 2. lap.lapjv's unique optimum is {0:1, 1:2, 2:0, 3:3, 4:4}, total cost 0.2143 (album distance 0.019481, strong, apply); the correct pairing would have cost 0.7743 (album distance 0.070390, medium) -- the widest correct-vs-wrong gap of the six cases, since a 3-cycle compounds three simultaneous wrong pairings rather than one swapped pair.",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3, 4:4}. Known by construction. applied_fields show item 0 retagged \"Rehearsal Reel B\" (correct answer A), item 1 retagged \"Rehearsal Reel C\" (correct answer B), and item 2 retagged \"Rehearsal Reel A\" (correct answer C); items 3 and 4 land correctly. The album-level verdict reads strong/apply throughout despite three of five tracks being wrong.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-assign-double-swap-broadcast",
+      "subject": {
+        "case_id": "adv-assign-double-swap-broadcast"
+      },
+      "suspected": "Two independent adjacent swaps in one 6-track record, showing the defect compounds across a release rather than firing once: every item shares the title \"Broadcast Take\" against the candidate's \"Broadcast Take 1\"-\"6\" (uninformative by the same construction). Items 0/1 and items 3/4 are each tuned the same way case 1's pair is (each item within grace of the other's true track, outside grace of its own); item 2 and item 5 sit exactly on their own tracks. lap.lapjv's unique optimum is {0:1, 1:0, 2:2, 3:4, 4:3, 5:5}, total cost 0.2571 (album distance 0.021429, strong, apply); the correct pairing would have cost 0.3905 (album distance 0.032540, still strong by a much narrower margin -- the only one of the six cases where the correct pairing would ALSO have landed strong, meaning this case's evidence is the wrong assignment's title, not its recommendation).",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3, 4:4, 5:5}. Known by construction. applied_fields show item 0 retagged \"Broadcast Take 2\" (correct answer 1), item 1 retagged \"Broadcast Take 1\" (correct answer 2), item 3 retagged \"Broadcast Take 5\" (correct answer 4), and item 4 retagged \"Broadcast Take 4\" (correct answer 5); items 2 and 5 land correctly.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-assign-endpoint-swap-demo-pass",
+      "subject": {
+        "case_id": "adv-assign-endpoint-swap-demo-pass"
+      },
+      "suspected": "A swap between the release's first and last track rather than two adjacent positions, on a 4-track release: every item shares the title \"Demo Pass\" against the candidate's \"Demo Pass 1\"-\"4\" (uninformative by the same construction). Item 0 (298s) sits within grace of track 3 (300s) but far outside grace of its own track 0 (220s); item 3 (222s) is the mirror image against track 0. Items 1 and 2 sit exactly on their own tracks. lap.lapjv's unique optimum is {0:3, 1:1, 2:2, 3:0}, total cost 0.2667 (album distance 0.026667, strong, apply); the correct pairing would have cost 1.0667 (album distance 0.106667, medium) -- proving the defect keys on length proximity alone, not on index or position proximity: a swap between the two tracks furthest apart in the release's own running order is exactly as reachable as an adjacent one once their lengths coincide.",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3}. Known by construction. applied_fields show item 0 retagged \"Demo Pass 4\" (correct answer 1) and item 3 retagged \"Demo Pass 1\" (correct answer 4); items 1 and 2 land correctly.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-assign-tight-margin-archive-disc",
+      "subject": {
+        "case_id": "adv-assign-tight-margin-archive-disc"
+      },
+      "suspected": "The narrowest correct-vs-wrong margin of the six cases, on a 3-track release: every item shares the title \"Archive Disc\" against the candidate's \"Archive Disc 1/2/3\" (uninformative by the same construction). Items 0 (192s) and 1 (178s) are tuned close enough that swapping them against tracks 1 (190s) and 0 (180s) costs almost the same as the correct pairing -- close enough to demonstrate how little length daylight the solver needs, while ties.json's own 1e-9 margin confirms it is not an actual tie. lap.lapjv's unique optimum is {0:1, 1:0, 2:2}, total cost 0.15 (album distance 0.016667, strong, apply); the correct pairing would have cost 0.2033 (album distance 0.022593, still strong) -- the gap between wrong and correct is the smallest of the six (0.0533 raw cost, against case 3's widest gap of 0.56), the case that best shows how fragile the margin against a defect-free assignment can be even while it stays unambiguous.",
+      "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
+      "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2}. Known by construction. applied_fields show item 0 retagged \"Archive Disc 2\" (correct answer 1) and item 1 retagged \"Archive Disc 1\" (correct answer 2); item 2 lands correctly.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique despite the narrow margin.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-alias-pugacheva-romanized",
+      "subject": {
+        "case_id": "adv-alias-pugacheva-romanized"
+      },
+      "suspected": "_preferred_alias (beetsplug/musicbrainz.py:128-155) iterates config['import']['languages'], empty under both the estate and stock profiles, so its generator expression yields nothing and `next(matches, None)` returns None unconditionally -- no alias is ever even considered a candidate string, regardless of what the response documents. This case captures a real release (Alla Pugacheva, Alla Pugacheva Volume 1, 1970s-era Soviet-era release with no parseable date) whose artist-credit carries a documented locale=en alias \"Alla Pugacheva\" (type: Artist name), confirmed via `harness seed-items --facts` against the case's own captured response, sitting unused in the same document the matcher already has open. The applied artist and albumartist both read the native Cyrillic \"Алла Пугачёва\" (the artist entity's own canonical name, matching this release's own credited display too), distance 0, strong, apply.",
+      "citation": "#1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
+      "release_truth": "For an estate importing into a library whose owner reads Latin script, the documented locale=en alias \"Alla Pugacheva\" is the string a listener would want applied; MusicBrainz already carries it on this exact artist-credit. Confirmed via seed-items --facts against the case's own captured response (never hand-read from responses/*.json). The defect is structural, not a bad judgment call: _preferred_alias cannot select it under either shipped profile because import.languages is empty in both, so the alias is provably unreachable, not merely unpreferred.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own applied_fields plus the case's captured, unedited response (real MusicBrainz data, never hand-edited per the captured-response discipline) and the seed-items --facts alias listing read from it.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-alias-xjapan-romanized",
+      "subject": {
+        "case_id": "adv-alias-xjapan-romanized"
+      },
+      "suspected": "The mirror-script instance of the same structural gap: X JAPAN's release \"Art of Life\" (a single 29-minute track, captured as a 1-item case) is already credited \"X JAPAN\" in Latin script on this release, so the applied artist (also \"X JAPAN\", distance 0, strong, apply) happens to read acceptably to a Latin-reading listener -- but the mechanism is identical to adv-alias-pugacheva-romanized's: this artist-credit's own documented aliases (\"X-Japan\", \"iX\", and the katakana エックス ジャパン, confirmed via seed-items --facts against the case's own captured response) are never consulted at all, by the same unconditional-None path through _preferred_alias. This case's acceptable-looking outcome is itself evidence that the selection is not a judgment call: it is the total absence of a selection mechanism, applying whichever string the artist entity's own canonical name field happens to carry, independent of any alias, however well- or poorly-suited.",
+      "citation": "#1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
+      "release_truth": "No preference is expressed or exercised: the applied string here is correct by coincidence (the entity's own canonical name already happens to be the Latin form), not by any mechanism that consulted the documented alternatives. Confirmed via seed-items --facts against the case's own captured, unedited response.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Kept as a probe case despite its benign-looking outcome because the absence of a selection mechanism, not any particular outcome, is the defect under investigation.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-alias-girls-generation-romanized",
+      "subject": {
+        "case_id": "adv-alias-girls-generation-romanized"
+      },
+      "suspected": "A second, related mechanism distinct from _preferred_alias: _parse_artist_credits (beetsplug/musicbrainz.py:301-331) sets album_info.artist from `el['artist']['name']`, the MusicBrainz ARTIST ENTITY's own canonical name field, never from `el['name']`, the specific release's own credited display string. This release's own artist-credit displays the Korean \"소녀시대\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read \"Girls’ Generation\" (English, matching one of the artist's own documented locale=en aliases exactly) -- the release's own credited display is silently discarded, replaced by a string sourced from a different MusicBrainz record entirely (the artist entity, not this release). artist is the record's sole nonzero penalty (0.076471), distance 0.076471, medium, skip: the search fallback (5 candidates total, this release's own re-found lookup winning) never resolves the divergence either.",
+      "citation": "#6358 (locale aliases ignored after mbsync, 2026); #1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
+      "release_truth": "This release's own metadata credits \"소녀시대\"; a listener importing this specific release would reasonably expect their tags to reflect what the release itself documents, not a differently-sourced string from the artist's global MusicBrainz entity. Confirmed via seed-items --facts against the case's own captured, unedited response.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Distinct from Task 18's #6358 regression check, which toggles import.languages between estate and a new locale profile on one host release; this case shows the release-credit-versus-entity-name divergence firing under estate alone, with no profile change involved.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "adj-adv-alias-vissi-native-greek",
+      "subject": {
+        "case_id": "adv-alias-vissi-native-greek"
+      },
+      "suspected": "The inverse-script instance of adv-alias-girls-generation-romanized's mechanism, proving the release-credit-versus-entity-name gap is not a one-directional bias: this release's own artist-credit displays the Latin \"Anna Vissi\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read the Greek \"Άννα Βίσση\" -- matching a documented locale=el alias exactly, sourced from the artist entity's own canonical name rather than this release's own credited Latin display. artist is the record's sole nonzero penalty (0.014493), distance 0.014493, strong, apply: the divergence still lands inside the confident band, so a quiet-mode import applies it with no review at all.",
+      "citation": "#6358 (locale aliases ignored after mbsync, 2026); #1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
+      "release_truth": "This release's own metadata credits \"Anna Vissi\" in Latin script, the form printed on this specific release; a listener importing it would reasonably expect their tags to match. Confirmed via seed-items --facts against the case's own captured, unedited response. Paired with adv-alias-girls-generation-romanized, the two cases show the same mechanism firing in opposite script directions, which is what rules out a simple \"beets always prefers script X\" explanation.",
+      "disposition": "pending-adjudication",
+      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Distinct from Task 18's #6358 regression check; this case's divergence is invisible to a quiet-mode import (strong/apply), which is itself worth the owner's attention when ruling on this hypothesis.",
+      "adjudicator": "agent",
+      "date": "2026-09-03"
     }
   ]
 }

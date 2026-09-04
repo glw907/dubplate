@@ -1,0 +1,595 @@
+{
+  "id": "adv-assign-swap-field-recording",
+  "input": {
+    "items": [
+      {
+        "album": "Field Recording Log",
+        "albumartist": "Coen Marsh",
+        "artist": "Coen Marsh",
+        "length": 180,
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "title": "Field Recording",
+        "year": 2011
+      },
+      {
+        "album": "Field Recording Log",
+        "albumartist": "Coen Marsh",
+        "artist": "Coen Marsh",
+        "length": 195,
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "title": "Field Recording",
+        "year": 2011
+      },
+      {
+        "album": "Field Recording Log",
+        "albumartist": "Coen Marsh",
+        "artist": "Coen Marsh",
+        "length": 322,
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "title": "Field Recording",
+        "year": 2011
+      },
+      {
+        "album": "Field Recording Log",
+        "albumartist": "Coen Marsh",
+        "artist": "Coen Marsh",
+        "length": 308,
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "title": "Field Recording",
+        "year": 2011
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/b046171a-7664-5fa0-88f5-ceec1825e06f?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "distance": 0.016,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0.016,
+          "year": 0
+        },
+        "tracks": [
+          0.04,
+          0.04,
+          0.04,
+          0.04
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 3,
+      "3": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Field Recording Log",
+        "album_id": null,
+        "albumartist": "Coen Marsh",
+        "albumartist_credit": "Coen Marsh",
+        "albumartist_sort": "Coen Marsh",
+        "albumartists": [
+          "Coen Marsh"
+        ],
+        "albumartists_credit": [
+          "Coen Marsh"
+        ],
+        "albumartists_sort": [
+          "Coen Marsh"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coen Marsh",
+        "artist_credit": "Coen Marsh",
+        "artist_sort": "Coen Marsh",
+        "artists": [
+          "Coen Marsh"
+        ],
+        "artists_credit": [
+          "Coen Marsh"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coen Marsh"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 2,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 180,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_albumartistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "mb_artistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_artistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_releasegroupid": "333bf3ea-dc63-c15b-3ac9-7a2cdea5e302",
+        "mb_releasetrackid": "f16ad30b-8c5a-fc0e-0bee-c925e6ad808f",
+        "mb_trackid": "6a991599-442e-072d-d21a-4b4203453d50",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 2,
+        "original_month": 9,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Field Recording Log",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Field Recording 1",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Field Recording Log",
+        "album_id": null,
+        "albumartist": "Coen Marsh",
+        "albumartist_credit": "Coen Marsh",
+        "albumartist_sort": "Coen Marsh",
+        "albumartists": [
+          "Coen Marsh"
+        ],
+        "albumartists_credit": [
+          "Coen Marsh"
+        ],
+        "albumartists_sort": [
+          "Coen Marsh"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coen Marsh",
+        "artist_credit": "Coen Marsh",
+        "artist_sort": "Coen Marsh",
+        "artists": [
+          "Coen Marsh"
+        ],
+        "artists_credit": [
+          "Coen Marsh"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coen Marsh"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 2,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 195,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_albumartistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "mb_artistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_artistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_releasegroupid": "333bf3ea-dc63-c15b-3ac9-7a2cdea5e302",
+        "mb_releasetrackid": "ccbcb356-d474-3fab-7c5c-d1b15c98ab31",
+        "mb_trackid": "4fa23ea1-a838-9d84-6563-c8a4b1e4975f",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 2,
+        "original_month": 9,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Field Recording Log",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Field Recording 2",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Field Recording Log",
+        "album_id": null,
+        "albumartist": "Coen Marsh",
+        "albumartist_credit": "Coen Marsh",
+        "albumartist_sort": "Coen Marsh",
+        "albumartists": [
+          "Coen Marsh"
+        ],
+        "albumartists_credit": [
+          "Coen Marsh"
+        ],
+        "albumartists_sort": [
+          "Coen Marsh"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coen Marsh",
+        "artist_credit": "Coen Marsh",
+        "artist_sort": "Coen Marsh",
+        "artists": [
+          "Coen Marsh"
+        ],
+        "artists_credit": [
+          "Coen Marsh"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coen Marsh"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 2,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 330,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_albumartistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "mb_artistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_artistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_releasegroupid": "333bf3ea-dc63-c15b-3ac9-7a2cdea5e302",
+        "mb_releasetrackid": "d1d02067-fc1a-740f-5998-9588975f6949",
+        "mb_trackid": "0186cbb5-cd24-94e5-da46-279d78f0e1d4",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 2,
+        "original_month": 9,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Field Recording Log",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Field Recording 4",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Field Recording Log",
+        "album_id": null,
+        "albumartist": "Coen Marsh",
+        "albumartist_credit": "Coen Marsh",
+        "albumartist_sort": "Coen Marsh",
+        "albumartists": [
+          "Coen Marsh"
+        ],
+        "albumartists_credit": [
+          "Coen Marsh"
+        ],
+        "albumartists_sort": [
+          "Coen Marsh"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Coen Marsh",
+        "artist_credit": "Coen Marsh",
+        "artist_sort": "Coen Marsh",
+        "artists": [
+          "Coen Marsh"
+        ],
+        "artists_credit": [
+          "Coen Marsh"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Coen Marsh"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 2,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 300,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_albumartistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_albumid": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+        "mb_artistid": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "mb_artistids": [
+          "55031f39-bb8a-8884-86e5-c06d012e4122"
+        ],
+        "mb_releasegroupid": "333bf3ea-dc63-c15b-3ac9-7a2cdea5e302",
+        "mb_releasetrackid": "2b8beb14-4c9f-96d4-d068-5e43c6cfe12a",
+        "mb_trackid": "3babd656-0b07-c72c-ae85-d60804774183",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 2,
+        "original_month": 9,
+        "original_year": 2011,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Field Recording Log",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Field Recording 3",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 4,
+        "work": "",
+        "work_disambig": "",
+        "year": 2011
+      }
+    }
+  }
+}

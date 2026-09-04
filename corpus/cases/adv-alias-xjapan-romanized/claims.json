@@ -1,0 +1,8 @@
+{
+  "best_album_id": "4a56da85-22d2-4ba9-b834-1b736a21ae97",
+  "recommendation": "strong",
+  "penalty_keys_zero": ["album", "album_id", "artist", "tracks", "year"],
+  "applied_fields": {
+    "0": {"artist": "X JAPAN", "albumartist": "X JAPAN"}
+  }
+}

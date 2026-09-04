@@ -1,0 +1,151 @@
+{
+  "id": "aec207b4-bc79-5a84-be8b-99cecc47fc0b",
+  "title": "Session Tape Archive",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "US",
+  "date": "2016-04-09",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Harrow Vale",
+      "joinphrase": "",
+      "artist": {
+        "id": "75c0ac1d-9ccb-403f-da1a-53e1fcfdc995",
+        "name": "Harrow Vale",
+        "sort-name": "Harrow Vale",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "dd98bcbd-abe1-5765-0a5c-497b6e6172d1",
+    "title": "Session Tape Archive",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-04-09",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-04-09",
+      "area": {
+        "id": "ac6bbea1-31e1-ce67-7dc7-87b8b363a812",
+        "name": "US",
+        "iso-3166-1-codes": [
+          "US"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "3533ae56-940a-45c6-d34a-a23701c1c078",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "dd2c83ab-8fe3-69ab-1bcf-2c9fb43da8d0",
+            "title": "Session Tape A",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Harrow Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "75c0ac1d-9ccb-403f-da1a-53e1fcfdc995",
+                  "name": "Harrow Vale",
+                  "sort-name": "Harrow Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "7b755c81-b221-d969-b5e3-9edca402878b",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 230000,
+          "artist-credit": null,
+          "recording": {
+            "id": "f9a144d9-2eb4-36b5-f2be-5fc001f85ecb",
+            "title": "Session Tape B",
+            "length": 230000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Harrow Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "75c0ac1d-9ccb-403f-da1a-53e1fcfdc995",
+                  "name": "Harrow Vale",
+                  "sort-name": "Harrow Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "e962e150-2c37-f3c0-a492-ed024c643803",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 260000,
+          "artist-credit": null,
+          "recording": {
+            "id": "78ddba83-6403-e1c5-16cf-ec20093d54d0",
+            "title": "Session Tape C",
+            "length": 260000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Harrow Vale",
+                "joinphrase": "",
+                "artist": {
+                  "id": "75c0ac1d-9ccb-403f-da1a-53e1fcfdc995",
+                  "name": "Harrow Vale",
+                  "sort-name": "Harrow Vale",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

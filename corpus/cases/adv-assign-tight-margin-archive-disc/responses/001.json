@@ -1,0 +1,151 @@
+{
+  "id": "5b9ceea6-5d32-573c-b4cf-6ec6176da3b9",
+  "title": "Archive Disc Sessions",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "DE",
+  "date": "2013-03-30",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Ravi Okafor",
+      "joinphrase": "",
+      "artist": {
+        "id": "edbed0b1-e14d-02b8-3f54-2a733642f940",
+        "name": "Ravi Okafor",
+        "sort-name": "Ravi Okafor",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "ada8e0f5-4aa9-e514-d642-6cf57755b7cf",
+    "title": "Archive Disc Sessions",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2013-03-30",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2013-03-30",
+      "area": {
+        "id": "5236839c-0ed2-07f6-7069-7a4d693b44cf",
+        "name": "DE",
+        "iso-3166-1-codes": [
+          "DE"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "ee3530ae-b610-0563-b2a3-da72e7d90705",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9ff55830-dd99-a852-cfa4-3705e1cadaae",
+            "title": "Archive Disc 1",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ravi Okafor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "edbed0b1-e14d-02b8-3f54-2a733642f940",
+                  "name": "Ravi Okafor",
+                  "sort-name": "Ravi Okafor",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "29b28d8f-8290-618c-3ea5-da2997fa16b5",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 190000,
+          "artist-credit": null,
+          "recording": {
+            "id": "14a45309-e535-7d17-ecb2-d35032f804f5",
+            "title": "Archive Disc 2",
+            "length": 190000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ravi Okafor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "edbed0b1-e14d-02b8-3f54-2a733642f940",
+                  "name": "Ravi Okafor",
+                  "sort-name": "Ravi Okafor",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "646da171-5544-abc1-8313-aa9fb86ce5c3",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 240000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7f4232f6-a0f6-57da-d5ff-155569c5efed",
+            "title": "Archive Disc 3",
+            "length": 240000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ravi Okafor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "edbed0b1-e14d-02b8-3f54-2a733642f940",
+                  "name": "Ravi Okafor",
+                  "sort-name": "Ravi Okafor",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

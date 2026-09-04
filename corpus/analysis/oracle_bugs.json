@@ -54,11 +54,22 @@
       "id": "bug-nonlatin-alias-selection",
       "bug_class": "non-Latin, pseudo-release, and alias mis-selection",
       "citation": "#1916 (romaji transliteration, open since 2016); #6358 (locale aliases ignored after mbsync, 2026)",
-      "probe_case_ids": [],
-      "reproduced": "not-attempted",
-      "reproduced_reason": "no probe case authored yet; Task 17's adv-alias-* cases (4, captured) and Task 18's #6358 verification (2 sibling cases under estate/locale) both author probes for this hypothesis.",
+      "probe_case_ids": [
+        "adv-alias-pugacheva-romanized",
+        "adv-alias-xjapan-romanized",
+        "adv-alias-girls-generation-romanized",
+        "adv-alias-vissi-native-greek"
+      ],
+      "reproduced": "yes",
+      "adjudication_refs": [
+        "adj-adv-alias-pugacheva-romanized",
+        "adj-adv-alias-xjapan-romanized",
+        "adj-adv-alias-girls-generation-romanized",
+        "adj-adv-alias-vissi-native-greek"
+      ],
+      "reproduced_reason": "Reproduced by all four probe cases (Task 17), captured live against real MusicBrainz releases across three scripts (Cyrillic, Japanese, Korean, Greek). Two mechanisms, both verified against beetsplug/musicbrainz.py:128-155 (_preferred_alias) and :301-331 (_parse_artist_credits): (1) _preferred_alias iterates config['import']['languages'], empty under both estate and stock, so `next(matches, None)` is unconditionally None regardless of what the response documents -- adv-alias-pugacheva-romanized (Cyrillic Алла Пугачёва applied, distance 0, strong; the artist's own documented locale=en alias \"Alla Pugacheva\" never consulted) and adv-alias-xjapan-romanized (Latin \"X JAPAN\" applied, distance 0, strong; documented alternate-script aliases エックス ジャパン/X-Japan/iX never consulted) show the same structural gap #1916 names: there is no romaji/locale preference mechanism reachable under either shipped profile, so a real, sitting-in-the-same-response alias is provably never even a candidate string. (2) _parse_artist_credits always reads el['artist']['name'], the MusicBrainz ARTIST ENTITY's own canonical name, never el['name'], the specific RELEASE's own credited display string; when the two diverge in script (a real, observed MusicBrainz data shape, not a corpus invention) the applied artist silently discards what the release itself documents -- adv-alias-girls-generation-romanized (release credits the Korean 소녀시대 per seed-items --facts, but distance 0.076471 applies the Latin \"Girls’ Generation\" instead, artist the sole nonzero penalty, medium/skip) and adv-alias-vissi-native-greek (release credits the Latin \"Anna Vissi\", but distance 0.014493 applies the Greek Άννα Βίσση instead, matching a documented locale=el alias exactly, artist the sole nonzero penalty, strong/apply) show the entity-name-over-release-credit substitution firing in both script directions, proving it is not a directional bias but a structural gap: the release's own metadata is never consulted for this field at all. Distinct from Task 18's forthcoming #6358 regression check (one specific locale-toggle A/B experiment) and from the existing non-latin-pseudo-release smoke case, which proves only that the pseudo-release merge mechanism works, not that the resulting string is the one a listener would want.",
       "disposition": "pending-adjudication",
-      "reason": "the corpus's existing non-latin-pseudo-release smoke case proves the merge mechanism works for one release; this hypothesis is scoped to where alias/transliteration selection picks the wrong string, not merely a correctly-merged one.",
+      "reason": "Four probe cases authored this pass (Task 17) reproduce two related but distinct mechanisms behind the same hypothesis: _preferred_alias's unreachability under import.languages: [] (matching #1916's own complaint), and _parse_artist_credits's silent preference for the artist entity's canonical name over the release's own credited display (a related but separately-observed gap). Disposition stays owner-only.",
       "adjudicator": "agent",
       "date": "2026-09-03"
     },
@@ -66,9 +77,24 @@
       "id": "bug-assignment-rejection-gap",
       "bug_class": "per-pair track-assignment rejection gaps",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
-      "probe_case_ids": [],
-      "reproduced": "not-attempted",
-      "reproduced_reason": "no probe case authored yet; Task 17 (adv-assign-*, 6 synthetic cases) authors the probes: same track count as the candidate, titles carrying no signal, adjacent-track lengths close enough for the solver's optimum to pick a wrong mapping.",
+      "probe_case_ids": [
+        "adv-assign-swap-session-tape",
+        "adv-assign-swap-field-recording",
+        "adv-assign-cycle-rehearsal-reel",
+        "adv-assign-double-swap-broadcast",
+        "adv-assign-endpoint-swap-demo-pass",
+        "adv-assign-tight-margin-archive-disc"
+      ],
+      "reproduced": "yes",
+      "adjudication_refs": [
+        "adj-adv-assign-swap-session-tape",
+        "adj-adv-assign-swap-field-recording",
+        "adj-adv-assign-cycle-rehearsal-reel",
+        "adj-adv-assign-double-swap-broadcast",
+        "adj-adv-assign-endpoint-swap-demo-pass",
+        "adj-adv-assign-tight-margin-archive-disc"
+      ],
+      "reproduced_reason": "Reproduced by all six probe cases (Task 17). Each gives its item set the same track count as the candidate, an item title held constant across every item (a shared prefix identical to the album's own generic session-tape/take/reel naming, carrying zero per-track content), which string_dist scores identically regardless of which candidate track it is paired against -- title is thereby proven, not merely asserted, to contribute equal weight to every possible pairing -- and adjacent-track lengths tuned so lap.lapjv's own minimum-cost solve prefers a wrong pairing over the correct one. assign_items never rejects a pair; it always returns the minimum-cost total mapping, so the wrong assignment is not a near-miss the solver settled for, it is the solver's own provable optimum. Every case's album-level verdict lands strong/apply despite the wrong per-track mapping (adv-assign-swap-session-tape distance 0.016667 vs. 0.052222 the correct pairing would have scored; adv-assign-swap-field-recording 0.016 vs. 0.048; adv-assign-cycle-rehearsal-reel 0.019481 vs. 0.070390, a genuine 3-cycle among tracks 0-1-2 rather than a simple pairwise swap; adv-assign-double-swap-broadcast 0.021429 vs. 0.032540, two independent adjacent swaps in one 6-track record; adv-assign-endpoint-swap-demo-pass 0.026667 vs. 0.106667, a swap between the release's first and last track rather than adjacent positions, proving the defect keys on length proximity, not index proximity; adv-assign-tight-margin-archive-disc 0.016667 vs. 0.022593, the narrowest correct-vs-wrong margin of the six). Every case's own claims.json pins the wrong assignment explicitly (Assignment plus AppliedFields.title per swapped item); every one is confirmed a unique optimum by the ties ledger (TieMargin 1e-9), not a tie the tie machinery had to disposition.",
       "disposition": "pending-adjudication",
       "reason": "assign_items never rejects a pair; it always maps every input track onto some candidate track, so the album-level verdict can still land strong while individual AppliedFields.title values are wrong.",
       "adjudicator": "agent",

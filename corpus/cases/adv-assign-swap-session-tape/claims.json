@@ -1,0 +1,12 @@
+{
+  "best_album_id": "aec207b4-bc79-5a84-be8b-99cecc47fc0b",
+  "recommendation": "strong",
+  "penalty_keys_nonzero": ["tracks"],
+  "penalty_keys_zero": ["album", "album_id", "artist", "year"],
+  "assignment": {"0": 1, "1": 0, "2": 2},
+  "applied_fields": {
+    "0": {"title": "Session Tape B"},
+    "1": {"title": "Session Tape A"},
+    "2": {"title": "Session Tape C"}
+  }
+}

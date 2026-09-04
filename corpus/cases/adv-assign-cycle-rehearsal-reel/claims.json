@@ -1,0 +1,12 @@
+{
+  "best_album_id": "88037868-6b17-5f43-8468-d7094f980869",
+  "recommendation": "strong",
+  "penalty_keys_nonzero": ["tracks"],
+  "penalty_keys_zero": ["album", "album_id", "artist", "year"],
+  "assignment": {"0": 1, "1": 2, "2": 0, "3": 3, "4": 4},
+  "applied_fields": {
+    "0": {"title": "Rehearsal Reel B"},
+    "1": {"title": "Rehearsal Reel C"},
+    "2": {"title": "Rehearsal Reel A"}
+  }
+}

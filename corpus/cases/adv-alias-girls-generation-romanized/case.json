@@ -1,0 +1,1780 @@
+{
+  "id": "adv-alias-girls-generation-romanized",
+  "input": {
+    "items": [
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 230,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "54db9629-442c-4d66-bf87-4f56e308b62a",
+        "title": "소녀시대 (Girls' Generation)",
+        "track": 1,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 235,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "c9074275-0679-4c2f-9ef2-07c7eb644a75",
+        "title": "Ooh La-La!",
+        "track": 2,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 192,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "9e82b71d-bb80-4bb0-983a-fb50cc908a31",
+        "title": "Baby Baby",
+        "track": 3,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 237,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "91414d8d-7509-4793-a987-69bb20b03595",
+        "title": "Complete",
+        "track": 4,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 199,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "cf841800-d103-4623-b969-8679ff9bbf23",
+        "title": "Kissing You",
+        "track": 5,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 195,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "18529123-c840-4dff-a63d-c8aa68efe5ad",
+        "title": "Merry-go-round",
+        "track": 6,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 233,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "60199f84-62cd-44f7-a4f4-37b9d88f66ea",
+        "title": "그대를 부르면 (Tears)",
+        "track": 7,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 177,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "8633d818-9987-4d05-8a4c-ffe14ce254df",
+        "title": "Tinkerbell",
+        "track": 8,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 213,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "44229ae9-024f-47ce-b5b0-da149682134e",
+        "title": "7989",
+        "track": 9,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 197,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "484a710e-73e8-42c5-afcc-37e4e31bad03",
+        "title": "Honey (소원)",
+        "track": 10,
+        "year": 2007
+      },
+      {
+        "album": "Girls' Generation",
+        "albumartist": "소녀시대",
+        "artist": "소녀시대",
+        "length": 265,
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_trackid": "7f2c8e5c-05d2-407f-a72f-c97974d08183",
+        "title": "다시 만난 세계 (Into the new world)",
+        "track": 11,
+        "year": 2007
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/e0e72b32-abe2-41da-95eb-ffba407145a9?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28girls%27+generation%29+artist%3A%28%EC%86%8C%EB%85%80%EC%8B%9C%EB%8C%80%29",
+      "response": "responses/002.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/e64bf6be-a5d1-4094-8754-99af0d932234?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/003.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/2a31867c-620b-4d84-963c-9a723140305d?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/004.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/b8ccfe68-3139-4846-aea5-46181ee85a68?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/005.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/942312ae-67b2-4205-a8a8-724ef21ac87d?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/006.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/357e8322-a4b5-4481-bda0-e7c38832307c?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/007.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-03",
+    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "distance": 0.07647058823529412,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0.07647058823529412,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "b8ccfe68-3139-4846-aea5-46181ee85a68",
+        "distance": 0.22525036460865336,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.14705882352941177,
+          "artist": 0.07647058823529412,
+          "tracks": 0.0017209528439474963,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.021818181818181816,
+          0,
+          0,
+          0.00743801652892562,
+          0
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "2a31867c-620b-4d84-963c-9a723140305d",
+        "distance": 0.7374087516557216,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.14326647564469916,
+          "artist": 0.07449856733524356,
+          "missing_tracks": 0.025787965616045846,
+          "tracks": 0.48621486435868244,
+          "year": 0.0076408787010506215
+        },
+        "tracks": [
+          0.7382284382284382,
+          0.7806060606060605,
+          0.7696969696969697,
+          0.7727272727272727,
+          0.7909090909090909,
+          0.8003565062388592,
+          0.9,
+          0.7393939393939394,
+          0.7597402597402598,
+          0.719504132231405,
+          0.7132867132867133
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "942312ae-67b2-4205-a8a8-724ef21ac87d",
+        "distance": 0.7388011597165329,
+        "penalties": {
+          "album": 0,
+          "album_id": 0.14326647564469916,
+          "artist": 0.07449856733524356,
+          "missing_tracks": 0.025787965616045846,
+          "tracks": 0.48760727241949375,
+          "year": 0.0076408787010506215
+        },
+        "tracks": [
+          0.7321678321678321,
+          0.7806060606060605,
+          0.7696969696969697,
+          0.7727272727272727,
+          0.8030303030303031,
+          0.7942959001782532,
+          0.9,
+          0.7393939393939394,
+          0.7597402597402598,
+          0.743801652892562,
+          0.7132867132867133
+        ]
+      },
+      {
+        "source": "MusicBrainz",
+        "album_id": "e64bf6be-a5d1-4094-8754-99af0d932234",
+        "distance": 0.8197487375334627,
+        "penalties": {
+          "album": 0.019076385025037754,
+          "album_id": 0.09140767824497258,
+          "artist": 0.04753199268738574,
+          "missing_tracks": 0.37842778793418647,
+          "tracks": 0.27486726180388255,
+          "year": 0.00843763183799747
+        },
+        "tracks": [
+          0.8181818181818182,
+          0.7447552447552447,
+          0.7379679144385026,
+          0.5454545454545454,
+          0.7024793388429752,
+          0.7336898395721925,
+          0.7045454545454546,
+          0.676,
+          0.5454545454545454,
+          0.5454545454545454,
+          0.7636363636363637
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Kenzie"
+        ],
+        "arrangers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Kenzie",
+        "composers": [
+          "Kenzie"
+        ],
+        "composers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802931;KRA300803002",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 230,
+        "lyricists": [
+          "Kenzie"
+        ],
+        "lyricists_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "e0f456d4-6af5-41a8-a738-22b2f5088840",
+        "mb_trackid": "54db9629-442c-4d66-bf87-4f56e308b62a",
+        "mb_workid": "778713f0-3d9f-4bc9-9a0c-67fde337a5f8",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "소녀시대 (Girls' Generation)",
+        "track": 1,
+        "track_alt": "01",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "소녀시대",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "안익수"
+        ],
+        "arrangers_ids": [
+          "aa129021-6c75-44ab-b2f0-87f2573c4811"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802932;KRA300803003",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 235,
+        "lyricists": [
+          "윤효상"
+        ],
+        "lyricists_ids": [
+          "627a8c43-81bf-44b6-be37-a995ece7423f"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "c4a3cf60-eca3-43fa-b46f-79a75f60c8bc",
+        "mb_trackid": "c9074275-0679-4c2f-9ef2-07c7eb644a75",
+        "mb_workid": "54c0f3d6-0388-49f8-a288-59345943b33c",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Ooh La-La!",
+        "track": 2,
+        "track_alt": "02",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Ooh La-La!",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Kenzie"
+        ],
+        "arrangers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Kenzie",
+        "composers": [
+          "Kenzie"
+        ],
+        "composers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802908;KRA300802941;KRA300803012",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 265,
+        "lyricists": [
+          "김정배"
+        ],
+        "lyricists_ids": [
+          "34903cf0-bdd7-4bb3-a154-273e3247192a"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "a5255a48-6366-4928-acff-ef2ee78d2c2e",
+        "mb_trackid": "7f2c8e5c-05d2-407f-a72f-c97974d08183",
+        "mb_workid": "06d82617-b071-4387-89c1-a153dafb6418",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "다시 만난 세계 (Into the new world)",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "다시 만난 세계 (Into the new world)",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "황성제"
+        ],
+        "arrangers_ids": [
+          "e0383c6a-a4a9-4a94-895c-8b5906c9742b"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Hwang, Sung Je",
+        "composers": [
+          "황성제"
+        ],
+        "composers_ids": [
+          "e0383c6a-a4a9-4a94-895c-8b5906c9742b"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802933;KRA300803004",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 192,
+        "lyricists": [
+          "황성제",
+          "유제니"
+        ],
+        "lyricists_ids": [
+          "e0383c6a-a4a9-4a94-895c-8b5906c9742b",
+          "65ce7993-5756-4652-a61f-ef7778ae7b86"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "33abe53e-6bd5-41fe-9f81-1db577c45d58",
+        "mb_trackid": "9e82b71d-bb80-4bb0-983a-fb50cc908a31",
+        "mb_workid": "26b2c490-f766-4cf8-b08b-61d56a7d1469",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Baby Baby",
+        "track": 3,
+        "track_alt": "03",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Baby Baby",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "홍석"
+        ],
+        "arrangers_ids": [
+          "0f9ea09a-755d-4c38-bccd-a7e670850624"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802934;KRA300803005",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 237,
+        "lyricists": [
+          "조윤경"
+        ],
+        "lyricists_ids": [
+          "7ef79f87-2ce7-4826-8890-8033cb77b077"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "4bd58451-793b-4899-83de-eaf602738766",
+        "mb_trackid": "91414d8d-7509-4793-a987-69bb20b03595",
+        "mb_workid": "f4c3ce6d-cacc-4864-9569-47723a64551f",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Complete",
+        "track": 4,
+        "track_alt": "04",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Complete",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "이재명"
+        ],
+        "arrangers_ids": [
+          "28214bc1-dad0-4f8a-81a3-b52556117b44"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Lee, JaeMyeong",
+        "composers": [
+          "이재명"
+        ],
+        "composers_ids": [
+          "28214bc1-dad0-4f8a-81a3-b52556117b44"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802935;KRA300803006",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 199,
+        "lyricists": [
+          "권윤정",
+          "이재명"
+        ],
+        "lyricists_ids": [
+          "3fd79915-aaef-440e-be69-45ca582597a0",
+          "28214bc1-dad0-4f8a-81a3-b52556117b44"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "e81bd6ec-bd06-4d07-a5c2-be541144a5f7",
+        "mb_trackid": "cf841800-d103-4623-b969-8679ff9bbf23",
+        "mb_workid": "b3b6c1e0-d57e-498b-ac43-8c09a6d05ebf",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Kissing You",
+        "track": 5,
+        "track_alt": "05",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Kissing you",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Kenzie"
+        ],
+        "arrangers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Kenzie",
+        "composers": [
+          "Kenzie"
+        ],
+        "composers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802936;KRA300803007",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 195,
+        "lyricists": [
+          "김정배"
+        ],
+        "lyricists_ids": [
+          "34903cf0-bdd7-4bb3-a154-273e3247192a"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "0ec7ba5e-61e8-4bae-864c-907e16115a5b",
+        "mb_trackid": "18529123-c840-4dff-a63d-c8aa68efe5ad",
+        "mb_workid": "b0c77458-35c0-4b28-bbea-2da347e76fc4",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Merry-go-round",
+        "track": 6,
+        "track_alt": "06",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Merry-go-round",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "박기완"
+        ],
+        "arrangers_ids": [
+          "20050cf9-c6dd-4956-9207-1bf36cf36903"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Park, GiWan",
+        "composers": [
+          "박기완"
+        ],
+        "composers_ids": [
+          "20050cf9-c6dd-4956-9207-1bf36cf36903"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802937;KRA300803008",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 233,
+        "lyricists": [
+          "김석현"
+        ],
+        "lyricists_ids": [
+          "b8815423-bea0-49e1-aac4-1f24a232cf29"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "ea571893-fc92-41d4-ae44-b2bcf78aefd0",
+        "mb_trackid": "60199f84-62cd-44f7-a4f4-37b9d88f66ea",
+        "mb_workid": "5df2632c-3a5d-4182-b585-f5590c8d205c",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "그대를 부르면 (Tears)",
+        "track": 7,
+        "track_alt": "07",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "그대를 부르면 (Tears)",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Kenzie"
+        ],
+        "arrangers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802938;KRA300803009",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 177,
+        "lyricists": [
+          "조윤경"
+        ],
+        "lyricists_ids": [
+          "7ef79f87-2ce7-4826-8890-8033cb77b077"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "29e73a73-2b25-4748-85ea-06c8b8505d4c",
+        "mb_trackid": "8633d818-9987-4d05-8a4c-ffe14ce254df",
+        "mb_workid": "f1cbd70d-61a8-4c3f-976f-3aaa979f16da",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tinkerbell",
+        "track": 8,
+        "track_alt": "08",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Tinkerbell",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "강타"
+        ],
+        "arrangers_ids": [
+          "e96bed25-e9c7-4fa3-9db6-1ee9e3e0b265"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "KANGTA",
+        "composers": [
+          "강타"
+        ],
+        "composers_ids": [
+          "e96bed25-e9c7-4fa3-9db6-1ee9e3e0b265"
+        ],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802939;KRA300803010",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 213,
+        "lyricists": [
+          "강타"
+        ],
+        "lyricists_ids": [
+          "e96bed25-e9c7-4fa3-9db6-1ee9e3e0b265"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "7e7dfbe7-eeeb-4140-8542-95a3131eb311",
+        "mb_trackid": "44229ae9-024f-47ce-b5b0-da149682134e",
+        "mb_workid": "f53d0168-e69c-4416-873f-c6ccc079349c",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "7989",
+        "track": 9,
+        "track_alt": "09",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "7989",
+        "work_disambig": "",
+        "year": 2007
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Girls' Generation",
+        "album_id": null,
+        "albumartist": "Girls’ Generation",
+        "albumartist_credit": "소녀시대",
+        "albumartist_sort": "Girls’ Generation",
+        "albumartists": [
+          "Girls’ Generation"
+        ],
+        "albumartists_credit": [
+          "소녀시대"
+        ],
+        "albumartists_sort": [
+          "Girls’ Generation"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [
+          "Kenzie"
+        ],
+        "arrangers_ids": [
+          "2997113e-cc84-4a0c-8111-d0648b42b4dc"
+        ],
+        "artist": "Girls’ Generation",
+        "artist_credit": "소녀시대",
+        "artist_sort": "Girls’ Generation",
+        "artists": [
+          "Girls’ Generation"
+        ],
+        "artists_credit": [
+          "소녀시대"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Girls’ Generation"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "KR",
+        "data_source": "MusicBrainz",
+        "day": 1,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "KRA300802940;KRA300803011",
+        "label": "SM Entertainment",
+        "language": "eng",
+        "length": 197,
+        "lyricists": [
+          "권윤정"
+        ],
+        "lyricists_ids": [
+          "3fd79915-aaef-440e-be69-45ca582597a0"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_albumartistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_albumid": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+        "mb_artistid": "b7442f18-d9be-4185-8b51-482510046156",
+        "mb_artistids": [
+          "b7442f18-d9be-4185-8b51-482510046156"
+        ],
+        "mb_releasegroupid": "896a95e6-56c0-47b6-b8b1-26570d1824bd",
+        "mb_releasetrackid": "52f20564-b647-4396-b819-355f4f171940",
+        "mb_trackid": "484a710e-73e8-42c5-afcc-37e4e31bad03",
+        "mb_workid": "a2bbcfdf-4e3c-419f-bf9e-f5a9ace064ba",
+        "media": "Digital Media",
+        "month": 11,
+        "mtime": 0,
+        "original_day": 1,
+        "original_month": 11,
+        "original_year": 2007,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Girls' Generation",
+        "releasegroupdisambig": "Korean album",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Honey (소원)",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 11,
+        "work": "Honey (소원)",
+        "work_disambig": "",
+        "year": 2007
+      }
+    }
+  }
+}

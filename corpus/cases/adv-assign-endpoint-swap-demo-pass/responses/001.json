@@ -1,0 +1,181 @@
+{
+  "id": "c3b737c4-0b4d-5dcf-8034-682eeb55db06",
+  "title": "Demo Pass Collection",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "AU",
+  "date": "2017-11-03",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Ines Corwall",
+      "joinphrase": "",
+      "artist": {
+        "id": "7a85d9cc-0558-c85a-9537-66582d551656",
+        "name": "Ines Corwall",
+        "sort-name": "Ines Corwall",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "98d25dee-1dd6-335b-9d65-86365b2b71a2",
+    "title": "Demo Pass Collection",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2017-11-03",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2017-11-03",
+      "area": {
+        "id": "724e3845-8225-442c-e9e1-0623ccc230e6",
+        "name": "AU",
+        "iso-3166-1-codes": [
+          "AU"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 4,
+      "tracks": [
+        {
+          "id": "17c549e7-cb1f-460f-4efa-bbfb32e694b8",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 220000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9a47b348-ec5d-e0e3-254f-81a606ff8d37",
+            "title": "Demo Pass 1",
+            "length": 220000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ines Corwall",
+                "joinphrase": "",
+                "artist": {
+                  "id": "7a85d9cc-0558-c85a-9537-66582d551656",
+                  "name": "Ines Corwall",
+                  "sort-name": "Ines Corwall",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "41f931e9-2f7d-b077-4673-14e6bbd2ab88",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 175000,
+          "artist-credit": null,
+          "recording": {
+            "id": "b947998b-ec04-f129-8894-d4603576de84",
+            "title": "Demo Pass 2",
+            "length": 175000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ines Corwall",
+                "joinphrase": "",
+                "artist": {
+                  "id": "7a85d9cc-0558-c85a-9537-66582d551656",
+                  "name": "Ines Corwall",
+                  "sort-name": "Ines Corwall",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "39a73f2e-9808-83d3-4cae-40ccbcb3acd6",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 160000,
+          "artist-credit": null,
+          "recording": {
+            "id": "ae939f22-1b4d-2048-54ed-f5d43cfcd049",
+            "title": "Demo Pass 3",
+            "length": 160000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ines Corwall",
+                "joinphrase": "",
+                "artist": {
+                  "id": "7a85d9cc-0558-c85a-9537-66582d551656",
+                  "name": "Ines Corwall",
+                  "sort-name": "Ines Corwall",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "cf0b5494-87ad-f7f1-d93c-fef1782fa3d0",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 300000,
+          "artist-credit": null,
+          "recording": {
+            "id": "5d87ee76-1c79-96ba-334c-7588a26429b8",
+            "title": "Demo Pass 4",
+            "length": 300000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Ines Corwall",
+                "joinphrase": "",
+                "artist": {
+                  "id": "7a85d9cc-0558-c85a-9537-66582d551656",
+                  "name": "Ines Corwall",
+                  "sort-name": "Ines Corwall",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

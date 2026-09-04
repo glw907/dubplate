@@ -1,0 +1,9 @@
+{
+  "best_album_id": "e0e72b32-abe2-41da-95eb-ffba407145a9",
+  "recommendation": "medium",
+  "penalty_keys_nonzero": ["artist"],
+  "penalty_keys_zero": ["album", "album_id", "tracks", "year"],
+  "applied_fields": {
+    "0": {"artist": "Girls’ Generation", "albumartist": "Girls’ Generation"}
+  }
+}

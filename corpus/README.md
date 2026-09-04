@@ -1070,32 +1070,47 @@ headline finding is a clean bill, not a wrong match.
 
 ## The adversarial stratum
 
-Pass 2c's crafted cases (Tasks 16 and 17): synthetic releases built
-through `harness synth`, each one designed to make a *known* pinned-beets
-matching defect actually change a verdict. Where the structural stratum
-proves the matcher's code paths and the real-catalog stratum proves
-conformance over real document shapes, this stratum proves that the
-oracle is measurably wrong in named places, which is what ladder entry
-2's ruling 2 (tier one is measured against release truth where the
-oracle is known-defective) exists for. Every case here carries a row in
-`corpus/analysis/oracle_bugs.json` under the hypothesis it probes and a
-row in `corpus/analysis/adjudications.json` at `pending-adjudication`;
-both are the owner's to rule on, and neither is self-adjudicated.
+Pass 2c's crafted cases (Tasks 16 and 17): most are synthetic releases
+built through `harness synth`, each one designed to make a *known*
+pinned-beets matching defect actually change a verdict; the four
+alias-mis-selection cases (below) are the stratum's one captured
+exception, since real alias arrays are the whole point of that class.
+Where the structural stratum proves the matcher's code paths and the
+real-catalog stratum proves conformance over real document shapes,
+this stratum proves that the oracle is measurably wrong in named
+places, which is what ladder entry 2's ruling 2 (tier one is measured
+against release truth where the oracle is known-defective) exists
+for. Every case here carries a row in `corpus/analysis/oracle_bugs.json`
+under the hypothesis it probes and a row in
+`corpus/analysis/adjudications.json` at `pending-adjudication`; both
+are the owner's to rule on, and neither is self-adjudicated.
 
 **Reproduction is the deliverable, not the case file.** A case that
-freezes cleanly but leaves the verdict where a defect-free matcher would
-have left it has proved nothing, so every row below names two numbers:
-the distance the committed record actually carries, and the distance the
-same record would carry if the defect were fixed. The defect-free figure
-is computed against pinned beets' own `string_dist` with one edit to
+freezes cleanly but leaves the record where a defect-free oracle would
+have left it has proved nothing. The string-heuristic classes below
+(`adv-ft-*`, `adv-remix-*`) name two numbers per row: the distance the
+committed record actually carries, and the distance the same record
+would carry if the defect were fixed. The defect-free figure is
+computed against pinned beets' own `string_dist` with one edit to
 `SD_PATTERNS` and nothing else (a word boundary added before the
 featuring trigger, or the two 0.3-weight bracket patterns removed, which
 is arithmetically the same as charging a parenthetical at full weight).
 The computation is checked both ways: run with `SD_PATTERNS` untouched it
 reproduces every committed record's own penalty to the last digit, which
-is what makes its counterfactual half worth reading. Every case in this
-stratum moves its verdict from `strong`/`apply` to `medium`/`skip`; none
-of the ten failed, and no construction attempt was abandoned.
+is what makes its counterfactual half worth reading. Every case in
+those two classes moves its verdict from `strong`/`apply` to
+`medium`/`skip`; none of the ten failed, and no construction attempt
+was abandoned. The assignment-gap class (`adv-assign-*`) proves a
+different shape of wrongness: the *album-level verdict never moves at
+all*, landing `strong`/`apply` on every one of its six cases, while the
+per-track `assignment` and `applied_fields.title` are provably wrong
+against release truth known by construction—the sharpest evidence
+that class produces, per the plan's own framing. The alias class
+(`adv-alias-*`) proves a third shape again: on real, captured data,
+`artist`/`albumartist` gets silently overwritten with a string other
+than the one release truth (a documented alias, or the release's own
+credited display) would call correct, independent of any threshold
+crossing.
 
 Two features of the construction are worth stating once, since every row
 below shares them. First, an item set here describes a genuinely
@@ -1161,6 +1176,85 @@ do not.
 | `adv-remix-onesided` | the ordinary shape of a remix release matched against its original: item album `Salt Meridian (Kite Remix)` against candidate `Salt Meridian`, the pattern firing on the item side alone. `string_dist` reads 0.128571 against a true 0.428571. | `album: 0.021429`, distance 0.021428571, **strong, apply** | distance 0.071428571, **medium, skip** | none |
 | `adv-remix-bracket` | the square-bracket twin, `\[.*?\]` at the same 0.3 weight: item album `Copper Ledger [Nocturne Version]` against candidate `Copper Ledger`. Square brackets are the conventional version marker in a good deal of real rip metadata, so this is the same defect on the other pattern, not a variant shape. `string_dist` reads 0.166667 against a true 0.555556. | `album: 0.027778`, distance 0.027777778, **strong, apply** | distance 0.092592593, **medium, skip** | none |
 | `adv-remix-track-titles` | the per-track twin, and the closest of the four to a real remix rip: every item title is `<original> (Kite Remix)` against the candidate's own original titles (0.150000, 0.142105, 0.150000 against true 0.500000, 0.473684, 0.500000). The album title matches on both sides so the record isolates `track_title`'s own parenthetical discount; a real remix release usually diverges on both fields at once. | `tracks: 0.024561`, distance 0.024561404, **strong, apply** | distance 0.081871345, **medium, skip** | none |
+
+### Per-pair track-assignment rejection gaps
+
+`adv-assign-*`, 6 synthetic cases, probing `oracle_bugs.json`'s
+`bug-assignment-rejection-gap` (`#2981`, open since 2018; `#6078`,
+2025). `assign_items` (match.py:53-81) builds a full item-to-track cost
+matrix from `track_distance` and hands it to `lap.lapjv`, which always
+returns a complete minimum-cost mapping: it never rejects a pair,
+however costly, and never leaves an item and a track both unmatched
+once the counts agree. Every case here gives its item set the release's
+own track count, with every item carrying the *same* title across the
+whole release—the identical string against every distinct candidate
+track title, so `string_dist` scores it identically regardless of which
+track it is paired against, proving (not merely asserting) that title
+contributes zero discriminating signal to the solve. The only remaining
+signal is `track_length`, and each case tunes a pair (or more) of item
+lengths to sit within `track_length_grace` (10s) of the *wrong* track
+and outside it of their own true one, so `lap.lapjv`'s own optimum
+picks the swap. Every case's own `claims.json` pins the wrong
+`assignment` explicitly, alongside the `applied_fields.title` values a
+correct mapping would never produce. **No case in this family lands
+outside `strong`/`apply`**: the sharpest evidence this class produces
+is that the album-level verdict never signals anything is wrong at all,
+even while individual per-track titles are provably swapped. `ties.json`
+records all six unique (`TieMargin` 1e-9): the wrong mapping is the
+solver's actual, sole optimum, not an artifact of a near-tie the tie
+machinery had to disposition.
+
+| id | shape | wrong assignment (derived) | correct assignment (would-be) | swapped tracks |
+| --- | --- | --- | --- | --- |
+| `adv-assign-swap-session-tape` | a 3-track release; items 0 and 1 sit within grace of each other's track, outside grace of their own. | `{"0":1,"1":0,"2":2}`, distance 0.016667, **strong, apply** | `{"0":0,"1":1,"2":2}` would cost distance 0.052222, medium | items 0 and 1 (adjacent) |
+| `adv-assign-swap-field-recording` | a 4-track release; items 2 and 3 swapped the same way. | `{"0":0,"1":1,"2":3,"3":2}`, distance 0.016000, **strong, apply** | identity would cost distance 0.048000, medium | items 2 and 3 (adjacent) |
+| `adv-assign-cycle-rehearsal-reel` | a 5-track release; a genuine 3-cycle among items 0, 1, 2 rather than a pairwise swap. | `{"0":1,"1":2,"2":0,"3":3,"4":4}`, distance 0.019481, **strong, apply** | identity would cost distance 0.070390, medium—the widest correct-vs-wrong gap of the six | items 0, 1, 2 (a 3-cycle) |
+| `adv-assign-double-swap-broadcast` | a 6-track release; two independent adjacent swaps in one record. | `{"0":1,"1":0,"2":2,"3":4,"4":3,"5":5}`, distance 0.021429, **strong, apply** | identity would cost distance 0.032540, still strong by a narrow margin | items 0/1 and items 3/4 (two adjacent pairs) |
+| `adv-assign-endpoint-swap-demo-pass` | a 4-track release; the swap sits between the *first and last* track, not two adjacent positions, proving the defect keys on length proximity, not index proximity. | `{"0":3,"1":1,"2":2,"3":0}`, distance 0.026667, **strong, apply** | identity would cost distance 0.106667, medium | items 0 and 3 (the release's endpoints) |
+| `adv-assign-tight-margin-archive-disc` | a 3-track release; the swap is engineered as close as it can be to the correct pairing's own cost while staying a unique optimum. | `{"0":1,"1":0,"2":2}`, distance 0.016667, **strong, apply** | identity would cost distance 0.022593, still strong—the narrowest correct-vs-wrong margin of the six | items 0 and 1 (adjacent) |
+
+### Alias and transliteration mis-selection
+
+`adv-alias-*`, 4 cases, probing `oracle_bugs.json`'s
+`bug-nonlatin-alias-selection` (`#1916`, romaji/locale transliteration,
+open since 2016; `#6358`, locale aliases ignored after `mbsync`, 2026).
+Distinct from Task 18's `#6358` regression check (one specific
+locale-toggle A/B experiment on a single host release) and from the
+existing `non-latin-pseudo-release` smoke case (which proves only that
+the pseudo-release merge mechanism works, not that the resulting string
+is the one a listener would want), these four **capture** real,
+public MusicBrainz releases through `harness capture`—real alias
+arrays are the whole point—and probe two related mechanisms in
+`beetsplug/musicbrainz.py`, both confirmed via `harness seed-items
+--facts` against each case's own captured, unedited response rather
+than by reading `responses/*.json` directly:
+
+1. **`_preferred_alias` (musicbrainz.py:128-155) is structurally
+   unreachable under both shipped profiles.** It iterates
+   `config['import']['languages']`, empty under `estate` and `stock`
+   alike, so its generator yields nothing and `next(matches, None)`
+   returns `None` unconditionally—no alias is ever even considered a
+   candidate string, regardless of what the response documents.
+   `adv-alias-pugacheva-romanized` and `adv-alias-xjapan-romanized`
+   both capture a real artist-credit carrying a documented, better-
+   suited alias that sits unused in the very same response.
+2. **`_parse_artist_credits` (musicbrainz.py:301-331) always reads
+   `el['artist']['name']`, the MusicBrainz *artist entity's* own
+   canonical name, never `el['name']`, the specific *release's* own
+   credited display string.** When the two diverge in script—a real,
+   observed MusicBrainz data shape, not a corpus invention—the
+   applied artist silently discards what the release itself documents.
+   `adv-alias-girls-generation-romanized` and
+   `adv-alias-vissi-native-greek` capture this divergence firing in
+   *both* script directions, which is what rules out a simple "beets
+   always prefers script X" explanation.
+
+| id | release | MBID | credited display (per `--facts`) | applied artist | documented alias unused | recommendation |
+| --- | --- | --- | --- | --- | --- | --- |
+| `adv-alias-pugacheva-romanized` | Alla Pugacheva, *Alla Pugacheva, Volume 1* (Russian, Cyrillic) | `b5bed26f-4e2b-48cb-ae9a-057095ec1d01` | native Cyrillic `Алла Пугачёва` | `Алла Пугачёва` (native; matches the credit) | locale=en `Alla Pugacheva`, never reached (`_preferred_alias` unreachable) | distance 0, **strong, apply** |
+| `adv-alias-xjapan-romanized` | X JAPAN, *Art of Life* (Japanese; single 29-minute track) | `4a56da85-22d2-4ba9-b834-1b736a21ae97` | Latin `X JAPAN` | `X JAPAN` (Latin; matches the credit) | katakana `エックス ジャパン` and `X-Japan`/`iX`, never reached; the acceptable-looking outcome is itself evidence of an absent mechanism, not a working one | distance 0, **strong, apply** |
+| `adv-alias-girls-generation-romanized` | Girls' Generation, *Girls' Generation* (Korean) | `e0e72b32-abe2-41da-95eb-ffba407145a9` | native Hangul `소녀시대` | `Girls’ Generation` (Latin; **diverges from this release's own credit**) | matches a documented locale=en alias exactly, but sourced from the artist entity, not this release | distance 0.076471, `artist` sole nonzero penalty, **medium, skip** |
+| `adv-alias-vissi-native-greek` | Anna Vissi, *The Essential Anna Vissi* (Greek) | `449c9b1f-7b35-4c8c-97f0-3a690b964783` | Latin `Anna Vissi` | `Άννα Βίσση` (Greek; **diverges from this release's own credit**) | matches a documented locale=el alias exactly, but sourced from the artist entity, not this release; the divergence is invisible to a quiet-mode import (`strong, apply`) | distance 0.014493, `artist` sole nonzero penalty, **strong, apply** |
 
 ## The canonicalization rule
 

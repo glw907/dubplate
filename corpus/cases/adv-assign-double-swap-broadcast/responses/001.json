@@ -1,0 +1,241 @@
+{
+  "id": "0588701d-8ca2-5969-b083-4ad03ecaf01e",
+  "title": "Broadcast Take Sessions",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "CA",
+  "date": "2014-06-21",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Milo Danvers",
+      "joinphrase": "",
+      "artist": {
+        "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+        "name": "Milo Danvers",
+        "sort-name": "Milo Danvers",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "c67d1a64-4fe8-e701-f983-46c981dc455d",
+    "title": "Broadcast Take Sessions",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2014-06-21",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2014-06-21",
+      "area": {
+        "id": "f70b598c-2f4c-40dd-c16f-126c65fe7eb7",
+        "name": "CA",
+        "iso-3166-1-codes": [
+          "CA"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 6,
+      "tracks": [
+        {
+          "id": "c6644665-edfc-925c-dc9a-7a394fcc89ac",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 200000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e60c0fb2-81b1-9b6d-7404-cdfe47b31852",
+            "title": "Broadcast Take 1",
+            "length": 200000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Milo Danvers",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+                  "name": "Milo Danvers",
+                  "sort-name": "Milo Danvers",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "5d724d4e-66b3-ced5-3810-d673b020a21f",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 210000,
+          "artist-credit": null,
+          "recording": {
+            "id": "30040253-0559-c48b-988b-312680d0508a",
+            "title": "Broadcast Take 2",
+            "length": 210000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Milo Danvers",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+                  "name": "Milo Danvers",
+                  "sort-name": "Milo Danvers",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "058f9181-c4cc-a0ec-39f4-2d9e0682d630",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 150000,
+          "artist-credit": null,
+          "recording": {
+            "id": "3b101529-5f51-620a-e6cc-db597662b776",
+            "title": "Broadcast Take 3",
+            "length": 150000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Milo Danvers",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+                  "name": "Milo Danvers",
+                  "sort-name": "Milo Danvers",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "18c0d0de-29af-6081-0fd9-959b75aabee3",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 255000,
+          "artist-credit": null,
+          "recording": {
+            "id": "9a196deb-63e7-706a-719a-8e84f6984cef",
+            "title": "Broadcast Take 4",
+            "length": 255000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Milo Danvers",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+                  "name": "Milo Danvers",
+                  "sort-name": "Milo Danvers",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "005c16a3-7c74-6e5d-3f7d-bbaa297b8a4b",
+          "position": "5",
+          "number": "5",
+          "title": "",
+          "length": 267000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e16379f2-9133-92ba-2645-f7e4c4c89b90",
+            "title": "Broadcast Take 5",
+            "length": 267000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Milo Danvers",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+                  "name": "Milo Danvers",
+                  "sort-name": "Milo Danvers",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ed7683bf-8eda-40ed-cc08-44d8159afe2f",
+          "position": "6",
+          "number": "6",
+          "title": "",
+          "length": 300000,
+          "artist-credit": null,
+          "recording": {
+            "id": "714ca209-d6a9-e3f5-01e5-786c8b1c1fe4",
+            "title": "Broadcast Take 6",
+            "length": 300000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Milo Danvers",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e7aa701f-d4c6-e7c4-2b5a-0d8fac951a19",
+                  "name": "Milo Danvers",
+                  "sort-name": "Milo Danvers",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

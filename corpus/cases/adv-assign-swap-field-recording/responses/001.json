@@ -1,0 +1,181 @@
+{
+  "id": "b046171a-7664-5fa0-88f5-ceec1825e06f",
+  "title": "Field Recording Log",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "GB",
+  "date": "2011-09-02",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Coen Marsh",
+      "joinphrase": "",
+      "artist": {
+        "id": "55031f39-bb8a-8884-86e5-c06d012e4122",
+        "name": "Coen Marsh",
+        "sort-name": "Coen Marsh",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "333bf3ea-dc63-c15b-3ac9-7a2cdea5e302",
+    "title": "Field Recording Log",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2011-09-02",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2011-09-02",
+      "area": {
+        "id": "83040000-f408-2d2c-0060-5a0cf3135435",
+        "name": "GB",
+        "iso-3166-1-codes": [
+          "GB"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 4,
+      "tracks": [
+        {
+          "id": "f16ad30b-8c5a-fc0e-0bee-c925e6ad808f",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 180000,
+          "artist-credit": null,
+          "recording": {
+            "id": "6a991599-442e-072d-d21a-4b4203453d50",
+            "title": "Field Recording 1",
+            "length": 180000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coen Marsh",
+                "joinphrase": "",
+                "artist": {
+                  "id": "55031f39-bb8a-8884-86e5-c06d012e4122",
+                  "name": "Coen Marsh",
+                  "sort-name": "Coen Marsh",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "ccbcb356-d474-3fab-7c5c-d1b15c98ab31",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 195000,
+          "artist-credit": null,
+          "recording": {
+            "id": "4fa23ea1-a838-9d84-6563-c8a4b1e4975f",
+            "title": "Field Recording 2",
+            "length": 195000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coen Marsh",
+                "joinphrase": "",
+                "artist": {
+                  "id": "55031f39-bb8a-8884-86e5-c06d012e4122",
+                  "name": "Coen Marsh",
+                  "sort-name": "Coen Marsh",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "2b8beb14-4c9f-96d4-d068-5e43c6cfe12a",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 300000,
+          "artist-credit": null,
+          "recording": {
+            "id": "3babd656-0b07-c72c-ae85-d60804774183",
+            "title": "Field Recording 3",
+            "length": 300000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coen Marsh",
+                "joinphrase": "",
+                "artist": {
+                  "id": "55031f39-bb8a-8884-86e5-c06d012e4122",
+                  "name": "Coen Marsh",
+                  "sort-name": "Coen Marsh",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "d1d02067-fc1a-740f-5998-9588975f6949",
+          "position": "4",
+          "number": "4",
+          "title": "",
+          "length": 330000,
+          "artist-credit": null,
+          "recording": {
+            "id": "0186cbb5-cd24-94e5-da46-279d78f0e1d4",
+            "title": "Field Recording 4",
+            "length": 330000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Coen Marsh",
+                "joinphrase": "",
+                "artist": {
+                  "id": "55031f39-bb8a-8884-86e5-c06d012e4122",
+                  "name": "Coen Marsh",
+                  "sort-name": "Coen Marsh",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
