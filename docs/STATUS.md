@@ -39,7 +39,11 @@ Geoff's word.
 - lane-1 (code, main tree): EXECUTING 2c tasks 18, 19a, 19b, 20
   (one sequential pass-execute workflow; Geoff approved finishing
   the pass past the 80% flag, hard stop well before 9M). Then 2d
-  (plans/2026-09-03-rung-2d-file-level.md rev 2, ready).
+  (plans/2026-09-03-rung-2d-file-level.md rev 2, ready). Overnight
+  grants (Geoff, 2026-09-03 evening): push master at checkpoints;
+  2d pre-authorized past its 80% flag up to ~130% of its re-derived
+  ceiling, held with STATUS beyond that; rung 3 spec drafted tonight
+  but rung 3 executes only after Geoff's read.
 - lane-2 (code, worktree): BLOCKED until Phase 0a (fifteen
   reverse-edge cells, research dispatch), 0b (rung 1b config
   wall-row registry, own small plan), 0c (theme-variable contract +
