@@ -1,0 +1,1759 @@
+{
+  "id": "real-reissue-in-utero-2013-stock",
+  "input": {
+    "items": [
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 217.173,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "52eadc0f-037a-4747-b234-e5412aff8215",
+        "title": "Serve the Servants",
+        "track": 1,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 228.053,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "83fef6a6-4ac2-4e77-8314-45a2d5cc7133",
+        "title": "Scentless Apprentice",
+        "track": 2,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 281.16,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "b2f70fb6-3c89-45ec-9df2-a4be8daba564",
+        "title": "Heart‐Shaped Box",
+        "track": 3,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 170,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "3aab03c5-beef-49a3-a410-29a009760256",
+        "title": "Rape Me",
+        "track": 4,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 250.013,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "4fd82e6a-1984-44bf-9029-e0ddb11305c1",
+        "title": "Frances Farmer Will Have Her Revenge on Seattle",
+        "track": 5,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 151.893,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "b6097e16-f138-4413-82a5-56aabaa0aab2",
+        "title": "Dumb",
+        "track": 6,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 115.813,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "7a148826-c063-47b5-bba9-9c567d9d2b84",
+        "title": "Very Ape",
+        "track": 7,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 234.746,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "38e1aadb-c9c5-4e58-9e08-3bb9626dd0fb",
+        "title": "Milk It",
+        "track": 8,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 218.813,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "a9acd2ed-9dbd-4f13-a852-a3321a3ee586",
+        "title": "Pennyroyal Tea",
+        "track": 9,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 291.546,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "602192ae-c8df-4447-a480-87944365e119",
+        "title": "Radio Friendly Unit Shifter",
+        "track": 10,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 95.386,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "d1571fc9-a88a-4f19-a00e-f34234b7d082",
+        "title": "Tourette’s",
+        "track": 11,
+        "year": 2013
+      },
+      {
+        "album": "In Utero",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 233.173,
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_trackid": "2c63fb30-c71b-4b09-9554-0b4a657aec9b",
+        "title": "All Apologies",
+        "track": 12,
+        "year": 2013
+      }
+    ]
+  },
+  "profile": "stock",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/c2e80db3-bd09-4dd3-981c-f1b5378eaab0?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "ca321f1cb078529cecad206cd4073d6aeb6502c5db5185f4e0010ca44118da92",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960701",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 217.173,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "63427778-e3fb-4d6c-9102-ad450ca808ae",
+        "mb_trackid": "52eadc0f-037a-4747-b234-e5412aff8215",
+        "mb_workid": "07e2a739-1cc4-3bdb-94d8-58cf274594d4",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Serve the Servants",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Serve the Servants",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt, Grohl, Dave, Novoselic, Krist",
+        "composers": [
+          "Kurt Cobain",
+          "Dave Grohl",
+          "Krist Novoselic"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "4d5f891d-9bce-45ae-ad86-912dd27252fa",
+          "ac05e29f-0561-4445-bb26-5562d2389531"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960702",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 228.053,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "bce509ed-fc6b-4d73-b1c8-23e98e763472",
+        "mb_trackid": "83fef6a6-4ac2-4e77-8314-45a2d5cc7133",
+        "mb_workid": "3b301c06-3168-37bf-8dec-b23f3984f4e7",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Scentless Apprentice",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Scentless Apprentice",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960711",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 95.386,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "bc9f71cb-50cc-4744-8ef8-07823d76bc40",
+        "mb_trackid": "d1571fc9-a88a-4f19-a00e-f34234b7d082",
+        "mb_workid": "bf1e8b83-9618-3386-8a3d-65bd6fb779ec",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Tourette’s",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Tourette’s",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960712",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 233.173,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "27d73f80-5d25-4a22-a074-ffd95a521470",
+        "mb_trackid": "2c63fb30-c71b-4b09-9554-0b4a657aec9b",
+        "mb_workid": "0bb9704c-aa0d-30b6-b6a4-d6c08613057b",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "All Apologies",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "“In Utero” original version",
+        "tracktotal": 12,
+        "work": "All Apologies",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960703",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 281.16,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "6e0a4351-d464-4c5f-842d-f801a27dc061",
+        "mb_trackid": "b2f70fb6-3c89-45ec-9df2-a4be8daba564",
+        "mb_workid": "340b9356-1db6-30d7-aa79-3b56e4d5aa08",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Heart‐Shaped Box",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Heart‐Shaped Box",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960704",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 170,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "2b0350f0-e4f3-42ad-81c3-04abdf77280c",
+        "mb_trackid": "3aab03c5-beef-49a3-a410-29a009760256",
+        "mb_workid": "46d9a773-e8cd-32b9-8132-3e26ca3e4c1a",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Rape Me",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Rape Me",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960705",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 250.013,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "8c14e486-f1ce-4d4a-a074-9f78d969149f",
+        "mb_trackid": "4fd82e6a-1984-44bf-9029-e0ddb11305c1",
+        "mb_workid": "e8c550b3-f67f-3bed-ad9a-a7a44e4bf6aa",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Frances Farmer Will Have Her Revenge on Seattle",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Frances Farmer Will Have Her Revenge on Seattle",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960706",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 151.893,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "c8e77d1f-5c58-400c-8be2-e1a7580e3ed8",
+        "mb_trackid": "b6097e16-f138-4413-82a5-56aabaa0aab2",
+        "mb_workid": "28fbba54-7a8c-38f9-8b1a-36cbe55eaf91",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Dumb",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Dumb",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960707",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 115.813,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "024f80cb-0418-4555-a2e6-323aa1af8f4b",
+        "mb_trackid": "7a148826-c063-47b5-bba9-9c567d9d2b84",
+        "mb_workid": "0529dda5-a464-3f14-bcd8-dffe9cc39e3f",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Very Ape",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Very Ape",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960708",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 234.746,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "efe7da08-8823-479e-a69f-1ab150e6ce33",
+        "mb_trackid": "38e1aadb-c9c5-4e58-9e08-3bb9626dd0fb",
+        "mb_workid": "64992219-4756-366a-8d3e-c837ee5f089d",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Milk It",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Milk It",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960709",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 218.813,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "05f669a9-8efe-495e-b0da-a0e284dad2a1",
+        "mb_trackid": "a9acd2ed-9dbd-4f13-a852-a3321a3ee586",
+        "mb_workid": "7d518fe6-76fc-340c-9a1b-e2ddd158bf33",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Pennyroyal Tea",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "original “In Utero” mix",
+        "tracktotal": 12,
+        "work": "Pennyroyal Tea",
+        "work_disambig": "",
+        "year": 2013
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "In Utero",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th anniversary remaster",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "B00F3YFR38",
+        "barcode": "00602537502950",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "XW",
+        "data_source": "MusicBrainz",
+        "day": 30,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19960710",
+        "label": "Geffen Records",
+        "language": "eng",
+        "length": 291.546,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "2a0981fb-9593-3019-864b-ce934d97a16e",
+        "mb_releasetrackid": "afe996bb-b2c3-48c5-8627-c5ad8940ee63",
+        "mb_trackid": "602192ae-c8df-4447-a480-87944365e119",
+        "mb_workid": "2f03438f-950c-3caa-b93e-b97122dc4eeb",
+        "media": "Digital Media",
+        "month": 7,
+        "mtime": 0,
+        "original_day": 14,
+        "original_month": 9,
+        "original_year": 1993,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "In Utero",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Radio Friendly Unit Shifter",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Radio Friendly Unit Shifter",
+        "work_disambig": "",
+        "year": 2013
+      }
+    }
+  }
+}

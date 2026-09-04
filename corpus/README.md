@@ -1285,6 +1285,116 @@ Each row's own entry in the real-catalog non-Latin axis table above
 carries its full capture provenance (MBID, script, documented alias
 set); this table restates only the fields the hypothesis turns on.
 
+## The stock-config stratum
+
+Pass 2c's stock-config siblings (Task 19a; Task 19b's 8-case
+supplementary sample is a separate, later task and not part of this
+section). Ladder entry 2's ruling 3 holds tier one over the stock
+config, not only over `estate`, and this stratum is what makes that
+claim checkable rather than merely asserted. Each sibling is a fully
+self-contained case directory: its own `case.json` with
+`profile: "stock"` and `id: "<twin>-stock"` (matching its directory,
+per `TestEveryCorpusCaseLoadsClean`), its own `responses/` (the
+estate twin's captured bytes, copied verbatim with `cp -r`, never
+opened), its own frozen record, and its own `claims.json` written off
+that record.
+
+**Membership is Task 3's 28 mandatory rows, exactly.** Every
+real-catalog reissue/remaster and VA/box-set primary row is flagged
+mandatory in the selection dossier
+(`docs/superpowers/research/2026-09-03-real-catalog-selection.md`):
+14 + 14 = 28. All 28 landed as committed primary-row cases with no
+reserve substitution (see the real-catalog stratum's own tables
+above), so every mandatory row has an exact same-id twin. No dossier
+row needed a reserve twin, and none of the dossier's two recorded
+misses was a mandatory row, so this stratum reports no documented
+gap.
+
+**Zero of 28 siblings diverge from their twin on recommendation,
+distance, or action.** Every sibling's `recommendation`, `action`, and
+best candidate's `distance` and `penalties` are byte-identical to its
+twin's. This is a checked result, not an assumption, and the pinned
+beets source explains why. `original_date` and `per_disc_numbering`,
+the two keys where `estate.yaml` and `stock.yaml` actually differ
+(checked against pinned beets 2.13.1's own `config_default.yaml`),
+are each read in exactly one place: `AlbumInfo.item_data`
+(`beets/autotag/hooks.py`), the property that builds the metadata a
+match *applies* to an item once the verdict is already decided.
+Neither key is read anywhere in `beets/autotag/distance.py` or
+`beets/autotag/match.py`. The config surface that does move a
+year-based distance, `match.preferred.original_year`, is a different
+key entirely, absent from both profiles and sitting at its identical
+`no` default in each. `none_rec_action` (estate `skip`, default `ask`)
+is read only inside `_summary_judgment`'s non-quiet branch
+(`beets/ui/commands/import_/session.py`); `quiet_action`
+(`derive_oracle.py`) always sets `config['import']['quiet'] = True`
+before calling it, so that branch, and `none_rec_action` with it, is
+unreachable by every case this harness derives. `quiet_fallback`, the
+key quiet mode actually consults for anything short of `strong`, is
+`skip` in both profiles. No sibling in this stratum lands on a `none`
+recommendation, so the Action-only divergence `none_rec_action` could
+in principle cause never has a case to fire on here regardless. The
+gap between the three-key config-divergence table and a
+zero-verdict-divergence result is this stratum's real finding: the
+dossier's budget assumed a verdict-level effect ruling 3 needed 28
+cases to probe, and the probe's own outcome is that this particular
+config divergence never reaches the verdict layer at all, not that
+the divergence is imaginary. **A stratum in which nothing diverges
+proved something, and this is that stratum.**
+
+**The divergence lands in `applied_fields` instead, on all 28 without
+exception.** `original_date` moves every reissue sibling's applied
+`year` (the release-group's original year under `estate`, this
+edition's own year under `stock`); `per_disc_numbering` moves every
+box-set sibling's applied `tracktotal` (the item's own disc's track
+count under `estate`, the release's overall track count under
+`stock`). No sibling needed a network round-trip: since the verdict
+never moves, the same candidate is selected through the same request
+path as its twin, and the twin's copied `responses/*.json` answers
+every request the sibling's own derivation issues; freezing all 28
+left zero `misses.json` files behind.
+
+| id | twin | axis | verdict vs twin | applied-field divergence |
+| --- | --- | --- | --- | --- |
+| `real-reissue-dark-side-of-the-moon-2010-stock` | `real-reissue-dark-side-of-the-moon-2010` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1973`, stock `2010` |
+| `real-reissue-rumours-deluxe-2013-stock` | `real-reissue-rumours-deluxe-2013` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1977`, stock `2013` |
+| `real-reissue-nevermind-2011-stock` | `real-reissue-nevermind-2011` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1991`, stock `2011` |
+| `real-reissue-thriller-25-stock` | `real-reissue-thriller-25` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1982`, stock `2008` |
+| `real-reissue-abbey-road-2019-stock` | `real-reissue-abbey-road-2019` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1969`, stock `2019` |
+| `real-reissue-pet-sounds-1990-stock` | `real-reissue-pet-sounds-1990` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1966`, stock `1990` |
+| `real-reissue-are-you-experienced-1987-stock` | `real-reissue-are-you-experienced-1987` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1967`, stock `1987` |
+| `real-reissue-whats-going-on-2021-stock` | `real-reissue-whats-going-on-2021` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1971`, stock `2021` |
+| `real-reissue-catch-a-fire-deluxe-stock` | `real-reissue-catch-a-fire-deluxe` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1973`, stock `2001` |
+| `real-reissue-songs-key-of-life-2013-stock` | `real-reissue-songs-key-of-life-2013` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1976`, stock `2013` |
+| `real-reissue-doolittle-2008-stock` | `real-reissue-doolittle-2008` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1989`, stock `2008` |
+| `real-reissue-ten-2009-stock` | `real-reissue-ten-2009` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1991`, stock `2009` |
+| `real-reissue-in-utero-2013-stock` | `real-reissue-in-utero-2013` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1993`, stock `2013` |
+| `real-reissue-blood-on-the-tracks-2003-stock` | `real-reissue-blood-on-the-tracks-2003` | reissue/remaster | identical (`strong`/`apply`, distance `0`) | `year` (item 0): estate `1975`, stock `2003` |
+| `real-boxset-woodstock-25th-stock` | `real-boxset-woodstock-25th` | VA/box-set | identical (`strong`/`apply`, distance `0`) | `tracktotal` (item 0): estate `15`, stock `50` |
+| `real-boxset-mel-kim-singles-stock` | `real-boxset-mel-kim-singles` | VA/box-set | identical (`strong`/`apply`, distance `0`) | `tracktotal` (item 0): estate `14`, stock `76` |
+| `real-boxset-dylan-bootleg-1-3-stock` | `real-boxset-dylan-bootleg-1-3` | VA/box-set | identical (`strong`/`apply`, distance `0`) | `tracktotal` (item 0): estate `22`, stock `58` |
+| `real-boxset-nuggets-1965-1968-stock` | `real-boxset-nuggets-1965-1968` | VA/box-set | identical (`strong`/`apply`, distance `0.0026448366543917303`) | `tracktotal` (item 0): estate `14`, stock `70` |
+| `real-boxset-beethoven-for-all-stock` | `real-boxset-beethoven-for-all` | VA/box-set | identical (`strong`/`apply`, distance `0.005412991178829191`) | `tracktotal` (item 0): estate `8`, stock `37` |
+| `real-boxset-miles-davis-series-stock` | `real-boxset-miles-davis-series` | VA/box-set | identical (`strong`/`apply`, distance `0`) | `tracktotal` (item 0): estate `7`, stock `26` |
+| `real-boxset-stax-volt-singles-stock` | `real-boxset-stax-volt-singles` | VA/box-set | identical (`strong`/`apply`, distance `0.0037643303245612756`) | `tracktotal` (item 0): estate `29`, stock `244` |
+| `real-boxset-now-jukebox-classics-stock` | `real-boxset-now-jukebox-classics` | VA/box-set | identical (`strong`/`apply`, distance `0.0012721196931723248`) | `tracktotal` (item 0): estate `25`, stock `100` |
+| `real-boxset-backstreet-boys-series-stock` | `real-boxset-backstreet-boys-series` | VA/box-set | identical (`strong`/`apply`, distance `0`) | `tracktotal` (item 0): estate `13`, stock `48` |
+| `real-boxset-james-brown-star-time-stock` | `real-boxset-james-brown-star-time` | VA/box-set | identical (`strong`/`apply`, distance `0`) | `tracktotal` (item 0): estate `24`, stock `71` |
+| `real-boxset-trojan-marley-covers-stock` | `real-boxset-trojan-marley-covers` | VA/box-set | identical (`strong`/`apply`, distance `0.0007148814488264029`) | `tracktotal` (item 0): estate `17`, stock `50` |
+| `real-boxset-rachmaninov-complete-stock` | `real-boxset-rachmaninov-complete` | VA/box-set | identical (`strong`/`apply`, distance `0.0018674136321195143`) | `tracktotal` (item 0): estate `24`, stock `470` |
+| `real-boxset-mahler-complete-stock` | `real-boxset-mahler-complete` | VA/box-set | identical (`strong`/`apply`, distance `0.00539568345323741`) | `tracktotal` (item 0): estate `4`, stock `133` |
+| `real-boxset-scriabin-complete-stock` | `real-boxset-scriabin-complete` | VA/box-set | identical (`strong`/`apply`, distance `0.00040415471042315`) | `tracktotal` (item 0): estate `17`, stock `321` |
+
+**No `adjudications.json` row.** A row there is for a verdict suspected
+wrong against release truth; with zero verdict divergences, this
+stratum has nothing to adjudicate. `ties.json` gained the required 28
+generated rows (`go test -tags oracle ./internal/harness/oracle -run
+TestTieLedgerMatchesTheCorpus -update-ledgers`); none introduced a new
+tie, since each sibling's assignment is identical to its twin's.
+`proximity.json` gained no new entries: none of the 28 siblings'
+records fall within the boundary epsilon of any recommendation
+threshold, the same as their twins.
+
 ## The canonicalization rule
 
 A case's `requests[].path_query` is the request's path plus its raw

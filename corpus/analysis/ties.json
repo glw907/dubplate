@@ -362,7 +362,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-backstreet-boys-series-stock",
+      "album_id": "ed534e8d-a6fe-4b4f-9e5d-f5c202240dd5",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2212121212121212,
+      "difference": 1.2212121212121212,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-beethoven-for-all",
+      "album_id": "d3a68c3c-aa06-4c29-906a-c938c07a33bb",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1873256935303018,
+      "difference": 1.1873256935303018,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-beethoven-for-all-stock",
       "album_id": "d3a68c3c-aa06-4c29-906a-c938c07a33bb",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.1873256935303018,
@@ -378,7 +394,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-dylan-bootleg-1-3-stock",
+      "album_id": "1a6fdee5-5250-4d6a-ad39-6cd9721862d7",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.325108695652174,
+      "difference": 1.325108695652174,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-james-brown-star-time",
+      "album_id": "248e85fc-894d-42b0-a4ff-2c96b9f1e384",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1842105263157894,
+      "difference": 1.1842105263157894,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-james-brown-star-time-stock",
       "album_id": "248e85fc-894d-42b0-a4ff-2c96b9f1e384",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.1842105263157894,
@@ -394,7 +426,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-mahler-complete-stock",
+      "album_id": "e8bc073a-ca7f-4ffc-b3c6-635450d85491",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1,
+      "difference": 1,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-mel-kim-singles",
+      "album_id": "4f6b028a-b9a8-4595-9ce1-3bacb9c39842",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.1988095238095238,
+      "difference": 0.1988095238095238,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-mel-kim-singles-stock",
       "album_id": "4f6b028a-b9a8-4595-9ce1-3bacb9c39842",
       "optimal_cost": 0,
       "best_forbidden_cost": 0.1988095238095238,
@@ -410,7 +458,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-miles-davis-series-stock",
+      "album_id": "f380f1cd-692c-4f1a-9b3f-52f80981e1d9",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4166666666666667,
+      "difference": 1.4166666666666667,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-now-jukebox-classics",
+      "album_id": "c482f8d6-5788-471d-8a43-15e70438c0e5",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2,
+      "difference": 1.2,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-now-jukebox-classics-stock",
       "album_id": "c482f8d6-5788-471d-8a43-15e70438c0e5",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.2,
@@ -426,7 +490,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-nuggets-1965-1968-stock",
+      "album_id": "f5ebc3e1-4c2d-46d1-8f42-563a3fdc3653",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2666666666666666,
+      "difference": 1.2666666666666666,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-rachmaninov-complete",
+      "album_id": "4bf5255b-3354-424b-95e1-c0cab112e4b7",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1,
+      "difference": 1,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-rachmaninov-complete-stock",
       "album_id": "4bf5255b-3354-424b-95e1-c0cab112e4b7",
       "optimal_cost": 0,
       "best_forbidden_cost": 1,
@@ -442,7 +522,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-scriabin-complete-stock",
+      "album_id": "b94231a2-1c50-4950-88af-7f2b89198045",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0119047619047619,
+      "difference": 1.0119047619047619,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-stax-volt-singles",
+      "album_id": "54d131cf-79f4-49db-83d1-4176f97a2e3a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.2037037037037037,
+      "difference": 1.2037037037037037,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-stax-volt-singles-stock",
       "album_id": "54d131cf-79f4-49db-83d1-4176f97a2e3a",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.2037037037037037,
@@ -458,7 +554,23 @@
       "unique": true
     },
     {
+      "case_id": "real-boxset-trojan-marley-covers-stock",
+      "album_id": "8641cd63-10d1-4ec5-be67-a1ed1f916ad8",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.1666666666666667,
+      "difference": 1.1666666666666667,
+      "unique": true
+    },
+    {
       "case_id": "real-boxset-woodstock-25th",
+      "album_id": "c5a03147-c173-43ca-b19a-cff9d1249c81",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3333333333333333,
+      "difference": 1.3333333333333333,
+      "unique": true
+    },
+    {
+      "case_id": "real-boxset-woodstock-25th-stock",
       "album_id": "c5a03147-c173-43ca-b19a-cff9d1249c81",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.3333333333333333,
@@ -1010,7 +1122,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-abbey-road-2019-stock",
+      "album_id": "9fcd541a-a9ab-41c0-a6aa-13979c93301d",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.3246753246753247,
+      "difference": 1.3246753246753247,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-are-you-experienced-1987",
+      "album_id": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5272727272727273,
+      "difference": 1.5272727272727273,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-are-you-experienced-1987-stock",
       "album_id": "789f6eb5-c7e1-37f7-a8f4-1a3374af225f",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5272727272727273,
@@ -1026,7 +1154,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-blood-on-the-tracks-2003-stock",
+      "album_id": "b0851322-d298-418e-a741-d5479a0e50cb",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5291866028708134,
+      "difference": 1.5291866028708134,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-catch-a-fire-deluxe",
+      "album_id": "c6875ad6-bfd5-427c-a0e3-da7262b3d702",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1,
+      "difference": 1,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-catch-a-fire-deluxe-stock",
       "album_id": "c6875ad6-bfd5-427c-a0e3-da7262b3d702",
       "optimal_cost": 0,
       "best_forbidden_cost": 1,
@@ -1042,7 +1186,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-dark-side-of-the-moon-2010-stock",
+      "album_id": "a773d9ee-9930-4bf8-8e79-51a755396e25",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5340909090909092,
+      "difference": 1.5340909090909092,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-doolittle-2008",
+      "album_id": "5b446655-d10c-3639-ac3e-bc689efce811",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.16666666666666666,
+      "difference": 0.16666666666666666,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-doolittle-2008-stock",
       "album_id": "5b446655-d10c-3639-ac3e-bc689efce811",
       "optimal_cost": 0,
       "best_forbidden_cost": 0.16666666666666666,
@@ -1058,7 +1218,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-in-utero-2013-stock",
+      "album_id": "c2e80db3-bd09-4dd3-981c-f1b5378eaab0",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5034896331738437,
+      "difference": 1.5034896331738437,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-nevermind-2011",
+      "album_id": "237b8564-c726-4cb0-b804-348c30697325",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.5,
+      "difference": 1.5,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-nevermind-2011-stock",
       "album_id": "237b8564-c726-4cb0-b804-348c30697325",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.5,
@@ -1074,7 +1250,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-pet-sounds-1990-stock",
+      "album_id": "4a1f176d-4e05-4276-9afb-d9324d31601f",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.4343434343434345,
+      "difference": 1.4343434343434345,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-rumours-deluxe-2013",
+      "album_id": "76bd530b-5a1d-4cca-92e6-883b8871ef06",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.0580645161290323,
+      "difference": 1.0580645161290323,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-rumours-deluxe-2013-stock",
       "album_id": "76bd530b-5a1d-4cca-92e6-883b8871ef06",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.0580645161290323,
@@ -1090,7 +1282,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-songs-key-of-life-2013-stock",
+      "album_id": "7b169780-da9d-4e39-a96b-81d1e0edc598",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.372051282051282,
+      "difference": 1.372051282051282,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-ten-2009",
+      "album_id": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 0.16666666666666666,
+      "difference": 0.16666666666666666,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-ten-2009-stock",
       "album_id": "06fc304e-d70a-4846-93e5-544d6aa618d6",
       "optimal_cost": 0,
       "best_forbidden_cost": 0.16666666666666666,
@@ -1106,7 +1314,23 @@
       "unique": true
     },
     {
+      "case_id": "real-reissue-thriller-25-stock",
+      "album_id": "7a9ba230-8207-3d50-93bf-11fd3f33901a",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.309090909090909,
+      "difference": 1.309090909090909,
+      "unique": true
+    },
+    {
       "case_id": "real-reissue-whats-going-on-2021",
+      "album_id": "b17ab157-9871-4c94-bd04-147bf86f33d3",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.152978056426332,
+      "difference": 1.152978056426332,
+      "unique": true
+    },
+    {
+      "case_id": "real-reissue-whats-going-on-2021-stock",
       "album_id": "b17ab157-9871-4c94-bd04-147bf86f33d3",
       "optimal_cost": 0,
       "best_forbidden_cost": 1.152978056426332,

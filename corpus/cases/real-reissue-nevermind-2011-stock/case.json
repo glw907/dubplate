@@ -1,0 +1,1771 @@
+{
+  "id": "real-reissue-nevermind-2011-stock",
+  "input": {
+    "items": [
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 302,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "5fb524f1-8cc8-4c04-a921-e34c0a911ea7",
+        "title": "Smells Like Teen Spirit",
+        "track": 1,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 254.893,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "593e9317-a327-4a31-b796-416c62dcf49d",
+        "title": "In Bloom",
+        "track": 2,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 219.066,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "70ac6733-068f-4613-b06b-bea17cfbcc30",
+        "title": "Come as You Are",
+        "track": 3,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 183.84,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "0cf9f95f-70e7-4f2e-8075-5d8ba38dd4a3",
+        "title": "Breed",
+        "track": 4,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 256.96,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "3fac712c-4196-4865-8c1a-94231a7da309",
+        "title": "Lithium",
+        "track": 5,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 177.04,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "d088ed9e-1921-4568-ae75-fba8b15ed206",
+        "title": "Polly",
+        "track": 6,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 143,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "dbaa10b1-d46a-4960-8b50-4e2d80c8113c",
+        "title": "Territorial Pissings",
+        "track": 7,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 223.893,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "11cc49bd-f531-4cdd-9b59-e1f59b06c1d7",
+        "title": "Drain You",
+        "track": 8,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 156.84,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "aef0677b-93b4-4c66-be74-10120d0e6f5a",
+        "title": "Lounge Act",
+        "track": 9,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 212.493,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "8bf26383-8b9b-4252-9cb3-0efa4d3f47f1",
+        "title": "Stay Away",
+        "track": 10,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 196.373,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "ea61d42b-9a76-47fd-bcf7-df911640c309",
+        "title": "On a Plain",
+        "track": 11,
+        "year": 2011
+      },
+      {
+        "album": "Nevermind",
+        "albumartist": "Nirvana",
+        "artist": "Nirvana",
+        "length": 1235.16,
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_trackid": "d506a8b2-4ba9-49b9-941f-40d1295ebd29",
+        "title": "Something in the Way",
+        "track": 12,
+        "year": 2011
+      }
+    ]
+  },
+  "profile": "stock",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/237b8564-c726-4cb0-b804-348c30697325?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "ca321f1cb078529cecad206cd4073d6aeb6502c5db5185f4e0010ca44118da92",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "237b8564-c726-4cb0-b804-348c30697325",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt, Grohl, Dave, Novoselic, Krist",
+        "composers": [
+          "Kurt Cobain",
+          "Dave Grohl",
+          "Krist Novoselic"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "4d5f891d-9bce-45ae-ad86-912dd27252fa",
+          "ac05e29f-0561-4445-bb26-5562d2389531"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942501",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 302,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "bf89208c-ecea-4323-a19a-371bf7611866",
+        "mb_trackid": "5fb524f1-8cc8-4c04-a921-e34c0a911ea7",
+        "mb_workid": "9840e142-269d-3fa3-9805-041a9235c18a",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Smells Like Teen Spirit",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Smells Like Teen Spirit",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942502",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 254.893,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "742a5083-b3d8-4f3f-9a0c-703ef973e395",
+        "mb_trackid": "593e9317-a327-4a31-b796-416c62dcf49d",
+        "mb_workid": "9928c4f9-de11-3a16-b75d-b6730c9407bb",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "In Bloom",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "Nevermind version",
+        "tracktotal": 12,
+        "work": "In Bloom",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942511",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 196.373,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "77e423c0-33bf-4e4e-a388-e52e6c0227f7",
+        "mb_trackid": "ea61d42b-9a76-47fd-bcf7-df911640c309",
+        "mb_workid": "ca5fafaf-5166-3b32-a7c0-db3a3edd3425",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "On a Plain",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "On a Plain",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt, Grohl, Dave, Novoselic, Krist, Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain",
+          "Dave Grohl",
+          "Krist Novoselic",
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "4d5f891d-9bce-45ae-ad86-912dd27252fa",
+          "ac05e29f-0561-4445-bb26-5562d2389531",
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USUM71113875",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 1235.16,
+        "lyricists": [
+          "Kurt Cobain",
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "54aedc18-a649-4393-8ec2-5f5e6ec67fed",
+        "mb_trackid": "d506a8b2-4ba9-49b9-941f-40d1295ebd29",
+        "mb_workid": "124d8193-b050-3bce-a0cf-9d2c6da70e03",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Something in the Way",
+        "track": 12,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Something in the Way",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942503",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 219.066,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "07da6ad9-78cf-4e90-b006-caf10b5af358",
+        "mb_trackid": "70ac6733-068f-4613-b06b-bea17cfbcc30",
+        "mb_workid": "b6f84ea2-62b6-3c96-8fc3-1eef05d5b297",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Come as You Are",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "original studio mix",
+        "tracktotal": 12,
+        "work": "Come as You Are",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt, Grohl, Dave, Novoselic, Krist",
+        "composers": [
+          "Kurt Cobain",
+          "Dave Grohl",
+          "Krist Novoselic"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "4d5f891d-9bce-45ae-ad86-912dd27252fa",
+          "ac05e29f-0561-4445-bb26-5562d2389531"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942504",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 183.84,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "eb6ae81e-1d22-43c0-9a02-09189b42bcdf",
+        "mb_trackid": "0cf9f95f-70e7-4f2e-8075-5d8ba38dd4a3",
+        "mb_workid": "8600462a-9a49-3a0b-98e5-4cf8084943c3",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Breed",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Breed",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942505",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 256.96,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "d158ebed-2a2f-4252-b52e-678729ac838f",
+        "mb_trackid": "3fac712c-4196-4865-8c1a-94231a7da309",
+        "mb_workid": "8b01d145-f9d7-3988-ab29-df7e502b186d",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Lithium",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Lithium",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Channing, Chad, Cobain, Kurt, Novoselic, Krist",
+        "composers": [
+          "Chad Channing",
+          "Kurt Cobain",
+          "Krist Novoselic"
+        ],
+        "composers_ids": [
+          "e2f28104-72bb-4c8f-b0f9-78d4eaf492fd",
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "ac05e29f-0561-4445-bb26-5562d2389531"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942506",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 177.04,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "5791fc05-49ca-4b35-bbdc-7ff528c6af7e",
+        "mb_trackid": "d088ed9e-1921-4568-ae75-fba8b15ed206",
+        "mb_workid": "f548fa27-1655-3a56-8985-6070b69b2f03",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Polly",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Polly",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942507",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 143,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "e0bdf687-98af-431c-9b00-2622b9307e0f",
+        "mb_trackid": "dbaa10b1-d46a-4960-8b50-4e2d80c8113c",
+        "mb_workid": "c2959dde-b211-3bbe-8ffc-63c514bd3094",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Territorial Pissings",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Territorial Pissings",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt, Grohl, Dave, Novoselic, Krist",
+        "composers": [
+          "Kurt Cobain",
+          "Dave Grohl",
+          "Krist Novoselic"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255",
+          "4d5f891d-9bce-45ae-ad86-912dd27252fa",
+          "ac05e29f-0561-4445-bb26-5562d2389531"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942508",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 223.893,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "13df8613-ea59-434e-aee9-4d5364e164db",
+        "mb_trackid": "11cc49bd-f531-4cdd-9b59-e1f59b06c1d7",
+        "mb_workid": "5c6fe999-dccf-3787-acdc-2f34f89764d9",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Drain You",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Drain You",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942509",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 156.84,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "210db393-40bd-4095-bbcf-f1611f457921",
+        "mb_trackid": "aef0677b-93b4-4c66-be74-10120d0e6f5a",
+        "mb_workid": "60532845-551d-342d-8e69-2476f6b31edc",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Lounge Act",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Lounge Act",
+        "work_disambig": "",
+        "year": 2011
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Nevermind",
+        "album_id": null,
+        "albumartist": "Nirvana",
+        "albumartist_credit": "Nirvana",
+        "albumartist_sort": "Nirvana",
+        "albumartists": [
+          "Nirvana"
+        ],
+        "albumartists_credit": [
+          "Nirvana"
+        ],
+        "albumartists_sort": [
+          "Nirvana"
+        ],
+        "albumdisambig": "20th Anniversary Edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Nirvana",
+        "artist_credit": "Nirvana",
+        "artist_sort": "Nirvana",
+        "artists": [
+          "Nirvana"
+        ],
+        "artists_credit": [
+          "Nirvana"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Nirvana"
+        ],
+        "asin": "",
+        "barcode": "602527779089",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "2777908",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Cobain, Kurt",
+        "composers": [
+          "Kurt Cobain"
+        ],
+        "composers_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "country": "AU",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USGF19942510",
+        "label": "Geffen Records",
+        "language": "",
+        "length": 212.493,
+        "lyricists": [
+          "Kurt Cobain"
+        ],
+        "lyricists_ids": [
+          "3c9b356d-d1db-4f4e-a7a3-2d00c1d70255"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_albumartistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_albumid": "237b8564-c726-4cb0-b804-348c30697325",
+        "mb_artistid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+        "mb_artistids": [
+          "5b11f4ce-a62d-471e-81fc-a69a8278c7da"
+        ],
+        "mb_releasegroupid": "1b022e01-4da6-387b-8658-8678046e4cef",
+        "mb_releasetrackid": "b47740eb-7bc2-4717-8e72-75a4490e8fa2",
+        "mb_trackid": "8bf26383-8b9b-4252-9cb3-0efa4d3f47f1",
+        "mb_workid": "59dc616e-b638-393f-b3c8-aca28b2427a4",
+        "media": "CD",
+        "month": 9,
+        "mtime": 0,
+        "original_day": 24,
+        "original_month": 9,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Nevermind",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "",
+        "style": "",
+        "subtitle": "",
+        "title": "Stay Away",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 12,
+        "work": "Stay Away",
+        "work_disambig": "",
+        "year": 2011
+      }
+    }
+  }
+}

@@ -1,0 +1,4099 @@
+{
+  "id": "real-reissue-ten-2009-stock",
+  "input": {
+    "items": [
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 232.2,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "94bed552-376f-492d-8e87-f470aa7fda0c",
+        "title": "Once",
+        "track": 1,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 292.573,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "cccf8dde-f822-4981-b534-16e36c62de88",
+        "title": "Even Flow",
+        "track": 2,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 341.16,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "c8ecea4a-b955-416d-866b-c218a73fa588",
+        "title": "Alive",
+        "track": 3,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 200.026,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "1778d1fa-cd04-4ac4-ac40-d467d41e2190",
+        "title": "Why Go",
+        "track": 4,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 342.48,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "35cbb45d-0b40-415e-9301-f43fec4e1497",
+        "title": "Black",
+        "track": 5,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 318.226,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "d141baa5-ad5d-4893-aa9e-ae50d6c117bf",
+        "title": "Jeremy",
+        "track": 6,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 161.893,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "36d62268-a2ad-472f-99e1-bc338470f2d5",
+        "title": "Oceans",
+        "track": 7,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 210.52,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "39dcbb7e-3432-4a0c-972d-4c036da466fb",
+        "title": "Porch",
+        "track": 8,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 299.106,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "1ba7114e-c6fc-4988-aaba-e6ff22ed1a29",
+        "title": "Garden",
+        "track": 9,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 258.2,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "1226999c-e94e-49a0-94a1-3028d99b2883",
+        "title": "Deep",
+        "track": 10,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 1,
+        "length": 548.013,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "0d7a3bdf-61b1-450a-be57-39dcd5f2ded1",
+        "title": "Release / Master/Slave",
+        "track": 11,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 231.92,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "94bed552-376f-492d-8e87-f470aa7fda0c",
+        "title": "Once",
+        "track": 1,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 293.093,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "cccf8dde-f822-4981-b534-16e36c62de88",
+        "title": "Even Flow",
+        "track": 2,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 340.52,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "c8ecea4a-b955-416d-866b-c218a73fa588",
+        "title": "Alive",
+        "track": 3,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 198.906,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "1778d1fa-cd04-4ac4-ac40-d467d41e2190",
+        "title": "Why Go",
+        "track": 4,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 338.76,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "6e262777-b08d-4597-a30f-22a6461ced2b",
+        "title": "Black",
+        "track": 5,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 316.586,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "d141baa5-ad5d-4893-aa9e-ae50d6c117bf",
+        "title": "Jeremy",
+        "track": 6,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 161.493,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "36d62268-a2ad-472f-99e1-bc338470f2d5",
+        "title": "Oceans",
+        "track": 7,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 210.186,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "39dcbb7e-3432-4a0c-972d-4c036da466fb",
+        "title": "Porch",
+        "track": 8,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 298.373,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "1ba7114e-c6fc-4988-aaba-e6ff22ed1a29",
+        "title": "Garden",
+        "track": 9,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 257.786,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "1226999c-e94e-49a0-94a1-3028d99b2883",
+        "title": "Deep",
+        "track": 10,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 539.426,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "cec1e0a3-b72e-4159-854f-bff6f852e333",
+        "title": "Release / Master/Slave",
+        "track": 11,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 239.893,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "f6225e4a-f466-49ed-9810-340d290e8125",
+        "title": "Brother",
+        "track": 12,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 302.6,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "07b98e88-c729-420e-a1cf-8bea49601b09",
+        "title": "Just a Girl",
+        "track": 13,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 358.88,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "6271f737-934c-4acc-94eb-c2936891efba",
+        "title": "Breath and a Scream",
+        "track": 14,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 288.96,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "e5b6b658-622e-475d-987b-91e2b3ca9b3c",
+        "title": "State of Love and Trust",
+        "track": 15,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 238.4,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "693843d7-e222-4cf7-9d57-2c8d5abd3b3b",
+        "title": "2,000 Mile Blues",
+        "track": 16,
+        "year": 2009
+      },
+      {
+        "album": "Ten",
+        "albumartist": "Pearl Jam",
+        "artist": "Pearl Jam",
+        "disc": 2,
+        "length": 89.613,
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_trackid": "6448283c-088d-4168-a50b-e37ccf258f22",
+        "title": "Evil Little Goat",
+        "track": 17,
+        "year": 2009
+      }
+    ]
+  },
+  "profile": "stock",
+  "eval_date": "2026-09-03",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/06fc304e-d70a-4846-93e5-544d6aa618d6?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "strong",
+    "action": "apply",
+    "echoed_date": "2026-09-03",
+    "config_hash": "ca321f1cb078529cecad206cd4073d6aeb6502c5db5185f4e0010ca44118da92",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "distance": 0,
+        "penalties": {
+          "album": 0,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "10": 10,
+      "11": 11,
+      "12": 12,
+      "13": 13,
+      "14": 14,
+      "15": 15,
+      "16": 16,
+      "17": 17,
+      "18": 18,
+      "19": 19,
+      "2": 2,
+      "20": 20,
+      "21": 21,
+      "22": 22,
+      "23": 23,
+      "24": 24,
+      "25": 25,
+      "26": 26,
+      "27": 27,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Parashar, Rick, Vedder, Eddie, Gossard, Stone",
+        "composers": [
+          "Jeff Ament",
+          "Rick Parashar",
+          "Eddie Vedder",
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ad1ea089-1b0a-454c-bb29-c5477d612137",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100004",
+        "label": "BMG",
+        "language": "eng",
+        "length": 232.2,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "7f54e673-b336-307a-8e0b-66295892f4e0",
+        "mb_trackid": "94bed552-376f-492d-8e87-f470aa7fda0c",
+        "mb_workid": "307ab131-54e1-3125-8b70-7bf971d741b8",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Once",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Once",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100673",
+        "label": "BMG",
+        "language": "eng",
+        "length": 292.573,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "0fe1ae77-4ada-37de-985d-70aa613dd516",
+        "mb_trackid": "cccf8dde-f822-4981-b534-16e36c62de88",
+        "mb_workid": "5f019487-db03-30ca-975f-5c4fde3edbb6",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Even Flow",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "album version",
+        "tracktotal": 28,
+        "work": "Even Flow",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "10": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Parashar, Rick, Vedder, Eddie, Ament, Jeff, Gossard, Stone, Krusen, Dave, McCready, Mike, Vedder, Eddie",
+        "composers": [
+          "Jeff Ament",
+          "Rick Parashar",
+          "Eddie Vedder",
+          "Jeff Ament",
+          "Stone Gossard",
+          "Dave Krusen",
+          "Mike McCready",
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ad1ea089-1b0a-454c-bb29-c5477d612137",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61",
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138",
+          "e31955f8-989c-454a-a22f-a812ca1d2827",
+          "16cb4a74-225a-4262-a885-628083f12460",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10021773",
+        "label": "BMG",
+        "language": "eng",
+        "length": 548.013,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "a02f4223-060b-372a-b8ef-7b567da214e7",
+        "mb_trackid": "0d7a3bdf-61b1-450a-be57-39dcd5f2ded1",
+        "mb_workid": "78afcfbe-35a9-4612-9f27-0f6e4b0d935f",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Release / Master/Slave",
+        "track": 11,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Release",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "11": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Parashar, Rick, Vedder, Eddie, Gossard, Stone",
+        "composers": [
+          "Jeff Ament",
+          "Rick Parashar",
+          "Eddie Vedder",
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ad1ea089-1b0a-454c-bb29-c5477d612137",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100004",
+        "label": "BMG",
+        "language": "eng",
+        "length": 231.92,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "9842020f-45c9-38c9-ada4-eff8444dce40",
+        "mb_trackid": "94bed552-376f-492d-8e87-f470aa7fda0c",
+        "mb_workid": "307ab131-54e1-3125-8b70-7bf971d741b8",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Once",
+        "track": 12,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Once",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "12": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100673",
+        "label": "BMG",
+        "language": "eng",
+        "length": 293.093,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "fa20931b-e7fc-347e-8565-3e7b8eaee405",
+        "mb_trackid": "cccf8dde-f822-4981-b534-16e36c62de88",
+        "mb_workid": "5f019487-db03-30ca-975f-5c4fde3edbb6",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Even Flow",
+        "track": 13,
+        "track_alt": "2",
+        "trackdisambig": "album version",
+        "tracktotal": 28,
+        "work": "Even Flow",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "13": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100003",
+        "label": "BMG",
+        "language": "eng",
+        "length": 340.52,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "63d69a69-5463-366c-b219-a6851710db51",
+        "mb_trackid": "c8ecea4a-b955-416d-866b-c218a73fa588",
+        "mb_workid": "7338f409-8bda-34c5-a4ff-dd4de8c300da",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Alive",
+        "track": 14,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Alive",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "14": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff",
+        "composers": [
+          "Jeff Ament"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10021779",
+        "label": "BMG",
+        "language": "eng",
+        "length": 198.906,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "bd3a7311-f915-3e5c-80ea-9b6a6d1bde6f",
+        "mb_trackid": "1778d1fa-cd04-4ac4-ac40-d467d41e2190",
+        "mb_workid": "2f962517-8308-3a41-9467-03fc506af58e",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Why Go",
+        "track": 15,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Why Go",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "15": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805333",
+        "label": "BMG",
+        "language": "eng",
+        "length": 338.76,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "db7a8ead-4a8e-30a3-964e-951c0e09c102",
+        "mb_trackid": "6e262777-b08d-4597-a30f-22a6461ced2b",
+        "mb_workid": "45270277-6774-31aa-aeb3-4258956f01b9",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Black",
+        "track": 16,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Black",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "16": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff",
+        "composers": [
+          "Jeff Ament"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100674",
+        "label": "BMG",
+        "language": "eng",
+        "length": 316.586,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "bbc4b21d-d4f3-3494-aea8-360dc572bdcd",
+        "mb_trackid": "d141baa5-ad5d-4893-aa9e-ae50d6c117bf",
+        "mb_workid": "9a74d378-811c-3eef-9e93-a565cc3b2bbe",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jeremy",
+        "track": 17,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Jeremy",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "17": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone, Vedder, Eddie",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard",
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100675",
+        "label": "BMG",
+        "language": "eng",
+        "length": 161.493,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "8077f41d-09d7-3619-84ab-74d0b2c95a7e",
+        "mb_trackid": "36d62268-a2ad-472f-99e1-bc338470f2d5",
+        "mb_workid": "d2a582ee-f972-363e-bd0c-4ba01fb32f79",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Oceans",
+        "track": 18,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Oceans",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "18": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Vedder, Eddie",
+        "composers": [
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100676",
+        "label": "BMG",
+        "language": "eng",
+        "length": 210.186,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "e6bd8a37-c2f1-392a-898a-abf9a5e7ba45",
+        "mb_trackid": "39dcbb7e-3432-4a0c-972d-4c036da466fb",
+        "mb_workid": "fc2cca11-0f8b-311e-b610-6e1484e616a4",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Porch",
+        "track": 19,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Porch",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "19": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100677",
+        "label": "BMG",
+        "language": "eng",
+        "length": 298.373,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "efe4eea0-b090-3f59-a13d-266836af4093",
+        "mb_trackid": "1ba7114e-c6fc-4988-aaba-e6ff22ed1a29",
+        "mb_workid": "9731a364-01d1-3649-bf28-9e68a4161b79",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Garden",
+        "track": 20,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Garden",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100003",
+        "label": "BMG",
+        "language": "eng",
+        "length": 341.16,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "aab07c91-42f5-3c4c-8ed0-cc65a540ae6a",
+        "mb_trackid": "c8ecea4a-b955-416d-866b-c218a73fa588",
+        "mb_workid": "7338f409-8bda-34c5-a4ff-dd4de8c300da",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Alive",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Alive",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "20": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10024852",
+        "label": "BMG",
+        "language": "eng",
+        "length": 257.786,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "00c517b3-fb88-36f3-8096-50c3f0ddcf01",
+        "mb_trackid": "1226999c-e94e-49a0-94a1-3028d99b2883",
+        "mb_workid": "93eed05a-afb9-3f00-8b3b-702d39fa9079",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Deep",
+        "track": 21,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Deep",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "21": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Parashar, Rick, Vedder, Eddie, Ament, Jeff, Gossard, Stone, Krusen, Dave, McCready, Mike, Vedder, Eddie",
+        "composers": [
+          "Jeff Ament",
+          "Rick Parashar",
+          "Eddie Vedder",
+          "Jeff Ament",
+          "Stone Gossard",
+          "Dave Krusen",
+          "Mike McCready",
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ad1ea089-1b0a-454c-bb29-c5477d612137",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61",
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138",
+          "e31955f8-989c-454a-a22f-a812ca1d2827",
+          "16cb4a74-225a-4262-a885-628083f12460",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805339",
+        "label": "BMG",
+        "language": "eng",
+        "length": 539.426,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "7f2ba13d-f867-39bc-940e-6bb5d1a6fd23",
+        "mb_trackid": "cec1e0a3-b72e-4159-854f-bff6f852e333",
+        "mb_workid": "78afcfbe-35a9-4612-9f27-0f6e4b0d935f",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Release / Master/Slave",
+        "track": 22,
+        "track_alt": "11",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Release",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "22": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805340",
+        "label": "BMG",
+        "language": "eng",
+        "length": 239.893,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "8ce85e78-1975-3716-b035-f837a77dee76",
+        "mb_trackid": "f6225e4a-f466-49ed-9810-340d290e8125",
+        "mb_workid": "a6644376-4b55-406d-8977-cc54e5294fb9",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Brother",
+        "track": 23,
+        "track_alt": "12",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Brother",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "23": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805341",
+        "label": "BMG",
+        "language": "eng",
+        "length": 302.6,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "5c47901d-8c2b-398f-b242-f11449d3733c",
+        "mb_trackid": "07b98e88-c729-420e-a1cf-8bea49601b09",
+        "mb_workid": "c044f55b-62ea-4f64-92b0-fe5d1affdade",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Just a Girl",
+        "track": 24,
+        "track_alt": "13",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Just a Girl",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "24": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805384",
+        "label": "BMG",
+        "language": "eng",
+        "length": 358.88,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "a55308d7-3485-3058-9efe-f0b3277bdfa0",
+        "mb_trackid": "6271f737-934c-4acc-94eb-c2936891efba",
+        "mb_workid": "add5e2d6-6d96-486e-bb91-5b8e643451de",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Breath and a Scream",
+        "track": 25,
+        "track_alt": "14",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Breath",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "25": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, McCready, Mike, Vedder, Eddie",
+        "composers": [
+          "Jeff Ament",
+          "Mike McCready",
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "16cb4a74-225a-4262-a885-628083f12460",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805385",
+        "label": "BMG",
+        "language": "eng",
+        "length": 288.96,
+        "lyricists": [
+          "Jeff Ament",
+          "Mike McCready",
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "16cb4a74-225a-4262-a885-628083f12460",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "efcad267-9421-333f-8ee8-1d4080d6cbcf",
+        "mb_trackid": "e5b6b658-622e-475d-987b-91e2b3ca9b3c",
+        "mb_workid": "50a73453-ce2f-4f46-ab1d-8351d1963c56",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "State of Love and Trust",
+        "track": 26,
+        "track_alt": "15",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "State of Love and Trust",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "26": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone, Krusen, Dave, McCready, Mike",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard",
+          "Dave Krusen",
+          "Mike McCready"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138",
+          "e31955f8-989c-454a-a22f-a812ca1d2827",
+          "16cb4a74-225a-4262-a885-628083f12460"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805386",
+        "label": "BMG",
+        "language": "eng",
+        "length": 238.4,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "f41a890f-bbb3-3399-8a59-bee6567ca905",
+        "mb_trackid": "693843d7-e222-4cf7-9d57-2c8d5abd3b3b",
+        "mb_workid": "241db228-8bce-4ad6-ab4d-a7be47a05482",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "2,000 Mile Blues",
+        "track": 27,
+        "track_alt": "16",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "2,000 Mile Blues",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "27": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone, Krusen, Dave, McCready, Mike",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard",
+          "Dave Krusen",
+          "Mike McCready"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138",
+          "e31955f8-989c-454a-a22f-a812ca1d2827",
+          "16cb4a74-225a-4262-a885-628083f12460"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 2,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "Redux",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10805922",
+        "label": "BMG",
+        "language": "eng",
+        "length": 89.613,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "94b16b7c-41c7-3055-8b55-ded9b4a5afda",
+        "mb_trackid": "6448283c-088d-4168-a50b-e37ccf258f22",
+        "mb_workid": "3d13764d-8425-4a41-b997-2f547b298334",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Evil Little Goat",
+        "track": 28,
+        "track_alt": "17",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Evil Little Goat",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "3": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff",
+        "composers": [
+          "Jeff Ament"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10021779",
+        "label": "BMG",
+        "language": "eng",
+        "length": 200.026,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "6ed2441a-1313-3a1f-aff3-a246eeb6ee21",
+        "mb_trackid": "1778d1fa-cd04-4ac4-ac40-d467d41e2190",
+        "mb_workid": "2f962517-8308-3a41-9467-03fc506af58e",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Why Go",
+        "track": 4,
+        "track_alt": "4",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Why Go",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "4": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Gossard, Stone",
+        "composers": [
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100412",
+        "label": "BMG",
+        "language": "eng",
+        "length": 342.48,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "21299c06-6a5d-3486-a055-e035ca46ee56",
+        "mb_trackid": "35cbb45d-0b40-415e-9301-f43fec4e1497",
+        "mb_workid": "45270277-6774-31aa-aeb3-4258956f01b9",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Black",
+        "track": 5,
+        "track_alt": "5",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Black",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "5": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff",
+        "composers": [
+          "Jeff Ament"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100674",
+        "label": "BMG",
+        "language": "eng",
+        "length": 318.226,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "f8466ad2-8b40-34e0-9e8f-041e7de74f27",
+        "mb_trackid": "d141baa5-ad5d-4893-aa9e-ae50d6c117bf",
+        "mb_workid": "9a74d378-811c-3eef-9e93-a565cc3b2bbe",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Jeremy",
+        "track": 6,
+        "track_alt": "6",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Jeremy",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "6": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone, Vedder, Eddie",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard",
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138",
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100675",
+        "label": "BMG",
+        "language": "eng",
+        "length": 161.893,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "2f1f70bb-89fc-319e-b064-28cca8d7e0ce",
+        "mb_trackid": "36d62268-a2ad-472f-99e1-bc338470f2d5",
+        "mb_workid": "d2a582ee-f972-363e-bd0c-4ba01fb32f79",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Oceans",
+        "track": 7,
+        "track_alt": "7",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Oceans",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "7": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Vedder, Eddie",
+        "composers": [
+          "Eddie Vedder"
+        ],
+        "composers_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100676",
+        "label": "BMG",
+        "language": "eng",
+        "length": 210.52,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "6c90c6d8-c760-3552-9563-5b609c057159",
+        "mb_trackid": "39dcbb7e-3432-4a0c-972d-4c036da466fb",
+        "mb_workid": "fc2cca11-0f8b-311e-b610-6e1484e616a4",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Porch",
+        "track": 8,
+        "track_alt": "8",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Porch",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "8": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM19100677",
+        "label": "BMG",
+        "language": "eng",
+        "length": 299.106,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "993be754-827d-3e40-a873-1d37e26e4953",
+        "mb_trackid": "1ba7114e-c6fc-4988-aaba-e6ff22ed1a29",
+        "mb_workid": "9731a364-01d1-3649-bf28-9e68a4161b79",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Garden",
+        "track": 9,
+        "track_alt": "9",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Garden",
+        "work_disambig": "",
+        "year": 2009
+      },
+      "9": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Ten",
+        "album_id": null,
+        "albumartist": "Pearl Jam",
+        "albumartist_credit": "Pearl Jam",
+        "albumartist_sort": "Pearl Jam",
+        "albumartists": [
+          "Pearl Jam"
+        ],
+        "albumartists_credit": [
+          "Pearl Jam"
+        ],
+        "albumartists_sort": [
+          "Pearl Jam"
+        ],
+        "albumdisambig": "legacy edition",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Pearl Jam",
+        "artist_credit": "Pearl Jam",
+        "artist_sort": "Pearl Jam",
+        "artists": [
+          "Pearl Jam"
+        ],
+        "artists_credit": [
+          "Pearl Jam"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Pearl Jam"
+        ],
+        "asin": "B001N18HOQ",
+        "barcode": "886973984925",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "88697398492",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "Ament, Jeff, Gossard, Stone",
+        "composers": [
+          "Jeff Ament",
+          "Stone Gossard"
+        ],
+        "composers_ids": [
+          "2781b946-104c-47d3-a573-2eade82f68cd",
+          "ca7e6e03-4973-45ef-8833-98774a2d4138"
+        ],
+        "country": "GB",
+        "data_source": "MusicBrainz",
+        "day": 23,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 2,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "USSM10024852",
+        "label": "BMG",
+        "language": "eng",
+        "length": 258.2,
+        "lyricists": [
+          "Eddie Vedder"
+        ],
+        "lyricists_ids": [
+          "1a60d6dd-9d3e-40fc-a66d-3184f9ee0d61"
+        ],
+        "lyrics": "",
+        "mb_albumartistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_albumartistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_albumid": "06fc304e-d70a-4846-93e5-544d6aa618d6",
+        "mb_artistid": "83b9cbe7-9857-49e2-ab8e-b57b01038103",
+        "mb_artistids": [
+          "83b9cbe7-9857-49e2-ab8e-b57b01038103"
+        ],
+        "mb_releasegroupid": "cea5d18a-1924-3cda-bebc-38933834b25d",
+        "mb_releasetrackid": "5338dfdd-6b7b-384b-9f74-e062e1c7b033",
+        "mb_trackid": "1226999c-e94e-49a0-94a1-3028d99b2883",
+        "mb_workid": "93eed05a-afb9-3f00-8b3b-702d39fa9079",
+        "media": "CD",
+        "month": 3,
+        "mtime": 0,
+        "original_day": 27,
+        "original_month": 8,
+        "original_year": 1991,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Ten",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Deep",
+        "track": 10,
+        "track_alt": "10",
+        "trackdisambig": "",
+        "tracktotal": 28,
+        "work": "Deep",
+        "work_disambig": "",
+        "year": 2009
+      }
+    }
+  }
+}
