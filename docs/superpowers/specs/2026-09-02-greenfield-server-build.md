@@ -682,7 +682,11 @@ are marked [E].
 9. **Pipeline** (L). Admission, tagging, layout, and collection
    routing on the engine and store; the notifications and monitoring
    seams as optional integrations, built immediately ahead of the
-   pipeline that consumes them; the repair verbs (query, retag
+   pipeline that consumes them (erratum, 2026-09-04: `internal/notify`
+   is rung 5's per the parallel-approach spec's contested-surface
+   table, which governs ownership; rung 9 builds the monitoring seam
+   and integrates the mail seam it does not own — see
+   research/2026-09-04-reverse-edge-completion.md, cell (5,9)); the repair verbs (query, retag
    against a named MusicBrainz release, move), which are launch-bar
    admin surface because the new server has no beets toolkit to lean
    on; the concurrency model decision (per-album lease or explicit
