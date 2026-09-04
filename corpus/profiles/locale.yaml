@@ -1,13 +1,27 @@
-# locale.yaml: stock.yaml (the single-source plugin line) plus the
-# two import.* settings Task 18's #6358 alias-regression probe needs
-# to make _preferred_alias (beetsplug/musicbrainz.py:128-155) reachable
-# at all: import.languages, empty and therefore unconditionally
-# unreachable under both estate.yaml and stock.yaml, and
-# import.ignored_alias_types, beets' own default (empty), stated
-# explicitly rather than left implicit. Nothing else moves; see
-# corpus/README.md, "Config profiles".
-plugins: musicbrainz
+# locale.yaml: estate.yaml (dubplate's live import profile, reduced)
+# plus the two import.* settings Task 18's #6358 alias-regression probe
+# needs to make _preferred_alias (beetsplug/musicbrainz.py:128-155)
+# reachable at all: import.languages, empty and therefore
+# unconditionally unreachable under both estate.yaml and stock.yaml,
+# and import.ignored_alias_types, beets' own default (empty), stated
+# explicitly rather than left implicit. Rebasing on estate.yaml rather
+# than stock.yaml keeps the #6358 A/B experiment single-variable: its
+# host case (Task 6's real-nonlatin-utada-first-love) derives under
+# estate, so the locale-toggle sibling now differs from it by exactly
+# these two keys, not by the whole estate/stock delta as well. Nothing
+# else moves; see corpus/README.md, "Config profiles".
+directory: "{{DUBPLATE_LIBRARY_DIR}}"
+library: "{{DUBPLATE_LIBRARY_DB}}"
+
 import:
+  quiet_fallback: skip
+  none_rec_action: skip
+  timid: no
   languages:
     - ja
   ignored_alias_types: []
+
+original_date: yes
+per_disc_numbering: yes
+
+plugins: musicbrainz

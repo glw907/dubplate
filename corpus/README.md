@@ -1301,30 +1301,48 @@ above: this hypothesis targets `_preferred_alias`
 `import.languages`, which "Alias and transliteration mis-selection"
 above already found structurally unreachable under both shipped
 profiles (`estate`, `stock`) because both leave `import.languages`
-empty. `corpus/profiles/locale.yaml` (`stock.yaml` plus
+empty. `corpus/profiles/locale.yaml` (`estate.yaml` plus
 `import.languages: [ja]` and `import.ignored_alias_types: []`, "Config
 profiles" below) makes the mechanism reachable, and this case is the
-A/B experiment: `real-nonlatin-utada-first-love-locale` is
-byte-identical to its host, `real-nonlatin-utada-first-love` (Task 6),
-in `Input.Items` and `responses/`, differing only in `profile`.
+single-variable A/B experiment: `real-nonlatin-utada-first-love-locale`
+is byte-identical to its host, `real-nonlatin-utada-first-love` (Task
+6), in `Input.Items` and `responses/`, differing only in `profile`, and
+`locale.yaml` is rebased on `estate.yaml` (not `stock.yaml`) precisely
+so the two rendered profiles differ by exactly the two locale keys
+above and nothing else, matching the host case's own `estate` profile
+key for key.
 
 | id | twin | profile | verdict vs twin | applied-field divergence |
 | --- | --- | --- | --- | --- |
-| `real-nonlatin-utada-first-love-locale` | `real-nonlatin-utada-first-love` | `locale` | identical (`medium`/`skip`, distance `0.072222`, `artist` the sole nonzero penalty) | `artist_sort`/`albumartist_sort`/`artists_sort`/`albumartists_sort` (item 0): estate `Utada, Hikaru` (the artist entity's own default sort name), locale `うただヒカル` (the sort name carried by the release's own documented `locale=ja` alias, confirmed via `harness seed-items --facts`); `artist`/`albumartist`/`artist_credit`/`albumartist_credit` unchanged (`宇多田ヒカル`/`Hikaru Utada`) in both records |
+| `real-nonlatin-utada-first-love-locale` | `real-nonlatin-utada-first-love` | `locale` | identical (`medium`/`skip`, distance `0.072222`, `artist` the sole nonzero penalty) | `artist_sort`/`albumartist_sort`/`artists_sort`/`albumartists_sort` (all 12 items): estate `Utada, Hikaru` (the artist entity's own default sort name), locale `うただヒカル` (the sort name carried by the release's own documented `locale=ja` alias, confirmed via `harness seed-items --facts`); `artist`/`albumartist`/`artist_credit`/`albumartist_credit` unchanged (`宇多田ヒカル`/`Hikaru Utada`) in both records |
 
-The shift is isolated to the fields `_preferred_alias` actually
-touches: `best_album_id`, `recommendation`, `action`, and the `artist`
+The shift is not confined to the sort-name fields alone. `best_album_id`,
+`recommendation`, `action`, and the winning candidate's own `artist`
 penalty are identical across both records, so toggling
-`import.languages` changed neither candidate selection nor scoring,
-only the sort-name fields the mechanism writes once it fires. This is
-the mechanism firing and its selected alias propagating, at pinned
-beets 2.13.1, direct evidence against `#6358`'s report that a locale
-alias is silently ignored (`corpus/analysis/oracle_bugs.json`'s
-`bug-locale-alias-ignored` row, `pending-adjudication`, owner-only). No
-`adv-*` case is authored for this hypothesis: an A/B pair over a real
-captured release's own documented alias is the probe, the same reason
-the alias-mis-selection hypothesis above reaches for already-committed
-real-catalog cases rather than a synthetic one.
+`import.languages` changed neither candidate selection nor the applied
+verdict. But two non-winning candidates, `candidates[4]`
+(`2375a576-650b-47fb-939b-7c15afc989eb`) and `candidates[5]`
+(`a87189fd-0c95-4f0a-8ad4-4a8638ff11e0`), both credited to the
+MusicBrainz "Various Artists" entity, also shift their own
+`distance`/`penalties`/`tracks` values slightly (`candidates[4]`
+distance `0.8526610380899999` to `0.8527205991251707`; `candidates[5]`
+distance `0.8552206833722313` to `0.8540534617687298`): "Various
+Artists" itself carries a primary `locale=ja` alias
+("ヴァリアス・アーティスト"), so `_preferred_alias` fires for these two
+losing candidates as well, substituting their own `artist_object['name']`
+(`musicbrainz.py:317-331`), not merely a sort field. Neither candidate
+comes close to displacing the winner (both sit above `0.85` against the
+winner's `0.072222`), so this is a second, un-asked-for firing of the
+same mechanism rather than a scoring or verdict concern, reported here
+verbatim rather than smoothed over. This is the mechanism firing and
+its selected alias propagating, at pinned beets 2.13.1, direct evidence
+against `#6358`'s report that a locale alias is silently ignored
+(`corpus/analysis/oracle_bugs.json`'s `bug-locale-alias-ignored` row,
+`pending-adjudication`, owner-only). No `adv-*` case is authored for
+this hypothesis: an A/B pair over a real captured release's own
+documented alias is the probe, the same reason the alias-mis-selection
+hypothesis above reaches for already-committed real-catalog cases
+rather than a synthetic one.
 
 ## The stock-config stratum
 
@@ -1461,8 +1479,9 @@ and a compilation row; two distinct non-Latin scripts; genre/era
 spread's own two extremes, 1968 country and 2019 Afrobeats. MB-noise
 and the two-release sub-axis get 1 row each because a single case
 already demonstrates the axis's structural point: MB-noise's
-search-fallback shape, and the two-release axis's own
-decoy-rejection shape. Each row is an ordinary confident match: the
+near-duplicate-catalog regional-pressing shape, matched on a single
+ID-lookup request, and the two-release axis's own decoy-rejection
+shape. Each row is an ordinary confident match: the
 same clean `strong`/`apply` shape (or, for the two-release row, the
 axis's own correctly-`medium` decoy-rejection shape) its twin already
 carries in the tables above, never a further-adversarial elaboration
@@ -1496,15 +1515,27 @@ date components while `year` itself is unchanged
 `year`/`month` both `2019`-`7`). The other three
 (`real-nonlatin-babymetal-stock`, `real-nonlatin-zemfira-stock`,
 `real-genre-johnny-cash-folsom-prison-stock`) show no divergence
-anywhere in the record, not even in `applied_fields`: each twin's own
-captured edition already carries the release-group's own original
-release date, so `original_date` (estate `yes`, stock `no`) has
-nothing to move between the two profiles when the release-group's
-first-release-date and the edition's own release date coincide. Task
-19a's mandatory 28 could never show this gap, because every
-reissue/remaster row was selected specifically for having a
-fact-verified divergent release date; this supplementary sample, drawn
-without that selection pressure, is what surfaces it.
+anywhere in the record, not even in `applied_fields`, for two distinct
+reasons. `real-nonlatin-babymetal-stock` and
+`real-genre-johnny-cash-folsom-prison-stock`: each twin's own captured
+edition already carries the release-group's own original release date
+(babymetal's edition and release-group both date `2014-02-26`;
+Folsom Prison's both date `1968`), so `original_date` (estate `yes`,
+stock `no`) has nothing to move between the two profiles when the
+release-group's first-release-date and the edition's own release date
+coincide. `real-nonlatin-zemfira-stock` reaches the same no-divergence
+outcome by a different route: its edition carries no release date at
+all (`release-events` is `null`), so the `musicbrainz` plugin's own
+fallback (`info.year`/`month`/`day` fall back to
+`info.original_year`/`month`/`day` whenever `release_date` is falsy,
+`beetsplug/musicbrainz.py:684-688`) supplies the original date under
+both profiles regardless of `original_date`'s setting -- an
+independent reason for the two records to agree, not the same
+coincidence the other two rows show. Task 19a's mandatory 28 could
+never show either gap, because every reissue/remaster row was selected
+specifically for having a fact-verified divergent release date; this
+supplementary sample, drawn without that selection pressure, is what
+surfaces them.
 
 **No `adjudications.json` row.** Zero verdict divergences, the same as
 Task 19a, leaves nothing to adjudicate. `ties.json` gained the required
@@ -1890,15 +1921,21 @@ as its own default. It exists for the same single-source reason as
 estate's `plugins:` line, on a config that never overrode any of the
 matcher's other knobs to begin with.
 
-`corpus/profiles/locale.yaml` (Task 18) is `stock.yaml` plus exactly
+`corpus/profiles/locale.yaml` (Task 18) is `estate.yaml` plus exactly
 two keys, `import.languages` and `import.ignored_alias_types`, and
 nothing else: the settings the #6358 alias-regression verification
 needs to make `_preferred_alias` (`beetsplug/musicbrainz.py:128-155`)
 reachable at all, since it reads `config['import']['languages']`
 directly and that list is empty under both `estate.yaml` and
-`stock.yaml`. It is a new file rather than an edit to either existing
-profile, so no other case's rendered profile, and no other case's
-frozen record, changes.
+`stock.yaml`. It is rebased on `estate.yaml` rather than `stock.yaml`
+so its host case's own single-variable A/B experiment (Task 18, below)
+toggles exactly these two keys and no others; an earlier draft based it
+on `stock.yaml`, which confounded the two locale keys with the whole
+estate/stock delta (`original_date`, `per_disc_numbering`, the
+quiet-mode trio), moving fields the locale toggle itself never touches.
+It is a new file rather than an edit to either existing profile, so no
+other case's rendered profile, and no other case's frozen record,
+changes.
 
 All three profiles are plain YAML text; `internal/harness/oracle`
 renders one by substituting the `{{DUBPLATE_LIBRARY_DIR}}` /

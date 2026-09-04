@@ -215,32 +215,50 @@ building.
 **The probe.** `real-nonlatin-utada-first-love-locale` is
 byte-identical to its host case, `real-nonlatin-utada-first-love`
 (Task 6), in `Input.Items` and `responses/`, differing only in
-`profile`: `corpus/profiles/locale.yaml` sets `import.languages: [ja]`
-and `import.ignored_alias_types: []` where `estate.yaml` leaves both
-empty.
+`profile`: `corpus/profiles/locale.yaml` is `estate.yaml` plus
+`import.languages: [ja]` and `import.ignored_alias_types: []`, rebased
+on `estate.yaml` rather than `stock.yaml` so the probe differs from its
+`estate`-profiled host by exactly these two keys and nothing else (the
+conductor's Task 18 escalation ruling; an earlier draft based the
+profile on `stock.yaml`, confounding the locale toggle with the whole
+estate/stock delta).
 
 | case | profile | derived (record) | applied sort fields |
 | --- | --- | --- | --- |
 | `real-nonlatin-utada-first-love` (host) | `estate` | distance `0.072222`, `artist: 0.072222` (sole nonzero), **medium, skip** | `artist_sort`/`albumartist_sort`: `Utada, Hikaru` (the artist entity's own default sort name) |
 | `real-nonlatin-utada-first-love-locale` (probe) | `locale` | distance `0.072222`, `artist: 0.072222` (sole nonzero), **medium, skip**—identical to the host | `artist_sort`/`albumartist_sort`/`artists_sort`/`albumartists_sort`: `うただヒカル` (the sort name carried by the release's own documented `locale=ja` alias) |
 
-`best_album_id`, `recommendation`, `action`, and the `artist` penalty
-are identical across both records; `artist`/`albumartist`/
-`artist_credit`/`albumartist_credit` are also unchanged in both
-(`宇多田ヒカル`/`Hikaru Utada`), since Hypothesis 4's own mechanism
-already sources those fields from the artist entity's canonical name
-regardless of `import.languages`. The shift is isolated to the four
-sort-name fields, which only move when `_preferred_alias` returns a
-non-nil match.
+`best_album_id`, `recommendation`, `action`, and the winning
+candidate's own `artist` penalty are identical across both records;
+`artist`/`albumartist`/`artist_credit`/`albumartist_credit` are also
+unchanged in both (`宇多田ヒカル`/`Hikaru Utada`), since Hypothesis 4's
+own mechanism already sources those fields from the artist entity's
+canonical name regardless of `import.languages`. The shift is not
+confined to the four sort-name fields, though: two non-winning
+candidates, `candidates[4]` (`2375a576-...`) and `candidates[5]`
+(`a87189fd-...`), both credited to the MusicBrainz "Various Artists"
+entity, also shift their own `distance`/`penalties`/`tracks` values
+slightly (`candidates[4]` `0.8526610380899999` to `0.8527205991251707`;
+`candidates[5]` `0.8552206833722313` to `0.8540534617687298`), because
+"Various Artists" itself carries a primary `locale=ja` alias
+("ヴァリアス・アーティスト"): `_preferred_alias` fires for these two
+losing candidates as well, substituting their own
+`artist_object['name']` (`musicbrainz.py:317-331`), not merely a sort
+field. Neither candidate comes close to displacing the winner (both sit
+above `0.85` against the winner's `0.072222`), so this is a second,
+un-asked-for firing of the same mechanism, reported here rather than
+smoothed over, not a scoring or verdict concern.
 
 **Release truth.** The release documents a `locale=ja` alias for its
 credited artist, carrying its own hiragana sort_name `うただヒカル`
 (confirmed via `harness seed-items --facts` against the case's own
 captured, unedited response). A listener whose beets config sets
 `import.languages` to include `"ja"` would reasonably expect that
-alias to be preferred; the `locale` sibling's record shows it is,
-which is the direct, isolated evidence that `_preferred_alias` fires
-and its selected alias's fields propagate at pinned beets 2.13.1.
+alias to be preferred; the `locale` sibling's record shows it is, and
+shows the same mechanism firing a second time for the unrelated
+"Various Artists" entity credited on two losing candidates, direct
+evidence that `_preferred_alias` fires and its selected alias's fields
+propagate at pinned beets 2.13.1.
 
 **What ruling this hypothesis covers.** Whether this A/B evidence is
 sufficient to close `#6358` as `oracle-correct` for `_preferred_alias`

@@ -179,7 +179,7 @@
     "recommendation": "medium",
     "action": "skip",
     "echoed_date": "2026-09-03",
-    "config_hash": "2adf05884bcc504837b30cbaed0676f93277ca800640a2814d7bfbf8e943bed2",
+    "config_hash": "714180f33f88aa6398573dc1ee1a5490e4d34cdaa98d9435abaf1d81a13fe96b",
     "weights": {
       "album": 3,
       "album_id": 5,
@@ -444,7 +444,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -484,7 +484,7 @@
         "mb_trackid": "5a62caad-0ccb-4a77-822c-2701f6d42e08",
         "mb_workid": "a51059c5-3293-361f-8d40-3a50f86cb4f4",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -511,7 +511,7 @@
         "tracktotal": 12,
         "work": "Automatic",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "1": {
         "acoustid_fingerprint": "",
@@ -575,7 +575,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -615,7 +615,7 @@
         "mb_trackid": "5c5e7749-9ee2-4827-854f-01189e834100",
         "mb_workid": "2d7065d6-701b-3975-8cdd-9dcebc89a896",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -642,7 +642,7 @@
         "tracktotal": 12,
         "work": "Movin’ on without you",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "10": {
         "acoustid_fingerprint": "",
@@ -706,7 +706,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -746,7 +746,7 @@
         "mb_trackid": "b9593332-6447-4cad-b546-c1ecdccca512",
         "mb_workid": "4eccb4b4-895a-339f-8fd7-da081777f827",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -773,7 +773,7 @@
         "tracktotal": 12,
         "work": "Give Me A Reason",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "11": {
         "acoustid_fingerprint": "",
@@ -836,7 +836,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -877,7 +877,7 @@
         "mb_trackid": "3a7e7e76-7708-4ac6-978a-b9cfeea86489",
         "mb_workid": "a51059c5-3293-361f-8d40-3a50f86cb4f4",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -908,7 +908,7 @@
         "tracktotal": 12,
         "work": "Automatic",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "2": {
         "acoustid_fingerprint": "",
@@ -972,7 +972,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1012,7 +1012,7 @@
         "mb_trackid": "eb222829-b5eb-46f2-8823-26a91986d91c",
         "mb_workid": "691e740b-f191-30e4-8ca0-81900e8f9b64",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1039,7 +1039,7 @@
         "tracktotal": 12,
         "work": "In My Room",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "3": {
         "acoustid_fingerprint": "",
@@ -1103,7 +1103,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1143,7 +1143,7 @@
         "mb_trackid": "5138e6be-39b2-46bf-a306-d3b5ee983a18",
         "mb_workid": "9d4558da-208a-3a35-a685-2892c6b7ddc3",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1170,7 +1170,7 @@
         "tracktotal": 12,
         "work": "First Love",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "4": {
         "acoustid_fingerprint": "",
@@ -1234,7 +1234,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1274,7 +1274,7 @@
         "mb_trackid": "6fb988fe-4b7e-4225-8da3-7c7a3e629949",
         "mb_workid": "c49b7ffc-784e-3a96-912f-e2b1b3bc46d6",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1301,7 +1301,7 @@
         "tracktotal": 12,
         "work": "甘いワナ",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "5": {
         "acoustid_fingerprint": "",
@@ -1367,7 +1367,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1407,7 +1407,7 @@
         "mb_trackid": "7de5cd2c-cb9e-40e0-bdf7-768c757b3a35",
         "mb_workid": "84805d81-be77-305c-b72a-46a7a47c15f9",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1434,7 +1434,7 @@
         "tracktotal": 12,
         "work": "time will tell",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "6": {
         "acoustid_fingerprint": "",
@@ -1502,7 +1502,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1542,7 +1542,7 @@
         "mb_trackid": "5c7fd9eb-31af-4878-ad5e-97d3014f496a",
         "mb_workid": "ffbe1ec4-db76-3a12-a959-99ddc56de8d5",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1569,7 +1569,7 @@
         "tracktotal": 12,
         "work": "Never Let Go",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "7": {
         "acoustid_fingerprint": "",
@@ -1635,7 +1635,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1675,7 +1675,7 @@
         "mb_trackid": "836a2a6a-6a45-447c-9ac7-5203fb36be34",
         "mb_workid": "191665ed-6df7-380b-ad43-601c8f82a5ea",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1702,7 +1702,7 @@
         "tracktotal": 12,
         "work": "B\u0026C",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "8": {
         "acoustid_fingerprint": "",
@@ -1768,7 +1768,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1808,7 +1808,7 @@
         "mb_trackid": "07af0cb6-3f56-4c71-ae7b-88b0667a092f",
         "mb_workid": "8b419a02-4275-34bb-9033-d3c4b47dd1ae",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1835,7 +1835,7 @@
         "tracktotal": 12,
         "work": "Another Chance",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       },
       "9": {
         "acoustid_fingerprint": "",
@@ -1895,7 +1895,7 @@
         ],
         "country": "XW",
         "data_source": "MusicBrainz",
-        "day": 8,
+        "day": 10,
         "disc": 1,
         "discogs_albumid": 0,
         "discogs_artistid": 0,
@@ -1931,7 +1931,7 @@
         "mb_trackid": "8469fe74-c0b3-4cb3-a626-b31526e76f97",
         "mb_workid": "aff6bb43-44cf-4174-9546-05d65048be45",
         "media": "Digital Media",
-        "month": 12,
+        "month": 3,
         "mtime": 0,
         "original_day": 10,
         "original_month": 3,
@@ -1958,7 +1958,7 @@
         "tracktotal": 12,
         "work": "Interlude",
         "work_disambig": "",
-        "year": 2017
+        "year": 1999
       }
     }
   }
