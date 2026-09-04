@@ -1376,12 +1376,16 @@ twin's. This is a checked result, not an assumption, and the pinned
 beets source explains why. `original_date` and `per_disc_numbering`,
 the two keys where `estate.yaml` and `stock.yaml` actually differ
 (checked against pinned beets 2.13.1's own `config_default.yaml`),
-are each read in exactly one place: `AlbumInfo.item_data`
-(`beets/autotag/hooks.py`), the property that builds the metadata a
-match *applies* to an item once the verdict is already decided.
-Neither key is read anywhere in `beets/autotag/distance.py` or
-`beets/autotag/match.py`. The config surface that does move a
-year-based distance, `match.preferred.original_year`, is a different
+are each read in exactly one place: `original_date` in
+`AlbumInfo.item_data`, `per_disc_numbering` in `TrackInfo.raw_data`
+(both `beets/autotag/hooks.py`; an earlier draft of this sentence
+named `AlbumInfo.item_data` for both keys, which is imprecise for
+`per_disc_numbering` and is corrected here, rung 3a pass close). Both
+accessors build the metadata a match *applies* to an item once the
+verdict is already decided. Neither key is read anywhere in
+`beets/autotag/distance.py` or `beets/autotag/match.py`. The config
+surface that does move a year-based distance,
+`match.preferred.original_year`, is a different
 key entirely, absent from both profiles and sitting at its identical
 `no` default in each. `none_rec_action` (estate `skip`, default `ask`)
 is read only inside `_summary_judgment`'s non-quiet branch
@@ -2425,8 +2429,8 @@ built.
 | `import.none_rec_action` | kept verbatim | quiet-mode trio |
 | `import.timid` | kept verbatim | quiet-mode trio |
 | `import.group_albums` | dropped | the corpus tests the matcher from the (items, responses) boundary, below the importer's own grouping step (mechanics study, "Item order and the group_albums pre-step") |
-| `original_date` | kept verbatim | verdict-moving: controls which year the year penalty evaluates against |
-| `per_disc_numbering` | kept verbatim | verdict-moving: affects multi-disc track distance and assignment |
+| `original_date` | kept verbatim | applied-field-moving, never verdict-moving: read only in `AlbumInfo.item_data` (`beets/autotag/hooks.py`), consumed only by `apply_metadata` (`beets/autotag/match.py`); kept verbatim because it moves every stock sibling's `applied_fields`, which is rung 8's conformance target -- see the stock-config stratum finding above |
+| `per_disc_numbering` | kept verbatim | applied-field-moving, never verdict-moving: read only in `TrackInfo.raw_data` (`beets/autotag/hooks.py:421-452`), consumed only by `apply_metadata` (`beets/autotag/match.py`); kept verbatim because it moves every stock sibling's `applied_fields`, which is rung 8's conformance target -- see the stock-config stratum finding above |
 | `paths.*` | dropped | output filename templates; the matcher never reads them |
 | `plugins` | reduced to `musicbrainz` alone | the single-metadata-source constraint; `fetchart`, `embedart`, and `replaygain` are matching-inert per the mechanics study but import-active, so they cannot ride even reduced |
 | `fetchart.*` | dropped | config for a plugin no longer loaded |

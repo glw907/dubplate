@@ -2,6 +2,307 @@
 
 Per-pass ledger, newest first.
 
+## Rung 3, pass 3a (The scoring core, `string_dist`, and tier 0): 21 distance components, `internal/harness/conform` born (2026-09-04)
+
+Nine plan tasks executed sequentially against
+`docs/superpowers/plans/2026-09-04-rung-3a-scoring-core.md` (revision
+2.1). Commits in order: `28396a7` (Task 1), `73d5321` (Task 2), a
+same-session model restart pause at `7a21dcf`, `b5de09e` (Task 3),
+`0592a32` (Task 4), `46c2eb6` (Task 5), `c5230ae` (Task 6), `f5b3243`
+plus `ca50ff6` (Task 7), `91a16a4` plus `57bc094` (Task 8), `8d5a793`
+(Task 6b, scope added mid-pass), and `05575d2` (the close-out
+`code-simplifier` pass, 18 files, +205/-223).
+
+What landed: `internal/engine/matcher`, a new package holding
+`Tunables` (pinned beets 2.13.1's shipped `match:` defaults with a
+citation per field) and the `AlbumInfo`/`TrackInfo`/`ItemFields`
+vocabulary (Task 1); the `Distance` accumulator with seven of the
+eight adders, both penalty views (`AddedKeys`/`PerKey` versus
+`NonzeroItems`/`NonzeroKeys`), and the insertion-ordered summation
+contract 5 requires (Task 2); the embedded `unidecode` 1.4.0
+transliteration table via a committed one-time generator,
+`tools/unidecode-table/generate.py` (Task 3); `StringDist` and the
+eighth adder, `AddString`, plus the `SD_PATTERNS` pattern loop and its
+byte-identity guard, which tier 0 cannot supply (Task 4); the seven
+track-level components and `DistanceForTrack` (Task 5);
+`internal/harness/conform`, a new package this pass creates,
+with the typed `components.json` decoder (tier 0), the M1 defaults
+cross-check, the `unidecode` manifest pin check, and the
+engine-never-imports-harness / no-`time.Now` architecture checks
+(Task 6); the fourteen album-level components (thirteen files,
+`album_extras.go` the named one-file-two-component exception),
+`MostCommonTags`, and `score.go`'s `albumComponents` composition
+(Tasks 7 and 8); five reviewer-hardening follow-ups to the decoder
+(malformed-row and mistyped-field failures, an add-shape coverage
+test, a thresholds mutation test, and testdata-subtree exclusions for
+both arch-check walks), landed as Task 6b, scope the conductor added
+mid-pass from the Task 6 reviewer's non-blocking list rather than
+carried to 3b (Task 6b).
+
+AddString landed as a revision-2.1 editorial fold. The plan's Task 4
+deliverable count moved 5 -> 6; no new work entered the pass.
+Task 2's `diff-reviewer` escalated that the eighth adder was deferred
+to Task 4 (`strdist.go`, alongside `StringDist` itself) but the plan's
+Task 4 section never named it; the conductor accepted the escalation
+and ruled the deferral correct (a placeholder would have been the
+assertion-discipline rule's forbidden silent-success fake), then added
+the two-line revision note at the plan's top, landed in this pass close
+alongside the ledgers.
+
+What the gate caught: nothing novel in `bash scripts/check.sh` itself
+across all nine tasks; the pass's own fixtures are what proved a
+mutation fires, the same discipline 2c and 2d both record. Two
+findings worth a future pass's attention surfaced from hand-authored
+mutation testing rather than the gate: `component_test.go`'s
+`aggregate/sorted-penalties-tied` fixture cannot discriminate a
+`(distance, key)`-ascending sort from a dropped sort at all (both an
+insertion-ordered album and a key-ascending sort tie on that row's own
+data), so the mutation the plan's M-b fold specified does not fire;
+the implementer substituted a full key-order reversal
+(`cmp.Compare(b.Key, a.Key)` in place of `cmp.Compare(a.Key, b.Key)`),
+which does discriminate, and the `diff-reviewer` confirmed the
+substitution independently rather than taking the report's word for
+it. Task 4's Go/Python case-mapping sweep, run over every one of
+the 1,112,064 valid Unicode code points against pinned beets in
+`tools/venv/.venv`, found 56 where Go's simple-case `strings.ToLower`
+disagrees with Python's full-case `str.lower`; 54 agree again once the
+pipeline's post-transliteration `[a-z0-9]` strip runs, and two,
+U+A7CB and U+A7DC, do not: both are unassigned in CPython 3.13's
+Unicode 15.1 but lowercase under Go 1.27's Unicode 17.0, and
+`unidecode` 1.4.0 maps their lowered forms to `"u"`/`"l"` where the
+unlowered originals strip to nothing. This is a toolchain-Unicode-
+version dependence the study never claimed and the port now carries
+explicitly (`internal/engine/matcher/testdata/case-mapping-sweep.tsv`
+names both rows so a third divergence reds the gate rather than
+passing silently).
+
+### Component coverage table
+
+Twenty-one components: seven track-level (`internal/engine/matcher/track.go`'s
+fixed order) and fourteen album-level (`score.go`'s fixed order).
+`components.json`'s eleven tier-0 methods carry no album-distance rows
+at all and no `track_distance` row that sets a length, index, MB track
+ID, or disc number, so "tier-0 row?" is `No` for eighteen of the
+twenty-one; every `No` still carries its own fire-proving and
+decline-proving unit test in the component's own file, per contract 8
+and the plan's assertion-discipline rule, distinct from the three
+M8-declared corpus-coverage gaps below.
+
+| Component | File | Weight key | Fire condition | Tier-0 row? |
+| --- | --- | --- | --- | --- |
+| track_length | `track_length.go` | `track_length` | `info.Length != 0`; `AddRatio` on `abs(item.Length-info.Length)-Grace` over `Max` | No (own fire/decline test) |
+| track_title | `track_title.go` | `track_title` | always | Yes (`track_distance/*`, e.g. `identical`) |
+| track_artist | `track_artist.go` | `track_artist` | `inclArtist && info.Artist != "" &&` item artist not in `VA_ARTISTS` (case-insensitive) | Yes (`track_distance/different-artist`, `tolerate-va`, `identical`) |
+| track_index | `track_index.go` | `track_index` | `info.Index != 0 && item.Track != 0`; tolerates per-disc or absolute numbering | No (own fire/decline test) |
+| track_id | `track_id.go` | `track_id` | `item.MBTrackID != ""` | No (own fire/decline test) |
+| medium (track) | `track_medium.go` | `medium` | `info.Medium != 0 && item.Disc != 0` | No (own fire/decline test) |
+| data_source (track) | `track_data_source.go` | `data_source` | always calls `AddDataSource` (its own three-way condition, contract 6) | Yes (`track_distance/data_source/*`, 10 rows) |
+| artist | `album_artist.go` | `artist` | `!info.VA` | No (own fire/decline test) |
+| album | `album_album.go` | `album` | always | No (own fire/decline test) |
+| media | `album_media.go` | `media` | `info.Media != ""`; priority branch when `Preferred.Media` set, else equality against `likelies.Media` | No (own fire/decline test; anchor proved by `ca50ff6`'s dedicated rows) |
+| mediums | `album_mediums.go` | `mediums` | `likelies.DiscTotal != 0 && info.Mediums != 0` | No (own fire/decline test) |
+| year | `album_year.go` | `year` | three branches in order (preferred-original, likely-vs-release, decline); see below | No (own fire/decline test; branch 1 is a declared gap) |
+| country | `album_country.go` | `country` | priority branch when `Preferred.Countries` set and `info.Country != ""`, else equality when both `likelies.Country` and `info.Country` set | No (own fire/decline test; anchor proved by `ca50ff6`'s dedicated rows) |
+| label | `album_label.go` | `label` | `likelies.Label != "" && info.Label != ""` | No (own fire/decline test) |
+| catalognum | `album_catalognum.go` | `catalognum` | `likelies.CatalogNum != "" && info.CatalogNum != ""` | No (own fire/decline test) |
+| albumdisambig | `album_disambig.go` | `albumdisambig` | `likelies.AlbumDisambig != "" && info.AlbumDisambig != ""` | No (own fire/decline test) |
+| album_id | `album_id.go` | `album_id` | `likelies.MBAlbumID != ""` | No (own fire/decline test) |
+| tracks | `album_tracks.go` | `tracks` | always runs the pairing loop (zero pairs adds nothing) | No (own whole-distance tests, `91a16a4`) |
+| missing_tracks | `album_extras.go` | `missing_tracks` | `len(info.Tracks) > len(pairs)`, one penalty per excess candidate track | No (own fire/decline test) |
+| unmatched_tracks | `album_extras.go` | `unmatched_tracks` | `len(items) > len(pairs)`, one penalty per excess item | No (own fire/decline test) |
+| data_source (album) | `album_data_source.go` | `data_source` | always calls `AddDataSource` | No (own fire/decline test) |
+
+**The three corpus-unreachable surfaces are a declared corpus-coverage
+gap (spec, M8). No fixture covers them, and none is owed in 3a.**
+`match.required` and `match.ignored` carry their defaults and
+citations on `Tunables` (`tunables.go:80-92`). The admission filters
+that read them are 3d's, and 3a lands no consuming component for
+either. Their coverage is 3d's table-driven unit tests, named in
+`Tunables`' own doc comment. `preferred.original_year` is 3a's own:
+it is `addAlbumYear`'s branch 1 (`album_year.go`), graded by a
+hand-authored table
+(`internal/engine/matcher/testdata/album_year_preferred_original.json`,
+three rows) because no committed corpus case sets
+`preferred.original_year`. The mutation that proves it fires:
+`TestAddAlbumYearPreferredOriginalYearTakesPrecedence` asserts branch
+1 runs, not branch 2's zero, when `Preferred.OriginalYear` is set even
+though branch 2 would also apply; `f5b3243`'s own commit message
+separately names the table's own proof, "a short-circuit mutation
+that fails all three of its rows" (a mutant that returns after
+checking only `info.Year != 0` reds the whole fixture).
+
+### Evidence
+
+Tier-0 replay (`go test -count=1 -v ./internal/harness/conform/...
+-run TestComponentTableReplaysAllRows`), measured now: 72 of 72
+committed rows replayed, all bit-identical, zero near-misses at the
+1e-12 fallback. Per method: `add` 8, `add_data_source` 4,
+`add_equality` 3, `add_expr` 2, `add_number` 4, `add_priority` 4,
+`add_ratio` 4, `add_string` 3, `generic_penalty_keys` 1, `string_dist`
+23, `track_distance` 16. Total 72, matching `ComponentRowFloor`
+exactly. Defaults cross-check
+(`TestCommittedCasesEchoTunablesDefaults`), measured now:
+weights and thresholds cross-checked against all 215 committed cases,
+zero divergences (no committed profile sets a `match:` key). Full
+suite (`go test -count=1 ./...`): 12 packages, all green, real 13.4s.
+`bash scripts/check.sh`, measured now over two consecutive runs: total
+wall time 1m45.6s (gitleaks self-reporting 1m39.6s / 99.6s) and, on a
+second run minutes later, 3m24.6s (gitleaks self-reporting 3m13s).
+Gitleaks' full-text scan of the tracked worktree (`--no-git`,
+~112.9 MB, `corpus/cases/` the dominant contributor) is both the
+gate's dominant cost by a wide margin and its most variable one,
+roughly doubling between two runs with no tree change in between. The
+version-bump differential doc's next update should budget against the
+higher figure rather than the first sample. The remaining ~6-12s
+across both runs covers `make check` (go vet, golangci-lint 0 issues,
+`go test ./...` cached from the fresh 13.4s run above, `go mod tidy`
+clean), shellcheck, ruff (6 tracked `*.py` files, all formatted, all
+passing), vale over Go comment prose, `docker compose config`, and the
+pattern-filtered `systemd-analyze verify`, combined; none of those
+self-report an individual wall time in check.sh's own output. **No
+`make derive` ran anywhere in this pass**: no task touched oracle
+territory, Task 1's venv read re-verified the M2 resolution and
+Task 3's venv read drove the one-time `unidecode` generator, and
+neither is a derivation.
+
+### What a later pass would be wrong to rediscover
+
+1. The rung 15 re-run criterion, verbatim from the plan's Spec
+   section, travels forward from every rung 3 pass close: "Rung 15
+   re-runs `internal/harness/conform`'s three tiers over the complete
+   corpus, at the matcher commit as landed, and its acceptance is the
+   launch bar's matcher clause read against that run: zero false
+   confident matches over every stratum including stock-config, and
+   zero unadjudicated beets-right/Go-wrong cases. Rung 3's own
+   acceptance is provisional against the corpus at its
+   then-current size. Any tier-2 divergence carrying a pending row at
+   rung 15 is the launch gate's business, not rung 15's to wave
+   through."
+2. **The four-knob wall registration is a named follow-on task** for
+   the first rung 3 pass that runs after rung 1b closes:
+   `StrongRecThresh`, `MediumRecThresh`, `RecGapThresh`, and
+   `SearchLimit` are named on `Tunables` today with citations but
+   registered on no operator wall, because `internal/config/keys.go`
+   still carries `ownedWall` as a slice literal. No lane may edit that
+   file until rung 1b lands.
+3. **The `SD_PATTERNS`-as-a-value seam**: `BeetsSDPatterns`,
+   `SDPatternsWordBoundary`, and `Tunables.StringDistPatterns`
+   (defaulting to `BeetsSDPatterns`) let 3b's `defect_free` derivation
+   and 3d's compat switch swap a table rather than edit a component.
+   Both measured figures travel with the warning that produced them:
+   the word-boundary guard changes **zero of the 72 tier-0 rows**, so
+   tier 0 is blind to a "fixed" table. Task 4's byte-identity test
+   against beets' six shipped literals is the only check that catches
+   a silent improvement to the table.
+   `string_dist("Draft: Ember Wharf", "Draft: Northern Lines")` reads
+   `0.061111111111111116` under `BeetsSDPatterns` and
+   `0.6111111111111112` under `SDPatternsWordBoundary`.
+4. **The M2 resolution and its two drafted `corpus/README.md` cells**
+   are landed in this close: `original_date` and `per_disc_numbering`
+   change from "verdict-moving: ..." to "applied-field-moving, never
+   verdict-moving: ..." in the config-profile transform table
+   (`corpus/README.md`), and the stock-config stratum finding's own
+   single-accessor sentence is corrected to name both accessors
+   (`AlbumInfo.item_data` for `original_date`, `TrackInfo.raw_data`
+   for `per_disc_numbering`). Also landed: the mechanics study's Q4
+   "19 keys" claim is superseded. The tree and
+   `config_default.yaml:174-193` (twenty entries; `:173` is the
+   header) agree on twenty `distance_weights` keys, matching all 215
+   committed cases' own echoed weight sets.
+5. **Four corrected citations**, so no later pass re-derives them:
+   `DataSourceMismatchPenalty`'s default is `metadata_plugins.py:180`
+   wired at `:202`, not `:190-195`; the `SearchLimit` legacy spelling
+   is `musicbrainz.searchlimit`, not a top-level `match:` key;
+   `ExtraTags` lives on the musicbrainz plugin with no
+   `config_default.yaml` citation; and `match:` carries
+   `album_disambig_fields` / `singleton_disambig_fields`, display-only
+   and deliberately outside `Tunables`.
+6. The decoder contract as built, for 3c and 3d to extend rather
+   than re-derive from `derive_component.py` a second and third time:
+   `internal/harness/conform`'s decoder dispatches on `method`, not
+   row id, across eleven methods; method `add` splits on an
+   add-key-versus-weights shape (twelve total shapes across the
+   eleven methods); a row's `weights` map is an override on
+   `Tunables.DistanceWeights`, never a complete table; the
+   `get_penalty` stub is wired through a loaded-source set built from
+   `Tunables` (`metadataSourceSet`); and a compiled-regex option
+   decodes from `{"regex", "ignorecase"}` into a `matcher.PatternOption`,
+   never from a bare string.
+7. **The `inclArtist` divergence**: `DistanceForTrack` takes
+   `inclArtist` as a parameter, not a config read, because beets' two
+   call sites disagree. The assignment solve (3d) calls
+   `track_distance` with `inclArtist=false` for every track, while the
+   final per-track distance a user sees passes `album_info.va`. The
+   two objectives diverge exactly on VA albums; 3d's tie-mirroring
+   task needs both call shapes.
+8. **The `unidecode` pin check is split across two packages**:
+   `matcher.UnidecodeVersion` (`translit.go:20`) is the exported stamp
+   the embedded table carries; `conform.CheckUnidecodeVersion`
+   (`defaults.go:67`) compares it against `corpus/manifest.json`'s
+   pinned value, so a manifest bump reds the Go side too, not only the
+   Python derivation path.
+9. No row passed at 1e-12 without bit-identity. The near-miss list
+   is empty across all 72 rows; there is nothing to name.
+10. Tier-0 replay ran 0.02s standalone; the full `go test -count=1
+    ./...` suite 13.4s. `bash scripts/check.sh` ran 1m45.6s and, on a
+    second run minutes later with no tree change, 3m24.6s (both
+    dominated by gitleaks' full-worktree scan, 99.6s and 3m13s
+    respectively). The version-bump differential doc's next update
+    should budget against the higher figure for the matcher and
+    conform packages.
+
+Two further findings sit outside the ten: the pointer ruling and the
+Key-field ruling. `StringDist` and
+`AddString` both take `*string` pairs where a nil pointer is Python's
+`None` (Task 4's ruled API,
+`StringDist(tun Tunables, a, b *string)`); every caller in `track_title.go`
+and the album files passes a typed default's address, never a literal
+nil, because `AlbumInfo`/`TrackInfo`/`ItemFields` fields are all plain
+strings (Task 1), which is also the root of the `album_album`
+divergence below. `trackComponent`/`albumComponent`'s `Key` field
+sat unread from Task 5 through the start of Task 8; Task 8 gave it a
+reader, `TestComponentKeysAreWeighted`, asserting every declared key
+names an entry in `Tunables.DistanceWeights`, closing what would
+otherwise have been dead struct data.
+
+### Carried
+
+- **To 3b (translation layer):** `addAlbumAlbum` passes
+  `&likelies.Album`/`&info.Album`, both always non-nil, so a beets
+  `album_info.album` of `None` scores `0.0` here where beets itself
+  scores `string_dist("", None) = 1.0`. Root cause is Task 1's
+  plain-string `AlbumInfo` fields; 3b needs to decide what an absent
+  source field becomes before this divergence reaches a real case.
+- **To 3b/3d (config validation):** `compileMediaPatterns` and
+  `compileCountryPatterns` panic on a malformed user regex in
+  `Preferred.Media`/`Preferred.Countries`, matching beets' own
+  `re.compile` raising, but a wrapped error at config-load time is the
+  better home once `internal/config` owns validation.
+- **To 3c:** `dataSourcePenalty` falls back to
+  `Tunables.DataSourceMismatchPenalty` (configured) where beets falls
+  back to the class literal `0.5`; identical under shipped config,
+  diverges only if `source_weight` is set.
+- **Inert deviation, recorded and reviewer-verified, no action
+  owed:** `MostCommonTags` counts every item with `len(items)` as the
+  denominator, where beets' `if item` filter is a no-op for real
+  `Item`s (no `__bool__`/`__len__`); `MostCommonTags` on an empty item
+  set reports unanimity where beets asserts non-empty, unreachable
+  today.
+- `profile_hashes` (m1) and the response-status extension, 2d's own
+  carry-forward, are unaffected by this pass and stay open. The
+  adjudication batch was already fully ruled before this pass started:
+  18 oracle-wrong, 3 oracle-correct, zero pending
+  (`corpus/analysis/adjudications.json`, ruled Geoff 2026-09-04), and
+  3a produced no new adjudication row. Rung 2's Tier C exclusions
+  (`match.required`/`match.ignored`, `preferred.original_year`) are
+  now the M8-declared gap documented above rather than an open
+  unknown.
+
+Budgets: ≈2.26M subagent tokens (T2 review 74K, batch 1 445K, batch 2
+561K, batch 3 938K, `code-simplifier` 238K) against the 6M starting
+ceiling, plus this close, well under. Attended interaction points:
+zero.
+
 ## Rung 2, pass 2d (File-level applied tags, the version-bump differential, and the whole-corpus README close): file_tags.json over 12 subjects, rung 8 unblocked (2026-09-04)
 
 Four plan tasks executed sequentially against

@@ -30,6 +30,11 @@ reasoning — are cited below rather than re-derived, and an implementer who
 believes one of them is wrong reports a finding and implements the record
 anyway.
 
+**Revision 2.1, 2026-09-04 (editorial fold, conductor-owned):** Task 4's
+deliverable list gains `AddString` (count 5 -> 6), landed in `strdist.go`
+per Task 2's review escalation; a test proves it delegates to `StringDist`
+and calls `Add`.
+
 > **For agentic workers:** workflow mode per CLAUDE.md's "Build process"
 > section: pass-execute chain per task, sequential. The conductor consumes
 > reports and never reads diffs inline. Subagents never dispatch other
@@ -1113,11 +1118,12 @@ component's number flows through it. Depends on Tasks 1, 2, and 3.
   `sync.OnceValue`, never per call, and the patterns compile at init so a
   malformed table is a startup failure rather than a per-call error.
 
-**Deliverable count: 5** (`stringDistBasic` with its strip and empty-pair
+**Deliverable count: 6** (`stringDistBasic` with its strip and empty-pair
 rules; `StringDist`'s full pipeline including the article rotation and the
-`&` rewrite; the pattern loop with adopt-on-positive-delta, unanchored
-`ReplaceAll` semantics, and its hand-authored acceptance suite; the
-byte-identity table test and the discriminating Draft fixture with both
+`&` rewrite; `AddString`, proved by a test that it delegates to
+`StringDist` and calls `Add`; the pattern loop with adopt-on-positive-delta,
+unanchored `ReplaceAll` semantics, and its hand-authored acceptance suite;
+the byte-identity table test and the discriminating Draft fixture with both
 measured figures; port hazards 1 and 2 proved and the case-mapping sweep
 reported). Gate green; commit. **Re-derive the ceiling against Task 2's
 figure and report both.**

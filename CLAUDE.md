@@ -88,9 +88,10 @@ rung 16 cutover sitting.
 golangci-lint, test, tidy-check) over the whole module (`./...`, today
 `cmd/dubplate-server` and `internal/config`; `_salvage/` is invisible to
 the go tool), shellcheck over `scripts/*`, ruff (`check` and `format
---check`) over every tracked `*.py` (today only the oracle shim,
-`internal/harness/oracle/derive_oracle.py`), gitleaks over the tracked
-worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
+--check`) over every tracked `*.py` (six today: the oracle shim and its
+three derivation siblings under `internal/harness/oracle/`, its FLAC
+template generator, and `tools/unidecode-table/generate.py`), gitleaks over
+the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
 excluded), `docker compose config` (skipped when Docker isn't present),
 and a pattern-filtered `systemd-analyze verify`.
@@ -127,9 +128,10 @@ one with `command -v || skip`. Never commit red.
   `source ~/.local/secrets`). The tunnel is remote-managed:
   `config/cloudflared-tunnel-config.json` is the record of what gets PUT to
   the API, not a file compose reads. See `.claude/instructions/api-access.md`.
-- **Python** (`internal/harness/oracle/derive_oracle.py`): invoke the
-  `python-conventions` skill BEFORE writing any Python. This shim is the
-  only Python in the repo, and it stays that way; it drives pinned beets
+- **Python** (`internal/harness/oracle/*.py`, `tools/unidecode-table/generate.py`):
+  invoke the `python-conventions` skill BEFORE writing any Python. Python
+  stays confined to workstation-only derivation and generation tooling;
+  nothing Python ships to the box. The oracle shim drives pinned beets
   under a uv-managed venv (`tools/venv/`) that the gate never requires and
   never runs (derivation is `make derive`, tagged `oracle`, workstation
   only). ruff (`ruff check` and `ruff format --check`) joins `scripts/check.sh`

@@ -141,7 +141,7 @@ func applySDReplace(s string) string {
 // sdShippedRegexps holds every pattern this package ships compiled:
 // both SD_PATTERNS tables and SD_REPLACE. A package-level initializer
 // makes a malformed literal a startup panic rather than a per-call
-// error, and nothing writes the map afterward, so the six lookups a
+// error, and nothing writes the map afterward, so the eight lookups a
 // StringDist call makes take no lock.
 var sdShippedRegexps = compileSDPatterns(BeetsSDPatterns, SDPatternsWordBoundary)
 
