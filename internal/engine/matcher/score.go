@@ -29,12 +29,16 @@ type albumComponent struct {
 // artist (skipped entirely on a various-artists release), album, media,
 // mediums, year, country, label, catalognum, albumdisambig, album_id,
 // tracks, missing_tracks, unmatched_tracks, data_source. The order is
-// load-bearing rather than stylistic: each component's fire condition
-// is evaluated against the denominator as it stood after every
-// component before it, so a component that declines to add anything
-// must decline in exactly the place beets declines, and swapping two
-// entries changes which keys are in the denominator when a later
-// component runs.
+// load-bearing rather than stylistic: Distance's doc comment (penalty.go)
+// already states why, and it applies unchanged here, insertion order
+// into Distance.order fixes the sequence AddedKeys and
+// GenericPenaltyKeys report, and fixes the summation order RawDistance
+// and MaxDistance walk, and float addition is not associative, so a
+// reordered slice both reports a different key sequence and sums to a
+// different number. A component that declines to add anything must
+// still decline in exactly the place beets declines, because a
+// component that fires where beets does not changes that reported
+// sequence even when the numeric contribution is zero.
 var albumComponents = []albumComponent{
 	{Name: "artist", Key: "artist", Add: addAlbumArtist},
 	{Name: "album", Key: "album", Add: addAlbumAlbum},
