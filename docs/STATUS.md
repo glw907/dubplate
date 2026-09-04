@@ -31,7 +31,7 @@ Box is production; quiet-box check before writes.
   review folded, four conductor rulings taken 2026-09-04). Chain: Task 0
   pre-task, then Tasks 1-8 via pass-execute (sequential, this tree), then
   code-simplifier, then Task 9's close. Ceiling 6M, flag 4.8M, re-derive
-  after Task 3. If interrupted: read the pass-execute journal, verify the
+  after Task 3. Run `wf_6521a55d-5f9` (Tasks 1-8). If interrupted: read the pass-execute journal, verify the
   last committed task's review, relaunch fresh from the next task.
   Next after 3b: 3c; 3d needs all three.
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land.
