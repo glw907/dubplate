@@ -1408,15 +1408,24 @@ only its two divergent-key axes.
 
 **Stratification.** classical/compilation (2: one classical row, one
 compilation row), non-Latin (2, two distinct scripts), MB-noise (1),
-genre/era spread (2), two-release sub-axis (1) -- 8 total, weighted
-toward the two largest non-mandatory axes (genre/era spread's 26 rows,
-classical/compilation's 10) while still seating MB-noise (14) and the
-smallest, structurally distinct two-release sub-axis (4 delivered
-rows). Each row is an ordinary confident match: the same clean
-`strong`/`apply` shape (or, for the two-release row, the axis's own
-correctly-`medium` decoy-rejection shape) its twin already carries in
-the tables above, never a further-adversarial elaboration on top of
-it.
+genre/era spread (2), two-release sub-axis (1) -- 8 total. The five
+non-mandatory axes range in size from genre/era spread's 26 rows and
+MB-noise's 14 down through non-Latin's 12 and classical/
+compilation's 10 to the two-release sub-axis's 6 (4 delivered); the
+8-row split does not weight by that size, instead seating every one
+of the five with roughly even coverage. Three axes (classical/
+compilation, non-Latin, genre/era spread) get 2 rows because each
+carries an internal split worth showing on its own -- a classical row
+and a compilation row; two distinct non-Latin scripts; genre/era
+spread's own two extremes, 1968 country and 2019 Afrobeats. MB-noise
+and the two-release sub-axis get 1 row each because a single case
+already demonstrates the axis's structural point: MB-noise's
+search-fallback shape, and the two-release axis's own
+decoy-rejection shape. Each row is an ordinary confident match: the
+same clean `strong`/`apply` shape (or, for the two-release row, the
+axis's own correctly-`medium` decoy-rejection shape) its twin already
+carries in the tables above, never a further-adversarial elaboration
+on top of it.
 
 | id | twin | axis | verdict vs twin | applied-field divergence |
 | --- | --- | --- | --- | --- |
@@ -1435,10 +1444,15 @@ established, now over axes those 28 never exercised.
 
 **A finding Task 19a's 28-of-28 result could not show: the
 `applied_fields` divergence itself is not universal.** Five of the
-eight rows above move `year` (and, where the captured edition carries
-finer date precision than the release-group's original date record or
-vice versa, `month`/`day` alongside it) exactly as every one of Task
-19a's 28 reissue/box-set siblings did. The other three
+eight rows above diverge in `applied_fields` at all. Of those five,
+three move `year` (`real-classical-gould-goldberg-1981-stock`,
+`real-noise-velvet-underground-us1986-stock`,
+`real-decoy-tchaikovsky-swan-lake-stock`) exactly as every one of
+Task 19a's 28 reissue/box-set siblings did, and two move only finer
+date components while `year` itself is unchanged
+(`real-compilation-marley-legend-stock`'s `month`/`day`, both
+`1984`; `real-genre-burna-boy-african-giant-stock`'s `day` alone,
+`year`/`month` both `2019`-`7`). The other three
 (`real-nonlatin-babymetal-stock`, `real-nonlatin-zemfira-stock`,
 `real-genre-johnny-cash-folsom-prison-stock`) show no divergence
 anywhere in the record, not even in `applied_fields`: each twin's own
