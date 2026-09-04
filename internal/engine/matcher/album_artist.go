@@ -7,11 +7,8 @@ import "time"
 // artists release, because a VA release has no single artist credit
 // to compare a candidate against.
 //
-// This file carries only the fire condition and the adder call, one
-// component per file, mirroring track.go's shape. Task 8's score.go
-// wires this function into the declared albumComponents slice in
-// contract 8's fixed album order; that declaration, not this file, is
-// what makes the order load-bearing.
+// score.go's albumComponents declaration, not this file, is what places
+// the component in contract 8's fixed order.
 func addAlbumArtist(dist *Distance, _ Tunables, likelies Likelies, info *AlbumInfo, _ []ItemFields, _ []AlbumPair, _ time.Time) {
 	if info.VA {
 		return

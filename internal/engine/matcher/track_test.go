@@ -1,6 +1,9 @@
 package matcher
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 // TestTrackDistance hand-authors the equivalents of the corpus's 16
 // track_distance rows: the data-source parameter space (contract 6's
@@ -103,10 +106,8 @@ func TestTrackDistanceComposesInFixedOrder(t *testing.T) {
 	for i, c := range trackComponents {
 		got[i] = c.Name
 	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("trackComponents order = %v, want %v", got, want)
-		}
+	if !slices.Equal(got, want) {
+		t.Fatalf("trackComponents order = %v, want %v", got, want)
 	}
 }
 
@@ -119,13 +120,7 @@ func wantDistance(t *testing.T, dist *Distance, want float64) {
 
 func wantAddedKeys(t *testing.T, dist *Distance, want ...string) {
 	t.Helper()
-	got := dist.AddedKeys()
-	if len(got) != len(want) {
+	if got := dist.AddedKeys(); !slices.Equal(got, want) {
 		t.Fatalf("AddedKeys() = %v, want %v", got, want)
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("AddedKeys() = %v, want %v", got, want)
-		}
 	}
 }

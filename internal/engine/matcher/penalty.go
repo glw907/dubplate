@@ -372,7 +372,7 @@ func CompilePatternOption(pattern string, ignoreCase bool) (PatternOption, error
 	}
 	re, err := regexp.Compile(anchored)
 	if err != nil {
-		return PatternOption{}, fmt.Errorf("compile option pattern %q: %v", pattern, err)
+		return PatternOption{}, fmt.Errorf("compile option pattern %q: %w", pattern, err)
 	}
 	return PatternOption{re: re}, nil
 }

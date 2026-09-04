@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// StringDist is beets' string_dist (autotag/distance.py:63-120): an edit
+// StringDist is beets' string_dist (autotag/distance.py:64-119): an edit
 // distance normalized by string length, discounted for the parts of a
 // title that carry little identifying weight.
 //
@@ -39,7 +39,7 @@ func StringDist(tun Tunables, str1, str2 *string) float64 {
 	baseDist := stringDistBasic(a, b)
 	var penalty float64
 	for _, pattern := range tun.StringDistPatterns {
-		re := sdRegexps.compile(pattern.Pattern)
+		re := sdRegexp(pattern.Pattern)
 		caseA := re.ReplaceAllString(a, "")
 		caseB := re.ReplaceAllString(b, "")
 		if caseA == a && caseB == b {
@@ -70,7 +70,7 @@ func (d *Distance) AddString(key string, str1, str2 *string) {
 	d.Add(key, StringDist(d.tun, str1, str2))
 }
 
-// stringDistBasic is _string_dist_basic (distance.py:47-60): the edit
+// stringDistBasic is _string_dist_basic (distance.py:47-61): the edit
 // distance between two strings reduced to their ASCII alphanumerics,
 // normalized by the longer of the two.
 //
@@ -110,7 +110,7 @@ func sdStrip(s string) string {
 
 // rotateEndWords moves a trailing ", the", ", a", or ", an" to the
 // front of s, so that "something, the" scores equal to "the something"
-// (distance.py:75-83).
+// (distance.py:80-84).
 //
 // The three words are tried in [SDEndWords] order and each rotation
 // feeds the next, so "harbour, a, the" rotates twice.
@@ -123,7 +123,7 @@ func rotateEndWords(s string) string {
 	return s
 }
 
-// applySDReplace applies [SDReplace] to s (distance.py:85-87).
+// applySDReplace applies [SDReplace] to s (distance.py:87-89).
 //
 // The substitution is literal on the replacement side. Python's re.sub
 // expands backslash group references there and Go's ReplaceAllString
@@ -133,56 +133,61 @@ func rotateEndWords(s string) string {
 // dollar sign in a later entry.
 func applySDReplace(s string) string {
 	for _, replacement := range SDReplace {
-		s = sdRegexps.compile(replacement.Pattern).ReplaceAllLiteralString(s, replacement.Replacement)
+		s = sdRegexp(replacement.Pattern).ReplaceAllLiteralString(s, replacement.Replacement)
 	}
 	return s
 }
 
-// sdRegexpCache compiles each distinct SD_PATTERNS and SD_REPLACE
-// expression once and hands out the compiled form.
-//
-// Both shipped tables and SD_REPLACE are compiled during package
-// initialization, so a malformed literal in either is a startup panic
-// rather than a per-call error. A table assigned into
-// [Tunables.StringDistPatterns] from outside this package compiles on
-// first use and panics the same way, because a pattern table is code
-// and a broken one is a programming error rather than an input.
-//
-// The lock guards package state that outlives any one scoring path. No
-// scoring path in this package is concurrent; a test binary running two
-// of them is.
-type sdRegexpCache struct {
-	mu       sync.Mutex
-	compiled map[string]*regexp.Regexp
-}
+// sdShippedRegexps holds every pattern this package ships compiled:
+// both SD_PATTERNS tables and SD_REPLACE. A package-level initializer
+// makes a malformed literal a startup panic rather than a per-call
+// error, and nothing writes the map afterward, so the six lookups a
+// StringDist call makes take no lock.
+var sdShippedRegexps = compileSDPatterns(BeetsSDPatterns, SDPatternsWordBoundary)
 
-var sdRegexps = newSDRegexpCache(BeetsSDPatterns, SDPatternsWordBoundary)
-
-func newSDRegexpCache(tables ...[]SDPattern) *sdRegexpCache {
-	cache := &sdRegexpCache{compiled: make(map[string]*regexp.Regexp)}
+func compileSDPatterns(tables ...[]SDPattern) map[string]*regexp.Regexp {
+	compiled := make(map[string]*regexp.Regexp)
 	for _, table := range tables {
 		for _, pattern := range table {
-			cache.compile(pattern.Pattern)
+			compiled[pattern.Pattern] = regexp.MustCompile(pattern.Pattern)
 		}
 	}
 	for _, replacement := range SDReplace {
-		cache.compile(replacement.Pattern)
+		compiled[replacement.Pattern] = regexp.MustCompile(replacement.Pattern)
 	}
-	return cache
+	return compiled
 }
 
-// compile returns pattern compiled unanchored, exactly as beets writes
+// sdForeignRegexps caches the patterns of a table assigned into
+// [Tunables.StringDistPatterns] from outside this package, which the
+// shipped map cannot hold because they are not known at initialization.
+// The lock guards package state that outlives any one scoring path: no
+// scoring path in this package is concurrent, a test binary running two
+// of them is.
+var sdForeignRegexps = struct {
+	mu       sync.Mutex
+	compiled map[string]*regexp.Regexp
+}{compiled: make(map[string]*regexp.Regexp)}
+
+// sdRegexp returns pattern compiled unanchored, exactly as beets writes
 // it. SD_PATTERNS are re.sub arguments and re.sub never anchors, so the
 // only "^" in the table is beets' own in "^the " (contract 7). The
 // anchoring [CompilePatternOption] applies belongs to Distance._eq's
 // options and to nothing here.
-func (c *sdRegexpCache) compile(pattern string) *regexp.Regexp {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if re, cached := c.compiled[pattern]; cached {
+//
+// A pattern outside the shipped tables compiles on first use and panics
+// on a malformed literal the same way, because a pattern table is code
+// and a broken one is a programming error rather than an input.
+func sdRegexp(pattern string) *regexp.Regexp {
+	if re, shipped := sdShippedRegexps[pattern]; shipped {
+		return re
+	}
+	sdForeignRegexps.mu.Lock()
+	defer sdForeignRegexps.mu.Unlock()
+	if re, cached := sdForeignRegexps.compiled[pattern]; cached {
 		return re
 	}
 	re := regexp.MustCompile(pattern)
-	c.compiled[pattern] = re
+	sdForeignRegexps.compiled[pattern] = re
 	return re
 }

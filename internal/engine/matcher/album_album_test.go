@@ -1,6 +1,7 @@
 package matcher
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -16,11 +17,11 @@ func TestAddAlbumAlbum(t *testing.T) {
 		name   string
 		likely string
 		info   string
-		want   float64
+		want   []float64
 	}{
-		{"always adds, even when both titles are empty", "", "", 0},
-		{"adds zero for identical titles", "Harbour Sound", "Harbour Sound", 0},
-		{"adds a nonzero string distance for different titles", "Ember Wharf", "Northern Lines", 0.8461538461538461},
+		{"always adds, even when both titles are empty", "", "", []float64{0}},
+		{"adds zero for identical titles", "Harbour Sound", "Harbour Sound", []float64{0}},
+		{"adds a nonzero string distance for different titles", "Ember Wharf", "Northern Lines", []float64{0.8461538461538461}},
 	}
 
 	for _, tt := range tests {
@@ -30,12 +31,9 @@ func TestAddAlbumAlbum(t *testing.T) {
 			info := &AlbumInfo{Album: tt.info}
 			addAlbumAlbum(dist, tun, likelies, info, nil, nil, time.Time{})
 
-			got, ok := dist.penalties["album"]
-			if !ok {
-				t.Fatalf("addAlbumAlbum(%q, %q) added nothing, want an album penalty", tt.likely, tt.info)
-			}
-			if len(got) != 1 || got[0] != tt.want {
-				t.Errorf("addAlbumAlbum(%q, %q) added %v, want [%v]", tt.likely, tt.info, got, tt.want)
+			got := dist.penalties["album"]
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("addAlbumAlbum(%q, %q) added %v, want %v", tt.likely, tt.info, got, tt.want)
 			}
 		})
 	}

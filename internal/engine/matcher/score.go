@@ -4,41 +4,28 @@ import "time"
 
 // albumComponent is one line of distance()'s fixed album-level order: a
 // name, the distance key it writes penalties under, and the function
-// that fires it. It mirrors trackComponent (track.go) exactly, because
-// Task 8's job is the album side of the same shape Task 5 already
-// shipped for tracks: a component is a name, a weight key, and a
-// function, and both sides compose uniformly through a declared slice
-// rather than inline calls.
+// that fires it. It mirrors trackComponent (track.go), so both sides
+// compose through a declared slice rather than inline calls.
 //
-// Every album component's Name equals its Key, checked directly: all
-// fourteen album weight keys in the fixed order below are exactly the
-// keys addAlbum* calls Add/AddString/AddEquality/AddPriority/AddRatio/
-// AddNumber/AddDataSource under, so nothing here diverges the way the
-// review flagged as possible. Key is read by
-// TestComponentKeysAreWeighted below, which walks both albumComponents
-// and trackComponents and asserts every Key names an entry in
-// Tunables.DistanceWeights; that is Key's reader, not a case where it
-// stays unread.
+// Key is read by TestComponentKeysAreWeighted, which asserts every
+// component's key names an entry in Tunables.DistanceWeights.
 type albumComponent struct {
 	Name string
 	Key  string
 	Add  func(dist *Distance, tun Tunables, likelies Likelies, info *AlbumInfo, items []ItemFields, pairs []AlbumPair, evalDate time.Time)
 }
 
-// albumComponents is distance()'s fixed album-level order (contract 8):
-// artist (skipped entirely on a various-artists release), album, media,
-// mediums, year, country, label, catalognum, albumdisambig, album_id,
-// tracks, missing_tracks, unmatched_tracks, data_source. The order is
-// load-bearing rather than stylistic: Distance's doc comment (penalty.go)
-// already states why, and it applies unchanged here, insertion order
-// into Distance.order fixes the sequence AddedKeys and
-// GenericPenaltyKeys report, and fixes the summation order RawDistance
-// and MaxDistance walk, and float addition is not associative, so a
-// reordered slice both reports a different key sequence and sums to a
-// different number. A component that declines to add anything must
-// still decline in exactly the place beets declines, because a
-// component that fires where beets does not changes that reported
-// sequence even when the numeric contribution is zero.
+// albumComponents is distance()'s fixed album-level order (contract 8),
+// artist first and data_source last, never resorted.
+//
+// The order is load-bearing. Insertion order into Distance fixes the key
+// sequence AddedKeys and GenericPenaltyKeys report, and the summation
+// order RawDistance and MaxDistance walk, and float addition is not
+// associative, so a reordered slice both reports a different sequence
+// and sums to a different number. A component that declines to add
+// anything must decline in exactly the place beets declines: firing
+// where beets does not changes the reported sequence even at a zero
+// contribution.
 var albumComponents = []albumComponent{
 	{Name: "artist", Key: "artist", Add: addAlbumArtist},
 	{Name: "album", Key: "album", Add: addAlbumAlbum},

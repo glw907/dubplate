@@ -422,3 +422,12 @@ func TestArithmeticMutationUnguardedDivisionProducesNaN(t *testing.T) {
 		}
 	}
 }
+
+// itemsEqual reports whether two ordered (key, distance) lists are
+// exactly equal, which is how the arithmetic-mutation tests above show
+// a wrong sort produces something other than the committed order.
+func itemsEqual(a, b []keyDist) bool {
+	return slices.EqualFunc(a, b, func(x, y keyDist) bool {
+		return x.Key == y.Key && x.Dist == y.Dist
+	})
+}

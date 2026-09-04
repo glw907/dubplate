@@ -17,6 +17,7 @@ func TestAddTrackArtist(t *testing.T) {
 	}{
 		{"declines when inclArtist is false", false, "Northern Lines", "Ember Wharf", nil},
 		{"declines when the candidate carries no artist credit", true, "Northern Lines", "", nil},
+		{"declines when the item carries no artist credit, the empty first member of VA_ARTISTS", true, "", "Ember Wharf", nil},
 		{"declines when the item names a various-artists placeholder", true, "Various Artists", "Ember Wharf", nil},
 		{"declines case-insensitively against the VA placeholder list", true, "VARIOUS", "Ember Wharf", nil},
 		{"adds zero for identical artists", true, "Ember Wharf", "Ember Wharf", []float64{0}},

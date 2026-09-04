@@ -6,9 +6,9 @@ import "time"
 // one-file (fold, M-i): missing_tracks and unmatched_tracks are one
 // counting rule read from both ends of the same pairing, and
 // splitting them across two files would put half a rule in each.
-// Both still get their own declared component entry (so Task 8's
-// order test still sees fourteen names) and their own fire and
-// decline test below.
+// Both still get their own declared component entry (so the order
+// test still sees fourteen names) and their own fire and decline test
+// below.
 //
 // Both components count only, and never contribute contents to the
 // pairing or the matched-pair distances: missing_tracks is the

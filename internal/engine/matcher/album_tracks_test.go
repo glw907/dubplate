@@ -1,7 +1,6 @@
 package matcher
 
 import (
-	"slices"
 	"testing"
 	"time"
 )
@@ -14,9 +13,8 @@ func TestAddAlbumTracks(t *testing.T) {
 		info := &AlbumInfo{}
 		addAlbumTracks(dist, tun, Likelies{}, info, nil, nil, time.Time{})
 
-		got := dist.penalties["tracks"]
-		if !slices.Equal(got, nil) {
-			t.Errorf("addAlbumTracks(no pairs) added %v, want nil", got)
+		if got := dist.penalties["tracks"]; len(got) != 0 {
+			t.Errorf("addAlbumTracks(no pairs) added %v, want nothing", got)
 		}
 		if len(dist.Tracks) != 0 {
 			t.Errorf("addAlbumTracks(no pairs) recorded %d sub-distances, want 0", len(dist.Tracks))

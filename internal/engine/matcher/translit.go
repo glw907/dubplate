@@ -192,7 +192,7 @@ func transliterateRune(r rune) (repl string, ok bool) {
 		// table.
 		return string(r), true
 	}
-	if r < 0 || r > unidecodeMaxCodepoint {
+	if r > unidecodeMaxCodepoint {
 		return "", false
 	}
 	table := loadUnidecodeTable()

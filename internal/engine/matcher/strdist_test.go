@@ -218,19 +218,21 @@ func TestStringDistDoesNotNormalizeUnicode(t *testing.T) {
 // Sweeping all 1112064 valid code points found 56 where the two
 // disagree. The fixture lists them with the post-strip form pinned
 // beets produces for each, and this test replays them through the Go
-// pipeline. Only one of the 56, U+0130, is the full-versus-simple case
-// mapping difference the port was checked for: Python expands it to "i"
-// plus a combining dot and Go maps it straight to "i", and the strip
-// removes the dot, so the two agree.
+// pipeline. The 56 group three ways: 1 full-versus-simple case mapping,
+// 53 a Unicode version skew that strips to nothing on both sides, and 2
+// the same skew surviving the strip.
 //
-// The other 55 are a Unicode version skew. Go 1.27 carries Unicode
-// 17.0.0 case tables and CPython 3.13 carries 15.1.0, so Go lowercases
-// code points Python leaves alone. Fifty-three of those transliterate
-// to nothing either way. Two do not, and they are the finding this test
-// pins: U+A7CB and U+A7DC are unassigned in Unicode 15.1, and unidecode
-// 1.4.0 maps their Unicode 16.0 lowercase forms (U+0264 and U+019B) to
-// letters while mapping the uppercase forms to nothing. Go's pipeline
-// therefore yields a letter where beets yields nothing.
+// The mapping difference is U+0130, the case the port was checked for.
+// Python expands it to "i" plus a combining dot and Go maps it straight
+// to "i", and the strip removes the dot, so the two agree.
+//
+// The skew is Go 1.27's Unicode 17.0.0 case tables against CPython
+// 3.13's 15.1.0, so Go lowercases code points Python leaves alone. The
+// two survivors are the finding this test pins: U+A7CB and U+A7DC are
+// unassigned in Unicode 15.1, and unidecode 1.4.0 maps their Unicode
+// 16.0 lowercase forms (U+0264 and U+019B) to letters while mapping the
+// uppercase forms to nothing. Go's pipeline therefore yields a letter
+// where beets yields nothing.
 //
 // The consequence is narrow today and it is real: the port's fidelity
 // to beets depends on the toolchain's Unicode version and not only on

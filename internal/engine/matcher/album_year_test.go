@@ -48,9 +48,9 @@ func TestAddAlbumYearPreferredOriginalYear(t *testing.T) {
 			addAlbumYear(dist, tun, Likelies{}, info, nil, nil, evalDate)
 
 			got := dist.penalties["year"]
-			if len(got) != 1 || got[0] != f.Want {
-				t.Errorf("addAlbumYear(year=%d, originalYear=%d, evalYear=%d) added %v, want [%v]",
-					f.Year, f.OriginalYear, f.EvalYear, got, f.Want)
+			if want := []float64{f.Want}; !slices.Equal(got, want) {
+				t.Errorf("addAlbumYear(year=%d, originalYear=%d, evalYear=%d) added %v, want %v",
+					f.Year, f.OriginalYear, f.EvalYear, got, want)
 			}
 		})
 	}

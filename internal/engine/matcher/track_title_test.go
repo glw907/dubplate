@@ -1,6 +1,9 @@
 package matcher
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 // track_title carries no fire condition (contract 6: "AddString
 // always"), unlike every other track component, so this test's decline
@@ -14,11 +17,11 @@ func TestAddTrackTitle(t *testing.T) {
 		name      string
 		itemTitle string
 		infoTitle string
-		want      float64
+		want      []float64
 	}{
-		{"always adds, even when both titles are empty", "", "", 0},
-		{"adds zero for identical titles", "Ember Wharf", "Ember Wharf", 0},
-		{"adds a nonzero string distance for different titles", "Ember Wharf", "Northern Lines", 0.8461538461538461},
+		{"always adds, even when both titles are empty", "", "", []float64{0}},
+		{"adds zero for identical titles", "Ember Wharf", "Ember Wharf", []float64{0}},
+		{"adds a nonzero string distance for different titles", "Ember Wharf", "Northern Lines", []float64{0.8461538461538461}},
 	}
 
 	for _, tt := range tests {
@@ -26,12 +29,9 @@ func TestAddTrackTitle(t *testing.T) {
 			dist := NewDistance(tun)
 			addTrackTitle(dist, tun, ItemFields{Title: tt.itemTitle}, &TrackInfo{Title: tt.infoTitle}, true)
 
-			got, ok := dist.penalties["track_title"]
-			if !ok {
-				t.Fatalf("addTrackTitle(%q, %q) added nothing, want a track_title penalty", tt.itemTitle, tt.infoTitle)
-			}
-			if len(got) != 1 || got[0] != tt.want {
-				t.Errorf("addTrackTitle(%q, %q) added %v, want [%v]", tt.itemTitle, tt.infoTitle, got, tt.want)
+			got := dist.penalties["track_title"]
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("addTrackTitle(%q, %q) added %v, want %v", tt.itemTitle, tt.infoTitle, got, tt.want)
 			}
 		})
 	}

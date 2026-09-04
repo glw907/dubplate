@@ -3,9 +3,9 @@ package matcher
 // trackComponent is one line of track_distance's fixed order: a name,
 // the distance key it writes penalties under, and the function that
 // fires it (contract 8: which components fire, and in what order,
-// determines the denominator). Task 8 declares the album-level
-// composition the same way, so both sides compose uniformly through a
-// declared slice rather than inline calls.
+// determines the denominator). score.go declares the album-level
+// composition the same way, so both sides compose through a declared
+// slice rather than inline calls.
 type trackComponent struct {
 	Name string
 	Key  string

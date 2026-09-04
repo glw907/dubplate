@@ -101,7 +101,7 @@ func ReplayTable(t *analysis.ComponentTable) (ReplaySummary, error) {
 func ReplayRow(row analysis.ComponentRow) (outcome ReplayOutcome) {
 	defer func() {
 		if r := recover(); r != nil {
-			outcome = ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: panic: %v", row.ID, r)}
+			outcome = rowErr(row, fmt.Errorf("panic: %v", r))
 		}
 	}()
 
@@ -115,13 +115,13 @@ func ReplayRow(row analysis.ComponentRow) (outcome ReplayOutcome) {
 	case "add_equality", "add_expr", "add_number", "add_priority", "add_ratio", "add_string":
 		var args adderArgs
 		if err := json.Unmarshal(row.Args, &args); err != nil {
-			return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+			return rowErr(row, fmt.Errorf("args: %w", err))
 		}
 		return replayAdderShape(row, args)
 	case "generic_penalty_keys":
 		var args aggregateArgs
 		if err := json.Unmarshal(row.Args, &args); err != nil {
-			return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+			return rowErr(row, fmt.Errorf("args: %w", err))
 		}
 		return replayGenericPenaltyKeys(row, args)
 	case "string_dist":
@@ -133,8 +133,14 @@ func ReplayRow(row analysis.ComponentRow) (outcome ReplayOutcome) {
 	default:
 		// Unreachable: componentMethods was checked above, and every
 		// entry in it is handled by one of the cases.
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: no dispatcher registered for method %q", row.ID, row.Method)}
+		return rowErr(row, fmt.Errorf("no dispatcher registered for method %q", row.Method))
 	}
+}
+
+// rowErr returns the failure outcome for row, wrapping err under the
+// "component <id>" prefix every error this package reports carries.
+func rowErr(row analysis.ComponentRow, err error) ReplayOutcome {
+	return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: %w", row.ID, err)}
 }
 
 // replayAddMethod splits method "add"'s two incompatible argument
@@ -148,23 +154,23 @@ func replayAddMethod(row analysis.ComponentRow) ReplayOutcome {
 		Weights *map[string]float64 `json:"weights"`
 	}
 	if err := json.Unmarshal(row.Args, &probe); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("args: %w", err))
 	}
 	switch {
 	case probe.Key != nil && probe.Weights == nil:
 		var args adderArgs
 		if err := json.Unmarshal(row.Args, &args); err != nil {
-			return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+			return rowErr(row, fmt.Errorf("args: %w", err))
 		}
 		return replayAdderShape(row, args)
 	case probe.Weights != nil && probe.Key == nil:
 		var args aggregateArgs
 		if err := json.Unmarshal(row.Args, &args); err != nil {
-			return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+			return rowErr(row, fmt.Errorf("args: %w", err))
 		}
 		return replayAggregateShape(row, args)
 	default:
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf(`component %s: method "add" args carry neither key nor weights, or both`, row.ID)}
+		return rowErr(row, errors.New(`method "add" args carry neither key nor weights, or both`))
 	}
 }
 
@@ -206,22 +212,22 @@ func replayAdderShape(row analysis.ComponentRow, args adderArgs) ReplayOutcome {
 	for i, raw := range args.Calls {
 		elems, err := decodeCallElems(raw)
 		if err != nil {
-			return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: calls[%d]: %w", row.ID, i, err)}
+			return rowErr(row, fmt.Errorf("calls[%d]: %w", i, err))
 		}
 		if err := call(dist, args.Key, elems); err != nil {
-			return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: calls[%d]: %w", row.ID, i, err)}
+			return rowErr(row, fmt.Errorf("calls[%d]: %w", i, err))
 		}
 	}
 
 	var want adderOutput
 	if err := json.Unmarshal(row.Output, &want); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output: %w", err))
 	}
-	checks, err := checkFloatSlice(row.ID, "penalties", want.Penalties, dist.Penalties(args.Key))
+	checks, err := checkFloatSlice("penalties", want.Penalties, dist.Penalties(args.Key))
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: err}
+		return rowErr(row, err)
 	}
-	return checkFields(row.ID, row.Method, checks)
+	return checkFields(row, checks)
 }
 
 func decodeCallElems(raw json.RawMessage) ([]json.RawMessage, error) {
@@ -456,16 +462,16 @@ func replayAggregateShape(row analysis.ComponentRow, args aggregateArgs) ReplayO
 	tun := tunablesWithOverrides(args.Weights)
 	dist := matcher.NewDistance(tun)
 	if err := applyAggregateCalls(dist, args.Calls); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: %w", row.ID, err)}
+		return rowErr(row, err)
 	}
 
 	var want aggregateOutput
 	if err := json.Unmarshal(row.Output, &want); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output: %w", err))
 	}
 	wantItems, err := decodeItems(want.Items)
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output.items: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output.items: %w", err))
 	}
 
 	checks := []fieldCheck{
@@ -473,9 +479,9 @@ func replayAggregateShape(row analysis.ComponentRow, args aggregateArgs) ReplayO
 		{Name: "raw_distance", Want: want.RawDistance, Got: dist.RawDistance()},
 		{Name: "max_distance", Want: want.MaxDistance, Got: dist.MaxDistance()},
 	}
-	perKeyChecks, err := checkFloatMap(row.ID, "per_key", want.PerKey, dist.PerKey())
+	perKeyChecks, err := checkFloatMap("per_key", want.PerKey, dist.PerKey())
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: err}
+		return rowErr(row, err)
 	}
 	checks = append(checks, perKeyChecks...)
 
@@ -483,31 +489,31 @@ func replayAggregateShape(row analysis.ComponentRow, args aggregateArgs) ReplayO
 	for _, item := range dist.NonzeroItems() {
 		gotItems = append(gotItems, keyDist{Key: item.Key, Dist: item.Distance})
 	}
-	itemChecks, err := checkItems(row.ID, "items", wantItems, gotItems)
+	itemChecks, err := checkItems("items", wantItems, gotItems)
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: err}
+		return rowErr(row, err)
 	}
 	checks = append(checks, itemChecks...)
 
-	return checkFields(row.ID, row.Method, checks)
+	return checkFields(row, checks)
 }
 
 func replayGenericPenaltyKeys(row analysis.ComponentRow, args aggregateArgs) ReplayOutcome {
 	tun := tunablesWithOverrides(args.Weights)
 	dist := matcher.NewDistance(tun)
 	if err := applyAggregateCalls(dist, args.Calls); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: %w", row.ID, err)}
+		return rowErr(row, err)
 	}
 
 	var want struct {
 		Keys []string `json:"keys"`
 	}
 	if err := json.Unmarshal(row.Output, &want); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output: %w", err))
 	}
 	got := dist.GenericPenaltyKeys()
 	if !slices.Equal(want.Keys, got) {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: keys: got %v, want %v", row.ID, got, want.Keys)}
+		return rowErr(row, fmt.Errorf("keys: got %v, want %v", got, want.Keys))
 	}
 	return ReplayOutcome{RowID: row.ID, Method: row.Method}
 }
@@ -517,27 +523,27 @@ func replayGenericPenaltyKeys(row analysis.ComponentRow, args aggregateArgs) Rep
 func replayStringDist(row analysis.ComponentRow) ReplayOutcome {
 	elems, err := decodeCallElems(row.Args)
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("args: %w", err))
 	}
 	if err := wantArity("string_dist", elems, 2); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: %w", row.ID, err)}
+		return rowErr(row, err)
 	}
 	var s1, s2 *string
 	if err := json.Unmarshal(elems[0], &s1); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args[0]: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("args[0]: %w", err))
 	}
 	if err := json.Unmarshal(elems[1], &s2); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args[1]: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("args[1]: %w", err))
 	}
 
 	var want struct {
 		Distance float64 `json:"distance"`
 	}
 	if err := json.Unmarshal(row.Output, &want); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output: %w", err))
 	}
 	got := matcher.StringDist(matcher.DefaultTunables(), s1, s2)
-	return checkFields(row.ID, row.Method, []fieldCheck{{Name: "distance", Want: want.Distance, Got: got}})
+	return checkFields(row, []fieldCheck{{Name: "distance", Want: want.Distance, Got: got}})
 }
 
 // track_distance's args: incl_artist, item, and track_info always;
@@ -591,7 +597,7 @@ func decodeTrackInfo(raw map[string]any) (*matcher.TrackInfo, error) {
 		errs = append(errs, err)
 		return v
 	}
-	info := &matcher.TrackInfo{
+	info := matcher.TrackInfo{
 		Title:       str("title"),
 		Artist:      str("artist"),
 		Length:      flt("length"),
@@ -601,7 +607,10 @@ func decodeTrackInfo(raw map[string]any) (*matcher.TrackInfo, error) {
 		TrackID:     str("track_id"),
 		DataSource:  str("data_source"),
 	}
-	return info, errors.Join(errs...)
+	if err := errors.Join(errs...); err != nil {
+		return nil, err
+	}
+	return &info, nil
 }
 
 func stringAny(raw map[string]any, key string) (string, error) {
@@ -654,7 +663,7 @@ func floatAny(raw map[string]any, key string) (float64, error) {
 func replayTrackDistance(row analysis.ComponentRow) ReplayOutcome {
 	var args trackDistanceArgs
 	if err := json.Unmarshal(row.Args, &args); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("args: %w", err))
 	}
 
 	tun := tunablesWithOverrides(args.Weights)
@@ -667,7 +676,7 @@ func replayTrackDistance(row analysis.ComponentRow) ReplayOutcome {
 	item := matcher.ProjectItemFields(args.Item)
 	info, err := decodeTrackInfo(args.TrackInfo)
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: track_info: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("track_info: %w", err))
 	}
 	dist := matcher.DistanceForTrack(tun, item, info, args.InclArtist)
 
@@ -676,17 +685,17 @@ func replayTrackDistance(row analysis.ComponentRow) ReplayOutcome {
 		Penalties map[string][]float64 `json:"penalties"`
 	}
 	if err := json.Unmarshal(row.Output, &want); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output: %w", err))
 	}
 
 	got := rawPenaltyMap(dist)
 	checks := []fieldCheck{{Name: "distance", Want: want.Distance, Got: dist.Distance()}}
-	penaltyChecks, err := checkPenaltyMap(row.ID, "penalties", want.Penalties, got)
+	penaltyChecks, err := checkPenaltyMap("penalties", want.Penalties, got)
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: err}
+		return rowErr(row, err)
 	}
 	checks = append(checks, penaltyChecks...)
-	return checkFields(row.ID, row.Method, checks)
+	return checkFields(row, checks)
 }
 
 // add_data_source's args: before and after may each be null (Python
@@ -704,7 +713,7 @@ type addDataSourceArgs struct {
 func replayAddDataSource(row analysis.ComponentRow) ReplayOutcome {
 	var args addDataSourceArgs
 	if err := json.Unmarshal(row.Args, &args); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: args: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("args: %w", err))
 	}
 
 	tun := tunablesWithOverrides(args.Weights)
@@ -718,15 +727,15 @@ func replayAddDataSource(row analysis.ComponentRow) ReplayOutcome {
 		Penalties map[string][]float64 `json:"penalties"`
 	}
 	if err := json.Unmarshal(row.Output, &want); err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: fmt.Errorf("component %s: output: %w", row.ID, err)}
+		return rowErr(row, fmt.Errorf("output: %w", err))
 	}
 
 	got := rawPenaltyMap(dist)
-	checks, err := checkPenaltyMap(row.ID, "penalties", want.Penalties, got)
+	checks, err := checkPenaltyMap("penalties", want.Penalties, got)
 	if err != nil {
-		return ReplayOutcome{RowID: row.ID, Method: row.Method, Err: err}
+		return rowErr(row, err)
 	}
-	return checkFields(row.ID, row.Method, checks)
+	return checkFields(row, checks)
 }
 
 func derefOr(s *string, fallback string) string {
@@ -791,18 +800,18 @@ type fieldCheck struct {
 // checkFields runs compareFloats over every check, failing outright on
 // the first check beyond the 1e-12 fallback and otherwise reporting a
 // near miss when any check matched only within it (contract 12).
-func checkFields(rowID, method string, checks []fieldCheck) ReplayOutcome {
+func checkFields(row analysis.ComponentRow, checks []fieldCheck) ReplayOutcome {
 	var nearMissFields []string
 	for _, c := range checks {
-		near, err := compareFloats(rowID, c.Name, c.Want, c.Got)
+		near, err := compareFloats(c.Name, c.Want, c.Got)
 		if err != nil {
-			return ReplayOutcome{RowID: rowID, Method: method, Err: err}
+			return rowErr(row, err)
 		}
 		if near {
 			nearMissFields = append(nearMissFields, c.Name)
 		}
 	}
-	outcome := ReplayOutcome{RowID: rowID, Method: method}
+	outcome := ReplayOutcome{RowID: row.ID, Method: row.Method}
 	if len(nearMissFields) > 0 {
 		outcome.NearMiss = true
 		outcome.Detail = fmt.Sprintf("%s: bit-identity failed but matched within 1e-12 relative tolerance; suspected floating-point operation-order divergence", strings.Join(nearMissFields, ", "))
@@ -815,13 +824,13 @@ func checkFields(rowID, method string, checks []fieldCheck) ReplayOutcome {
 // (contract 12). A row that passes only via the tolerance is not
 // silently treated as bit-identical: near is true and the caller
 // records it as a finding.
-func compareFloats(rowID, field string, want, got float64) (near bool, err error) {
+func compareFloats(field string, want, got float64) (near bool, err error) {
 	if want == got {
 		return false, nil
 	}
 	scale := math.Max(math.Abs(want), 1)
 	if math.IsNaN(got) || math.Abs(got-want)/scale > 1e-12 {
-		return false, fmt.Errorf("component %s: %s: got %v, want %v", rowID, field, got, want)
+		return false, fmt.Errorf("%s: got %v, want %v", field, got, want)
 	}
 	return true, nil
 }
@@ -829,9 +838,9 @@ func compareFloats(rowID, field string, want, got float64) (near bool, err error
 // checkFloatSlice compares two float64 slices elementwise, failing
 // outright on a length mismatch (a components.json row never omits or
 // adds a penalty) before any float comparison runs.
-func checkFloatSlice(rowID, field string, want, got []float64) ([]fieldCheck, error) {
+func checkFloatSlice(field string, want, got []float64) ([]fieldCheck, error) {
 	if len(want) != len(got) {
-		return nil, fmt.Errorf("component %s: %s: got %d values, want %d", rowID, field, len(got), len(want))
+		return nil, fmt.Errorf("%s: got %d values, want %d", field, len(got), len(want))
 	}
 	checks := make([]fieldCheck, len(want))
 	for i := range want {
@@ -843,16 +852,16 @@ func checkFloatSlice(rowID, field string, want, got []float64) ([]fieldCheck, er
 // checkFloatMap compares two key -> float64 maps, failing outright on
 // a key-set mismatch (missing or extra key) before any float
 // comparison runs.
-func checkFloatMap(rowID, field string, want, got map[string]float64) ([]fieldCheck, error) {
+func checkFloatMap(field string, want, got map[string]float64) ([]fieldCheck, error) {
 	if len(want) != len(got) {
-		return nil, fmt.Errorf("component %s: %s: got %d keys, want %d", rowID, field, len(got), len(want))
+		return nil, fmt.Errorf("%s: got %d keys, want %d", field, len(got), len(want))
 	}
 	keys := slices.Sorted(maps.Keys(want))
 	checks := make([]fieldCheck, 0, len(keys))
 	for _, key := range keys {
 		gotValue, ok := got[key]
 		if !ok {
-			return nil, fmt.Errorf("component %s: %s: missing key %q", rowID, field, key)
+			return nil, fmt.Errorf("%s: missing key %q", field, key)
 		}
 		checks = append(checks, fieldCheck{Name: field + "." + key, Want: want[key], Got: gotValue})
 	}
@@ -863,17 +872,17 @@ func checkFloatMap(rowID, field string, want, got map[string]float64) ([]fieldCh
 // map, track_distance's and add_data_source's own output shape),
 // failing outright on a key-set or per-key length mismatch before any
 // float comparison runs.
-func checkPenaltyMap(rowID, field string, want, got map[string][]float64) ([]fieldCheck, error) {
+func checkPenaltyMap(field string, want, got map[string][]float64) ([]fieldCheck, error) {
 	if len(want) != len(got) {
-		return nil, fmt.Errorf("component %s: %s: got %d keys, want %d", rowID, field, len(got), len(want))
+		return nil, fmt.Errorf("%s: got %d keys, want %d", field, len(got), len(want))
 	}
 	var checks []fieldCheck
 	for _, key := range slices.Sorted(maps.Keys(want)) {
 		gotSlice, ok := got[key]
 		if !ok {
-			return nil, fmt.Errorf("component %s: %s: missing key %q", rowID, field, key)
+			return nil, fmt.Errorf("%s: missing key %q", field, key)
 		}
-		sub, err := checkFloatSlice(rowID, field+"."+key, want[key], gotSlice)
+		sub, err := checkFloatSlice(field+"."+key, want[key], gotSlice)
 		if err != nil {
 			return nil, err
 		}
@@ -886,25 +895,16 @@ func checkPenaltyMap(rowID, field string, want, got map[string][]float64) ([]fie
 // aggregate row's "items" view), failing outright on a length or key
 // mismatch at any position before any float comparison runs: order is
 // part of the contract (NonzeroItems' sort), not incidental.
-func checkItems(rowID, field string, want, got []keyDist) ([]fieldCheck, error) {
+func checkItems(field string, want, got []keyDist) ([]fieldCheck, error) {
 	if len(want) != len(got) {
-		return nil, fmt.Errorf("component %s: %s: got %d items, want %d", rowID, field, len(got), len(want))
+		return nil, fmt.Errorf("%s: got %d items, want %d", field, len(got), len(want))
 	}
 	checks := make([]fieldCheck, len(want))
 	for i := range want {
 		if want[i].Key != got[i].Key {
-			return nil, fmt.Errorf("component %s: %s[%d]: got key %q, want %q", rowID, field, i, got[i].Key, want[i].Key)
+			return nil, fmt.Errorf("%s[%d]: got key %q, want %q", field, i, got[i].Key, want[i].Key)
 		}
 		checks[i] = fieldCheck{Name: fmt.Sprintf("%s[%d]", field, i), Want: want[i].Dist, Got: got[i].Dist}
 	}
 	return checks, nil
-}
-
-// itemsEqual reports whether two ordered (key, distance) lists are
-// exactly equal: used by the arithmetic-mutation tests to show a wrong
-// sort produces something other than the committed order.
-func itemsEqual(a, b []keyDist) bool {
-	return slices.EqualFunc(a, b, func(x, y keyDist) bool {
-		return x.Key == y.Key && x.Dist == y.Dist
-	})
 }

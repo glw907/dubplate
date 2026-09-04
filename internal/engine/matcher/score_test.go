@@ -27,10 +27,8 @@ func TestAlbumComponentsComposeInFixedOrder(t *testing.T) {
 	for i, c := range albumComponents {
 		got[i] = c.Name
 	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("albumComponents order = %v, want %v", got, want)
-		}
+	if !slices.Equal(got, want) {
+		t.Fatalf("albumComponents order = %v, want %v", got, want)
 	}
 }
 

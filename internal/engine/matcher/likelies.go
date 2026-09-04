@@ -94,27 +94,19 @@ func projectField[T any](items []ItemFields, get func(ItemFields) T) []T {
 
 // plurality is Counter.most_common(1)[0] (util/__init__.py:799-807):
 // the most common value in values and its count. Ties break by the
-// value's first-seen index (contract 11) rather than by Go's
-// randomized map order: values is walked once to record each
-// distinct value's first-seen position, and the highest count wins
-// with ties resolved in favor of the earliest position. An empty
-// values returns T's zero value and a count of zero, reachable only
-// when items itself is empty.
+// value's first-seen index (contract 11) rather than by Go's randomized
+// map order: order records each distinct value's first appearance, and
+// the strict ">" below leaves the earliest of a tied pair in place. An
+// empty values returns T's zero value and a count of zero, reachable
+// only when items itself is empty.
 func plurality[T comparable](values []T) (T, int) {
-	type tally struct {
-		count     int
-		firstSeen int
-	}
-	tallies := make(map[T]*tally, len(values))
+	counts := make(map[T]int, len(values))
 	var order []T
-	for i, v := range values {
-		t, seen := tallies[v]
-		if !seen {
-			t = &tally{firstSeen: i}
-			tallies[v] = t
+	for _, v := range values {
+		if _, seen := counts[v]; !seen {
 			order = append(order, v)
 		}
-		t.count++
+		counts[v]++
 	}
 	if len(order) == 0 {
 		var zero T
@@ -122,9 +114,9 @@ func plurality[T comparable](values []T) (T, int) {
 	}
 	best := order[0]
 	for _, v := range order[1:] {
-		if tallies[v].count > tallies[best].count {
+		if counts[v] > counts[best] {
 			best = v
 		}
 	}
-	return best, tallies[best].count
+	return best, counts[best]
 }
