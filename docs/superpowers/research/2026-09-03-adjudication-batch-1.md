@@ -285,3 +285,58 @@ considered addressed.
 `no-correct-answer`) covers every row grouped under it in one pass;
 individual rows may still diverge in outcome within a hypothesis if
 Geoff finds one case's evidence weaker than its siblings'.
+
+---
+
+## Rulings applied
+
+Geoff accepted this batch's recommendations in chat on 2026-09-04.
+`corpus/analysis/adjudications.json` and `corpus/analysis/oracle_bugs.json`
+now carry these five dispositions, adjudicator `Geoff`, date
+`2026-09-04`:
+
+- **Hypothesis 1** (`bug-ft-pattern`) -> `oracle-wrong`. All six
+  `adv-ft-*` rows move to `oracle-wrong`, `corrected_verdict`
+  `medium`/`skip` at the defect-free distance the H1 table above
+  already carries (0.101852 / 0.117647 / 0.107843 / 0.086667 /
+  0.091708 / 0.090909).
+- **Hypothesis 2** (`bug-remix-parenthetical`) -> `oracle-wrong`. All
+  four `adv-remix-*` rows move to `oracle-wrong`, `corrected_verdict`
+  `medium`/`skip` at the H2 table's defect-free distance (0.080000 /
+  0.071429 / 0.092593 / 0.081871).
+- **Hypothesis 3** (`bug-assignment-rejection-gap`) -> `oracle-wrong`.
+  All six `adv-assign-*` rows move to `oracle-wrong`, each
+  `corrected_verdict` naming the identity assignment as the correct
+  mapping at the H3 table's would-be distance. Four flip to
+  `medium`/`skip` (`adv-assign-swap-session-tape`,
+  `adv-assign-swap-field-recording`, `adv-assign-cycle-rehearsal-reel`,
+  `adv-assign-endpoint-swap-demo-pass`); `adv-assign-double-swap-broadcast`
+  and `adv-assign-tight-margin-archive-disc` stay `strong`/`apply`,
+  since their would-be distance does not cross the threshold -- for
+  those two the correction is the identity assignment and the applied
+  per-track titles, not the album-level recommendation.
+- **Hypothesis 4** (`bug-nonlatin-alias-selection`) -> `oracle-wrong`.
+  `real-nonlatin-girls-generation`'s row corrects the applied artist to
+  the release's own credited display; `real-nonlatin-anna-vissi-essential`'s
+  row corrects it to the release's own credited Latin display, its
+  reason carrying the accepted severity note that the divergence is
+  invisible to a quiet-mode import (`strong`/`apply`, no review). Two
+  new rows close the probe-case/adjudication-row gap the rung 3 spec's
+  B3 fold identified: `adj-real-nonlatin-alla-pugacheva-vol1` and
+  `adj-real-nonlatin-x-japan-art-of-life`, both `oracle-correct` -- for
+  those two releases the artist entity name and the release credit
+  coincide, so the derived record is correct as-is.
+- **Hypothesis 5** (`bug-locale-alias-ignored`) -> `oracle-correct`.
+  The A/B evidence (`real-nonlatin-utada-first-love` against its
+  locale-profiled sibling) closes `#6358` against pinned beets 2.13.1:
+  `_preferred_alias` fires and its alias fields propagate, including the
+  second, independent firing for the unrelated "Various Artists" entity.
+  Its row, `adj-real-nonlatin-utada-first-love-locale`, carries the same
+  basis.
+
+**Row count: 19 ruled plus 2 added, 21 total in `adjudications.json`.**
+`bug-threshold-boundary`, already ruled `oracle-correct` (Geoff,
+2026-09-03) before this batch, is unchanged. Every hypothesis's own
+reproduced-values row (the machine-observable `reproduced` field) is
+unchanged; only `disposition`, `reason`, `adjudicator`, and `date`
+(plus `corrected_verdict` where `oracle-wrong` requires it) moved.

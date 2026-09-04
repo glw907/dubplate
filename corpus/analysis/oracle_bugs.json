@@ -22,10 +22,10 @@
         "adj-adv-ft-craft-titles",
         "adj-adv-ft-theft-artist"
       ],
-      "disposition": "pending-adjudication",
-      "reason": "Six probe cases authored this pass (Task 16) reproduce the defect. 2b's strdist-feat-strip already proved the pipeline mechanics for the legitimate feat. strip, where the trigger really is a featuring credit; these are its false-positive twin, where the trigger is an ordinary English word. Disposition stays owner-only.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary (742ebdf69, Sept 2010; partial fix 7b59604c5 in beets 2.13.0; the symmetric word-boundary fix 19d091440 still unreleased at pinned 2.13.1) is a real defect. All six probe cases move from strong/apply to medium/skip at their defect-free distance, per their own adjudication rows. Ruling taken in chat 2026-09-04, recorded by the conductor.",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     },
     {
       "id": "bug-remix-parenthetical",
@@ -45,10 +45,10 @@
         "adj-adv-remix-bracket",
         "adj-adv-remix-track-titles"
       ],
-      "disposition": "pending-adjudication",
-      "reason": "Four probe cases authored this pass (Task 16) reproduce the defect, including #5868's literal shape (an original against its own remix, adv-remix-both-sides) and its per-track twin. Disposition stays owner-only.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect; it erases the only differentiator between a release and its own remix, rework, alternate version, or original mix. All four probe cases move from strong/apply to medium/skip at their defect-free distance, per their own adjudication rows. Ruling taken in chat 2026-09-04, recorded by the conductor.",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     },
     {
       "id": "bug-nonlatin-alias-selection",
@@ -63,13 +63,15 @@
       "reproduced": "yes",
       "adjudication_refs": [
         "adj-adv-alias-girls-generation-romanized",
-        "adj-adv-alias-vissi-native-greek"
+        "adj-adv-alias-vissi-native-greek",
+        "adj-real-nonlatin-alla-pugacheva-vol1",
+        "adj-real-nonlatin-x-japan-art-of-life"
       ],
       "reproduced_reason": "Reproduced by two of the four real-catalog non-Latin cases Task 4 already committed (folded here per the Task 17 escalation ruling, which deleted the four byte-identical adv-alias-* duplicates those cases had spawned). _parse_artist_credits (beetsplug/musicbrainz.py:301-331) always reads el['artist']['name'], the MusicBrainz ARTIST ENTITY's own canonical name, never el['name'], the specific RELEASE's own credited display string; when the two diverge in script the applied artist silently discards what the release itself documents, the mechanism #1916 and #6358 both point at from opposite directions (romaji/locale transliteration never selected; a locale alias ignored after mbsync). real-nonlatin-girls-generation (release credits the Korean 소녀시대 per seed-items --facts, but distance 0.076471 applies the Latin \"Girls' Generation\" instead, artist the sole nonzero penalty, medium/skip) and real-nonlatin-anna-vissi-essential (release credits the Latin \"Anna Vissi\", but distance 0.014493 applies the Greek Άννα Βίσση instead, matching a documented locale=el alias exactly, artist the sole nonzero penalty, strong/apply) show the entity-name-over-release-credit substitution firing in both script directions, proving it is not a directional bias but a structural gap: the release's own metadata is never consulted for this field at all. The other two real-nonlatin-* cases named above (alla-pugacheva-vol1, x-japan-art-of-life) show no divergence at all: each release's own credited display already equals the artist entity's canonical name, so the applied string happens to match what the release documents, and neither is counted toward this reproduction. Separately, as a scoping finding rather than a reproduction: _preferred_alias (musicbrainz.py:128-155) is structurally unreachable under both the estate and stock profiles, since it iterates config['import']['languages'], empty in both, so `next(matches, None)` returns None unconditionally and no alias is ever even considered a candidate string. This unreachability is not itself counted as reproducing the hypothesis here (no case above shows a nonzero divergence attributable to it, since each release's own alternate-script aliases were unneeded once the credited display already matched); Task 18's locale profile probes this mechanism directly by toggling import.languages against the same alias data.",
-      "disposition": "pending-adjudication",
-      "reason": "The Task 17 escalation ruling folded the four adv-alias-* probe cases into their byte-identical real-nonlatin-* twins already committed by Task 4, narrowing the reproduction claim to the two cases whose applied string actually diverges from the release's own credit. Disposition stays owner-only.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: _parse_artist_credits's artist-entity-name-over-release-credit substitution (#1916/#6358) is a real defect. real-nonlatin-girls-generation's applied artist corrects to the release's own credited display; real-nonlatin-anna-vissi-essential's applied artist corrects to the release's own credited Latin display, its divergence invisible to a quiet-mode import (strong/apply, no review). The two no-divergence probes, real-nonlatin-alla-pugacheva-vol1 and real-nonlatin-x-japan-art-of-life, are separately adjudicated oracle-correct: for those two releases the artist entity name and the release credit coincide, so the substitution has no visible effect. Ruling taken in chat 2026-09-04, recorded by the conductor.",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     },
     {
       "id": "bug-assignment-rejection-gap",
@@ -93,10 +95,10 @@
         "adj-adv-assign-tight-margin-archive-disc"
       ],
       "reproduced_reason": "Reproduced by all six probe cases (Task 17). Each gives its item set the same track count as the candidate, an item title held constant across every item (a shared prefix identical to the album's own generic session-tape/take/reel naming, carrying zero per-track content), which string_dist scores identically regardless of which candidate track it is paired against -- title is thereby proven, not merely asserted, to contribute equal weight to every possible pairing -- and adjacent-track lengths tuned so lap.lapjv's own minimum-cost solve prefers a wrong pairing over the correct one. assign_items never rejects a pair; it always returns the minimum-cost total mapping, so the wrong assignment is not a near-miss the solver settled for, it is the solver's own provable optimum. Every case's album-level verdict lands strong/apply despite the wrong per-track mapping (adv-assign-swap-session-tape distance 0.016667 vs. 0.052222 the correct pairing would have scored; adv-assign-swap-field-recording 0.016 vs. 0.048; adv-assign-cycle-rehearsal-reel 0.019481 vs. 0.070390, a genuine 3-cycle among tracks 0-1-2 rather than a simple pairwise swap; adv-assign-double-swap-broadcast 0.021429 vs. 0.032540, two independent adjacent swaps in one 6-track record; adv-assign-endpoint-swap-demo-pass 0.026667 vs. 0.106667, a swap between the release's first and last track rather than adjacent positions, proving the defect keys on length proximity, not index proximity; adv-assign-tight-margin-archive-disc 0.016667 vs. 0.022593, the narrowest correct-vs-wrong margin of the six). Every case's own claims.json pins the wrong assignment explicitly (Assignment plus AppliedFields.title per swapped item); every one is confirmed a unique optimum by the ties ledger (TieMargin 1e-9), not a tie the tie machinery had to disposition.",
-      "disposition": "pending-adjudication",
-      "reason": "assign_items never rejects a pair; it always maps every input track onto some candidate track, so the album-level verdict can still land strong while individual AppliedFields.title values are wrong.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment is the correct per-track mapping in all six probe cases, known by construction. Four cases' verdicts move from strong/apply to medium/skip at their would-be distance (adv-assign-swap-session-tape, adv-assign-swap-field-recording, adv-assign-cycle-rehearsal-reel, adv-assign-endpoint-swap-demo-pass); adv-assign-double-swap-broadcast and adv-assign-tight-margin-archive-disc stay strong/apply because their would-be distance does not cross the threshold, but their per-track assignment and applied titles are still wrong against release truth known by construction, per their own adjudication rows. Ruling taken in chat 2026-09-04, recorded by the conductor.",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     },
     {
       "id": "bug-threshold-boundary",
@@ -124,10 +126,10 @@
       "adjudication_refs": [
         "adj-real-nonlatin-utada-first-love-locale"
       ],
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only (M6), even though the evidence points one way. The two case ids are the evidence that _preferred_alias works at 2.13.1, for Geoff to confirm as oracle-correct.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-correct",
+      "reason": "Adjudicated by the owner: the A/B evidence (real-nonlatin-utada-first-love against its locale-profiled sibling) closes #6358 against pinned beets 2.13.1 -- _preferred_alias fires, its alias fields propagate to the four sort-name fields, and it fires a second, independent time for the unrelated \"Various Artists\" entity credited on two losing candidates. The reported defect is not reproduced. Ruling taken in chat 2026-09-04, recorded by the conductor.",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     }
   ]
 }

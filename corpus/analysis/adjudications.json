@@ -8,10 +8,11 @@
       "suspected": "The featuring pattern `[\\[\\(]?(featuring|feat|ft)[\\. :].+` carries no word boundary before its trigger, so it fires on the \"ft\" inside the ordinary word \"Draft\" on both sides and deletes everything from that point on. \"Draft: Ember Wharf\" and \"Draft: Northern Lines\" both collapse to \"dra\", the residual edit distance is 0, and the entire real difference between the two titles is charged at the pattern's 0.1 weight: string_dist reads 0.061111 where a word-boundary-guarded pattern would leave 0.611111. The derived record reads distance 0.010185185, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.101851852, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
       "release_truth": "The item set describes a different album, \"Draft: Ember Wharf\", from the candidate release \"Draft: Northern Lines\"; the two share only their leading word. Known by construction, since both releases are invented for this probe. The correct verdict for the pairing is medium (review), never strong (auto-apply), and the record's applied_fields show beets overwriting the item's own album tag with the candidate's title. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.101852"
     },
     {
       "id": "adj-adv-ft-left-colon",
@@ -21,10 +22,11 @@
       "suspected": "The same missing word boundary fires on the \"ft\" inside \"Left\". \"Left: A Distant Shore\" and \"Left: The Harbor Road\" both collapse to \"le\", so 94 percent of a genuine title difference is discounted away: string_dist reads 0.070588 where a word-boundary-guarded pattern would leave 0.705882. The two titles share nothing after the trigger word, which is what makes the surviving distance so small relative to the real one. The derived record reads distance 0.011764706, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.117647059, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
       "release_truth": "The item set describes \"Left: A Distant Shore\"; the candidate release is \"Left: The Harbor Road\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.117647"
     },
     {
       "id": "adj-adv-ft-gift-space",
@@ -34,10 +36,11 @@
       "suspected": "The trigger's separator class is `[\\. :]`, so a plain space qualifies and no punctuation is needed at all: the \"ft\" ending \"Gift\" plus the space after it fires the pattern on both \"Gift Wrapped Nights\" and \"Gift Horse Blues\", collapsing both to \"gi\". string_dist reads 0.064706 where a word-boundary-guarded pattern would leave 0.647059. The derived record reads distance 0.010784314, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.107843137, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
       "release_truth": "The item set describes \"Gift Wrapped Nights\"; the candidate release is \"Gift Horse Blues\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.107843"
     },
     {
       "id": "adj-adv-ft-soft-onesided",
@@ -47,10 +50,11 @@
       "suspected": "The one-sided half of the defect: only the item's own tag, \"Harbor Lights Soft. Variation\", carries a trigger, and the candidate \"Harbor Lights\" carries none. The pattern still fires, because it only needs one side to change, and it deletes the item's whole trailing edition string as though it were a featuring credit. string_dist reads 0.180571 where a word-boundary-guarded pattern would leave 0.520000. The surviving penalty is the largest of the six ft cases, and still lands inside strong. The derived record reads distance 0.030095238, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.086666667, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
       "release_truth": "The item set describes a distinct edition, \"Harbor Lights Soft. Variation\", of the candidate release \"Harbor Lights\". Known by construction. The correct verdict is medium (review), never strong (auto-apply); an edition string is exactly the kind of differentiator an importer must not silently discard. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.086667"
     },
     {
       "id": "adj-adv-ft-craft-titles",
@@ -60,10 +64,11 @@
       "suspected": "The discount is not album-only: track_distance calls the same string_dist for track_title, so a trigger inside a track name discounts a per-track difference the same way. All three items carry \"Craft: ...\" titles against three different \"Craft: ...\" candidate tracks; each pair collapses to \"cra\" and pays a tenth of its real distance (0.050000 against 0.500000, 0.056250 against 0.562500, 0.058824 against 0.588235). The album title matches exactly on both sides, so the record isolates the per-track path with album reading 0. The derived record reads distance 0.009170752, recommendation strong, action apply, with tracks as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.091707516, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
       "release_truth": "The item set is a rip of three different recordings from the candidate's own three, sharing only the \"Craft:\" series prefix. Known by construction. The correct verdict is medium (review), never strong (auto-apply), and applied_fields show every item's title being overwritten with the wrong candidate track's title. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.091708"
     },
     {
       "id": "adj-adv-ft-theft-artist",
@@ -73,10 +78,11 @@
       "suspected": "The album-level artist component (distance.py:447-448) runs the same string_dist, so the discount reaches artist names too. The items' albumartist \"Theft Marine\" and the candidate's \"Theft Signal\" both collapse to \"the\", and string_dist reads 0.054545 where a word-boundary-guarded pattern would leave 0.545455. This is the widest surface of the six: an artist string is the field an importer is least able to recover from once it is written wrong. The derived record reads distance 0.009090909, recommendation strong, action apply, with artist as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.090909091, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
       "release_truth": "The item set is credited to \"Theft Marine\"; the candidate release is credited to \"Theft Signal\". Known by construction: two unrelated invented artists sharing one leading word. The correct verdict is medium (review), never strong (auto-apply), and applied_fields show both artist and albumartist being overwritten. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with a word boundary added before the featuring trigger, every other pattern and weight left alone; the derived half of that computation reproduces the committed record's own penalty exactly, which is what makes the counterfactual half readable.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.090909"
     },
     {
       "id": "adj-adv-remix-both-sides",
@@ -86,10 +92,11 @@
       "suspected": "The parenthetical discount `\\(.*?\\)` at weight 0.3 deletes the only part of either title that says which release it is. \"Glass Harbor (Nocturne Rework)\" and \"Glass Harbor (Original Mix)\" both collapse to \"glass harbor\", the residual edit distance is 0, and the whole differentiator is charged at 0.3: string_dist reads 0.144000 where a full-weight parenthetical would leave 0.480000. This is #5868's shape exactly, an original against its own remix. The derived record reads distance 0.024000000, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.080000000, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "#5868",
       "release_truth": "The item set is the remix release \"Glass Harbor (Nocturne Rework)\"; the candidate is the original, \"Glass Harbor (Original Mix)\". Known by construction. The correct verdict is medium (review), never strong (auto-apply): applied_fields show the remix rip being retagged as the original mix, which is the concrete harm #5868 reports. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.080000"
     },
     {
       "id": "adj-adv-remix-onesided",
@@ -99,10 +106,11 @@
       "suspected": "The one-sided parenthetical: the item tag \"Salt Meridian (Kite Remix)\" carries the differentiator and the candidate \"Salt Meridian\" carries none, which is the ordinary shape of a remix release matched against its original. The pattern fires on the item side alone and discounts the whole remix token: string_dist reads 0.128571 where a full-weight parenthetical would leave 0.428571. The derived record reads distance 0.021428571, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.071428571, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "#5868",
       "release_truth": "The item set is the remix release \"Salt Meridian (Kite Remix)\"; the candidate is the original \"Salt Meridian\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.071429"
     },
     {
       "id": "adj-adv-remix-bracket",
@@ -112,10 +120,11 @@
       "suspected": "SD_PATTERNS carries a second 0.3-weight discount for square brackets, `\\[.*?\\]`, and it has the same effect on the same shape: \"Copper Ledger [Nocturne Version]\" against the candidate \"Copper Ledger\" discounts the version token away, string_dist reading 0.166667 where a full-weight bracket would leave 0.555556. Square brackets are the conventional edition/version marker in a good deal of real rip metadata, so this is not a variant shape but the same defect on the other pattern. The derived record reads distance 0.027777778, recommendation strong, action apply, with album as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.092592593, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "#5868",
       "release_truth": "The item set is the alternate version \"Copper Ledger [Nocturne Version]\"; the candidate is \"Copper Ledger\". Known by construction. The correct verdict is medium (review), never strong (auto-apply). The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.092593"
     },
     {
       "id": "adj-adv-remix-track-titles",
@@ -125,10 +134,11 @@
       "suspected": "The per-track twin of the album shape, and the one that matches a real remix rip most closely: every item title is \"<original> (Kite Remix)\" against the candidate's own original titles, and each pair's remix token is discounted at 0.3 (0.150000 against 0.500000, 0.142105 against 0.473684, 0.150000 against 0.500000). The album title is left matching on both sides so the record isolates track_title's own parenthetical discount, with album reading 0; a real remix release usually diverges on both fields at once. The derived record reads distance 0.024561404, recommendation strong, action apply, with tracks as its only nonzero penalty. Recomputed defect-free, the same record's distance is 0.081871345, past strong_rec_thresh (0.04) and inside the medium band, so the verdict moves from strong/apply to medium/skip. The discount is what tips it.",
       "citation": "#5868",
       "release_truth": "The item set is a rip of the Kite Remix versions; the candidate release carries the original recordings. Known by construction. The correct verdict is medium (review), never strong (auto-apply), and applied_fields show every remix title being overwritten with the original's. The corpus's mb_albumid fencing rule (corpus/README.md, \"The synth tool\") makes every item carry the candidate's own release id, so album_id reads 0 and the string components are the only signal the matcher has left to notice the divergence; that is the surface this defect attacks, so the fencing sharpens the probe rather than weakening it.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record plus a counterfactual string_dist run against pinned beets' own SD_PATTERNS table with the two 0.3-weight bracket patterns removed, which is the same arithmetic as charging the parenthetical at full weight; the derived half of that computation reproduces the committed record's own penalty exactly.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "medium, skip; defect-free distance 0.081871"
     },
     {
       "id": "adj-adv-assign-swap-session-tape",
@@ -138,10 +148,11 @@
       "suspected": "assign_items (match.py:53-81) computes a full item-to-track cost matrix from track_distance and hands it to lap.lapjv, which always returns a complete minimum-cost mapping; it never rejects a pair, however costly, and never leaves an item and a track both unmatched when the counts agree. This item set carries the same title (\"Session Tape\") on every item, matching the release's own \"Session Tape A/B/C\" tracks with an identical string_dist value (0.083333) regardless of which track it is paired against -- proven, not merely asserted, by the record's own per-track cost matrix -- so title is mathematically incapable of discriminating a correct pairing from a wrong one, and length is the only signal the solver has left. Item 0's length (222s) sits within track_length_grace (10s) of track 1's length (230s) but 12s outside grace of its own true track 0 (200s); item 1 (208s) is the mirror image. lap.lapjv's own optimum is therefore assignment {0:1, 1:0, 2:2}: items 0 and 1 swapped, item 2 correct. That optimum costs 0.15 total (album distance 0.016667, strong, apply); the correct pairing {0:0, 1:1, 2:2} would have cost 0.47 (album distance 0.052222, medium) had the solver ever considered rejecting the cheaper wrong one, which it structurally cannot.",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
       "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2}: item 0 is track 0's own rip, item 1 is track 1's own rip, item 2 is track 2's own rip. Known by construction. applied_fields show item 0 retagged with track 1's title (\"Session Tape B\", correct answer \"Session Tape A\") and item 1 retagged with track 0's title (\"Session Tape A\", correct answer \"Session Tape B\"), while the album-level verdict reads strong/apply throughout -- the album verdict never signals the per-track error at all.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields, plus the hand-verified cost matrix (internal/harness/synth's track_distance formula, checked against pinned beets' distance.py before authoring) proving the wrong mapping is the solver's actual, unique optimum, not an artifact of a near-tie: ties.json records this case unique (TieMargin 1e-9).",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment {0:0,1:1,2:2} is the correct per-track mapping, known by construction. At the would-be distance 0.052222 the verdict moves from strong/apply to medium, skip. Batch 1, hypothesis 3 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "identity assignment {0:0,1:1,2:2} is the correct mapping; would-be distance 0.052222, medium, skip (moves from strong/apply)"
     },
     {
       "id": "adj-adv-assign-swap-field-recording",
@@ -151,10 +162,11 @@
       "suspected": "The same rejection gap on a 4-track release: every item carries the identical title \"Field Recording\" against the candidate's \"Field Recording 1/2/3/4\", so string_dist against any of the four tracks is the same 0.111111, structurally uninformative. Items 0 and 1 sit within grace of their own true tracks (0, 1); items 2 and 3 are engineered the same way case 1's items 0/1 are: item 2 (322s) sits within grace of track 3 (330s) but 12s outside grace of its own track 2 (300s), and item 3 (308s) is the mirror image. lap.lapjv's unique optimum is {0:0, 1:1, 2:3, 3:2}, total cost 0.16 (album distance 0.016, strong, apply); the correct pairing would have cost 0.48 (album distance 0.048, medium).",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
       "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3}. Known by construction. applied_fields show item 2 retagged with track 3's title (\"Field Recording 4\", correct answer \"Field Recording 3\") and item 3 retagged with track 2's title (\"Field Recording 3\", correct answer \"Field Recording 4\"), while items 0 and 1 land correctly and the album-level verdict reads strong/apply throughout.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment {0:0,1:1,2:2,3:3} is the correct per-track mapping, known by construction. At the would-be distance 0.048000 the verdict moves from strong/apply to medium, skip. Batch 1, hypothesis 3 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "identity assignment {0:0,1:1,2:2,3:3} is the correct mapping; would-be distance 0.048000, medium, skip (moves from strong/apply)"
     },
     {
       "id": "adj-adv-assign-cycle-rehearsal-reel",
@@ -164,10 +176,11 @@
       "suspected": "A genuine 3-cycle rather than a pairwise swap, on a 5-track release: every item shares the title \"Rehearsal Reel\" against the candidate's \"Rehearsal Reel A/B/C/D/E\" (uninformative by the same construction). Items 3 and 4 sit exactly on their own tracks; items 0, 1, and 2 are tuned so the solver's minimum-cost mapping cycles them: item 0 (219s) prefers track 1 (220s) over its own track 0 (200s); item 1 (236s) prefers track 2 (240s) over its own track 1; item 2 (203s) prefers track 0 (200s) over its own track 2. lap.lapjv's unique optimum is {0:1, 1:2, 2:0, 3:3, 4:4}, total cost 0.2143 (album distance 0.019481, strong, apply); the correct pairing would have cost 0.7743 (album distance 0.070390, medium) -- the widest correct-vs-wrong gap of the six cases, since a 3-cycle compounds three simultaneous wrong pairings rather than one swapped pair.",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
       "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3, 4:4}. Known by construction. applied_fields show item 0 retagged \"Rehearsal Reel B\" (correct answer A), item 1 retagged \"Rehearsal Reel C\" (correct answer B), and item 2 retagged \"Rehearsal Reel A\" (correct answer C); items 3 and 4 land correctly. The album-level verdict reads strong/apply throughout despite three of five tracks being wrong.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment {0:0,1:1,2:2,3:3,4:4} is the correct per-track mapping, known by construction. At the would-be distance 0.070390 the verdict moves from strong/apply to medium, skip. Batch 1, hypothesis 3 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "identity assignment {0:0,1:1,2:2,3:3,4:4} is the correct mapping; would-be distance 0.070390, medium, skip (moves from strong/apply)"
     },
     {
       "id": "adj-adv-assign-double-swap-broadcast",
@@ -177,10 +190,11 @@
       "suspected": "Two independent adjacent swaps in one 6-track record, showing the defect compounds across a release rather than firing once: every item shares the title \"Broadcast Take\" against the candidate's \"Broadcast Take 1\"-\"6\" (uninformative by the same construction). Items 0/1 and items 3/4 are each tuned the same way case 1's pair is (each item within grace of the other's true track, outside grace of its own); item 2 and item 5 sit exactly on their own tracks. lap.lapjv's unique optimum is {0:1, 1:0, 2:2, 3:4, 4:3, 5:5}, total cost 0.2571 (album distance 0.021429, strong, apply); the correct pairing would have cost 0.3905 (album distance 0.032540, still strong by a much narrower margin -- the only one of the six cases where the correct pairing would ALSO have landed strong, meaning this case's evidence is the wrong assignment's title, not its recommendation).",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
       "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3, 4:4, 5:5}. Known by construction. applied_fields show item 0 retagged \"Broadcast Take 2\" (correct answer 1), item 1 retagged \"Broadcast Take 1\" (correct answer 2), item 3 retagged \"Broadcast Take 5\" (correct answer 4), and item 4 retagged \"Broadcast Take 4\" (correct answer 5); items 2 and 5 land correctly.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment {0:0,1:1,2:2,3:3,4:4,5:5} is the correct per-track mapping, known by construction. The would-be distance 0.032540 does not cross the strong/medium threshold, so the album-level verdict stays strong, apply either way -- the correction here is the wrong per-track assignment and the applied titles it produced, not the recommendation. Batch 1, hypothesis 3 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "identity assignment {0:0,1:1,2:2,3:3,4:4,5:5} is the correct mapping; would-be distance 0.032540, still strong, apply. The album-level verdict does not move; the correction is the assignment and the applied per-track titles, not the recommendation."
     },
     {
       "id": "adj-adv-assign-endpoint-swap-demo-pass",
@@ -190,10 +204,11 @@
       "suspected": "A swap between the release's first and last track rather than two adjacent positions, on a 4-track release: every item shares the title \"Demo Pass\" against the candidate's \"Demo Pass 1\"-\"4\" (uninformative by the same construction). Item 0 (298s) sits within grace of track 3 (300s) but far outside grace of its own track 0 (220s); item 3 (222s) is the mirror image against track 0. Items 1 and 2 sit exactly on their own tracks. lap.lapjv's unique optimum is {0:3, 1:1, 2:2, 3:0}, total cost 0.2667 (album distance 0.026667, strong, apply); the correct pairing would have cost 1.0667 (album distance 0.106667, medium) -- proving the defect keys on length proximity alone, not on index or position proximity: a swap between the two tracks furthest apart in the release's own running order is exactly as reachable as an adjacent one once their lengths coincide.",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
       "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2, 3:3}. Known by construction. applied_fields show item 0 retagged \"Demo Pass 4\" (correct answer 1) and item 3 retagged \"Demo Pass 1\" (correct answer 4); items 1 and 2 land correctly.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment {0:0,1:1,2:2,3:3} is the correct per-track mapping, known by construction. At the would-be distance 0.106667 the verdict moves from strong/apply to medium, skip. Batch 1, hypothesis 3 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "identity assignment {0:0,1:1,2:2,3:3} is the correct mapping; would-be distance 0.106667, medium, skip (moves from strong/apply)"
     },
     {
       "id": "adj-adv-assign-tight-margin-archive-disc",
@@ -203,10 +218,11 @@
       "suspected": "The narrowest correct-vs-wrong margin of the six cases, on a 3-track release: every item shares the title \"Archive Disc\" against the candidate's \"Archive Disc 1/2/3\" (uninformative by the same construction). Items 0 (192s) and 1 (178s) are tuned close enough that swapping them against tracks 1 (190s) and 0 (180s) costs almost the same as the correct pairing -- close enough to demonstrate how little length daylight the solver needs, while ties.json's own 1e-9 margin confirms it is not an actual tie. lap.lapjv's unique optimum is {0:1, 1:0, 2:2}, total cost 0.15 (album distance 0.016667, strong, apply); the correct pairing would have cost 0.2033 (album distance 0.022593, still strong) -- the gap between wrong and correct is the smallest of the six (0.0533 raw cost, against case 3's widest gap of 0.56), the case that best shows how fragile the margin against a defect-free assignment can be even while it stays unambiguous.",
       "citation": "#2981 (open since 2018, same track count with divergent titles yields a confidently wrong per-track assignment); #6078 (2025, tracks detected in wrong order)",
       "release_truth": "The correct assignment is the identity mapping {0:0, 1:1, 2:2}. Known by construction. applied_fields show item 0 retagged \"Archive Disc 2\" (correct answer 1) and item 1 retagged \"Archive Disc 1\" (correct answer 2); item 2 lands correctly.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. The evidence is the committed record's own assignment and applied_fields plus the hand-verified cost matrix; ties.json records this case unique despite the narrow margin.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: assign_items/lap.lapjv never rejecting a costly pair (#2981/#6078) is a real defect; the identity assignment {0:0,1:1,2:2} is the correct per-track mapping, known by construction. The would-be distance 0.022593 does not cross the strong/medium threshold, so the album-level verdict stays strong, apply either way -- the correction here is the wrong per-track assignment and the applied titles it produced, not the recommendation. Batch 1, hypothesis 3 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "identity assignment {0:0,1:1,2:2} is the correct mapping; would-be distance 0.022593, still strong, apply. The album-level verdict does not move; the correction is the assignment and the applied per-track titles, not the recommendation."
     },
     {
       "id": "adj-adv-alias-girls-generation-romanized",
@@ -216,10 +232,11 @@
       "suspected": "A second, related mechanism distinct from _preferred_alias: _parse_artist_credits (beetsplug/musicbrainz.py:301-331) sets album_info.artist from `el['artist']['name']`, the MusicBrainz ARTIST ENTITY's own canonical name field, never from `el['name']`, the specific release's own credited display string. This release's own artist-credit displays the Korean \"소녀시대\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read \"Girls’ Generation\" (English, matching one of the artist's own documented locale=en aliases exactly) -- the release's own credited display is silently discarded, replaced by a string sourced from a different MusicBrainz record entirely (the artist entity, not this release). artist is the record's sole nonzero penalty (0.076471), distance 0.076471, medium, skip: the search fallback (5 candidates total, this release's own re-found lookup winning) never resolves the divergence either.",
       "citation": "#6358 (locale aliases ignored after mbsync, 2026); #1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
       "release_truth": "This release's own metadata credits \"소녀시대\"; a listener importing this specific release would reasonably expect their tags to reflect what the release itself documents, not a differently-sourced string from the artist's global MusicBrainz entity. Confirmed via seed-items --facts against the case's own captured, unedited response.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Distinct from Task 18's #6358 regression check, which toggles import.languages between estate and a new locale profile on one host release; this case shows the release-credit-versus-entity-name divergence firing under estate alone, with no profile change involved.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: _parse_artist_credits reading el['artist']['name'] (the artist entity's own canonical name) instead of el['name'] (this release's own credited display) is a real defect (#1916/#6358). The corrected applied artist is 소녀시대, the release's own credited display. Batch 1, hypothesis 4 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "artist and albumartist: 소녀시대, the release's own credited display (per --facts), applied in place of the artist entity's canonical Latin name"
     },
     {
       "id": "adj-adv-alias-vissi-native-greek",
@@ -229,10 +246,37 @@
       "suspected": "The inverse-script instance of real-nonlatin-girls-generation's mechanism, proving the release-credit-versus-entity-name gap is not a one-directional bias: this release's own artist-credit displays the Latin \"Anna Vissi\" (confirmed via seed-items --facts against the case's own captured response), but the applied artist and albumartist both read the Greek \"Άννα Βίσση\" -- matching a documented locale=el alias exactly, sourced from the artist entity's own canonical name rather than this release's own credited Latin display. artist is the record's sole nonzero penalty (0.014493), distance 0.014493, strong, apply: the divergence still lands inside the confident band, so a quiet-mode import applies it with no review at all.",
       "citation": "#6358 (locale aliases ignored after mbsync, 2026); #1916 (romaji/locale transliteration, no preference mechanism, open since 2016)",
       "release_truth": "This release's own metadata credits \"Anna Vissi\" in Latin script, the form printed on this specific release; a listener importing it would reasonably expect their tags to match. Confirmed via seed-items --facts against the case's own captured, unedited response. Paired with real-nonlatin-girls-generation, the two cases show the same mechanism firing in opposite script directions, which is what rules out a simple \"beets always prefers script X\" explanation.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only. Distinct from Task 18's #6358 regression check; this case's divergence is invisible to a quiet-mode import (strong/apply), which is itself worth the owner's attention when ruling on this hypothesis.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-wrong",
+      "reason": "Adjudicated by the owner: _parse_artist_credits reading el['artist']['name'] instead of el['name'] is a real defect (#1916/#6358); this case is the inverse-script instance of real-nonlatin-girls-generation's mechanism. The corrected applied artist is Anna Vissi, the release's own credited Latin display. Accepted severity note: the divergence is invisible to a quiet-mode import (strong/apply, no review). Batch 1, hypothesis 4 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "corrected_verdict": "artist and albumartist: Anna Vissi, the release's own credited display (per --facts), applied in place of the artist entity's canonical Greek alias"
+    },
+    {
+      "id": "adj-real-nonlatin-alla-pugacheva-vol1",
+      "subject": {
+        "case_id": "real-nonlatin-alla-pugacheva-vol1"
+      },
+      "suspected": "Probe case for bug-nonlatin-alias-selection (#1916/#6358): tests whether _parse_artist_credits's artist-entity-name-over-release-credit substitution (beetsplug/musicbrainz.py:301-331) diverges from this release's own credited display. No divergence: the applied artist, Алла Пугачёва (per the case's own committed claims.json), already equals the release's own credited display, so the substitution has no visible effect on this record.",
+      "citation": "#1916 (romaji/locale transliteration, no preference mechanism, open since 2016); #6358 (locale aliases ignored after mbsync, 2026)",
+      "release_truth": "This release's own metadata credits the same string the artist entity carries as its canonical name; the two coincide, so the applied artist is correct regardless of which field musicbrainz.py reads. Not counted toward bug-nonlatin-alias-selection's reproduction.",
+      "disposition": "oracle-correct",
+      "reason": "no divergence: the artist entity name and the release credit coincide, the derived record is correct as-is; batch 1, hypothesis 4",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
+    },
+    {
+      "id": "adj-real-nonlatin-x-japan-art-of-life",
+      "subject": {
+        "case_id": "real-nonlatin-x-japan-art-of-life"
+      },
+      "suspected": "Probe case for bug-nonlatin-alias-selection (#1916/#6358): tests whether _parse_artist_credits's artist-entity-name-over-release-credit substitution (beetsplug/musicbrainz.py:301-331) diverges from this release's own credited display. No divergence: the applied artist, \"X JAPAN\" (per the case's own committed claims.json), already equals the release's own credited display, so the substitution has no visible effect on this record.",
+      "citation": "#1916 (romaji/locale transliteration, no preference mechanism, open since 2016); #6358 (locale aliases ignored after mbsync, 2026)",
+      "release_truth": "This release's own metadata credits the same string the artist entity carries as its canonical name; the two coincide, so the applied artist is correct regardless of which field musicbrainz.py reads. Not counted toward bug-nonlatin-alias-selection's reproduction.",
+      "disposition": "oracle-correct",
+      "reason": "no divergence: the artist entity name and the release credit coincide, the derived record is correct as-is; batch 1, hypothesis 4",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     },
     {
       "id": "adj-real-nonlatin-utada-first-love-locale",
@@ -242,10 +286,10 @@
       "suspected": "#6358 reports that a documented, primary, locale-specific artist alias is silently ignored after mbsync, implicating _preferred_alias (beetsplug/musicbrainz.py:128-155), gated by import.languages and reachable from both mbsync and the importer's own candidate-building. real-nonlatin-utada-first-love-locale is byte-identical to real-nonlatin-utada-first-love in Input.Items and responses/, differing only by profile: corpus/profiles/locale.yaml is estate.yaml plus import.languages: [ja] and import.ignored_alias_types: [] (re-based on estate rather than stock per the conductor's Task 18 escalation ruling, so the pair now differs by exactly these two keys). Between the two derived records, artist_sort, albumartist_sort, artists_sort, and albumartists_sort all shift, on every one of the 12 items, from the Latinized \"Utada, Hikaru\" (the artist entity's own default sort_name, applied under estate) to \"うただヒカル\" (the sort_name carried by the release's documented locale=ja alias, confirmed via `harness seed-items --facts` against the case's own captured, unedited response). best_album_id, recommendation (medium), action (skip), and the winning candidate's own artist penalty (0.072222, the sole nonzero key) are identical across both records, so the applied verdict is unaffected. The divergence is not, however, confined to sort-name fields alone: candidates[4] (album_id 2375a576-650b-47fb-939b-7c15afc989eb) and candidates[5] (album_id a87189fd-0c95-4f0a-8ad4-4a8638ff11e0), two non-winning candidates both credited to the MusicBrainz \"Various Artists\" entity, each shift their own distance/penalties/tracks values slightly under locale (candidates[4] distance 0.8526610380899999 -> 0.8527205991251707; candidates[5] distance 0.8552206833722313 -> 0.8540534617687298), because \"Various Artists\" also carries a primary locale=ja alias (\"ヴァリアス・アーティスト\"): _preferred_alias fires for these two candidates as well, and for them it substitutes artist_object['name'] itself (musicbrainz.py:317-331), not merely the sort field, moving their own scoring inputs. Neither candidate is within reach of displacing the winner (both sit above 0.85 against the winner's 0.072222), so this is a second, independent firing of the same mechanism, reported verbatim here rather than smoothed over, not a scoring or verdict concern.",
       "citation": "#6358 (primary locale aliases ignored after mbsync, 2026)",
       "release_truth": "The release documents a locale=ja alias for its credited artist, carrying its own hiragana sort_name \"うただヒカル\" (confirmed via seed-items --facts). A listener whose beets config sets import.languages to include \"ja\" would reasonably expect that alias to be preferred; the locale sibling's record shows it is, and shows the same mechanism also firing for the unrelated \"Various Artists\" entity credited on two losing candidates, contradicting #6358's report of the alias being ignored at pinned beets 2.13.1.",
-      "disposition": "pending-adjudication",
-      "reason": "Written by an agent and left at pending-adjudication: disposition is owner-only (M6). The evidence is the two committed, byte-identical-input records' own derived output; the sort-name shift is the isolated, mechanistic proof that _preferred_alias fires and its selected alias's fields propagate, for Geoff to confirm as oracle-correct on the paired bug-locale-alias-ignored hypothesis row.",
-      "adjudicator": "agent",
-      "date": "2026-09-03"
+      "disposition": "oracle-correct",
+      "reason": "Adjudicated by the owner: the A/B evidence (real-nonlatin-utada-first-love against its locale-profiled sibling) closes #6358 against pinned beets 2.13.1. _preferred_alias fires: the four sort-name fields shift to the release's own locale=ja alias on every item, and the mechanism fires a second, independent time for the unrelated \"Various Artists\" entity credited on two losing candidates. The reported defect is not reproduced. Batch 1, hypothesis 5 (Geoff, 2026-09-04).",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
     }
   ]
 }
