@@ -93,10 +93,13 @@ seven live cases, the structural and smoke strata commit 68 cases;
 pass 2c's real-catalog stratum (below) adds to that total batch by
 batch, so `ls corpus/cases | wc -l` is always the count to read off
 the tree directly (no case counts itself twice: every id under
-`corpus/cases/` appears in exactly one
+`corpus/cases/` appears exactly once as a case row, in one
 family table below, the smoke table above, the real-catalog
-stratum's own table further down, or the adversarial stratum's two
-tables after it). Every row names the
+stratum's own table further down, or the adversarial stratum's
+three case tables after it, `adv-ft-*`, `adv-remix-*`, and
+`adv-assign-*`; the alias subsection's table is a cross-reference
+into the real-catalog stratum's own rows, not a further case
+listing). Every row names the
 case's family, the structural shape it exercises, and its hand-edit
 column: an edit to the generated `responses/001.json` made before the
 case's first freeze, reached only for a shape `ReleaseSpec` cannot

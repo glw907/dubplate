@@ -9,5 +9,8 @@
   ],
   "penalty_keys_absent": [
     "year"
-  ]
+  ],
+  "applied_fields": {
+    "0": {"artist": "Алла Пугачёва", "albumartist": "Алла Пугачёва"}
+  }
 }

@@ -9,5 +9,8 @@
     "album_id",
     "tracks",
     "year"
-  ]
+  ],
+  "applied_fields": {
+    "0": {"artist": "Girls’ Generation", "albumartist": "Girls’ Generation"}
+  }
 }

@@ -11,5 +11,8 @@
     "tracks",
     "year"
   ],
-  "recommendation": "strong"
+  "recommendation": "strong",
+  "applied_fields": {
+    "0": {"artist": "Άννα Βίσση", "albumartist": "Άννα Βίσση"}
+  }
 }
