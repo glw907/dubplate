@@ -6,6 +6,23 @@
 // checked against pinned beets 2.13.1 (tools/venv/.venv).
 package matcher
 
+import (
+	"errors"
+	"fmt"
+)
+
+// ErrInvalidTunable reports a Tunables value that names something the
+// matcher cannot resolve: a recommendation level, an action, a
+// required field, or a preferred-media or preferred-country pattern.
+//
+// It exists because beets gets this validation from confuse and from
+// re.compile, both of which raise mid-import: an unknown max_rec level
+// raises inside _recommendation (match.py:313-320) and an unknown
+// required tag raises AttributeError inside _add_candidate
+// (match.py:357). A refusal at config load beats a crash mid-import,
+// and that difference is a deliberate divergence recorded here.
+var ErrInvalidTunable = errors.New("invalid tunable")
+
 // Tunables is the verified-complete surface of beets' shipped
 // match-time configuration: every field the distance and
 // recommendation path reads, each carrying pinned beets' shipped
@@ -390,4 +407,54 @@ var SDPatternsNoBracketDiscount = []SDPattern{
 	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
 	{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+}
+
+// Validate resolves every name-typed and pattern-typed field once, so a
+// malformed configuration fails where an operator can see it rather
+// than inside a scoring run. It reports every problem rather than the
+// first.
+//
+// It is a config-load check and never a precondition the rest of this
+// package assumes: Recommend and ActionFor re-resolve their own names
+// and return their own errors, because a Tunables value can reach them
+// without passing through here.
+//
+// This lands Required and Preferred; MaxRec and the two action names
+// are Task 4's, added here once verdict.go exists.
+func (t Tunables) Validate() error {
+	var errs []error
+
+	for _, name := range t.Required {
+		if _, ok := requiredFields[name]; !ok {
+			errs = append(errs, fmt.Errorf("required: %q: %w", name, ErrInvalidTunable))
+		}
+	}
+
+	if err := compilePanicAsError(func() { compileMediaPatterns(t.Preferred.Media) }); err != nil {
+		errs = append(errs, fmt.Errorf("preferred.media: %w: %w", ErrInvalidTunable, err))
+	}
+	if err := compilePanicAsError(func() { compileCountryPatterns(t.Preferred.Countries) }); err != nil {
+		errs = append(errs, fmt.Errorf("preferred.countries: %w: %w", ErrInvalidTunable, err))
+	}
+
+	return errors.Join(errs...)
+}
+
+// compilePanicAsError runs compile and turns its panic, if any, into an
+// error. compileMediaPatterns and compileCountryPatterns panic because
+// their only caller, the corresponding album component, has no error
+// path to return one on (album_media.go:39-46, album_country.go:34-41);
+// Validate reuses those same two functions rather than reimplementing
+// CompilePatternOption's two different wrapping rules, so recovering
+// here is the narrow price of checking the exact compilation the
+// runtime call site panics on, instead of a parallel check that could
+// drift from it.
+func compilePanicAsError(compile func()) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+	compile()
+	return nil
 }

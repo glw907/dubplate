@@ -1,7 +1,9 @@
 package matcher
 
 import (
+	"errors"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -280,5 +282,44 @@ func TestSDEndWordsAndReplace(t *testing.T) {
 	wantReplace := []SDReplacement{{Pattern: "&", Replacement: "and"}}
 	if !reflect.DeepEqual(SDReplace, wantReplace) {
 		t.Errorf("SDReplace = %v, want %v", SDReplace, wantReplace)
+	}
+}
+func TestValidateRejectsAnUnknownRequiredFieldAndABadPattern(t *testing.T) {
+	tests := []struct {
+		name string
+		mut  func(*Tunables)
+		want string
+	}{
+		{"unknown required field", func(t *Tunables) { t.Required = []string{"nosuchfield"} }, "nosuchfield"},
+		{"unparseable preferred media pattern", func(t *Tunables) { t.Preferred.Media = []string{"("} }, "preferred.media"},
+		{"unparseable preferred country pattern", func(t *Tunables) { t.Preferred.Countries = []string{"[a-"} }, "preferred.countries"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tun := DefaultTunables()
+			tt.mut(&tun)
+			err := tun.Validate()
+			if !errors.Is(err, ErrInvalidTunable) {
+				t.Fatalf("Validate = %v, want an error wrapping ErrInvalidTunable", err)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("Validate = %v, want the message to name %q", err, tt.want)
+			}
+		})
+	}
+	if err := DefaultTunables().Validate(); err != nil {
+		t.Errorf("DefaultTunables().Validate() = %v, want nil", err)
+	}
+}
+
+func TestValidateReportsEveryProblemRatherThanTheFirst(t *testing.T) {
+	tun := DefaultTunables()
+	tun.Required = []string{"nosuchfield"}
+	tun.Preferred.Media = []string{"("}
+	err := tun.Validate()
+	for _, want := range []string{"nosuchfield", "preferred.media"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("Validate = %v, want the joined message to name %q", err, want)
+		}
 	}
 }

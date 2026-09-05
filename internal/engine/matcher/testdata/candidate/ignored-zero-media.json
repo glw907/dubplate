@@ -1,0 +1,15 @@
+{
+	"items": [
+		{"Artist": "Testers", "Album": "Same Album", "Media": "CD", "Title": "one", "Track": 1, "Length": 100}
+	],
+	"info": {
+		"Artist": "Testers",
+		"Album": "Different Album",
+		"Media": "CD",
+		"DataSource": "MusicBrainz",
+		"AlbumID": "id-1",
+		"Tracks": [
+			{"Title": "one", "Index": 1, "Length": 100}
+		]
+	}
+}

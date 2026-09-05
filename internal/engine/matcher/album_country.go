@@ -28,6 +28,11 @@ func addAlbumCountry(dist *Distance, tun Tunables, likelies Likelies, info *Albu
 	}
 }
 
+// compileCountryPatterns panics on an uncompilable pattern because this
+// call site has no error path of its own; Tunables.Validate is the
+// check that makes that panic unreachable in a configured system, by
+// calling this same function at config-load time and turning its panic
+// into a reportable error.
 func compileCountryPatterns(patterns []string) []any {
 	options := make([]any, len(patterns))
 	for i, pattern := range patterns {
