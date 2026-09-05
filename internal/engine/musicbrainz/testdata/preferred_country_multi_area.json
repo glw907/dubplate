@@ -1,0 +1,10 @@
+{
+  "id": "rel-events-3",
+  "title": "Release Title",
+  "artist-credit": [{"name": "Artist", "artist": {"id": "art-1", "name": "Artist"}}],
+  "country": "XW",
+  "date": "1980-05-06",
+  "release-events": [
+    {"date": "1999-01-02", "area": {"iso-3166-1-codes": ["GB", "XW"]}}
+  ]
+}

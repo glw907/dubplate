@@ -1,0 +1,8 @@
+{
+  "id": "rel-events-4",
+  "title": "Release Title",
+  "artist-credit": [{"name": "Artist", "artist": {"id": "art-1", "name": "Artist"}}],
+  "country": null,
+  "date": "",
+  "release-events": []
+}
