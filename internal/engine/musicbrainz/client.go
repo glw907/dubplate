@@ -419,9 +419,5 @@ func backoff(attempt int) time.Duration {
 	if attempt <= 1 {
 		return 0
 	}
-	d := 500 * time.Millisecond * time.Duration(1<<(attempt-1))
-	if d > 120*time.Second {
-		return 120 * time.Second
-	}
-	return d
+	return min(500*time.Millisecond*time.Duration(1<<(attempt-1)), 120*time.Second)
 }

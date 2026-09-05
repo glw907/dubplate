@@ -207,12 +207,17 @@ func TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema(t *testing.T) {
 			for at < len(want) && at < len(got) && want[at] == got[at] {
 				at++
 			}
-			lo, hi := max(0, at-20), min(len(want), at+20)
-			ghi := min(len(got), at+20)
 			t.Errorf("case %s: round-trip through the current schema first differs at byte %d (want %d bytes, got %d)\n want ...%q...\n  got ...%q...",
-				id, at, len(want), len(got), want[lo:hi], got[min(lo, len(got)):ghi])
+				id, at, len(want), len(got), byteWindow(want, at), byteWindow(got, at))
 		}
 	})
+}
+
+// byteWindow is the twenty bytes either side of at, clamped to b, for a
+// failure message that shows the neighbourhood of a first difference.
+func byteWindow(b []byte, at int) []byte {
+	lo := max(0, min(at-20, len(b)))
+	return b[lo:min(len(b), at+20)]
 }
 
 // TestEveryCorpusCaseSatisfiesItsClaims reads each case's sibling

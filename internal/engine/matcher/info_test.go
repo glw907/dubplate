@@ -95,7 +95,7 @@ func TestProjectItemFields_AllNineteenFields(t *testing.T) {
 // fail this test because want.Comp stays false).
 func TestProjectItemFields_CompRejectsWrongType(t *testing.T) {
 	got := ProjectItemFields(map[string]any{"comp": "yes"})
-	if got.Comp != false {
+	if got.Comp {
 		t.Errorf("ProjectItemFields({comp: %q}).Comp = %v, want false", "yes", got.Comp)
 	}
 }

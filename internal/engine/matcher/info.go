@@ -225,8 +225,7 @@ func stringField(raw map[string]any, key string) string {
 // integer flag, so a case carrying "comp": 1 would project false here
 // and True in the shim; all 15 committed cases that carry comp carry it
 // as JSON true, so nothing moves today, and this is the same shape
-// intField's own comment records for the float64 arrival (info.go:
-// 209-211).
+// intField's own doc comment records for the float64 arrival.
 func boolField(raw map[string]any, key string) bool {
 	b, _ := raw[key].(bool)
 	return b

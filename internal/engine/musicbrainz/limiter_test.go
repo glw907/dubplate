@@ -41,14 +41,11 @@ func TestDispatcherPrefersUserPresentAndStillFeedsBackground(t *testing.T) {
 	// served records the order Wait returned in, which is the property
 	// under test.
 	served := make(chan string, 16)
-	start := func(b *Budget, label string) {
-		startWaiter(b, label, served)
-	}
 
-	start(shadow, "shadow")
+	startWaiter(shadow, "shadow", served)
 	l.awaitQueued(1)
 	for range 8 {
-		start(probe, "probe")
+		startWaiter(probe, "probe", served)
 	}
 	l.awaitQueued(9)
 
@@ -88,18 +85,15 @@ func TestReservedTokensRotateThroughTheClassesBelow(t *testing.T) {
 	shadow := l.Budget("shadow", ClassBackground, 0)
 
 	served := make(chan string, 32)
-	start := func(b *Budget, label string) {
-		startWaiter(b, label, served)
-	}
 
-	start(batch, "batch")
+	startWaiter(batch, "batch", served)
 	for range 3 {
-		start(shadow, "shadow")
+		startWaiter(shadow, "shadow", served)
 	}
 	l.awaitQueued(4)
 	const tokens = 3 * reservationInterval
 	for range tokens {
-		start(probe, "probe")
+		startWaiter(probe, "probe", served)
 	}
 	l.awaitQueued(4 + tokens)
 
@@ -160,6 +154,10 @@ func TestSpareIsCappedAtOne(t *testing.T) {
 	if got := <-served; got != "first" && got != "second" {
 		t.Fatalf("first waiter reported %q", got)
 	}
+	// Opportunistic: the second waiter may not have reported yet, so this
+	// probe catches a second grant only sometimes. awaitQueued below is
+	// the deterministic assertion, and it is what hangs under a mutation
+	// that hands out two spares.
 	select {
 	case extra := <-served:
 		t.Errorf("a second waiter was served (%q) off two idle ticks, want one spare only", extra)

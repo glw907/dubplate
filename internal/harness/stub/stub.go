@@ -9,9 +9,9 @@
 // captured that no logged request consumes. Because an Extra entry is
 // by construction a response the current flow does not request,
 // answering from it never changes what a caller pointed at
-// [internal/harness/oracle.Derive] receives, so the second map is inert
-// for every derivation this pass can run: zero of the corpus's
-// committed cases carry an extra key.
+// [github.com/glw907/dubplate/internal/harness/oracle.Derive] receives,
+// so the second map is inert for every derivation this pass can run:
+// zero of the corpus's committed cases carry an extra key.
 package stub
 
 import (
@@ -124,18 +124,21 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	k := key{method: r.Method, pathQuery: pathQuery}
 
 	if body, ok := s.responses[k]; ok {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(body) //nolint:errcheck // best-effort write to a replay stub; the client sees a truncated body either way
+		writeResponse(w, body)
 		return
 	}
 	if entry, ok := s.extra[k]; ok {
 		s.recordConsumed(entry.request)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(entry.body) //nolint:errcheck // best-effort write to a replay stub; the client sees a truncated body either way
+		writeResponse(w, entry.body)
 		return
 	}
 	s.recordMiss(r.Method, pathQuery)
 	w.WriteHeader(http.StatusNotFound)
+}
+
+func writeResponse(w http.ResponseWriter, body []byte) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body) //nolint:errcheck // best-effort write to a replay stub; the client sees a truncated body either way
 }
 
 func (s *Server) recordMiss(method, pathQuery string) {

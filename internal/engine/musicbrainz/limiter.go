@@ -119,8 +119,7 @@ func NewLimiter(interval time.Duration) *Limiter {
 // newLimiter injects the tick channel, [Limiter.awaitQueued] observes a
 // waiter having registered, [Limiter.awaitTicks] observes a tick having
 // been handled, and [Limiter.holdBeforeOffer] stops the dispatcher
-// between picking a waiter and offering it the token. Each states its
-// own reason below.
+// between picking a waiter and offering it the token.
 func newLimiter(ticks <-chan time.Time) *Limiter {
 	l := &Limiter{done: make(chan struct{})}
 	l.ready = sync.NewCond(&l.mu)

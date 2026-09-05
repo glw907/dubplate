@@ -211,10 +211,11 @@ func (c *Case) validate(dir string) error {
 	return nil
 }
 
-// requestKey is the (Method, PathQuery) pair [stub.New] keys its replay
-// map on: two Requests, or a Request and an Extra, sharing one silently
-// shadow each other, which is exactly what the exclusivity checks above
-// exist to catch before it reaches the stub.
+// requestKey is the (Method, PathQuery) pair the replay stub in
+// internal/harness/stub keys its response maps on: two Requests, or a
+// Request and an Extra, sharing one silently shadow each other, which
+// is exactly what the exclusivity checks above exist to catch before it
+// reaches the stub.
 type requestKey struct{ method, pathQuery string }
 
 // checkResponseReadable proves name resolves to a readable file under

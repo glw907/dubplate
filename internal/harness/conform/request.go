@@ -85,7 +85,12 @@ func GradeRequests(root string) (RequestGradeSummary, error) {
 		}
 		result, caseErr := gradeCaseRequests(ctx, filepath.Join(casesRoot, e.Name()))
 		if caseErr != nil {
+			// A case that failed contributes its errors and nothing
+			// else: the counters below report what was compared, and a
+			// case that could not be loaded, stubbed or fully replayed
+			// was not.
 			errs = append(errs, caseErr)
+			continue
 		}
 		summary.Cases++
 		summary.Lookups += result.lookups
@@ -165,13 +170,16 @@ func gradeCaseRequests(ctx context.Context, dir string) (result caseRequestResul
 		}
 		search := musicbrainz.AlbumSearchFor(items, tun)
 		if _, searchErr := client.SearchReleases(ctx, search); searchErr != nil {
+			// The search error is the whole failure. The issued-count
+			// check below would restate it as a second error and inflate
+			// the case's failure count.
 			errs = append(errs, fmt.Errorf("case %s: search: %w", c.ID, searchErr))
 		} else {
 			result.searches++
+			if result.searches != expectedSearches {
+				errs = append(errs, fmt.Errorf("case %s: issued %d searches, log carries %d", c.ID, result.searches, expectedSearches))
+			}
 		}
-	}
-	if result.searches != expectedSearches {
-		errs = append(errs, fmt.Errorf("case %s: issued %d searches, log carries %d", c.ID, result.searches, expectedSearches))
 	}
 
 	for _, m := range srv.Misses() {
