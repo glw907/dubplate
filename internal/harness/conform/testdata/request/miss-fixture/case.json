@@ -1,0 +1,15 @@
+{
+  "id": "conform-request-miss-fixture",
+  "profile": "stock",
+  "eval_date": "2026-01-01",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/11111111-1111-1111-1111-111111111111?fmt=json&inc=bogus",
+      "response": "responses/001.json"
+    }
+  ],
+  "input": {
+    "items": []
+  }
+}

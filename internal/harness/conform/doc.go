@@ -20,4 +20,15 @@
 // Nothing here writes corpus/ or any other harness package; it only
 // reads corpus/analysis/components.json, corpus/manifest.json, and
 // corpus/cases, all read-only.
+//
+// Rung 3, pass 3c adds a second tier: request.go grades request
+// CONSTRUCTION, replaying every committed case's own request log
+// through the real internal/engine/musicbrainz client against an
+// internal/harness/stub server built from that same log. This is the
+// first place conform drives a stub rather than only decoding one
+// case's committed bytes by hand, because a request is bytes on a
+// wire and a wire has two ends: the only way to grade what the client
+// actually builds is to serve it a response and let it try. The
+// charter above still holds, read-only and no harness package written;
+// starting and closing a stub per case is driving, not writing.
 package conform
