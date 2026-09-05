@@ -20,12 +20,12 @@ file. Live-executor check is the lane registry, not `pgrep`; box is production.
 
 ## Lane registry
 
-- lane-1 (main tree): **3c closed** (Tasks 1-8, `e9364ff`..`7809558` plus the
-  close-out commit). Next: the 3d plan-prep workflow, then 3d execution
-  (needs 3a/3b/3c, all shipped). Under the 2026-09-05 grant, the
-  80%-ceiling flag routes to the conductor through 2026-09-07 09:00 (ruling
-  F stops only its own task; disposition stays Geoff's); window spend cap
-  15M. lane-2 (worktree): BLOCKED until Phase 0b/0c land. Doc lane: IDLE.
+- lane-1 (main tree): **3d executing** under the 2026-09-05 unattended
+  grant; plan `docs/superpowers/plans/2026-09-05-rung-3d-verdicts-gate.md`
+  rev 2.1, ceiling 6M re-derived after Task 2, chain over Tasks 1-8 in
+  the main tree. Flag routes to the conductor through 2026-09-07 09:00;
+  ruling F stops only its own task; window cap 15M, ≈3.2M spent.
+  lane-2 (worktree): BLOCKED until Phase 0b/0c land. Doc lane: IDLE.
 
 ## Open items (carried)
 
