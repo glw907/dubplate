@@ -256,6 +256,51 @@ func TestLoadCaseRejectsExtraNamingConsumedResponse(t *testing.T) {
 	}
 }
 
+// TestLoadCaseRejectsExtraWithMissingMethod proves the Extra loop
+// applies the same non-empty-Method rule the Requests loop applies.
+func TestLoadCaseRejectsExtraWithMissingMethod(t *testing.T) {
+	dir := t.TempDir()
+	c := baseCase()
+	c.Extra = []Request{
+		{Method: "", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: "responses/002.json"},
+	}
+	writeResponseFiles(t, dir, map[string][]byte{
+		"responses/001.json": []byte(`{}`),
+		"responses/002.json": []byte(`{}`),
+	})
+	if err := c.Write(dir); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+	_, err := LoadCase(dir)
+	if err == nil {
+		t.Fatal("LoadCase with an Extra entry missing Method: got nil error, want one")
+	}
+	if !strings.Contains(err.Error(), "extra[0]") || !strings.Contains(err.Error(), "method") {
+		t.Errorf("error %q does not name extra[0]'s missing method", err)
+	}
+}
+
+// TestLoadCaseRejectsExtraWithMissingResponse proves the Extra loop
+// applies the same non-empty-Response rule the Requests loop applies.
+func TestLoadCaseRejectsExtraWithMissingResponse(t *testing.T) {
+	dir := t.TempDir()
+	c := baseCase()
+	c.Extra = []Request{
+		{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: ""},
+	}
+	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
+	if err := c.Write(dir); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+	_, err := LoadCase(dir)
+	if err == nil {
+		t.Fatal("LoadCase with an Extra entry missing Response: got nil error, want one")
+	}
+	if !strings.Contains(err.Error(), "extra[0]") || !strings.Contains(err.Error(), "response: missing") {
+		t.Errorf("error %q does not name extra[0]'s missing response", err)
+	}
+}
+
 // TestLoadCaseRejectsExtraWithNonCanonicalPathQuery proves the Extra
 // loop applies the same canonical-form rule the Requests loop applies,
 // naming both the stored and the canonical form.
