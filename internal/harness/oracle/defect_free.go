@@ -39,13 +39,17 @@ type DefectFreeSubject struct {
 }
 
 // DefectFreeRow is one subject's derived figures, exactly as
-// derive_defect_free.py prints them.
+// derive_defect_free.py prints them. Mapping is the re-solved
+// assign_items pairing under the substituted table, item index to
+// track index, so a caller can verify the mapping itself did not
+// change under the substitution rather than assuming it held.
 type DefectFreeRow struct {
-	CaseID         string  `json:"case_id"`
-	Distance       float64 `json:"distance"`
-	Recommendation string  `json:"recommendation"`
-	Action         string  `json:"action"`
-	PatternTable   string  `json:"pattern_table"`
+	CaseID         string         `json:"case_id"`
+	Distance       float64        `json:"distance"`
+	Recommendation string         `json:"recommendation"`
+	Action         string         `json:"action"`
+	PatternTable   string         `json:"pattern_table"`
+	Mapping        map[string]int `json:"mapping"`
 }
 
 // defectFreeSubjectInput is one subject as the script reads it. Items

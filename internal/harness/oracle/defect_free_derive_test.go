@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"math"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/harness/analysis"
@@ -189,6 +190,39 @@ func TestDefectFreeMatchesTheFirstPopulation(t *testing.T) {
 		}
 		if row.PatternTable != want.PatternTable {
 			t.Errorf("%s: pattern_table %q, want committed %q", row.CaseID, row.PatternTable, want.PatternTable)
+		}
+
+		// The substitution changes track_title distances, not the
+		// solved assignment: verify that rather than assume it, since
+		// a mapping change under the substituted table would be a
+		// finding, not a formality.
+		c, err := cassette.LoadCase(filepath.Join(root, "corpus", "cases", row.CaseID))
+		if err != nil {
+			t.Fatalf("LoadCase(%s): %v", row.CaseID, err)
+		}
+		if c.Expected == nil {
+			t.Fatalf("%s carries no committed oracle record to compare the re-solved mapping against", row.CaseID)
+		}
+		gotMapping := make(map[int]int, len(row.Mapping))
+		for itemStr, track := range row.Mapping {
+			item, err := strconv.Atoi(itemStr)
+			if err != nil {
+				t.Fatalf("%s: mapping key %q is not an item index: %v", row.CaseID, itemStr, err)
+			}
+			gotMapping[item] = track
+		}
+		if len(gotMapping) != len(c.Expected.Assignment) {
+			t.Errorf("%s: re-solved mapping %v has %d pairs, want %d matching case.json's committed assignment %v", row.CaseID, gotMapping, len(gotMapping), len(c.Expected.Assignment), c.Expected.Assignment)
+		}
+		for item, wantTrack := range c.Expected.Assignment {
+			gotTrack, ok := gotMapping[item]
+			if !ok {
+				t.Errorf("%s: re-solved mapping carries no item %d, want track %d (case.json's committed assignment)", row.CaseID, item, wantTrack)
+				continue
+			}
+			if gotTrack != wantTrack {
+				t.Errorf("%s: re-solved mapping maps item %d to track %d, want case.json's committed track %d", row.CaseID, item, gotTrack, wantTrack)
+			}
 		}
 	}
 }

@@ -137,12 +137,23 @@ def derive_row(plugin: Any, subject: dict[str, Any]) -> dict[str, Any]:
     recommendation = _recommendation([match])
     action = quiet_action(recommendation)
 
+    # pairs holds (item, track) object references, not indices, so the
+    # mapping is recovered by identity against the input items and
+    # info.tracks (the same technique derive_oracle.py's
+    # candidate_record uses for its own assignment field).
+    item_index = {id(item): i for i, item in enumerate(items)}
+    track_index = {id(track): i for i, track in enumerate(info.tracks)}
+    mapping = {
+        str(item_index[id(item)]): track_index[id(track)] for item, track in pairs
+    }
+
     return {
         "case_id": subject["case_id"],
         "distance": dist.distance,
         "recommendation": recommendation.name,
         "action": action,
         "pattern_table": table_name,
+        "mapping": mapping,
     }
 
 
