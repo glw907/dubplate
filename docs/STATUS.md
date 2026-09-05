@@ -22,19 +22,25 @@ registry below, not `pgrep`. Box is production; quiet-box check before writes.
 
 ## Lane registry
 
-- lane-1 (code, main tree): EXECUTING **pass 3c** per
-  `docs/superpowers/plans/2026-09-04-rung-3c-client-limiter.md` (revision
-  2.1, review folded, five conductor rulings taken). Chain: Task 0, then
-  Tasks 1-7 via pass-execute run `wf_a7840a20-99e` (sequential, this tree), code-simplifier,
-  Task 8's close. Ceiling 6M, flag 4.8M (routes to the conductor under
-  the overnight grant), re-derive after Task 4. Checkpoint at Task 4
-  (00:05): Tasks 1-4 accepted (e9364ff+e90bdad, 8e7dc21, f3c3edf+208c5af,
-  4e7bb04; Tasks 1 and 3 each took one fix round); Task 5 in flight.
-  Execution spend through Task 4 ≈1.6M by transcript volume; with prep
-  2.55M (1.70M first run plus 0.85M resume), projected close ≈5.4M, so
-  the 6M ceiling stands and the Task 2/3 split is not taken. **Standing grant (Geoff,
-  2026-09-04 evening): run unattended through 3c execution, 3d prep, and
-  3d execution as the clock allows, workflow mode, /loop to completion.**
+- lane-1 (code, main tree): **pass 3c at its close step**, session handed
+  off 2026-09-05 09:55 for a Claude Code restart. Landed and green: Tasks
+  1-7 (e9364ff..18a1292, three fix rounds), Task 5b (78a6e5a, ruling rev
+  2.2), the simplify pass (7809558) and the shutdown-arm proof (0082ae6).
+  **Resume prompt:** (1) dispatch a `diff-reviewer` (opus) over 7809558
+  and 0082ae6 (the one that was stopped mid-read; criteria in the plan's
+  Execution model and rev 2.2 note); (2) run Task 8, the close, per the
+  plan, feeding it `~/.claude/projects/-var-home-glw907-Projects-dubplate/
+  handoff/3c-task-records.md` and `3c-nonblocking.md`, then a
+  `prose-voice-reviewer` pass and a fold, then the batch commit and push;
+  (3) 3d plan-prep workflow against the quiet tree (3b/3c prep scripts in
+  this project's `workflows/scripts/` are the shape), then 3d execution.
+  Spend so far: prep 2.55M (two runs, a usage-limit pause), Task 0 0.11M,
+  chain 1.74M, 5b 0.13M, simplify 0.15M, ≈4.7M of 6M; ceiling flag routes
+  to the conductor under the overnight grant. Guard scripts and the AC
+  state log are in the same `handoff/` dir; size inhibitor holds to the
+  clock (memory note `overnight-hold-sized-to-clock`). The two untracked
+  research docs under `docs/superpowers/research/` (outreach, evidence)
+  are sidebars, deliberately uncommitted.
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land. Doc
   lane (main tree): IDLE; Phase 0a is complete.
 
