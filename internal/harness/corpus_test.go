@@ -361,6 +361,30 @@ func TestOracleBugsLedgerIsWellFormed(t *testing.T) {
 	}
 }
 
+// TestDefectFreeBlocksAreWellFormed checks the defect_free block
+// ruling A / M6 adds to corpus/analysis/adjudications.json: every
+// string-heuristic probe case named in corpus/analysis/oracle_bugs.json
+// resolves to an adjudication row carrying a well-formed block, and no
+// row outside that set carries one. It is deliberately not a
+// conformance check: the derived figures themselves are oracle-tagged
+// work under `make derive`, matching TestOracleBugsLedgerIsWellFormed's
+// own discipline.
+func TestDefectFreeBlocksAreWellFormed(t *testing.T) {
+	root := repoRoot(t)
+
+	adjLedger, err := analysis.LoadAdjudications(filepath.Join(root, "corpus", "analysis", "adjudications.json"))
+	if err != nil {
+		t.Fatalf("load adjudications ledger: %v", err)
+	}
+	bugs, err := analysis.LoadOracleBugs(filepath.Join(root, "corpus", "analysis", "oracle_bugs.json"))
+	if err != nil {
+		t.Fatalf("load oracle bugs ledger: %v", err)
+	}
+	if err := analysis.CheckDefectFree(bugs, adjLedger); err != nil {
+		t.Error(err)
+	}
+}
+
 // TestLoadCaseRejectsCorruptedFixture is the negative case: a
 // deliberately corrupted case directory (cassette's own testdata,
 // missing eval_date) must fail LoadCase, proving this gate-resident

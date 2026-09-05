@@ -215,6 +215,52 @@ func TestSDPatternsWordBoundary_OnlyFeaturingPatternDiffers(t *testing.T) {
 	}
 }
 
+// TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved proves the
+// table carries the other four discounts byte-identical to
+// [BeetsSDPatterns] and drops exactly the two bracket patterns.
+func TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved(t *testing.T) {
+	want := []SDPattern{
+		{Pattern: `^the `, Weight: 0.1},
+		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
+		{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+	}
+	if !reflect.DeepEqual(SDPatternsNoBracketDiscount, want) {
+		t.Errorf("SDPatternsNoBracketDiscount = %v, want %v", SDPatternsNoBracketDiscount, want)
+	}
+}
+
+// TestStringDistSeparatesNoBracketDiscount is the fixture that tells
+// [SDPatternsNoBracketDiscount] apart from [BeetsSDPatterns], on
+// adv-remix-both-sides's own pair (corpus/README.md:1186-1189): the
+// bracket discount collapses "Glass Harbor (Nocturne Rework)" and
+// "Glass Harbor (Original Mix)" to the same residual string and charges
+// the whole differentiator at 0.3, reading 0.144000; removing the
+// discount leaves the true, undiscounted 0.480000.
+func TestStringDistSeparatesNoBracketDiscount(t *testing.T) {
+	item := "Glass Harbor (Nocturne Rework)"
+	candidate := "Glass Harbor (Original Mix)"
+
+	tests := []struct {
+		name     string
+		patterns []SDPattern
+		want     float64
+	}{
+		{"beets shipped table (bracket discount)", BeetsSDPatterns, 0.144},
+		{"no-bracket-discount table", SDPatternsNoBracketDiscount, 0.48},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tun := DefaultTunables()
+			tun.StringDistPatterns = tt.patterns
+			got := StringDist(tun, &item, &candidate)
+			if got != tt.want {
+				t.Errorf("StringDist = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestSDEndWordsAndReplace(t *testing.T) {
 	wantEndWords := []string{"the", "a", "an"}
 	if !reflect.DeepEqual(SDEndWords, wantEndWords) {

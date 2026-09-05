@@ -338,3 +338,24 @@ var SDPatternsWordBoundary = []SDPattern{
 	{Pattern: `\[.*?\]`, Weight: 0.3},
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
 }
+
+// SDPatternsNoBracketDiscount carries BeetsSDPatterns' six discounts
+// with the two 0.3-weight bracket patterns removed. The corpus README
+// calls that "arithmetically the same as charging a parenthetical at
+// full weight" (corpus/README.md:1107-1108), which holds only while no
+// later pattern fires: a full-weight discount still shifts str1, str2
+// and base_dist for the rest of the loop where a removed pattern does
+// not (beets/autotag/distance.py:97-117). The two agree on all four
+// adv-remix-* pairs, so the committed figures stand; the table is
+// defined by what it removes, not by that equivalence. It is the table
+// the four adv-remix-* cases' defect_free figures are derived under,
+// and the counterpart to SDPatternsWordBoundary for the adjudicated
+// bug-remix-parenthetical defect (#5868). Nothing on the distance path
+// selects it; 3d's compat switch assigns it to
+// Tunables.StringDistPatterns.
+var SDPatternsNoBracketDiscount = []SDPattern{
+	{Pattern: `^the `, Weight: 0.1},
+	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
+	{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+}

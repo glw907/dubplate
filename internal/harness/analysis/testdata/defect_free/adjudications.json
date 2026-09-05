@@ -1,0 +1,81 @@
+{
+  "entries": [
+    {
+      "id": "adj-ft-fixture-a",
+      "subject": {"case_id": "ft-fixture-a"},
+      "suspected": "fixture: stands in for a real adv-ft-* row",
+      "citation": "fixture",
+      "release_truth": "fixture",
+      "disposition": "oracle-wrong",
+      "corrected_verdict": "medium, skip; defect-free distance 0.101852",
+      "reason": "fixture",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "defect_free": {
+        "distance": 0.101851852,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
+    },
+    {
+      "id": "adj-ft-fixture-b",
+      "subject": {"case_id": "ft-fixture-b"},
+      "suspected": "fixture: stands in for a real adv-ft-* row",
+      "citation": "fixture",
+      "release_truth": "fixture",
+      "disposition": "oracle-wrong",
+      "corrected_verdict": "medium, skip; defect-free distance 0.117647",
+      "reason": "fixture",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "defect_free": {
+        "distance": 0.117647059,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
+    },
+    {
+      "id": "adj-remix-fixture-c",
+      "subject": {"case_id": "remix-fixture-c"},
+      "suspected": "fixture: stands in for a real adv-remix-* row",
+      "citation": "fixture",
+      "release_truth": "fixture",
+      "disposition": "oracle-wrong",
+      "corrected_verdict": "medium, skip; defect-free distance 0.080000",
+      "reason": "fixture",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04",
+      "defect_free": {
+        "distance": 0.08,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsNoBracketDiscount"
+      }
+    },
+    {
+      "id": "adj-assign-fixture-d",
+      "subject": {"case_id": "assign-fixture-d"},
+      "suspected": "fixture: stands in for a real adv-assign-* row, whose hypothesis has no SD_PATTERNS counterfactual and so owes no defect_free block",
+      "citation": "fixture",
+      "release_truth": "fixture",
+      "disposition": "oracle-wrong",
+      "corrected_verdict": "medium, skip; no defect-free counterfactual exists for this hypothesis",
+      "reason": "fixture",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
+    },
+    {
+      "id": "adj-clean-fixture-e",
+      "subject": {"case_id": "clean-fixture-e"},
+      "suspected": "fixture: stands in for a real oracle-correct row",
+      "citation": "fixture",
+      "release_truth": "fixture",
+      "disposition": "oracle-correct",
+      "reason": "fixture: the crafted case failed to reproduce the suspected defect",
+      "adjudicator": "Geoff",
+      "date": "2026-09-04"
+    }
+  ]
+}

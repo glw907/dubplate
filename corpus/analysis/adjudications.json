@@ -12,7 +12,13 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.101852"
+      "corrected_verdict": "medium, skip; defect-free distance 0.101852",
+      "defect_free": {
+        "distance": 0.10185185185185186,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
     },
     {
       "id": "adj-adv-ft-left-colon",
@@ -26,7 +32,13 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.117647"
+      "corrected_verdict": "medium, skip; defect-free distance 0.117647",
+      "defect_free": {
+        "distance": 0.11764705882352941,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
     },
     {
       "id": "adj-adv-ft-gift-space",
@@ -40,7 +52,13 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.107843"
+      "corrected_verdict": "medium, skip; defect-free distance 0.107843",
+      "defect_free": {
+        "distance": 0.10784313725490197,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
     },
     {
       "id": "adj-adv-ft-soft-onesided",
@@ -54,7 +72,13 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.086667"
+      "corrected_verdict": "medium, skip; defect-free distance 0.086667",
+      "defect_free": {
+        "distance": 0.08666666666666667,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
     },
     {
       "id": "adj-adv-ft-craft-titles",
@@ -68,7 +92,13 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.091708"
+      "corrected_verdict": "medium, skip; defect-free distance 0.091708",
+      "defect_free": {
+        "distance": 0.09170751633986929,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
     },
     {
       "id": "adj-adv-ft-theft-artist",
@@ -82,7 +112,13 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.090909"
+      "corrected_verdict": "medium, skip; defect-free distance 0.090909",
+      "defect_free": {
+        "distance": 0.0909090909090909,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsWordBoundary"
+      }
     },
     {
       "id": "adj-adv-remix-both-sides",
@@ -96,7 +132,13 @@
       "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.080000"
+      "corrected_verdict": "medium, skip; defect-free distance 0.080000",
+      "defect_free": {
+        "distance": 0.08,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsNoBracketDiscount"
+      }
     },
     {
       "id": "adj-adv-remix-onesided",
@@ -110,7 +152,13 @@
       "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.071429"
+      "corrected_verdict": "medium, skip; defect-free distance 0.071429",
+      "defect_free": {
+        "distance": 0.07142857142857142,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsNoBracketDiscount"
+      }
     },
     {
       "id": "adj-adv-remix-bracket",
@@ -124,7 +172,13 @@
       "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.092593"
+      "corrected_verdict": "medium, skip; defect-free distance 0.092593",
+      "defect_free": {
+        "distance": 0.0925925925925926,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsNoBracketDiscount"
+      }
     },
     {
       "id": "adj-adv-remix-track-titles",
@@ -138,7 +192,13 @@
       "reason": "Adjudicated by the owner: the 0.3-weight parenthetical/bracket discount (#5868) is a real defect. When the parenthetical or bracketed span is the only token distinguishing a remix, rework, alternate version, or original mix from its release, discounting it at 0.3 instead of full weight erases the differentiator and the matcher confidently retags one release as the other. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 2 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.081871"
+      "corrected_verdict": "medium, skip; defect-free distance 0.081871",
+      "defect_free": {
+        "distance": 0.08187134502923976,
+        "recommendation": "medium",
+        "action": "skip",
+        "pattern_table": "SDPatternsNoBracketDiscount"
+      }
     },
     {
       "id": "adj-adv-assign-swap-session-tape",
