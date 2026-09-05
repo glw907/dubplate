@@ -1,0 +1,15 @@
+{
+  "entries": [
+    {
+      "id": "adj-fixture-pending",
+      "subject": {"case_id": "fixture-pending"},
+      "suspected": "fixture: the recommendation this case's own record carries deliberately differs from the Go matcher's computed verdict",
+      "citation": "fixture, no real hypothesis",
+      "release_truth": "fixture: no real release is involved",
+      "disposition": "pending-adjudication",
+      "reason": "hand-authored fixture proving the pending escape: a case whose adjudication row already reads pending-adjudication leaves the gate green and its verdict ungraded",
+      "adjudicator": "agent",
+      "date": "2026-09-05"
+    }
+  ]
+}

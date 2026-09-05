@@ -1,10 +1,12 @@
 package conform
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -208,14 +210,36 @@ func TestCheckTiesAwaitingRulingRefusesASilentEscape(t *testing.T) {
 	}
 }
 
-// TestGradeCasesRefusesAnUnimplementedMode proves the default-compat
-// run is refused rather than silently graded as a compat run, which
-// would report a summary that means nothing.
-func TestGradeCasesRefusesAnUnimplementedMode(t *testing.T) {
-	root := repoRoot(t)
-	if _, err := GradeCases(root, ModeDefault); err == nil {
-		t.Fatal("expected the default-compat mode to be refused")
+// gradeFixtureCase loads a single hand-authored case directory under
+// testdata/case/verdict/name (case.json, its responses/, and any of
+// the four analysis ledgers a row has something to say about) and
+// grades it exactly as GradeCases' own ModeCompat sweep would grade
+// one case, without needing a whole fixture corpus tree.
+func gradeFixtureCase(t *testing.T, name string) (CaseGradeSummary, error) {
+	t.Helper()
+	dir := filepath.Join("testdata", "case", "verdict", strings.ReplaceAll(name, " ", "-"))
+
+	ties := &analysis.TieLedger{}
+	prox := &analysis.ProximityLedger{}
+	adj := &analysis.AdjudicationLedger{}
+	bugs := &analysis.OracleBugLedger{}
+	loadIfPresent(t, dir, "ties.json", ties)
+	loadIfPresent(t, dir, "proximity.json", prox)
+	loadIfPresent(t, dir, "adjudications.json", adj)
+	loadIfPresent(t, dir, "oracle_bugs.json", bugs)
+	led := ledgers{ties: ties, prox: prox, adj: adj, bugs: bugs}
+
+	res, err := gradeCase(context.Background(), dir, ModeCompat, led)
+	if err != nil {
+		return CaseGradeSummary{}, err
 	}
+
+	var summary CaseGradeSummary
+	summary.Verdicts = res.verdicts
+	if res.pending {
+		summary.Pending = append(summary.Pending, res.caseID)
+	}
+	return summary, nil
 }
 
 // compatSummary runs the ModeCompat sweep once for the whole package,
@@ -308,4 +332,92 @@ func TestNoCommittedCaseHasTwoExtraItemsSharingASortKey(t *testing.T) {
 		t.Error("no case carried two or more extra items, so this guard asserted nothing; three cases do today")
 	}
 	t.Logf("checked the extra-items sort key over %d cases carrying two or more extras", checked)
+}
+
+// defaultSummary runs the ModeDefault sweep once for the whole package,
+// the same one-run-shared-by-many-tests shape as compatSummary: it
+// re-scores every case's committed candidate set, which is cheap
+// (fold B2), but there is no reason to pay for it twice.
+var defaultSummary = sync.OnceValues(func() (CaseGradeSummary, error) {
+	root, err := repoRootPath()
+	if err != nil {
+		return CaseGradeSummary{}, err
+	}
+	return GradeCases(root, ModeDefault)
+})
+
+func TestWholeCorpusGradesVerdictsInCompatMode(t *testing.T) {
+	// compatSummary is a package-level sync.OnceValues over
+	// GradeCases(repoRoot, ModeCompat), so Task 7's sweep test and this
+	// one share ONE run rather than paying for the corpus twice in the
+	// same package (fold m8). Task 7's test switches to it in the same
+	// change. ModeDefault stays its own run and is cheap, because it
+	// re-scores committed candidates and issues no requests (fold B2).
+	summary, err := compatSummary()
+	if err != nil {
+		t.Fatalf("GradeCases: %v", err)
+	}
+	if summary.Verdicts < VerdictFloor-len(summary.Pending)-len(summary.Ungraded) {
+		t.Errorf("graded %d verdicts, want at least %d (floor %d less %d pending and %d ungraded)",
+			summary.Verdicts, VerdictFloor-len(summary.Pending)-len(summary.Ungraded), VerdictFloor, len(summary.Pending), len(summary.Ungraded))
+	}
+	for _, id := range summary.Pending {
+		t.Logf("pending divergence, verdict ungraded, launch gate refuses: %s", id)
+	}
+}
+
+func TestWholeCorpusGradesTheCorrectedVerdictsInDefaultMode(t *testing.T) {
+	summary, err := defaultSummary()
+	if err != nil {
+		t.Fatalf("GradeCases: %v", err)
+	}
+	if summary.Verdicts != DefectFreeFloor {
+		t.Errorf("default mode graded %d verdicts, want exactly the %d defect_free rows: no other case has a corrected expectation", summary.Verdicts, DefectFreeFloor)
+	}
+	want := ProbeCaseFloor - ProbeCaseOracleCorrectRows
+	if got := len(summary.Ungraded) + summary.Verdicts; got < want {
+		t.Errorf("graded plus ungraded probe cases = %d, want at least %d (%d probe cases less the %d whose own row reads oracle-correct); a probe case fell out of both populations",
+			got, want, ProbeCaseFloor, ProbeCaseOracleCorrectRows)
+	}
+	t.Logf("default mode moved %d non-probe verdicts: %v", len(summary.VerdictMoves), summary.VerdictMoves)
+}
+
+func TestCheckDefaultCompatMatchesTheLedger(t *testing.T) {
+	if err := CheckDefaultCompatMatchesTheLedger(repoRoot(t)); err != nil {
+		t.Errorf("matcher.DefaultCompat no longer agrees with corpus/analysis/oracle_bugs.json: %v", err)
+	}
+}
+
+// TestPendingDivergenceLeavesTheGateGreenAndTheVerdictUngraded proves
+// the pending escape: a case whose own adjudications.json row already
+// reads pending-adjudication leaves the verdict ungraded rather than
+// failed, even though its Go verdict deliberately differs from its
+// record. Zero committed rows read pending-adjudication, so this is a
+// hand-authored fixture in testdata/case/verdict/pending.
+func TestPendingDivergenceLeavesTheGateGreenAndTheVerdictUngraded(t *testing.T) {
+	summary, err := gradeFixtureCase(t, "pending")
+	if err != nil {
+		t.Fatalf("grade: %v", err)
+	}
+	if !slices.Contains(summary.Pending, "fixture-pending") {
+		t.Errorf("Pending = %v, want the case id", summary.Pending)
+	}
+	if summary.Verdicts != 0 {
+		t.Errorf("graded %d verdicts, want 0: a pending row leaves the verdict ungraded", summary.Verdicts)
+	}
+}
+
+// TestAnUnadjudicatedDivergenceFailsAndPrintsTheRowAHumanMustWrite
+// proves the gate refuses to absorb a mechanical verdict disagreement
+// that carries no adjudication row at all (rung 3 spec, :311).
+func TestAnUnadjudicatedDivergenceFailsAndPrintsTheRowAHumanMustWrite(t *testing.T) {
+	_, err := gradeFixtureCase(t, "unadjudicated")
+	if err == nil {
+		t.Fatal("an unadjudicated verdict divergence passed; a mechanical disagreement is a Go defect until an owner says otherwise (spec :311)")
+	}
+	for _, want := range []string{"fixture-unadjudicated", "pending-adjudication", `"adjudicator": "agent"`} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error %v does not carry %q; the message is what a human pastes into adjudications.json", err, want)
+		}
+	}
 }

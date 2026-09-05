@@ -2,6 +2,7 @@ package conform
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -43,6 +44,27 @@ const (
 	VerdictFloor     = 215
 	TrackVectorFloor = 294
 )
+
+// DefectFreeFloor is the number of adjudication rows carrying a
+// defect_free block today, which is ModeDefault's whole graded
+// population.
+const DefectFreeFloor = 10
+
+// ProbeCaseFloor is the number of probe cases across the four
+// oracle-wrong hypotheses.
+const ProbeCaseFloor = 20
+
+// ProbeCaseOracleCorrectRows is the number of those probe cases whose
+// OWN adjudication row reads oracle-correct, so they carry no corrected
+// verdict to grade and belong to neither the graded nor the ungraded
+// population: real-nonlatin-alla-pugacheva-vol1 and
+// real-nonlatin-x-japan-art-of-life, both probes of
+// bug-nonlatin-alias-selection. Naming it keeps the accounting
+// assertion readable and makes it obvious what goes stale the day Geoff
+// rules another row; the assertion recomputes the figure from the
+// ledgers and compares against this constant, so a movement fails
+// loudly rather than being absorbed (fold m17).
+const ProbeCaseOracleCorrectRows = 2
 
 // TiesExcludedCeiling is the number of ties.json rows dispositioned
 // excluded today. It is a ceiling rather than a floor: excluding a case
@@ -103,6 +125,32 @@ type CaseGradeSummary struct {
 }
 
 // GradeMode selects which of ruling A's two runs a sweep is.
+//
+// Two runs rather than one, and the reason is arithmetic. Both
+// string-heuristic hypotheses are ruled oracle-wrong, so ruling A
+// defaults both compat switches OFF, and a default-mode run scores every
+// case against a non-beets pattern table and diverges from every
+// committed distance. One run cannot be both bit-identical against the
+// committed records and correct against the adjudicated verdicts.
+//
+// ModeDefault takes the ledger's own dispositions. Each probe case of an
+// oracle-wrong hypothesis with a machine-readable defect_free block is
+// graded against that block; NO other case's verdict is graded, because
+// no other case has a corrected expectation.
+//
+// ModeDefault does not drive tag.Album. It re-scores each case's own
+// committed candidate set under the corrected table, and the reason is
+// that a corrected verdict changes the FLOW: all ten defect_free probe
+// cases log one lookup and zero searches and score strong under compat
+// and medium under the corrected table, so re-running the flow would
+// lose the strong-match early return (match.py:436), issue a search the
+// case never logged, and fail the request-set rule before any
+// defect_free figure was compared. The request-set rule is therefore
+// ModeCompat's alone. Re-scoring reproduces the ten committed figures
+// exactly, because the ladder's medium rung is decided by the minimum
+// distance alone (match.py:288-290) and a candidate set a search would
+// have widened cannot move a medium verdict off medium. Revision 2,
+// fold B2; provisional, conductor ruling owed.
 type GradeMode int
 
 const (
@@ -126,16 +174,6 @@ const (
 // this pass owns. The rule does not reach ModeDefault, where a
 // corrected verdict legally changes the flow.
 func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
-	if mode != ModeCompat {
-		// The default-compat run is a different sweep rather than a flag
-		// on this one: it re-scores each case's committed candidate set
-		// and issues no request at all, because every defect_free probe
-		// case logs one lookup and no search, so replaying the flow
-		// under a corrected table would issue a request the case never
-		// logged.
-		return CaseGradeSummary{}, fmt.Errorf("grade mode %d: only the compat sweep is implemented", mode)
-	}
-
 	led, err := loadLedgers(root)
 	if err != nil {
 		return CaseGradeSummary{}, err
@@ -154,14 +192,39 @@ func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 		if !e.IsDir() {
 			continue
 		}
-		res, caseErr := gradeCase(ctx, filepath.Join(casesRoot, e.Name()), mode, led)
+		dir := filepath.Join(casesRoot, e.Name())
+
+		var res caseGradeResult
+		var caseErr error
+		if mode == ModeCompat {
+			res, caseErr = gradeCase(ctx, dir, mode, led)
+		} else {
+			res, caseErr = gradeCaseDefault(ctx, dir, led)
+		}
 		if caseErr != nil {
 			errs = append(errs, caseErr)
 		}
-		if !res.graded {
-			// A case that could not be loaded, stubbed or replayed
-			// contributes its errors and nothing else: the counters
-			// report what was compared, and this case was not.
+
+		// The fields both modes report: a case's verdict is graded,
+		// pending, ungraded or moved regardless of which sweep produced
+		// it.
+		summary.Verdicts += res.verdicts
+		if res.pending {
+			summary.Pending = append(summary.Pending, res.caseID)
+		}
+		if res.ungraded {
+			summary.Ungraded = append(summary.Ungraded, res.ungradedReason)
+		}
+		if res.verdictMoved {
+			summary.VerdictMoves = append(summary.VerdictMoves, res.caseID)
+		}
+
+		if mode != ModeCompat || !res.graded {
+			// ModeDefault re-scores rather than replaying the whole
+			// flow, so the candidate/distance/assignment floors are
+			// ModeCompat's own claim; a case that could not be loaded,
+			// stubbed or replayed contributes its errors and nothing
+			// else, and the counters report what was compared.
 			continue
 		}
 		summary.Cases++
@@ -175,9 +238,6 @@ func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 		}
 		if res.awaitingRuling {
 			summary.TiesAwaitingRuling = append(summary.TiesAwaitingRuling, res.caseID)
-		}
-		if res.pending {
-			summary.Pending = append(summary.Pending, res.caseID)
 		}
 	}
 
@@ -230,6 +290,18 @@ type caseGradeResult struct {
 	pending        bool
 	awaitingRuling bool
 	nearMisses     []NearMiss
+
+	// verdicts, ungraded, ungradedReason and verdictMoved are the tier-2
+	// contribution both modes report (Task 8): 1 when this case's
+	// recommendation and action were graded and agreed, ungraded when
+	// it is a probe case with no expressible rung-3 corrected
+	// expectation (Resolution R1), and verdictMoved when ModeDefault's
+	// re-scored verdict differs from the case's own committed (that is,
+	// ModeCompat) verdict.
+	verdicts       int
+	ungraded       bool
+	ungradedReason string
+	verdictMoved   bool
 }
 
 // gradeCase replays one case and compares every tier-1 field of its
@@ -329,7 +401,70 @@ func gradeCase(ctx context.Context, dir string, mode GradeMode, led ledgers) (re
 	errs = append(errs, gradeCandidates(c.ID, policy, exp.Candidates, got, &res)...)
 	errs = append(errs, gradeAssignment(c.ID, policy, exp, got, &res)...)
 
+	// The verdict: Recommendation and Action, against the case's own
+	// record. tag.Album already computed both when it produced a
+	// proposal; the one committed case that produces no candidate at
+	// all took the ErrNoCandidates branch above and never reached
+	// Recommend, so its verdict is computed here the same way tag.Album
+	// would have (Recommend on an empty slice returns RecNone directly,
+	// match.py:279-281).
+	tunActual := compatFor(mode, policy).Apply(tun)
+	gotRec, gotAction := matcher.RecNone, matcher.Action("")
+	if prop != nil {
+		gotRec, gotAction = prop.Recommendation, prop.Action
+	} else {
+		var actionErr error
+		gotAction, actionErr = matcher.ActionFor(tunActual, gotRec)
+		if actionErr != nil {
+			errs = append(errs, fmt.Errorf("case %s: %w", c.ID, actionErr))
+		}
+	}
+	if verdictErr := gradeCaseVerdict(c.ID, policy, exp.Recommendation, exp.Action, gotRec, gotAction, &res); verdictErr != nil {
+		errs = append(errs, verdictErr)
+	}
+
 	return res, nil
+}
+
+// gradeCaseVerdict is ModeCompat's own verdict grading: it compares one
+// case's computed recommendation and action against its own committed
+// record, honoring the pending escape (a policy with GradeVerdict false
+// is never compared at all) and refusing to absorb an unadjudicated
+// divergence silently (Resolution R15, rung 3 spec :311). ModeDefault's
+// own comparison, against the ten defect_free rows, is
+// gradeCaseDefault's.
+func gradeCaseVerdict(caseID string, policy casePolicy, wantRec, wantAction string, gotRec matcher.Recommendation, gotAction matcher.Action, res *caseGradeResult) error {
+	if !policy.GradeVerdict {
+		return nil
+	}
+	if gotRec.String() == wantRec && string(gotAction) == wantAction {
+		res.verdicts++
+		return nil
+	}
+
+	// An unadjudicated divergence. The gate refuses it rather than
+	// absorbing it silently: a mechanical disagreement is a Go defect
+	// until an owner says otherwise, and the one escape, a case whose
+	// adjudication row already reads pending-adjudication, was already
+	// excluded above via policy.GradeVerdict. The failure prints the
+	// exact row a human pastes into adjudications.json.
+	row := analysis.AdjudicationEntry{
+		ID:           "adj-" + caseID,
+		Subject:      analysis.AdjudicationSubject{CaseID: caseID},
+		Suspected:    "TODO",
+		Citation:     "TODO",
+		ReleaseTruth: "TODO",
+		Disposition:  analysis.Pending,
+		Reason:       "TODO",
+		Adjudicator:  analysis.AgentAdjudicator,
+		Date:         "TODO",
+	}
+	data, marshalErr := json.MarshalIndent(row, "", "  ")
+	if marshalErr != nil {
+		return fmt.Errorf("case %s: marshal pending row: %w", caseID, marshalErr)
+	}
+	return fmt.Errorf("case %s: verdict %s/%s does not match record %s/%s, and no adjudication row makes that legal; paste this row into adjudications.json:\n%s",
+		caseID, gotRec, gotAction, wantRec, wantAction, data)
 }
 
 // checkRequestSet applies the two halves of the request-set rule.
@@ -361,6 +496,206 @@ func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 		FtPattern:          base.FtPattern || policy.Compat.FtPattern,
 		RemixParenthetical: base.RemixParenthetical || policy.Compat.RemixParenthetical,
 	}
+}
+
+// gradeCaseDefault is ModeDefault's own per-case grading (revision 2,
+// fold B2, Resolution R2/R9). It never drives tag.Album: instead it
+// replays only the release lookups the case's own committed candidates
+// name against the case's own stub, translates each, re-solves the
+// assignment, re-scores the album distance and re-sorts, all under
+// matcher.DefaultCompat()'s corrected pattern table, and issues no
+// search. That reproduces the ten committed defect_free figures exactly
+// (GradeMode's own doc comment states why) without ever taking a flow
+// the case's request log does not cover, so the request-set rule stays
+// ModeCompat's alone.
+//
+// A case whose adjudication row reads pending-adjudication is ungraded
+// and reported pending, exactly as ModeCompat's own escape works. Every
+// other case falls into one of three buckets, resolved from
+// policy.VerdictFrom (set only when the case is a probe of an
+// oracle-wrong hypothesis whose OWN row agrees) and whether that row
+// carries a defect_free block: the ten defect_free rows are graded
+// against their own block; the eight probe cases of the two hypotheses
+// with no expressible rung-3 fix (Resolution R1) are marked ungraded;
+// every other case is compared against its own committed (that is,
+// ModeCompat) verdict, and a difference is a VerdictMoves entry rather
+// than a failure (Resolution R9).
+func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGradeResult, err error) {
+	var errs []error
+	defer func() {
+		err = errors.Join(errs...)
+	}()
+
+	c, loadErr := cassette.LoadCase(dir)
+	if loadErr != nil {
+		errs = append(errs, fmt.Errorf("case at %s: load: %w", dir, loadErr))
+		return res, nil
+	}
+	res.caseID = c.ID
+	if c.Expected == nil {
+		errs = append(errs, fmt.Errorf("case %s: carries no derived record", c.ID))
+		return res, nil
+	}
+	exp := c.Expected
+
+	policy := policyFor(c.ID, led.ties, led.prox, led.adj, led.bugs)
+	if policy.Pending {
+		res.pending = true
+		return res, nil
+	}
+
+	evalDate, dateErr := time.Parse(time.DateOnly, c.EvalDate)
+	if dateErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: eval_date %q: %w", c.ID, c.EvalDate, dateErr))
+		return res, nil
+	}
+	tun, tunErr := gradeTunables(c.Profile)
+	if tunErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, tunErr))
+		return res, nil
+	}
+	tunDefault := compatFor(ModeDefault, policy).Apply(tun)
+	if valErr := tunDefault.Validate(); valErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, valErr))
+		return res, nil
+	}
+
+	srv, startErr := stub.New(c, dir)
+	if startErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: start stub: %w", c.ID, startErr))
+		return res, nil
+	}
+	defer func() {
+		if closeErr := srv.Close(); closeErr != nil {
+			errs = append(errs, fmt.Errorf("case %s: close stub: %w", c.ID, closeErr))
+		}
+	}()
+
+	client, clientErr := musicbrainz.NewClient(musicbrainz.ClientConfig{
+		BaseURL:   "http://" + srv.Addr(),
+		UserAgent: gradeUserAgent,
+		Budget:    musicbrainz.Unmetered(),
+	})
+	if clientErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: build client: %w", c.ID, clientErr))
+		return res, nil
+	}
+
+	items := make([]matcher.ItemFields, len(c.Input.Items))
+	for i, raw := range c.Input.Items {
+		items[i] = matcher.ProjectItemFields(raw)
+	}
+
+	cands := matcher.NewCandidates()
+	for _, w := range exp.Candidates {
+		info, lookupErr := client.AlbumForID(ctx, w.AlbumID, tunDefault)
+		if lookupErr != nil {
+			if errors.Is(lookupErr, musicbrainz.ErrNotFound) {
+				// A committed candidate implies the lookup it was
+				// derived from succeeded; a 404 here means the case's
+				// own log no longer covers its own record.
+				errs = append(errs, fmt.Errorf("case %s: re-score: committed candidate %s not found in the case's own log", c.ID, w.AlbumID))
+				continue
+			}
+			errs = append(errs, fmt.Errorf("case %s: re-score: look up %s: %w", c.ID, w.AlbumID, lookupErr))
+			return res, nil
+		}
+		if _, addErr := cands.Add(tunDefault, items, info, evalDate); addErr != nil {
+			errs = append(errs, fmt.Errorf("case %s: re-score: %w", c.ID, addErr))
+			return res, nil
+		}
+	}
+	res.graded = true
+
+	sorted := cands.Sorted()
+	rec, recErr := matcher.Recommend(tunDefault, sorted)
+	if recErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, recErr))
+		return res, nil
+	}
+	action, actionErr := matcher.ActionFor(tunDefault, rec)
+	if actionErr != nil {
+		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, actionErr))
+		return res, nil
+	}
+
+	row, hasRow := led.adj.BySubjectCase()[c.ID]
+	switch {
+	case policy.VerdictFrom == verdictFromAdjudication && hasRow && row.DefectFree != nil:
+		// One of the ten defect_free rows: graded against the block
+		// rather than the case's own (defective) committed record.
+		var dist float64
+		if len(sorted) > 0 {
+			dist = sorted[0].Dist.Distance()
+		}
+		if distErr := compareFloat(c.ID, "defect_free.distance", compareEpsilon, row.DefectFree.Distance, dist, &res); distErr != nil {
+			errs = append(errs, distErr)
+		}
+		if rec.String() != row.DefectFree.Recommendation {
+			errs = append(errs, fmt.Errorf("case %s: default-mode recommendation %s, defect_free record carries %s", c.ID, rec, row.DefectFree.Recommendation))
+		}
+		if string(action) != row.DefectFree.Action {
+			errs = append(errs, fmt.Errorf("case %s: default-mode action %s, defect_free record carries %s", c.ID, action, row.DefectFree.Action))
+		}
+		res.verdicts++
+	case policy.VerdictFrom == verdictFromAdjudication:
+		// One of the eight probe cases of the two no-fix hypotheses
+		// (Resolution R1): no rung-3 port can express its corrected
+		// verdict, so it is neither graded nor compared for movement.
+		res.ungraded = true
+		res.ungradedReason = fmt.Sprintf("%s: probe of an oracle-wrong hypothesis with no rung-3 fix, so its corrected verdict is not machine-readable (Resolution R1)", c.ID)
+	default:
+		// Every other case: compared against its own committed (that
+		// is, ModeCompat) verdict. A difference is reported as a
+		// VerdictMoves entry and fails nothing (Resolution R9).
+		if rec.String() != exp.Recommendation || string(action) != exp.Action {
+			res.verdictMoved = true
+		}
+	}
+
+	return res, nil
+}
+
+// CheckDefaultCompatMatchesTheLedger proves matcher.DefaultCompat's two
+// literals still agree with corpus/analysis/oracle_bugs.json's own
+// dispositions. The engine never reads corpus/, so this is the only
+// place the two can be compared, and it is a HARD failure rather than a
+// pending row: a disposition is an owner decision, and an agent
+// silently absorbing one is exactly what the sentinel rules exist to
+// prevent.
+func CheckDefaultCompatMatchesTheLedger(root string) error {
+	bugs, err := analysis.LoadOracleBugs(filepath.Join(root, "corpus", "analysis", "oracle_bugs.json"))
+	if err != nil {
+		return err
+	}
+	byID := make(map[string]analysis.OracleBugEntry, len(bugs.Entries))
+	for _, e := range bugs.Entries {
+		byID[e.ID] = e
+	}
+
+	def := matcher.DefaultCompat()
+	checks := []struct {
+		hypothesisID string
+		switchOn     bool
+	}{
+		{"bug-ft-pattern", def.FtPattern},
+		{"bug-remix-parenthetical", def.RemixParenthetical},
+	}
+
+	var errs []error
+	for _, chk := range checks {
+		e, ok := byID[chk.hypothesisID]
+		if !ok {
+			errs = append(errs, fmt.Errorf("oracle_bugs.json: no entry %q", chk.hypothesisID))
+			continue
+		}
+		reproducesDefect := e.Disposition != analysis.OracleWrong
+		if chk.switchOn != reproducesDefect {
+			errs = append(errs, fmt.Errorf("matcher.DefaultCompat: %s: switch is %v, but oracle_bugs.json disposition %q implies %v",
+				chk.hypothesisID, chk.switchOn, e.Disposition, reproducesDefect))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // gradeCandidates compares the run's candidates against the record's,

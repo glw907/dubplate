@@ -1,0 +1,63 @@
+{
+  "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "title": "Early Return Album",
+  "status": "Official",
+  "artist-credit": [
+    {
+      "name": "Early Return Artist",
+      "joinphrase": "",
+      "artist": {
+        "id": "artist-early",
+        "name": "Early Return Artist",
+        "sort-name": "Return Artist, Early"
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "title": "",
+      "track-count": 1,
+      "tracks": [
+        {
+          "id": "track-early-1",
+          "position": 1,
+          "number": "1",
+          "title": "Track One",
+          "artist-credit": [
+            {
+              "name": "Early Return Artist",
+              "joinphrase": "",
+              "artist": {
+                "id": "artist-early",
+                "name": "Early Return Artist",
+                "sort-name": "Return Artist, Early"
+              }
+            }
+          ],
+          "recording": {
+            "id": "rec-early-1",
+            "title": "Track One",
+            "video": false,
+            "artist-credit": [
+              {
+                "name": "Early Return Artist",
+                "joinphrase": "",
+                "artist": {
+                  "id": "artist-early",
+                  "name": "Early Return Artist",
+                  "sort-name": "Return Artist, Early"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "release-group": {
+    "id": "rg-early",
+    "title": "Early Return Album"
+  },
+  "relations": []
+}
