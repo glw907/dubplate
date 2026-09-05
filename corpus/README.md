@@ -1093,8 +1093,10 @@ wrong in named places, which is what ladder entry 2's ruling 2 (tier
 one is measured against release truth where the oracle is
 known-defective) exists for. Every case here carries a row in
 `corpus/analysis/oracle_bugs.json` under the hypothesis it probes and a
-row in `corpus/analysis/adjudications.json` at `pending-adjudication`;
-both are the owner's to rule on, and neither is self-adjudicated.
+row in `corpus/analysis/adjudications.json`. Both are the owner's to
+rule on, and neither is self-adjudicated. Batch 1 was ruled by the
+owner on 2026-09-04: all 21 adjudication rows carry a disposition, 18
+`oracle-wrong` and 3 `oracle-correct`, and none is pending.
 
 **Reproduction is the deliverable, not the case file.** A case that
 freezes cleanly but leaves the record where a defect-free oracle would
@@ -1338,7 +1340,7 @@ verbatim rather than smoothed over. This is the mechanism firing and
 its selected alias propagating, at pinned beets 2.13.1, direct evidence
 against `#6358`'s report that a locale alias is silently ignored
 (`corpus/analysis/oracle_bugs.json`'s `bug-locale-alias-ignored` row,
-`pending-adjudication`, owner-only). No `adv-*` case is authored for
+ruled `oracle-correct` by the owner on 2026-09-04). No `adv-*` case is authored for
 this hypothesis: an A/B pair over a real captured release's own
 documented alias is the probe, the same reason the alias-mis-selection
 hypothesis above reaches for already-committed real-catalog cases
@@ -2211,13 +2213,14 @@ subject.
 
 ### Regenerating a derived ledger
 
-`ties.json`, `components.json`, and `file_tags.json` are derived, so
-they are rewritten rather than hand-edited:
+`ties.json`, `components.json`, `file_tags.json`, and `album_info.json`
+are derived, so they are rewritten rather than hand-edited:
 
 ```sh
 go test -tags oracle ./internal/harness/oracle -run Ledger -update-ledgers
 go test -tags oracle ./internal/harness/oracle -run Component -update-ledgers
 go test -tags oracle ./internal/harness/oracle -run FileTags -update-ledgers
+go test -tags oracle ./internal/harness/oracle -run AlbumInfo -update-ledgers
 ```
 
 A regeneration is expected to be a no-op unless the venv's pins moved
@@ -2314,9 +2317,14 @@ two not:
   mechanism firing correctly at pinned beets 2.13.1 once
   `import.languages` makes it reachable, contradicting the report.
 
-Every hypothesis but `bug-threshold-boundary` sits at
-`disposition: "pending-adjudication"`, since disposition is owner-only
-even where the written evidence already points one way.
+All six hypotheses were ruled by the owner on 2026-09-04, and none is
+pending. `bug-ft-pattern`, `bug-remix-parenthetical`,
+`bug-nonlatin-alias-selection`, and `bug-assignment-rejection-gap` sit
+at `disposition: "oracle-wrong"`; `bug-threshold-boundary` and
+`bug-locale-alias-ignored` sit at `disposition: "oracle-correct"`.
+Disposition stays owner-only, so a new hypothesis lands pending and
+waits for a ruling even where the written evidence already points one
+way.
 
 ## Handoff to rung 8: what pure-Go FLAC tag writing may assume
 
@@ -2464,8 +2472,9 @@ changes.
 
 All three profiles are plain YAML text; `internal/harness/oracle`
 renders one by substituting the `{{DUBPLATE_LIBRARY_DIR}}` /
-`{{DUBPLATE_LIBRARY_DB}}` placeholders (a no-op on `stock.yaml` and
-`locale.yaml`, which carry neither), then appending the `musicbrainz:`
+`{{DUBPLATE_LIBRARY_DB}}` placeholders (a no-op on `stock.yaml` alone,
+which carries neither; `locale.yaml` carries both, because it is
+rebased on `estate.yaml`), then appending the `musicbrainz:`
 stub-host block. The adapter rejects a rendered profile whose
 `plugins:` line resolves to anything other than exactly one recognized
 metadata-source plugin, so a profile edit that reintroduces a second
