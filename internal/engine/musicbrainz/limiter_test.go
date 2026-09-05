@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"sync"
 	"testing"
 	"time"
 )
@@ -197,6 +198,60 @@ func TestCancelledWaiterKeepsItsTokenForTheNextWaiter(t *testing.T) {
 	ticks <- time.Time{}
 	if err := <-served; err != nil {
 		t.Fatalf("waiter behind the cancelled one: %v", err)
+	}
+	if next.Spent() != 1 {
+		t.Errorf("next.Spent() = %d, want 1", next.Spent())
+	}
+}
+
+// TestInFlightTokenPassesToTheNextWaiter proves the stronger half of the
+// cancellation contract: a waiter that departs while its token is already
+// in flight does not consume it, and the waiter behind it takes that same
+// token. The holdBeforeOffer seam is what makes it deterministic; without
+// it the cancelled waiter is gone from its queue before the tick arrives
+// and the dispatcher never picks it at all.
+func TestInFlightTokenPassesToTheNextWaiter(t *testing.T) {
+	ticks := make(chan time.Time)
+	l := newLimiter(ticks)
+	defer closeLimiter(t, l)
+
+	picked, release := make(chan struct{}), make(chan struct{})
+	var once sync.Once
+	l.holdBeforeOffer(func() {
+		once.Do(func() {
+			close(picked)
+			<-release
+		})
+	})
+
+	leaving := l.Budget("leaving", ClassUserPresent, 0)
+	next := l.Budget("next", ClassUserPresent, 0)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	left := make(chan error, 1)
+	go func() { left <- leaving.Wait(ctx) }()
+	l.awaitQueued(1)
+
+	served := make(chan error, 1)
+	go func() { served <- next.Wait(context.Background()) }()
+	l.awaitQueued(2)
+
+	ticks <- time.Time{}
+	<-picked
+
+	cancel()
+	if err := <-left; !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancelled Wait returned %v, want context.Canceled", err)
+	}
+	close(release)
+
+	// No second tick is fed, so the only token that can reach the next
+	// waiter is the one the cancelled waiter refused.
+	if err := <-served; err != nil {
+		t.Fatalf("waiter behind the refused offer: %v", err)
+	}
+	if leaving.Spent() != 0 {
+		t.Errorf("cancelled budget Spent() = %d, want 0", leaving.Spent())
 	}
 	if next.Spent() != 1 {
 		t.Errorf("next.Spent() = %d, want 1", next.Spent())

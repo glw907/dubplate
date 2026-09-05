@@ -81,11 +81,12 @@ type Limiter struct {
 	ready   *sync.Cond // wakes awaitQueued when a waiter registers
 	closed  bool
 	queues  [numClasses][]*waiter
-	spare   bool  // one unclaimed token, held so an idle limiter delays nobody
-	served  int   // tokens handed to a waiter, which is what a reservation counts
-	cursor  Class // where the next reserved token resumes its round-robin
-	queued  int   // cumulative registrations, for awaitQueued
-	handled int   // cumulative ticks the dispatcher has finished, for awaitTicks
+	spare   bool   // one unclaimed token, held so an idle limiter delays nobody
+	served  int    // tokens handed to a waiter, which is what a reservation counts
+	cursor  Class  // where the next reserved token resumes its round-robin
+	queued  int    // cumulative registrations, for awaitQueued
+	handled int    // cumulative ticks the dispatcher has finished, for awaitTicks
+	hold    func() // the offer seam holdBeforeOffer installs; nil in production
 }
 
 // waiter is one blocked [Budget.Wait]. The dispatcher offers a token by
@@ -113,8 +114,13 @@ func NewLimiter(interval time.Duration) *Limiter {
 	return l
 }
 
-// newLimiter is the tick-injection seam: the tests drive the dispatcher
-// by hand rather than by elapsed time.
+// newLimiter is the first of the four unexported test seams, which
+// together let a test drive the dispatcher without reading a clock:
+// newLimiter injects the tick channel, [Limiter.awaitQueued] observes a
+// waiter having registered, [Limiter.awaitTicks] observes a tick having
+// been handled, and [Limiter.holdBeforeOffer] stops the dispatcher
+// between picking a waiter and offering it the token. Each states its
+// own reason below.
 func newLimiter(ticks <-chan time.Time) *Limiter {
 	l := &Limiter{done: make(chan struct{})}
 	l.ready = sync.NewCond(&l.mu)
@@ -182,6 +188,18 @@ func (l *Limiter) awaitTicks(n int) {
 	}
 }
 
+// holdBeforeOffer installs the offer seam: f runs after serve has picked
+// a waiter and before it offers that waiter the token. That window is the
+// only place a test can cancel a waiter whose token is already in flight,
+// which is the refusal the dispatcher's own recovery path exists for; a
+// waiter cancelled before its tick has already left its queue and is
+// never picked. Production leaves it nil and serve pays one nil compare.
+func (l *Limiter) holdBeforeOffer(f func()) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.hold = f
+}
+
 func (l *Limiter) dispatch(ticks <-chan time.Time) {
 	for {
 		select {
@@ -210,7 +228,12 @@ func (l *Limiter) serve() {
 			l.mu.Unlock()
 			return
 		}
+		hold := l.hold
 		l.mu.Unlock()
+
+		if hold != nil {
+			hold()
+		}
 
 		select {
 		case w.grant <- struct{}{}:
