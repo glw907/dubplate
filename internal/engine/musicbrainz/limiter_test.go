@@ -372,6 +372,45 @@ func TestCloseFailsPendingAndFutureWaiters(t *testing.T) {
 	}
 }
 
+// TestCloseAbandonsATokenAlreadyOffered proves serve's shutdown arm,
+// the one path no other test reaches: a token in flight to a waiter
+// that is not receiving it, and a Close while it hangs there. The
+// waiter is fabricated and enqueued directly, because a real
+// [Budget.Wait] is always receiving on its own grant channel and so can
+// never leave the dispatcher blocked mid-offer.
+//
+// awaitTicks is the assertion. The dispatcher counts a tick handled
+// only after serve returns, so a serve that could not abandon its offer
+// never reaches the count. Mutation: delete serve's `case <-l.done:`
+// arm and this test hangs until the test binary's own timeout kills it.
+func TestCloseAbandonsATokenAlreadyOffered(t *testing.T) {
+	ticks := make(chan time.Time)
+	l := newLimiter(ticks)
+
+	w := &waiter{grant: make(chan struct{}), gone: make(chan struct{})}
+	l.mu.Lock()
+	l.queues[ClassUserPresent] = append(l.queues[ClassUserPresent], w)
+	l.mu.Unlock()
+
+	offering := make(chan struct{})
+	var once sync.Once
+	l.holdBeforeOffer(func() { once.Do(func() { close(offering) }) })
+
+	ticks <- time.Time{}
+	<-offering
+
+	if err := l.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	l.awaitTicks(1)
+
+	select {
+	case <-w.grant:
+		t.Error("the abandoned waiter received its token, want the offer withdrawn at shutdown")
+	default:
+	}
+}
+
 func TestNewLimiterPacesFromItsOwnTicker(t *testing.T) {
 	l := NewLimiter(time.Millisecond)
 	defer closeLimiter(t, l)
