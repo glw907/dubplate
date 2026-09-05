@@ -160,3 +160,23 @@ func TestItemFieldsProjectionAgreesWithCorpus(t *testing.T) {
 		t.Errorf("case %s: item[0]: barcode is omitted and projected to %q, want the beets typed default \"\"", c.ID, got.Barcode)
 	}
 }
+
+// TestPatternTableNamesResolve is the m11 fold: analysis.DefectFree's
+// PatternTable field carries one of two legal string literals,
+// "SDPatternsWordBoundary" and "SDPatternsNoBracketDiscount"
+// (internal/harness/analysis/adjudication.go's own legalPatternTables,
+// which must not import internal/engine), and nothing checks that
+// either name still resolves to a real table in package matcher. This
+// test does, in CheckUnidecodeVersion's shape: the harness reads both
+// sides, so a rename in matcher cannot orphan the ledger silently.
+func TestPatternTableNamesResolve(t *testing.T) {
+	tables := map[string][]matcher.SDPattern{
+		"SDPatternsWordBoundary":      matcher.SDPatternsWordBoundary,
+		"SDPatternsNoBracketDiscount": matcher.SDPatternsNoBracketDiscount,
+	}
+	for name, table := range tables {
+		if len(table) == 0 {
+			t.Errorf("pattern table %q resolves to an empty []matcher.SDPattern", name)
+		}
+	}
+}

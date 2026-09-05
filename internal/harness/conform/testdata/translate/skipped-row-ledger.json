@@ -1,0 +1,26 @@
+{
+  "shim_version": "1",
+  "beets_version": "2.13.1",
+  "rows": [
+    {
+      "case_id": "clean-match",
+      "release_mbid": "00000000-0000-0000-0000-000000000000",
+      "album": {
+        "artist": null,
+        "album": null,
+        "va": null,
+        "media": null,
+        "mediums": null,
+        "year": null,
+        "original_year": null,
+        "country": null,
+        "label": null,
+        "catalognum": null,
+        "albumdisambig": null,
+        "album_id": null,
+        "data_source": null,
+        "tracks": []
+      }
+    }
+  ]
+}

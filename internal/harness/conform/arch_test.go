@@ -68,7 +68,10 @@ func checkNoHarnessImports(root string) error {
 // file and position) if any file calls time.Now: the evaluation date
 // is an explicit parameter on the album-distance call (contract 9),
 // never a clock read. A testdata subtree is skipped entirely, for the
-// same reason checkNoHarnessImports skips one.
+// same reason checkNoHarnessImports skips one. The walk descends into
+// every subdirectory under root, not only root itself, which is what
+// lets root widen from internal/engine/matcher to internal/engine
+// without missing a package the widening added (R21).
 func checkNoTimeNow(root string) error {
 	var errs []error
 	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
@@ -104,7 +107,7 @@ func checkNoTimeNow(root string) error {
 			}
 			ident, ok := sel.X.(*ast.Ident)
 			if ok && ident.Name == timeName && sel.Sel.Name == "Now" {
-				errs = append(errs, fmt.Errorf("%s:%s: calls time.Now, which internal/engine/matcher must never do", path, fset.Position(call.Pos())))
+				errs = append(errs, fmt.Errorf("%s:%s: calls time.Now, which internal/engine must never do", path, fset.Position(call.Pos())))
 			}
 			return true
 		})
@@ -142,10 +145,12 @@ func TestEngineNeverImportsHarness(t *testing.T) {
 	}
 }
 
-// TestMatcherNeverReadsTheClock checks the real tree: nothing under
-// internal/engine/matcher calls time.Now.
-func TestMatcherNeverReadsTheClock(t *testing.T) {
-	root := filepath.Join(repoRoot(t), "internal", "engine", "matcher")
+// TestEngineNeverReadsTheClock checks the real tree: nothing under
+// internal/engine, matcher or musicbrainz alike, calls time.Now (R21:
+// widened from internal/engine/matcher now that musicbrainz sits
+// beside it under the same no-clock-read invariant).
+func TestEngineNeverReadsTheClock(t *testing.T) {
+	root := filepath.Join(repoRoot(t), "internal", "engine")
 	if err := checkNoTimeNow(root); err != nil {
 		t.Error(err)
 	}
@@ -178,5 +183,24 @@ func TestTimeNowCheckFiresOnItsOwnFixture(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "time.Now") {
 		t.Errorf("error does not name the violation: %v", err)
+	}
+}
+
+// TestTimeNowCheckDescendsIntoNestedPackages proves the walk descends
+// into a subdirectory rather than only scanning the root (R21): the
+// violation in testdata/arch/time-now-nested/musicbrainz/events.go
+// fires when the root is the tree above it, and the walk narrowed back
+// to the root alone must miss it.
+func TestTimeNowCheckDescendsIntoNestedPackages(t *testing.T) {
+	root := filepath.Join("testdata", "arch", "time-now-nested")
+	err := checkNoTimeNow(root)
+	if err == nil {
+		t.Fatal("expected checkNoTimeNow to descend into the nested fixture package and fire")
+	}
+	if !strings.Contains(err.Error(), "time.Now") {
+		t.Errorf("error does not name the violation: %v", err)
+	}
+	if !strings.Contains(err.Error(), filepath.Join("musicbrainz", "events.go")) {
+		t.Errorf("error does not name the nested file: %v", err)
 	}
 }
