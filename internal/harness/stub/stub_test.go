@@ -150,3 +150,51 @@ func TestServerEphemeralPortLifecycle(t *testing.T) {
 		t.Error("request after Close succeeded, want a connection error")
 	}
 }
+
+func TestExtraChannelSeparatesConsumptionsFromMisses(t *testing.T) {
+	c, err := cassette.LoadCase(filepath.Join("testdata", "extra-channel"))
+	if err != nil {
+		t.Fatalf("LoadCase(testdata/extra-channel): %v", err)
+	}
+	srv, err := New(c, filepath.Join("testdata", "extra-channel"))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = srv.Close() }()
+
+	tests := []struct {
+		name         string
+		pathQuery    string
+		wantMisses   int
+		wantConsumed int
+		wantStatus   int
+	}{
+		{"answered by the request map", c.Requests[0].PathQuery, 0, 0, http.StatusOK},
+		{"answered by the extra map", c.Extra[0].PathQuery, 0, 1, http.StatusOK},
+		{"answered by neither", "/ws/2/release/00000000-0000-0000-0000-000000000000?fmt=json", 1, 1, http.StatusNotFound},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := http.Get("http://" + srv.Addr() + tt.pathQuery) //nolint:gosec // fixed loopback test address
+			if err != nil {
+				t.Fatalf("GET %s: %v", tt.pathQuery, err)
+			}
+			_ = resp.Body.Close()
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("status = %d, want %d", resp.StatusCode, tt.wantStatus)
+			}
+			if got := len(srv.Misses()); got != tt.wantMisses {
+				t.Errorf("cumulative Misses() = %d, want %d", got, tt.wantMisses)
+			}
+			if got := len(srv.Consumed()); got != tt.wantConsumed {
+				t.Errorf("cumulative Consumed() = %d, want %d", got, tt.wantConsumed)
+			}
+		})
+	}
+	// len first, then the element: guarding the comparison on the
+	// length it should be asserting lets an empty or two-entry
+	// Consumed() pass silently (fold m5).
+	if got := srv.Consumed(); len(got) != 1 || got[0] != c.Extra[0] {
+		t.Errorf("Consumed() = %+v, want exactly the one Extra entry %+v", got, c.Extra[0])
+	}
+}

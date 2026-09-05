@@ -3,6 +3,15 @@
 // its musicbrainz.host at a fixed, offline fixture set instead of the
 // live API. A request the case's log does not cover gets a 404 and is
 // recorded, never silently made up.
+//
+// A [cassette.Case.Extra] entry is answered too, but never counted as a
+// miss: it is a recall-extension fixture (U8), a response the case
+// captured that no logged request consumes. Because an Extra entry is
+// by construction a response the current flow does not request,
+// answering from it never changes what a caller pointed at
+// [internal/harness/oracle.Derive] receives, so the second map is inert
+// for every derivation this pass can run: zero of the corpus's
+// committed cases carry an extra key.
 package stub
 
 import (
@@ -39,13 +48,35 @@ type Miss struct {
 
 // Server replays one [cassette.Case] over HTTP on an ephemeral loopback
 // port. Close it when done; it does not stop itself.
+//
+// It answers from two maps. The request map is the case's committed
+// log, which is an expectation: a request it does not cover is a
+// [Miss], and a conformance run leaving a non-empty miss list fails.
+// The extra map is the case's recall-extension fixtures
+// ([cassette.Case.Extra], U8): answering from it is neither a miss nor
+// a failure, and every such answer is reported through [Server.Consumed]
+// so a future candidate-widening improvement is graded on the shared
+// subset rather than escaping the harness (rung 3 spec, the B2 fold).
+// The request map is consulted first; [cassette.LoadCase] rejects a
+// case whose two maps would share a key, so the order is a stated rule
+// rather than a tiebreak.
 type Server struct {
 	listener  net.Listener
 	http      *http.Server
 	responses map[key][]byte
+	extra     map[key]extraEntry
 
-	mu     sync.Mutex
-	misses []Miss
+	mu       sync.Mutex
+	misses   []Miss
+	consumed []cassette.Request
+}
+
+// extraEntry is one recall-extension response and the log entry that
+// names it, kept together so [Server.Consumed] reports the entry
+// rather than a reconstructed shape.
+type extraEntry struct {
+	request cassette.Request
+	body    []byte
 }
 
 // New reads c's referenced response files from dir (the case's own
@@ -61,12 +92,21 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 		responses[key{method: req.Method, pathQuery: req.PathQuery}] = body
 	}
 
+	extra := make(map[key]extraEntry, len(c.Extra))
+	for _, req := range c.Extra {
+		body, err := os.ReadFile(filepath.Join(dir, req.Response))
+		if err != nil {
+			return nil, fmt.Errorf("stub: read extra response %q: %w", req.Response, err)
+		}
+		extra[key{method: req.Method, pathQuery: req.PathQuery}] = extraEntry{request: req, body: body}
+	}
+
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, fmt.Errorf("stub: listen: %w", err)
 	}
 
-	s := &Server{listener: ln, responses: responses}
+	s := &Server{listener: ln, responses: responses, extra: extra}
 	s.http = &http.Server{Handler: s}
 	go func() {
 		// http.Server.Serve returns ErrServerClosed once Close stops the
@@ -77,17 +117,25 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 }
 
 // ServeHTTP replays the response filed under the request's canonical
-// path+query, or records a [Miss] and answers 404.
+// path+query: from the request map first, then the extra map, or
+// records a [Miss] and answers 404 if neither carries it.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	pathQuery := canonicalize(r.URL.EscapedPath(), r.URL.RawQuery)
-	body, ok := s.responses[key{method: r.Method, pathQuery: pathQuery}]
-	if !ok {
-		s.recordMiss(r.Method, pathQuery)
-		w.WriteHeader(http.StatusNotFound)
+	k := key{method: r.Method, pathQuery: pathQuery}
+
+	if body, ok := s.responses[k]; ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(body) //nolint:errcheck // best-effort write to a replay stub; the client sees a truncated body either way
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(body) //nolint:errcheck // best-effort write to a replay stub; the client sees a truncated body either way
+	if entry, ok := s.extra[k]; ok {
+		s.recordConsumed(entry.request)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(entry.body) //nolint:errcheck // best-effort write to a replay stub; the client sees a truncated body either way
+		return
+	}
+	s.recordMiss(r.Method, pathQuery)
+	w.WriteHeader(http.StatusNotFound)
 }
 
 func (s *Server) recordMiss(method, pathQuery string) {
@@ -96,12 +144,28 @@ func (s *Server) recordMiss(method, pathQuery string) {
 	s.misses = append(s.misses, Miss{Method: method, PathQuery: pathQuery})
 }
 
+func (s *Server) recordConsumed(req cassette.Request) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.consumed = append(s.consumed, req)
+}
+
 // Misses returns every unmatched request the server has received so
 // far, in the order it received them.
 func (s *Server) Misses() []Miss {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return slices.Clone(s.misses)
+}
+
+// Consumed returns every [cassette.Case.Extra] entry the server has
+// answered so far, in the order it answered them. It is deliberately
+// distinct from [Server.Misses]: an Extra hit is a reportable event,
+// never a failure.
+func (s *Server) Consumed() []cassette.Request {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.consumed)
 }
 
 // Addr returns the server's host:port, suitable for a beets
