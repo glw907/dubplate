@@ -39,7 +39,7 @@ func TestAddDropsAZeroTrackDuplicateAndLeavesTheAdmittedCandidateIntact(t *testi
 		t.Fatalf("Len = %d, want 1", c.Len())
 	}
 	if got := c.All()[0].Info; got != good {
-		t.Error("the admitted candidate was replaced; the zero-track gate must run before the duplicate gate")
+		t.Error("the zero-track duplicate replaced the admitted candidate; a dropped candidate must leave the stored one untouched")
 	}
 }
 
