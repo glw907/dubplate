@@ -138,6 +138,14 @@ func AlbumPairsFor(a Assignment, items []ItemFields, info *AlbumInfo) []AlbumPai
 // against the pinned solver (contract V5) rather than the
 // (rows+cols, max+1) recipe derive_ties.py's docstring assumes, which
 // disagrees with this lap build on 30% of rectangular ties.
+//
+// The reproduction is exact rather than merely optimal: a matrix with
+// several equally cheap assignments has to come back with the one lap
+// 0.5.13 returns, because two committed corpus cases record that choice
+// and nothing but the pivot order decides it. The three routines below
+// are that solver's own, in its own order, and
+// testdata/lapjv-optima.json freezes 404 of its answers as the
+// differential evidence.
 func solveLAP(costs [][]float64) []int {
 	rows := len(costs)
 	if rows == 0 {
@@ -373,7 +381,13 @@ func findPath(c [][]float64, start int, y []int, v []float64, pred []int) int {
 		}
 	}
 
-	minD = d[cols[lo]]
+	// The path's own length prices the columns the search settled, and
+	// it is read off the ending column rather than off the scan list's
+	// head: the two agree only while the path ends on a column the last
+	// scan admitted, and they part the moment the augmentation's inner
+	// loop finds an unassigned column at the current minimum, which is
+	// the pivot lap takes on the should-reject matrix.
+	minD = d[final]
 	for _, j := range cols[:ready] {
 		v[j] += d[j] - minD
 	}
