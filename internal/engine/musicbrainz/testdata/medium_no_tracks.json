@@ -1,0 +1,18 @@
+{
+  "id": "rel-medium-no-tracks",
+  "title": "Medium With No Tracks",
+  "status": "Official",
+  "artist-credit": [
+    {"name": "Artist A", "joinphrase": "", "artist": {"id": "artist-a", "name": "Artist A", "sort-name": "A, Artist"}}
+  ],
+  "media": [
+    {
+      "position": 1,
+      "title": "",
+      "format": "CD",
+      "track-count": 0
+    }
+  ],
+  "release-group": {"id": "rg-1", "title": "Medium With No Tracks"},
+  "relations": []
+}

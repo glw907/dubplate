@@ -1,0 +1,33 @@
+{
+  "id": "rel-empty-release-credit",
+  "title": "No Release Credit",
+  "status": "Official",
+  "artist-credit": [],
+  "media": [
+    {
+      "position": 1,
+      "title": "",
+      "format": "CD",
+      "track-count": 1,
+      "tracks": [
+        {
+          "id": "track-1",
+          "position": 1,
+          "number": "1",
+          "title": "Track One",
+          "artist-credit": [],
+          "recording": {
+            "id": "rec-1",
+            "title": "Track One",
+            "video": false,
+            "artist-credit": [
+              {"name": "Artist A", "joinphrase": "", "artist": {"id": "artist-a", "name": "Artist A", "sort-name": "A, Artist"}}
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "release-group": {"id": "rg-1", "title": "No Release Credit"},
+  "relations": []
+}

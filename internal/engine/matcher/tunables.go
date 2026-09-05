@@ -186,6 +186,25 @@ type Tunables struct {
 	// (config_default.yaml:34).
 	NoneRecAction string
 
+	// VAName is the va_name config key: the artist string every
+	// artist field is overwritten with on a various-artists release
+	// (beetsplug/musicbrainz.py:673-681). Default "Various Artists"
+	// (config_default.yaml:106). It moves no distance, because the
+	// album artist component is skipped entirely when AlbumInfo.VA
+	// (album_artist.go:13-15). It does move AlbumInfo.Artist, which
+	// the ruling-E ledger grades field by field, so it is a tunable
+	// here rather than a literal in the translation layer. No
+	// committed case echoes it, so the M1 defaults cross-check cannot
+	// cover it; its coverage is this package's own unit test and the
+	// translation layer's VA test.
+	//
+	// musicbrainz.aliases_as_credits is deliberately NOT here: it
+	// selects only which object supplies artist_credit
+	// (musicbrainz.py:311-313), and artist_credit is neither in
+	// AlbumInfo nor in the ledger's graded set, so the translation
+	// never reads it.
+	VAName string
+
 	// StringDistPatterns is the SD_PATTERNS table string_dist's
 	// pattern loop runs, defaulting to [BeetsSDPatterns]. It exists as
 	// a field, not a package-level constant a component reads
@@ -271,6 +290,7 @@ func DefaultTunables() Tunables {
 		Quiet:              false,
 		QuietFallback:      "skip",
 		NoneRecAction:      "ask",
+		VAName:             "Various Artists",
 		StringDistPatterns: BeetsSDPatterns,
 	}
 }

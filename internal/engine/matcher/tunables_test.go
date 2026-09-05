@@ -143,6 +143,16 @@ func TestDefaultTunables_OutsideMatch(t *testing.T) {
 	}
 }
 
+// TestDefaultTunables_VAName pins va_name's shipped default
+// (config_default.yaml:106), the string every artist field is
+// overwritten with on a various-artists release.
+func TestDefaultTunables_VAName(t *testing.T) {
+	got := DefaultTunables().VAName
+	if got != "Various Artists" {
+		t.Errorf("VAName = %q, want %q", got, "Various Artists")
+	}
+}
+
 func TestDefaultTunables_ExcludedKeysStayAbsent(t *testing.T) {
 	got := DefaultTunables()
 	if len(got.Ignored) != 0 {
