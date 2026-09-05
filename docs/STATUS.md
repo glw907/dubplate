@@ -22,9 +22,11 @@ registry below, not `pgrep`. Box is production; quiet-box check before writes.
 
 ## Lane registry
 
-- lane-1 (code, main tree): IDLE. Next action: **pass 3c** (WS/2 client, Lucene
-  query construction, the limiter, the stub's `Case.Extra` replay channel),
-  planned just-in-time. 3d needs all three.
+- lane-1 (code, main tree): PREP for **pass 3c** (WS/2 client, Lucene query
+  construction, the limiter, the stub's `Case.Extra` replay channel). The
+  plan-prep workflow `wf_ede6e00d-bee` writes only the 3c planning
+  inventory, plan, and plan review under `docs/superpowers/`; if
+  interrupted, relaunch fresh or land what exists. 3d needs all three.
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land. Doc
   lane (main tree): IDLE; Phase 0a is complete.
 
