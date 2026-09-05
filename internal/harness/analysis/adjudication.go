@@ -104,6 +104,23 @@ type AdjudicationLedger struct {
 	Entries []AdjudicationEntry `json:"entries"`
 }
 
+// BySubjectCase indexes the ledger's case-subject rows by case id. A row
+// whose subject is the album-plus-release-mbid shape rung 4's shadow
+// writes is omitted, because it has no case to join on.
+//
+// It is exported because two checkers need it: CheckDefectFree's probe
+// walk, which built this map privately, and CheckOracleBugs' probe-case
+// rule (rung 3 spec, the B3 fold).
+func (l *AdjudicationLedger) BySubjectCase() map[string]AdjudicationEntry {
+	rows := make(map[string]AdjudicationEntry, len(l.Entries))
+	for _, e := range l.Entries {
+		if e.Subject.CaseID != "" {
+			rows[e.Subject.CaseID] = e
+		}
+	}
+	return rows
+}
+
 // LoadAdjudications reads corpus/analysis/adjudications.json from path.
 func LoadAdjudications(path string) (*AdjudicationLedger, error) {
 	var l AdjudicationLedger
@@ -221,12 +238,7 @@ func CheckDefectFree(bugs *OracleBugLedger, adj *AdjudicationLedger) error {
 		byID[e.ID] = e
 	}
 
-	rows := make(map[string]AdjudicationEntry, len(adj.Entries))
-	for _, e := range adj.Entries {
-		if e.Subject.CaseID != "" {
-			rows[e.Subject.CaseID] = e
-		}
-	}
+	rows := adj.BySubjectCase()
 
 	var errs []error
 	probeCases := make(map[string]bool)

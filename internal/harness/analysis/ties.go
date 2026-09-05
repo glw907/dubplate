@@ -63,6 +63,17 @@ type TieEntry struct {
 	Unique            bool    `json:"unique"`
 	Disposition       string  `json:"disposition,omitempty"` // excluded | pinned; required when Unique is false, forbidden on a skipped row
 	Reason            string  `json:"reason,omitempty"`      // required when Disposition is set, or when Status is skipped
+
+	// Adjudicator names who set Disposition, required whenever
+	// Disposition is set. The AgentAdjudicator sentinel is refused for
+	// TieExcluded and ACCEPTED for TiePinned, and the asymmetry is
+	// deliberate rather than an oversight: pinned keeps a case graded
+	// while excluded stops grading it, so only the second can hide a
+	// defect behind a disposition an agent chose. Requiring a human name
+	// on pinned too would force an owner sitting immediately, because
+	// the two committed pinned rows were authored by an agent (rung 3
+	// spec, ruling F's M4 fold).
+	Adjudicator string `json:"adjudicator,omitempty"`
 }
 
 // LoadTieLedger reads corpus/analysis/ties.json from path.
@@ -138,6 +149,11 @@ func checkTieEntry(e TieEntry) []error {
 	if e.Reason == "" {
 		errs = append(errs, fmt.Errorf("tie ledger: %s: tied and dispositioned with no reason", e.CaseID))
 	}
+	if e.Adjudicator == "" {
+		errs = append(errs, fmt.Errorf("tie ledger: %s: adjudicator: missing", e.CaseID))
+	} else if e.Disposition == TieExcluded && e.Adjudicator == AgentAdjudicator {
+		errs = append(errs, fmt.Errorf("tie ledger: %s: excluded by adjudicator %q, but only a human name may exclude a tied case", e.CaseID, e.Adjudicator))
+	}
 	return errs
 }
 
@@ -153,8 +169,37 @@ func checkSkippedTieEntry(e TieEntry) []error {
 	if e.Disposition != "" {
 		errs = append(errs, fmt.Errorf("tie ledger: %s: skipped, but carries disposition %q; a skipped case is never tied", e.CaseID, e.Disposition))
 	}
+	if e.Adjudicator != "" {
+		errs = append(errs, fmt.Errorf("tie ledger: %s: skipped, but carries adjudicator %q; a skipped case is never dispositioned", e.CaseID, e.Adjudicator))
+	}
 	if e.Reason == "" {
 		errs = append(errs, fmt.Errorf("tie ledger: %s: skipped with no reason", e.CaseID))
 	}
 	return errs
+}
+
+// MergeTieDispositions carries the hand-written fields a fresh
+// derivation cannot produce (Disposition, Reason and Adjudicator) from
+// prior onto derived, matching by case id, and returns derived.
+//
+// It is untagged and lives here rather than beside the derivation
+// because every file in internal/harness/oracle is //go:build oracle, so
+// a helper there could never be exercised by scripts/check.sh.
+// derive_ties.py emits six measured fields and never a disposition
+// (internal/harness/oracle/derive_ties.py:118-126), so without this
+// carry-forward `make derive -update-ledgers` silently erases every
+// hand-written field, and the gate could not see it happen.
+func MergeTieDispositions(derived []TieEntry, prior *TieLedger) []TieEntry {
+	byCase := make(map[string]TieEntry, len(prior.Entries))
+	for _, e := range prior.Entries {
+		byCase[e.CaseID] = e
+	}
+	for i, e := range derived {
+		if p, ok := byCase[e.CaseID]; ok {
+			derived[i].Disposition = p.Disposition
+			derived[i].Reason = p.Reason
+			derived[i].Adjudicator = p.Adjudicator
+		}
+	}
+	return derived
 }

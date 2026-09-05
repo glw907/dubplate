@@ -1,0 +1,15 @@
+{
+  "entries": [
+    {
+      "id": "adj-probe-a",
+      "subject": {"case_id": "probe-a"},
+      "suspected": "fixture",
+      "citation": "fixture",
+      "release_truth": "fixture",
+      "disposition": "oracle-correct",
+      "reason": "fixture",
+      "adjudicator": "Geoff",
+      "date": "2026-09-05"
+    }
+  ]
+}

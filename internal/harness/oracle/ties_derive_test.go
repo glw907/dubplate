@@ -89,6 +89,7 @@ func TestTieLedgerMatchesTheCorpus(t *testing.T) {
 		}
 		want := committed.Entries[i]
 		want.Disposition, want.Reason = got.Disposition, got.Reason
+		want.Adjudicator = got.Adjudicator
 		if want != got {
 			t.Errorf("re-measurement diverges from the committed row for %s:\nwant: %+v\ngot:  %+v", got.CaseID, want, got)
 		}
@@ -133,13 +134,7 @@ func TestDeriveTiesSkipsARecordWithNoCandidate(t *testing.T) {
 func writeTieLedger(t *testing.T, path string, entries []analysis.TieEntry) {
 	t.Helper()
 	if prior, err := analysis.LoadTieLedger(path); err == nil {
-		for i, e := range entries {
-			j := slices.IndexFunc(prior.Entries, func(p analysis.TieEntry) bool { return p.CaseID == e.CaseID })
-			if j >= 0 {
-				entries[i].Disposition = prior.Entries[j].Disposition
-				entries[i].Reason = prior.Entries[j].Reason
-			}
-		}
+		entries = analysis.MergeTieDispositions(entries, prior)
 	}
 
 	data, err := json.MarshalIndent(analysis.TieLedger{Entries: entries}, "", "  ")

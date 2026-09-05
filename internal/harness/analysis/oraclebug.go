@@ -49,14 +49,29 @@ func LoadOracleBugs(path string) (*OracleBugLedger, error) {
 
 // CheckOracleBugs proves every row's probe case ids resolve to a
 // committed corpus case, every adjudication_refs entry resolves to a
-// row in adjudicationIDs, a row reproduced "yes" names at least one
-// adjudication row, and the same owner-only disposition rule
-// [CheckAdjudications] enforces.
-func CheckOracleBugs(caseIDs []string, adjudicationIDs map[string]bool, l *OracleBugLedger) error {
+// row in adj, a row reproduced "yes" names at least one adjudication
+// row, the same owner-only disposition rule CheckAdjudications
+// enforces, and that EVERY probe case of a hypothesis at OracleWrong
+// resolves to an adjudication row by subject.case_id.
+//
+// That last rule is the B3 fold. Oracle-bug rows are per hypothesis and
+// adjudication rows are per case, so a hypothesis ruled oracle-wrong
+// whose probe case carries no row would have no corrected verdict to
+// produce and would be silently ungraded at the conformance gate. It
+// takes the whole adjudication ledger rather than an id set because it
+// needs both indexes, the row ids for adjudication_refs and the subject
+// index for the probe rule, and building them here beats threading two
+// maps through every caller.
+func CheckOracleBugs(caseIDs []string, adj *AdjudicationLedger, l *OracleBugLedger) error {
 	known := make(map[string]bool, len(caseIDs))
 	for _, id := range caseIDs {
 		known[id] = true
 	}
+	adjudicationIDs := make(map[string]bool, len(adj.Entries))
+	for _, e := range adj.Entries {
+		adjudicationIDs[e.ID] = true
+	}
+	bySubject := adj.BySubjectCase()
 
 	var errs []error
 	seen := make(map[string]bool, len(l.Entries))
@@ -68,6 +83,13 @@ func CheckOracleBugs(caseIDs []string, adjudicationIDs map[string]bool, l *Oracl
 		}
 		seen[e.ID] = true
 		errs = append(errs, checkOracleBugEntry(known, adjudicationIDs, e)...)
+		if e.Disposition == OracleWrong {
+			for _, caseID := range e.ProbeCaseIDs {
+				if _, ok := bySubject[caseID]; !ok {
+					errs = append(errs, fmt.Errorf("oracle bugs: %s: probe case %q: no adjudication row", e.ID, caseID))
+				}
+			}
+		}
 	}
 	return errors.Join(errs...)
 }

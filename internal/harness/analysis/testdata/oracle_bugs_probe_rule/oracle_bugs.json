@@ -1,0 +1,37 @@
+{
+  "entries": [
+    {
+      "id": "resolved",
+      "bug_class": "fixture: an oracle-wrong hypothesis whose probe resolves",
+      "citation": "fixture",
+      "probe_case_ids": ["probe-a"],
+      "reproduced": "no",
+      "disposition": "oracle-wrong",
+      "reason": "fixture: proves the probe-case rule passes when every probe resolves",
+      "adjudicator": "Geoff",
+      "date": "2026-09-05"
+    },
+    {
+      "id": "unresolved",
+      "bug_class": "fixture: an oracle-wrong hypothesis whose probe carries no row",
+      "citation": "fixture",
+      "probe_case_ids": ["probe-b"],
+      "reproduced": "no",
+      "disposition": "oracle-wrong",
+      "reason": "fixture: proves the probe-case rule fires when a probe has no adjudication row",
+      "adjudicator": "Geoff",
+      "date": "2026-09-05"
+    },
+    {
+      "id": "correct-unresolved",
+      "bug_class": "fixture: an oracle-correct hypothesis whose probe carries no row",
+      "citation": "fixture",
+      "probe_case_ids": ["probe-c"],
+      "reproduced": "no",
+      "disposition": "oracle-correct",
+      "reason": "fixture: proves the probe-case rule never reaches an oracle-correct hypothesis",
+      "adjudicator": "Geoff",
+      "date": "2026-09-05"
+    }
+  ]
+}

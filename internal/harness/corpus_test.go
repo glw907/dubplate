@@ -394,16 +394,12 @@ func TestOracleBugsLedgerIsWellFormed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load adjudications ledger: %v", err)
 	}
-	adjIDs := make(map[string]bool, len(adjLedger.Entries))
-	for _, e := range adjLedger.Entries {
-		adjIDs[e.ID] = true
-	}
 
 	bugs, err := analysis.LoadOracleBugs(filepath.Join(root, "corpus", "analysis", "oracle_bugs.json"))
 	if err != nil {
 		t.Fatalf("load oracle bugs ledger: %v", err)
 	}
-	if err := analysis.CheckOracleBugs(ids, adjIDs, bugs); err != nil {
+	if err := analysis.CheckOracleBugs(ids, adjLedger, bugs); err != nil {
 		t.Error(err)
 	}
 }
