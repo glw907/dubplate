@@ -1,0 +1,69 @@
+[
+  {
+    "name": "tracks counts the items rather than reading a field",
+    "extra_tags": ["tracks"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast"},
+      {"artist": "Northline", "album": "Static Coast"},
+      {"artist": "Northline", "album": "Static Coast"}
+    ],
+    "want": "release:(static coast) artist:(northline) tracks:(3)"
+  },
+  {
+    "name": "alias repeats the album name",
+    "extra_tags": ["alias"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast"}
+    ],
+    "want": "release:(static coast) artist:(northline) alias:(static coast)"
+  },
+  {
+    "name": "catalognum loses every space",
+    "extra_tags": ["catalognum"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast", "catalognum": "ABC 123"}
+    ],
+    "want": "release:(static coast) artist:(northline) catno:(abc123)"
+  },
+  {
+    "name": "an unset year ships as date:(0)",
+    "extra_tags": ["year"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast"}
+    ],
+    "want": "release:(static coast) artist:(northline) date:(0)"
+  },
+  {
+    "name": "two tags hold the operator's order, not the MusicBrainz keys' order",
+    "extra_tags": ["media", "label"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast", "media": "CD", "label": "Harbor Records"}
+    ],
+    "want": "release:(static coast) artist:(northline) format:(cd) label:(harbor records)"
+  },
+  {
+    "name": "a repeated tag emits one criterion",
+    "extra_tags": ["tracks", "tracks"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast"},
+      {"artist": "Northline", "album": "Static Coast"}
+    ],
+    "want": "release:(static coast) artist:(northline) tracks:(2)"
+  },
+  {
+    "name": "a tag outside FIELDS_TO_MB_KEYS contributes nothing",
+    "extra_tags": ["genre", "tracks"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast", "media": "CD"}
+    ],
+    "want": "release:(static coast) artist:(northline) tracks:(1)"
+  },
+  {
+    "name": "an empty configured value drops its own criterion only",
+    "extra_tags": ["label", "media"],
+    "items": [
+      {"artist": "Northline", "album": "Static Coast", "media": "CD"}
+    ],
+    "want": "release:(static coast) artist:(northline) format:(cd)"
+  }
+]

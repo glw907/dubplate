@@ -1,8 +1,8 @@
 // Package musicbrainz translates an already-decoded MusicBrainz WS/2
-// release into the matcher's vocabulary (internal/engine/matcher). It
-// issues no requests of its own: the client, the Lucene query
-// construction, and the rate limiter are 3c's territory, and nothing
-// here reaches the network.
+// release into the matcher's vocabulary (internal/engine/matcher) and
+// builds the Lucene album search query that asks for one (query.go). It
+// issues no requests of its own: the client and the rate limiter are 3c's
+// remaining territory, and nothing here reaches the network.
 //
 // Two things this package deliberately does not do. First, the browse
 // fallback beets calls _ensure_complete_recordings

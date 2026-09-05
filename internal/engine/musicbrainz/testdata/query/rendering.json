@@ -1,0 +1,60 @@
+{
+  "escape": [
+    {"name": "hyphen", "in": "a-b", "want": "a\\-b"},
+    {"name": "plus", "in": "a+b", "want": "a\\+b"},
+    {"name": "ampersand", "in": "a&b", "want": "a\\&b"},
+    {"name": "pipe", "in": "a|b", "want": "a\\|b"},
+    {"name": "bang", "in": "a!b", "want": "a\\!b"},
+    {"name": "open paren", "in": "a(b", "want": "a\\(b"},
+    {"name": "close paren", "in": "a)b", "want": "a\\)b"},
+    {"name": "open brace", "in": "a{b", "want": "a\\{b"},
+    {"name": "close brace", "in": "a}b", "want": "a\\}b"},
+    {"name": "open bracket", "in": "a[b", "want": "a\\[b"},
+    {"name": "close bracket", "in": "a]b", "want": "a\\]b"},
+    {"name": "caret", "in": "a^b", "want": "a\\^b"},
+    {"name": "double quote", "in": "a\"b", "want": "a\\\"b"},
+    {"name": "tilde", "in": "a~b", "want": "a\\~b"},
+    {"name": "asterisk", "in": "a*b", "want": "a\\*b"},
+    {"name": "question mark", "in": "a?b", "want": "a\\?b"},
+    {"name": "colon", "in": "a:b", "want": "a\\:b"},
+    {"name": "backslash", "in": "a\\b", "want": "a\\\\b"},
+    {"name": "forward slash", "in": "a/b", "want": "a\\/b"},
+
+    {"name": "apostrophe is absent from the class", "in": "founder's creek", "want": "founder's creek"},
+    {"name": "comma is absent from the class", "in": "no. 9, choral", "want": "no. 9, choral"},
+    {"name": "period is absent from the class", "in": "a.b", "want": "a.b"},
+    {"name": "semicolon is absent from the class", "in": "a;b", "want": "a;b"},
+    {"name": "less than is absent from the class", "in": "a<b", "want": "a<b"},
+    {"name": "greater than is absent from the class", "in": "a>b", "want": "a>b"},
+    {"name": "equals is absent from the class", "in": "a=b", "want": "a=b"},
+    {"name": "hash is absent from the class", "in": "a#b", "want": "a#b"},
+    {"name": "percent is absent from the class", "in": "a%b", "want": "a%b"},
+    {"name": "at sign is absent from the class", "in": "a@b", "want": "a@b"},
+    {"name": "dollar sign is absent from the class", "in": "a$b", "want": "a$b"}
+  ],
+
+  "format": [
+    {"name": "empty term drops the criterion", "field": "release", "in": "", "want": ""},
+    {"name": "whitespace-only term drops the criterion", "field": "release", "in": "  \t ", "want": ""},
+    {"name": "empty field returns the bare escaped term", "field": "", "in": "Bob Dylan - The Bootleg", "want": "bob dylan \\- the bootleg"},
+    {"name": "the wrapper's own colon and parens survive unescaped", "field": "release", "in": "Frank Zappa: Cucamonga", "want": "release:(frank zappa\\: cucamonga)"},
+    {"name": "a paren inside the term is escaped inside unescaped wrappers", "field": "release", "in": "Live (1975)", "want": "release:(live \\(1975\\))"},
+    {"name": "the term is lowered and stripped before the wrapper", "field": "artist", "in": "  Vienna Philharmonic  ", "want": "artist:(vienna philharmonic)"}
+  ],
+
+  "trim": [
+    {"name": "U+001C file separator", "in": "\u001cnimbus\u001c", "want": "nimbus"},
+    {"name": "U+001D group separator", "in": "\u001dnimbus\u001d", "want": "nimbus"},
+    {"name": "U+001E record separator", "in": "\u001enimbus\u001e", "want": "nimbus"},
+    {"name": "U+001F unit separator", "in": "\u001fnimbus\u001f", "want": "nimbus"},
+    {"name": "U+0085 next line", "in": "\u0085nimbus\u0085", "want": "nimbus"},
+    {"name": "U+00A0 no-break space", "in": "\u00a0nimbus\u00a0", "want": "nimbus"},
+    {"name": "ordinary spaces and tabs", "in": " \tnimbus\n ", "want": "nimbus"},
+    {"name": "interior separators are left alone", "in": " salt\u001cline ", "want": "salt\u001cline"}
+  ],
+
+  "lower": [
+    {"name": "U+0130 lowers to a single i here and to i plus U+0307 in Python", "in": "İ", "want": "i"},
+    {"name": "ASCII lowers the same in both", "in": "OK Computer", "want": "ok computer"}
+  ]
+}
