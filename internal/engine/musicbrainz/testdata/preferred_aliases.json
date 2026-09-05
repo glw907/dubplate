@@ -1,0 +1,7 @@
+[
+  {"name": "JaNullPrimary", "sort-name": "JaNullPrimary", "locale": "ja", "primary": null, "type": "Artist name"},
+  {"name": "JaFirst", "sort-name": "JaFirst", "locale": "ja", "primary": true, "type": "Artist name"},
+  {"name": "JaSecond", "sort-name": "JaSecond", "locale": "ja", "primary": true, "type": "Search hint"},
+  {"name": "EnAlias", "sort-name": "EnAlias", "locale": "en", "primary": true, "type": null},
+  {"name": "JaUpperLocale", "sort-name": "JaUpperLocale", "locale": "JA", "primary": true, "type": null}
+]

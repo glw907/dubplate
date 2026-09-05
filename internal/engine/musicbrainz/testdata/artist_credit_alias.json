@@ -1,0 +1,14 @@
+[
+  {
+    "name": "CreditedName",
+    "joinphrase": "",
+    "artist": {
+      "id": "artist-real",
+      "name": "RealName",
+      "sort-name": "RealName, The",
+      "aliases": [
+        {"name": "AliasName", "sort-name": "AliasName", "locale": "ja", "primary": true, "type": "Artist name"}
+      ]
+    }
+  }
+]
