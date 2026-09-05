@@ -37,6 +37,11 @@ const noLabelSentinel = "[no label]"
 // TestNoCommittedReleaseReachesTheBrowseThreshold reads the corpus
 // directly, because this package has no channel to a request the
 // client (3c) has not issued.
+//
+// It returns an error wrapping ErrMalformedRelease when rel cannot be
+// translated at all; every other beets-raising site is handled as a
+// zero value and the reasons are recorded on Release and on the
+// functions concerned.
 func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, error) {
 	if err := rel.Validate(); err != nil {
 		return nil, err
