@@ -1,0 +1,1664 @@
+{
+  "shim_version": "1",
+  "beets_version": "2.13.1",
+  "rows": [
+    {
+      "case_id": "clean-match",
+      "release_mbid": "clean-match-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "clean-match-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "media-baseline",
+      "release_mbid": "media-baseline-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "media-baseline-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "media-uneven-split",
+      "release_mbid": "media-uneven-split-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "media-uneven-split-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "va-exact",
+      "release_mbid": "va-exact-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "va-exact-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "various-artists",
+      "release_mbid": "various-artists-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "various-artists-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "should-reject",
+      "release_mbid": "should-reject-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "should-reject-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "should-reject",
+      "release_mbid": "should-reject-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "should-reject-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "should-reject",
+      "release_mbid": "should-reject-release-2",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 2",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "should-reject-release-2",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "should-reject",
+      "release_mbid": "should-reject-release-3",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 3",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "should-reject-release-3",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "should-reject",
+      "release_mbid": "should-reject-release-4",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 4",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "should-reject-release-4",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "should-reject",
+      "release_mbid": "should-reject-release-5",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 5",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "should-reject-release-5",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "non-latin-pseudo-release",
+      "release_mbid": "non-latin-pseudo-release-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "non-latin-pseudo-release-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      },
+      "merged": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "JP",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "non-latin-pseudo-release-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "non-latin-pseudo-release",
+      "release_mbid": "non-latin-pseudo-release-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "non-latin-pseudo-release-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-zemfira",
+      "release_mbid": "real-nonlatin-zemfira-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-zemfira-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      },
+      "merged": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "JP",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-zemfira-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-zemfira",
+      "release_mbid": "real-nonlatin-zemfira-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-zemfira-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-zemfira-stock",
+      "release_mbid": "real-nonlatin-zemfira-stock-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-zemfira-stock-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      },
+      "merged": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "JP",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-zemfira-stock-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-zemfira-stock",
+      "release_mbid": "real-nonlatin-zemfira-stock-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-zemfira-stock-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-girls-generation",
+      "release_mbid": "real-nonlatin-girls-generation-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      },
+      "merged": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "JP",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-girls-generation",
+      "release_mbid": "real-nonlatin-girls-generation-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-girls-generation",
+      "release_mbid": "real-nonlatin-girls-generation-release-2",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 2",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-2",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-girls-generation",
+      "release_mbid": "real-nonlatin-girls-generation-release-3",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 3",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-3",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-girls-generation",
+      "release_mbid": "real-nonlatin-girls-generation-release-4",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 4",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-4",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-girls-generation",
+      "release_mbid": "real-nonlatin-girls-generation-release-5",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 5",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-girls-generation-release-5",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-anna-vissi-essential",
+      "release_mbid": "real-nonlatin-anna-vissi-essential-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-anna-vissi-essential-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-alla-pugacheva-vol1",
+      "release_mbid": "real-nonlatin-alla-pugacheva-vol1-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-alla-pugacheva-vol1-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-x-japan-art-of-life",
+      "release_mbid": "real-nonlatin-x-japan-art-of-life-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-x-japan-art-of-life-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "release_mbid": "real-nonlatin-utada-first-love-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "release_mbid": "real-nonlatin-utada-first-love-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "release_mbid": "real-nonlatin-utada-first-love-release-2",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 2",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-release-2",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "release_mbid": "real-nonlatin-utada-first-love-release-3",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 3",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-release-3",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "release_mbid": "real-nonlatin-utada-first-love-release-4",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 4",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-release-4",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love",
+      "release_mbid": "real-nonlatin-utada-first-love-release-5",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 5",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-release-5",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "release_mbid": "real-nonlatin-utada-first-love-locale-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-locale-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "release_mbid": "real-nonlatin-utada-first-love-locale-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-locale-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "release_mbid": "real-nonlatin-utada-first-love-locale-release-2",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 2",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-locale-release-2",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "release_mbid": "real-nonlatin-utada-first-love-locale-release-3",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 3",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-locale-release-3",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "release_mbid": "real-nonlatin-utada-first-love-locale-release-4",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 4",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-locale-release-4",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-utada-first-love-locale",
+      "release_mbid": "real-nonlatin-utada-first-love-locale-release-5",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 5",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-utada-first-love-locale-release-5",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-hamasaki-ayumi",
+      "release_mbid": "real-nonlatin-hamasaki-ayumi-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-hamasaki-ayumi-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-hamasaki-ayumi",
+      "release_mbid": "real-nonlatin-hamasaki-ayumi-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-hamasaki-ayumi-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-hamasaki-ayumi",
+      "release_mbid": "real-nonlatin-hamasaki-ayumi-release-2",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 2",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-hamasaki-ayumi-release-2",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-hamasaki-ayumi",
+      "release_mbid": "real-nonlatin-hamasaki-ayumi-release-3",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 3",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-hamasaki-ayumi-release-3",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-nonlatin-hamasaki-ayumi",
+      "release_mbid": "real-nonlatin-hamasaki-ayumi-release-4",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 4",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-nonlatin-hamasaki-ayumi-release-4",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-genre-metallica-master-of-puppets",
+      "release_mbid": "real-genre-metallica-master-of-puppets-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-genre-metallica-master-of-puppets-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-compilation-queen-greatest-hits-ii",
+      "release_mbid": "real-compilation-queen-greatest-hits-ii-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-compilation-queen-greatest-hits-ii-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "release_mbid": "real-noise-dylan-bootleg-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-noise-dylan-bootleg-release-0",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "release_mbid": "real-noise-dylan-bootleg-release-1",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-noise-dylan-bootleg-release-1",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "release_mbid": "real-noise-dylan-bootleg-release-2",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 2",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-noise-dylan-bootleg-release-2",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "release_mbid": "real-noise-dylan-bootleg-release-3",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 3",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-noise-dylan-bootleg-release-3",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "real-noise-dylan-bootleg",
+      "release_mbid": "real-noise-dylan-bootleg-release-4",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 4",
+        "va": false,
+        "media": "CD",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": "real-noise-dylan-bootleg-release-4",
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    }
+  ]
+}

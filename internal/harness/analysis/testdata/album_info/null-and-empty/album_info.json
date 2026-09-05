@@ -1,0 +1,68 @@
+{
+  "shim_version": "1",
+  "beets_version": "2.13.1",
+  "rows": [
+    {
+      "case_id": "clean-match",
+      "release_mbid": "clean-match-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 0",
+        "va": false,
+        "media": null,
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": null,
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "media-baseline",
+      "release_mbid": "media-baseline-release-0",
+      "album": {
+        "artist": "Invented Artist",
+        "album": "Invented Album 1",
+        "va": false,
+        "media": "",
+        "mediums": 1,
+        "year": 1999,
+        "original_year": 1999,
+        "country": "GB",
+        "label": "Invented Label",
+        "catalognum": "INV-1",
+        "albumdisambig": null,
+        "album_id": null,
+        "data_source": "MusicBrainz",
+        "tracks": [
+          {
+            "title": "Invented Track",
+            "artist": "Invented Artist",
+            "length": 180.0,
+            "index": 1,
+            "medium_index": 1,
+            "medium": 1,
+            "track_id": "invented-track",
+            "data_source": "MusicBrainz"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -283,6 +283,32 @@ func TestFileTagLedgerIsWellFormed(t *testing.T) {
 	}
 }
 
+// TestAlbumInfoLedgerIsWellFormed checks
+// corpus/analysis/album_info.json: every row resolves to a committed
+// case, the row set is exactly the nineteen named
+// analysis.AlbumInfoSubjects, every release lookup in a subject's own
+// request log has exactly one row, and a merged block sits on exactly
+// the cases named in analysis.AlbumInfoPseudoSubjects. It is
+// deliberately not a conformance check: the translated values are
+// oracle-tagged work under `make derive`, and grading the Go
+// translation against them is internal/harness/conform's, matching
+// TestFileTagLedgerIsWellFormed's own discipline.
+func TestAlbumInfoLedgerIsWellFormed(t *testing.T) {
+	root := repoRoot(t)
+	cases := make(map[string]*cassette.Case)
+	forEachCase(t, root, func(t *testing.T, id, _ string, c *cassette.Case) {
+		cases[id] = c
+	})
+
+	ledger, err := analysis.LoadAlbumInfoLedger(filepath.Join(root, "corpus", "analysis", "album_info.json"))
+	if err != nil {
+		t.Fatalf("load album info ledger: %v", err)
+	}
+	if err := analysis.CheckAlbumInfoLedger(cases, ledger); err != nil {
+		t.Error(err)
+	}
+}
+
 // TestAdjudicationsLedgerIsWellFormed checks corpus/analysis/adjudications.json:
 // every subject case id resolves to a committed case, every row carries
 // a recognized disposition with its required evidence, and only a
