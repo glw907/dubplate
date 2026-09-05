@@ -1,0 +1,22 @@
+{
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "tracks": [
+        {
+          "id": "trk-v",
+          "position": 1,
+          "number": "1",
+          "title": "V",
+          "recording": {
+            "id": "rec-v",
+            "title": "V",
+            "video": true,
+            "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+          }
+        }
+      ]
+    }
+  ]
+}

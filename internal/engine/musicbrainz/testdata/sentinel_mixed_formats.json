@@ -1,0 +1,38 @@
+{
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "tracks": [
+        {
+          "id": "trk-a",
+          "position": 1,
+          "number": "1",
+          "title": "A",
+          "recording": {
+            "id": "rec-a",
+            "title": "A",
+            "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+          }
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "format": "Vinyl",
+      "tracks": [
+        {
+          "id": "trk-b",
+          "position": 1,
+          "number": "1",
+          "title": "B",
+          "recording": {
+            "id": "rec-b",
+            "title": "B",
+            "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+          }
+        }
+      ]
+    }
+  ]
+}

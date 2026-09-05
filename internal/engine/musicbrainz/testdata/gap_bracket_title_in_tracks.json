@@ -1,0 +1,28 @@
+{
+  "position": 1,
+  "format": "CD",
+  "tracks": [
+    {
+      "id": "trk-a",
+      "position": 1,
+      "number": "1",
+      "title": "A",
+      "recording": {
+        "id": "rec-a",
+        "title": "A",
+        "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+      }
+    },
+    {
+      "id": "trk-filtered",
+      "position": 2,
+      "number": "2",
+      "title": "",
+      "recording": {
+        "id": "rec-filtered",
+        "title": "[data track]",
+        "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+      }
+    }
+  ]
+}

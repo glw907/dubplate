@@ -1,0 +1,65 @@
+{
+  "position": 1,
+  "format": "CD",
+  "pregap": {
+    "id": "trk-pregap",
+    "position": 0,
+    "number": "0",
+    "title": "Pregap",
+    "recording": {
+      "id": "rec-pregap",
+      "title": "Pregap",
+      "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+    }
+  },
+  "tracks": [
+    {
+      "id": "trk-a",
+      "position": 1,
+      "number": "1",
+      "title": "A",
+      "recording": {
+        "id": "rec-a",
+        "title": "A",
+        "video": false,
+        "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+      }
+    },
+    {
+      "id": "trk-v",
+      "position": 2,
+      "number": "2",
+      "title": "V",
+      "recording": {
+        "id": "rec-v",
+        "title": "V",
+        "video": true,
+        "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+      }
+    }
+  ],
+  "data-tracks": [
+    {
+      "id": "trk-d",
+      "position": 3,
+      "number": "3",
+      "title": "D",
+      "recording": {
+        "id": "rec-d",
+        "title": "D",
+        "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+      }
+    },
+    {
+      "id": "trk-filtered",
+      "position": 4,
+      "number": "4",
+      "title": "",
+      "recording": {
+        "id": "rec-filtered",
+        "title": "[data track]",
+        "artist-credit": [{"name": "Artist", "joinphrase": "", "artist": {"id": "art-1", "name": "Artist"}}]
+      }
+    }
+  ]
+}
