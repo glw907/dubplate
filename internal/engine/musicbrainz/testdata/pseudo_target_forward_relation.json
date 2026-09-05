@@ -1,0 +1,6 @@
+{
+  "status": "Pseudo-Release",
+  "relations": [
+    {"target-type": "release", "type": "transl-tracklisting", "direction": "forward", "release": {"id": "actual-release-1"}}
+  ]
+}
