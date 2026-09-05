@@ -1,0 +1,15 @@
+{
+  "entries": [
+    {
+      "case_id": "fixture-ties-excluded",
+      "album_id": "00000000-0000-0000-0000-0000000000aa",
+      "optimal_cost": 1.5,
+      "best_forbidden_cost": 1.5,
+      "difference": 0.0,
+      "unique": false,
+      "disposition": "excluded",
+      "reason": "hand-authored fixture: this row exists to exercise the excluded arm of policyFor",
+      "adjudicator": "fixture-owner"
+    }
+  ]
+}

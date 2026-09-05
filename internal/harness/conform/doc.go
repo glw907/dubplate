@@ -31,4 +31,18 @@
 // actually builds is to serve it a response and let it try. The
 // charter above still holds, read-only and no harness package written;
 // starting and closing a stub per case is driving, not writing.
+//
+// Rung 3, pass 3d adds tier 1: case.go replays every committed case
+// through the matcher's own public entry point
+// (internal/engine/tag.Album) against a stub built from that case's
+// log, and grades the run against the case's derived record, field by
+// field, under the grading policy the four ledgers in corpus/analysis
+// give that case. It grades the request SET as well as the record: a
+// run that leaves a logged request unissued took a different flow than
+// pinned beets took, which no miss count can see.
+//
+// The runner reports a pending divergence and never writes one.
+// Nothing here writes corpus/: a gate that edits the corpus is not a
+// gate, because the expectation would become a function of the run.
+// The failure message carries what a human needs to rule instead.
 package conform

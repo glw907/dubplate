@@ -1,0 +1,311 @@
+package conform
+
+import (
+	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+
+	"github.com/glw907/dubplate/internal/engine/matcher"
+	"github.com/glw907/dubplate/internal/harness/analysis"
+	"github.com/glw907/dubplate/internal/harness/cassette"
+)
+
+// repoRootPath is repoRoot's *testing.T-free sibling: it walks up from
+// the working directory to the nearest ancestor holding go.mod. The
+// shared sweep below runs inside a sync.OnceValues, outside any one
+// test's t, so the walk needs a form that returns an error rather than
+// failing a test that may not be the one waiting on it.
+func repoRootPath() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", errors.New("locate repo root: no go.mod above the working directory")
+		}
+		dir = parent
+	}
+}
+
+// loadEveryCase loads every committed corpus case under root.
+func loadEveryCase(t *testing.T, root string) []*cassette.Case {
+	t.Helper()
+	dirs := corpusCaseDirs(t, root)
+	cases := make([]*cassette.Case, 0, len(dirs))
+	for _, dir := range dirs {
+		c, err := cassette.LoadCase(dir)
+		if err != nil {
+			t.Fatalf("load %s: %v", dir, err)
+		}
+		cases = append(cases, c)
+	}
+	return cases
+}
+
+// fullCompat and noCompat are the two matcher.Compat literals the
+// policy table names, spelled here so a row reads as a selection rather
+// than as two bools.
+var (
+	fullCompat = matcher.Compat{FtPattern: true, RemixParenthetical: true}
+	noCompat   = matcher.Compat{}
+)
+
+// loadPolicyFixture reads one hand-authored policy fixture: the four
+// analysis ledgers and the case id the row is about, so a policy is
+// resolved from exactly the inputs the real sweep resolves it from. A
+// ledger a row has nothing to say about is omitted from the fixture
+// directory and loads empty.
+func loadPolicyFixture(t *testing.T, name string) (*analysis.TieLedger, *analysis.ProximityLedger,
+	*analysis.AdjudicationLedger, *analysis.OracleBugLedger, string) {
+	t.Helper()
+	dir := filepath.Join("testdata", "case", "policy", strings.ReplaceAll(name, " ", "-"))
+
+	ties := &analysis.TieLedger{}
+	prox := &analysis.ProximityLedger{}
+	adj := &analysis.AdjudicationLedger{}
+	bugs := &analysis.OracleBugLedger{}
+	loadIfPresent(t, dir, "ties.json", ties)
+	loadIfPresent(t, dir, "proximity.json", prox)
+	loadIfPresent(t, dir, "adjudications.json", adj)
+	loadIfPresent(t, dir, "oracle_bugs.json", bugs)
+
+	var subject struct {
+		CaseID string `json:"case_id"`
+	}
+	loadIfPresent(t, dir, "subject.json", &subject)
+	if subject.CaseID == "" {
+		t.Fatalf("%s: subject.json names no case id", dir)
+	}
+	return ties, prox, adj, bugs, subject.CaseID
+}
+
+func loadIfPresent(t *testing.T, dir, name string, into any) {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(dir, name))
+	if errors.Is(err, os.ErrNotExist) {
+		return
+	}
+	if err != nil {
+		t.Fatalf("read %s/%s: %v", dir, name, err)
+	}
+	if err := json.Unmarshal(data, into); err != nil {
+		t.Fatalf("parse %s/%s: %v", dir, name, err)
+	}
+}
+
+// TestPolicyForHonorsEveryDispositionRow walks the rung 3 spec's
+// disposition table (:285-299) row by row, plus the adjudications
+// pending path (:304-314), the half-on Compat shape, and both
+// precedence shapes (:302), against hand-authored ledgers in
+// testdata/case/policy. Eight of the sixteen rows have ZERO committed
+// corpus instances, which is exactly why the fixtures are hand-authored
+// rather than borrowed from a case.
+//
+// Every field of every want literal is written out, including the ones
+// that happen to equal the zero value, because the comparison is struct
+// equality and an omitted field is a silent assertion that it is false.
+func TestPolicyForHonorsEveryDispositionRow(t *testing.T) {
+	tests := []struct {
+		name string
+		want casePolicy
+	}{
+		{"proximity clear", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"proximity flagged", casePolicy{DistanceCompare: compareBitIdentical, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"proximity skipped", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: false, GradeAlbumDistance: false, GradeVerdict: true, ExpectNoCandidate: true, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"ties unique", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"ties pinned", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"ties excluded", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: false, GradeAlbumDistance: false, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: true, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"ties skipped", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: false, GradeAlbumDistance: false, GradeVerdict: true, ExpectNoCandidate: true, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"oracle bug pending", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: fullCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"oracle bug pending on one class only", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: matcher.Compat{FtPattern: true}, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"oracle bug oracle wrong", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromAdjudication}},
+		{"oracle bug no correct answer", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: false, ExpectNoCandidate: false, Compat: fullCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"oracle bug oracle correct", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"adjudication no correct answer", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: false, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"adjudication pending", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: false, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: true, VerdictFrom: verdictFromRecord}},
+		{"case row oracle wrong under a pending hypothesis", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: fullCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+		{"probe row oracle correct under an oracle wrong hypothesis", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
+	}
+	if len(tests) != 16 {
+		t.Fatalf("the table carries %d rows; it must carry one per spec disposition row (12), the adjudications-pending path, the per-class pending shape, and both precedence shapes", len(tests))
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ties, prox, adj, bugs, caseID := loadPolicyFixture(t, tt.name)
+			got := policyFor(caseID, ties, prox, adj, bugs)
+			if got != tt.want {
+				t.Errorf("policyFor(%s) = %+v, want %+v", caseID, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestPolicyForKeepsClassesIndependent proves the half-on shape a
+// single bool could not express: with bug-ft-pattern pending and
+// bug-remix-parenthetical ruled, exactly one switch is on, and the
+// selection the sweep grades under widens only that class.
+func TestPolicyForKeepsClassesIndependent(t *testing.T) {
+	ties, prox, adj, bugs, caseID := loadPolicyFixture(t, "oracle bug pending on one class only")
+	policy := policyFor(caseID, ties, prox, adj, bugs)
+	if policy.Compat.RemixParenthetical {
+		t.Error("the ruled class's switch is on; a single bool would have turned both on and baked the defect into rung 15's reference behavior")
+	}
+	if got := compatFor(ModeDefault, policy); got != (matcher.Compat{FtPattern: true}) {
+		t.Errorf("compatFor(ModeDefault) = %+v, want the pending class alone", got)
+	}
+	if got := compatFor(ModeCompat, policy); got != fullCompat {
+		t.Errorf("compatFor(ModeCompat) = %+v, want every switch on: the compat run reproduces every ledgered defect", got)
+	}
+}
+
+// TestCheckTiesAwaitingRulingRefusesASilentEscape proves ruling F's
+// escape cannot be taken without its finding document: a non-empty
+// awaiting list fails while the document is missing and passes once it
+// exists. Both roots are hand-built here, so the assertion does not
+// turn on whether the real repo carries the document today (it does
+// not, because the mirroring attempt succeeded).
+func TestCheckTiesAwaitingRulingRefusesASilentEscape(t *testing.T) {
+	bare := t.TempDir()
+	withFinding := t.TempDir()
+	path := filepath.Join(withFinding, tieMirroringFinding)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.WriteFile(path, []byte("# fixture finding\n"), 0o644); err != nil {
+		t.Fatalf("write finding: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		root     string
+		awaiting []string
+		wantErr  bool
+	}{
+		{"nothing awaiting, no finding", bare, nil, false},
+		{"awaiting with no finding", bare, []string{"should-ask", "should-reject"}, true},
+		{"awaiting with the finding", withFinding, []string{"should-ask", "should-reject"}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := checkTiesAwaitingRuling(tt.root, tt.awaiting)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("checkTiesAwaitingRuling = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr && !strings.Contains(err.Error(), "should-ask") {
+				t.Errorf("error does not name the awaiting rows: %v", err)
+			}
+		})
+	}
+}
+
+// TestGradeCasesRefusesAnUnimplementedMode proves the default-compat
+// run is refused rather than silently graded as a compat run, which
+// would report a summary that means nothing.
+func TestGradeCasesRefusesAnUnimplementedMode(t *testing.T) {
+	root := repoRoot(t)
+	if _, err := GradeCases(root, ModeDefault); err == nil {
+		t.Fatal("expected the default-compat mode to be refused")
+	}
+}
+
+// compatSummary runs the ModeCompat sweep once for the whole package,
+// because more than one test reads it and the sweep starts a stub and
+// replays a flow per case.
+var compatSummary = sync.OnceValues(func() (CaseGradeSummary, error) {
+	root, err := repoRootPath()
+	if err != nil {
+		return CaseGradeSummary{}, err
+	}
+	return GradeCases(root, ModeCompat)
+})
+
+func TestWholeCorpusGradesCleanlyInCompatMode(t *testing.T) {
+	root := repoRoot(t)
+	summary, err := compatSummary()
+	if err != nil {
+		t.Fatalf("GradeCases: %v", err)
+	}
+	// The assignment floor is the only one that moves, and it moves for
+	// exactly two owner-owned reasons: ruling F's escalation parks the
+	// pinned cases in TiesAwaitingRuling, and an owner ruling can
+	// exclude a case. Subtracting both keeps the gate green on ruling
+	// F's pre-authorized path and still fires on a shrink from any other
+	// cause.
+	assignmentFloor := AssignmentFloor - len(summary.TiesAwaitingRuling) - summary.TiesExcluded
+	for _, f := range []struct {
+		name  string
+		got   int
+		floor int
+	}{
+		{"cases", summary.Cases, CaseFloor},
+		{"candidates", summary.Candidates, CandidateFloor},
+		{"distances", summary.Distances, DistanceFloor},
+		{"track vectors", summary.TrackVectors, TrackVectorFloor},
+		{"assignments", summary.Assignments, assignmentFloor},
+	} {
+		if f.got < f.floor {
+			t.Errorf("compared %d %s, floor is %d (assignments: %d candidate-bearing cases less %d awaiting ruling F and %d excluded): a comparison went missing",
+				f.got, f.name, f.floor, AssignmentFloor, len(summary.TiesAwaitingRuling), summary.TiesExcluded)
+		}
+	}
+	if summary.TiesExcluded > TiesExcludedCeiling {
+		t.Errorf("ties.json carries %d excluded rows, ceiling is %d; excluding a case stops grading it and disposition is owner-only (spec :292)", summary.TiesExcluded, TiesExcludedCeiling)
+	}
+	if err := checkTiesAwaitingRuling(root, summary.TiesAwaitingRuling); err != nil {
+		t.Error(err)
+	}
+	if len(summary.TiesAwaitingRuling) > 0 {
+		t.Logf("awaiting Geoff's ruling F disposition, graded as pending rather than passing: %v", summary.TiesAwaitingRuling)
+	}
+	for _, nm := range summary.NearMisses {
+		t.Logf("near miss: %s %s want %.17g got %.17g", nm.CaseID, nm.Field, nm.Want, nm.Got)
+	}
+	t.Logf("compared %d cases, %d candidates, %d album distances, %d track vectors, %d assignments",
+		summary.Cases, summary.Candidates, summary.Distances, summary.TrackVectors, summary.Assignments)
+}
+
+// TestNoCommittedCaseHasTwoExtraItemsSharingASortKey guards beets'
+// extra_items sort key. Its pre-sort order is a Python set order over
+// identity-hashed objects, outside PYTHONHASHSEED's reach, so every
+// committed record is reproducible only while (disc, track, title) is
+// total over that case's extras. It is today, on all 215. The day lane
+// E1 lands a case where it is not, beets' own record stops being
+// reproducible run to run, and this is where that is learned rather
+// than at a flaky gate.
+//
+// extra_tracks needs no such guard: album_info renumbers every track
+// 1..n across the whole release (beetsplug/musicbrainz.py:645-646), so
+// t.index is unique and (index, title) can never tie.
+func TestNoCommittedCaseHasTwoExtraItemsSharingASortKey(t *testing.T) {
+	root := repoRoot(t)
+	checked := 0
+	for _, c := range loadEveryCase(t, root) {
+		if c.Expected == nil || len(c.Expected.ExtraItems) < 2 {
+			continue
+		}
+		checked++
+		seen := make(map[[3]string]bool, len(c.Expected.ExtraItems))
+		for _, idx := range c.Expected.ExtraItems {
+			it := matcher.ProjectItemFields(c.Input.Items[idx])
+			k := [3]string{strconv.Itoa(it.Disc), strconv.Itoa(it.Track), it.Title}
+			if seen[k] {
+				t.Errorf("%s: two extra items share the sort key %v; beets' own record is no longer reproducible run to run", c.ID, k)
+			}
+			seen[k] = true
+		}
+	}
+	if checked == 0 {
+		t.Error("no case carried two or more extra items, so this guard asserted nothing; three cases do today")
+	}
+	t.Logf("checked the extra-items sort key over %d cases carrying two or more extras", checked)
+}

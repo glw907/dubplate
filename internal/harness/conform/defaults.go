@@ -57,6 +57,27 @@ func CheckCaseThresholds(caseID string, want matcher.Tunables, got cassette.Thre
 	return errors.Join(errs...)
 }
 
+// gradeTunables is the configuration every conformance sweep runs
+// under: Tunables' beets defaults merged with the case's profile, in
+// that order (rung 3 spec, the M1 fold), with import.quiet forced true.
+//
+// The quiet overlay lives here and outside mergeProfile, because
+// mergeProfile models the three committed profile FILES and
+// checkProfileKeyDrift's allowlist is honest only while that stays
+// true. quiet is in no profile: derive_oracle.py sets
+// config["import"]["quiet"] = True before calling beets' own mapping
+// (internal/harness/oracle/derive_oracle.py:204), because dubplate
+// imports with `beet import -q` and quiet is a CLI flag. Without the
+// overlay every committed action would grade as "ask".
+func gradeTunables(profile string) (matcher.Tunables, error) {
+	tun, err := mergeProfile(matcher.DefaultTunables(), profile)
+	if err != nil {
+		return matcher.Tunables{}, err
+	}
+	tun.Quiet = true
+	return tun, nil
+}
+
 // CheckUnidecodeVersion asserts that manifest's pinned unidecode
 // version equals the engine's own embedded transliteration table
 // version (fold, M-c). Task 3 exports the stamp from package matcher;

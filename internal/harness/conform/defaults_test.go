@@ -37,11 +37,10 @@ func corpusCaseDirs(t *testing.T, root string) []string {
 
 // TestCommittedCasesEchoTunablesDefaults is the M1 defaults
 // cross-check's own half that can fire today: every committed case's
-// echoed Weights and Thresholds must equal Tunables' shipped defaults,
-// because no committed profile sets a match: key.
+// echoed Weights and Thresholds must equal the tunables the sweep
+// grades that case under, which is gradeTunables' merged result.
 func TestCommittedCasesEchoTunablesDefaults(t *testing.T) {
 	root := repoRoot(t)
-	want := matcher.DefaultTunables()
 	checked := 0
 	for _, dir := range corpusCaseDirs(t, root) {
 		c, err := cassette.LoadCase(dir)
@@ -52,6 +51,17 @@ func TestCommittedCasesEchoTunablesDefaults(t *testing.T) {
 			continue // not yet derived; nothing to cross-check
 		}
 		checked++
+		// The echo is compared against the case's OWN merged
+		// configuration rather than against DefaultTunables directly,
+		// which is what the M1 fold specifies (rung 3 spec, :279).
+		// The two agree today because no committed profile sets a
+		// match: or musicbrainz: key, so the move is
+		// behavior-preserving and closes the drift before a fourth
+		// profile makes it real.
+		want, err := gradeTunables(c.Profile)
+		if err != nil {
+			t.Fatalf("case %s: %v", c.ID, err)
+		}
 		if err := CheckCaseWeights(c.ID, want.DistanceWeights, c.Expected.Weights); err != nil {
 			t.Error(err)
 		}

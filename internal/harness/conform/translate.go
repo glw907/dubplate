@@ -187,20 +187,42 @@ func checkTranslatedTrack(caseID, mbid string, i int, want analysis.LedgerTrackI
 // defaults-then-profile order (fold, B4, the same rule the spec's M1
 // fold states for tier 1). It is a profile-name-to-overlay table, never
 // a YAML parse: go.mod carries no YAML dependency and this plan's
-// Global Constraints forbid adding one. stock and estate overlay
-// nothing the translation reads; locale sets Languages and
-// IgnoredAliasTypes. An unrecognized profile name is the failure.
+// Global Constraints forbid adding one. An unrecognized profile name is
+// the failure.
+//
+// stock overlays nothing: corpus/profiles/stock.yaml sets only the
+// plugin line. estate and locale both set the three import: keys their
+// files carry, and locale adds Languages and IgnoredAliasTypes.
+// none_rec_action is the one of the three whose value differs from
+// beets' shipped default (config_default.yaml:34 is "ask", both
+// profiles say "skip"), so a merge that stopped at the two locale keys
+// left a value the profile sets reading beets' own. It is unreachable
+// under the conformance sweep's quiet overlay (contract V16), which is
+// why translate_test.go asserts each merged value against the profile
+// file directly rather than through a sweep.
 func mergeProfile(base matcher.Tunables, profile string) (matcher.Tunables, error) {
 	switch profile {
-	case "stock", "estate":
+	case "stock":
 		return base, nil
+	case "estate":
+		return withImportKeys(base), nil
 	case "locale":
+		base = withImportKeys(base)
 		base.Languages = []string{"ja"}
 		base.IgnoredAliasTypes = []string{}
 		return base, nil
 	default:
 		return matcher.Tunables{}, fmt.Errorf("profile %q is not a recognized profile name (stock, estate, locale)", profile)
 	}
+}
+
+// withImportKeys applies the three import: keys estate.yaml and
+// locale.yaml both set (:17-19 of each).
+func withImportKeys(t matcher.Tunables) matcher.Tunables {
+	t.QuietFallback = "skip"
+	t.NoneRecAction = "skip"
+	t.Timid = false
+	return t
 }
 
 // profileKeyAllowlist names every top-level and import: key the three

@@ -1,6 +1,7 @@
 package conform
 
 import (
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -204,19 +205,17 @@ func TestCheckTranslatedAlbumCatchesShortTrackList(t *testing.T) {
 }
 
 // TestMergeProfileOverlaysTunables proves the three profile names'
-// overlay: stock and estate change nothing the translation reads, and
-// locale sets Languages and IgnoredAliasTypes.
+// overlay: stock changes nothing, and locale sets Languages and
+// IgnoredAliasTypes.
 func TestMergeProfileOverlaysTunables(t *testing.T) {
 	base := matcher.DefaultTunables()
 
-	for _, name := range []string{"stock", "estate"} {
-		got, err := mergeProfile(base, name)
-		if err != nil {
-			t.Fatalf("mergeProfile(%s): %v", name, err)
-		}
-		if !reflect.DeepEqual(got, base) {
-			t.Errorf("mergeProfile(%s) changed the base tunables, want no change", name)
-		}
+	got, err := mergeProfile(base, "stock")
+	if err != nil {
+		t.Fatalf("mergeProfile(stock): %v", err)
+	}
+	if !reflect.DeepEqual(got, base) {
+		t.Errorf("mergeProfile(stock) changed the base tunables, want no change: stock.yaml sets only the plugin line")
 	}
 
 	locale, err := mergeProfile(base, "locale")
@@ -228,6 +227,71 @@ func TestMergeProfileOverlaysTunables(t *testing.T) {
 	}
 	if len(locale.IgnoredAliasTypes) != 0 {
 		t.Errorf("mergeProfile(locale).IgnoredAliasTypes = %v, want empty", locale.IgnoredAliasTypes)
+	}
+}
+
+// profileImportValue returns the value profile's own YAML gives the
+// import: key named, read line by line the way checkProfileKeys reads
+// the same files. The want in the test below comes from the committed
+// profile rather than from a literal beside the code under test, so a
+// profile edit that mergeProfile does not follow fails here.
+func profileImportValue(t *testing.T, profile, key string) string {
+	t.Helper()
+	path := filepath.Join(repoRoot(t), "corpus", "profiles", profile+".yaml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	inImport := false
+	for line := range strings.SplitSeq(string(data), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if len(line)-len(strings.TrimLeft(line, " ")) == 0 {
+			inImport = trimmed == "import:"
+			continue
+		}
+		name, value, ok := strings.Cut(trimmed, ":")
+		if ok && inImport && name == key {
+			return strings.TrimSpace(value)
+		}
+	}
+	t.Fatalf("%s: no import.%s key", path, key)
+	return ""
+}
+
+// TestMergeProfileCarriesEveryImportKeyTheProfileSets asserts each of
+// the three import: values estate.yaml and locale.yaml set against the
+// profile file itself, one assertion per value (fold M-b).
+//
+// The sweep cannot make these assertions: gradeTunables forces
+// import.quiet true, and the quiet branch of _summary_judgment is
+// tested first, so all three fields are unreachable through a graded
+// action (contract V16). none_rec_action is the value that actually
+// differs from beets' shipped "ask", and the last assertion pins that
+// difference so a merge reverting to the shipped default fails here
+// rather than nowhere.
+func TestMergeProfileCarriesEveryImportKeyTheProfileSets(t *testing.T) {
+	for _, profile := range []string{"estate", "locale"} {
+		t.Run(profile, func(t *testing.T) {
+			got, err := mergeProfile(matcher.DefaultTunables(), profile)
+			if err != nil {
+				t.Fatalf("mergeProfile(%s): %v", profile, err)
+			}
+			if want := profileImportValue(t, profile, "quiet_fallback"); got.QuietFallback != want {
+				t.Errorf("QuietFallback = %q, want %q from %s.yaml", got.QuietFallback, want, profile)
+			}
+			if want := profileImportValue(t, profile, "none_rec_action"); got.NoneRecAction != want {
+				t.Errorf("NoneRecAction = %q, want %q from %s.yaml", got.NoneRecAction, want, profile)
+			}
+			if want := profileImportValue(t, profile, "timid"); got.Timid != (want == "yes") {
+				t.Errorf("Timid = %v, want %v from %s.yaml (timid: %s)", got.Timid, want == "yes", profile, want)
+			}
+			if got.NoneRecAction == matcher.DefaultTunables().NoneRecAction {
+				t.Errorf("NoneRecAction = %q, which is beets' own shipped default: the profile's value never reached the merge", got.NoneRecAction)
+			}
+		})
 	}
 }
 

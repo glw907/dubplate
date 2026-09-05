@@ -66,9 +66,15 @@ type Server struct {
 	responses map[key][]byte
 	extra     map[key]extraEntry
 
+	// log is the case's request list verbatim, kept beside the
+	// response map because [Server.Unused] reports in that list's own
+	// order and a map cannot carry it.
+	log []cassette.Request
+
 	mu       sync.Mutex
 	misses   []Miss
 	consumed []cassette.Request
+	hit      map[key]bool
 }
 
 // extraEntry is one recall-extension response and the log entry that
@@ -106,7 +112,13 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 		return nil, fmt.Errorf("stub: listen: %w", err)
 	}
 
-	s := &Server{listener: ln, responses: responses, extra: extra}
+	s := &Server{
+		listener:  ln,
+		responses: responses,
+		extra:     extra,
+		log:       slices.Clone(c.Requests),
+		hit:       make(map[key]bool, len(c.Requests)),
+	}
 	s.http = &http.Server{Handler: s}
 	go func() {
 		// http.Server.Serve returns ErrServerClosed once Close stops the
@@ -124,6 +136,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	k := key{method: r.Method, pathQuery: pathQuery}
 
 	if body, ok := s.responses[k]; ok {
+		s.recordHit(k)
 		writeResponse(w, body)
 		return
 	}
@@ -145,6 +158,12 @@ func (s *Server) recordMiss(method, pathQuery string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.misses = append(s.misses, Miss{Method: method, PathQuery: pathQuery})
+}
+
+func (s *Server) recordHit(k key) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.hit[k] = true
 }
 
 func (s *Server) recordConsumed(req cassette.Request) {
@@ -169,6 +188,32 @@ func (s *Server) Consumed() []cassette.Request {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return slices.Clone(s.consumed)
+}
+
+// Unused returns the logged requests the run never issued, the
+// complement of [Server.Misses], in the case's own log order.
+//
+// Misses alone cannot catch a client that issues FEWER requests than
+// the case's log records: an unissued request leaves no trace at all,
+// so a truncated flow passes a zero-miss check silently. A
+// conformance run therefore fails on a non-empty result here, because
+// a run that skipped a lookup took a different flow than pinned beets
+// took.
+//
+// A [cassette.Case.Extra] entry is never reported: a strong ID match
+// legally orphans search captures into Extra (rung 3 spec, :265), so
+// an unconsumed Extra entry is the recall channel working as designed.
+// [Server.Consumed] is where an Extra hit is reported.
+func (s *Server) Unused() []cassette.Request {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var unused []cassette.Request
+	for _, req := range s.log {
+		if !s.hit[key{method: req.Method, pathQuery: req.PathQuery}] {
+			unused = append(unused, req)
+		}
+	}
+	return unused
 }
 
 // Addr returns the server's host:port, suitable for a beets

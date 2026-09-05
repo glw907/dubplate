@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"maps"
 	"math"
-	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -16,28 +15,17 @@ import (
 	"github.com/glw907/dubplate/internal/harness/analysis"
 )
 
-// repoRoot walks up from the working directory to the nearest ancestor
-// holding go.mod, so corpus/ resolves relative to the module root
-// rather than to `go test`'s per-package working directory. This is
-// its own copy of internal/harness/corpus_test.go's helper: repoRoot
-// there is unexported and test-only, so this package reimplements the
-// walk rather than importing anything (plan's primary-inputs note 5).
+// repoRoot resolves the module root the way corpus/ has to be reached,
+// failing t rather than returning an error. The walk itself lives in
+// repoRootPath (case_test.go), which the shared sweep needs outside any
+// one test's t.
 func repoRoot(t *testing.T) string {
 	t.Helper()
-	dir, err := os.Getwd()
+	root, err := repoRootPath()
 	if err != nil {
-		t.Fatalf("locate repo root: %v", err)
+		t.Fatalf("%v", err)
 	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			t.Fatalf("locate repo root: no go.mod above %s", dir)
-		}
-		dir = parent
-	}
+	return root
 }
 
 func loadComponentTable(t *testing.T) *analysis.ComponentTable {

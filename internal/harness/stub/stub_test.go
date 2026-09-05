@@ -151,6 +151,59 @@ func TestServerEphemeralPortLifecycle(t *testing.T) {
 	}
 }
 
+func TestUnusedReportsALoggedRequestTheRunNeverIssued(t *testing.T) {
+	dir := filepath.Join("testdata", "unused-fixture")
+	c, err := cassette.LoadCase(dir)
+	if err != nil {
+		t.Fatalf("LoadCase(%s): %v", dir, err)
+	}
+	srv, err := New(c, dir)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = srv.Close() }()
+
+	_ = get(t, srv.Addr(), c.Requests[0].PathQuery).Body.Close()
+	// The extra entry is answered too, and answering it must not take
+	// the second logged request off the unused list.
+	_ = get(t, srv.Addr(), c.Extra[0].PathQuery).Body.Close()
+
+	if got := srv.Misses(); len(got) != 0 {
+		t.Fatalf("Misses() = %v, want none", got)
+	}
+	unused := srv.Unused()
+	if len(unused) != 1 || unused[0].PathQuery != c.Requests[1].PathQuery {
+		t.Errorf("Unused() = %v, want exactly the second logged request %q", unused, c.Requests[1].PathQuery)
+	}
+	// An unconsumed Extra entry is the recall channel working as
+	// designed, not an unused request (rung 3 spec, :265).
+	for _, r := range unused {
+		if r.Response == c.Extra[0].Response {
+			t.Error("Unused() reported an Extra entry; a strong ID match legally orphans search captures into Extra")
+		}
+	}
+}
+
+func TestUnusedIsEmptyOnceEveryLoggedRequestIsIssued(t *testing.T) {
+	dir := filepath.Join("testdata", "unused-fixture")
+	c, err := cassette.LoadCase(dir)
+	if err != nil {
+		t.Fatalf("LoadCase(%s): %v", dir, err)
+	}
+	srv, err := New(c, dir)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = srv.Close() }()
+
+	for _, req := range c.Requests {
+		_ = get(t, srv.Addr(), req.PathQuery).Body.Close()
+	}
+	if got := srv.Unused(); len(got) != 0 {
+		t.Errorf("Unused() = %v, want none once both logged requests are issued", got)
+	}
+}
+
 func TestExtraChannelSeparatesConsumptionsFromMisses(t *testing.T) {
 	c, err := cassette.LoadCase(filepath.Join("testdata", "extra-channel"))
 	if err != nil {

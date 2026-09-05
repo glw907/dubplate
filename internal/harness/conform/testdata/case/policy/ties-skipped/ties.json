@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "case_id": "fixture-ties-skipped",
+      "status": "skipped",
+      "reason": "hand-authored fixture: the record carries no candidate to measure a boundary against",
+      "optimal_cost": 0.0,
+      "best_forbidden_cost": 0.0,
+      "difference": 0.0,
+      "unique": false
+    }
+  ]
+}

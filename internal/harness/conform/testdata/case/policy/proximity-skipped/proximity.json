@@ -1,0 +1,9 @@
+{
+  "entries": [
+    {
+      "case_id": "fixture-proximity-skipped",
+      "status": "skipped",
+      "reason": "hand-authored fixture: exercises the skipped arm of policyFor"
+    }
+  ]
+}

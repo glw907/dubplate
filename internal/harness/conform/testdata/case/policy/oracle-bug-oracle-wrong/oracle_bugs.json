@@ -1,0 +1,18 @@
+{
+  "entries": [
+    {
+      "id": "bug-ft-pattern",
+      "bug_class": "string-heuristic",
+      "citation": "fixture/policy-table",
+      "probe_case_ids": [
+        "fixture-oracle-bug-oracle-wrong"
+      ],
+      "reproduced": "not-attempted",
+      "reproduced_reason": "hand-authored fixture: no probe is run against it",
+      "disposition": "oracle-wrong",
+      "reason": "exercises the oracle-wrong arm of policyFor",
+      "adjudicator": "fixture-owner",
+      "date": "2026-09-05"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "unused-fixture",
+  "input": {
+    "items": [
+      {
+        "title": "Fixture Track",
+        "artist": "Fixture Artist"
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2020-01-01",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/00000000-0000-0000-0000-000000000001?fmt=json",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/00000000-0000-0000-0000-000000000002?fmt=json",
+      "response": "responses/002.json"
+    }
+  ],
+  "extra": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json&query=fixture",
+      "response": "responses/003.json"
+    }
+  ]
+}

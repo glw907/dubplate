@@ -1,0 +1,17 @@
+{
+  "entries": [
+    {
+      "id": "fixture-adj-fixture-probe-row-oracle-correct-under-an-oracle-wrong-hypothesis",
+      "subject": {
+        "case_id": "fixture-probe-row-oracle-correct-under-an-oracle-wrong-hypothesis"
+      },
+      "suspected": "hand-authored fixture row; no real divergence is claimed",
+      "citation": "fixture/policy-table",
+      "release_truth": "invented fixture material with no MusicBrainz counterpart",
+      "disposition": "oracle-correct",
+      "reason": "exercises the oracle-correct arm of policyFor",
+      "adjudicator": "fixture-owner",
+      "date": "2026-09-05"
+    }
+  ]
+}

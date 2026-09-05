@@ -1,0 +1,18 @@
+{
+  "entries": [
+    {
+      "id": "fixture-adj-fixture-case-row-oracle-wrong-under-a-pending-hypothesis",
+      "subject": {
+        "case_id": "fixture-case-row-oracle-wrong-under-a-pending-hypothesis"
+      },
+      "suspected": "hand-authored fixture row; no real divergence is claimed",
+      "citation": "fixture/policy-table",
+      "release_truth": "invented fixture material with no MusicBrainz counterpart",
+      "disposition": "oracle-wrong",
+      "reason": "exercises the oracle-wrong arm of policyFor",
+      "adjudicator": "fixture-owner",
+      "date": "2026-09-05",
+      "corrected_verdict": "medium/skip"
+    }
+  ]
+}

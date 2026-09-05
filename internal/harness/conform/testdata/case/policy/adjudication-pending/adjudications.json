@@ -1,0 +1,17 @@
+{
+  "entries": [
+    {
+      "id": "fixture-adj-fixture-adjudication-pending",
+      "subject": {
+        "case_id": "fixture-adjudication-pending"
+      },
+      "suspected": "hand-authored fixture row; no real divergence is claimed",
+      "citation": "fixture/policy-table",
+      "release_truth": "invented fixture material with no MusicBrainz counterpart",
+      "disposition": "pending-adjudication",
+      "reason": "exercises the pending-adjudication arm of policyFor",
+      "adjudicator": "fixture-owner",
+      "date": "2026-09-05"
+    }
+  ]
+}

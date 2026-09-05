@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "case_id": "fixture-proximity-flagged",
+      "status": "flagged",
+      "reason": "hand-authored fixture: exercises the flagged arm of policyFor",
+      "boundaries": [
+        "strong_rec_thresh"
+      ]
+    }
+  ]
+}

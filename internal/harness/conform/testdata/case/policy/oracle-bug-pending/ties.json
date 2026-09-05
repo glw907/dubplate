@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "case_id": "fixture-oracle-bug-pending",
+      "album_id": "00000000-0000-0000-0000-0000000000aa",
+      "optimal_cost": 1.5,
+      "best_forbidden_cost": 2.5,
+      "difference": 1.0,
+      "unique": true
+    }
+  ]
+}
