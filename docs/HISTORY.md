@@ -2,6 +2,414 @@
 
 Per-pass ledger, newest first.
 
+## Rung 3, pass 3c (The client, the limiter, and request-construction grading): `internal/engine/musicbrainz`'s `query.go`, `client.go` and `limiter.go` born, 351 requests graded byte for byte (2026-09-05)
+
+Eight plan tasks executed sequentially in the main tree against
+`docs/superpowers/plans/2026-09-04-rung-3c-client-limiter.md`
+(revision 2.2). Commits in order: `e9364ff` plus `e90bdad` (Task 1),
+`8e7dc21` (Task 2), `f3c3edf` plus `208c5af` (Task 3), `4e7bb04`
+(Task 4), `807dc45` (Task 5, escalated), `f088b1a` (the conductor's
+plan revision 2.2 ruling), `dca3d17` plus `18ea5da` (Task 6), `18a1292`
+(Task 7), `78a6e5a` plus `0082ae6` (Task 5b, the escalation's fix, two
+commits closing the fourth seam), `7809558` (the close-out
+`code-simplifier` pass, 9 files, +47/-38), and this entry (Task 8).
+
+What landed. Task 1 reshaped `cassette.Case.Extra` from `[]string` to
+`[]Request` in `internal/harness/cassette/cassette.go`. The four
+per-entry checks the Requests loop already applies now cover it, plus
+three exclusivity rules keyed through a new unexported `requestKey`.
+The task bumped `wantManifestSchemaVersion` and
+`corpus/manifest.json`'s `schema_version` from `"3"` to `"4"`, and
+added `TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema`,
+proving the migration empty over all 215 committed cases. Task 2 gave
+`internal/harness/stub` a second replay map: `extra
+map[key]extraEntry`, consulted after the request map. `Consumed()
+[]cassette.Request` reports distinct from `Misses()`, and the
+derivation-inertness rule is stated on both doc comments (zero of 215
+cases carry an `Extra` key today). Task 3 added `ItemFields.Comp` and
+`boolField`, and exported `IsVariousArtistsName`. It closed 3a's
+`dataSourcePenalty` carry with `defaultDataSourceMismatchPenalty =
+0.5`, replacing the tunable fallback and removing both `conform`
+compensations. It also corrected the
+`SearchLimit`/`DataSourceMismatchPenalty`/`DataSourcePenalties`/
+`AddDataSource` doc comments. Task 4 built `query.go`: the sixteen-
+element `releaseIncludes`, unexported `vaLikely`, and `albumCriteria`.
+`albumCriteria` walks `tun.ExtraTags` with the
+`tracks`/`alias`/`catalognum`/`date:(0)` value rules (the tenth
+declared corpus-coverage gap). The rendering layer (`escapeLucene`,
+`formatSearchTerm`, `lowerSearchTerm`, `trimSearchTerm`) reproduces
+beets' double lower-and-strip and its escape-before-wrap order. Task 5
+built `limiter.go`: the three-class dispatcher with
+`reservationInterval = 4` and a round-robin reserved token over the
+non-empty classes below the one served. It also added `Budget`'s
+reserve-then-release cap, `Unmetered()`, and `Close()`.
+`NewLimiter(interval time.Duration)` carries `DefaultInterval =
+time.Second` and C20's citation chain. Task 5b closed the escalation
+(below). Task 6 built `client.go`: `ClientConfig` and `NewClient`,
+requiring a `UserAgent` and a `Budget`. `Release` and `SearchReleases`
+force `fmt=json` through `url.Values.Encode`, backed by
+`extractReleaseID`. The seven-attempt retry transport uses urllib3's
+backoff schedule and both `Retry-After` forms, with a per-attempt
+limiter token. `AlbumForID`'s pseudo double fetch and merge closes 3b's
+`MergePseudoRelease` aliasing carry for this pass's own call site.
+Task 7 added `internal/harness/conform/request.go`. `GradeRequests`
+opens one stub per case. It issues one `client.Release` per distinct
+logged release mbid, and one `client.SearchReleases` when the case
+logs a search. It joins every `srv.Misses()` entry into the case's
+error. It asserts the three corpus floors (215 cases, 303 lookups, 48
+searches) plus a per-case issued-count check that a silent skip cannot
+pass.
+
+What the gate caught. `bash scripts/check.sh` stayed green at every
+task end. Three tasks took a fix round from the in-chain
+`diff-reviewer`, and Task 5 escalated past a fix into a plan
+correction. Task 1's reviewer found only five of the plan's six named
+Extra-loop failure proofs landed, with the method-non-empty and
+response-non-empty per-entry checks unfired by any test. The fix
+commit `e90bdad` added both, each verified by a targeted mutation.
+Task 3's reviewer blocked because the conductor's ruling (fold M-a)
+required `DefaultTunables` to build `DataSourcePenalties["MusicBrainz"]`
+from the `DataSourceMismatchPenalty` field. The first attempt instead
+shared one local variable between both, leaving the field with zero
+production readers despite its doc comment's claim. `208c5af` rewrote
+`DefaultTunables` to build the map from the field directly, so a
+mutation of the field's literal now provably moves the map too. Task
+6's reviewer blocked on an undelivered behavior-contract bullet: the
+deliberate divergence on an absent release `status` key (a plain
+non-pseudo release here, a dropped candidate via beets' `KeyError` in
+`beetsplug/musicbrainz.py:785`) was nowhere in the tree. `18ea5da`
+recorded it as a comment at the `PseudoReleaseTarget` call site with
+the 303-of-303 corpus measurement that makes it unreachable today, and
+a matching doc comment on `Release.Status`. Task 5 escalated rather
+than blocked. The plan's cancelled-waiter test cancelled and joined
+the departing waiter before feeding a tick, so `depart()` had already
+dequeued it. `serve`'s refused-offer arms (`case <-w.gone:`, `case
+<-l.done:`) carried zero coverage. That left unproven the
+distinguishing half of the chosen cancellation shape, which tries the
+next waiter rather than parking the token. The conductor ruled option
+(a) at plan revision 2.2: a fourth unexported hook, `holdBeforeOffer`.
+It lets a test block `serve` between `pick()` and the offer, cancel
+the picked waiter there, and assert the next waiter takes that same
+tick's token. Task 5b landed the fix in two commits: `78a6e5a` (the
+in-flight refusal, both mutations of the refusal path killed) and
+`0082ae6` (the shutdown arm, `case <-l.done:`). That arm had never
+been exercised either; deleting it hangs the test to its timeout. The
+seam count is **four** (`newLimiter`, `awaitQueued`, `awaitTicks`,
+`holdBeforeOffer`), not the plan's originally named two. A final
+`diff-reviewer` (opus) read `7809558` and `0082ae6` together against a
+fresh checkout and returned accept, confirming the seam count, the
+`-race -count=20` limiter replay, and both new assertions' mutation
+proofs.
+
+### The request coverage table
+
+Twenty contracts, C1 through C20, each with its Go site and what
+grades it. A committed case grades a contract when `GradeRequests`
+(Task 7) issues a real request through it and compares the resulting
+bytes against the case's own log; a rule no corpus case can reach is
+graded by a hand-authored fixture in the owning package's own
+`testdata`, with the mutation that proves the fixture fires.
+
+| Contract | Go site | Graded by | Corpus reach |
+| --- | --- | --- | --- |
+| C1 `fmt=json` forced, no exception | `client.go` `releaseRequestURL`/`searchRequestURL` via `url.Values.Encode` | all 351 requests, Task 7's sweep | Yes |
+| C2 API root `<base>/ws/2`, three config keys ignored | `client.go` `wsPathPrefix`, `ClientConfig.BaseURL` | the injected `BaseURL` is the only root the Go client models; the three ignored keys (`https`, `ratelimit`, `ratelimit_interval`) have no Go analog to grade, recorded as a non-membership | n/a, structural |
+| C3 sixteen-element `RELEASE_INCLUDES`, one `inc=` value | `query.go` `releaseIncludes` | all 303 lookups, one distinct `inc=`; `TestReleaseIncludesJoinsAllSixteen` (hand literal) plus mutation 1 (drop `genres`, 303 misses measured) | Yes |
+| C4 a search carries no `inc` | `client.go` `searchRequestURL` | all 48 searches carry none | Yes |
+| C5 the nineteen-character Lucene escape set | `query.go` `escapeLucene` | `TestEscapeLucene`'s 30-row table; mutation 2 (drop `-`) fires 6 cases | Thin: `%27`/`%2C` unescaped and `%5C` escaped both appear in the corpus, but most of the nineteen ride on the fixture table alone |
+| C6 lower, strip, drop-if-empty, escape, then wrap | `query.go` `formatSearchTerm` | end-to-end query rows verified against committed `path_query`; mutation 5 (escape after wrap) fires both wrapper rows | Yes |
+| C7 space-joined terms, empty terms filtered | `query.go` `AlbumSearchFor` | `TestAlbumSearchForDropsEmptyTerms` (hand fixture, the plan's extra row) | Thin: no committed case has an empty album name |
+| C8 insertion-ordered criteria, eight-key `FIELDS_TO_MB_KEYS`, three value rules | `query.go` `albumCriteria`, `fieldsToMBKeys` | `extra_tags.json` (the tenth declared gap); the corpus-reachable `release`/`artist`/`arid` rows | Partial: the base three criteria are reached, the eight extra-tag keys are not (declared gap) |
+| C9 the pre-filter's second lower-and-strip | `query.go` (folded into `formatSearchTerm`'s own lower/strip; C9's dict comprehension has no separate Go site since the tuple's query-text half is always `""`) | the double-lower-and-strip end-to-end rows | Yes, jointly with C6 |
+| C10 `va_likely`'s three-way disjunction, the `search_artist` override | `query.go` `vaLikely` | mutation 6 (drop the `comp` disjunct) fires the `comp` row and the arid row | Yes |
+| C11 `search_limit` 5, legacy spelling `musicbrainz.match.searchlimit` | `query.go` (`AlbumSearch.Limit = tun.SearchLimit`); `tunables.go`'s corrected doc comment | all 48 searches carry `limit=5` | Yes, pins the default only |
+| C12 the transport policy (retry count, backoff schedule, timeout, `Retry-After`) | `client.go` `doWithRetry`, `retryWait`, `backoff` | `TestBackoffSchedule`'s six-row table; `TestRetryAfterDeltaSecondsHonored`; mutations 5-6b | Yes, through hand-authored fixtures; no committed case's stub answers a non-200/404 status |
+| C13 fetch, translate, conditional second fetch | `client.go` `AlbumForID`, `PseudoReleaseTarget` | mutation 9 (skip the pseudo second fetch, `Country` assertion fails) | Yes, the 3 pseudo cases |
+| C14 per-id fan-out follows search-response order | `client.go` `SearchReleases` (`[]string` in response order) | `TestSearchReleasesDecodesTheObjectShapeAndPreservesOrder` | Yes, implicit in every multi-hit search |
+| C15 a 404 drops a lookup candidate silently, propagates from search as an empty list | `client.go` `Release`/`SearchReleases` mapping to `ErrNotFound` | the zero-miss rule (Task 7); no test asserts the 404-to-`ErrNotFound` mapping directly (recorded gap, not a plan mutation) | No committed case's stub answers 404 |
+| C16 `search_query_ascii` is a structural no-op | `doc.go`'s stated non-check | nothing to grade; the absence is the contract | n/a |
+| C17 the corpus's request census (215/303/48/167) | `internal/harness/conform/request.go` `RequestCaseFloor`/`RequestLookupFloor`/`RequestSearchFloor` | `TestRequestConstructionGradesCleanly`, exactly matching the plan's measured figures | Yes |
+| C18 `net/url` reproduces the canonical form byte for byte | `client.go`'s `url.Values`-built URLs | all 351 requests' `path_query` compared byte for byte | Yes |
+| C19 a search response is an object, ids under `releases` | `client.go` `SearchReleases`'s decode struct | all 48 searches; mutation 4 (bare-array decode) fails all 48 | Yes |
+| C20 the wire pace is 1/s, not 4/s | `limiter.go` `DefaultInterval = time.Second` | `TestNewLimiterPacesFromItsOwnTicker`; no corpus case measures wall-clock pacing (Unmetered budget in Task 7's sweep) | n/a, a live-spender fact rather than a byte comparison |
+
+**The one new declared corpus-coverage gap: `albumCriteria`'s
+`extra_tags` branch**, including `tracks`, `alias`, the `catalognum`
+space-strip and the `date:(0)` trap on an unset year, unreachable
+because no committed profile writes a `musicbrainz:` block setting
+`extra_tags`. **Together with 3a's three and 3b's six, rung 3 now
+carries ten declared gaps**; 3d's close should read that running total
+rather than re-count it.
+
+**Four surfaces are non-ports, recorded with their reasons rather than
+as gaps.**
+
+1. The recording lookup and `RECORDING_INCLUDES`. This pass ships only
+   the release lookup and release search beets' album path uses.
+2. The browse fallback (`_ensure_complete_recordings`). Carried
+   forward from 3b, still unported.
+3. Beets' explicit `search_artist`/`search_name` override on a
+   user-forced search. No committed profile sets it, and the plan
+   scopes 3c to the automatic album-match path.
+4. urllib3's 413-plus-`Retry-After` sixth retryable case (`fold m3`).
+   Unreachable from MusicBrainz, which never answers 413.
+
+### Evidence
+
+The request tier, `TestRequestConstructionGradesCleanly`: **215 cases
+graded, 303 lookups, 48 searches, 167 cases with no search**, zero
+misses, in 3.34s at `-count=1` (measured at close; the task chain's own
+figure was 3.32-3.54s across runs). `Consumed()` accumulates zero
+entries across the sweep, matching C17's zero committed `Extra` keys.
+The schema bump's round-trip proof,
+`TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema`, ran 1.870s
+at `-count=1` over all 215 cases at close (2.050s to 2.662s across the
+task chain), confirming no committed byte moved. Tier 0:
+`TestComponentTableReplaysAllRows` still 72/72 rows, bit-identical, in
+0.015s at close, per-method counts unchanged after the
+`dataSourcePenalty` fix and the removal of both `conform`
+compensations (add 8, add_data_source 4, add_equality 3, add_expr 2,
+add_number 4, add_priority 4, add_ratio 4, add_string 3,
+generic_penalty_keys 1, string_dist 23, track_distance 16). `go test
+./...` ran 15.081s wall at close (`internal/harness` 11.255s and
+`internal/harness/conform` 11.230s dominating, tier 0 and the request
+tier both running inside the latter). `bash scripts/check.sh` ran
+1m25.932s wall at close, gitleaks 1m4.3s of that scanning ~114.4 MB,
+consistent with the task chain's 1m6.7s-3m00.7s range across tasks.
+The limiter's `-race` run: `go test -race -count=1
+./internal/engine/musicbrainz/...` 2.090s at close (1.162s measured
+under Task 5 alone); the pass-end reviewer additionally ran the ten
+limiter tests under `-race -count=20` with zero failures, and the
+Task 5b review ran `-race -count=1` over both
+`internal/engine/musicbrainz` and `internal/harness` (101s and 123s)
+plus a clean `golangci-lint` over `internal/...`.
+
+### What a later pass would be wrong to rediscover
+
+1. The rung 15 re-run criterion, verbatim from the plan's Spec
+   section, travels forward from every rung 3 pass close: "Rung 15
+   re-runs `internal/harness/conform`'s three tiers over the complete
+   corpus, at the matcher commit as landed, and its acceptance is the
+   launch bar's matcher clause read against that run: zero false
+   confident matches over every stratum including stock-config, and
+   zero unadjudicated beets-right/Go-wrong cases. Rung 3's own
+   acceptance is provisional against the corpus at its then-current
+   size. Any tier-2 divergence carrying a pending row at rung 15 is the
+   launch gate's business, not rung 15's to wave through."
+2. **The four-knob wall registration** stays the named follow-on task
+   for the first rung 3 pass that runs after rung 1b closes:
+   `StrongRecThresh`, `MediumRecThresh`, `RecGapThresh`, `SearchLimit`,
+   `internal/config/keys.go` the file no lane edits until then, and
+   `Threshold.Default` is a string with `ParseInt` the only parser, so
+   the three float rec thresholds need a float variant the registry
+   does not yet have.
+3. **3c grades request construction, not the request set.** The seam
+   is R1's: 3d owns the ID-match early return, `_recommendation`,
+   `_add_candidate`, the explicit `search_ids` branch, and
+   `match_by_id`'s no-id/no-consensus branch, and inherits the stub,
+   the zero-miss rule, and the client unchanged.
+4. **The stub's blind side and its four-line close** (R6). Nothing
+   reports which logged `Request` entries a run consumed, so a client
+   issuing fewer requests than the log records leaves zero misses.
+   3c's per-case issued-count assertion covers it inside 3c; 3d needs
+   the hit set.
+5. **`Case.Extra` has no producer** (R7), and a producer is
+   `cmd/harness` work in lane E1's territory. The channel stays
+   hand-authored until E1 builds one.
+6. **The engine's `/ws/2` constants are a deliberate second copy**
+   (R9), and unifying them with `internal/harness/mbrequest` would turn
+   the request grading into a self-derived expectation. 3b's "worth
+   revisiting if a fourth appears" trigger is met and answered.
+7. **The client's three deliberate transport divergences** (R13): a
+   30s timeout rather than beets' 10s; a limiter token acquired per
+   attempt rather than per call; and `Retry-After` honored in its
+   delta-seconds form only, the HTTP-date form falling through to the
+   computed backoff because parsing it needs a clock read
+   `TestEngineNeverReadsTheClock` forbids. Beside them, one non-port:
+   urllib3's 413-plus-`Retry-After` sixth retryable case, unreachable
+   from MusicBrainz. None is gradeable by the corpus.
+7b. **The wire pace is one request per second and it is now written
+    down** (C20): beets' `musicbrainz.org` branch pins `rate_limit =
+    1.0` and its session limiter binds before the 0.25s adapter floor,
+    `musicbrainz.DefaultInterval` is `time.Second`, and rung 4's shadow
+    is the first real spender that inherits it.
+7c. **The `AdminEmail` User-Agent contact is interim** (R11).
+    `Config.AdminEmail`'s own doc comment says adopters compare it and
+    never display it, and the harness precedent this plan cites uses a
+    dedicated `DUBPLATE_HARNESS_CONTACT` input instead. A dedicated
+    contact row is the post-1b follow-on, beside the four-knob
+    registration.
+8. **The retry path is ungraded by the corpus and always will be**:
+   the stub answers 200 or 404 only, `cassette.Request` carries no
+   status field, and the response-status extension stays declined,
+   now for the third pass running.
+9. **Three regime divergences now travel together** (R14): 3b's `\b`
+   (Unicode-aware in Python `re`, ASCII-only in Go RE2), the query
+   path's full-case-versus-simple-case lowering with all 56 sweep code
+   points reaching the wire, and `_extract_id`'s `\w`. The strip
+   divergence is closed rather than carried.
+10. **`AlbumForID` closes 3b's `MergePseudoRelease` aliasing carry by
+    construction**, and the hazard changes owner to 3d and rung 9
+    rather than disappearing; the `slices.Clone` is the fix the day a
+    caller retains both.
+11. **3a's `dataSourcePenalty` carry is CLOSED** (R15), with both
+    `conform` compensations removed and 72/72 tier-0 rows re-verified
+    as the proof.
+12. **An absent release `status` is a plain non-pseudo release here
+    and a dropped candidate in beets**, unreachable in the corpus (303
+    of 303 lookups carry one), recorded as a deliberate choice at
+    `client.go`'s `PseudoReleaseTarget` call site.
+13. **The limiter's one knob is `reservationInterval`**, and rung 9
+    re-verifies that integer against its real callers rather than
+    re-deriving the policy. Rung 9 also inherits the reserved token's
+    **round-robin over the classes below the served one**, which
+    replaced revision 1's "lowest non-empty" rule because that rule
+    starved `ClassBatch` outright whenever a probe stream and the
+    shadow were both queued.
+13b. **`Budget`'s cap reserves before it waits**, so it holds under
+     concurrent callers; a pre-wait check is a lost update that no
+     `-race` run reports.
+13c. **`vaLikely` is unexported at rung 3** and 3d exports it the day
+     `match_by_id`'s no-consensus branch needs it; the same rule kept
+     `stub`'s `Unused()` accessor out of this pass.
+14. **The measured wall times**: the request tier 3.34s, the
+    round-trip proof 1.87s, tier 0 0.015s, `go test ./...` 15.08s, and
+    `scripts/check.sh` 1m25.9s (all at `-count=1`, measured at close),
+    which the version-bump differential doc will want, the same
+    courtesy 2b passed to 2c, 2c to 2d, 2d to 3a, 3a to 3b, and 3b to
+    3c.
+15. Rung 9 reads four seams, not the plan's two, when it re-verifies
+    the dispatcher against its real callers.
+16. **The cancellation mechanism beets never specifies, and what this
+    pass chose.** A refused offer (the picked waiter departed between
+    `pick()` and the offer) tries the next waiter under the same tick.
+    Parking the token in the spare slot would strand already-queued
+    waiters, who only re-check the spare at registration.
+
+### Non-blocking leftovers, condensed
+
+- `internal/harness/cassette/cassette_test.go:325` names both forms in
+  the mutation-1 message; the assertion checks only "not canonical",
+  matching an existing sibling test's style rather than tightening it.
+- `internal/harness/stub/stub.go:11` and `cassette.go:214`: two doc
+  links that could not resolve, fixed in the simplify pass (`7809558`)
+  by naming the package in prose instead of a bracketed link.
+- `internal/engine/matcher/info.go:229`: `boolField`'s doc comment
+  cites a pre-edit line range for `intField`'s comment; worth a
+  conductor call since this task exists partly to correct stale
+  citations, not yet fixed.
+- `internal/engine/musicbrainz/query_test.go:95,111,130`: three
+  rendering-table tests carry no row-count guard, so a dropped or
+  renamed testdata key would pass vacuously; a `len` check per table
+  would close it.
+- `internal/engine/musicbrainz/query_test.go:230`: the tenth-gap table
+  asserts through `AlbumSearchFor`'s rendered query rather than the
+  `[]criterion` slice the plan's table header names; coverage is equal
+  or stronger.
+- `internal/engine/musicbrainz/client.go:329,376`: `doWithRetry`'s
+  signature deviates from the plan's named shape (`requestURL string`
+  in place of `*http.Request`), defensible since the body is read and
+  closed in one place; no test covers the 404-to-`ErrNotFound`
+  mapping.
+- `internal/engine/musicbrainz/client.go:404`: `backoff`'s 120s cap is
+  unreachable, since the client only sleeps for attempts 1 through 6
+  (max 16s); a correct, dead port of urllib3's schedule.
+- `internal/harness/conform/request.go:186-220`: `distinctReleaseLookupMBIDs`
+  dedups by mbid while `countLookupRequests` counts raw log rows; a
+  future case fetching one mbid twice under two `inc` sets would false-
+  fire the per-case assertion. No committed case does this today.
+- `internal/harness/conform/request.go:105-115`: `summary.Cases`
+  increments even on a load or stub-start error, so a broken case still
+  counts toward `RequestCaseFloor`; harmless because the gate test
+  fatals on any error first, fixed toward the doc comment's promise in
+  the simplify pass.
+
+### Filed for other owners
+
+- **The `/ws/2/release/` literal fold**, for the lane owning
+  `mbrequest`: `cmd/harness/capture.go:279` and
+  `internal/harness/synth/synth.go:41` each spell
+  `"/ws/2/release/"` inline rather than reading it from
+  `internal/harness/mbrequest`'s own constant. 3b's own guard 6 records
+  the deliberate three-copy split between `oracle`, `analysis`, and
+  `conform`'s `releaseLookupPrefix`; this is a fourth copy in a
+  different package pair, worth folding the day the lane that owns
+  `mbrequest` next touches either file.
+- **Whether `-race` joins `make check`**, for whoever owns the
+  Makefile. This pass's only concurrent code (`limiter.go`) is proven
+  race-clean by hand at every task boundary and by the pass-end review,
+  but `scripts/check.sh`'s `go test ./...` does not run under `-race`
+  today, so a future concurrency bug in `internal/engine/musicbrainz`
+  or a later package would not be caught by the gate itself.
+
+### Ruled
+
+**Revision 2.1's five conductor rulings were all taken as recommended.**
+
+1. B1, the reserved token round-robins across the non-empty classes
+   below the served one.
+2. M-a, `DataSourceMismatchPenalty` is wired into `DefaultTunables`'
+   penalty map (Task 3's fix round proved the wiring is real, not a
+   coincidence of two equal literals).
+3. M-b, `NewLimiter(interval time.Duration)` with `DefaultInterval =
+   time.Second`.
+4. m22, `corpus/README.md` and `corpus/manifest.json` both carry
+   contested-surface rows, confirmed already landed in the parallel
+   spec before this pass launched (no-op at this close).
+5. m23, the 80%-of-ceiling flag routed to the conductor for the
+   2026-09-04 overnight grant's duration only.
+
+**Revision 2.2's ruling** (Task 5's escalation): option (a), the fourth
+unexported hook `holdBeforeOffer`, landed as Task 5b, is recorded above
+under "What a later pass would be wrong to rediscover" item 15.
+
+The optional `searchlimit` spec clarification at the rung 3 spec `:226`
+is **declined**: that line spells legacy keys relative to the plugin
+namespace, as its adjacent `source_weight` item does, so
+`match.searchlimit` is right as it stands and the ambiguity the
+clarification would remove is not worth the edit. 3a's HISTORY
+correction #5 (the `SearchLimit` legacy spelling) was already corrected
+at `:600` before this pass's close, folded in at the plan's own drafting
+(fold m13); no edit was owed here.
+
+### Carried
+
+- **To 3c, now resolved.** `dataSourcePenalty`'s configured-versus-
+  literal fallback is **CLOSED** (R15): `defaultDataSourceMismatchPenalty`
+  replaces the tunable read and both `conform` compensations are
+  removed, with 72/72 tier-0 rows re-verified bit-identical.
+  `MergePseudoRelease`'s shallow track-slice copy is **re-owned to 3d
+  and rung 9** rather than closed: `AlbumForID` closes the aliasing
+  hazard by construction for this pass's own call site, but the
+  `slices.Clone` fix is still owed the day a caller retains both the
+  merged and the pseudo candidate (item 10 above). The browse fallback
+  is a **non-port** this pass, unowned until a corpus case crosses 500
+  tracks (unchanged from 3b).
+- **To 3d:** the `Preferred.Media`/`Preferred.Countries` config-load
+  validation (3d's alone, unchanged from 3b); the compat switch's
+  pattern-table selection and the `\b` regime divergence; the tie-
+  mirroring work needing both `inclArtist` call shapes; 3c's own R1
+  seam (item 3 above), R6's stub blind side (item 4), R7's `Extra`
+  producer (item 5), and R11's interim `AdminEmail` contact (item 7c).
+- The four-knob wall registration stays the named follow-on task for
+  the first rung 3 pass after rung 1b lands (item 2 above); five 3b
+  `code-simplifier` leftovers still sit beside it in HISTORY, none
+  blocking.
+- `profile_hashes` (m1) and the response-status extension, carried
+  since 2b and 2c, are unaffected by this pass and stay open.
+- Adjudication batch 1 stays fully ruled, 18 `oracle-wrong` and 3
+  `oracle-correct` with zero pending; this pass produced no new
+  adjudication row.
+
+Budgets: prep 2.55M (two runs, a usage-limit pause), Task 0 0.11M, the
+Tasks 1 to 7 chain 1.74M, Task 5b 0.13M, the simplify pass 0.15M, the
+final fresh-context review 0.07M, close ≈0.15M (estimate) against the
+6M ceiling, not re-derived after Task 4 (the conductor's Task 4
+checkpoint found no cause to raise it). Attended interaction points:
+planning misses zero; execution sittings one, a combined five-item
+grant exchange on 2026-09-05 that covered the unattended overnight
+window rather than any 3c content decision.
+
 ## Rung 3, pass 3b (The translation layer, the `AlbumInfo` ledger, and the `defect_free` block): `internal/engine/musicbrainz` born, 50/50 ledger rows graded bit-identical (2026-09-04)
 
 Nine plan tasks plus a staleness pre-task, executed sequentially in the

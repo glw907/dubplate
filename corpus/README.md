@@ -40,10 +40,11 @@ committed request log: an expectation the harness replays against, not
 scaffolding to regenerate. A response body lives only as a file under
 `responses/`; `case.json` never embeds one inline, so there is never a
 decode-and-re-encode step that could disturb its bytes. `Case.Extra`
-lists response files a case captured but no logged request currently
-consumes: recall-extension fixtures for a future candidate-widening
-improvement (U8), graded on the same shared subset rather than escaping
-the harness.
+carries `Request` shape, so each entry records a method, a canonical
+`path_query`, and a response file. An entry is a request the case
+captured that no logged request consumes. These are recall-extension
+fixtures for a future candidate-widening improvement (U8), graded on
+the same shared subset rather than escaping the harness.
 
 ## The smoke corpus
 
@@ -1978,6 +1979,16 @@ the one place pass 2d's schema event differs from 2b's: a schema bump
 forces a re-freeze only when it moves what `Expected` itself carries,
 never when it only adds a manifest pin nothing in `Expected` echoes.
 
+`schema_version` moved from `3` to `4` in rung 3, pass 3c's Task 1:
+`cassette.Case.Extra` was reshaped from `[]string` to `[]Request`, so
+`Expected` itself did change this time, unlike 2d's bump. **This bump
+still forced no re-freeze.** `Extra` is an `omitempty` field, and it is
+empty on all 215 committed cases, so the reshaped type has nothing
+committed to re-encode. 2d avoided a re-freeze categorically; this bump
+avoids it mechanically. `TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema`
+is the proof, confirming the empty migration byte for byte over the
+whole corpus.
+
 ## The file-tags fixture
 
 `internal/harness/oracle/testdata/template.flac` is a vendored,
@@ -2386,7 +2397,7 @@ key against a case's own value is testing a fact the corpus never
 established.
 
 **The pin and its failure mode.** `mediafile==0.17.0` is pinned in
-`corpus/manifest.json` (`schema_version` `3`), and `Reconcile`'s
+`corpus/manifest.json` (`schema_version` `4`), and `Reconcile`'s
 `pinned` tuple and `versionProbe` string both name it: a `mediafile`
 bump the corpus has not re-derived against fails `make derive` loudly
 rather than silently drifting.
@@ -2778,8 +2789,10 @@ retires beets' search fallback for that item: once a release lookup by
 MBID scores a strong recommendation, beets never issues the search
 request an earlier, less complete capture might have needed. Any
 response already captured for that now-unreachable search request does
-not become wrong; it becomes `Extra` (recall-extension surface, U8),
-legally orphaned by a more complete capture rather than a regression
-to fix. A case's `Extra` list is exactly where those orphaned
-responses belong once a maintainer notices the loop has converged past
-needing them.
+not become wrong; it becomes an `Extra` entry (recall-extension surface,
+U8). The entry carries its own method and canonical `path_query` where
+the old shape carried a bare filename. A more complete capture orphans
+it legally, and that is no regression to fix. A case's `Extra` list is
+where those orphaned entries belong once a maintainer notices the loop
+has converged past needing them. The channel still has no automatic
+producer, so a maintainer adds the entry by hand.

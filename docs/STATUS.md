@@ -3,64 +3,48 @@
 ## Current state
 
 The greenfield dubplate-server build is the one active initiative. **Rung 2 is
-closed. Rung 3, passes 3a and 3b are closed.** `internal/engine/matcher` (21
-distance components) and `internal/engine/musicbrainz` (WS/2 vocabulary, track
-extraction, aliases and credits, release events, `TranslateAlbum`, the pseudo
-merge) are green; `internal/harness/conform` replays tier 0 at 72/72 rows and
-grades the translation tier at 50/50 ledger rows, both bit-identical.
-`corpus/analysis/album_info.json` (19 subjects, 50 rows) and the `defect_free`
-block on ten adjudication rows are committed and gate-checked. Coverage tables,
-evidence, and the rediscover-guards live in `docs/HISTORY.md`'s 3a and 3b
-entries; read both before 3c. The family system is NOT live until launch; the
-box (5.78.148.42) runs Navidrome + cloudflared + guardian timers only.
+closed. Rung 3, passes 3a, 3b and 3c are closed.** `internal/engine/matcher`
+(21 distance components, `Comp`, `IsVariousArtistsName`) and
+`internal/engine/musicbrainz` (WS/2 vocabulary, `TranslateAlbum`, the pseudo
+merge, `query.go`, `client.go`, `limiter.go`) are green. `internal/harness/conform`
+replays tier 0 at 72/72, translation at 50/50, request construction at 215
+cases/303 lookups/48 searches, all bit-identical or zero-miss. Ledger and
+gap evidence live in `docs/HISTORY.md`'s 3a/3b/3c entries; read all three
+before 3d. Family system NOT live; box (5.78.148.42) runs Navidrome +
+cloudflared + guardian timers only.
 
 ## Rules for a new session
 
-Read CLAUDE.md's Build process, then the parallel-approach spec (rev 2, the
-two-code-lane model), then this file. The live-executor check is the lane
-registry below, not `pgrep`. Box is production; quiet-box check before writes.
+Read CLAUDE.md's Build process, the parallel-approach spec (rev 2), then this
+file. Live-executor check is the lane registry, not `pgrep`; box is production.
 
 ## Lane registry
 
-- lane-1 (code, main tree): **pass 3c at its close step**, session handed
-  off 2026-09-05 09:55 for a Claude Code restart. Landed and green: Tasks
-  1-7 (e9364ff..18a1292, three fix rounds), Task 5b (78a6e5a, ruling rev
-  2.2), the simplify pass (7809558) and the shutdown-arm proof (0082ae6).
-  **Resume prompt:** (1) dispatch a `diff-reviewer` (opus) over 7809558
-  and 0082ae6 (the one that was stopped mid-read; criteria in the plan's
-  Execution model and rev 2.2 note); (2) run Task 8, the close, per the
-  plan, feeding it `~/.claude/projects/-var-home-glw907-Projects-dubplate/
-  handoff/3c-task-records.md` and `3c-nonblocking.md`, then a
-  `prose-voice-reviewer` pass and a fold, then the batch commit and push;
-  (3) 3d plan-prep workflow against the quiet tree (3b/3c prep scripts in
-  this project's `workflows/scripts/` are the shape), then 3d execution.
-  Spend so far: prep 2.55M (two runs, a usage-limit pause), Task 0 0.11M,
-  chain 1.74M, 5b 0.13M, simplify 0.15M, ≈4.7M of 6M; ceiling flag routes
-  to the conductor under the overnight grant. Guard scripts and the AC
-  state log are in the same `handoff/` dir; size inhibitor holds to the
-  clock (memory note `overnight-hold-sized-to-clock`). The two untracked
-  research docs under `docs/superpowers/research/` (outreach, evidence)
-  are sidebars, deliberately uncommitted.
-- lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land. Doc
-  lane (main tree): IDLE; Phase 0a is complete.
+- lane-1 (main tree): **3c closed** (Tasks 1-8, `e9364ff`..`7809558` plus the
+  close-out commit). Next: the 3d plan-prep workflow, then 3d execution
+  (needs 3a/3b/3c, all shipped). Under the 2026-09-05 grant, the
+  80%-ceiling flag routes to the conductor through 2026-09-07 09:00 (ruling
+  F stops only its own task; disposition stays Geoff's); window spend cap
+  15M. lane-2 (worktree): BLOCKED until Phase 0b/0c land. Doc lane: IDLE.
 
 ## Open items (carried)
 
-- `profile_hashes` (m1) and the response-status extension stay open, carried
-  since 2b/2c. Rung 3 carries **nine declared corpus-coverage gaps**, three from
-  3a and six from 3b, each owned in its own HISTORY entry; none blocks 3c.
-- To 3c: `dataSourcePenalty`'s configured-versus-literal fallback;
-  `MergePseudoRelease`'s shallow track-slice copy; the unported browse fallback,
-  which 3c owns if a corpus case ever crosses 500 tracks.
-- To 3d: `Preferred.Media`/`Preferred.Countries` config-load validation (3d's
-  alone now); the compat switch's pattern-table selection and the `\b` regime
-  divergence; tie-mirroring needing both `inclArtist` call shapes.
-- The four-knob wall registration is the follow-on task for the first rung 3
-  pass after rung 1b lands; `internal/config/keys.go` stays untouched until then.
-  Five 3b `code-simplifier` leftovers sit beside it in HISTORY, none blocking.
-- Adjudication batch 1 is fully ruled: 18 oracle-wrong, 3 oracle-correct, zero
-  pending.
-- Rewrite post-mortem owed; two albums in /srv/music/review/2026-08-31/geoff/
+- Rung 3 carries **ten declared corpus-coverage gaps**, owned in HISTORY; none
+  blocks 3d. `dataSourcePenalty` (R15) CLOSED; `MergePseudoRelease`'s aliasing
+  hazard closed by construction at 3c's call site, the `slices.Clone` fix
+  re-owned to 3d/rung 9; browse fallback a non-port past 500 tracks.
+- To 3d: `Preferred.Media`/`Countries` config-load validation; the compat
+  switch's pattern-table selection and the `\b` regime divergence; tie-
+  mirroring needing both `inclArtist` shapes; 3c's R1 seam, R6's stub blind
+  side, R7's `Extra` producer (`cmd/harness`, lane E1), R11's `AdminEmail`.
+- Four-knob wall registration (`StrongRecThresh`, `MediumRecThresh`,
+  `RecGapThresh`, `SearchLimit`) is the follow-on for the first rung 3 pass
+  after rung 1b, `internal/config/keys.go` untouched until then; `AdminEmail`
+  contact row and five 3b `code-simplifier` leftovers beside it, none blocking.
+- `profile_hashes` (m1) and the response-status extension stay open since
+  2b/2c, the latter declined a third pass running; adjudication batch 1
+  fully ruled (18 oracle-wrong, 3 oracle-correct, zero pending). Rewrite
+  post-mortem owed; two albums in /srv/music/review/2026-08-31/geoff/
   await review; FILEBROWSER_ADMIN_PASSWORD orphaned; stale failed units.
 
 ## Pinned versions (looked up 2026-08-30)
@@ -73,4 +57,4 @@ registry below, not `pgrep`. Box is production; quiet-box check before writes.
 | mediafile (corpus manifest, 2d) | PyPI `mediafile` | `0.17.0` |
 | unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
 
-Spend to date: ≈25.0M across rungs 2 and 3 (per-pass figures in HISTORY's Budgets lines).
+Spend to date: ≈29.9M across rungs 2 and 3 (per-pass figures in HISTORY).
