@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -72,6 +73,9 @@ func TestRelease_ValidateRejectsEmptyTargetType(t *testing.T) {
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
+	if !strings.Contains(err.Error(), "relation 0") {
+		t.Errorf("Validate() = %q, want it to name the offending element (%q)", err.Error(), "relation 0")
+	}
 }
 
 func TestRelease_ValidateRejectsEmptyReleaseCredit(t *testing.T) {
@@ -79,6 +83,9 @@ func TestRelease_ValidateRejectsEmptyReleaseCredit(t *testing.T) {
 	err := rel.Validate()
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
+	}
+	if !strings.Contains(err.Error(), "rel-empty-release-credit") {
+		t.Errorf("Validate() = %q, want it to name the offending element (%q)", err.Error(), "rel-empty-release-credit")
 	}
 }
 
@@ -93,6 +100,9 @@ func TestRelease_ValidateRejectsEmptyTrackCredit(t *testing.T) {
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
+	if !strings.Contains(err.Error(), "medium 1 track 1") {
+		t.Errorf("Validate() = %q, want it to name the offending element (%q)", err.Error(), "medium 1 track 1")
+	}
 }
 
 // TestRelease_ValidateRejectsPseudoTargetMissing is hand-authored on the
@@ -104,6 +114,9 @@ func TestRelease_ValidateRejectsPseudoTargetMissing(t *testing.T) {
 	err := rel.Validate()
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
+	}
+	if !strings.Contains(err.Error(), "relation 0") {
+		t.Errorf("Validate() = %q, want it to name the offending element (%q)", err.Error(), "relation 0")
 	}
 }
 
