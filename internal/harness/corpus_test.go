@@ -7,6 +7,7 @@
 package harness
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -132,7 +133,7 @@ func TestEveryResponseFileIsConsumed(t *testing.T) {
 			consumed[req.Response] = true
 		}
 		for _, extra := range c.Extra {
-			consumed[extra] = true
+			consumed[extra.Response] = true
 		}
 
 		entries, err := os.ReadDir(filepath.Join(dir, "responses"))
@@ -156,8 +157,10 @@ func TestEveryResponseFileIsConsumed(t *testing.T) {
 // corpus-revalidation event like any other pin change (corpus/README.md);
 // this constant is what makes an un-updated manifest fail loudly here
 // instead of silently loading under an assumption the corpus no
-// longer meets.
-const wantManifestSchemaVersion = "3"
+// longer meets. Version 4 is pass 3c's cassette.Case.Extra reshape
+// (bare filename to Request-shaped entry), an empty migration because
+// every committed case's Extra value is nil.
+const wantManifestSchemaVersion = "4"
 
 // TestManifestParsesAndMatchesSchemaVersion proves corpus/manifest.json
 // itself is a valid Manifest and carries the schema version this
@@ -171,6 +174,45 @@ func TestManifestParsesAndMatchesSchemaVersion(t *testing.T) {
 	if m.SchemaVersion != wantManifestSchemaVersion {
 		t.Errorf("corpus/manifest.json schema_version = %q, want %q", m.SchemaVersion, wantManifestSchemaVersion)
 	}
+}
+
+// TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema proves the
+// Case.Extra reshape moved no committed byte: every case.json decodes
+// through the current Case type and re-encodes, through the same
+// Case.Write every `harness freeze` uses, to bytes identical to the file
+// on disk. This is the schema bump's migration proof, offline and in
+// seconds, in place of the full re-derivation pass 2b's bump needed
+// (corpus/README.md:1959-1980). It keeps proving it for every later
+// schema change rather than for this one only.
+func TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema(t *testing.T) {
+	root := repoRoot(t)
+	forEachCase(t, root, func(t *testing.T, id, dir string, c *cassette.Case) {
+		want, err := os.ReadFile(filepath.Join(dir, "case.json"))
+		if err != nil {
+			t.Fatalf("read %s/case.json: %v", dir, err)
+		}
+		out := t.TempDir()
+		if err := c.Write(out); err != nil {
+			t.Fatalf("case %s: Write: %v", id, err)
+		}
+		got, err := os.ReadFile(filepath.Join(out, "case.json"))
+		if err != nil {
+			t.Fatalf("case %s: read round-tripped case.json: %v", id, err)
+		}
+		if !bytes.Equal(want, got) {
+			// The first differing offset, never a length delta: an
+			// equal-length re-encode drift is the likely failure and a
+			// length delta prints 0 for it (fold m4).
+			at := 0
+			for at < len(want) && at < len(got) && want[at] == got[at] {
+				at++
+			}
+			lo, hi := max(0, at-20), min(len(want), at+20)
+			ghi := min(len(got), at+20)
+			t.Errorf("case %s: round-trip through the current schema first differs at byte %d (want %d bytes, got %d)\n want ...%q...\n  got ...%q...",
+				id, at, len(want), len(got), want[lo:hi], got[min(lo, len(got)):ghi])
+		}
+	})
 }
 
 // TestEveryCorpusCaseSatisfiesItsClaims reads each case's sibling

@@ -1,0 +1,27 @@
+{
+  "id": "extra-request-shape",
+  "input": {
+    "items": [
+      {
+        "title": "Fixture Track",
+        "artist": "Fixture Artist"
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2020-01-01",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "release/00000000-0000-0000-0000-000000000001?fmt=json",
+      "response": "responses/001.json"
+    }
+  ],
+  "extra": [
+    {
+      "method": "GET",
+      "path_query": "release/00000000-0000-0000-0000-000000000002?fmt=json",
+      "response": "responses/002.json"
+    }
+  ]
+}
