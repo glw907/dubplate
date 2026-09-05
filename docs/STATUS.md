@@ -26,7 +26,9 @@ registry below, not `pgrep`. Box is production; quiet-box check before writes.
   construction, the limiter, the stub's `Case.Extra` replay channel). The
   plan-prep workflow `wf_ede6e00d-bee` writes only the 3c planning
   inventory, plan, and plan review under `docs/superpowers/`; if
-  interrupted, relaunch fresh or land what exists. 3d needs all three.
+  interrupted, relaunch fresh or land what exists. **Standing grant (Geoff,
+  2026-09-04 evening): run unattended through 3c execution, 3d prep, and 3d
+  execution as the clock allows, workflow mode, /loop to completion.**
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land. Doc
   lane (main tree): IDLE; Phase 0a is complete.
 
