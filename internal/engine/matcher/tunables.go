@@ -119,26 +119,35 @@ type Tunables struct {
 	// SearchLimit is the metadata-source plugin's own search_limit
 	// subkey, not a top-level match: key
 	// (metadata_plugins.py:201,415). The legacy spelling beets still
-	// reads and deprecates is musicbrainz.searchlimit
-	// (beetsplug/musicbrainz.py:291-298). Default 5. Operator-facing.
+	// reads and deprecates is musicbrainz.match.searchlimit
+	// (beetsplug/musicbrainz.py:292-294, beets/plugins.py:200), read
+	// relative to the plugin's own config namespace. Beets' own
+	// deprecation message spells it musicbrainz.searchlimit
+	// (beetsplug/musicbrainz.py:297), which is where every wrong copy of
+	// this fact came from. Default 5. Operator-facing.
 	SearchLimit int
 
-	// DataSourceMismatchPenalty is a loaded metadata-source plugin's
-	// own class-level fallback penalty,
-	// MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_PENALTY
-	// (metadata_plugins.py:180), wired into the plugin's own config at
-	// init time (:201-202) and read back through the source_weight-
-	// first resolution property data_source_mismatch_penalty
-	// (:190-195, whose own deprecated legacy spelling is
-	// musicbrainz.source_weight). It is the value get_penalty falls
-	// back to when DataSourcePenalties names no matching source.
-	// Default 0.5.
+	// DataSourceMismatchPenalty is the loaded MusicBrainz plugin's own
+	// mismatch penalty, resolved source_weight-first through the
+	// property data_source_mismatch_penalty (metadata_plugins.py:190-
+	// 195, whose own deprecated legacy spelling is
+	// musicbrainz.source_weight) and wired into the plugin's own config
+	// at init time (:201-202). It is the value that populates
+	// DataSourcePenalties["MusicBrainz"] in [DefaultTunables], not the
+	// class-level fallback get_penalty falls back to when
+	// DataSourcePenalties names no matching source at all: that fallback
+	// is the unexported defaultDataSourceMismatchPenalty constant
+	// (penalty.go), MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_
+	// PENALTY (metadata_plugins.py:180). The two are the same value at
+	// launch (0.5) and diverge the moment source_weight is configured
+	// (3a's carry to 3c, closed here). Default 0.5.
 	DataSourceMismatchPenalty float64
 
 	// DataSourcePenalties is the loaded metadata source set
 	// AddDataSource's get_penalty(after) scans before falling back to
-	// DataSourceMismatchPenalty: each loaded plugin's own data_source
-	// name (metadata_plugins.py:182-188, cls.__name__ with "Plugin"
+	// the class-level defaultDataSourceMismatchPenalty constant
+	// (penalty.go): each loaded plugin's own data_source name
+	// (metadata_plugins.py:182-188, cls.__name__ with "Plugin"
 	// stripped) mapped to that plugin's own mismatch penalty
 	// (metadata_plugins.py:159-169). At launch beets loads one plugin,
 	// plugins: [musicbrainz] (config_default.yaml:10), whose class is
@@ -236,6 +245,13 @@ type Preferred struct {
 // DefaultTunables returns beets' shipped defaults, pinned at 2.13.1
 // and cited field by field on [Tunables].
 func DefaultTunables() Tunables {
+	// DataSourceMismatchPenalty is the plugin's own resolved penalty
+	// (source_weight-first, metadata_plugins.py:190-195), which is what
+	// populates DataSourcePenalties["MusicBrainz"] below: the per-source
+	// entry for MusicBrainz IS the plugin's own resolved penalty
+	// (metadata_plugins.py:182-195, Resolution R15).
+	dataSourceMismatchPenalty := 0.5
+
 	return Tunables{
 		StrongRecThresh: 0.04,
 		MediumRecThresh: 0.25,
@@ -279,9 +295,9 @@ func DefaultTunables() Tunables {
 		TrackLengthGrace:          10,
 		TrackLengthMax:            30,
 		SearchLimit:               5,
-		DataSourceMismatchPenalty: 0.5,
+		DataSourceMismatchPenalty: dataSourceMismatchPenalty,
 		DataSourcePenalties: map[string]float64{
-			"MusicBrainz": 0.5,
+			"MusicBrainz": dataSourceMismatchPenalty,
 		},
 		ExtraTags:          nil,
 		Timid:              false,

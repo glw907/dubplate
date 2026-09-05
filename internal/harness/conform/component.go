@@ -563,9 +563,12 @@ type trackDistanceArgs struct {
 
 // metadataSourceSet builds the get_penalty two-plugin stub's loaded-
 // source set (fold, B3): {"Original": 0.5, "Other": penalty}, or just
-// {"Other": penalty} when multiple is false. The fallback get_penalty
-// resolves to when after names no loaded source is always the class
-// default 0.5, never the row's own penalty field.
+// {"Other": penalty} when multiple is false. The fallback dataSourcePenalty
+// resolves to when after names no loaded source is matcher's own
+// defaultDataSourceMismatchPenalty class constant, never the row's own
+// penalty field or Tunables.DataSourceMismatchPenalty (3a's carry,
+// closed by rung 3 pass 3c), so tunablesWithOverrides' shipped default
+// needs no compensation here.
 func metadataSourceSet(penalty float64, multiple bool) map[string]float64 {
 	sources := map[string]float64{"Other": penalty}
 	if multiple {
@@ -670,7 +673,6 @@ func replayTrackDistance(row analysis.ComponentRow) ReplayOutcome {
 	if args.DataSourceMismatchPenalty != nil {
 		multiple := args.MultipleDataSources == nil || *args.MultipleDataSources
 		tun.DataSourcePenalties = metadataSourceSet(*args.DataSourceMismatchPenalty, multiple)
-		tun.DataSourceMismatchPenalty = 0.5
 	}
 
 	item := matcher.ProjectItemFields(args.Item)
@@ -718,7 +720,6 @@ func replayAddDataSource(row analysis.ComponentRow) ReplayOutcome {
 
 	tun := tunablesWithOverrides(args.Weights)
 	tun.DataSourcePenalties = metadataSourceSet(args.DataSourceMismatchPenalty, args.MultipleDataSources)
-	tun.DataSourceMismatchPenalty = 0.5
 
 	dist := matcher.NewDistance(tun)
 	dist.AddDataSource(derefOr(args.Before, ""), derefOr(args.After, ""))

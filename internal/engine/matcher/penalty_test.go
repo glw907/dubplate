@@ -372,6 +372,27 @@ func TestAddDataSource(t *testing.T) {
 	}
 }
 
+// TestDataSourcePenaltyFallsBackToClassConstant closes 3a's carry
+// (Resolution R15): the fallback dataSourcePenalty resolves to when
+// after names no loaded source is the class-level constant, not
+// Tunables.DataSourceMismatchPenalty. Setting both to 0.7 and asserting
+// 0.5 is exactly the case that distinguishes the two: a reverted
+// dataSourcePenalty that reads d.tun.DataSourceMismatchPenalty instead
+// of the constant would return 0.7 here and fail.
+func TestDataSourcePenaltyFallsBackToClassConstant(t *testing.T) {
+	tun := DefaultTunables()
+	tun.DataSourceMismatchPenalty = 0.7
+	tun.DataSourcePenalties = map[string]float64{"MusicBrainz": 0.7}
+
+	d := NewDistance(tun)
+	d.AddDataSource("Discogs", "Bandcamp")
+
+	want := []float64{0.5}
+	if got := d.penalties["data_source"]; !slices.Equal(got, want) {
+		t.Errorf("AddDataSource(Discogs, Bandcamp) added %v, want %v (the class fallback 0.5, not the tunable 0.7)", got, want)
+	}
+}
+
 // TestGenericPenaltyKeys pins the three replacements and their order.
 // Turning underscores into spaces before stripping the prefixes reads
 // "album_id" as "album id"; dropping the nonzero test lets

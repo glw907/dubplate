@@ -104,13 +104,13 @@ type TrackInfo struct {
 	DataSource string
 }
 
-// ItemFields is the typed field bag the distance path reads off one
-// user item: the eighteen fields get_most_common_tags
-// (util/__init__.py:822-836) and track_distance
-// (autotag/distance.py:394-424) touch between them, each in beets' own
-// type. Artist and DataSource are read by both call sites and appear
-// once here. A field outside this set is not read by the distance
-// path; adding one is a finding, not a convenience.
+// ItemFields is the typed field bag the distance and search paths read
+// off one user item: nineteen fields, eighteen touched between
+// get_most_common_tags (util/__init__.py:822-836) and track_distance
+// (autotag/distance.py:394-424), each in beets' own type, plus Comp,
+// read by the search path alone. Artist and DataSource are read by both
+// distance call sites and appear once here. A field outside this set is
+// not read by either path; adding one is a finding, not a convenience.
 //
 // data_source is the one field whose true beets default is None rather
 // than the empty string beets projects every other unset string field
@@ -140,6 +140,15 @@ type ItemFields struct {
 	Track         int
 	MBTrackID     string
 	Disc          int
+
+	// Comp is the beets comp flag. It is the one field here the
+	// distance path never reads: va_likely's third disjunct is
+	// any(item.comp for item in items) (autotag/match.py:454), which is
+	// the SEARCH path, and internal/engine/musicbrainz's query builder
+	// is its only consumer. It lives on this type rather than in a
+	// second projection of the same item bag because two decoders over
+	// one field bag drift silently.
+	Comp bool
 }
 
 // The beets item field names [ProjectItemFields] reads each
@@ -163,6 +172,7 @@ const (
 	fieldTrack         = "track"
 	fieldMBTrackID     = "mb_trackid"
 	fieldDisc          = "disc"
+	fieldComp          = "comp"
 )
 
 // ProjectItemFields builds an [ItemFields] from raw, an untyped field
@@ -196,6 +206,7 @@ func ProjectItemFields(raw map[string]any) ItemFields {
 		Track:         intField(raw, fieldTrack),
 		MBTrackID:     stringField(raw, fieldMBTrackID),
 		Disc:          intField(raw, fieldDisc),
+		Comp:          boolField(raw, fieldComp),
 	}
 }
 
@@ -204,6 +215,21 @@ func ProjectItemFields(raw map[string]any) ItemFields {
 func stringField(raw map[string]any, key string) string {
 	s, _ := raw[key].(string)
 	return s
+}
+
+// boolField returns raw[key] as a bool, or false when key is absent or
+// holds a non-bool value, reproducing beets' typed-default projection
+// for a field whose declared type is bool (contract 10).
+//
+// It accepts a JSON bool only. beets stores comp as a types.Boolean
+// integer flag, so a case carrying "comp": 1 would project false here
+// and True in the shim; all 15 committed cases that carry comp carry it
+// as JSON true, so nothing moves today, and this is the same shape
+// intField's own comment records for the float64 arrival (info.go:
+// 209-211).
+func boolField(raw map[string]any, key string) bool {
+	b, _ := raw[key].(bool)
+	return b
 }
 
 // intField returns raw[key] as an int, or 0 when key is absent or

@@ -39,7 +39,7 @@ func TestProjectItemFields_TypedDefaults(t *testing.T) {
 	}
 }
 
-func TestProjectItemFields_AllEighteenFields(t *testing.T) {
+func TestProjectItemFields_AllNineteenFields(t *testing.T) {
 	raw := map[string]any{
 		"artist":        "Alpha",
 		"album":         "Beta",
@@ -59,6 +59,7 @@ func TestProjectItemFields_AllEighteenFields(t *testing.T) {
 		"track":         float64(4),
 		"mb_trackid":    "track-id",
 		"disc":          float64(1),
+		"comp":          true,
 	}
 
 	want := ItemFields{
@@ -80,10 +81,22 @@ func TestProjectItemFields_AllEighteenFields(t *testing.T) {
 		Track:         4,
 		MBTrackID:     "track-id",
 		Disc:          1,
+		Comp:          true,
 	}
 
 	if got := ProjectItemFields(raw); got != want {
 		t.Errorf("ProjectItemFields(%v) = %+v, want %+v", raw, got, want)
+	}
+}
+
+// TestProjectItemFields_CompRejectsWrongType proves boolField's
+// typed-default narrowing (mutation: boolField returning true for a
+// non-bool value, for example treating a truthy string as true, must
+// fail this test because want.Comp stays false).
+func TestProjectItemFields_CompRejectsWrongType(t *testing.T) {
+	got := ProjectItemFields(map[string]any{"comp": "yes"})
+	if got.Comp != false {
+		t.Errorf("ProjectItemFields({comp: %q}).Comp = %v, want false", "yes", got.Comp)
 	}
 }
 
