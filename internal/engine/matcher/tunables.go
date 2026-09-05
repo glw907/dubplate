@@ -245,14 +245,7 @@ type Preferred struct {
 // DefaultTunables returns beets' shipped defaults, pinned at 2.13.1
 // and cited field by field on [Tunables].
 func DefaultTunables() Tunables {
-	// DataSourceMismatchPenalty is the plugin's own resolved penalty
-	// (source_weight-first, metadata_plugins.py:190-195), which is what
-	// populates DataSourcePenalties["MusicBrainz"] below: the per-source
-	// entry for MusicBrainz IS the plugin's own resolved penalty
-	// (metadata_plugins.py:182-195, Resolution R15).
-	dataSourceMismatchPenalty := 0.5
-
-	return Tunables{
+	tun := Tunables{
 		StrongRecThresh: 0.04,
 		MediumRecThresh: 0.25,
 		RecGapThresh:    0.25,
@@ -295,20 +288,23 @@ func DefaultTunables() Tunables {
 		TrackLengthGrace:          10,
 		TrackLengthMax:            30,
 		SearchLimit:               5,
-		DataSourceMismatchPenalty: dataSourceMismatchPenalty,
-		DataSourcePenalties: map[string]float64{
-			"MusicBrainz": dataSourceMismatchPenalty,
-		},
-		ExtraTags:          nil,
-		Timid:              false,
-		Languages:          nil,
-		IgnoredAliasTypes:  nil,
-		Quiet:              false,
-		QuietFallback:      "skip",
-		NoneRecAction:      "ask",
-		VAName:             "Various Artists",
-		StringDistPatterns: BeetsSDPatterns,
+		DataSourceMismatchPenalty: 0.5,
+		ExtraTags:                 nil,
+		Timid:                     false,
+		Languages:                 nil,
+		IgnoredAliasTypes:         nil,
+		Quiet:                     false,
+		QuietFallback:             "skip",
+		NoneRecAction:             "ask",
+		VAName:                    "Various Artists",
+		StringDistPatterns:        BeetsSDPatterns,
 	}
+	// The per-source entry for MusicBrainz IS the plugin's own resolved
+	// penalty (metadata_plugins.py:182-195, Resolution R15): read back
+	// from the field just set above, not a second literal, so the field
+	// has a real production reader.
+	tun.DataSourcePenalties = map[string]float64{"MusicBrainz": tun.DataSourceMismatchPenalty}
+	return tun
 }
 
 // SDPattern is one entry in string_dist's pattern-discount table: pat
