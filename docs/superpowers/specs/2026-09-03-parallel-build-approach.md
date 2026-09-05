@@ -171,6 +171,8 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | `internal/engine/{matcher,musicbrainz}` (conductor ruling, 2026-09-04; restates the phase-1 lane table's E2 award) | rung 3 (the E2 lane): `matcher` born by 3a, `musicbrainz` born by 3b; no other lane writes either | rung 4's shadow, rung 9's pipeline, rung 15's re-run |
 | `corpus/analysis/*` and `corpus/cases/*` | lane E1 authors; the adjudication stream commits dispositions; rung 3 adds schema only through re-derivation (3b's `defect_free`) | rungs 3, 8, 15 |
 | `tools/unidecode-table/` (conductor ruling, 2026-09-04) | rung 3 pass 3a — the one-time transliteration-table generator; lane E1 owns the rest of `tools/` | the matcher's embedded table's provenance |
+| `corpus/manifest.json` (conductor ruling, 2026-09-04, at 3c's plan fold) | lane E1 as the corpus's own pin file; rung 3 moves `schema_version` alone, in lockstep with `internal/harness/corpus_test.go`'s `wantManifestSchemaVersion`, and touches no other field | `cassette.LoadManifest`, `oracle.Reconcile`, `conform.CheckUnidecodeVersion` |
+| `corpus/README.md` (conductor ruling, 2026-09-04, at 3c's plan fold) | conductor-owned, on the same standing rule the `docs/` ledgers row states; a pass drafts a correction and never writes the file | every later pass reading the corpus's own narrative record |
 
 **Rejected alternatives.**
 

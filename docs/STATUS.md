@@ -22,13 +22,14 @@ registry below, not `pgrep`. Box is production; quiet-box check before writes.
 
 ## Lane registry
 
-- lane-1 (code, main tree): PREP for **pass 3c** (WS/2 client, Lucene query
-  construction, the limiter, the stub's `Case.Extra` replay channel). The
-  plan-prep workflow `wf_ede6e00d-bee` writes only the 3c planning
-  inventory, plan, and plan review under `docs/superpowers/`; if
-  interrupted, relaunch fresh or land what exists. **Standing grant (Geoff,
-  2026-09-04 evening): run unattended through 3c execution, 3d prep, and 3d
-  execution as the clock allows, workflow mode, /loop to completion.**
+- lane-1 (code, main tree): EXECUTING **pass 3c** per
+  `docs/superpowers/plans/2026-09-04-rung-3c-client-limiter.md` (revision
+  2.1, review folded, five conductor rulings taken). Chain: Task 0, then
+  Tasks 1-7 via pass-execute (sequential, this tree), code-simplifier,
+  Task 8's close. Ceiling 6M, flag 4.8M (routes to the conductor under
+  the overnight grant), re-derive after Task 4. **Standing grant (Geoff,
+  2026-09-04 evening): run unattended through 3c execution, 3d prep, and
+  3d execution as the clock allows, workflow mode, /loop to completion.**
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land. Doc
   lane (main tree): IDLE; Phase 0a is complete.
 

@@ -597,7 +597,8 @@ neither is a derivation.
 5. **Four corrected citations**, so no later pass re-derives them:
    `DataSourceMismatchPenalty`'s default is `metadata_plugins.py:180`
    wired at `:202`, not `:190-195`; the `SearchLimit` legacy spelling
-   is `musicbrainz.searchlimit`, not a top-level `match:` key;
+   is `musicbrainz.match.searchlimit` (corrected at 3c's plan fold), not
+   a top-level `match:` key;
    `ExtraTags` lives on the musicbrainz plugin with no
    `config_default.yaml` citation; and `match:` carries
    `album_disambig_fields` / `singleton_disambig_fields`, display-only
