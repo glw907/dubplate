@@ -30,12 +30,11 @@ import (
 // script to leave SD_PATTERNS untouched, the both-ways check's
 // baseline half.
 type DefectFreeSubject struct {
-	CaseID         string
-	AdjudicationID string
-	ReleaseMBID    string
-	ResponsePath   string
-	EvalDate       string
-	PatternTable   string
+	CaseID       string
+	ReleaseMBID  string
+	ResponsePath string
+	EvalDate     string
+	PatternTable string
 }
 
 // DefectFreeRow is one subject's derived figures, exactly as
@@ -67,10 +66,10 @@ type defectFreeSubjectInput struct {
 }
 
 // DeriveDefectFree runs derive_defect_free.py over subjects and returns
-// the figures it prints, unparsed: one document carrying {case_id,
-// distance, recommendation, action, pattern_table} per subject, one
-// beets process for the whole batch, because nothing here renders a
-// profile or otherwise changes beets' config between subjects.
+// the figures it prints, unparsed: one document carrying a
+// [DefectFreeRow] per subject, from one beets process for the whole
+// batch, because nothing here renders a profile or otherwise changes
+// beets' config between subjects.
 func DeriveDefectFree(ctx context.Context, opts Options, subjects []DefectFreeSubject) ([]byte, error) {
 	root, err := repoRoot()
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
+	"github.com/glw907/dubplate/internal/harness/analysis"
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
 
@@ -162,19 +163,24 @@ func TestItemFieldsProjectionAgreesWithCorpus(t *testing.T) {
 }
 
 // TestPatternTableNamesResolve is the m11 fold: analysis.DefectFree's
-// PatternTable field carries one of two legal string literals,
-// "SDPatternsWordBoundary" and "SDPatternsNoBracketDiscount"
-// (internal/harness/analysis/adjudication.go's own legalPatternTables,
-// which must not import internal/engine), and nothing checks that
-// either name still resolves to a real table in package matcher. This
-// test does, in CheckUnidecodeVersion's shape: the harness reads both
-// sides, so a rename in matcher cannot orphan the ledger silently.
+// PatternTable field carries one of the string literals
+// analysis.LegalPatternTables names (that package must not import
+// internal/engine), and nothing checks that they still resolve to real
+// tables in package matcher. This test does, in CheckUnidecodeVersion's
+// shape: the harness reads both sides, so neither a rename in matcher
+// nor an edit to the ledger's own legal set can orphan the other
+// silently.
 func TestPatternTableNamesResolve(t *testing.T) {
 	tables := map[string][]matcher.SDPattern{
 		"SDPatternsWordBoundary":      matcher.SDPatternsWordBoundary,
 		"SDPatternsNoBracketDiscount": matcher.SDPatternsNoBracketDiscount,
 	}
-	for name, table := range tables {
+	for _, name := range analysis.LegalPatternTables {
+		table, ok := tables[name]
+		if !ok {
+			t.Errorf("legal pattern table %q names no table in package matcher", name)
+			continue
+		}
 		if len(table) == 0 {
 			t.Errorf("pattern table %q resolves to an empty []matcher.SDPattern", name)
 		}

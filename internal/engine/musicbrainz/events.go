@@ -58,9 +58,7 @@ func preferredReleaseEvent(rel *Release, tun matcher.Tunables) (country string, 
 // unparsable month must not swallow the real day that follows it.
 func parseDate(s string) (year, month, day int) {
 	parts := strings.Split(s, "-")
-	if len(parts) > 0 {
-		year = parseDatePart(parts[0])
-	}
+	year = parseDatePart(parts[0])
 	if len(parts) > 1 {
 		month = parseDatePart(parts[1])
 	}

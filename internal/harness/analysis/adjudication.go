@@ -3,6 +3,7 @@ package analysis
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -84,15 +85,15 @@ type DefectFree struct {
 // six adv-assign-* probe cases owe no block.
 var StringHeuristicHypotheses = []string{"bug-ft-pattern", "bug-remix-parenthetical"}
 
-// legalPatternTables is the two legal values [DefectFree.PatternTable]
+// LegalPatternTables is the two legal values [DefectFree.PatternTable]
 // carries: the guarded table for bug-ft-pattern's six adv-ft-* rows and
 // the bracket-discount-free table for bug-remix-parenthetical's four
 // adv-remix-* rows. A hand-edit to a third string fails loudly rather
-// than becoming an unreproducible figure.
-var legalPatternTables = map[string]bool{
-	"SDPatternsWordBoundary":      true,
-	"SDPatternsNoBracketDiscount": true,
-}
+// than becoming an unreproducible figure. It is exported so
+// internal/harness/conform's m11 fold checks these very names against
+// the matcher tables they stand for, which this package must not
+// import.
+var LegalPatternTables = []string{"SDPatternsWordBoundary", "SDPatternsNoBracketDiscount"}
 
 // AdjudicationLedger is corpus/analysis/adjudications.json: the general
 // divergence log, forward-compatible with rung 4's shadow divergences.
@@ -250,8 +251,8 @@ func CheckDefectFree(bugs *OracleBugLedger, adj *AdjudicationLedger) error {
 				continue
 			}
 			block := row.DefectFree
-			if !legalPatternTables[block.PatternTable] {
-				errs = append(errs, fmt.Errorf("defect_free: %s: pattern_table %q is not one of the two legal values (SDPatternsWordBoundary, SDPatternsNoBracketDiscount)", row.ID, block.PatternTable))
+			if !slices.Contains(LegalPatternTables, block.PatternTable) {
+				errs = append(errs, fmt.Errorf("defect_free: %s: pattern_table %q is not one of the two legal values (%s)", row.ID, block.PatternTable, strings.Join(LegalPatternTables, ", ")))
 			}
 			if !strings.Contains(row.CorrectedVerdict, block.Recommendation) {
 				errs = append(errs, fmt.Errorf("defect_free: %s: recommendation %q does not appear verbatim in corrected_verdict %q", row.ID, block.Recommendation, row.CorrectedVerdict))

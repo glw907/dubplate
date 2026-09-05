@@ -15,7 +15,7 @@ import (
 // row, because the inner-outermost order would return the first
 // event's country ("GB") rather than the first configured one ("US").
 func TestPreferredReleaseEvent_MeasuredTable(t *testing.T) {
-	rel := loadTestdataRelease(t, "preferred_country_events.json")
+	rel := loadTestdata[Release](t, "preferred_country_events.json")
 
 	tests := []struct {
 		name        string
@@ -42,7 +42,7 @@ func TestPreferredReleaseEvent_MeasuredTable(t *testing.T) {
 // whose area is null is skipped rather than panicking or matching, and
 // that a later event in the same list is still reachable.
 func TestPreferredReleaseEvent_NullAreaIsSkipped(t *testing.T) {
-	rel := loadTestdataRelease(t, "preferred_country_null_area.json")
+	rel := loadTestdata[Release](t, "preferred_country_null_area.json")
 	tun := matcher.DefaultTunables()
 	tun.Preferred.Countries = []string{"GB"}
 
@@ -59,7 +59,7 @@ func TestPreferredReleaseEvent_NullAreaIsSkipped(t *testing.T) {
 // this test, because the fixture's matching area lists "GB" before the
 // configured "XW".
 func TestPreferredReleaseEvent_ReturnsConfiguredStringNotAreaCode(t *testing.T) {
-	rel := loadTestdataRelease(t, "preferred_country_multi_area.json")
+	rel := loadTestdata[Release](t, "preferred_country_multi_area.json")
 	tun := matcher.DefaultTunables()
 	tun.Preferred.Countries = []string{"XW"}
 
@@ -73,7 +73,7 @@ func TestPreferredReleaseEvent_ReturnsConfiguredStringNotAreaCode(t *testing.T) 
 // release with neither release-events nor a top-level country and date
 // yields ("", ""), the R1 zero-value mapping of beets' (None, None).
 func TestPreferredReleaseEvent_NoEventsNoCountryYieldsEmpty(t *testing.T) {
-	rel := loadTestdataRelease(t, "no_release_events_no_country.json")
+	rel := loadTestdata[Release](t, "no_release_events_no_country.json")
 	gotCountry, gotDate := preferredReleaseEvent(&rel, matcher.DefaultTunables())
 	if gotCountry != "" || gotDate != "" {
 		t.Errorf("preferredReleaseEvent = (%q, %q), want (\"\", \"\")", gotCountry, gotDate)

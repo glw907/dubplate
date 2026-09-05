@@ -33,7 +33,7 @@ func TestPseudoReleaseTarget_ExactStatusAndRelationPredicate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rel := loadTestdataRelease(t, tt.fixture)
+			rel := loadTestdata[Release](t, tt.fixture)
 			gotID, gotOK := PseudoReleaseTarget(&rel)
 			if gotID != tt.wantID || gotOK != tt.wantOK {
 				t.Errorf("PseudoReleaseTarget() = (%q, %v), want (%q, %v)", gotID, gotOK, tt.wantID, tt.wantOK)

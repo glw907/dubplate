@@ -1,26 +1,10 @@
 package musicbrainz
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
 )
-
-func loadTestdataAliases(t *testing.T, name string) []Alias {
-	t.Helper()
-	data, err := os.ReadFile(filepath.Join("testdata", name))
-	if err != nil {
-		t.Fatalf("reading testdata/%s: %v", name, err)
-	}
-	var aliases []Alias
-	if err := json.Unmarshal(data, &aliases); err != nil {
-		t.Fatalf("decoding testdata/%s: %v", name, err)
-	}
-	return aliases
-}
 
 // TestPreferredAlias is T7's measured table, row for row, against one
 // fixture alias list carrying two ja primaries of different types, an en
@@ -33,7 +17,7 @@ func loadTestdataAliases(t *testing.T, name string) []Alias {
 // two loops breaks the en-before-ja row, because response order would
 // then beat configured order.
 func TestPreferredAlias(t *testing.T) {
-	aliases := loadTestdataAliases(t, "preferred_aliases.json")
+	aliases := loadTestdata[[]Alias](t, "preferred_aliases.json")
 
 	tests := []struct {
 		name              string
@@ -96,7 +80,7 @@ func TestPreferredAlias(t *testing.T) {
 // other ja alias in response order, so a port that treated the pointer
 // itself as the flag would select it.
 func TestPreferredAliasSkipsNullPrimary(t *testing.T) {
-	aliases := loadTestdataAliases(t, "preferred_aliases.json")
+	aliases := loadTestdata[[]Alias](t, "preferred_aliases.json")
 	if aliases[0].Primary != nil {
 		t.Fatalf("fixture alias 0 primary = %v, want a null primary in response-order position 0", *aliases[0].Primary)
 	}
@@ -127,11 +111,11 @@ func TestPreferredAliasOnEmptyList(t *testing.T) {
 }
 
 // TestKeyWithPreferredAlias asserts both arms of the fallback beets
-// spells at musicbrainz.py:158-162. The "" fallback row matters because
-// the track-title override reads the alias arm as a guard rather than for
-// the name it returns (musicbrainz.py:589-590).
+// spells at musicbrainz.py:158-162. The two fallback rows matter
+// because the track-title override reads the alias arm as a guard
+// rather than for the name it returns (musicbrainz.py:589-590).
 func TestKeyWithPreferredAlias(t *testing.T) {
-	aliases := loadTestdataAliases(t, "preferred_aliases.json")
+	aliases := loadTestdata[[]Alias](t, "preferred_aliases.json")
 
 	tests := []struct {
 		name      string

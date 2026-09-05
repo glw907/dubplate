@@ -9,19 +9,6 @@ import (
 	"testing"
 )
 
-func loadTestdataRelease(t *testing.T, name string) Release {
-	t.Helper()
-	data, err := os.ReadFile(filepath.Join("testdata", name))
-	if err != nil {
-		t.Fatalf("reading testdata/%s: %v", name, err)
-	}
-	var rel Release
-	if err := json.Unmarshal(data, &rel); err != nil {
-		t.Fatalf("decoding testdata/%s: %v", name, err)
-	}
-	return rel
-}
-
 // TestRelease_DecodesTrackPositionAsWireInt proves the census claim
 // against the real corpus rather than asserting it: media-baseline's
 // committed release-lookup response carries every track position as a
@@ -57,7 +44,7 @@ func TestRelease_DecodesTrackPositionAsWireInt(t *testing.T) {
 }
 
 func TestRelease_ValidateAcceptsWellFormedRelease(t *testing.T) {
-	rel := loadTestdataRelease(t, "well_formed.json")
+	rel := loadTestdata[Release](t, "well_formed.json")
 	if err := rel.Validate(); err != nil {
 		t.Errorf("Validate() = %v, want nil", err)
 	}
@@ -68,7 +55,7 @@ func TestRelease_ValidateAcceptsWellFormedRelease(t *testing.T) {
 // _normalize_data (AttributeError, T2) and must instead be a boundary
 // error here.
 func TestRelease_ValidateRejectsEmptyTargetType(t *testing.T) {
-	rel := loadTestdataRelease(t, "empty_target_type.json")
+	rel := loadTestdata[Release](t, "empty_target_type.json")
 	err := rel.Validate()
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
@@ -79,7 +66,7 @@ func TestRelease_ValidateRejectsEmptyTargetType(t *testing.T) {
 }
 
 func TestRelease_ValidateRejectsEmptyReleaseCredit(t *testing.T) {
-	rel := loadTestdataRelease(t, "empty_release_credit.json")
+	rel := loadTestdata[Release](t, "empty_release_credit.json")
 	err := rel.Validate()
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
@@ -95,7 +82,7 @@ func TestRelease_ValidateRejectsEmptyReleaseCredit(t *testing.T) {
 // parseArtistCredits (Task 4) indexes element zero of the resolved
 // credit list and would panic on one (fold, M-d).
 func TestRelease_ValidateRejectsEmptyTrackCredit(t *testing.T) {
-	rel := loadTestdataRelease(t, "empty_track_credit.json")
+	rel := loadTestdata[Release](t, "empty_track_credit.json")
 	err := rel.Validate()
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
@@ -110,7 +97,7 @@ func TestRelease_ValidateRejectsEmptyTrackCredit(t *testing.T) {
 // relation lacks its release object, but PseudoReleaseTarget
 // dereferences Relation.Release and would panic on one (fold, M-e).
 func TestRelease_ValidateRejectsPseudoTargetMissing(t *testing.T) {
-	rel := loadTestdataRelease(t, "pseudo_target_missing.json")
+	rel := loadTestdata[Release](t, "pseudo_target_missing.json")
 	err := rel.Validate()
 	if !errors.Is(err, ErrMalformedRelease) {
 		t.Fatalf("Validate() = %v, want an error wrapping ErrMalformedRelease", err)
@@ -125,7 +112,7 @@ func TestRelease_ValidateRejectsPseudoTargetMissing(t *testing.T) {
 // absent is legal, because beets reads all three through .get and such
 // a medium simply contributes nothing to track extraction (T5).
 func TestRelease_ValidateAllowsMediumWithNoTracks(t *testing.T) {
-	rel := loadTestdataRelease(t, "medium_no_tracks.json")
+	rel := loadTestdata[Release](t, "medium_no_tracks.json")
 	if err := rel.Validate(); err != nil {
 		t.Errorf("Validate() = %v, want nil (a trackless medium is legal)", err)
 	}

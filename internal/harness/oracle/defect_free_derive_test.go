@@ -69,17 +69,15 @@ func defectFreeSubjects(t *testing.T, root string, pattern func(hypothesis strin
 			if len(c.Requests) == 0 {
 				t.Fatalf("%s logs no request to resolve a response file from", caseID)
 			}
-			row, ok := adjByCase[caseID]
-			if !ok {
+			if _, ok := adjByCase[caseID]; !ok {
 				t.Fatalf("adjudications.json carries no row for probe case %s", caseID)
 			}
 			subjects = append(subjects, DefectFreeSubject{
-				CaseID:         caseID,
-				AdjudicationID: row.ID,
-				ReleaseMBID:    c.Expected.Candidates[0].AlbumID,
-				ResponsePath:   c.Requests[0].Response,
-				EvalDate:       c.EvalDate,
-				PatternTable:   pattern(hyp),
+				CaseID:       caseID,
+				ReleaseMBID:  c.Expected.Candidates[0].AlbumID,
+				ResponsePath: c.Requests[0].Response,
+				EvalDate:     c.EvalDate,
+				PatternTable: pattern(hyp),
 			})
 		}
 	}

@@ -10,10 +10,12 @@ import (
 )
 
 // AlbumInfoLedgerRowFloor is the row count corpus/analysis/album_info.json
-// must not fall below: one row per release-lookup request across the
+// must not fall below: one row per distinct release lookup across the
 // nineteen named AlbumInfoSubjects, measured off the tree at 2026-09-04
-// by counting every /ws/2/release/<mbid> request in the nineteen cases'
-// own logs. A shrink here means the derivation quietly dropped a lookup
+// by counting the distinct /ws/2/release/<mbid> requests in the
+// nineteen cases' own logs (the derivation dedupes by mbid, and no
+// committed subject repeats a lookup today, so the two counts agree).
+// A shrink here means the derivation quietly dropped a lookup
 // rather than an edit anyone would notice in review.
 const AlbumInfoLedgerRowFloor = 50
 
@@ -23,8 +25,8 @@ const AlbumInfoLedgerRowFloor = 50
 const releaseLookupPrefix = "/ws/2/release/"
 
 // AlbumInfoSubject names one committed case the AlbumInfo ledger derives
-// rows for. Every release-lookup request in the case's own log becomes a
-// row; a case is a subject because a named translation-layer branch runs
+// rows for. Every distinct release lookup in the case's own log becomes
+// a row; a case is a subject because a named translation-layer branch runs
 // through it, and Why carries that reason beside the id rather than in a
 // plan nobody reads at execution time. CheckAlbumInfoLedger requires Why
 // to be non-empty, so a subject added without a rationale fails the
@@ -52,8 +54,8 @@ var AlbumInfoPseudoSubjects = []string{
 }
 
 // AlbumInfoSubjects is the fixed nineteen-case subject set. Every
-// release-lookup request in each case's own log becomes a row, which is
-// 50 rows at 2026-09-04.
+// distinct release lookup in each case's own log becomes a row, which
+// is 50 rows at 2026-09-04.
 var AlbumInfoSubjects = []AlbumInfoSubject{
 	{"clean-match", "the plain baseline: single medium, single credit, no alias, one release event taken through the fallback"},
 	{"media-baseline", "mediums counts unfiltered media while extraction filters them (musicbrainz.py:659 against :638-640)"},

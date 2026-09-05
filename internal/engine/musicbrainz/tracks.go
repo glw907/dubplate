@@ -28,24 +28,15 @@ type builtTrack struct {
 
 // tracksFromMedium yields one builtTrack per surviving track on m,
 // mirroring get_tracks_from_medium (beetsplug/musicbrainz.py:555-600):
-// pregap first and unconditionally, then tracks, then data tracks only
-// when tun.IgnoreDataTracks is false; then the two filters, the
+// assembledTracks' fixed order, with data tracks joining only when
+// tun.IgnoreDataTracks is false; then the two filters, the
 // "[data track]" title drop that runs regardless of IgnoreDataTracks
 // and the video drop under tun.IgnoreVideoTracks; then the three
 // track-level overrides. Index is left zero here and assigned by the
 // caller across all valid media.
 func tracksFromMedium(m Medium, tun matcher.Tunables) []builtTrack {
-	var assembled []Track
-	if m.Pregap != nil {
-		assembled = append(assembled, *m.Pregap)
-	}
-	assembled = append(assembled, m.Tracks...)
-	if !tun.IgnoreDataTracks {
-		assembled = append(assembled, m.DataTracks...)
-	}
-
 	var built []builtTrack
-	for _, tr := range assembled {
+	for _, tr := range assembledTracks(m, !tun.IgnoreDataTracks) {
 		if tr.Recording.Title == dataTrackTitle {
 			continue
 		}

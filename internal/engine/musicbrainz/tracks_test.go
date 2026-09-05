@@ -2,31 +2,11 @@ package musicbrainz
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"slices"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
 )
-
-func readTestdata(t *testing.T, name string) []byte {
-	t.Helper()
-	data, err := os.ReadFile(filepath.Join("testdata", name))
-	if err != nil {
-		t.Fatalf("reading testdata/%s: %v", name, err)
-	}
-	return data
-}
-
-func loadTestdataMedium(t *testing.T, name string) Medium {
-	t.Helper()
-	var m Medium
-	if err := json.Unmarshal(readTestdata(t, name), &m); err != nil {
-		t.Fatalf("decoding testdata/%s: %v", name, err)
-	}
-	return m
-}
 
 func titlesOf(tracks []builtTrack) []string {
 	titles := make([]string, len(tracks))
@@ -45,7 +25,7 @@ func simpleCreditPart(id, name string) CreditPart {
 // tracks it sits beside. Mutation: moving the pregap behind
 // IgnoreDataTracks makes the true row lose "Pregap".
 func TestTracksFromMedium_PregapSurvivesUnconditionally(t *testing.T) {
-	m := loadTestdataMedium(t, "gap_pregap_medium.json")
+	m := loadTestdata[Medium](t, "gap_pregap_medium.json")
 	for _, ignoreDataTracks := range []bool{true, false} {
 		tun := matcher.DefaultTunables()
 		tun.IgnoreDataTracks = ignoreDataTracks
@@ -63,7 +43,7 @@ func TestTracksFromMedium_PregapSurvivesUnconditionally(t *testing.T) {
 // filtered title never survives any combination, and IgnoreDataTracks
 // gates only whether the data medium contributes at all.
 func TestTracksFromMedium_DataTrackTruthTable(t *testing.T) {
-	m := loadTestdataMedium(t, "gap_data_tracks_medium.json")
+	m := loadTestdata[Medium](t, "gap_data_tracks_medium.json")
 	tests := []struct {
 		ignoreDataTracks  bool
 		ignoreVideoTracks bool
@@ -91,7 +71,7 @@ func TestTracksFromMedium_DataTrackTruthTable(t *testing.T) {
 // beets drops it whether it came through medium.Tracks or
 // medium.DataTracks, and regardless of IgnoreDataTracks.
 func TestTracksFromMedium_BracketTitleFilteredInsideTracks(t *testing.T) {
-	m := loadTestdataMedium(t, "gap_bracket_title_in_tracks.json")
+	m := loadTestdata[Medium](t, "gap_bracket_title_in_tracks.json")
 	tun := matcher.DefaultTunables()
 	tun.IgnoreDataTracks = false
 	got := titlesOf(tracksFromMedium(m, tun))
@@ -109,7 +89,7 @@ func TestTracksFromMedium_BracketTitleFilteredInsideTracks(t *testing.T) {
 func TestTracksFromMedium_LengthFallbackIsTruthiness(t *testing.T) {
 	recordingLength := 90000.0
 	zero := 0.0
-	real := 45000.0
+	nonZero := 45000.0
 
 	tests := []struct {
 		name        string
@@ -118,7 +98,7 @@ func TestTracksFromMedium_LengthFallbackIsTruthiness(t *testing.T) {
 	}{
 		{"null falls back", nil, 90.0},
 		{"zero falls back", &zero, 90.0},
-		{"real value wins", &real, 45.0},
+		{"real value wins", &nonZero, 45.0},
 	}
 	for _, tt := range tests {
 		m := Medium{
@@ -359,10 +339,7 @@ func TestExtractTracks_NullFormatMediumNeverIgnored(t *testing.T) {
 
 func loadSentinelTracks(t *testing.T, name string, tun matcher.Tunables) []builtTrack {
 	t.Helper()
-	var rel Release
-	if err := json.Unmarshal(readTestdata(t, name), &rel); err != nil {
-		t.Fatalf("decoding testdata/%s: %v", name, err)
-	}
+	rel := loadTestdata[Release](t, name)
 	return extractTracks(&rel, tun)
 }
 

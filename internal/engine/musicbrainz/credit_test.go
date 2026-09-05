@@ -1,26 +1,10 @@
 package musicbrainz
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
 )
-
-func loadTestdataCredits(t *testing.T, name string) []CreditPart {
-	t.Helper()
-	data, err := os.ReadFile(filepath.Join("testdata", name))
-	if err != nil {
-		t.Fatalf("reading testdata/%s: %v", name, err)
-	}
-	var parts []CreditPart
-	if err := json.Unmarshal(data, &parts); err != nil {
-		t.Fatalf("decoding testdata/%s: %v", name, err)
-	}
-	return parts
-}
 
 func creditPart(name, joinPhrase, artistID, artistName string) CreditPart {
 	return CreditPart{
@@ -97,7 +81,7 @@ func TestParseArtistCreditsJoinPhrases(t *testing.T) {
 // test covers what remains: a mutation reading el.Name into Artist breaks
 // the first row, and one dropping the alias lookup breaks the second.
 func TestParseArtistCreditsPrefersTheAliasName(t *testing.T) {
-	parts := loadTestdataCredits(t, "artist_credit_alias.json")
+	parts := loadTestdata[[]CreditPart](t, "artist_credit_alias.json")
 
 	tests := []struct {
 		name      string

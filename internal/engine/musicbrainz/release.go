@@ -199,7 +199,7 @@ type RelationTarget struct {
 // go-conventions puts validation at the boundary rather than a nil check
 // at every read.
 //
-// It checks exactly five things: a relation with an empty target-type;
+// It checks exactly four things: a relation with an empty target-type;
 // an empty release-level artist-credit array; an empty resolved track
 // credit on any track of any medium (the track's own when non-empty,
 // the recording's otherwise); and a backward transl-tracklisting
@@ -226,8 +226,7 @@ func (rel *Release) Validate() error {
 	}
 
 	for _, medium := range rel.Media {
-		tracks := assembledTracks(medium)
-		for _, track := range tracks {
+		for _, track := range assembledTracks(medium, true) {
 			if len(resolvedTrackCredit(track)) == 0 {
 				return fmt.Errorf(
 					"medium %d track %d has empty artist-credit on both the track and the recording: %w",
@@ -248,17 +247,20 @@ func (rel *Release) Validate() error {
 
 // assembledTracks returns a medium's pregap, tracks, and data-tracks in
 // that fixed order (T5), the same assembly get_tracks_from_medium reads
-// through before either config-gated filter runs. Validate walks this
-// unfiltered list because it has no Tunables to apply a filter with, and
-// a track later dropped by a filter is still a track this boundary check
-// must be able to read without panicking.
-func assembledTracks(medium Medium) []Track {
+// through before either filter runs. It is the one copy of that order:
+// tracksFromMedium passes withDataTracks as !tun.IgnoreDataTracks, and
+// Validate passes true, because it has no Tunables to apply a filter
+// with and a track later dropped by a filter is still a track this
+// boundary check must be able to read without panicking.
+func assembledTracks(medium Medium, withDataTracks bool) []Track {
 	var tracks []Track
 	if medium.Pregap != nil {
 		tracks = append(tracks, *medium.Pregap)
 	}
 	tracks = append(tracks, medium.Tracks...)
-	tracks = append(tracks, medium.DataTracks...)
+	if withDataTracks {
+		tracks = append(tracks, medium.DataTracks...)
+	}
 	return tracks
 }
 
