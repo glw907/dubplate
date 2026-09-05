@@ -293,6 +293,10 @@ func TestValidateRejectsAnUnknownRequiredFieldAndABadPattern(t *testing.T) {
 		{"unknown required field", func(t *Tunables) { t.Required = []string{"nosuchfield"} }, "nosuchfield"},
 		{"unparseable preferred media pattern", func(t *Tunables) { t.Preferred.Media = []string{"("} }, "preferred.media"},
 		{"unparseable preferred country pattern", func(t *Tunables) { t.Preferred.Countries = []string{"[a-"} }, "preferred.countries"},
+		{"unresolvable max_rec level", func(t *Tunables) { t.MaxRec = map[string]string{"album": "not-a-level"} }, "max_rec"},
+		{"quiet_fallback outside its legal set: apply", func(t *Tunables) { t.QuietFallback = "apply" }, "quiet_fallback"},
+		{"quiet_fallback outside its legal set: ask", func(t *Tunables) { t.QuietFallback = "ask" }, "quiet_fallback"},
+		{"none_rec_action outside its legal set: apply", func(t *Tunables) { t.NoneRecAction = "apply" }, "none_rec_action"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

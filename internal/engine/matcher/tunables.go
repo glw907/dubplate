@@ -9,6 +9,8 @@ package matcher
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 )
 
 // ErrInvalidTunable reports a Tunables value that names something the
@@ -409,6 +411,38 @@ var SDPatternsNoBracketDiscount = []SDPattern{
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
 }
 
+// SDPatternsGuardedNoBracketDiscount is BeetsSDPatterns with BOTH
+// adjudicated string-heuristic defects removed: the featuring pattern
+// carries SDPatternsWordBoundary's \b guard and the two 0.3-weight
+// bracket rows are absent, as in SDPatternsNoBracketDiscount.
+//
+// It exists because Tunables.StringDistPatterns is one slot and both
+// hypotheses are ruled oracle-wrong, so ruling A defaults both switches
+// off at once and neither committed table expresses that. It reproduces
+// each committed defect_free figure because the two defects do not
+// overlap on the ten probe cases: measured across all ten, no adv-ft-*
+// compared string carries a bracket or parenthesis and no adv-remix-*
+// compared string carries a featuring trigger, over the item titles,
+// albums and artists and every title, name, artist, albumartist,
+// sort-name and disambiguation string in their response bodies. The
+// proof that survives is internal/harness/conform's ModeDefault run,
+// which grades all ten against their committed figures.
+//
+// This name is deliberately NOT a legal analysis.LegalPatternTables
+// value (adjudication.go:96): that field records which single-defect
+// beets edit produced a recorded figure, and this table derived
+// nothing.
+//
+// The \b regime divergence rides with it unchanged: Python re's \b is
+// Unicode-aware and Go RE2's is ASCII-only, benign today because all
+// six adv-ft-* pairs are ASCII (3b guard 11).
+var SDPatternsGuardedNoBracketDiscount = []SDPattern{
+	{Pattern: `^the `, Weight: 0.1},
+	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
+	{Pattern: `\b[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+}
+
 // Validate resolves every name-typed and pattern-typed field once, so a
 // malformed configuration fails where an operator can see it rather
 // than inside a scoring run. It reports every problem rather than the
@@ -418,9 +452,6 @@ var SDPatternsNoBracketDiscount = []SDPattern{
 // package assumes: Recommend and ActionFor re-resolve their own names
 // and return their own errors, because a Tunables value can reach them
 // without passing through here.
-//
-// This lands Required and Preferred; MaxRec and the two action names
-// are Task 4's, added here once verdict.go exists.
 func (t Tunables) Validate() error {
 	var errs []error
 
@@ -435,6 +466,32 @@ func (t Tunables) Validate() error {
 	}
 	if err := compilePanicAsError(func() { compileCountryPatterns(t.Preferred.Countries) }); err != nil {
 		errs = append(errs, fmt.Errorf("preferred.countries: %w: %w", ErrInvalidTunable, err))
+	}
+
+	// MaxRec's levels are walked in sorted key order so a joined error
+	// message is reproducible, even though map iteration order would
+	// otherwise decide it (the determinism constraint applies to
+	// Validate's output too).
+	for _, key := range slices.Sorted(maps.Keys(t.MaxRec)) {
+		if _, err := ParseRecommendation(t.MaxRec[key]); err != nil {
+			errs = append(errs, fmt.Errorf("max_rec[%q]: %w", key, err))
+		}
+	}
+
+	// import.quiet_fallback and import.none_rec_action share a lexer
+	// but carry different legal sets (fold M-d): as_choice({"skip":
+	// SKIP, "asis": ASIS}) for the former (session.py:340-342) and
+	// as_choice({"skip": SKIP, "asis": ASIS, "ask": None}) for the
+	// latter (session.py:346-352). ActionFor tests the same two sets.
+	if fallback, err := ParseAction(t.QuietFallback); err != nil {
+		errs = append(errs, fmt.Errorf("import.quiet_fallback: %w", err))
+	} else if !slices.Contains(LegalQuietFallbacks, fallback) {
+		errs = append(errs, fmt.Errorf("import.quiet_fallback: %q: %w (session.py:340-342)", t.QuietFallback, ErrInvalidTunable))
+	}
+	if noneRecAction, err := ParseAction(t.NoneRecAction); err != nil {
+		errs = append(errs, fmt.Errorf("import.none_rec_action: %w", err))
+	} else if !slices.Contains(LegalNoneRecActions, noneRecAction) {
+		errs = append(errs, fmt.Errorf("import.none_rec_action: %q: %w (session.py:346-350)", t.NoneRecAction, ErrInvalidTunable))
 	}
 
 	return errors.Join(errs...)
