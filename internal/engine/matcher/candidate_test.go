@@ -3,6 +3,7 @@ package matcher
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -16,13 +17,13 @@ import (
 // test rolling its own.
 var evalDate = time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 
-func TestAddDropsAZeroTrackCandidateBeforeTheDuplicateCheck(t *testing.T) {
-	// Gate 1 before gate 2 (match.py:345-352). A zero-track candidate
-	// sharing an identity with an admitted one must be dropped by the
-	// zero-track rule, so the admitted one survives untouched. A port
-	// that checked duplicates first would drop it for the wrong reason
-	// and report the same bool, which is why the assertion is on the
-	// SURVIVING candidate rather than on the return value alone.
+func TestAddDropsAZeroTrackDuplicateAndLeavesTheAdmittedCandidateIntact(t *testing.T) {
+	// Gate 1 runs before gate 2 in beets (match.py:345-352), but the
+	// order is not observable through Add on a zero-track duplicate:
+	// both gates return (false, nil) with no side effect, so a port
+	// that swapped them would report the same result here and the
+	// admitted candidate would survive untouched either way. This test
+	// pins the outcome for a zero-track duplicate, not the gate order.
 	c := NewCandidates()
 	items := []ItemFields{{Title: "one", Track: 1, Length: 100}}
 	good := &AlbumInfo{Album: "a", AlbumID: "id-1", DataSource: "MusicBrainz",
@@ -128,10 +129,12 @@ func TestAddAppliesIgnoredAgainstTheNonzeroView(t *testing.T) {
 }
 
 func TestSortedIsStableOnAnExactDistanceTie(t *testing.T) {
-	// Two candidates at identical distances, admitted in a known order.
-	// slices.SortFunc in place of slices.SortStableFunc is the mutation,
-	// and it fires here and on exactly two committed corpus cases,
-	// should-ask and should-reject.
+	// Three candidates at identical distances, admitted in a known
+	// order. This much is corpus-faithful (should-ask and
+	// should-reject each carry exactly this shape), but it cannot prove
+	// stability: Go's pdqsort performs zero swaps on an all-equal-key
+	// slice at any length, so slices.SortFunc in place of
+	// slices.SortStableFunc would still pass here.
 	c := candidatesWithEqualDistances(t, "first", "second", "third")
 	got := make([]string, 0, 3)
 	for _, cand := range c.Sorted() {
@@ -139,6 +142,45 @@ func TestSortedIsStableOnAnExactDistanceTie(t *testing.T) {
 	}
 	if !slices.Equal(got, []string{"first", "second", "third"}) {
 		t.Errorf("Sorted = %v, want insertion order preserved across an exact tie (match.py:326-328)", got)
+	}
+}
+
+// TestSortedIsStableAcrossAlternatingDistances is the fixture that can
+// actually discriminate slices.SortFunc from slices.SortStableFunc.
+// Thirteen candidates alternate between two distance values by
+// insertion index; at thirteen or more elements, pdqsort's fallback
+// (heapsort/quicksort passes on an input this shaped) starts reordering
+// equal-keyed runs, where at twelve or fewer it happens not to
+// (verified: identical output at n=12, divergent at n=13). Sorted must
+// return the low-distance group first, each group in insertion order,
+// proving both that Sorted orders ascending and that the tie within
+// each group is broken by insertion order.
+func TestSortedIsStableAcrossAlternatingDistances(t *testing.T) {
+	const n = 13
+	ids := make([]string, n)
+	for i := range ids {
+		ids[i] = fmt.Sprintf("c%d", i)
+	}
+	c := candidatesWithAlternatingDistances(t, ids...)
+
+	var want []string
+	for i, id := range ids {
+		if i%2 == 0 { // low-distance group, in insertion order
+			want = append(want, id)
+		}
+	}
+	for i, id := range ids {
+		if i%2 != 0 { // high-distance group, in insertion order
+			want = append(want, id)
+		}
+	}
+
+	got := make([]string, 0, n)
+	for _, cand := range c.Sorted() {
+		got = append(got, cand.Info.AlbumID)
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("Sorted = %v, want %v (ascending distance, stable within each group)", got, want)
 	}
 }
 
@@ -183,6 +225,30 @@ func candidatesWithEqualDistances(t *testing.T, ids ...string) *Candidates {
 	for _, id := range ids {
 		dist := NewDistance(tun)
 		dist.Add("album", 0.5)
+		info := &AlbumInfo{Album: id, AlbumID: id, DataSource: "MusicBrainz"}
+		key := identity{Source: info.DataSource, AlbumID: info.AlbumID}
+		c.order = append(c.order, key)
+		c.byID[key] = Candidate{Info: info, Dist: dist}
+	}
+	return c
+}
+
+// candidatesWithAlternatingDistances returns an accumulator carrying
+// one candidate per id, in the given order, whose distance alternates
+// by insertion index between a low value (even index) and a high value
+// (odd index), so Sorted's output must reorder the two groups while
+// preserving each group's insertion order.
+func candidatesWithAlternatingDistances(t *testing.T, ids ...string) *Candidates {
+	t.Helper()
+	c := NewCandidates()
+	tun := DefaultTunables()
+	for i, id := range ids {
+		dist := NewDistance(tun)
+		if i%2 == 0 {
+			dist.Add("album", 0.3)
+		} else {
+			dist.Add("album", 0.7)
+		}
 		info := &AlbumInfo{Album: id, AlbumID: id, DataSource: "MusicBrainz"}
 		key := identity{Source: info.DataSource, AlbumID: info.AlbumID}
 		c.order = append(c.order, key)

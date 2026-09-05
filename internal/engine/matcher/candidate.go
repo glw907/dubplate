@@ -88,12 +88,13 @@ var requiredFields = map[string]func(*AlbumInfo) bool{
 // (match.py:345-375). It returns an error only for a malformed Tunables
 // value Validate would also have caught.
 //
-// The five gates run in beets' fixed order (contract V7), and a later
-// gate never runs on a candidate an earlier one dropped: reordering
-// gate 1 (zero tracks) and gate 2 (duplicate) changes the observable
-// outcome on a zero-track duplicate, because gate 1 must drop it before
-// gate 2 ever compares its identity; reordering gate 3 (required) and
-// gate 4 (the solve) only changes cost, since a candidate rejected by
+// The five gates run in beets' fixed order (contract V7). Gate 1 (zero
+// tracks) runs before gate 2 (duplicate) because match.py:345-352 runs
+// them in that order; the swap is NOT observable through Add on a
+// zero-track duplicate, since both gates return (false, nil) with no
+// side effect, so this ordering is held by the beets citation rather
+// than by a test. Reordering gate 3 (required) and gate 4 (the solve)
+// does change something observable: cost, since a candidate rejected by
 // required has not yet paid for a solve while one rejected by ignored
 // (gate 5) has.
 //
