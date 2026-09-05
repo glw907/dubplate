@@ -303,6 +303,20 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 		return nil, err
 	}
 
+	// An absent status key is a plain non-pseudo release, deliberately.
+	// beets indexes original_release["status"] directly
+	// (beetsplug/musicbrainz.py:785), so a body with no status raises
+	// KeyError inside album_for_id and the exception escapes to
+	// maybe_handle_plugin_error, which logs and drops the plugin's whole
+	// candidate list. Release.Status is a plain string (release.go),
+	// so an absent key decodes to "" here and PseudoReleaseTarget
+	// reports false instead of raising: the candidate survives where
+	// beets would have dropped it. Measured: all 303 committed
+	// release-lookup bodies carry a top-level status (the 48 that do
+	// not are search responses), so the divergence is unreachable in
+	// the corpus today. It is recorded as a deliberate choice rather
+	// than absorbed: reproducing an accident of direct indexing is not
+	// conformance.
 	targetID, ok := PseudoReleaseTarget(rel)
 	if !ok {
 		return info, nil

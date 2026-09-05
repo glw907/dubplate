@@ -33,8 +33,14 @@ var ErrMalformedRelease = errors.New("malformed musicbrainz release")
 // reads, loses every type along the way, and makes the decoder testable
 // only through goldens, which go-conventions calls last-resort.
 type Release struct {
-	ID             string         `json:"id"`
-	Title          string         `json:"title"`
+	ID    string `json:"id"`
+	Title string `json:"title"`
+	// Status is a plain string rather than a pointer, so a wire body
+	// with no status key decodes to "" and PseudoReleaseTarget reports
+	// false rather than panicking or erroring: the divergence from
+	// beets' own KeyError-on-absent-status is recorded at client.go's
+	// AlbumForID, the one call site that reads Status through
+	// PseudoReleaseTarget.
 	Status         string         `json:"status"`
 	Disambiguation string         `json:"disambiguation"`
 	Country        *string        `json:"country"`
