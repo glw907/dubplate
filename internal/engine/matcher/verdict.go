@@ -134,14 +134,15 @@ func Recommend(tun Tunables, cands []Candidate) (Recommendation, error) {
 // with every track sub-distance's own nonzero keys (contract V14): a
 // key added at 0.0 never downgrades.
 //
-// Every entry of tun.MaxRec is resolved, not only the ones that match a
-// key this candidate carries: 3d owns the name validation beets gets
-// from confuse (contract V15), and confuse resolves a config subtree's
-// choices once regardless of which entries a given call site consults.
-// tun.MaxRec is walked in sorted key order so a failure is reproducible
-// even though map iteration order is not, and so this loop never runs
-// at all when the caller returned before the downgrade (contract V13):
-// an unreachable bad entry is never reported.
+// The candidate's own key union drives the walk, and only the max_rec
+// entries whose key is present in it are resolved (match.py:309-316):
+// keys is set(min_dist.keys()), and the loop tests key in max_rec_view
+// before calling as_choice, so an unparseable level on a key no
+// candidate touches is never reached and never reported. tun.MaxRec is
+// NOT walked in full: 3d does not own eager validation of every
+// configured max_rec entry, only beets' own lazy resolution of the
+// ones a candidate's keys select. keys is walked in sorted order so a
+// failure is reproducible even though map iteration order is not.
 func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation, error) {
 	keys := make(map[string]struct{})
 	for _, key := range dist.NonzeroKeys() {
@@ -153,14 +154,16 @@ func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation
 		}
 	}
 
-	for _, key := range slices.Sorted(maps.Keys(tun.MaxRec)) {
-		capped, err := ParseRecommendation(tun.MaxRec[key])
+	for _, key := range slices.Sorted(maps.Keys(keys)) {
+		level, present := tun.MaxRec[key]
+		if !present {
+			continue
+		}
+		capped, err := ParseRecommendation(level)
 		if err != nil {
 			return 0, fmt.Errorf("max_rec[%q]: %w", key, err)
 		}
-		if _, present := keys[key]; present {
-			rec = min(rec, capped)
-		}
+		rec = min(rec, capped)
 	}
 	return rec, nil
 }

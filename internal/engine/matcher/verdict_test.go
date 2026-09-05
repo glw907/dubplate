@@ -42,7 +42,7 @@ func TestRecommendReturnsBeforeTheDowngradeOnNoConclusion(t *testing.T) {
 	// key the candidate carries, and a strong level for it, and the
 	// result stays none.
 	tun := DefaultTunables()
-	tun.MaxRec = map[string]string{"nosuchpenalty": "strong"}
+	tun.MaxRec = map[string]string{"album": "strong"}
 	cands := candidatesAtDistances(t, 0.30, 0.54)
 	got, err := Recommend(tun, cands)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestRecommendReturnsBeforeTheDowngradeOnNoConclusion(t *testing.T) {
 	// And the guard that keeps this test honest: an unresolvable max_rec
 	// level on that same key must NOT be reported, because the branch
 	// returned before reading max_rec at all.
-	tun.MaxRec = map[string]string{"nosuchpenalty": "not-a-level"}
+	tun.MaxRec = map[string]string{"album": "not-a-level"}
 	if _, err := Recommend(tun, cands); err != nil {
 		t.Errorf("Recommend = %v, want nil: the no-conclusion branch never reads max_rec", err)
 	}
