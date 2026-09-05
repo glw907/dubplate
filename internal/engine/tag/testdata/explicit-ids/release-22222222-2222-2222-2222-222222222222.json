@@ -1,0 +1,34 @@
+{
+  "id": "22222222-2222-2222-2222-222222222222",
+  "title": "Explicit Album Two",
+  "status": "Official",
+  "artist-credit": [
+    {"name": "Explicit Artist Two", "joinphrase": "", "artist": {"id": "artist-explicit-2", "name": "Explicit Artist Two", "sort-name": "Explicit Artist Two"}}
+  ],
+  "media": [
+    {
+      "position": 1,
+      "title": "",
+      "track-count": 1,
+      "tracks": [
+        {
+          "id": "track-explicit-2-1",
+          "position": 1,
+          "number": "1",
+          "title": "Track One",
+          "artist-credit": [],
+          "recording": {
+            "id": "rec-explicit-2-1",
+            "title": "Track One",
+            "video": false,
+            "artist-credit": [
+              {"name": "Explicit Artist Two", "joinphrase": "", "artist": {"id": "artist-explicit-2", "name": "Explicit Artist Two", "sort-name": "Explicit Artist Two"}}
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "release-group": {"id": "rg-explicit-2", "title": "Explicit Album Two"},
+  "relations": []
+}
