@@ -27,7 +27,12 @@ registry below, not `pgrep`. Box is production; quiet-box check before writes.
   2.1, review folded, five conductor rulings taken). Chain: Task 0, then
   Tasks 1-7 via pass-execute run `wf_a7840a20-99e` (sequential, this tree), code-simplifier,
   Task 8's close. Ceiling 6M, flag 4.8M (routes to the conductor under
-  the overnight grant), re-derive after Task 4. **Standing grant (Geoff,
+  the overnight grant), re-derive after Task 4. Checkpoint at Task 4
+  (00:05): Tasks 1-4 accepted (e9364ff+e90bdad, 8e7dc21, f3c3edf+208c5af,
+  4e7bb04; Tasks 1 and 3 each took one fix round); Task 5 in flight.
+  Execution spend through Task 4 ≈1.6M by transcript volume; with prep
+  2.55M (1.70M first run plus 0.85M resume), projected close ≈5.4M, so
+  the 6M ceiling stands and the Task 2/3 split is not taken. **Standing grant (Geoff,
   2026-09-04 evening): run unattended through 3c execution, 3d prep, and
   3d execution as the clock allows, workflow mode, /loop to completion.**
 - lane-2 (code, worktree): BLOCKED until Phase 0b (rung 1b) and 0c land. Doc
