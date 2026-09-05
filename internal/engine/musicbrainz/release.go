@@ -154,7 +154,14 @@ type Recording struct {
 // type is deliberately narrow rather than applied to every number.
 type wireInt int
 
-// UnmarshalJSON accepts both spellings and rejects anything else.
+// UnmarshalJSON accepts both spellings and rejects anything else,
+// wrapping ErrMalformedRelease on both failure paths: this is the
+// decode boundary the sentinel's own comment names as "the one
+// sentinel every boundary failure in this package wraps"
+// (ErrMalformedRelease's doc comment above), and 3c's client is the
+// pass whose Release call makes that boundary real. encoding/json
+// returns a custom unmarshaler's error unchanged for a
+// non-UnmarshalTypeError, so errors.Is survives json.Unmarshal.
 func (n *wireInt) UnmarshalJSON(data []byte) error {
 	var asInt int
 	if err := json.Unmarshal(data, &asInt); err == nil {
@@ -164,11 +171,11 @@ func (n *wireInt) UnmarshalJSON(data []byte) error {
 
 	var asString string
 	if err := json.Unmarshal(data, &asString); err != nil {
-		return fmt.Errorf("musicbrainz: position %s is neither a JSON number nor a JSON string", data)
+		return fmt.Errorf("musicbrainz: position %s is neither a JSON number nor a JSON string: %w", data, ErrMalformedRelease)
 	}
 	parsed, err := strconv.Atoi(asString)
 	if err != nil {
-		return fmt.Errorf("musicbrainz: position %q is not an integer: %w", asString, err)
+		return fmt.Errorf("musicbrainz: position %q is not an integer: %w: %w", asString, err, ErrMalformedRelease)
 	}
 	*n = wireInt(parsed)
 	return nil

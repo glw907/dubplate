@@ -1,0 +1,37 @@
+{
+  "id": "44444444-4444-4444-4444-444444444444",
+  "title": "Pseudo Title",
+  "status": "Pseudo-Release",
+  "country": "US",
+  "artist-credit": [
+    {"name": "Artist P", "joinphrase": "", "artist": {"id": "artist-p", "name": "Artist P", "sort-name": "P, Artist"}}
+  ],
+  "media": [
+    {
+      "position": 1,
+      "title": "",
+      "track-count": 1,
+      "tracks": [
+        {
+          "id": "track-p1",
+          "position": 1,
+          "number": "1",
+          "title": "Track One",
+          "artist-credit": [],
+          "recording": {
+            "id": "rec-p1",
+            "title": "Track One",
+            "video": false,
+            "artist-credit": [
+              {"name": "Artist P", "joinphrase": "", "artist": {"id": "artist-p", "name": "Artist P", "sort-name": "P, Artist"}}
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "release-group": {"id": "rg-pseudo", "title": "Pseudo Title"},
+  "relations": [
+    {"target-type": "release", "type": "transl-tracklisting", "direction": "backward", "release": {"id": "55555555-5555-5555-5555-555555555555"}}
+  ]
+}

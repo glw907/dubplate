@@ -9,6 +9,30 @@ import (
 	"testing"
 )
 
+// TestWireIntUnmarshalJSONWrapsErrMalformedRelease proves both of
+// wireInt's decode failures wrap ErrMalformedRelease through a full
+// json.Unmarshal of the enclosing Track, not just a direct call to
+// UnmarshalJSON: encoding/json must pass a custom unmarshaler's error
+// through unchanged for errors.Is to survive it (fold, mutation 8).
+func TestWireIntUnmarshalJSONWrapsErrMalformedRelease(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+	}{
+		{"neither a number nor a string", `{"position": true}`},
+		{"a string that is not an integer", `{"position": "not-a-number"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var track Track
+			err := json.Unmarshal([]byte(tt.data), &track)
+			if !errors.Is(err, ErrMalformedRelease) {
+				t.Fatalf("Unmarshal(%s) = %v, want an error wrapping ErrMalformedRelease", tt.data, err)
+			}
+		})
+	}
+}
+
 // TestRelease_DecodesTrackPositionAsWireInt proves the census claim
 // against the real corpus rather than asserting it: media-baseline's
 // committed release-lookup response carries every track position as a

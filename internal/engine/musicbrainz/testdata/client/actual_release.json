@@ -1,0 +1,35 @@
+{
+  "id": "55555555-5555-5555-5555-555555555555",
+  "title": "Actual Title",
+  "status": "Official",
+  "country": "GB",
+  "artist-credit": [
+    {"name": "Artist A", "joinphrase": "", "artist": {"id": "artist-a", "name": "Artist A", "sort-name": "A, Artist"}}
+  ],
+  "media": [
+    {
+      "position": 1,
+      "title": "",
+      "track-count": 1,
+      "tracks": [
+        {
+          "id": "track-a1",
+          "position": 1,
+          "number": "1",
+          "title": "Track One",
+          "artist-credit": [],
+          "recording": {
+            "id": "rec-a1",
+            "title": "Track One",
+            "video": false,
+            "artist-credit": [
+              {"name": "Artist A", "joinphrase": "", "artist": {"id": "artist-a", "name": "Artist A", "sort-name": "A, Artist"}}
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "release-group": {"id": "rg-actual", "title": "Actual Title"},
+  "relations": []
+}
