@@ -49,6 +49,18 @@ three contested-surface rows the table owes (M-j); the spec's 3b tree
 column correction (m14); and `docs/STATUS.md`'s 3a spend figure, which
 disagrees with `docs/HISTORY.md`'s itemized one (m1).
 
+**Revision 2.1, 2026-09-04 (conductor ruling on Task 5's escalation):**
+Task 5's named mutation 4 (dropping the `preferredAlias` guard on the
+track-title override) is provably unobservable through `TrackInfo.Title`,
+because `keyWithPreferredAlias` resolves the same aliases under the same
+tunables immediately afterward; the implementer declared it rather than
+fabricating a proof and the `diff-reviewer` reproduced the non-firing
+independently. Ruling: the guard stays, mirroring beets' shape at
+`musicbrainz.py`'s title override, its non-effect is stated in
+`tracks.go`'s doc comment, and mutation 4 is struck from Task 5's proof
+set and recorded in the pass report as a declared unobservable mutation,
+not a coverage gap. Task 5 is accepted at `251ab14` with no code change.
+
 **The merged review's 26-item "Verified sound" list is a second
 do-not-re-litigate record** for this pass: all sixteen translation
 contracts, the four measured beets tables, the ten `defect_free` figures
