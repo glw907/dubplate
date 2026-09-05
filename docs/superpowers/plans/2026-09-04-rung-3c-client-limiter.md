@@ -118,6 +118,20 @@ entries, not six plus two specials
 > (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
 > lane-launch checklist item 5).
 
+**Revision 2.2, 2026-09-05 (conductor ruling on Task 5's escalation):**
+the limiter landed at `807dc45` with all four deliverables and mutations
+2 through 6 killed, but the cancelled-waiter proof exercised only the
+weaker property (a departed waiter is skipped by a later tick), leaving
+`serve`'s refused-offer arms uncovered. Ruling: option (a). A fourth
+unexported hook lets a test block `serve` between `pick()` and the offer,
+cancel the picked waiter there, and assert the next waiter takes that same
+tick's token with `Spent() == 0` on the cancelled budget. The implementer's
+three stated deviations are accepted: the `awaitTicks(n)` seam, the
+try-the-next-waiter shape in place of parking the token, and the
+saturated three-waiter background fixture. The fix lands as a Task 5b
+dispatch after Task 7 and before the `code-simplifier` pass; Task 8
+records the seam count as four, not two.
+
 **Revision 2.1, 2026-09-04 (conductor rulings on the fold, all five taken
 as recommended):** B1, the reserved token round-robins across the non-empty
 classes below the served one; M-a, `DataSourceMismatchPenalty` is wired
