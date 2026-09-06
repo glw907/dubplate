@@ -86,6 +86,47 @@ func TestWriteFileLeavesNoTempFile(t *testing.T) {
 	}
 }
 
+// TestWriteFileCreatesTempFileInTargetDir pins that WriteFile creates its
+// temp file in path's own directory, never in $TMPDIR. It points TMPDIR at
+// an unwritable directory and asserts the write still succeeds and leaves
+// no temp file behind: if WriteFile ever created the temp file under
+// os.TempDir() instead, this would fail with a permission error.
+func TestWriteFileCreatesTempFileInTargetDir(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root ignores directory permissions, so an unwritable TMPDIR cannot be made to fail a write this way")
+	}
+
+	badTMPDIR := t.TempDir()
+	dir := t.TempDir()
+
+	if err := os.Chmod(badTMPDIR, 0o500); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(badTMPDIR, 0o700) })
+	t.Setenv("TMPDIR", badTMPDIR)
+
+	path := filepath.Join(dir, "target.txt")
+	if err := WriteFile(path, []byte("data"), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	if string(got) != "data" {
+		t.Errorf("content = %q, want %q", got, "data")
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("read dir %s: %v", dir, err)
+	}
+	if len(entries) != 1 {
+		t.Errorf("dir has %d entries after write, want 1 (no leftover temp file): %v", len(entries), entries)
+	}
+}
+
 func TestWriteFileMissingDir(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "nonexistent-subdir", "target.txt")
 
@@ -104,11 +145,10 @@ func TestWriteFileLeavesTheOldContentWhenTheWriteFails(t *testing.T) {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
-	// os.CreateTemp writes into path's own directory
-	// (atomicfile.go:16-17), so removing that directory's write bit
-	// fails the write before the rename and leaves path untouched. That
-	// is the crash-safety property the shadow store rests on: a reader
-	// sees the old content or the new content, never neither.
+	// Removing the target directory's write bit fails the write before
+	// the rename and leaves path untouched. That is the crash-safety
+	// property the shadow store rests on: a reader sees the old content
+	// or the new content, never neither.
 	if err := os.Chmod(dir, 0o500); err != nil {
 		t.Fatalf("Chmod: %v", err)
 	}
