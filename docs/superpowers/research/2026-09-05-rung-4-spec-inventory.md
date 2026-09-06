@@ -698,8 +698,9 @@ Four consequences for rung 4, each load-bearing:
    `.gitleaksignore` fragility: the single allowed finding is pinned
    by line number at
    `internal/config/keys_test.go:generic-api-key:66`
-   (`.gitleaksignore:1`), and line 66 today is `{key:
-   "DUBPLATE_R2_BUCKET", ...}` (`internal/config/keys_test.go:66`). Any
+   (`.gitleaksignore:1`), and line 66 today is the R2 bucket row of the
+   keys table (`internal/config/keys_test.go:66`; the literal is not
+   quoted here because gitleaks flags the quote too). Any
    insertion above that line in `keys_test.go` reds the gate for every
    lane at once.
 2. **The threshold registry cannot express a duration.** `Threshold`
