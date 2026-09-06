@@ -33,7 +33,7 @@ var shadowBudgetThreshold = config.Threshold{
 
 // registerShadowThresholds runs once per process, from newRootCmd
 // (Resolution R12): config.Register appends without dedup
-// (internal/config/thresholds.go:28-30) and newRootCmd runs more than
+// (internal/config/thresholds.go:40-42) and newRootCmd runs more than
 // once in a test binary.
 var registerShadowThresholds = sync.OnceFunc(func() {
 	config.Register(shadowFloorThreshold)

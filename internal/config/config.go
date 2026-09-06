@@ -3,7 +3,7 @@
 // loudly at [Load], never silently borrowing a value from someone else's
 // deployment.
 //
-// Every DUBPLATE_* name falls into exactly one of four classes, and
+// Every DUBPLATE_* name falls into exactly one of five classes, and
 // [Load] enforces the classification rather than merely reading values:
 //
 //  1. Owned, required now: DUBPLATE_LIBRARY_ROOT, DUBPLATE_STATE_DIR,
@@ -23,12 +23,19 @@
 //     (rung 9), decision and review queues (rung 13), and the
 //     streamer (rung 12). See [ReservedClasses] for the exact
 //     membership.
-//  3. Superseded: a pre-pivot name with no meaning here. Load errors
+//  3. Adopter-optional integration: a name accepted only when its
+//     class's own Flag resolves true. The class's Required rows are
+//     required at Load once the flag is set, and its Optional rows
+//     are accepted as registered thresholds rather than wall fields.
+//     Setting a Required or Optional row without its flag enabled is
+//     a load error naming the flag. See [IntegrationClasses] for the
+//     exact membership; rung 4 registers the shadow class.
+//  4. Superseded: a pre-pivot name with no meaning here. Load errors
 //     naming the replacement, or, for a capability the greenfield
 //     server drops outright (the estate's beets and contributor-file
 //     config, the Cloudflare Tunnel credential compose.yaml reads
 //     directly), naming that it retired with no successor.
-//  4. Unknown: any other DUBPLATE_* name. This is the compat
+//  5. Unknown: any other DUBPLATE_* name. This is the compat
 //     discipline evolution lesson U5 draws from beets 2.4.0's silent
 //     plugin-list regression: an unrecognized key refuses the start
 //     rather than degrading it.
