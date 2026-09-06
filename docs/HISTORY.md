@@ -2,6 +2,486 @@
 
 Per-pass ledger, newest first.
 
+## Rung 3, pass 3d (Verdicts, the assignment solve, admission, recommendation, and the whole-corpus conformance gate): `internal/engine/tag` born, tier 1 and tier 2 grade the whole 215-case corpus (2026-09-05)
+
+Nine plan tasks executed sequentially in the main tree against
+`docs/superpowers/plans/2026-09-05-rung-3d-verdicts-gate.md` (revision
+2.1). Commits in order: `e7ff0bc` (Task 1), `e552d0a` (Task 2),
+`1101a6c` plus `73af4d4` and `a78d6be` (Task 3, two fix rounds),
+`19e03f7` plus `bbb65ac` (Task 4, an escalation ruled), `d89cb6f` (Task
+5), `755efbd` (Task 6), `0b0db6f` (Task 7), `a69dee5` (Task 8), and
+`e462210` (the close-out `code-simplifier` pass, 4 files, +61/-61).
+Simplify review: accept, no blockers. The reviewer confirmed the
+dropped `minD = d[final]` re-read as a no-op by stating the invariant
+independently. No exported surface, contract, assertion or fixture
+changed.
+
+What landed. Task 1 built `solveLAP` in
+`internal/engine/matcher/assign.go`: a hand-written dense
+Jonker-Volgenant solve, structured as lap 0.5.13's own three routines,
+padded to `n = max(rows, cols)` with zero, returning one entry per
+column (the column-to-row orientation of fold B1). `AssignItems` builds
+every cost cell with `inclArtist` false and walks the solve in ascending
+track index. `ExtraItems` and `ExtraTracks` sort with
+`slices.SortStableFunc`. Task 2 found and fixed a real defect in that
+solver (below) and froze `testdata/lapjv-optima.json`, 404 rows mirroring
+lap's own tie choice. Task 3 built `candidate.go`: `Candidates` with the
+five admission gates in beets' order, insertion-order tracking, and a
+stable distance sort, plus `Tunables.Validate`'s `Required` and
+`Preferred` halves. Task 4 built `verdict.go` (`Recommend`'s ladder, the
+`max_rec` downgrade, `ActionFor`) and `compat.go` (`Compat` as two
+independent switches, `DefaultCompat`, `Apply` selecting one of four
+`SD_PATTERNS` tables). Task 5 built `internal/engine/tag`, the matcher's
+public entry point: `Album` ports beets' `tag_album`, with the ID-match
+early return, the search fallback, and the `search_ids` branch. Task 6
+added `TieEntry.Adjudicator` to `internal/harness/analysis`, required
+whenever a tie row is dispositioned, refused as the `agent` sentinel on
+`excluded` and accepted on `pinned`; `CheckOracleBugs` gained a
+probe-case rule requiring every `oracle-wrong` hypothesis's probe cases
+to resolve to an adjudication row. Task 7 built tier 1
+(`internal/harness/conform/case.go`'s `GradeCases`), replaying all 215
+committed cases through `tag.Album` and grading nine of
+`cassette.Expected`'s eleven fields; `stub.Server` gained `Unused()`.
+Task 8 wired tier 2's verdict grading into `ModeCompat` and built
+`ModeDefault` as a re-score of each case's own committed candidate set
+under the corrected pattern table, plus the pending-divergence path and
+`CheckDefaultCompatMatchesTheLedger`.
+
+What the gate caught. Task 1's reviewer escalated on a plan-reading
+question (whether `testdata/assign/` was Task 1's or Task 2's to
+create); ruled that Task 2 owns the directory and the inline Go-literal
+matrices in Task 1 stand. **Task 2's mirroring test caught Task 1's
+transliterated solver being genuinely suboptimal, not merely
+differently tied**, on the pinned 14x14 `should-reject` matrix:
+`5.283068783068783` against the recorded optimum `5.282407407407407`.
+The cause was one wrong line in `findPath`'s final dual update, which
+priced settled columns off the scan list's head rather than off the
+augmenting path's own ending column; the two agree only while the path
+ends on a column the last scan admitted. Task 1's own property test
+enumerated only `n <= 6` small-integer matrices, where the defect never
+fires, so the frozen 404-row table does real correctness work and must
+never be thinned. No downstream figure had been derived from the
+defective solver before the fix landed.
+Ruling F was **not triggered**. One mirroring attempt reproduced lap
+0.5.13's choice on both pinned cases and all 404 frozen rows, so no
+finding document exists and `corpus/analysis/ties.json` stays
+untouched by this pass.
+
+Task 3's reviewer blocked twice. The first round found two named
+mutations shipped as claimed-but-unproven. The gate-1/gate-2 admission
+order is unobservable through `Add` for any input; both gates return
+`(false, nil)` with no side effect, so a swap cannot be caught.
+`slices.SortFunc` never reorders an all-equal-key slice at any length,
+because Go's pdqsort takes a zero-swap fast path on ties, so the
+three-element tie fixture could never discriminate a stable-sort
+mutation. The fix added a fixture of thirteen candidates alternating
+between two distance values, which does discriminate, resting on
+Go's own twelve-element insertion-sort threshold (`slices.SortFunc`
+diverges from `slices.SortStableFunc` starting at n=13). The gate
+order itself is now held only by the `match.py:345-352` citation, with
+no test able to
+discriminate it; the comments were corrected to say so rather than
+claim a discrimination that does not exist. The second fix round closed
+a residual: a `t.Error` message still asserted the false gate-order
+claim after the doc comment above it had already been corrected.
+
+Task 4 escalated on the `max_rec` downgrade's key-resolution order. The
+plan's own literal fixture keyed `tun.MaxRec` on `"nosuchpenalty"`, a
+key no candidate carries, which is only detectable if `downgrade`
+resolves every configured entry eagerly rather than beets' own lazy
+walk over the candidate's key union (`match.py:304-322`). The conductor
+ruled option (a): restore the lazy walk and change the fixture's key to
+`"album"`, which the candidate fixture does carry, so the comment
+becomes true as written rather than describing a divergence the port
+never needed.
+
+Task 7 escalated on scope and two undisclosed reversals. First, the
+criteria's eleven-field graded-field table shipped with the verdict
+pair (`Expected.Recommendation`, `Expected.Action`) unwired: `VerdictFloor`,
+the verdict counters, and `casePolicy.GradeVerdict`/`VerdictFrom` were
+all written and never read. Ruled: verdict grading belongs to Task 8,
+which was already dispatched to consume exactly those fields. Second,
+`AssignmentFloor` shipped at 214 with `TiesAwaitingRuling` empty, not
+the plan's stated 212 with two pending rows; both pinned tie cases now
+reproduce after Task 2's fix, so the stricter, measured 214 is accepted
+and the plan's 212 figure is corrected here. Third, the tier 1 sweep
+measured 59.9s against the plan's 45s trigger; ruled as a carried
+finding rather than a task defect (see Forward carries below).
+Mutation counts were also corrected against the real measurement; the
+table below is the reconciled record. A fresh-context reviewer (opus)
+re-ran the whole runner in a clean clone and accepted, reproducing
+every floor, all eleven graded fields, and all five mutations
+independently.
+
+Task 8 escalated on a plan-wording mismatch (the criteria named "four
+zero-instance verdict rows"; the plan's own Step 1 test code names
+exactly two, `pending` and `unadjudicated`) and the same sweep-cost
+finding Task 7 raised. Ruled: the plan never enumerates four rows,
+Task 7's sixteen-row `policyFor` fixture set already gives every
+zero-instance disposition its own firing fixture, and Task 8's two
+fixtures are exactly the ones its own tests call; the "four" is a plan
+wording error, not an owed deliverable. The combined two-mode sweep
+costs 113.5s. That pushed `go test ./...` to 2m06s and
+`scripts/check.sh` to about 3.5 minutes, both well past the plan's own
+"roughly 45 seconds" trigger. Ruled that the sweep stays inside
+`go test ./...`; spec `:267` remains the escape to a separate leg and
+is not exercised this pass. The cost carries forward as a finding for
+the first rung 3 follow-on or rung 9. Its profile is regexp
+backtracking under `sdStrip` at 43% cumulative, `matcher.Levenshtein`
+17.5%, `Transliterate` 7.7%.
+
+### The verdict-path contract coverage table
+
+Twenty contracts, V1 through V20, each with its Go site and what grades
+it. A committed case grades a contract when tier 1's sweep drives
+`tag.Album` or tier 2's re-score and compares the result against the
+case's own record; a rule no corpus case can reach is graded by a
+hand-authored fixture, with the mutation that proves the fixture fires.
+
+| Contract | Go site | Graded by | Corpus reach |
+| --- | --- | --- | --- |
+| V1 normalized cost cell, `inclArtist` false | `matcher.DistanceForTrack` (`track.go:45`) via `AssignItems` | all 294 candidates' track vectors | Yes |
+| V2 the solve returns a track-indexed array | `solveLAP` (`assign.go`), column-to-row orientation (fold B1) | 214 assignments; the frozen 404-row table | Yes plus fixture |
+| V3 pairs in ascending track order | `AssignItems` (`assign.go`) | mutation 2, 16 cases fail (item order) | Yes |
+| V4 the leftover set is one-sided | `AssignItems`'s extras | `TestAssignItemsMatchesEveryShapeOneSidedly`, all 20 shapes 0x0-3x4 | Fixture (7/14 corpus cases carry one side) |
+| V5 rectangular extension is `max(rows,cols)` zero-padded | `solveLAP`'s pad step | the frozen 404-row table; mutation (pad max+1), 32 rectangular rows fail | Fixture |
+| V6 extras sorted by `(disc,track,title)`/`(index,title)` | `AssignItems`'s two `slices.SortStableFunc` calls | mutation 4 (title-only sort), fires the reordered case | Fixture (total order is a corpus fact, not proven) |
+| V7 five admission gates in beets' fixed order | `Candidates.Add` (`candidate.go`) | gates 3-5 fire on real cases; gates 1-2's order is unobservable through `Add` for any input, held by the `match.py:345-352` citation alone | Partial, one order pair unprovable |
+| V8 `match.ignored` reads the nonzero view | `NonzeroKeys` wired at `candidate.go`'s gate 5 | hand-authored `ignored-zero-media.json` fixture | Fixture only (0 of 215) |
+| V9 `match.required` tests Go zero value | `candidate.go` gate 3, thirteen-name table | `TestAddAppliesRequiredAgainstTheZeroValue` | Fixture (declared gap 3, R6) |
+| V10 candidate identity is `(source,id)` | `cassette.Candidate.Source/AlbumID` | all 294 candidates | Yes |
+| V11 insertion order then stable distance sort | `Candidates.Sorted` | the 13-element alternating fixture (n=13 threshold); `should-ask`/`should-reject`'s ties thinly | Thin plus fixture |
+| V12 the recommendation ladder, strict-strong/inclusive-medium | `matcher.Recommend` (`verdict.go`) | mutations 1-2, `TestRecommendWalksTheLadder` | Yes, plus the hand-authored boundary ladder rows (declared gap 11) |
+| V13 no-conclusion returns before the downgrade | `Recommend`'s early return | mutation 3, four committed cases (`rec-none-small-gap` and three others) | Yes |
+| V14 downgrade key set is nonzero view unioned with track keys | `downgrade` (`verdict.go`) | mutations 4-5; the max_rec downgrade fires on 6 of 215 cases | Yes, thin on the track-union half (declared gap 5-6) |
+| V15 `min(rec,max_rec)` over the ordered enum | `matcher.Recommendation`, `downgrade`'s lazy walk | `TestRecommendReturnsBeforeTheDowngradeOnNoConclusion` after the fix round | Yes |
+| V16 the verdict-to-action mapping, quiet-first | `matcher.ActionFor` (`verdict.go`) | mutation 6 (quiet outranks timid); 215 cases, 167 apply / 48 skip | Yes |
+| V17 `Quiet: true` overlaid at the grading call site | `gradeTunables`'s overlay (`conform/translate.go`) | all 215 actions; two of three `import.*` assertions are vacuous today (Timid/QuietFallback unreachable under quiet) | Yes for action, thin for the overlay's own three keys |
+| V18 `tag_album`'s flow, the unsorted early return | `tag.Album` (`tag.go`) | `TestAlbumTakesTheIDMatchEarlyReturnAndIssuesNoSearch`; mutations 1-2, 4-5 | Yes, mutation 3 (sort before early return) unfirable, at most one candidate reaches that check |
+| V19 `match_by_id`'s two early branches | `tag.Album`'s consensus lookup | declared gaps 2-3 (no-id, no-consensus), 0 of 215 | Fixture only |
+| V20 the tracks/missing/unmatched summation order | `matcher.DistanceForAlbum`, fed `AlbumPairsFor`'s track-ordered pairs | all 294 track vectors, 55 near misses at 1-4 ULP | Yes |
+
+### The graded-field table
+
+Task 7's tier 1 grades nine of `cassette.Expected`'s eleven fields
+(`case.go:343-436`); Task 8 adds the tenth and eleventh, the verdict
+pair. Rung 15's re-run reads this table rather than deriving it again.
+
+| Field | Grading rule | Populated by |
+| --- | --- | --- |
+| `Recommendation` | bit-exact string match, mode-gated by `policy.GradeVerdict` | `gradeCaseVerdict` (Task 8, `case.go:452`) |
+| `Action` | bit-exact string match, same gate | `gradeCaseVerdict` (Task 8) |
+| `EchoedDate` | exact string equality against the case's own `eval_date` | `gradeCase` (`case.go:408`) |
+| `ConfigHash` | **not graded**: no Go analog computes a config hash | recorded non-grade |
+| `Weights` | `CheckCaseWeights` against `tun.DistanceWeights` | `gradeCase` (`case.go:411`) |
+| `Thresholds` | `CheckCaseThresholds` against `tun` | `gradeCase` (`case.go:414`) |
+| `Candidates` | identity, distance (epsilon or bit-identical per policy), penalty view, per-track vector | `gradeCandidates` (`case.go:706`) |
+| `Assignment` | item-to-track pairs against `AssignItems`'s solve, gated by `policy.GradeAssignment` | `gradeAssignment` (`case.go:783`) |
+| `ExtraItems` | exact index-list match | `gradeAssignment` |
+| `ExtraTracks` | exact index-list match | `gradeAssignment` |
+| `AppliedFields` | **not graded**: no Go analog computes post-apply in-memory item fields | recorded non-grade |
+
+### The declared corpus-coverage gaps
+
+**Eleven new gaps, taking rung 3's running total to twenty-one** (3a's
+three, 3b's six, 3c's one, this pass's eleven). Rung 4 and rung 15
+should read this total rather than re-count it; the plan's own prose
+states "ten new" in one place but enumerates eleven items and the
+running-total arithmetic (10 + 11 = 21) requires eleven, so eleven is
+what this entry records.
+
+1. `import.search_ids` and the explicit-ID branch (0 of 215).
+2. `match_by_id`'s no-id branch (0 of 215).
+3. `match_by_id`'s no-consensus branch (0 of 215).
+4. `import.timid`'s gate on the ID-match early return (0 of 215).
+5. The `max_rec` downgrade read against a key added at 0.0 (0 of 294
+   candidates carry `missing_tracks`/`unmatched_tracks` at exactly
+   0.0, though 272 carry some key at 0.0).
+6. `_recommendation`'s per-track key union in the downgrade set: the
+   loop runs and never changes an outcome under the shipped `max_rec`.
+7. `import.quiet = false` and the whole `timid`/`none_rec_action`/"ask"
+   half of `_summary_judgment` (the shim forces quiet).
+8. `quiet_fallback: asis` and the `ASIS` action entirely.
+9. Every non-default value of the four recommendation knobs: all 215
+   cases echo the shipped defaults, so the tier 1 cross-check proves
+   the transcription, never the behavior.
+10. The assignment objective's `inclArtist=false` on a VA release: no
+    tied or assignment-sensitive VA case exists.
+11. The recommendation ladder's strict-versus-inclusive asymmetry: no
+    committed candidate sits exactly on a threshold (a sweep over all
+    215 cases finds none at 0.04 or 0.25); the hand-authored ladder
+    rows are the sole detector.
+
+Three items are explicitly not counted. `match.required` and
+`match.ignored` are 3a's gaps 1 and 2 already; 3d builds their
+consumers and a fixture for each, which closes them by unit test rather
+than adding new gaps. "`strong` reached after a text search" is a
+corpus fact, not a code path this pass builds. `profile_hashes`
+covering one profile of three is a corpus-lane item open since 2b,
+carried below rather than counted here.
+
+**Two surfaces are non-ports, not gaps.** `bug-assignment-rejection-gap`'s
+fix needs a per-pair rejection mechanism beets does not have.
+`bug-nonlatin-alias-selection`'s fix needs a corrected applied artist
+string, which rung 3 computes none of. Both join the improvements
+register.
+
+### The mutation table, measured counts
+
+Several plan-stated mutation counts were corrected against the real
+measurement.
+
+| Task | Mutation | Plan's figure | Measured |
+| --- | --- | --- | --- |
+| 3 | swap gate 1 (zero-track) and gate 2 (duplicate) | fires | **unobservable**: both gates return `(false, nil)` with no side effect, for any input |
+| 3 | `slices.SortFunc` for `slices.SortStableFunc`, 3-candidate tie | fires | **does not fire**: pdqsort takes a zero-swap path on an all-equal-key slice at any length |
+| 3 | same mutation, 13-candidate alternating-distance fixture | (not in plan) | **fires**, resting on Go's 12-element insertion-sort threshold |
+| 7 | pairs in item order | 23 cases | **16 cases** (uniform per-track distances hide the permutation on the `adv-assign-*` family) |
+| 7 | insertion order rather than distance order | 21 cases | **18 cases**, 60 candidate-identity mismatches |
+| 7 | truncate the search fan-out | (unspecified) | **48 cases fail with `Unused()` in place, 22 without** |
+
+### Evidence
+
+The three earlier tiers are unchanged. Tier 0 still replays 72/72
+bit-identical, translation still grades 50/50, and the request tier
+still runs 215/303/48 at zero misses. Tier 1
+(`GradeCases`, `ModeCompat`): 215 cases, 294 candidates, 294 album
+distances, 294 track vectors, 214 assignments compared, 55 near misses
+(1-4 ULP, max relative drift `4.61e-16`), zero failing. Tier 2:
+`VerdictFloor` 215; `ModeDefault`'s ten `defect_free` rows reproduce
+bit-identically; `ModeDefault` moved zero non-probe verdicts (see
+`docs/superpowers/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`);
+eight probe cases `Ungraded` (`ProbeCaseFloor` 20, minus the ten
+`defect_free` rows, minus the two `ProbeCaseOracleCorrectRows`);
+`TiesExcluded` 0 against its ceiling. The corpus totals were
+independently recomputed off the tree and matched every floor (215
+cases, 294 candidates with 272 carrying a 0.0-valued key, 23 non-identity
+assignments, 21 multi-candidate cases, 7/14 non-empty extras).
+
+Measured wall times: tier 1 sweep 60.3s (70.3s package) at `-count=1`;
+tier 2's combined two-mode sweep 113.5s (`ModeCompat` 60.3s shared via
+`sync.OnceValues`, `ModeDefault` 53.2s); `internal/harness/conform`
+123.7s; `go test ./...` 2m06s; `bash scripts/check.sh` about 3.5
+minutes.
+
+### The rung 3 to rung 4 handoff
+
+What rung 4's spec needs from 3d, ruling B option (b): rung 4 deploys
+at functional completeness with every divergence stamped with the
+matcher commit.
+
+1. **The entry point.** `tag.Album(ctx, src *musicbrainz.Client, items
+   []matcher.ItemFields, tun matcher.Tunables, compat matcher.Compat,
+   evalDate time.Time, opts tag.Options) (*tag.Proposal, error)`, in
+   `internal/engine/tag`. `ctx` first, `evalDate` a parameter and never
+   a clock read, `opts.SearchIDs` the only optional input. `Proposal`
+   carries `CurArtist`, `CurAlbum`, `Candidates` (ascending distance,
+   stable), `Recommendation` and `Action`.
+2. **The divergence stamp.** Every shadow divergence row rung 4 writes
+   carries the matcher commit, so a divergence from a superseded
+   matcher revision is re-evaluated mechanically rather than consuming
+   owner adjudication. It joins `analysis.AdjudicationEntry` beside the
+   existing fields; the shadow's subject shape (`{album, release_mbid}`,
+   `adjudication.go:35`) is already modeled and carries zero committed
+   rows, so rung 4 is its first producer.
+3. **The shadow's budget class.** `musicbrainz.NewClient` requires a
+   `Budget` and every request `tag.Album` issues spends one token, so
+   rung 4 caps its own MusicBrainz spend by the budget it builds the
+   client with. The shadow's class is `ClassBackground`, deferred
+   behind rung 7's user-present probe, and the wire pace is
+   `DefaultInterval = time.Second` (3c contract C20). Rung 4 branches
+   on `musicbrainz.ErrUnavailable` to defer rather than record a
+   divergence, and on `tag.ErrNoCandidates` to record "no match".
+4. **The pending-divergence file format.** A row a human commits into
+   `corpus/analysis/adjudications.json` carries `id`, `subject.case_id`
+   (or, for the shadow, `subject.album` plus `subject.release_mbid`),
+   `suspected`, `citation`, `release_truth`,
+   `disposition: pending-adjudication`, `reason`, `adjudicator: agent`
+   and `date`, all five prose fields non-empty. The runner prints
+   exactly that row and writes nothing; rung 4's shadow inherits the
+   same rule, and the launch gate refuses any pending row.
+
+### What a later pass would be wrong to rediscover
+
+1. The rung 15 re-run criterion, unchanged, travels forward from every
+   rung 3 pass close (quoted in 3c's entry above).
+2. **The four-knob wall registration** stays the named follow-on task
+   for the first rung 3 pass after rung 1b lands; `AdminEmail`'s
+   interim User-Agent contact sits beside it, both unmoved this pass.
+3. **`ties.json` measures `Candidates[0]` only**, so 80 of the 294
+   committed candidate assignments were never asked the tie question,
+   and **17 of them are tied with no disposition** (re-measured by
+   Task 7's own sweep, the first run able to solve every candidate),
+   across `real-noise-dylan-bootleg`, `real-noise-pink-floyd-de1994`,
+   `real-nonlatin-girls-generation`, `real-nonlatin-utada-first-love`,
+   `real-nonlatin-utada-first-love-locale`, and the non-best candidates
+   of `should-ask` and `should-reject`. Five change tier 1's graded
+   `Tracks` vector on an alternative optimum and two also change the
+   `tracks` penalty sum. **Filed for lane E1** as a derivation ask;
+   tier 1 grades all 294 vectors meanwhile.
+4. **The `lapjv` extension model is behavioral, not source.**
+   `n = max(rows, cols)` with zero fill, established against `lap`
+   0.5.13 on 2634 random rectangular matrices and reconfirmed on 262 at
+   this plan's drafting; the classic `(rows+cols, max+1)` recipe
+   `derive_ties.py`'s own docstring assumes disagrees on 30% of
+   rectangular ties. Frozen as
+   `internal/engine/matcher/testdata/lapjv-optima.json` with its
+   provenance header. The day `corpus/manifest.json`'s `lap` pin moves,
+   that table must be regenerated, and the oracle-tagged differential
+   test this pass declined becomes worth building.
+5. **`MergePseudoRelease`'s aliasing hazard is now rung 9's alone.**
+   `AlbumForID` closes it by construction because only the merged value
+   escapes, and `tag.Album` inherits that same call site unchanged. The
+   `slices.Clone` is owed the day a caller retains both values, which is
+   rung 9's pipeline.
+6. **`vaLikely` stays unexported, permanently.** `match_by_id`'s
+   no-consensus branch is corpus-unreachable and the search path
+   computes `vaLikely` inside `AlbumSearchFor`, so no caller outside
+   `musicbrainz` ever needs it. 3c's carry 13c is closed as "stays
+   unexported", recorded so a later pass does not export it for
+   symmetry.
+7. **The retry path is ungraded by the corpus and always will be**: the
+   stub answers 200 or 404 only, `cassette.Request` carries no status
+   field, and the response-status extension stays declined, now for the
+   fourth pass running.
+8. **Three regime divergences travel together**, unchanged from 3c:
+   3b's `\b` in `SDPatternsWordBoundary` and now in
+   `SDPatternsGuardedNoBracketDiscount`, the query path's
+   full-versus-simple case lowering, and `_extract_id`'s `\w`. All three
+   are Unicode-aware in Python and ASCII-only in Go RE2, and all three
+   are benign on the committed corpus.
+9. **`Case.Extra` still has no producer** (3c guard 5), zero of 215
+   cases carry an entry, and `Unused()` deliberately excludes `Extra`
+   because a strong ID match legally orphans search captures into it.
+10. **`profile_hashes` covers `locale` alone** (open since 2b) and the
+    response-status extension stays declined (open since 2c). Neither
+    moved this pass.
+11. **The measured wall times**, listed in Evidence above, join the
+    version-bump differential doc the same courtesy every rung 3 pass
+    close has passed forward.
+12. **The tier 1/tier 2 sweep cost** (60.3s/53.2s, conform 123.7s,
+    `go test ./...` 2m06s) is carried, with its CPU profile (regexp
+    backtracking under `sdStrip` 43% cumulative, `matcher.Levenshtein`
+    17.5%, `Transliterate` 7.7%), as the first rung 3 follow-on or
+    rung 9's, and `scripts/check.sh` gains no separate leg for it this
+    pass (spec `:267` stays the future escape).
+13. `VerdictFrom` is gated on mode; a mode-blind read fired on 18 real
+    cases in an intermediate build and was corrected before Task 8's
+    close.
+14. `nearMissTolerance` (1e-12 relative) is about 4500 ULP against the
+    4 ULP maximum drift this pass measured; the tolerance is spec-
+    mandated (`:141`), not a hole.
+15. `cassette`'s two `Request` rows sharing `(Method, PathQuery)` are
+    not rejected, and `Unused()` would mark both hit on one issue;
+    zero committed cases are affected, pre-existing from 3c.
+16. The `ties skipped` policy arm (`case.go:585-590`) reads wider than
+    the spec row's own sentence (it also sets `ExpectNoCandidate`);
+    harmless, cannot ungrade anything real.
+17. Two of the three `import.*` overlay assertions in
+    `translate_test.go` are vacuous today (`QuietFallback` and `Timid`
+    equal their shipped defaults); only `NoneRecAction` discriminates.
+18. The plan's fixture-count wording ("four zero-instance verdict
+    rows") is never enumerated anywhere in the plan; ruled a wording
+    error, not an owed deliverable (Task 8's escalation).
+19. The 17 unledgered tied candidate assignments (item 3 above) are
+    filed for lane E1 as a `derive_ties.py` extension ask (R19).
+20. **Owner ask, batched rather than raised** (Resolution R1):
+    re-dispositioning `bug-assignment-rejection-gap` from `oracle-wrong`
+    to `no-correct-answer`, whose semantics the spec's own grading
+    table already describes as exactly the behavior this pass
+    implements by hand. `disposition` is owner-only and this pass
+    writes none.
+
+### Filed for other owners
+
+- **The oracle-tagged `lapjv` differential test**, for the lane that
+  owns `internal/harness/oracle`, to be built the day the `lap` pin
+  moves (item 4 above).
+- **Extending `derive_ties.py` to ask the tie question of every
+  candidate rather than `Candidates[0]`**, for lane E1 (item 3 above).
+
+### Non-blocking leftovers, condensed
+
+- `internal/engine/matcher/assign.go`'s dual-update fix left one
+  comment reading as though the augmenting path's ending column carries
+  information the running minimum does not; harmless, but worth a
+  clearer sentence the next time that function is touched.
+- `internal/harness/analysis/ties.go:140-145`: a unique (untied) row
+  carrying a stray `Adjudicator` with no `Disposition` is accepted
+  silently, unlike the symmetric skipped-row check; not required by the
+  criteria.
+- `internal/harness/conform/case.go:495`: `compareFloat` has no direct
+  unit test; its epsilon path rides on the corpus's 55 near misses
+  alone, and the flagged-row bit-identity refusal is proven by mutation
+  only, not by an isolated table test.
+- `internal/harness/conform/case.go:602`: `gradeCaseDefault` sets
+  `res.graded = true`, a field `GradeCases` never reads on the
+  `ModeDefault` path; dead but harmless.
+
+### Ruled
+
+**Revision 2.1's three conductor rulings were all taken as
+recommended.**
+
+1. B2, `ModeDefault` re-scores each case's own committed candidate set
+   under the corrected table and issues no search; the request-set rule
+   stays `ModeCompat`-only.
+2. m16, the entry point keeps the package name `internal/engine/tag`,
+   with both doc comments naming the `tagio` pairing, and the build
+   spec's tree listing gained the distinguishing clause this pass
+   drafted.
+3. m15, the `docs/` ledgers row is written into the parallel-approach
+   spec's contested-surface table.
+
+**Every execution-time ruling, in dispatch order.** Task 1's escalation
+(fixture location): Task 2 owns `testdata/assign/`; the inline
+Go-literal matrices in Task 1 stand. Task 3's fix round (twice): both
+findings accepted and fixed, no further escalation. Task 4's escalation
+(the `max_rec` key-resolution order): option (a), restore beets' lazy
+walk, fixture key `"nosuchpenalty"` to `"album"`. Task 7's escalation
+(verdict fields, `AssignmentFloor`, sweep cost): verdict grading is
+Task 8's; `AssignmentFloor = 214` with an empty `TiesAwaitingRuling` is
+accepted as the measured truth over the plan's stated 212; the sweep
+cost is carried as a finding. Task 8's escalation (fixture count,
+sweep cost): the plan's "four zero-instance rows" is a wording error,
+two fixtures stand; the combined sweep stays inside `go test ./...`.
+
+### Carried
+
+- **To 3d, now resolved.** `Preferred.Media`/`Preferred.Countries`
+  config-load validation is **CLOSED** (Task 3): `Tunables.Validate`
+  compiles both lists and returns a wrapped `ErrInvalidTunable`. The
+  compat switch's pattern-table selection is **CLOSED** (Task 4,
+  Resolution R2): both hypotheses default off, proven by the fourth
+  `SDPatternsGuardedNoBracketDiscount` table and `ModeDefault`'s ten
+  `defect_free` rows. Tie mirroring needing both `inclArtist` call
+  shapes is **CLOSED** (Tasks 1-2). 3c's R1 seam (the ID-match early
+  return, `_recommendation`, `_add_candidate`, the explicit
+  `search_ids` branch) is **closed for the first three, declared as
+  gaps 1-3 for the last two**. R6's stub blind side is **CLOSED**
+  (Task 7, `stub.Unused()`, a hard failure in tier 1). `vaLikely`'s
+  export question is **CLOSED as "stays unexported"** (item 6 above).
+  `MergePseudoRelease`'s aliasing hazard is **carried to rung 9** (item
+  5 above). R7's `Case.Extra` producer, R11's `AdminEmail` interim
+  contact, the four-knob wall registration, the retry path, and
+  `profile_hashes` are all **carried unchanged** (items 2, 7, 9-10
+  above).
+- Five 3b `code-simplifier` leftovers still sit in HISTORY, none
+  blocking, none touched this pass.
+- Adjudication batch 1 stays fully ruled, unaffected by this pass; no
+  new adjudication row was produced (ruling F never fired).
+
+Budgets: prep 2.51M, Task 0 0.09M, run A 0.32M, run B 1.34M, fix round
+0.07M, runner review 0.14M, run C 0.32M, simplify 0.15M, simplify
+review about 0.07M, close ≈0.15M (estimate), summing to about 5.15M
+against the 6M ceiling re-derived after Task 2 to an expected 4.8M and
+not raised. Attended interaction points: planning misses 2 (Task 1's
+`testdata/assign/` fixture location and Task 8's "four zero-instance
+rows" fixture count, both ambiguities a planning question would have
+caught); execution sittings 0, every fork ruled by the conductor under
+the 2026-09-05 grant, ruling F and the pending-divergence path never
+firing.
+
 ## Rung 3, pass 3c (The client, the limiter, and request-construction grading): `internal/engine/musicbrainz`'s `query.go`, `client.go` and `limiter.go` born, 351 requests graded byte for byte (2026-09-05)
 
 Eight plan tasks executed sequentially in the main tree against

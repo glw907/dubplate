@@ -309,6 +309,7 @@ internal/config/         the universal wall, defaults, thresholds
 internal/engine/         pure library: no HTTP, no terminal knowledge
     matcher/             penalty components, scoring core, verdicts
     musicbrainz/         WS client, rate limiter, response translation
+    tag/                 the matcher's public entry point, tag.Album
     tagio/               FLAC tag read and write
     store/               SQLite store, migrations, snapshot backup
     pipeline/            admission, layout, collection routing
@@ -326,7 +327,9 @@ web/                     Svelte reference client, fresh tree
 
 The tree is a shape, not a lockfile: each rung's spec may split or
 merge leaves below this level, and the ops seam's package boundaries
-are the ones reviewers hold hardest. The `dubplate-server` cobra
+are the ones reviewers hold hardest. `tag/` is the MusicBrainz
+tagging flow born in pass 3d; `tagio/` is unrelated FLAC file I/O
+that happens to share the prefix. The `dubplate-server` cobra
 surface is re-derived at rung 1 from the organizer spec's subcommand
 list, minus `beet` passthrough, which never exists on the new server.
 The shadow runner is a first-class leaf because it outlives its rung:

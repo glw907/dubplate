@@ -2089,9 +2089,11 @@ tolerance papers over a comparison-direction disagreement.
 **A flag is not a failure; an unacknowledged flag is.** The gate
 recomputes every case's flag and diffs it against this ledger, failing
 on a case flagged but unlisted, a listed case no longer flagged, listed
-boundaries that have moved, and a listed case with no written reason. No
-case in the smoke corpus is flagged today, so the ledger is empty and
-the flag's own proof that it fires lives in
+boundaries that have moved, and a listed case with no written reason.
+The ledger carries two rows: `rec-strong-medium-boundary` is flagged
+(2e-7 above `strong_rec_thresh`, resolving medium rather than strong),
+and `admit-zero-track-dropped` is a named skip (no candidate to flag).
+The flag's own proof that it fires beyond those two lives in
 `internal/harness/analysis/testdata/records/`: hand-authored records
 parked exactly on a boundary, which are never corpus cases.
 
@@ -2118,6 +2120,13 @@ number rather than a silent flip.
 The gate checks coverage and adjudication: every corpus case has a row,
 every tied row carries a disposition (`excluded` or `pinned`) with a
 reason, and no row claims a uniqueness its own recorded costs deny.
+Rung 3, pass 3d adds a required `adjudicator` field to every tied row,
+mirroring `adjudications.json`'s own sentinel rule. The `agent`
+sentinel is refused on `excluded`, because disposition is owner-only
+and an agent may never rule a tie out of the count. It is accepted on
+`pinned`, where an agent only pins a row the record's own costs
+already prove unique. `should-ask` and `should-reject` carry
+`adjudicator: agent` today.
 
 **A case whose record carries no candidate gets a skipped row**
 (`"status": "skipped"`) instead of a measured one, mirroring
