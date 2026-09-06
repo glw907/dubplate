@@ -21,11 +21,11 @@ the box is production.
 
 ## Lane registry
 
-- lane-1 (main tree): **rung 4 spec landed (rev 2, six owner rulings
-  open, recommendations applied provisionally); next action: pass 4a
-  plan prep, then 4a execution**. Pass 4b, the box deploy, waits for the
-  owner sitting ruling 6 recommends. Flag routes to the conductor
-  through 2026-09-07 09:00; window cap 15M, about 7.6M spent.
+- lane-1 (main tree): **pass 4a-i executing (Tasks 0-9 of the 4a plan,
+  rev 2.1, split at 9/10 on the sizing rule; sub-ceiling 3M)**. 4a-ii
+  (Tasks 10-15) and 4b (the deploy, owner sitting) follow. Six rung 4
+  owner rulings open, applied provisionally. Flag routes to the
+  conductor through 2026-09-07 09:00; window cap 15M, about 10M spent.
   lane-2 (worktree): BLOCKED until Phase 0b/0c land. Doc lane: IDLE.
 
 ## Open items (carried)

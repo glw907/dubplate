@@ -441,7 +441,7 @@ importer's grouping step), so rung 3 inherited no grouping and
 
 **Rung 4 observes only what groups to exactly one album, and counts the
 rest.** After reading a directory's items, group them by their
-`albumartist` and `album` fields. A directory yielding one group is
+`albumartist`-or-`artist` and `album` fields, beets' own key (`cmp.Or(AlbumArtist, Artist)` and `Album`, `beets/importer/stages.py:102-103`; conductor ruling C1 at 4a's plan fold, 2026-09-05). A directory yielding one group is
 observed. A directory yielding more than one is **excluded**, with its
 group count and its basename recorded, and the report prints the
 excluded-multi-album count beside the gate-rejected one, on the same
