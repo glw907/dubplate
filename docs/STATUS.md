@@ -21,11 +21,11 @@ the box is production.
 
 ## Lane registry
 
-- lane-1 (main tree): **3d closed; next action: rung 4 spec and plan prep
-  (the shadow) under the 2026-09-05 grant**, ruling B option (b): rung 4
-  deploys at functional completeness with every divergence stamped with
-  the matcher commit. Flag routes to the conductor through 2026-09-07
-  09:00; window cap 15M, about 5.15M spent (3d's full-pass total).
+- lane-1 (main tree): **rung 4 spec landed (rev 2, six owner rulings
+  open, recommendations applied provisionally); next action: pass 4a
+  plan prep, then 4a execution**. Pass 4b, the box deploy, waits for the
+  owner sitting ruling 6 recommends. Flag routes to the conductor
+  through 2026-09-07 09:00; window cap 15M, about 7.6M spent.
   lane-2 (worktree): BLOCKED until Phase 0b/0c land. Doc lane: IDLE.
 
 ## Open items (carried)
