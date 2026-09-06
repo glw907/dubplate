@@ -2,49 +2,48 @@
 
 ## Current state
 
-The greenfield dubplate-server build is the one active initiative. **Rung 3
-(3a, 3b, 3c, 3d) is CLOSED.** `internal/engine/{matcher,musicbrainz,tag}`
-(scoring, verdicts, translation, client, limiter, and `tag.Album`, the
-matcher's public entry point) are green. `internal/harness/conform` grades
-tier 0 at 72/72, translation at 50/50, requests at 215/303/48, tier 1 at
-215/294/294/214, and tier 2 at 215 verdicts (`ModeCompat`) plus ten
-`defect_free` rows bit-identical (`ModeDefault`), all zero-miss or
-bit-identical. Read `docs/HISTORY.md`'s 3a-3d entries before rung 4. Family
-system NOT live; box (5.78.148.42) runs Navidrome + cloudflared + guardian
-timers only.
+The greenfield dubplate-server build is the one active initiative.
+**Rung 3 (3a-3d) is closed**; `internal/engine/{matcher,musicbrainz,tag}`
+and `internal/harness/conform` are green at the rung 3d figures (see
+HISTORY). **Rung 4's spec is in place**, with six owner rulings open
+and applied provisionally: 1. config-lives (integration-class wall), 2.
+skipped-album `ReleaseMBID` fill, 3. which `matcher.Compat` runs, 4.
+shadow floor (default 720h), 5. MusicBrainz budget cap (default 60),
+6. deploy sitting vs conductor action.
 
-## Rules for a new session
-
-Read CLAUDE.md's Build process, then the parallel-approach spec (rev 2),
-then this file. Live-executor check is the lane registry, not `pgrep`;
-the box is production.
+**Pass 4a-i (Tasks 0-9, rev 2.1) is closed at its intermediate close.**
+`internal/atomicfile`, `matcher.QuietImportTunables`, the shadow's
+config wall, the FLAC reader, the store, capture, reconcile, the
+transports, the re-score and classification are in the tree and
+green. Read HISTORY's "Rung 4, pass 4a-i" entry before touching
+`internal/engine/shadow`. The family system is not live; box
+(5.78.148.42) runs Navidrome + cloudflared + guardian timers only. A
+new session reads CLAUDE.md's Build process, then the
+parallel-approach spec (rev 2), then this file; live-executor check is
+the lane registry, not `pgrep`, and the box is production.
 
 ## Lane registry
 
-- lane-1 (main tree): **pass 4a-i executing (Tasks 0-9 of the 4a plan,
-  rev 2.1, split at 9/10 on the sizing rule; sub-ceiling 3M)**. 4a-ii
-  (Tasks 10-15) and 4b (the deploy, owner sitting) follow. Six rung 4
-  owner rulings open, applied provisionally. Flag routes to the
-  conductor through 2026-09-07 09:00; window cap 15M, about 10M spent.
-  lane-2 (worktree): BLOCKED until Phase 0b/0c land. Doc lane: IDLE.
+- lane-1 (main tree): next action **4a-ii (Tasks 10-15) via the
+  pass-execute chain, after a staleness check; then 4b (deploy, owner
+  sitting, ruling 6)**. 2026-09-05 window closes here: about 13.4M of
+  15M spent. lane-2 (worktree): BLOCKED until Phase 0b/0c. Doc lane: IDLE.
 
 ## Open items (carried)
 
-- Rung 3 carries **twenty-one declared corpus-coverage gaps** (3a three,
-  3b six, 3c one, 3d eleven), owned in HISTORY; none blocks rung 4.
-- Four-knob wall registration (`StrongRecThresh`, `MediumRecThresh`,
-  `RecGapThresh`, `SearchLimit`) is the follow-on for rung 3's first pass
-  after rung 1b; `AdminEmail` contact and five 3b leftovers, none blocking.
-- `profile_hashes` (m1) and the response-status extension stay open since
-  2b/2c; `Case.Extra` producer and `MergePseudoRelease`'s `slices.Clone`
-  fix are re-owned to rung 9.
-- 17 unledgered tied candidate assignments (`ties.json` measures
-  `Candidates[0]` only) filed for lane E1; owner ask to re-disposition
-  `bug-assignment-rejection-gap` to `no-correct-answer` (R1).
-- Adjudication batch 1 fully ruled (18 oracle-wrong, 3 oracle-correct,
-  zero pending). Rewrite post-mortem owed; two albums await review in
-  `/srv/music/review/2026-08-31/geoff/`; FILEBROWSER_ADMIN_PASSWORD
-  orphaned; stale failed units.
+- Rung 3's **21 declared corpus-coverage gaps** (3a three, 3b six, 3c
+  one, 3d eleven), owned in HISTORY, none blocking. Rung 4's own gap:
+  the config-import rule (C3) is guarded by the in-chain reviewer, not
+  an architectural test.
+- Four-knob wall registration follows rung 1b; `AdminEmail` and five
+  3b leftovers, none blocking. `profile_hashes` (m1) and the
+  response-status extension open since 2b/2c; `Case.Extra` and
+  `MergePseudoRelease`'s `slices.Clone` re-owned to rung 9.
+- 17 unledgered tied candidates filed for lane E1; owner ask to
+  re-disposition `bug-assignment-rejection-gap` to `no-correct-answer`.
+- Adjudication batch 1 fully ruled. Rewrite post-mortem owed; two
+  albums await review in `/srv/music/review/2026-08-31/geoff/`;
+  FILEBROWSER_ADMIN_PASSWORD orphaned; stale failed units.
 
 ## Pinned versions (looked up 2026-08-30)
 
@@ -57,4 +56,5 @@ the box is production.
 | unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
 | lap (matcher tie mirroring, 3d) | PyPI `lap` | `0.5.13` |
 
-Spend to date: about 35.1M across rungs 2 and 3 (per-pass figures in HISTORY).
+Spend to date: about 40.1M across rungs 2, 3, 4a-i (HISTORY has
+per-pass figures).

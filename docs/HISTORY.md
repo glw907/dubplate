@@ -2,6 +2,280 @@
 
 Per-pass ledger, newest first.
 
+## Rung 4, pass 4a-i (intermediate close, 2026-09-05)
+
+Nine plan tasks executed sequentially in the main tree against
+`docs/superpowers/plans/2026-09-05-rung-4a-shadow-runner.md` (revision
+2.1), which splits the fifteen-task 4a plan at the Task 9 / Task 10
+boundary on CLAUDE.md's pass-sizing rule. This entry is that
+intermediate close, not the pass's own close: Tasks 10 through 15 land
+in pass 4a-ii, a later session.
+
+### What landed
+
+Task 1 (`bc21683`, fix `a1d3d6c`) re-landed `internal/atomicfile`
+unchanged from `_salvage` on merit, plus the plan's crash-safety test
+and a follow-up subtest pinning the temp file's directory. Task 2
+(`46f4229`, fix `751bdde`) built `matcher.QuietImportTunables`, the
+engine-side constructor for the four quiet-import assignments, with
+`conform`'s drift guard against `gradeTunables("estate")`. Task 3
+(`f20f329`, fixes `afeb007` and `8b73af8`) built the integration-class
+wall (`IntegrationClass`, `Config.Shadow`, required-when-enabled
+resolution), `ThresholdKind` and `ParseDuration`, and doctor's
+integration and duration rows. Task 4 (`adcf66d`) built
+`internal/engine/shadow`, with the provisional FLAC container reader
+and the nineteen-field mapping onto `matcher.ItemFields`. Task 5
+(`5966b8a`, fix `60221e9`) built the shadow store, one directory per
+observation under `observations/`, `passes/`, `pending/`,
+`resolved/`, every write through `atomicfile.WriteFile`. Task 6
+(`d1603ec`, fix `891dc1a`) built capture, the lexical
+uploader/basename walk, the grouping rule, the digest, and the
+partial-read discard. Task 7 (`b0aef65`, fixes `d1e09dc` and
+`6bbcbe0`) built the oracle report decode and the reconcile step,
+joining captures to run reports by content and basename rather than
+by `SourceDir`. Task 8 (`4c8bcc4`, fix `ffabf71`) built the recording
+and replay transports, `shadow.Config`, and `matchAlbum`, plus the
+wire-pace constant `DefaultInterval`. Task 9 (`817c75f`) built the
+`DefaultCompat` re-score, the divergence classification, and `Run`'s
+five-step pass loop. The close-out `code-simplifier` pass (`ea1d0ff`,
+3 files, +12/-34) folds three collect-then-sort loops onto
+`slices.Sorted`/`SortedFunc`, replaces a hand-rolled newest-capture
+scan with `slices.MaxFunc`, and drops a test helper that reimplemented
+`strings.Join`. Simplify review: accept, no blockers; every rewrite
+verified against the go1.27.1 stdlib and the newest-capture tie rule
+confirmed unchanged.
+
+### What the gate caught
+
+Five tasks needed a fix round from the in-chain `diff-reviewer`, two
+of them twice. Task 2 attached a citation to the wrong clause. Task 3
+carried a stale citation, then an unproven budget threshold. Task 5's
+test comment claimed coverage the store's own naming scheme cannot
+provide. Task 6 aborted the whole pass on an unreadable album
+directory instead of recording a partial read. Task 7 carried a stale
+provisional-ruling comment, then a gate-rejected capture claimed by
+the wrong row.
+
+Two tasks escalated to the conductor rather than taking a
+`diff-reviewer` fix.
+
+- **Task 1** flagged that the plan's own mutation-1 narrative was
+  wrong: moving `os.CreateTemp` to `os.TempDir()` is not caught by
+  either the leftover-temp-file test or the new crash-safety test,
+  because `os.Rename` needs write permission on the destination
+  directory regardless of where the temp file lives. Ruled: add one
+  extra test beyond the plan's fold, pointing `TMPDIR` at an
+  unwritable directory. Landed as `a1d3d6c`.
+- **Task 8** escalated on two points: whether `shadowScoring` is the
+  legitimate mutation site for named mutation 6, and whether the wire
+  pace and the budget cap owed a materialized constant rather than a
+  doc comment. Ruled: `shadowScoring` is the accepted mutation site;
+  `DefaultInterval = 2 * musicbrainz.DefaultInterval` is a named
+  constant with a pinning test, landed as `ffabf71`; the 60-token cap
+  stays Task 3's registered threshold, and wiring it into the
+  `ClassBackground` budget is Task 12's job in 4a-ii.
+
+The reviewer found one race and one misattributed claim beyond the
+review's own blocking-list shape. Task 6's reviewer traced a genuine
+race with `beets`: `review.Move` renames the album directory itself,
+so a walk that lists a basename can take `ENOENT` reading that
+directory's own entries, and the first cut aborted the whole capture
+pass on that error instead of recording a partial read. Task 7's
+second review found the gate-rejected exclusion claimed by whichever
+capture under an uploader matched first, so a beets-skipped capture
+could steal the exclusion meant for a genuinely rejected one and the
+rejected album would surface a fabricated oracle skip signal; fixed
+in the post-chain round as `6bbcbe0`.
+
+Three mutations were recorded as unprovable rather than papered over.
+Task 1's mutation 1 (moving the temp file out of the target's own
+directory) was unfired by the original test pair, as above, before
+the extra subtest closed it. Task 5's mutation 4 (dropping the
+explicit sort in `Observations`) cannot fail with this store's naming
+scheme: `os.ReadDir` already returns filename order and the directory
+name is the id, so no test tree can make the two orders diverge.
+Task 9's mutation 5 (handing the replay client the pass budget) is
+unreachable without a signature change the plan's own fold predicted;
+proven only by a temporary signature change that confirmed the effect,
+then reverted.
+
+### Evidence
+
+`bash scripts/check.sh` passed clean at every commit's review point.
+`go test ./...` runs about 2m06s, dominated by `internal/harness/conform`'s
+sweep (unchanged from rung 3). The conform sweep's own figures (72/72,
+50/50, 215/303/48, 215/294/294/214, 215 verdicts) are untouched by this
+pass; nothing in `internal/engine/shadow` reaches the conform tree.
+
+### The six owner rulings, applied provisionally
+
+Each is written into the landed code as "provisional, owner ruling N
+open." One line each, with what reverses if Geoff rules the other way.
+
+1. **Ruling 1** (integration-class shape): option (a), the
+   `IntegrationClass` table, is built. Reversing to (b) or (c) retires
+   `internal/config`'s integration-class wall and moves the shadow's
+   paths onto flat accepted keys or bare cobra flags.
+2. **Ruling 2** (a skipped album's `ReleaseMBID`): filled by whichever
+   side proposed a release, oracle's or Go's. Reversing to option (b)
+   relaxes `checkAdjudicationEntry`'s pair rule for shadow subjects
+   specifically.
+3. **Ruling 3** (which `Compat` the shadow runs): both, `FullCompat`
+   scored and `DefaultCompat` re-scored from the same candidate set.
+   Reversing to (a) or (b) drops the re-score step and Task 9's
+   classification collapses to one verdict pair.
+4. **Ruling 4** (the estate's shadow floor): the shipped 720h default.
+   Reversing changes only the registered threshold's default; no code
+   branches on the value.
+5. **Ruling 5** (the MusicBrainz budget cap): 60 requests per run at
+   `2 * musicbrainz.DefaultInterval`. Reversing to `DefaultInterval`
+   moves the shadow's wire pace back to one request per second and
+   reopens the shared-quota mitigation question ruling 5 itself
+   resolves.
+6. **Ruling 6** (the first deploy, sitting or conductor action): an
+   owner sitting. This ruling touches only 4b, out of this pass's
+   scope; nothing in 4a-i depends on its answer.
+
+### Conductor rulings taken
+
+C1 through C3 landed at the plan's fold, before any task dispatched.
+C1, the capture's grouping key is beets' own,
+`cmp.Or(AlbumArtist, Artist)` and `Album`. C2, `newShadowCmd` takes
+`matcherCommit string` as a parameter and `newRootCmd` passes the
+package var. C3, `internal/engine/shadow` importing no
+`internal/config` stays a declared gap, guarded by the in-chain
+reviewer rather than an architectural test. The wire pace ruling is
+not one of C1 through C3. It was taken at the spec's own fold, ahead
+of this plan, and amends the 3d handoff's recorded `DefaultInterval`
+to `2 * musicbrainz.DefaultInterval`.
+
+Nine further rulings came out of the task records themselves. Task 1,
+add the TMPDIR subtest. Task 2, accept. Task 3's first round, re-point
+the citation and pin the budget threshold. Task 4, accept, with a TDD
+ordering deviation noted. Task 5, accept, mutation 4 unfireable and
+recorded. Task 6, accept. Task 7's second round, restrict the
+gate-rejected claim to review-tree-only captures. Task 8, accept
+`shadowScoring` and materialize `DefaultInterval`. Task 9, accept,
+mutation 5 unreachable without a signature change.
+
+### Non-blocking leftovers, condensed
+
+- Atomic file writes carry no directory fsync, so the crash-safety
+  claim covers torn content but not the rename's own durability
+  (inherited from `_salvage`, unchanged).
+- The shadow store's `Observations()` and `Passes()` decode any
+  non-`.json` entry a crashed `atomicfile` write might leave behind;
+  filtering on the `.json` suffix would make both read paths
+  crash-tolerant.
+- `capture.go`'s uploader-level `os.ReadDir` tolerance (extended past
+  the review's ask, to the album level alone) has no test of its own.
+- `reconcile.go`'s consumed ledger only ever grows; nothing in this
+  diff caps it, and at one oracle import run every fifteen minutes
+  (`dubplate-import.timer`, `*:0/15`) that is roughly 35k entries a
+  year.
+- `reconcile.go`'s content join drops an imported row with empty
+  `LibraryPaths` silently when the uploader has zero or more than one
+  unclaimed capture, with no counter recording the drop.
+- `match.go`'s 503 test margin (a 1s to 2s deadline) is modest on a
+  loaded machine; `recordingTransport` is unsynchronized, safe only
+  because requests are issued sequentially today.
+- `run.go`'s `Observation.EvalDate` is the capture pass's clock while
+  scoring uses the match pass's clock; nothing tests the divergent
+  case because every test captures and matches in one pass.
+- `run.go`'s deferral is terminal: a deferred observation carries an
+  oracle signal and is never re-matched in a later pass.
+
+### Filed for other owners
+
+- Rung 8's `internal/engine/tagio` absorbs the shadow's provisional
+  FLAC reader; `flac.go`'s own doc comment names the retirement.
+- Rung 16 retires the oracle report decode (`oraclereport.go`), the
+  same wind-down that retires the box-side shell import layer's other
+  remnants.
+- Rung 1b's registry inherits the shadow's integration class as a
+  shape to absorb rather than a shape to invent, per ruling 1's own
+  recommendation.
+
+### What a later pass would be wrong to rediscover
+
+1. `os.Rename` needs write permission on the **destination**
+   directory to link the new entry, regardless of where the temp file
+   was created; a chmod'd target directory fails the rename even when
+   the temp file sits in `os.TempDir()`. Proving the temp-in-path
+   property needs a separate `TMPDIR`-pointed-elsewhere test, not the
+   crash-safety fold.
+2. `os.ReadDir` already returns entries in filename order, and the
+   shadow store's directory and file names are themselves the ids, so
+   an explicit sort in `Observations()` or `Passes()` states a
+   guarantee no test in this store can fail on removal.
+3. A gate-rejected album (quarantined or rejected) never reaches
+   beets and therefore never appears in a tag log; any code that
+   resolves a gate-rejected capture through a backstop shared with
+   beets-skipped captures must exclude tag-log matches explicitly, or
+   first-match order can steal the exclusion from the wrong capture.
+4. `review.Move` renames the album directory itself, so a capture
+   walk can list a directory and then take `ENOENT` reading its own
+   entries; that is an ordinary race to tolerate as a partial read,
+   never a pass-fatal error.
+5. `musicbrainz.ErrBudgetExhausted` and `musicbrainz.ErrLimiterClosed`
+   are mutually exclusive within one budget: a budget that has
+   already refused further spending is closed, not merely exhausted,
+   and a caller branches on which sentinel it received rather than
+   treating both as one retryable condition.
+
+### 4a-ii handoff
+
+Tasks 10 through 15 inherit the following landed surface, unchanged
+unless a task's own criteria says otherwise.
+
+- **`shadow.Config`** (`internal/engine/shadow/config.go`) and
+  **`shadow.DefaultInterval`**, the wire-pace constant Task 12 wires
+  into the `ClassBackground` budget alongside the 60-token cap
+  (`DUBPLATE_SHADOW_BUDGET`, Task 3's registered threshold).
+- **The store's layout**
+  (`internal/engine/shadow/store.go`): `observations/<id>/`,
+  `passes/<pass-id>.json`, `pending/<id>.json`, `resolved/<id>.json`,
+  `started-at`, `consumed-reports.json`, every write through
+  `atomicfile.WriteFile`.
+- **`Observation`** and **`PendingRow`** (`types.go`, `run.go`), the
+  engine-side shapes Task 10's marshalling into `cassette.Case` and
+  `analysis.AdjudicationEntry` reads from; both stay in
+  `cmd/dubplate-server` because `internal/engine/shadow` may import no
+  harness package.
+- **The classification's four classes**
+  (`internal/engine/shadow/classify.go`): agreement (no row),
+  `go-applies-oracle-skipped`, `go-skips-oracle-applied`,
+  `go-applies-different-release`, plus the closed deferral set
+  (`ErrUnavailable`, `ErrBudgetExhausted`, `ErrLimiterClosed`,
+  `DeferUnclassified`).
+- **`matchAlbum`/`shadowScoring`** (`match.go`): the accepted mutation
+  site for the `FullCompat`/`QuietImportTunables` pair; `matchAlbum`'s
+  signature does not change.
+- **The declared gap on the config-import rule** (C3): guarded by the
+  in-chain reviewer, not an architectural test. Any task that adds a
+  second file importing `internal/config` from `internal/engine/shadow`
+  needs the same reviewer-level scrutiny, not a free pass because no
+  test enforces it.
+- **The mutation sites reviewers accepted as non-literal**: Task 5's
+  ReadDir-order mutation (structurally unfireable, recorded rather
+  than fixed), Task 8's `shadowScoring` (the mutation site for named
+  mutation 6, not `matchAlbum`'s own body), and Task 9's mutation 5
+  (unreachable without a signature change).
+
+**Resume prompt for the next session.** Task 10 is next, in the main
+tree, via the pass-execute chain with this entry's common notes, after
+a fresh Task 0-style staleness check against the new HEAD.
+
+**Budget.** 4a-i spent about 4.99M: prep 2.3M, Task 0 0.07M, chain
+2.14M, fix round 0.08M, simplify 0.15M, simplify review about 0.05M,
+close about 0.2M (estimate). Execution against the 3M sub-ceiling was
+about 2.69M, prep excluded. The plan's 5M ceiling covers all of 4a, so
+4a-ii starts with roughly no headroom and needs its own ceiling before
+it dispatches. That call belongs to the next conductor, not to this
+close. Attended interactions for 4a-i: planning misses 1 (Task 1's
+mutation-1 narrative, which a probe at planning would have caught),
+execution sittings 0.
+
 ## Rung 3, pass 3d (Verdicts, the assignment solve, admission, recommendation, and the whole-corpus conformance gate): `internal/engine/tag` born, tier 1 and tier 2 grade the whole 215-case corpus (2026-09-05)
 
 Nine plan tasks executed sequentially in the main tree against
