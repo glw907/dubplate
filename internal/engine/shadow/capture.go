@@ -48,7 +48,11 @@ type excludedDir struct {
 // os.Rename or a copy-then-remove fallback (_salvage/internal/review/move.go:24-40),
 // so a walk can list four tracks and take ENOENT on the fourth, and
 // once the album is gone there is no next pass to supersede a partial
-// fixture with a whole one.
+// fixture with a whole one. review.Move renames the album directory
+// itself, so the same race can take ENOENT on the whole directory: the
+// walk lists a basename and then fails to os.ReadDir it. That directory
+// is recorded as a partial read too, and the walk moves on to the next
+// one rather than failing the pass.
 //
 // A directory whose items group to more than one album is EXCLUDED with
 // its group count (contract S9). The box runs group_albums: yes
@@ -65,8 +69,9 @@ type excludedDir struct {
 // ZIP extracts flat (config/beets-config.yaml:19-22) and its tracks
 // often carry ARTIST and no ALBUMARTIST, which an albumartist-only key
 // collapses into one group and observes as one album while beets splits
-// it into several verdicts. Provisional, conductor ruling owed: the
-// spec states the key as albumartist and album alone (spec:441).
+// it into several verdicts. The fallback is conductor ruling C1 at
+// rung 4a's plan fold (spec:444), which fixes the key as beets' own
+// rather than the albumartist-alone form the spec first carried.
 //
 // A directory whose digest already names a stored observation is
 // SKIPPED, which is what makes the capture idempotent (contract S7).
@@ -87,7 +92,8 @@ func capture(observeDir string, has func(id string) bool, now time.Time) (captur
 
 		basenames, err := os.ReadDir(uploaderDir)
 		if err != nil {
-			return captureResult{}, fmt.Errorf("read uploader directory %s: %w", uploader, err)
+			result.PartialReads = append(result.PartialReads, uploader)
+			continue
 		}
 
 		for _, basenameEntry := range basenames {
@@ -97,10 +103,7 @@ func capture(observeDir string, has func(id string) bool, now time.Time) (captur
 			basename := basenameEntry.Name()
 			albumDir := filepath.Join(uploaderDir, basename)
 
-			c, excl, partial, err := captureAlbum(uploader, basename, albumDir, now)
-			if err != nil {
-				return captureResult{}, fmt.Errorf("capture %s/%s: %w", uploader, basename, err)
-			}
+			c, excl, partial := captureAlbum(uploader, basename, albumDir, now)
 			switch {
 			case partial:
 				result.PartialReads = append(result.PartialReads, uploader+"/"+basename)
@@ -125,10 +128,10 @@ func capture(observeDir string, has func(id string) bool, now time.Time) (captur
 // format and a cover image is not a track; every entry, FLAC or not,
 // still enters the file set the digest is computed over, because a
 // changed cover is a changed upload.
-func captureAlbum(uploader, basename, dir string, now time.Time) (capture *Capture, excluded *excludedDir, partial bool, err error) {
+func captureAlbum(uploader, basename, dir string, now time.Time) (capture *Capture, excluded *excludedDir, partial bool) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, true
 	}
 
 	var files []CapturedFile
@@ -140,7 +143,7 @@ func captureAlbum(uploader, basename, dir string, now time.Time) (capture *Captu
 		}
 		info, err := entry.Info()
 		if err != nil {
-			return nil, nil, true, nil
+			return nil, nil, true
 		}
 		files = append(files, CapturedFile{
 			Name:    entry.Name(),
@@ -154,13 +157,13 @@ func captureAlbum(uploader, basename, dir string, now time.Time) (capture *Captu
 
 		fields, err := readFLAC(filepath.Join(dir, entry.Name()))
 		if err != nil {
-			return nil, nil, true, nil
+			return nil, nil, true
 		}
 		items = append(items, fields)
 	}
 
 	if len(items) == 0 {
-		return nil, &excludedDir{Uploader: uploader, Basename: basename, Reason: ExcludedNoTracks}, false, nil
+		return nil, &excludedDir{Uploader: uploader, Basename: basename, Reason: ExcludedNoTracks}, false
 	}
 
 	groups := make(map[[2]string]struct{})
@@ -169,7 +172,7 @@ func captureAlbum(uploader, basename, dir string, now time.Time) (capture *Captu
 		groups[key] = struct{}{}
 	}
 	if len(groups) > 1 {
-		return nil, &excludedDir{Uploader: uploader, Basename: basename, Reason: ExcludedMultiAlbum, Groups: len(groups)}, false, nil
+		return nil, &excludedDir{Uploader: uploader, Basename: basename, Reason: ExcludedMultiAlbum, Groups: len(groups)}, false
 	}
 
 	return &Capture{
@@ -179,7 +182,7 @@ func captureAlbum(uploader, basename, dir string, now time.Time) (capture *Captu
 		Files:      files,
 		Items:      items,
 		CapturedAt: now,
-	}, nil, false, nil
+	}, nil, false
 }
 
 // digestFor computes a capture's identity: the hex SHA-256 over the

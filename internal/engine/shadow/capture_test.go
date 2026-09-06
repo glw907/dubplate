@@ -113,7 +113,7 @@ func TestCaptureExcludesAMultiAlbumDirectory(t *testing.T) {
 // ALBUMARTIST anywhere, is the shape a flat contributor ZIP produces
 // (config/beets-config.yaml:19-22) and the shape beets splits at
 // stages.py:102-103. An albumartist-only key would collapse this to
-// one group (Conductor ruling C1, provisional).
+// one group (conductor ruling C1, spec:444).
 func TestCaptureExcludesAFlatArtistOnlyMultiAlbumDirectory(t *testing.T) {
 	dir := t.TempDir()
 	writeAlbum(t, dir, "ada", "flat-extract", [][]string{
@@ -215,6 +215,40 @@ func TestCaptureDiscardsAPartialRead(t *testing.T) {
 	}
 	if len(got.PartialReads) != 1 || got.PartialReads[0] != "ada/half-gone" {
 		t.Errorf("partial reads = %v, want [ada/half-gone]", got.PartialReads)
+	}
+}
+
+// TestCaptureTreatsAnUnreadableAlbumDirectoryAsAPartialRead proves the
+// race the doc comment names: review.Move renames the album directory
+// itself, so the walk can list a basename and then take ENOENT (or, as
+// simulated here, EACCES) reading that directory's own entries. That
+// directory is recorded as a partial read and the pass still returns
+// its other captures, rather than failing the whole pass.
+func TestCaptureTreatsAnUnreadableAlbumDirectoryAsAPartialRead(t *testing.T) {
+	dir := t.TempDir()
+	writeAlbum(t, dir, "ada", "windrose", windroseTracks())
+	writeAlbum(t, dir, "ada", "vanished", windroseTracks())
+
+	vanishedDir := filepath.Join(dir, "ada", "vanished")
+	if err := os.Chmod(vanishedDir, 0o000); err != nil {
+		t.Fatalf("chmod vanished dir: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = os.Chmod(vanishedDir, 0o755)
+	})
+
+	got, err := capture(dir, func(string) bool { return false }, passNow)
+	if err != nil {
+		t.Fatalf("capture: %v", err)
+	}
+	if len(got.Captures) != 1 || got.Captures[0].Basename != "windrose" {
+		t.Errorf("captures = %+v, want the one readable album", got.Captures)
+	}
+	if len(got.Excluded) != 0 {
+		t.Errorf("excluded = %+v, want none; an unreadable directory is a partial read, not exclusion", got.Excluded)
+	}
+	if len(got.PartialReads) != 1 || got.PartialReads[0] != "ada/vanished" {
+		t.Errorf("partial reads = %v, want [ada/vanished]", got.PartialReads)
 	}
 }
 
