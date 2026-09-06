@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -42,22 +43,13 @@ func writeTagLog(t *testing.T, stateDir string, skips []string) {
 
 	var data []byte
 	if len(skips) > 0 {
-		line := "skip " + joinSemicolon(skips) + "\n"
-		data = []byte(line)
+		data = []byte("skip " + strings.Join(skips, "; ") + "\n")
 	}
 	name := fmt.Sprintf("import-%d.log", tagLogSeq.Add(1))
 	path := filepath.Join(stateDir, name)
 	if err := os.WriteFile(path, data, 0o644); err != nil {
 		t.Fatalf("write tag log %s: %v", path, err)
 	}
-}
-
-func joinSemicolon(parts []string) string {
-	out := parts[0]
-	for _, p := range parts[1:] {
-		out += "; " + p
-	}
-	return out
 }
 
 // writeReviewDir creates <reviewDir>/<date>/<uploader>/<name> as an

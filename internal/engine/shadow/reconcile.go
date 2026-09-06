@@ -3,6 +3,7 @@ package shadow
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"math"
 	"slices"
 	"time"
@@ -115,12 +116,7 @@ func reconcile(in reconcileInput) (reconcileResult, error) {
 	// so resolveSkips claims the real capture when one matches. Any gate
 	// outcome left with no matching capture becomes an anonymous,
 	// uploader-only exclusion rather than being dropped.
-	gateUploaders := make([]string, 0, len(gateRejectedRemaining))
-	for u := range gateRejectedRemaining {
-		gateUploaders = append(gateUploaders, u)
-	}
-	slices.Sort(gateUploaders)
-	for _, u := range gateUploaders {
+	for _, u := range slices.Sorted(maps.Keys(gateRejectedRemaining)) {
 		for range gateRejectedRemaining[u] {
 			out = append(out, reconciliation{Capture: Capture{Uploader: u}, Excluded: ExcludedGateRejected})
 		}
@@ -163,11 +159,7 @@ func supersedeDuplicateCaptures(captures []Capture, claimed []bool, out *[]recon
 		groups[k] = append(groups[k], i)
 	}
 
-	keys := make([]key, 0, len(groups))
-	for k := range groups {
-		keys = append(keys, k)
-	}
-	slices.SortFunc(keys, func(a, b key) int {
+	keys := slices.SortedFunc(maps.Keys(groups), func(a, b key) int {
 		return cmp.Or(cmp.Compare(a.uploader, b.uploader), cmp.Compare(a.basename, b.basename))
 	})
 
@@ -176,12 +168,11 @@ func supersedeDuplicateCaptures(captures []Capture, claimed []bool, out *[]recon
 		if len(idxs) < 2 {
 			continue
 		}
-		newest := idxs[0]
-		for _, i := range idxs[1:] {
-			if captures[i].CapturedAt.After(captures[newest].CapturedAt) {
-				newest = i
-			}
-		}
+		// MaxFunc keeps the first maximal element, so an exact
+		// CapturedAt tie supersedes in capture-index order.
+		newest := slices.MaxFunc(idxs, func(a, b int) int {
+			return captures[a].CapturedAt.Compare(captures[b].CapturedAt)
+		})
 		for _, i := range idxs {
 			if i == newest {
 				continue
@@ -303,12 +294,7 @@ func resolveSkips(captures []Capture, claimed []bool, tagLogSkips map[string]boo
 		}
 	}
 
-	basenames := make([]string, 0, len(tagLogCandidates))
-	for b := range tagLogCandidates {
-		basenames = append(basenames, b)
-	}
-	slices.Sort(basenames)
-	for _, basename := range basenames {
+	for _, basename := range slices.Sorted(maps.Keys(tagLogCandidates)) {
 		idxs := tagLogCandidates[basename]
 		if len(idxs) < 2 {
 			continue

@@ -258,7 +258,7 @@ func (s *Store) stagedRowIDs(sub string) ([]string, error) {
 		}
 		ids = append(ids, strings.TrimSuffix(e.Name(), ".json"))
 	}
-	slices.SortFunc(ids, cmp.Compare)
+	slices.Sort(ids)
 	return ids, nil
 }
 
