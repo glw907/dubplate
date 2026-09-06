@@ -187,6 +187,79 @@ func TestReconcileExcludesGateOutcomes(t *testing.T) {
 	}
 }
 
+// TestReconcileGateOutcomeClaimsTheRealCapture proves that a gate
+// outcome (quarantined or rejected) never emits an oracle skip for the
+// capture quarantineOne filed into the review tree: the reconciliation
+// must carry the real capture, Excluded rather than an anonymous
+// uploader-only row, and no oracle signal at all.
+func TestReconcileGateOutcomeClaimsTheRealCapture(t *testing.T) {
+	capture := Capture{Uploader: "ada", Basename: "windrose", CapturedAt: passNow}
+	report := oracleRunReport{
+		Version: 2, RunID: "run1", StartedAt: passNow, EndedAt: passNow.Add(time.Minute),
+		Albums: []oracleAlbumOutcome{
+			{Uploader: "ada", SourceDir: "/inbox/ada", Outcome: outcomeRejected},
+		},
+	}
+
+	got, err := reconcile(reconcileInput{
+		Captures:      []Capture{capture},
+		Reports:       []oracleRunReport{report},
+		Reviewed:      map[string][]string{"ada": {"windrose"}},
+		LibraryReadFn: libraryReader(nil),
+	})
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if len(got.Reconciliations) != 1 {
+		t.Fatalf("reconciliations = %+v, want 1", got.Reconciliations)
+	}
+	rec := got.Reconciliations[0]
+	if rec.Capture.Basename != "windrose" {
+		t.Errorf("reconciliation = %+v, want the real capture, not an anonymous row", rec)
+	}
+	if rec.Excluded != ExcludedGateRejected {
+		t.Errorf("reconciliation = %+v, want Excluded ExcludedGateRejected", rec)
+	}
+	if rec.Oracle != nil {
+		t.Errorf("reconciliation = %+v, want no oracle signal; a rejected album never reached beets", rec)
+	}
+}
+
+// TestReconcileNoGapWhenReportsStillPresent proves the gap detection
+// reads StartedAt/EndedAt rather than merely noticing a non-empty
+// ledger: the consumed report is still present in in.Reports (same
+// RunID, so it is excluded from newReports but still counts toward
+// oldestPresent), so its StartedAt never precedes the ledger's own
+// EndedAt and no gap fires.
+func TestReconcileNoGapWhenReportsStillPresent(t *testing.T) {
+	consumed := []ConsumedReport{{
+		File:      reportFileName("old"),
+		StartedAt: passNow.Add(-2 * time.Hour),
+		EndedAt:   passNow.Add(-time.Hour),
+	}}
+	oldReport := oracleRunReport{Version: 2, RunID: "old", StartedAt: passNow.Add(-2 * time.Hour), EndedAt: passNow.Add(-time.Hour)}
+	newReport := oracleRunReport{Version: 2, RunID: "new", StartedAt: passNow.Add(-30 * time.Minute), EndedAt: passNow}
+	capture := Capture{Uploader: "ada", Basename: "windrose", CapturedAt: passNow.Add(-90 * time.Minute)}
+
+	got, err := reconcile(reconcileInput{
+		Captures:      []Capture{capture},
+		Reports:       []oracleRunReport{oldReport, newReport},
+		Consumed:      consumed,
+		LibraryReadFn: libraryReader(nil),
+	})
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if got.Gaps != 0 {
+		t.Fatalf("gaps = %d, want 0", got.Gaps)
+	}
+	for _, r := range got.Reconciliations {
+		if r.Unreconciled == UnreconciledReportSwept {
+			t.Errorf("reconciliation = %+v, want no UnreconciledReportSwept when no gap fired", r)
+		}
+	}
+}
+
 func TestReconcileUnreconciledReasons(t *testing.T) {
 	t.Run("an imported row with no library paths", func(t *testing.T) {
 		capture := Capture{Uploader: "ada", Basename: "windrose", CapturedAt: passNow}
