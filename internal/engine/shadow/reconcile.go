@@ -284,11 +284,14 @@ func soleUnclaimedForUploader(captures []Capture, claimed []bool, uploader strin
 // an uploader partialSkipUploader flags is UnreconciledPartialSkip
 // instead of a clean skip (Resolution R4). A capture whose uploader
 // still carries an unclaimed gateRejectedRemaining count is Excluded
-// rather than emitting a skip signal: quarantineOne files a rejected
-// album into the review tree by basename
-// (_salvage/internal/review/importer.go:1014), so the capture would
-// otherwise wrongly resolve as a beets skip for an album that never
-// reached beets.
+// rather than emitting a skip signal, but only when that capture
+// resolved via the review tree and never appeared in the tag log:
+// quarantineOne files a rejected album into the review tree by
+// basename (_salvage/internal/review/importer.go:1014), and a
+// quarantined or rejected album never reached beets, so it can never
+// appear in a tag log. A tag-logged capture claims an ordinary skip
+// instead, leaving the gate-rejected count for a review-only capture
+// under the same uploader.
 func resolveSkips(captures []Capture, claimed []bool, tagLogSkips map[string]bool, reviewed map[string][]string, partialSkipUploader map[string]bool, gateRejectedRemaining map[string]int, out *[]reconciliation) {
 	tagLogCandidates := make(map[string][]int)
 	for i, c := range captures {
@@ -327,7 +330,7 @@ func resolveSkips(captures []Capture, claimed []bool, tagLogSkips map[string]boo
 		}
 		claimed[i] = true
 
-		if gateRejectedRemaining[c.Uploader] > 0 {
+		if viaReview && !tagLogSkips[c.Basename] && gateRejectedRemaining[c.Uploader] > 0 {
 			gateRejectedRemaining[c.Uploader]--
 			*out = append(*out, reconciliation{Capture: c, Excluded: ExcludedGateRejected})
 			continue

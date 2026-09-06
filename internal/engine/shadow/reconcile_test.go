@@ -225,6 +225,66 @@ func TestReconcileGateOutcomeClaimsTheRealCapture(t *testing.T) {
 	}
 }
 
+// TestReconcileClaimsGateRejectedOnlyThroughReviewTree proves that a
+// gate-rejected count is claimed by the capture that reached it
+// through the review tree, never by a same-uploader capture that
+// merely also happens to sit in the tag log: a quarantined or rejected
+// album never reaches beets, so it can never appear in a tag log.
+// windrose sits in both backstops and must resolve as an ordinary
+// skip; solstice sits in the review tree alone and must claim the
+// gate-rejected row.
+func TestReconcileClaimsGateRejectedOnlyThroughReviewTree(t *testing.T) {
+	windrose := Capture{Uploader: "ada", Basename: "windrose", CapturedAt: passNow}
+	solstice := Capture{Uploader: "ada", Basename: "solstice", CapturedAt: passNow}
+	report := oracleRunReport{
+		Version: 2, RunID: "run1", StartedAt: passNow, EndedAt: passNow.Add(time.Minute),
+		Albums: []oracleAlbumOutcome{
+			{Uploader: "ada", SourceDir: "/inbox/ada", Outcome: outcomeRejected},
+		},
+	}
+
+	got, err := reconcile(reconcileInput{
+		Captures:      []Capture{windrose, solstice},
+		Reports:       []oracleRunReport{report},
+		TagLogSkips:   map[string]bool{"windrose": true},
+		Reviewed:      map[string][]string{"ada": {"windrose", "solstice"}},
+		LibraryReadFn: libraryReader(nil),
+	})
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if len(got.Reconciliations) != 2 {
+		t.Fatalf("reconciliations = %+v, want 2", got.Reconciliations)
+	}
+
+	byBasename := make(map[string]reconciliation, len(got.Reconciliations))
+	for _, r := range got.Reconciliations {
+		byBasename[r.Capture.Basename] = r
+	}
+
+	solsticeRec, ok := byBasename["solstice"]
+	if !ok {
+		t.Fatalf("reconciliations = %+v, want a solstice row", got.Reconciliations)
+	}
+	if solsticeRec.Excluded != ExcludedGateRejected {
+		t.Errorf("solstice reconciliation = %+v, want Excluded ExcludedGateRejected", solsticeRec)
+	}
+	if solsticeRec.Oracle != nil {
+		t.Errorf("solstice reconciliation = %+v, want no oracle signal", solsticeRec)
+	}
+
+	windroseRec, ok := byBasename["windrose"]
+	if !ok {
+		t.Fatalf("reconciliations = %+v, want a windrose row", got.Reconciliations)
+	}
+	if windroseRec.Excluded != "" {
+		t.Errorf("windrose reconciliation = %+v, want no Excluded reason; the tag-logged capture never reached the gate reject", windroseRec)
+	}
+	if windroseRec.Oracle == nil || windroseRec.Oracle.Signal != "skip" {
+		t.Errorf("windrose reconciliation = %+v, want an ordinary skip signal", windroseRec)
+	}
+}
+
 // TestReconcileNoGapWhenReportsStillPresent proves the gap detection
 // reads StartedAt/EndedAt rather than merely noticing a non-empty
 // ledger: the consumed report is still present in in.Reports (same
