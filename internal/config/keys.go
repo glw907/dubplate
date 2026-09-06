@@ -199,7 +199,7 @@ func supersessionOf(name string) (string, bool) {
 // rejectNamespace accepts. Load requires every Required key when the
 // flag is set. An Optional key is accepted and never required, because
 // it is a registered threshold whose Default stands when it is unset
-// (thresholds.go:37-42).
+// (thresholds.go:58-65, ParseInt; thresholds.go:82-89, ParseDuration).
 type IntegrationClass struct {
 	Name     string
 	Rung     int

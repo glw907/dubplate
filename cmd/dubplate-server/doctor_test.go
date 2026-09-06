@@ -169,6 +169,11 @@ func TestDoctorCmd_ShadowRows(t *testing.T) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantFloor)
 	}
 
+	wantBudget := fmt.Sprintf("%-32s %s\n", "DUBPLATE_SHADOW_BUDGET", "60")
+	if !strings.Contains(stdout.String(), wantBudget) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantBudget)
+	}
+
 	wantDisabled := fmt.Sprintf("%-32s %s\n", "shadow", "disabled")
 	if !strings.Contains(stdout.String(), wantDisabled) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantDisabled)
