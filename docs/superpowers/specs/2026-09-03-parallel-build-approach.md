@@ -175,6 +175,8 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | `corpus/README.md` (conductor ruling, 2026-09-04, at 3c's plan fold) | conductor-owned, on the same standing rule the `docs/` ledgers row states; a pass drafts a correction and never writes the file | every later pass reading the corpus's own narrative record |
 | `internal/engine/tag` (conductor ruling, 2026-09-05, at 3d's plan fold) | rung 3 (the E2 lane), born by pass 3d as the one package that may see both `matcher` and `musicbrainz`; no other lane writes it | rung 4's shadow, rung 9's pipeline, rung 15's re-run |
 | `docs/` ledgers (`STATUS.md`, `HISTORY.md`, `ROADMAP.md`; conductor ruling, 2026-09-05, at 3d's plan fold) | conductor-owned by CLAUDE.md's standing rule; a pass drafts an entry or a correction and never commits the file | every session start; every pass close |
+| the state directory layout (conductor ruling, 2026-09-05, at rung 4's spec fold) | **rung 4**, first to deploy one, and its unit's `ReadWritePaths` depends on it (reverse-edge completion, cell at `RE:102`) | rung 5's nonces and per-email epoch; rung 6's store supersedes neither |
+| `corpus/analysis/adjudications.json` and the divergence schema (conductor ruling, 2026-09-05, at rung 4's spec fold) | lane E1 authored it; **rung 4 adds the shadow divergence rows and the matcher-commit stamp** as a schema addition, never by hand-editing a derived record (`RE:198`) | rungs 3, 8 and 15 read it; `disposition` stays owner-only |
 
 **Rejected alternatives.**
 
