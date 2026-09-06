@@ -79,9 +79,12 @@ func TestStoreRoundTripsEveryArtifact(t *testing.T) {
 		Class:    ClassGoAppliesOracleSkipped,
 		EvalDate: time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC),
 	}
-	// Inserted out of id order, so a filesystem-order read would return
-	// them in the wrong order and the lexical-sort assertion below would
-	// fail if Observations trusted os.ReadDir instead.
+	// Inserted out of id order to exercise the read path. os.ReadDir
+	// already yields entries in filename order, and here the observation
+	// directory name is the id itself, so this insertion order does not
+	// make the lexical-sort assertion below fail if the explicit sort in
+	// Observations were removed: the sort states the order rather than
+	// inheriting it, and this test cannot catch its removal.
 	if err := s.PutObservation(obs2); err != nil {
 		t.Fatalf("PutObservation(obs2): %v", err)
 	}
