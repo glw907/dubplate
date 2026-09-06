@@ -231,13 +231,13 @@ func columnReduce(c [][]float64, x, y []int, v []float64) []int {
 			continue
 		}
 		j := x[i]
-		min := math.Inf(1)
+		slack := math.Inf(1)
 		for j2 := range n {
 			if j2 != j {
-				min = math.Min(min, c[i][j2]-v[j2])
+				slack = min(slack, c[i][j2]-v[j2])
 			}
 		}
-		v[j] -= min
+		v[j] -= slack
 	}
 	return free
 }
@@ -382,12 +382,10 @@ func findPath(c [][]float64, start int, y []int, v []float64, pred []int) int {
 	}
 
 	// The path's own length prices the columns the search settled, and
-	// it is read off the ending column rather than off the scan list's
-	// head: the two agree only while the path ends on a column the last
-	// scan admitted, and they part the moment the augmentation's inner
-	// loop finds an unassigned column at the current minimum, which is
-	// the pivot lap takes on the should-reject matrix.
-	minD = d[final]
+	// minD is that length whichever way the loop ended: a column taken
+	// from the scan's own minimum window carries d[j] == minD, and so
+	// does one the augmentation's inner loop found unassigned, since it
+	// takes that branch only on red == minD.
 	for _, j := range cols[:ready] {
 		v[j] += d[j] - minD
 	}

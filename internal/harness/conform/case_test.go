@@ -229,7 +229,7 @@ func gradeFixtureCase(t *testing.T, name string) (CaseGradeSummary, error) {
 	loadIfPresent(t, dir, "oracle_bugs.json", bugs)
 	led := ledgers{ties: ties, prox: prox, adj: adj, bugs: bugs}
 
-	res, err := gradeCase(context.Background(), dir, ModeCompat, led)
+	res, err := gradeCase(context.Background(), dir, led)
 	if err != nil {
 		return CaseGradeSummary{}, err
 	}

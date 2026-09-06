@@ -148,9 +148,9 @@ func TestSortedIsStableOnAnExactDistanceTie(t *testing.T) {
 // TestSortedIsStableAcrossAlternatingDistances is the fixture that can
 // actually discriminate slices.SortFunc from slices.SortStableFunc.
 // Thirteen candidates alternate between two distance values by
-// insertion index; at thirteen or more elements, pdqsort's fallback
-// (heapsort/quicksort passes on an input this shaped) starts reordering
-// equal-keyed runs, where at twelve or fewer it happens not to
+// insertion index; at twelve or fewer elements pdqsort sorts the slice
+// with insertion sort, which preserves the order of equal keys, and at
+// thirteen or more it takes the partitioning path, which reorders them
 // (verified: identical output at n=12, divergent at n=13). Sorted must
 // return the low-distance group first, each group in insertion order,
 // proving both that Sorted orders ascending and that the tie within

@@ -197,7 +197,7 @@ func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 		var res caseGradeResult
 		var caseErr error
 		if mode == ModeCompat {
-			res, caseErr = gradeCase(ctx, dir, mode, led)
+			res, caseErr = gradeCase(ctx, dir, led)
 		} else {
 			res, caseErr = gradeCaseDefault(ctx, dir, led)
 		}
@@ -304,11 +304,43 @@ type caseGradeResult struct {
 	verdictMoved   bool
 }
 
-// gradeCase replays one case and compares every tier-1 field of its
-// record. It keeps comparing after a disagreement rather than returning
-// the first, so one systemic defect reports its full count in a single
-// run.
-func gradeCase(ctx context.Context, dir string, mode GradeMode, led ledgers) (res caseGradeResult, err error) {
+// caseInputs resolves what both sweeps need from a loaded record before
+// they can replay it: the evaluation date, the tunables the case's
+// profile selects, and the case's items projected into the engine's own
+// field set.
+func caseInputs(c *cassette.Case) (time.Time, matcher.Tunables, []matcher.ItemFields, error) {
+	evalDate, err := time.Parse(time.DateOnly, c.EvalDate)
+	if err != nil {
+		return time.Time{}, matcher.Tunables{}, nil, fmt.Errorf("case %s: eval_date %q: %w", c.ID, c.EvalDate, err)
+	}
+	tun, err := gradeTunables(c.Profile)
+	if err != nil {
+		return time.Time{}, matcher.Tunables{}, nil, fmt.Errorf("case %s: %w", c.ID, err)
+	}
+	items := make([]matcher.ItemFields, len(c.Input.Items))
+	for i, raw := range c.Input.Items {
+		items[i] = matcher.ProjectItemFields(raw)
+	}
+	return evalDate, tun, items, nil
+}
+
+// gradeClient builds the client a sweep replays one case through: the
+// case's own stub as the base URL, and an unmetered budget, because a
+// replay spends no real MusicBrainz quota.
+func gradeClient(addr string) (*musicbrainz.Client, error) {
+	return musicbrainz.NewClient(musicbrainz.ClientConfig{
+		BaseURL:   "http://" + addr,
+		UserAgent: gradeUserAgent,
+		Budget:    musicbrainz.Unmetered(),
+	})
+}
+
+// gradeCase is ModeCompat's own per-case grading: it replays one case
+// and compares every tier-1 field of its record. It keeps comparing
+// after a disagreement rather than returning the first, so one systemic
+// defect reports its full count in a single run. ModeDefault never
+// reaches here; gradeCaseDefault is its whole path.
+func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResult, err error) {
 	var errs []error
 	defer func() {
 		err = errors.Join(errs...)
@@ -331,14 +363,9 @@ func gradeCase(ctx context.Context, dir string, mode GradeMode, led ledgers) (re
 	res.pending = policy.Pending
 	res.awaitingRuling = slices.Contains(tiesAwaitingRuling, c.ID)
 
-	evalDate, dateErr := time.Parse(time.DateOnly, c.EvalDate)
-	if dateErr != nil {
-		errs = append(errs, fmt.Errorf("case %s: eval_date %q: %w", c.ID, c.EvalDate, dateErr))
-		return res, nil
-	}
-	tun, tunErr := gradeTunables(c.Profile)
-	if tunErr != nil {
-		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, tunErr))
+	evalDate, tun, items, inputErr := caseInputs(c)
+	if inputErr != nil {
+		errs = append(errs, inputErr)
 		return res, nil
 	}
 
@@ -355,22 +382,14 @@ func gradeCase(ctx context.Context, dir string, mode GradeMode, led ledgers) (re
 		}
 	}()
 
-	client, clientErr := musicbrainz.NewClient(musicbrainz.ClientConfig{
-		BaseURL:   "http://" + srv.Addr(),
-		UserAgent: gradeUserAgent,
-		Budget:    musicbrainz.Unmetered(),
-	})
+	client, clientErr := gradeClient(srv.Addr())
 	if clientErr != nil {
 		errs = append(errs, fmt.Errorf("case %s: build client: %w", c.ID, clientErr))
 		return res, nil
 	}
 
-	items := make([]matcher.ItemFields, len(c.Input.Items))
-	for i, raw := range c.Input.Items {
-		items[i] = matcher.ProjectItemFields(raw)
-	}
-
-	prop, tagErr := tag.Album(ctx, client, items, tun, compatFor(mode, policy), evalDate, tag.Options{})
+	compat := compatFor(ModeCompat, policy)
+	prop, tagErr := tag.Album(ctx, client, items, tun, compat, evalDate, tag.Options{})
 	if tagErr != nil && !errors.Is(tagErr, tag.ErrNoCandidates) {
 		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, tagErr))
 		return res, nil
@@ -384,9 +403,7 @@ func gradeCase(ctx context.Context, dir string, mode GradeMode, led ledgers) (re
 	}
 	res.graded = true
 
-	if mode == ModeCompat {
-		errs = append(errs, checkRequestSet(c.ID, srv)...)
-	}
+	errs = append(errs, checkRequestSet(c.ID, srv)...)
 
 	if exp.EchoedDate != c.EvalDate {
 		errs = append(errs, fmt.Errorf("case %s: echoed_date %q does not equal the case's own eval_date %q", c.ID, exp.EchoedDate, c.EvalDate))
@@ -408,13 +425,12 @@ func gradeCase(ctx context.Context, dir string, mode GradeMode, led ledgers) (re
 	// Recommend, so its verdict is computed here the same way tag.Album
 	// would have (Recommend on an empty slice returns RecNone directly,
 	// match.py:279-281).
-	tunActual := compatFor(mode, policy).Apply(tun)
 	gotRec, gotAction := matcher.RecNone, matcher.Action("")
 	if prop != nil {
 		gotRec, gotAction = prop.Recommendation, prop.Action
 	} else {
 		var actionErr error
-		gotAction, actionErr = matcher.ActionFor(tunActual, gotRec)
+		gotAction, actionErr = matcher.ActionFor(compat.Apply(tun), gotRec)
 		if actionErr != nil {
 			errs = append(errs, fmt.Errorf("case %s: %w", c.ID, actionErr))
 		}
@@ -544,14 +560,9 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		return res, nil
 	}
 
-	evalDate, dateErr := time.Parse(time.DateOnly, c.EvalDate)
-	if dateErr != nil {
-		errs = append(errs, fmt.Errorf("case %s: eval_date %q: %w", c.ID, c.EvalDate, dateErr))
-		return res, nil
-	}
-	tun, tunErr := gradeTunables(c.Profile)
-	if tunErr != nil {
-		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, tunErr))
+	evalDate, tun, items, inputErr := caseInputs(c)
+	if inputErr != nil {
+		errs = append(errs, inputErr)
 		return res, nil
 	}
 	tunDefault := compatFor(ModeDefault, policy).Apply(tun)
@@ -571,19 +582,10 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		}
 	}()
 
-	client, clientErr := musicbrainz.NewClient(musicbrainz.ClientConfig{
-		BaseURL:   "http://" + srv.Addr(),
-		UserAgent: gradeUserAgent,
-		Budget:    musicbrainz.Unmetered(),
-	})
+	client, clientErr := gradeClient(srv.Addr())
 	if clientErr != nil {
 		errs = append(errs, fmt.Errorf("case %s: build client: %w", c.ID, clientErr))
 		return res, nil
-	}
-
-	items := make([]matcher.ItemFields, len(c.Input.Items))
-	for i, raw := range c.Input.Items {
-		items[i] = matcher.ProjectItemFields(raw)
 	}
 
 	cands := matcher.NewCandidates()
