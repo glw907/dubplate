@@ -327,3 +327,31 @@ func TestValidateReportsEveryProblemRatherThanTheFirst(t *testing.T) {
 		}
 	}
 }
+
+func TestQuietImportTunablesAppliesTheFourImportAssignments(t *testing.T) {
+	def := DefaultTunables()
+	got := QuietImportTunables()
+
+	if !got.Quiet {
+		t.Error("Quiet = false, want true")
+	}
+	if got.QuietFallback != "skip" {
+		t.Errorf("QuietFallback = %q, want %q", got.QuietFallback, "skip")
+	}
+	if got.NoneRecAction != "skip" {
+		t.Errorf("NoneRecAction = %q, want %q", got.NoneRecAction, "skip")
+	}
+	if got.Timid {
+		t.Error("Timid = true, want false")
+	}
+
+	// Nothing else moves. The whole distance and threshold surface runs
+	// at beets' shipped defaults, because the estate's beets config sets
+	// no match: block and no musicbrainz: block
+	// (internal/harness/conform/defaults.go:16-18).
+	got.Quiet, got.QuietFallback, got.NoneRecAction, got.Timid =
+		def.Quiet, def.QuietFallback, def.NoneRecAction, def.Timid
+	if !reflect.DeepEqual(got, def) {
+		t.Error("QuietImportTunables moved a field other than the four import assignments")
+	}
+}

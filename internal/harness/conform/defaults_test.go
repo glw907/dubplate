@@ -4,6 +4,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -194,5 +195,22 @@ func TestPatternTableNamesResolve(t *testing.T) {
 		if len(table) == 0 {
 			t.Errorf("pattern table %q resolves to an empty []matcher.SDPattern", name)
 		}
+	}
+}
+
+// TestQuietImportTunablesMatchesTheEstateProfile is the drift guard
+// between two live definitions of one configuration: gradeTunables must
+// stay profile-driven, because the stock profile overlays nothing
+// (translate.go:205-206), while matcher.QuietImportTunables is the
+// engine-side constructor rung 4's shadow needs and may not reach
+// across the arch wall for it (internal/engine/matcher/info.go:148-150).
+// This one-line assertion is what fires the day either moves.
+func TestQuietImportTunablesMatchesTheEstateProfile(t *testing.T) {
+	want, err := gradeTunables("estate")
+	if err != nil {
+		t.Fatalf("gradeTunables(\"estate\") = %v", err)
+	}
+	if got := matcher.QuietImportTunables(); !reflect.DeepEqual(got, want) {
+		t.Error("matcher.QuietImportTunables and gradeTunables(\"estate\") have drifted")
 	}
 }

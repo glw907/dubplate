@@ -150,7 +150,9 @@ type CaseGradeSummary struct {
 // exactly, because the ladder's medium rung is decided by the minimum
 // distance alone (match.py:288-290) and a candidate set a search would
 // have widened cannot move a medium verdict off medium. Revision 2,
-// fold B2; provisional, conductor ruling owed.
+// fold B2; the ruling is recorded at the rung 4 spec's conductor fold
+// and at 3d's HISTORY entry, and rung 4's second scoring mode tracks
+// this design.
 type GradeMode int
 
 const (
