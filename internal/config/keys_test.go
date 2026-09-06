@@ -121,3 +121,26 @@ func TestSupersessionOf(t *testing.T) {
 		})
 	}
 }
+
+func TestIntegrationClassesCoverEveryShadowKey(t *testing.T) {
+	classes := IntegrationClasses()
+	if len(classes) != 1 {
+		t.Fatalf("IntegrationClasses len = %d, want 1", len(classes))
+	}
+	c := classes[0]
+	if c.Name != "shadow" || c.Rung != 4 || c.Flag != "DUBPLATE_SHADOW_ENABLED" {
+		t.Errorf("class = %+v, want the rung 4 shadow class", c)
+	}
+	if len(c.Required) != 3 || len(c.Optional) != 2 {
+		t.Errorf("Required/Optional = %d/%d, want 3/2", len(c.Required), len(c.Optional))
+	}
+	// Every name the class claims resolves back to it, which is what
+	// rejectNamespace's acceptance path depends on.
+	names := append([]string{c.Flag}, c.Required...)
+	names = append(names, c.Optional...)
+	for _, name := range names {
+		if got, ok := integrationClassOf(name); !ok || got.Name != c.Name {
+			t.Errorf("integrationClassOf(%s) = %v, %v; want the shadow class", name, got.Name, ok)
+		}
+	}
+}

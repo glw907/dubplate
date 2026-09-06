@@ -13,8 +13,9 @@ import (
 )
 
 // newDoctorCmd builds the doctor subcommand: it reports the config
-// wall's owned rows, reserved classes, and registered thresholds, one
-// line each in "%-32s %s" form, deriving every row from
+// wall's owned rows, reserved classes, integration classes, and
+// registered thresholds, one line each in "%-32s %s" form, deriving
+// every row from
 // internal/config's own tables so no rung hard-codes a count. That
 // table is the command's human output; on an unsatisfied wall RunE
 // returns a single short error, leaving main as the sole stderr
@@ -39,6 +40,16 @@ func newDoctorCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
 
 			for _, class := range config.ReservedClasses() {
 				status := fmt.Sprintf("disabled (arrives at rung %d)", class.Rung)
+				if err := printRow(stdout, class.Name, status); err != nil {
+					return err
+				}
+			}
+
+			for _, class := range config.IntegrationClasses() {
+				status := "disabled"
+				if enabled, err := class.Enabled(environ); err == nil && enabled {
+					status = "enabled"
+				}
 				if err := printRow(stdout, class.Name, status); err != nil {
 					return err
 				}
@@ -98,12 +109,22 @@ func rowStatuses(err error) map[string]string {
 // reporting a parse failure the same way an owned row reports one:
 // "invalid: " plus the reason.
 func thresholdStatus(environ []string, t config.Threshold) string {
-	v, err := config.ParseInt(environ, t)
-	if err != nil {
-		_, reason := splitKeyReason(err)
-		return "invalid: " + reason
+	switch t.Kind {
+	case config.KindDuration:
+		d, err := config.ParseDuration(environ, t)
+		if err != nil {
+			_, reason := splitKeyReason(err)
+			return "invalid: " + reason
+		}
+		return d.String()
+	default:
+		v, err := config.ParseInt(environ, t)
+		if err != nil {
+			_, reason := splitKeyReason(err)
+			return "invalid: " + reason
+		}
+		return strconv.Itoa(v)
 	}
-	return strconv.Itoa(v)
 }
 
 // splitKeyReason splits err's message on its first "key: reason"

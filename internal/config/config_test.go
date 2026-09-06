@@ -3,6 +3,7 @@ package config
 import (
 	"bufio"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -244,4 +245,104 @@ func templateKeys(t *testing.T) []string {
 		t.Fatalf("scan template: %v", err)
 	}
 	return names
+}
+
+// TestLoadShadowIntegration proves ruling 1's required-when-enabled
+// semantics: a shadow key set with the flag unset is a load error
+// naming the flag, every required path is reported at once when the
+// flag is set, a threshold row is accepted and never required, and an
+// unparseable flag is an error rather than a silent off.
+func TestLoadShadowIntegration(t *testing.T) {
+	base := []string{
+		"DUBPLATE_LIBRARY_ROOT=/srv/library",
+		"DUBPLATE_STATE_DIR=/var/lib/x",
+		"DUBPLATE_SITE_NAME=Example",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.test",
+	}
+	shadowPaths := []string{
+		"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox",
+		"DUBPLATE_SHADOW_ORACLE_STATE_DIR=/var/lib/incumbent",
+		"DUBPLATE_SHADOW_REVIEW_DIR=/srv/review",
+	}
+
+	tests := []struct {
+		name       string
+		extra      []string
+		wantErr    []string // substrings every one of which must appear
+		wantShadow bool
+	}{
+		{
+			name:  "flag unset, no shadow keys: loads with a nil Shadow",
+			extra: nil,
+		},
+		{
+			name:    "a shadow key set with the flag unset names the flag",
+			extra:   []string{"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox"},
+			wantErr: []string{"DUBPLATE_SHADOW_OBSERVE_DIR", "DUBPLATE_SHADOW_ENABLED"},
+		},
+		{
+			name:    "flag set with no paths reports every missing row at once",
+			extra:   []string{"DUBPLATE_SHADOW_ENABLED=true"},
+			wantErr: []string{"DUBPLATE_SHADOW_OBSERVE_DIR", "DUBPLATE_SHADOW_ORACLE_STATE_DIR", "DUBPLATE_SHADOW_REVIEW_DIR"},
+		},
+		{
+			name:       "flag set with every path resolves Shadow",
+			extra:      append([]string{"DUBPLATE_SHADOW_ENABLED=true"}, shadowPaths...),
+			wantShadow: true,
+		},
+		{
+			name:       "a threshold row is accepted and never required",
+			extra:      append([]string{"DUBPLATE_SHADOW_ENABLED=true", "DUBPLATE_SHADOW_FLOOR=48h"}, shadowPaths...),
+			wantShadow: true,
+		},
+		{
+			name:    "an unparseable flag is an error rather than off",
+			extra:   []string{"DUBPLATE_SHADOW_ENABLED=maybe"},
+			wantErr: []string{"DUBPLATE_SHADOW_ENABLED"},
+		},
+		// The two rows fold M-d adds. An adopter who turns the
+		// integration off explicitly must be able to start the
+		// server, and a shadow key set beside an off flag must
+		// still name the flag.
+		{
+			name:  "an explicit false loads clean with a nil Shadow",
+			extra: []string{"DUBPLATE_SHADOW_ENABLED=false"},
+		},
+		{
+			name:    "an explicit false with a shadow key still names the flag",
+			extra:   []string{"DUBPLATE_SHADOW_ENABLED=false", "DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox"},
+			wantErr: []string{"DUBPLATE_SHADOW_OBSERVE_DIR", "DUBPLATE_SHADOW_ENABLED"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg, err := Load(append(slices.Clone(base), tt.extra...))
+			if len(tt.wantErr) == 0 {
+				if err != nil {
+					t.Fatalf("Load: %v", err)
+				}
+				if (cfg.Shadow != nil) != tt.wantShadow {
+					t.Fatalf("Shadow non-nil = %v, want %v", cfg.Shadow != nil, tt.wantShadow)
+				}
+				if tt.wantShadow && cfg.Shadow.ObserveDir != "/srv/inbox" {
+					t.Errorf("ObserveDir = %q, want %q", cfg.Shadow.ObserveDir, "/srv/inbox")
+				}
+				return
+			}
+			if err == nil {
+				t.Fatal("Load returned nil; want an error")
+			}
+			for _, want := range tt.wantErr {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("error does not name %s: %v", want, err)
+				}
+			}
+			if tt.name == "an unparseable flag is an error rather than off" {
+				if n := strings.Count(err.Error(), "DUBPLATE_SHADOW_ENABLED"); n != 1 {
+					t.Errorf("error names DUBPLATE_SHADOW_ENABLED %d times, want exactly 1: %v", n, err)
+				}
+			}
+		})
+	}
 }

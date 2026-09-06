@@ -39,6 +39,8 @@ func main() {
 }
 
 func newRootCmd() *cobra.Command {
+	registerShadowThresholds()
+
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",
 		Short:         "organizes and serves one shared music library",

@@ -3,6 +3,7 @@ package config
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 // withRegistry saves and restores the package-level threshold
@@ -114,5 +115,47 @@ func TestParseInt_InvalidDefaultIsRegistrationError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), th.Key) {
 		t.Errorf("ParseInt() error = %q, want it to contain %q", err.Error(), th.Key)
+	}
+}
+
+func TestParseDuration(t *testing.T) {
+	th := Threshold{Key: "DUBPLATE_SHADOW_FLOOR", Kind: KindDuration, Default: "720h", Doc: "a Go duration"}
+	tests := []struct {
+		name    string
+		environ []string
+		want    time.Duration
+		wantErr bool
+	}{
+		{name: "unset takes the default", want: 720 * time.Hour},
+		{name: "empty takes the default", environ: []string{"DUBPLATE_SHADOW_FLOOR="}, want: 720 * time.Hour},
+		{name: "set wins", environ: []string{"DUBPLATE_SHADOW_FLOOR=48h"}, want: 48 * time.Hour},
+		{name: "a bad value errors", environ: []string{"DUBPLATE_SHADOW_FLOOR=soon"}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseDuration(tt.environ, th)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("ParseDuration() error = nil, want error")
+				}
+				if !strings.Contains(err.Error(), th.Key) || !strings.Contains(err.Error(), th.Doc) {
+					t.Errorf("ParseDuration() error = %q, want it to contain %q and %q", err.Error(), th.Key, th.Doc)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ParseDuration() error = %v, want nil", err)
+			}
+			if got != tt.want {
+				t.Errorf("ParseDuration() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseDurationRejectsABadDefaultAsARegistrationBug(t *testing.T) {
+	_, err := ParseDuration(nil, Threshold{Key: "K", Kind: KindDuration, Default: "not a duration"})
+	if err == nil || !strings.Contains(err.Error(), "K") {
+		t.Errorf("ParseDuration on a bad default = %v; want an error naming the key", err)
 	}
 }

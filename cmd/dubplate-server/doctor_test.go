@@ -43,6 +43,8 @@ func TestDoctorCmd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			registerShadowThresholds()
+
 			var stdout, stderr bytes.Buffer
 			cmd := newDoctorCmd(tt.environ, &stdout, &stderr)
 			cmd.SetOut(&stdout)
@@ -95,6 +97,21 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			for _, class := range config.IntegrationClasses() {
+				status := "disabled"
+				if enabled, err := class.Enabled(tt.environ); err == nil && enabled {
+					status = "enabled"
+				}
+				wantLine := fmt.Sprintf("%-32s %s", class.Name, status)
+				if li >= len(lines) {
+					t.Fatalf("stdout ran out of lines before integration class %s", class.Name)
+				}
+				if lines[li] != wantLine {
+					t.Errorf("integration row %d = %q, want %q", li, lines[li], wantLine)
+				}
+				li++
+			}
+
 			for _, th := range config.Thresholds() {
 				want := thresholdStatus(tt.environ, th)
 				if li >= len(lines) {
@@ -132,5 +149,44 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	wantIdentity := fmt.Sprintf("%-32s %s\n", "identity source", "pending (arrives at rung 5)")
 	if !strings.Contains(stdout.String(), wantIdentity) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantIdentity)
+	}
+}
+
+// TestDoctorCmd_ShadowRows proves the duration threshold renders as a
+// duration rather than "invalid:", and the shadow integration row
+// reflects its flag state.
+func TestDoctorCmd_ShadowRows(t *testing.T) {
+	registerShadowThresholds()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(baseEnviron(), &stdout, &stderr)
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+
+	wantFloor := fmt.Sprintf("%-32s %s\n", "DUBPLATE_SHADOW_FLOOR", "720h0m0s")
+	if !strings.Contains(stdout.String(), wantFloor) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantFloor)
+	}
+
+	wantDisabled := fmt.Sprintf("%-32s %s\n", "shadow", "disabled")
+	if !strings.Contains(stdout.String(), wantDisabled) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantDisabled)
+	}
+
+	enabledEnviron := append(baseEnviron(),
+		"DUBPLATE_SHADOW_ENABLED=true",
+		"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox",
+		"DUBPLATE_SHADOW_ORACLE_STATE_DIR=/var/lib/incumbent",
+		"DUBPLATE_SHADOW_REVIEW_DIR=/srv/review",
+	)
+	stdout.Reset()
+	cmd = newDoctorCmd(enabledEnviron, &stdout, &stderr)
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+	wantEnabled := fmt.Sprintf("%-32s %s\n", "shadow", "enabled")
+	if !strings.Contains(stdout.String(), wantEnabled) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantEnabled)
 	}
 }

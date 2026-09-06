@@ -188,3 +188,67 @@ func supersessionOf(name string) (string, bool) {
 	msg, ok := supersededKeys[name]
 	return msg, ok
 }
+
+// IntegrationClass is one named integration the wall accepts only when
+// its Flag is set: an adopter-optional capability rather than an owned
+// one (build spec U4). Setting any of its keys with the flag unset is a
+// load error naming the flag, which is what keeps a half-configured
+// integration from running unattended and observing nothing.
+//
+// Required and Optional differ in what Load does with them, not in what
+// rejectNamespace accepts. Load requires every Required key when the
+// flag is set. An Optional key is accepted and never required, because
+// it is a registered threshold whose Default stands when it is unset
+// (thresholds.go:37-42).
+type IntegrationClass struct {
+	Name     string
+	Rung     int
+	Flag     string
+	Required []string
+	Optional []string
+}
+
+// integrationClasses is every adopter-optional capability the wall
+// accepts behind a flag. Rung 1b's registry absorbs this table as data
+// rather than re-deriving it (rung 4 spec, risk 6).
+var integrationClasses = []IntegrationClass{
+	{
+		Name: "shadow",
+		Rung: 4,
+		Flag: "DUBPLATE_SHADOW_ENABLED",
+		Required: []string{
+			"DUBPLATE_SHADOW_OBSERVE_DIR",      // the inbox the incumbent consumes
+			"DUBPLATE_SHADOW_ORACLE_STATE_DIR", // where the incumbent's run reports and tag logs live
+			"DUBPLATE_SHADOW_REVIEW_DIR",       // where a skipped album is filed
+		},
+		Optional: []string{
+			"DUBPLATE_SHADOW_FLOOR",  // threshold, duration, default 720h
+			"DUBPLATE_SHADOW_BUDGET", // threshold, int, default 60
+		},
+	},
+}
+
+// IntegrationClasses returns the integration classes in table order.
+func IntegrationClasses() []IntegrationClass {
+	return slices.Clone(integrationClasses)
+}
+
+// integrationClassOf reports the integration class name belongs to, by
+// its Flag, a Required key, or an Optional key, if any.
+func integrationClassOf(name string) (IntegrationClass, bool) {
+	for _, class := range integrationClasses {
+		if name == class.Flag || slices.Contains(class.Required, name) || slices.Contains(class.Optional, name) {
+			return class, true
+		}
+	}
+	return IntegrationClass{}, false
+}
+
+// Enabled reports whether c's flag resolves true in environ. An unset or
+// empty flag is off. A value strconv.ParseBool refuses is reported as an
+// error rather than silently read as off, because a typo that disables
+// an unattended observer is the failure this class exists to prevent.
+func (c IntegrationClass) Enabled(environ []string) (bool, error) {
+	w := newWall(environ)
+	return w.integrationEnabled(c)
+}
