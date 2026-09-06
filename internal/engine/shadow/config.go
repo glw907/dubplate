@@ -7,6 +7,14 @@ import (
 	"github.com/glw907/dubplate/internal/engine/musicbrainz"
 )
 
+// DefaultInterval is the shadow's wire pace: twice
+// musicbrainz.DefaultInterval, because the box's own beet import paces
+// itself independently and shares the box's single egress IP, where
+// MusicBrainz's per-IP budget actually applies (conductor ruling,
+// docs/superpowers/specs/2026-09-05-rung-4-shadow.md's conductor
+// rulings paragraph).
+const DefaultInterval = 2 * musicbrainz.DefaultInterval
+
 // Config is one shadow run's inputs. Every value is a plain parameter:
 // this package imports internal/config never, on the same grounds
 // internal/engine/matcher's tunables (tunables.go:50-54) and
@@ -40,11 +48,8 @@ type Config struct {
 	// that means "cap" must pass a positive number.
 	BudgetLimit int
 
-	// Interval is the wire pace. The shadow runs at
-	// 2 * musicbrainz.DefaultInterval, because the box's own beet import
-	// pins its own rate independently and shares the box's single egress
-	// IP, where MusicBrainz's limit actually applies (conductor ruling,
-	// rung 4 spec).
+	// Interval is the wire pace. Zero means DefaultInterval, the value
+	// the subcommand passes.
 	Interval time.Duration
 
 	// BaseURL is empty for musicbrainz.DefaultBaseURL. A test points it

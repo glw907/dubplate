@@ -468,10 +468,8 @@ func passID(now time.Time) string {
 	return "pass-" + now.UTC().Format("20060102T150405Z")
 }
 
-// wireInterval is the pace a pass builds its own limiter at. The shadow
-// runs at twice musicbrainz.DefaultInterval, because the box's own beet
-// import paces itself independently and shares the box's single egress
-// IP, where MusicBrainz's limit actually applies.
+// wireInterval is the pace a pass builds its own limiter at: cfg.Interval
+// when set, DefaultInterval otherwise.
 func wireInterval(cfg Config) time.Duration {
-	return cmp.Or(cfg.Interval, 2*musicbrainz.DefaultInterval)
+	return cmp.Or(cfg.Interval, DefaultInterval)
 }
