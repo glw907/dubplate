@@ -1,6 +1,6 @@
 # Rung 4: the shadow
 
-Status: **DRAFT, rulings OPEN.** Revision 2, 2026-09-05.
+Status: **DRAFT, rulings ratified.** Revision 2, 2026-09-05. All six open rulings below were accepted as recommended by Geoff, 2026-09-07: (1) the integration class in `internal/config`, option (a); (2) `ReleaseMBID` is the release under dispute, option (a); (3) both compat modes with the second a re-score, option (c); (4) the shipped 720h floor; (5) 60 requests per run; (6) the first deploy is a short owner sitting, option (a). Every "provisional, owner ruling N open" mark in the 4a plan reads as ruled.
 
 The six open rulings in the next section go to Geoff. Under the
 2026-09-05 unattended grant, the plan that follows this spec applies

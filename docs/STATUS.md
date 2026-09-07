@@ -5,11 +5,10 @@
 The greenfield dubplate-server build is the one active initiative.
 **Rung 3 (3a-3d) is closed**; `internal/engine/{matcher,musicbrainz,tag}`
 and `internal/harness/conform` are green at the rung 3d figures (see
-HISTORY). **Rung 4's spec is in place**, with six owner rulings open
-and applied provisionally: 1. config-lives (integration-class wall), 2.
-skipped-album `ReleaseMBID` fill, 3. which `matcher.Compat` runs, 4.
-shadow floor (default 720h), 5. MusicBrainz budget cap (default 60),
-6. deploy sitting vs conductor action.
+HISTORY). **Rung 4's spec is in place and its six owner rulings are ratified**
+(Geoff, 2026-09-07, all as recommended: integration-class wall, release
+under dispute, both compat modes, 720h floor, 60-request cap, deploy as
+an owner sitting).
 
 **Pass 4a-i (Tasks 0-9, rev 2.1) is closed at its intermediate close.**
 `internal/atomicfile`, `matcher.QuietImportTunables`, the shadow's
@@ -26,8 +25,9 @@ the lane registry, not `pgrep`, and the box is production.
 
 - lane-1 (main tree): next action **4a-ii (Tasks 10-15) via the
   pass-execute chain, after a staleness check; then 4b (deploy, owner
-  sitting, ruling 6)**. 2026-09-05 window closes here: about 13.4M of
-  15M spent. lane-2 (worktree): BLOCKED until Phase 0b/0c. Doc lane: IDLE.
+  sitting, ruling 6)**. 4a-ii ceiling 3M (Geoff, 2026-09-07), flag at
+  2.4M to Geoff; chain args and prep scripts in the project handoff dir.
+  lane-2 (worktree): BLOCKED until Phase 0b/0c. Doc lane: IDLE.
 
 ## Open items (carried)
 
