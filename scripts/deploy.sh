@@ -389,6 +389,23 @@ DUBPLATE_UPLOADS_DIR="/srv/music/uploads"
 echo "== $DUBPLATE_UPLOADS_DIR =="
 run_remote "mkdir -p $DUBPLATE_UPLOADS_DIR && chown music:music $DUBPLATE_UPLOADS_DIR"
 
+# --- /var/lib/dubplate/shadow (dubplate-shadow.service) -------------------
+# dubplate-shadow.service names /var/lib/dubplate/shadow in its own
+# ReadWritePaths= and, under ProtectSystem=strict, systemd requires that
+# exact leaf to already exist on the host before the unit starts, or the
+# unit fails outright with "Failed to set up mount namespacing" -- same
+# requirement as /var/lib/musicbox above. The unit's own OpenStore
+# (internal/engine/shadow/store.go) cannot create it either: startup fails
+# before dubplate-server ever runs, so nothing inside the process gets a
+# chance to mkdir it. Both /var/lib/dubplate and its shadow leaf are made
+# here even though only the leaf is granted, because ReadWritePaths= names
+# the leaf and mkdir -p needs its parent to exist first (Resolution R1).
+# music:music matches dubplate-shadow.service's own User=music.
+DUBPLATE_LIB_DIR="/var/lib/dubplate"
+DUBPLATE_SHADOW_DIR="$DUBPLATE_LIB_DIR/shadow"
+echo "== $DUBPLATE_SHADOW_DIR =="
+run_remote "mkdir -p $DUBPLATE_SHADOW_DIR && chown music:music $DUBPLATE_LIB_DIR $DUBPLATE_SHADOW_DIR"
+
 # --- compose stack -------------------------------------------------------
 COMPOSE_CMD="docker compose --env-file $REMOTE_ENV -f $REMOTE_DIR/compose.yaml --project-directory $REMOTE_DIR up -d"
 echo "== compose stack =="
@@ -403,7 +420,10 @@ run_remote "$COMPOSE_CMD"
 # so it (and its paired nudge path) is `systemctl enable --now` only by
 # hand, in U12a's own Geoff-sanctioned box step, once the Access
 # application and tunnel ingress are wired and verified -- never
-# unattended by this script.
+# unattended by this script. TIMER_UNITS also deliberately does NOT
+# include dubplate-shadow.timer: per Resolution R10, enabling the shadow
+# is the launch sitting's own hand-run step, not part of a silent deploy,
+# the same reasoning as serve above.
 echo "== systemd timers =="
 TIMER_UNITS="dubplate-import.timer dubplate-backup.timer dubplate-disk-check.timer dubplate-navidrome-check.timer"
 run_remote "systemctl daemon-reload && systemctl enable --now $TIMER_UNITS"
