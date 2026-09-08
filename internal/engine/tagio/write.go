@@ -31,26 +31,40 @@ const vendorPrefix = "dubplate "
 // "(devel)".
 const developmentVendorMarker = "development"
 
-// Write rewrites path's tags and pictures: every key ts owns is
-// replaced, matching a comment's field name case insensitively as RFC
-// 9639 section 8.6 requires, and every other comment survives in place
-// and in order (C8). pictures carries R1's three caller states: nil
-// leaves path's existing pictures untouched, a non-nil empty slice
-// strips every picture, and a non-empty slice replaces the whole set
-// in the order passed (P8). Every picture's media type is sniffed from
-// its own data and overrides whatever the caller declared (P7), and
-// every picture's geometry is written as zero regardless of what the
-// caller carried (P6). Write refuses a malformed or unsupported
-// container, or a picture whose data matches no recognized image
-// format, before path is ever opened for writing (C7, C14), so a
-// refusal never half-writes a file, and every block this package does
-// not own survives under a re-emitted header, with the last-block flag
-// owned by the trailing PADDING block this write always appends (C10,
-// C11). mode is the file's mode after the write, passed straight
-// through to the rename rather than inherited from a temp file's
-// default. The rewrite goes through atomicfile.WriteStream (C13), so a
-// crash or a concurrent reader never observes a partial file.
+// Write sniffs path, then rewrites its tags and pictures through the
+// seam registry's row for the format Sniff reports. A format Sniff
+// does not recognize, including a FLAC file once the registry has
+// been emptied of its FLAC row, hands back [ErrUnsupportedContainer]
+// unchanged and never opens path for writing.
 func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
+	format, err := Sniff(path)
+	if err != nil {
+		return err
+	}
+	return registry[format].write(path, ts, pictures, mode)
+}
+
+// writeFLAC is FLAC's seam registry row for Write: every key ts owns
+// is replaced, matching a comment's field name case insensitively as
+// RFC 9639 section 8.6 requires, and every other comment survives in
+// place and in order (C8). pictures carries R1's three caller states:
+// nil leaves path's existing pictures untouched, a non-nil empty
+// slice strips every picture, and a non-empty slice replaces the
+// whole set in the order passed (P8). Every picture's media type is
+// sniffed from its own data and overrides whatever the caller
+// declared (P7), and every picture's geometry is written as zero
+// regardless of what the caller carried (P6). writeFLAC refuses a
+// malformed container, or a picture whose data matches no recognized
+// image format, before path is ever opened for writing (C7, C14), so
+// a refusal never half-writes a file, and every block this package
+// does not own survives under a re-emitted header, with the
+// last-block flag owned by the trailing PADDING block this write
+// always appends (C10, C11). mode is the file's mode after the write,
+// passed straight through to the rename rather than inherited from a
+// temp file's default. The rewrite goes through atomicfile.WriteStream
+// (C13), so a crash or a concurrent reader never observes a partial
+// file.
+func writeFLAC(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
 	c, err := Parse(path)
 	if err != nil {
 		return err

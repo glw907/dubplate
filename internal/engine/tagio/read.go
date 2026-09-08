@@ -6,12 +6,26 @@ import (
 	"strings"
 )
 
-// Read parses path's metadata region and projects its VORBIS_COMMENT
-// block into a TagSet. It hands back [ErrUnsupportedContainer] and
-// [ErrMalformedContainer] unchanged from [Parse], so a caller
-// branching on either (C14) branches on the same error whether it
-// parsed the container itself or read its tags.
+// Read sniffs path, then projects its VORBIS_COMMENT block into a
+// TagSet through the seam registry's row for the format Sniff
+// reports. A format Sniff does not recognize, including a FLAC file
+// once the registry has been emptied of its FLAC row, hands back
+// [ErrUnsupportedContainer] unchanged; a recognized format still
+// hands back [ErrMalformedContainer] unchanged from [Parse], so a
+// caller branching on either (C14) branches on the same error
+// whether it parsed the container itself or read its tags.
 func Read(path string) (TagSet, error) {
+	format, err := Sniff(path)
+	if err != nil {
+		return TagSet{}, err
+	}
+	return registry[format].read(path)
+}
+
+// readFLAC is FLAC's seam registry row for Read: it parses path
+// through [Parse] and projects the result the way project always
+// has.
+func readFLAC(path string) (TagSet, error) {
 	c, err := Parse(path)
 	if err != nil {
 		return TagSet{}, err
