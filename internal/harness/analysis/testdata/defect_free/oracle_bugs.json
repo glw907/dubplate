@@ -32,7 +32,7 @@
       "reproduced": "yes",
       "adjudication_refs": ["adj-assign-fixture-d"],
       "disposition": "oracle-wrong",
-      "reason": "fixture: this hypothesis is oracle-wrong but is not a StringHeuristicHypotheses member, so its probe case owes no defect_free block",
+      "reason": "fixture: stands in for a disposed hypothesis that is not a StringHeuristicHypotheses member, so its probe case owes no defect_free block",
       "adjudicator": "Geoff",
       "date": "2026-09-04"
     }

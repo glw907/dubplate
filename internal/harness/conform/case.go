@@ -51,10 +51,14 @@ const (
 const DefectFreeFloor = 10
 
 // ProbeCaseFloor is the number of probe cases across the four
-// oracle-bug hypotheses carrying probe cases: bug-ft-pattern,
-// bug-remix-parenthetical, and bug-nonlatin-alias-selection (all
-// oracle-wrong), and bug-assignment-rejection-gap (no-correct-answer,
-// owner ruling 2026-09-07).
+// hypotheses in corpus/analysis/oracle_bugs.json not ruled
+// oracle-correct: bug-ft-pattern (6), bug-remix-parenthetical (4),
+// bug-nonlatin-alias-selection (4), and bug-assignment-rejection-gap
+// (6, no-correct-answer, owner ruling 2026-09-07). The other two
+// hypotheses carry probe cases too but are excluded here because they
+// are ruled oracle-correct: bug-threshold-boundary's
+// rec-strong-medium-boundary, and bug-locale-alias-ignored's
+// real-nonlatin-utada-first-love and real-nonlatin-utada-first-love-locale.
 const ProbeCaseFloor = 20
 
 // ProbeCaseOracleCorrectRows is the number of those probe cases whose
@@ -449,20 +453,18 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 
 // gradeCaseVerdict is ModeCompat's own verdict grading: it compares one
 // case's computed recommendation and action against its own committed
-// record, honoring the pending escape (a policy with GradeVerdict false
-// is never compared at all) and refusing to absorb an unadjudicated
-// divergence silently (Resolution R15, rung 3 spec :311). A case ruled
-// pending is already reported via res.pending; any other GradeVerdict
-// false policy (a no-correct-answer hypothesis or case row) is reported
-// ungraded instead, so ModeCompat and ModeDefault agree on which cases
-// carry a gradable verdict. ModeDefault's own comparison, against the
-// ten defect_free rows, is gradeCaseDefault's.
+// record, honoring the pending escape (a policy marked pending is never
+// compared at all) and refusing to absorb an unadjudicated divergence
+// silently (Resolution R15, rung 3 spec :311). It consults
+// policy.Pending rather than policy.GradeVerdict: a no-correct-answer
+// hypothesis still has a committed record to compare against, and
+// compat measures fidelity to that recorded output regardless of
+// whether a corrected verdict exists (owner ruling 2026-09-07).
+// GradeVerdict itself is ModeDefault's own escape, consulted by
+// gradeCaseDefault, since a no-correct-answer hypothesis has no
+// corrected verdict for ModeDefault to grade.
 func gradeCaseVerdict(caseID string, policy casePolicy, wantRec, wantAction string, gotRec matcher.Recommendation, gotAction matcher.Action, res *caseGradeResult) error {
-	if !policy.GradeVerdict {
-		if !policy.Pending {
-			res.ungraded = true
-			res.ungradedReason = fmt.Sprintf("%s: adjudicated no-correct-answer, so it has no corrected verdict to grade against (Resolution R1)", caseID)
-		}
+	if policy.Pending {
 		return nil
 	}
 	if gotRec.String() == wantRec && string(gotAction) == wantAction {
