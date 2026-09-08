@@ -169,7 +169,11 @@ func TestWriteRoundTripEveryBlockType(t *testing.T) {
 	seekTable := []byte{1, 2, 3, 4, 5}
 	comment := vorbisCommentPayload("existing vendor", []string{"TITLE=old"})
 	cueSheet := []byte("cuesheetpayload")
-	picture := []byte("picturepayload")
+	// Task 1 lands real PICTURE decode for block type 6, so this
+	// fixture needs a well-formed picture payload rather than
+	// arbitrary bytes: parsing the file now decodes this block instead
+	// of only preserving it by length.
+	picture := picturePayload(0, 0, "", 0, "", uint32(len([]byte("picturepayload"))), []byte("picturepayload"))
 	reserved := []byte{0xDE, 0xAD, 0xBE, 0xEF}
 
 	blocks := []testBlock{

@@ -23,6 +23,7 @@ const (
 	blockStreamInfo    = 0
 	blockVorbisComment = 4
 	blockSeekTable     = 3
+	blockPicture       = 6
 	blockInvalidType   = 127
 )
 
@@ -97,12 +98,18 @@ type VorbisComment struct {
 }
 
 // Container is one FLAC file's parsed metadata: its block chain in
-// order, STREAMINFO and VORBIS_COMMENT decoded, and the frame
-// region's extent as two numbers rather than as bytes (C15).
+// order, STREAMINFO and VORBIS_COMMENT decoded, every PICTURE block
+// decoded in on-disk order (P2), and the frame region's extent as two
+// numbers rather than as bytes (C15).
 type Container struct {
 	Blocks        []Block
 	StreamInfo    StreamInfo
 	VorbisComment VorbisComment
+	// Pictures holds every PICTURE block this container carried,
+	// decoded in the order they appeared. RFC 9639 section 8.8 allows
+	// more than one, unlike SEEKTABLE and VORBIS_COMMENT, so a second
+	// PICTURE block is not a refusal.
+	Pictures []Picture
 	// FrameOffset is the byte offset, from the start of the file,
 	// where the audio frames begin.
 	FrameOffset int64
@@ -157,6 +164,7 @@ func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 		blocks           []Block
 		streamInfo       StreamInfo
 		vorbisComment    VorbisComment
+		pictures         []Picture
 		sawStreamInfo    bool
 		sawVorbisComment bool
 		sawSeekTable     bool
@@ -215,6 +223,12 @@ func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 				return Container{}, malformed(path, "more than one SEEKTABLE block")
 			}
 			sawSeekTable = true
+		case blockPicture:
+			p, err := decodePicture(payload, len(blocks))
+			if err != nil {
+				return Container{}, malformed(path, err.Error())
+			}
+			pictures = append(pictures, p)
 		}
 
 		blocks = append(blocks, Block{Type: blockType, Last: last, Length: int(length), Payload: payload})
@@ -232,6 +246,7 @@ func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 		Blocks:        blocks,
 		StreamInfo:    streamInfo,
 		VorbisComment: vorbisComment,
+		Pictures:      pictures,
 		FrameOffset:   offset,
 		FrameLength:   size - offset,
 	}, nil
