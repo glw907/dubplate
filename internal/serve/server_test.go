@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -20,7 +21,7 @@ import (
 // The read timeout is also checked against a literal 30 seconds, R-V's
 // own value, independent of the constant it is wired from.
 func TestNewHTTPServerTimeouts(t *testing.T) {
-	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), defaultWriteTimeout)
+	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), slog.Default(), defaultWriteTimeout)
 
 	if srv.ReadHeaderTimeout != readHeaderTimeout {
 		t.Errorf("ReadHeaderTimeout = %v, want the readHeaderTimeout constant %v", srv.ReadHeaderTimeout, readHeaderTimeout)
@@ -38,7 +39,7 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 	// field is wired from the parameter rather than from a constant
 	// read inside newHTTPServer, which the row above alone could not
 	// tell apart.
-	if short := newHTTPServer(http.NotFoundHandler(), 5*time.Millisecond); short.WriteTimeout != 5*time.Millisecond {
+	if short := newHTTPServer(http.NotFoundHandler(), slog.Default(), 5*time.Millisecond); short.WriteTimeout != 5*time.Millisecond {
 		t.Errorf("WriteTimeout = %v for a 5ms argument, want the argument to reach the field", short.WriteTimeout)
 	}
 	if srv.IdleTimeout != idleTimeout {
@@ -100,7 +101,7 @@ func TestWriteDeadlineExtension(t *testing.T) {
 			})
 
 			srv := httptest.NewUnstartedServer(handler)
-			srv.Config = newHTTPServer(handler, testWriteTimeout)
+			srv.Config = newHTTPServer(handler, slog.Default(), testWriteTimeout)
 			srv.Start()
 			defer srv.Close()
 
@@ -290,7 +291,7 @@ func TestRunTakesCtxFirstAndReturnsPromptlyWhenAlreadyDone(t *testing.T) {
 	cancel()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	if err := Run(ctx, handler, []string{"127.0.0.1"}, 0); err != nil {
+	if err := Run(ctx, slog.Default(), handler, []string{"127.0.0.1"}, 0); err != nil {
 		t.Fatalf("Run(already-canceled ctx, ...) = %v, want nil", err)
 	}
 }
@@ -321,7 +322,9 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 	addr := listeners[0].Addr().String()
 
 	runErr := make(chan error, 1)
-	go func() { runErr <- serveUntilDone(ctx, newHTTPServer(handler, defaultWriteTimeout), listeners) }()
+	go func() {
+		runErr <- serveUntilDone(ctx, newHTTPServer(handler, slog.Default(), defaultWriteTimeout), listeners)
+	}()
 
 	respErr := make(chan error, 1)
 	go func() {
@@ -379,7 +382,7 @@ func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	err = serveUntilDone(ctx, newHTTPServer(handler, defaultWriteTimeout), listeners)
+	err = serveUntilDone(ctx, newHTTPServer(handler, slog.Default(), defaultWriteTimeout), listeners)
 	if err == nil {
 		t.Fatal("serveUntilDone returned nil, want the failing listener's error")
 	}
@@ -394,4 +397,47 @@ func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 		t.Fatalf("%s still bound after the failure path, want the shutdown to have released it: %v", survivor, err)
 	}
 	_ = rebound.Close()
+}
+
+// levelCapturingHandler records each record's level and message, the
+// two facts the ErrorLog assertion turns on.
+type levelCapturingHandler struct {
+	levels   []slog.Level
+	messages []string
+}
+
+func (h *levelCapturingHandler) Enabled(context.Context, slog.Level) bool { return true }
+
+func (h *levelCapturingHandler) Handle(_ context.Context, r slog.Record) error {
+	h.levels = append(h.levels, r.Level)
+	h.messages = append(h.messages, r.Message)
+	return nil
+}
+
+func (h *levelCapturingHandler) WithAttrs([]slog.Attr) slog.Handler { return h }
+func (h *levelCapturingHandler) WithGroup(string) slog.Handler      { return h }
+
+// TestNewHTTPServerErrorLogReachesTheSlogSink proves net/http's own
+// protocol errors land in the shell's logger rather than the standard
+// logger's stderr. The zero-value ErrorLog sends a malformed request
+// line, a TLS handshake failure, and a handler panic to log.Default,
+// where the operator's structured sink never sees them.
+func TestNewHTTPServerErrorLogReachesTheSlogSink(t *testing.T) {
+	capture := &levelCapturingHandler{}
+	srv := newHTTPServer(http.NotFoundHandler(), slog.New(capture), defaultWriteTimeout)
+
+	if srv.ErrorLog == nil {
+		t.Fatal("srv.ErrorLog = nil, want a logger writing to the shell's own sink")
+	}
+	srv.ErrorLog.Print("http: bad request line")
+
+	if len(capture.levels) != 1 {
+		t.Fatalf("records = %d, want 1", len(capture.levels))
+	}
+	if capture.levels[0] != slog.LevelWarn {
+		t.Errorf("record level = %v, want %v", capture.levels[0], slog.LevelWarn)
+	}
+	if capture.messages[0] != "http: bad request line" {
+		t.Errorf("record message = %q, want the text net/http wrote", capture.messages[0])
+	}
 }

@@ -38,6 +38,30 @@ func TestSplitBindAddrs(t *testing.T) {
 			raw:     "127.0.0.1,not-an-address",
 			wantErr: true,
 		},
+		// The wildcard rows: both parse as IP addresses, so nothing but
+		// the unspecified check refuses them, and admitting either would
+		// bind every interface on the host while [Listen]'s doc comment
+		// claims C8 never does.
+		{
+			name:    "the IPv4 wildcard alone",
+			raw:     "0.0.0.0",
+			wantErr: true,
+		},
+		{
+			name:    "the IPv6 wildcard alone",
+			raw:     "::",
+			wantErr: true,
+		},
+		{
+			name:    "the IPv4 wildcard beside a real address",
+			raw:     "127.0.0.1,0.0.0.0",
+			wantErr: true,
+		},
+		{
+			name:    "the IPv4-mapped IPv6 wildcard",
+			raw:     "::ffff:0.0.0.0",
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {

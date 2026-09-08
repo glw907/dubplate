@@ -20,8 +20,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/spf13/cobra"
@@ -46,11 +49,27 @@ var version = "dev"
 var matcherCommit = "dev"
 
 func main() {
-	cmd := newRootCmd()
-	if err := cmd.Execute(); err != nil {
+	if err := executeWithSignalContext(newRootCmd()); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+// executeWithSignalContext runs cmd under a context canceled by SIGINT
+// or SIGTERM. It is what makes the serve verb's graceful drain reachable
+// at all: cobra's own Execute passes context.Background, whose Done
+// channel is nil, so serve.Run would block on a select that can never
+// fire and the process would die on the signal's default disposition
+// with every in-flight request cut. Every other verb returns before a
+// signal can arrive, so this costs them nothing.
+//
+// It is split out of main so a test can assert the wiring. main itself
+// holds only the error print and the exit status, which a test cannot
+// call.
+func executeWithSignalContext(cmd *cobra.Command) error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	return cmd.ExecuteContext(ctx)
 }
 
 // newRootCmd builds the production registry once, visibly, and passes

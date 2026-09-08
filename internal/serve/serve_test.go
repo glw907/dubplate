@@ -2,6 +2,7 @@ package serve
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -726,6 +727,245 @@ func TestIdentitySpellingPresentReadsKeyPresence(t *testing.T) {
 			r.Header = tt.header
 			if got := identitySpellingPresent(r, ""); got != tt.want {
 				t.Errorf("identitySpellingPresent() = %t, want %t", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestRefusalLogBoundsThePath proves the refusal record carries a
+// bounded path prefix rather than the whole request path. The path an
+// oversized-path refusal logs is bounded by nothing but
+// http.Server.MaxHeaderBytes, so an unbounded record writes a megabyte
+// to the logger for every megabyte-long path an attacker sends, and the
+// cheapest refusal in the shell becomes its most expensive log line.
+func TestRefusalLogBoundsThePath(t *testing.T) {
+	capture := &capturingHandler{}
+	prefix, err := NewPrefix(testPrefix)
+	if err != nil {
+		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+	}
+	shell := NewShell(prefix, NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}), slog.New(capture))
+
+	const pathBytes = 1 << 20
+	long := "/" + strings.Repeat("a", pathBytes-1)
+	r := httptest.NewRequest(http.MethodGet, long, nil)
+	w := httptest.NewRecorder()
+
+	shell.Handler().ServeHTTP(w, r)
+
+	if w.Code != http.StatusRequestURITooLong {
+		t.Fatalf("status = %d, want %d (the length rule's own refusal is what arms the record)", w.Code, http.StatusRequestURITooLong)
+	}
+	records := capture.snapshot()
+	if len(records) != 1 {
+		t.Fatalf("records = %d, want 1", len(records))
+	}
+	got, ok := records[0]["path"].(string)
+	if !ok {
+		t.Fatalf("record path attribute = %#v, want a string", records[0]["path"])
+	}
+
+	// 320 is the bound plus generous room for the marker, and far below
+	// the megabyte the unbounded record would have written.
+	if len(got) > 320 {
+		t.Errorf("logged path is %d bytes, want at most 320 (the record must not echo the whole path)", len(got))
+	}
+	if !strings.HasPrefix(got, "/"+strings.Repeat("a", 255)) {
+		t.Errorf("logged path = %q, want it to open with the request path's own first bytes", got)
+	}
+	if !strings.Contains(got, "1048576") {
+		t.Errorf("logged path = %q, want it to name the full length %d that the truncation dropped", got, pathBytes)
+	}
+}
+
+// TestSessionCookieRemovedWhenTheNameCarriesSpace is the parity
+// assertion against net/http's own parser. readCookies (net/http/
+// cookie.go) cuts each segment at "=" and then trims the NAME with
+// textproto.TrimString, so "sess =leak" is a cookie r.Cookie("sess")
+// answers to. A removal that trimmed the whole segment before cutting
+// reads the name as "sess " and matches nothing, leaving the session
+// cookie standing on the way out to the fallthrough while the shell
+// believed it removed it. Each row is verified with r.Cookie on the
+// header the fallthrough actually received, never by string matching,
+// so the assertion is exactly "can a handler read this cookie".
+func TestSessionCookieRemovedWhenTheNameCarriesSpace(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+	}{
+		{"space before the separator", "sess =v"},
+		{"tab before the separator", "sess\t=v"},
+		{"space on both sides and around the value", " sess = v "},
+		{"a spaced name after an ordinary cookie", "a=1; sess =v"},
+		{"the ordinary spelling", "sess=v"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			shell := newTestShell(t, "sess")
+			var got recorder
+			shell.SetFallthrough(recordingHandler(&got))
+
+			r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+			r.Header.Set("Cookie", tt.value)
+			if _, err := r.Cookie("sess"); err != nil {
+				t.Fatalf("the fixture %q is not a cookie net/http reads as \"sess\": %v", tt.value, err)
+			}
+
+			shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+			if got.header == nil {
+				t.Fatal("the fallthrough was never invoked")
+			}
+			reread := &http.Request{Header: got.header}
+			if _, err := reread.Cookie("sess"); !errors.Is(err, http.ErrNoCookie) {
+				t.Errorf("the fallthrough can still read the session cookie from %q: Cookie(\"sess\") error = %v, want http.ErrNoCookie", got.header.Get("Cookie"), err)
+			}
+		})
+	}
+}
+
+// TestSessionCookieSpacedNameLeavesTheOthersReadable is the other half:
+// the widened match must not take a cookie whose name merely ends in
+// the session name, and every other cookie stays readable.
+func TestSessionCookieSpacedNameLeavesTheOthersReadable(t *testing.T) {
+	shell := newTestShell(t, "sess")
+	var got recorder
+	shell.SetFallthrough(recordingHandler(&got))
+
+	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+	r.Header.Set("Cookie", "a=1; sess =leak; notsess =2; b=3")
+
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+	reread := &http.Request{Header: got.header}
+	if _, err := reread.Cookie("sess"); !errors.Is(err, http.ErrNoCookie) {
+		t.Errorf("Cookie(\"sess\") error = %v, want http.ErrNoCookie", err)
+	}
+	for name, want := range map[string]string{"a": "1", "notsess": "2", "b": "3"} {
+		c, err := reread.Cookie(name)
+		if err != nil {
+			t.Errorf("Cookie(%q) error = %v, want the cookie to survive", name, err)
+			continue
+		}
+		if c.Value != want {
+			t.Errorf("Cookie(%q).Value = %q, want %q", name, c.Value, want)
+		}
+	}
+}
+
+// TestRegisterRefusesNamesThatWidenTheMount pins the four shapes that
+// mount more than one subtree, or nothing at all. Each is a wiring
+// mistake with no request-time symptom: an empty name mounts the whole
+// owned prefix, "{x}" is a Go 1.22 mux wildcard matching any segment,
+// and a name carrying "/" mounts a path the caller did not write.
+func TestRegisterRefusesNamesThatWidenTheMount(t *testing.T) {
+	tests := []struct {
+		name       string
+		subtree    string
+		wantReason string
+	}{
+		{"empty", "", "must not be empty"},
+		{"a separator", "a/b", "must carry no separator"},
+		{"a trailing separator", "echo/", "must carry no separator"},
+		{"a single-segment wildcard", "{x}", "must carry no brace"},
+		{"a multi-segment wildcard", "{x...}", "must carry no brace"},
+		{"a space", "ec ho", "must carry no whitespace"},
+		{"a tab", "ec\tho", "must carry no whitespace"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			shell := newTestShell(t, "")
+			defer func() {
+				got := recover()
+				if got == nil {
+					t.Fatalf("Register(%q, ...) did not panic, want a panic naming the reason", tt.subtree)
+				}
+				msg, ok := got.(string)
+				if !ok {
+					t.Fatalf("recover() = %#v, want a string", got)
+				}
+				if !strings.Contains(msg, tt.wantReason) {
+					t.Errorf("panic = %q, want it to carry %q", msg, tt.wantReason)
+				}
+				if !strings.Contains(msg, "serve: subtree") {
+					t.Errorf("panic = %q, want it to name the subtree", msg)
+				}
+			}()
+			shell.Register(tt.subtree, http.NotFoundHandler())
+		})
+	}
+}
+
+// TestRegisterAdmitsAnOrdinaryName is the negative control for the
+// refusal above: a plain segment still registers and still serves, so
+// the validation cannot pass by refusing everything.
+func TestRegisterAdmitsAnOrdinaryName(t *testing.T) {
+	shell := newTestShell(t, "")
+	var got recorder
+	shell.Register("echo", recordingHandler(&got))
+
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, testPrefix+"/echo", nil))
+
+	if got.header == nil {
+		t.Fatal("the registered subtree was never invoked")
+	}
+}
+
+// TestEchoMethodsRefusedBeforeRouting proves TRACE and TRACK reach
+// neither a registered subtree nor the fallthrough. TRACE echoes the
+// request back by definition, which hands whatever an intermediary
+// added, cookies included, to whoever can make a browser send it; TRACK
+// is the same behavior under IIS's name, and refusing one alone refuses
+// nothing.
+func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		target     string
+		wantStatus int
+		wantCalled bool
+	}{
+		{"TRACE under the owned prefix", http.MethodTrace, testPrefix + "/echo", http.StatusMethodNotAllowed, false},
+		{"TRACE on the fallthrough", http.MethodTrace, "/outside", http.StatusMethodNotAllowed, false},
+		{"TRACK under the owned prefix", "TRACK", testPrefix + "/echo", http.StatusMethodNotAllowed, false},
+		{"TRACK on the fallthrough", "TRACK", "/outside", http.StatusMethodNotAllowed, false},
+		{"GET still reaches the subtree", http.MethodGet, testPrefix + "/echo", http.StatusOK, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			capture := &capturingHandler{}
+			prefix, err := NewPrefix(testPrefix)
+			if err != nil {
+				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+			}
+			shell := NewShell(prefix, NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}), slog.New(capture))
+
+			var owned, fallthroughGot recorder
+			shell.Register("echo", recordingHandler(&owned))
+			shell.SetFallthrough(recordingHandler(&fallthroughGot))
+
+			w := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(w, httptest.NewRequest(tt.method, tt.target, nil))
+
+			if w.Code != tt.wantStatus {
+				t.Errorf("status = %d, want %d", w.Code, tt.wantStatus)
+			}
+			called := owned.header != nil || fallthroughGot.header != nil
+			if called != tt.wantCalled {
+				t.Errorf("a handler was reached = %v, want %v", called, tt.wantCalled)
+			}
+			if tt.wantCalled {
+				return
+			}
+			records := capture.snapshot()
+			if len(records) != 1 {
+				t.Fatalf("records = %d, want 1: the refusal is the shell's own and must be recorded", len(records))
+			}
+			if got, ok := records[0]["status"].(int64); !ok || int(got) != tt.wantStatus {
+				t.Errorf("record status = %#v, want %d", records[0]["status"], tt.wantStatus)
 			}
 		})
 	}

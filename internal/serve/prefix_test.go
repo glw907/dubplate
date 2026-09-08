@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -67,6 +68,44 @@ func TestNewPrefix(t *testing.T) {
 			}
 			if got := p.String(); got != tt.value {
 				t.Fatalf("p.String() = %q, want %q", got, tt.value)
+			}
+		})
+	}
+}
+
+// TestNewPrefixReportsEachShapeByItsOwnReason pins the message text per
+// refused shape, not only the sentinel. url.URL's default path escaping
+// escapes a backslash, a space, a tab and a "!" alike, so a validator
+// that runs the escaping check first answers every one of them with
+// "must carry no percent-encoded byte" and sends an adopter hunting an
+// encoding their value never carried. The want strings are literals
+// this test owns: deriving them from the validator would make every row
+// pass by construction.
+func TestNewPrefixReportsEachShapeByItsOwnReason(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  string
+	}{
+		{"a backslash", `/an\chor`, "must carry no backslash"},
+		{"a space", "/an chor", "must carry no whitespace"},
+		{"a tab", "/an\tchor", "must carry no whitespace"},
+		{"a percent sign", "/an%20chor", "must carry no percent-encoded byte"},
+		{"an exclamation mark", "/an!chor", "must carry only bytes a request path admits unescaped"},
+		{"a doubled separator", "//anchor", "must carry no doubled separator"},
+		{"a dot-dot segment", "/anchor/..", `must carry no "." or ".." segment`},
+		{"no leading separator", "anchor", "must begin with a separator"},
+		{"a trailing separator", "/anchor/", "must carry no trailing separator"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewPrefix(tt.value)
+			if !errors.Is(err, ErrInvalidPrefix) {
+				t.Fatalf("NewPrefix(%q) error = %v, want errors.Is(err, ErrInvalidPrefix)", tt.value, err)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("NewPrefix(%q) error = %q, want it to carry %q", tt.value, err, tt.want)
 			}
 		})
 	}

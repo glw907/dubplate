@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode"
 )
 
 // ErrInvalidPrefix is the sentinel [NewPrefix] wraps when a candidate
@@ -47,13 +48,31 @@ func validatePrefix(value string) error {
 	if strings.HasSuffix(value, "/") {
 		return fmt.Errorf("%q: must carry no trailing separator: %w", value, ErrInvalidPrefix)
 	}
-	// A bare URL{Path: value} never decodes value, so its EscapedPath
-	// is the default escaping of value's literal bytes; a mismatch
-	// means value itself carries a byte, such as "%", that
-	// [Normalize]'s raw-versus-decoded rule would refuse in a request
-	// path.
-	if escaped := (&url.URL{Path: value}).EscapedPath(); escaped != value {
+	// The three shape checks run before the escaping check below, and
+	// their order is the whole point of their existing separately. A
+	// bare URL{Path: value}.EscapedPath escapes a backslash, a space, a
+	// tab, and a "!" alike, so the escaping check refuses every one of
+	// them; put first, it would report "must carry no percent-encoded
+	// byte" for a prefix carrying no percent sign at all, which sends an
+	// adopter looking for an encoding they never wrote. Each shape
+	// reports itself here, and the escaping check keeps only what is
+	// left.
+	if strings.Contains(value, `\`) {
+		return fmt.Errorf("%q: must carry no backslash: %w", value, ErrInvalidPrefix)
+	}
+	if strings.ContainsFunc(value, unicode.IsSpace) {
+		return fmt.Errorf("%q: must carry no whitespace: %w", value, ErrInvalidPrefix)
+	}
+	if strings.Contains(value, "%") {
 		return fmt.Errorf("%q: must carry no percent-encoded byte: %w", value, ErrInvalidPrefix)
+	}
+	// A bare URL{Path: value} never decodes value, so its EscapedPath
+	// is the default escaping of value's literal bytes; a mismatch that
+	// survives the three checks above means value carries some other
+	// byte a request path may not carry unescaped, and [Normalize]'s
+	// raw-versus-decoded rule would refuse it there.
+	if escaped := (&url.URL{Path: value}).EscapedPath(); escaped != value {
+		return fmt.Errorf("%q: must carry only bytes a request path admits unescaped: %w", value, ErrInvalidPrefix)
 	}
 	// The leading separator opens the path rather than closing a
 	// segment, so it is trimmed before the split. An empty segment
@@ -72,9 +91,6 @@ func validatePrefix(value string) error {
 			if i != len(segments)-1 {
 				return fmt.Errorf("%q: must carry no doubled separator: %w", value, ErrInvalidPrefix)
 			}
-		}
-		if strings.Contains(segment, `\`) {
-			return fmt.Errorf("%q: must carry no backslash: %w", value, ErrInvalidPrefix)
 		}
 	}
 	return nil

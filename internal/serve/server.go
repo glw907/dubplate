@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"strconv"
-	"syscall"
 	"time"
 )
 
@@ -81,41 +81,24 @@ const (
 // what lets every timeout stay a constant: a package-level var a test
 // assigns to is shared mutable state between tests that may run in any
 // order.
-func newHTTPServer(handler http.Handler, writeTimeout time.Duration) *http.Server {
+//
+// ErrorLog is wired to logger through [slog.NewLogLogger] at warn
+// level. net/http writes its own protocol errors (a bad request line, a
+// TLS handshake failure, a handler panic) to that logger, and the
+// zero value sends them to the standard logger's stderr, where the
+// shell's own structured sink never sees them. Warn is the level: these
+// are conditions an operator wants surfaced, and net/http emits one per
+// malformed connection rather than per request.
+func newHTTPServer(handler http.Handler, logger *slog.Logger, writeTimeout time.Duration) *http.Server {
 	return &http.Server{
 		Handler:           handler,
+		ErrorLog:          slog.NewLogLogger(logger.Handler(), slog.LevelWarn),
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,
 		IdleTimeout:       idleTimeout,
 		MaxHeaderBytes:    maxHeaderBytes,
 	}
-}
-
-// freebindControl is a net.ListenConfig.Control hook that sets
-// IP_FREEBIND on the listening socket before bind(2) runs, so Listen can
-// bind an address the host has not configured on any interface yet
-// (R20). syscall.IP_FREEBIND is the stdlib's own constant (R-M): its
-// source is Linux's <linux/in.h>, and on this toolchain (go1.27.1,
-// linux/amd64) it measures 15 (0xf), which Task 0 confirmed against a
-// live bind before this task built on it. The option is set at
-// IPPROTO_IP for both address families rather than at IPV6_FREEBIND for
-// AF_INET6, measured working on an AF_INET6 listener; no IPV6_FREEBIND
-// constant exists for this architecture, so none is referenced.
-//
-// IP_FREEBIND's residual: it suppresses the boot-time error a
-// misconfigured or not-yet-present address would otherwise raise. It
-// does not make the address reachable, so a listener bound this way to
-// an address nothing routes to accepts no traffic; surfacing that state
-// is 5d's doctor row, not this package's concern.
-func freebindControl(_, _ string, c syscall.RawConn) error {
-	var sockErr error
-	if err := c.Control(func(fd uintptr) {
-		sockErr = syscall.SetsockoptInt(int(fd), syscall.IPPROTO_IP, syscall.IP_FREEBIND, 1)
-	}); err != nil {
-		return err
-	}
-	return sockErr
 }
 
 // Listen opens one TCP listener per address in addrs, all on port, each
@@ -148,12 +131,20 @@ func Listen(ctx context.Context, addrs []string, port int) ([]net.Listener, erro
 // within shutdownGrace before returning. ctx is Run's first parameter:
 // Task 7 calls Run from the serve verb, passing the resolved
 // configuration values and Task 5's composed root handler.
-func Run(ctx context.Context, handler http.Handler, addrs []string, port int) error {
+//
+// logger receives net/http's own protocol errors. A caller passes
+// [Shell.Logger] so those errors and the shell's refusal record share
+// one sink; a nil logger falls back to [slog.Default], the same way
+// [NewShell] does.
+func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs []string, port int) error {
+	if logger == nil {
+		logger = slog.Default()
+	}
 	listeners, err := Listen(ctx, addrs, port)
 	if err != nil {
 		return err
 	}
-	return serveUntilDone(ctx, newHTTPServer(handler, defaultWriteTimeout), listeners)
+	return serveUntilDone(ctx, newHTTPServer(handler, logger, defaultWriteTimeout), listeners)
 }
 
 // serveUntilDone runs srv across every listener until ctx is done, then

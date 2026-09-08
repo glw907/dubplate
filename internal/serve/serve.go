@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"strings"
+	"unicode"
 )
 
 // Shell is the dubplate HTTP shell's construction value (C1, C5): the
@@ -73,7 +74,13 @@ func NewShell(prefix Prefix, strip Strip, logger *slog.Logger) *Shell {
 // binary's own wiring and belongs to construction, and a late
 // registration in a binary already serving would land on a mux the
 // composed chain is reading concurrently.
+//
+// A name that would widen the mount past one subtree panics too, on the
+// same precedent and naming the reason: see subtreeNameRefusal.
 func (s *Shell) Register(name string, h http.Handler) {
+	if reason := subtreeNameRefusal(name); reason != "" {
+		panic(fmt.Sprintf("serve: subtree %q: %s", name, reason))
+	}
 	if s.handlerBuilt {
 		panic(fmt.Sprintf("serve: subtree %q registered after Handler; registration belongs to construction", name))
 	}
@@ -85,6 +92,35 @@ func (s *Shell) Register(name string, h http.Handler) {
 	pattern := s.prefix.String() + "/" + name
 	s.mux.Handle(pattern, h)
 	s.mux.Handle(pattern+"/", h)
+}
+
+// subtreeNameRefusal reports why name may not be a subtree, or "" when
+// it may. Every refused shape silently widens the mount rather than
+// failing visibly, which is what makes a panic the right answer:
+//
+//   - An empty name registers the owned prefix itself and the whole
+//     owned subtree under it, so one handler swallows every path the
+//     terminator exists to refuse.
+//   - A name carrying "/" registers a deeper path than the caller wrote,
+//     and one carrying "{" or "}" is a Go 1.22 mux wildcard: "{x}"
+//     matches any single segment, and "{x...}" matches the rest of the
+//     path.
+//   - Whitespace cannot appear in a request path this shell admits
+//     (Normalize refuses a space as an unescaped byte), so a name
+//     carrying it registers a pattern nothing can ever reach: a silent
+//     no-op rather than a widening, and still a wiring mistake.
+func subtreeNameRefusal(name string) string {
+	switch {
+	case name == "":
+		return "must not be empty; an empty name mounts the whole owned prefix"
+	case strings.Contains(name, "/"):
+		return "must carry no separator"
+	case strings.ContainsAny(name, "{}"):
+		return "must carry no brace; a brace is a mux wildcard"
+	case strings.ContainsFunc(name, unicode.IsSpace):
+		return "must carry no whitespace"
+	}
+	return ""
 }
 
 // SetFallthrough sets the one root-level slot rung 12's reverse proxy
@@ -120,9 +156,42 @@ func (s *Shell) Handler() http.Handler {
 	}
 
 	routed := s.prefix.Route(s.terminated(), s.stripSessionCookie(fallthroughHandler))
-	normalized := Normalize(routed)
+	guarded := refuseEchoMethods(routed)
+	normalized := Normalize(guarded)
 	stripped := s.strip.Wrap(normalized)
 	return s.logRefusal(stripped)
+}
+
+// Logger returns the logger the shell writes its refusal record to,
+// [slog.Default] when NewShell was built with none. [Run] reads it so
+// net/http's own protocol errors reach the same sink as the shell's
+// record, rather than the standard logger's stderr.
+func (s *Shell) Logger() *slog.Logger {
+	return s.logger
+}
+
+// refuseEchoMethods answers TRACE and TRACK with 405 before the request
+// reaches prefix routing, so neither method reaches a registered
+// subtree or the fallthrough. TRACE echoes the request back to the
+// client by definition, which hands anything an intermediary added,
+// cookies and identity headers included, to whoever can make the
+// browser send it; TRACK is IIS's undocumented synonym, and a server
+// that refuses one while answering the other has refused nothing.
+// net/http never answers either on its own.
+//
+// No Allow header accompanies the 405. The shell knows only that these
+// two methods are refused everywhere, not which methods any subtree or
+// the fallthrough accepts, and an Allow header naming a guessed set
+// would be a claim about handlers this step has never seen.
+func refuseEchoMethods(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodTrace || r.Method == "TRACK" {
+			markRefusal(r, http.StatusMethodNotAllowed)
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // terminated is the owned half of C4: a path under the owned prefix
@@ -207,12 +276,22 @@ func removeCookie(r *http.Request, name string) {
 // quotes and spacing included; the one edit is trimming the leading
 // space that separated a dropped first segment from the one now at the
 // head of the value.
+//
+// The name is extracted the way net/http's own readCookies extracts it
+// (net/http/cookie.go): cut the segment at the first "=", then trim the
+// name with [textproto.TrimString]. RFC 6265 section 5.4 has a user
+// agent send no space around the "=", but a request that sends one
+// anyway is still parsed by net/http, so "sess =v" is a cookie
+// [http.Request.Cookie] answers to. Trimming the whole segment before
+// the cut, which this function did once, leaves that spelling standing:
+// the name read out is "sess " and matches nothing, while the request
+// r.Cookie reads still carries the session cookie past the removal.
 func withoutCookie(value, name string) string {
 	segments := strings.Split(value, ";")
 	kept := make([]string, 0, len(segments))
 	for _, segment := range segments {
-		cookieName, _, _ := strings.Cut(strings.TrimSpace(segment), "=")
-		if cookieName == name {
+		rawName, _, _ := strings.Cut(segment, "=")
+		if textproto.TrimString(rawName) == name {
 			continue
 		}
 		kept = append(kept, segment)
@@ -342,11 +421,33 @@ func (s *Shell) logRefusal(next http.Handler) http.Handler {
 			return
 		}
 		s.logger.Info("serve: refused request",
-			"path", r.URL.Path,
+			"path", boundedPath(r.URL.Path),
 			"status", capture.status,
 			"identity_spelling_present", identitySpellingPresent(r, s.strip.header),
 		)
 	})
+}
+
+// maxLoggedPathBytes bounds the request path logRefusal writes. The
+// refusal it records is the path bound's own refusal among others, and
+// that one arrives with a path bounded by nothing but
+// http.Server.MaxHeaderBytes: a 1 MiB request line is refused with 414
+// and would otherwise write 1 MiB to the logger for every request an
+// attacker sends, turning a cheap refusal into a log-volume amplifier.
+// 256 bytes is enough to identify which surface was probed, which is
+// the record's whole job.
+const maxLoggedPathBytes = 256
+
+// boundedPath returns path unchanged when it fits maxLoggedPathBytes,
+// and otherwise its first maxLoggedPathBytes bytes with a marker naming
+// the truncation and the full length. The length is kept because it is
+// the one fact the truncated prefix destroys, and an oversized path is
+// exactly the shape a reader wants the size of.
+func boundedPath(path string) string {
+	if len(path) <= maxLoggedPathBytes {
+		return path
+	}
+	return fmt.Sprintf("%s...[truncated, %d bytes]", path[:maxLoggedPathBytes], len(path))
 }
 
 // identitySpellingPresent reports whether r's header carries any of the

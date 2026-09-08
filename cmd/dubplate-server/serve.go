@@ -135,7 +135,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			}
 			strip := serve.NewStrip("", "", serve.TrustedProxyConfig{}, serve.FrontExemption{})
 			shell := serve.NewShell(prefix, strip, nil)
-			return serve.Run(cmd.Context(), shell.Handler(), addrs, port)
+			return serve.Run(cmd.Context(), shell.Logger(), shell.Handler(), addrs, port)
 		},
 	}
 	cmd.SetOut(stdout)

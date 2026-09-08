@@ -64,7 +64,19 @@ var expectedIdentitySpellings = []string{
 	"X-Forwarded-Preferred-Username", "X_Forwarded_Preferred_Username",
 	"X-Forwarded-Groups", "X_Forwarded_Groups",
 	"X-Forwarded-Access-Token", "X_Forwarded_Access_Token",
+	"X-Forwarded-Uri", "X_Forwarded_Uri",
+	"X-Forwarded-Method", "X_Forwarded_Method",
 	"Cf-Access-Jwt-Assertion", "Cf_Access_Jwt_Assertion",
+	"Cf-Access-Authenticated-User-Email", "Cf_Access_Authenticated_User_Email",
+	"X-WEBAUTH-USER", "X_WEBAUTH_USER",
+	"X-authentik-username", "X_authentik_username",
+	"X-authentik-email", "X_authentik_email",
+	"X-authentik-groups", "X_authentik_groups",
+	"X-authentik-uid", "X_authentik_uid",
+	"X-authentik-jwt", "X_authentik_jwt",
+	"Tailscale-User-Login", "Tailscale_User_Login",
+	"Tailscale-User-Name", "Tailscale_User_Name",
+	"X-Original-URL", "X_Original_URL",
 	// The driver's configured header name and its underscore twin,
 	// proving the driver-contribution mechanism rung 12 will use.
 	"X-Driver-Identity", "X_Driver_Identity",
@@ -483,4 +495,209 @@ func TestStripWrapExemptedHeaderSurvivesConnectionListing(t *testing.T) {
 			t.Errorf("X-Front-Identity = %q, want removed: the peer does not match the front's configuration", v)
 		}
 	})
+}
+
+// clientIPFamily is the client-address half of group 2, written out
+// independently of forwardedAddressHeaders so a strip that lost one
+// still fails. Every name is one a real front sets, which is what makes
+// a client's own spelling of it a forgery a handler would otherwise
+// read as the front's word.
+var clientIPFamily = []string{
+	"Cf-Connecting-IP",
+	"True-Client-IP",
+	"Fastly-Client-IP",
+	"X-Azure-ClientIP",
+}
+
+func TestStripWrapRemovesTheClientIPFamily(t *testing.T) {
+	strip := NewStrip("", "", TrustedProxyConfig{}, FrontExemption{})
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "192.0.2.5:1111"
+	for _, name := range clientIPFamily {
+		r.Header.Set(name, "198.51.100.9")
+	}
+
+	var got recorder
+	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+	for _, name := range clientIPFamily {
+		if v := got.header.Get(name); v != "" {
+			t.Errorf("handler received %s = %q, want removed", name, v)
+		}
+	}
+}
+
+// TestStripWrapRemovesTheConfiguredProxyHeader is the group 2 gap the
+// fixed family alone leaves open. An adopter who configures a
+// trusted-proxy header outside the X-Forwarded family is naming the one
+// header [ClientIP] reads; if group 2 removes only the fixed family,
+// that header arrives from any peer untouched, and a client dialing the
+// shell directly sets its own client address. The row set covers a name
+// inside the family too, so the derivation cannot pass by appending
+// blindly.
+func TestStripWrapRemovesTheConfiguredProxyHeader(t *testing.T) {
+	tests := []struct {
+		name   string
+		header string
+	}{
+		{"a Cloudflare-shaped name", "Cf-Connecting-IP"},
+		{"an Akamai-shaped name", "True-Client-IP"},
+		{"an adopter's own name", "X-House-Client-Address"},
+		{"a name already in the fixed family", "X-Forwarded-For"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			proxy := NewTrustedProxyConfig([]string{"203.0.113.10"}, tt.header)
+			strip := NewStrip("", "", proxy, FrontExemption{})
+
+			r := httptest.NewRequest("GET", "/", nil)
+			r.RemoteAddr = "192.0.2.5:1111" // not a configured proxy
+			r.Header.Set(tt.header, "198.51.100.9")
+
+			var got recorder
+			strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+			if v := got.header.Get(tt.header); v != "" {
+				t.Errorf("handler received the configured header %s = %q from an untrusted peer, want removed", tt.header, v)
+			}
+			if ip := ClientIP(r, proxy); ip != "192.0.2.5" {
+				t.Errorf("ClientIP = %q, want the peer address 192.0.2.5", ip)
+			}
+		})
+	}
+}
+
+// TestStripWrapTrustedPeerKeepsForwardedListedInConnection closes the
+// interaction between groups 2 and 3. Group 2 preserves the forwarded
+// address headers for a trusted front, and group 3 then deleted
+// whatever the request's own Connection header listed, so a client
+// behind the front sending "Connection: X-Forwarded-For" erased the
+// header the front had set and collapsed ClientIP to the front's own
+// address. The assertion is on ClientIP rather than the header alone:
+// the header surviving is the mechanism, and the client's address
+// reaching the handler is the property.
+func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
+	const (
+		proxyAddr  = "203.0.113.10"
+		clientAddr = "198.51.100.9"
+	)
+
+	tests := []struct {
+		name       string
+		remoteAddr string
+		connection string
+		wantIP     string
+	}{
+		{
+			name:       "trusted peer, the address header listed",
+			remoteAddr: proxyAddr + ":1111",
+			connection: "X-Forwarded-For",
+			wantIP:     clientAddr,
+		},
+		{
+			name:       "trusted peer, listed among other tokens",
+			remoteAddr: proxyAddr + ":1111",
+			connection: "keep-alive, X-Forwarded-For, X-Forwarded-Proto",
+			wantIP:     clientAddr,
+		},
+		{
+			name:       "untrusted peer, the address header listed",
+			remoteAddr: "192.0.2.5:1111",
+			connection: "X-Forwarded-For",
+			wantIP:     "192.0.2.5",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			proxy := NewTrustedProxyConfig([]string{proxyAddr}, "X-Forwarded-For")
+			strip := NewStrip("", "", proxy, FrontExemption{})
+
+			r := httptest.NewRequest("GET", "/", nil)
+			r.RemoteAddr = tt.remoteAddr
+			r.Header.Set("X-Forwarded-For", clientAddr)
+			r.Header.Set("X-Forwarded-Proto", "https")
+			r.Header.Set("Connection", tt.connection)
+
+			var got recorder
+			strip.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				got.header = r.Header.Clone()
+				if ip := ClientIP(r, proxy); ip != tt.wantIP {
+					t.Errorf("ClientIP = %q, want %q", ip, tt.wantIP)
+				}
+				w.WriteHeader(http.StatusOK)
+			})).ServeHTTP(httptest.NewRecorder(), r)
+
+			if tt.wantIP == clientAddr && got.header.Get("X-Forwarded-For") != clientAddr {
+				t.Errorf("X-Forwarded-For = %q, want %q: a Connection listing must not delete what group 2 preserved for a trusted front", got.header.Get("X-Forwarded-For"), clientAddr)
+			}
+		})
+	}
+}
+
+// TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader is the
+// negative control for the keep above: the trusted-peer carve-out
+// covers group 2's names and nothing else, so an ordinary header a
+// request lists in Connection is still removed from a trusted peer.
+func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
+	proxy := NewTrustedProxyConfig([]string{"203.0.113.10"}, "X-Forwarded-For")
+	strip := NewStrip("", "", proxy, FrontExemption{})
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "203.0.113.10:1111"
+	r.Header.Set("X-House-Header", "value")
+	r.Header.Set("Connection", "X-House-Header")
+
+	var got recorder
+	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+	if v := got.header.Get("X-House-Header"); v != "" {
+		t.Errorf("X-House-Header = %q, want removed: only group 2's own names are kept for a trusted peer", v)
+	}
+}
+
+// TestStripWrapScrubsTrailerOnCloseWithoutRead closes the trailer
+// scrub's other arming point. net/http's own body Close drains the
+// remaining chunked stream inside its reader rather than through the
+// wrapper's Read, so a handler that closes the body without reading it
+// reaches end of stream, mergeSetHeader populates r.Trailer with the
+// smuggled value, and the Read-armed scrub never fired. The handler
+// here does exactly what such a handler does: Close, then read the
+// trailer.
+func TestStripWrapScrubsTrailerOnCloseWithoutRead(t *testing.T) {
+	var afterTrailer string
+	srv := httptest.NewServer(NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}).Wrap(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_ = r.Body.Close()
+			afterTrailer = r.Trailer.Get("Remote-User")
+			w.WriteHeader(http.StatusOK)
+		}),
+	))
+	defer srv.Close()
+
+	pr, pw := io.Pipe()
+	req, err := http.NewRequest(http.MethodPost, srv.URL, pr)
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+	req.Header.Set("Trailer", "Remote-User")
+	req.Trailer = http.Header{"Remote-User": nil}
+
+	go func() {
+		_, _ = pw.Write([]byte("body"))
+		req.Trailer.Set("Remote-User", "attacker")
+		_ = pw.Close()
+	}()
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Do: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	if afterTrailer != "" {
+		t.Errorf("after Close without Read: r.Trailer[Remote-User] = %q, want removed", afterTrailer)
+	}
 }

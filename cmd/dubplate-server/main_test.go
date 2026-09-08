@@ -2,8 +2,12 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"io"
 	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 // TestRootCmd_UnknownSubcommand proves the fix for the silent-failure
@@ -98,5 +102,43 @@ func TestNewVersionCmd_PrintsTwoLabeledRows(t *testing.T) {
 	}
 	if !strings.HasPrefix(lines[1], "matcher-commit") {
 		t.Errorf("second line = %q, want it to start with %q", lines[1], "matcher-commit")
+	}
+}
+
+// TestExecuteWithSignalContext_GivesTheCommandACancellableContext
+// proves the production wiring hands the root command a context a
+// signal can cancel. cobra's own Execute passes context.Background,
+// whose Done channel is nil, so serve.Run's drain select would block on
+// a channel that never closes and the graceful shutdown the serve verb
+// carries would be unreachable in the binary. The assertion is on
+// Done() rather than on an actual signal: delivering SIGTERM to the
+// test process would take the whole run down should the wiring be the
+// very thing that regressed.
+func TestExecuteWithSignalContext_GivesTheCommandACancellableContext(t *testing.T) {
+	var got context.Context
+	cmd := &cobra.Command{
+		Use:           "probe",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			got = cmd.Context()
+			return nil
+		},
+	}
+	cmd.SetArgs(nil)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+
+	if err := executeWithSignalContext(cmd); err != nil {
+		t.Fatalf("executeWithSignalContext: %v", err)
+	}
+	if got == nil {
+		t.Fatal("RunE was never reached")
+	}
+	if got.Done() == nil {
+		t.Error("cmd.Context().Done() = nil, want a cancellable context: a nil Done channel makes serve's graceful drain unreachable")
+	}
+	if got == context.Background() {
+		t.Error("cmd.Context() is context.Background(), want the signal-derived context")
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"slices"
 	"strings"
 )
 
@@ -15,6 +16,12 @@ import (
 // header it sets or reads to carry an authenticated identity into a
 // backend application; identitySpellings derives each name's
 // underscore twin, so a new entry is one line.
+//
+// Names are written in [textproto.CanonicalMIMEHeaderKey] form, which
+// is not always the casing the citing project prints. Header names are
+// case-insensitive and every removal below canonicalizes both sides, so
+// the two spellings name the same header; the citations keep the
+// project's own casing.
 //
 // Every candidate this task could cite, and every one it dropped:
 //
@@ -60,10 +67,48 @@ import (
 //     Cloudflare Access service token: a caller who lacks the secret
 //     cannot forge them, so removing them defends against nothing this
 //     strip is for and would break service-token integrations.
-//   - Cf-Access-Authenticated-User-Email is widely quoted in
-//     third-party material, but this task found no page under
-//     developers.cloudflare.com stating it, so it is dropped rather
-//     than shipped on recollection.
+//   - X-Original-Method and X-Rewrite-URL are quoted widely in
+//     third-party auth_request material, but no page owned by nginx,
+//     ingress-nginx, Traefik, or authentik was found stating either, so
+//     both are dropped rather than shipped on recollection.
+//
+// The security review's second round added these, each with the page
+// that states it:
+//
+//   - X-WEBAUTH-USER: Grafana's auth.proxy default header_name, the
+//     header Grafana reads as the authenticated user.
+//     https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/,
+//     read 2026-09-08. It is also Gitea's
+//     REVERSE_PROXY_AUTHENTICATION_USER default.
+//     https://docs.gitea.com/administration/config-cheat-sheet/,
+//     read 2026-09-08.
+//   - X-authentik-username, X-authentik-email, X-authentik-groups,
+//     X-authentik-uid, X-authentik-jwt: authentik's proxy provider sets
+//     them on the request the upstream application receives, and its
+//     Traefik integration lists them in authResponseHeaders.
+//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/ and
+//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/server_traefik/,
+//     both read 2026-09-08.
+//   - Tailscale-User-Login, Tailscale-User-Name: tailscale serve adds
+//     them to the request it proxies to the local backend.
+//     https://tailscale.com/kb/1312/serve, read 2026-09-08.
+//   - X-Original-URL: authentik's nginx forward-auth configuration sets
+//     it so the outpost can route the authentication request, which
+//     makes it a value a downstream application reads as the request's
+//     own target.
+//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/server_nginx/,
+//     read 2026-09-08.
+//   - X-Forwarded-Uri, X-Forwarded-Method: Traefik's ForwardAuth
+//     middleware sets both on the request it sends to the
+//     authentication server.
+//     https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/,
+//     read 2026-09-08.
+//   - Cf-Access-Authenticated-User-Email, dropped by the previous round
+//     as uncitable, is cited now: Cloudflare's own Access tutorial
+//     reads it off the incoming request as the email Access
+//     authenticated.
+//     https://developers.cloudflare.com/cloudflare-one/tutorials/access-workers/,
+//     read 2026-09-08.
 var identityExtras = []string{
 	"Remote-User",
 	"Remote-Name",
@@ -74,7 +119,19 @@ var identityExtras = []string{
 	"X-Forwarded-Preferred-Username",
 	"X-Forwarded-Groups",
 	"X-Forwarded-Access-Token",
+	"X-Forwarded-Uri",
+	"X-Forwarded-Method",
 	"Cf-Access-Jwt-Assertion",
+	"Cf-Access-Authenticated-User-Email",
+	"X-Webauth-User",
+	"X-Authentik-Username",
+	"X-Authentik-Email",
+	"X-Authentik-Groups",
+	"X-Authentik-Uid",
+	"X-Authentik-Jwt",
+	"Tailscale-User-Login",
+	"Tailscale-User-Name",
+	"X-Original-Url",
 }
 
 // forwardedAddressHeaders is group 2: the address- and origin-asserting
@@ -86,6 +143,34 @@ var identityExtras = []string{
 // read 2026-09-08). R-R extends the rule to the whole X-Forwarded-*
 // family, since each remaining member steers an absolute URL a
 // downstream handler builds from client-asserted input.
+//
+// The last four names are the client-address headers real fronts set,
+// each cited by the front that sets it. A client reaching the shell
+// directly can spell any of them, and a handler that reads one would
+// take the client's own claim as the front's:
+//
+//   - Cf-Connecting-Ip: Cloudflare "provides the client IP address
+//     connecting to Cloudflare to the origin web server".
+//     True-Client-Ip: the same page's Enterprise-plan equivalent, which
+//     "provides the original client IP address to the origin web
+//     server".
+//     https://developers.cloudflare.com/fundamentals/reference/http-headers/,
+//     read 2026-09-08.
+//   - Fastly-Client-Ip: Fastly adds it, set to client.ip, when a
+//     request arrives without one.
+//     https://www.fastly.com/documentation/reference/http/http-headers/Fastly-Client-IP,
+//     read 2026-09-08.
+//   - X-Azure-Clientip: Azure Front Door appends it to every request it
+//     sends to the backend, carrying "the client IP address associated
+//     with the request being processed".
+//     https://learn.microsoft.com/en-us/azure/frontdoor/front-door-http-headers-protocol,
+//     read 2026-09-08.
+//
+// Two candidates the review named are dropped. X-Client-Ip and
+// X-Cluster-Client-Ip are quoted constantly in client-IP-extraction
+// libraries, but no page owned by a front that sets either was found,
+// so neither ships on recollection. Both stay candidates for a later
+// rung that finds a citation.
 var forwardedAddressHeaders = []string{
 	"X-Forwarded-For",
 	"X-Real-Ip",
@@ -93,6 +178,10 @@ var forwardedAddressHeaders = []string{
 	"X-Forwarded-Host",
 	"X-Forwarded-Proto",
 	"X-Forwarded-Prefix",
+	"Cf-Connecting-Ip",
+	"True-Client-Ip",
+	"Fastly-Client-Ip",
+	"X-Azure-Clientip",
 }
 
 // group3KeepSet is R-S's carve-out: canonical header names
@@ -184,6 +273,18 @@ type Strip struct {
 	sessionCookie string
 	proxy         TrustedProxyConfig
 	exemption     FrontExemption
+
+	// forwarded is group 2's removal set: forwardedAddressHeaders plus
+	// the trusted-proxy configuration's own header name, derived once at
+	// construction. The configured name has to join the set, since an
+	// adopter who configures a name outside the fixed family
+	// (Cf-Connecting-Ip, True-Client-Ip) would otherwise leave the one
+	// header [ClientIP] actually reads free for any client to set.
+	forwarded []string
+
+	// forwardedCanon is forwarded in canonical form, the shape
+	// stripConnectionListed compares a Connection token against.
+	forwardedCanon map[string]struct{}
 }
 
 // NewStrip builds a [Strip]. header is the driver's configured
@@ -197,7 +298,34 @@ type Strip struct {
 // 2's carve-out. exemption is the mechanism a later front configures;
 // the zero value exempts nothing.
 func NewStrip(header, sessionCookie string, proxy TrustedProxyConfig, exemption FrontExemption) Strip {
-	return Strip{header: header, sessionCookie: sessionCookie, proxy: proxy, exemption: exemption}
+	forwarded := forwardedAddressSet(proxy.header)
+	canon := make(map[string]struct{}, len(forwarded))
+	for _, name := range forwarded {
+		canon[textproto.CanonicalMIMEHeaderKey(name)] = struct{}{}
+	}
+	return Strip{
+		header:         header,
+		sessionCookie:  sessionCookie,
+		proxy:          proxy,
+		exemption:      exemption,
+		forwarded:      forwarded,
+		forwardedCanon: canon,
+	}
+}
+
+// forwardedAddressSet returns group 2's names: the fixed family plus
+// configured, the trusted-proxy header an adopter named, when that name
+// is not already one of them.
+func forwardedAddressSet(configured string) []string {
+	if configured == "" {
+		return forwardedAddressHeaders
+	}
+	for _, name := range forwardedAddressHeaders {
+		if sameHeaderName(name, configured) {
+			return forwardedAddressHeaders
+		}
+	}
+	return append(slices.Clone(forwardedAddressHeaders), configured)
 }
 
 // Wrap returns an [http.Handler] that clears the strip's three groups
@@ -296,14 +424,33 @@ type trailerScrubbingBody struct {
 func (b *trailerScrubbingBody) Read(p []byte) (int, error) {
 	n, err := b.ReadCloser.Read(p)
 	if err == io.EOF {
-		for _, name := range b.names {
-			if b.exempt != "" && sameHeaderName(name, b.exempt) {
-				continue
-			}
-			b.req.Trailer.Del(name)
-		}
+		b.scrub()
 	}
 	return n, err
+}
+
+// Close closes the wrapped body and scrubs again. net/http's own body
+// Close drains the remaining chunked stream inside its own reader
+// rather than through this wrapper's Read, so a handler that closes the
+// body without reading it reaches end of stream, and mergeSetHeader
+// populates r.Trailer, with the Read-armed scrub never having fired.
+// Without this method that handler would go on to read a smuggled
+// identity value straight out of r.Trailer.
+func (b *trailerScrubbingBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.scrub()
+	return err
+}
+
+// scrub deletes every name but exempt from the request's Trailer. It is
+// idempotent, so the two arming points may both fire on one request.
+func (b *trailerScrubbingBody) scrub() {
+	for _, name := range b.names {
+		if b.exempt != "" && sameHeaderName(name, b.exempt) {
+			continue
+		}
+		b.req.Trailer.Del(name)
+	}
 }
 
 // stripForwardedAddress removes group 2 unless trusted-proxy mode is
@@ -311,14 +458,23 @@ func (b *trailerScrubbingBody) Read(p []byte) (int, error) {
 // (R27's carve-out), read through Task 1's TrustedProxyConfig rather
 // than a second derivation of the peer address.
 func (s Strip) stripForwardedAddress(r *http.Request) {
-	if s.proxy.Mode() == ModeTrustedProxy {
-		if _, trusted := s.proxy.proxies[PeerAddress(r)]; trusted {
-			return
-		}
+	if s.trustsPeer(r) {
+		return
 	}
-	for _, name := range forwardedAddressHeaders {
+	for _, name := range s.forwarded {
 		r.Header.Del(name)
 	}
+}
+
+// trustsPeer reports whether trusted-proxy mode is on and r arrived
+// from one of the configured proxies. Groups 2 and 3 both turn on this
+// one answer, so they cannot disagree about which peer is the front.
+func (s Strip) trustsPeer(r *http.Request) bool {
+	if s.proxy.Mode() != ModeTrustedProxy {
+		return false
+	}
+	_, trusted := s.proxy.proxies[PeerAddress(r)]
+	return trusted
 }
 
 // stripConnectionListed removes group 3: every header the request's
@@ -332,6 +488,15 @@ func (s Strip) stripForwardedAddress(r *http.Request) {
 // Connection would delete the front's own identity assertion, turning
 // a header a trusted peer set into a request the shell reads as
 // anonymous.
+//
+// The same argument covers group 2's names when the peer is trusted.
+// Group 2 preserves the forwarded-address headers a trusted front sets,
+// and a client behind that front can put "X-Forwarded-For" in its own
+// Connection header; deleting it here would undo the preservation and
+// collapse [ClientIP] to the front's own address, which is the whole
+// trusted-proxy carve-out defeated by one token. The keep applies only
+// to a trusted peer: from any other peer group 2 has already deleted
+// those names, so there is nothing left for this rule to keep.
 func (s Strip) stripConnectionListed(r *http.Request) {
 	tokens := connectionTokens(r.Header.Values("Connection"))
 	if len(tokens) == 0 {
@@ -342,6 +507,7 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 	if header := s.exemption.headerFor(PeerAddress(r)); header != "" {
 		exempt = textproto.CanonicalMIMEHeaderKey(header)
 	}
+	keepForwarded := s.trustsPeer(r)
 
 	upgrade := false
 	for _, token := range tokens {
@@ -358,6 +524,11 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 		}
 		if _, keep := group3KeepSet[canon]; keep {
 			continue
+		}
+		if keepForwarded {
+			if _, keep := s.forwardedCanon[canon]; keep {
+				continue
+			}
 		}
 		if exempt != "" && canon == exempt {
 			continue

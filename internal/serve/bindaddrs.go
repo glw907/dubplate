@@ -23,6 +23,14 @@ var ErrInvalidBindAddr = errors.New("invalid bind address")
 // would bind fewer interfaces than the operator configured with no
 // signal that it happened.
 //
+// The unspecified addresses, 0.0.0.0 and ::, are refused too. Both
+// parse as IP addresses and both bind every interface on the host,
+// which is exactly what C8 says [Listen] never does: a shell that
+// admitted one would answer on addresses the operator never named while
+// Listen's own doc comment claimed it could not. The refusal belongs
+// here, at the parse, since it is the last point before the value
+// becomes a listener.
+//
 // The grammar lives here rather than in the config declaration (R-B):
 // DUBPLATE_SERVE_BIND_ADDRS registers as a string threshold because
 // the registry has no list kind, and the address grammar belongs with
@@ -35,8 +43,12 @@ func SplitBindAddrs(raw string) ([]string, error) {
 		if addr == "" {
 			return nil, fmt.Errorf("%q: empty entry: %w", raw, ErrInvalidBindAddr)
 		}
-		if net.ParseIP(addr) == nil {
+		ip := net.ParseIP(addr)
+		if ip == nil {
 			return nil, fmt.Errorf("%q: %w", addr, ErrInvalidBindAddr)
+		}
+		if ip.IsUnspecified() {
+			return nil, fmt.Errorf("%q: the wildcard address binds every interface: %w", addr, ErrInvalidBindAddr)
 		}
 		addrs = append(addrs, addr)
 	}
