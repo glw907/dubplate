@@ -420,22 +420,77 @@ func safeCastBool(s string) bool {
 
 // replaceInvalidUTF8 returns s with each invalid UTF-8 code point
 // replaced by U+FFFD, matching mutagen's errors='replace' decode
-// (ruling 10). Values are valid UTF-8 by construction on write, so
-// this only ever runs on read.
+// (ruling 10). Python's utf-8 codec follows the Unicode "maximal
+// subpart" rule: an ill-formed sequence collapses its longest
+// well-formed prefix (the lead byte plus whatever continuation bytes
+// already matched) into a single U+FFFD, then resumes scanning at the
+// byte that broke the sequence. unicode/utf8's own DecodeRuneInString
+// does not have these semantics (it always reports size 1 on an
+// invalid encoding, mutagen/_vorbis.py:109 does not), so this scans
+// the byte structure explicitly via utf8SequenceSpan rather than
+// leaning on the stdlib decoder. Values are valid UTF-8 by
+// construction on write, so this only ever runs on read.
 func replaceInvalidUTF8(s string) string {
 	if utf8.ValidString(s) {
 		return s
 	}
 	var b strings.Builder
 	for i := 0; i < len(s); {
-		r, size := utf8.DecodeRuneInString(s[i:])
-		if r == utf8.RuneError && size <= 1 {
-			b.WriteRune(utf8.RuneError)
-			i++
+		validLen, invalidLen := utf8SequenceSpan(s[i:])
+		if validLen > 0 {
+			b.WriteString(s[i : i+validLen])
+			i += validLen
 			continue
 		}
-		b.WriteRune(r)
-		i += size
+		b.WriteRune(utf8.RuneError)
+		i += invalidLen
 	}
 	return b.String()
+}
+
+// utf8SequenceSpan looks at s's leading bytes and reports either the
+// byte length of a well-formed UTF-8 sequence starting there
+// (validLen, with invalidLen zero) or the byte length of the maximal
+// ill-formed subpart starting there (invalidLen, with validLen zero):
+// the lead byte plus however many of its required continuation bytes
+// are present and in range before one is missing or out of range.
+// utf8SequenceSpan never sees an empty s; replaceInvalidUTF8's loop
+// only calls it while i < len(s).
+func utf8SequenceSpan(s string) (validLen, invalidLen int) {
+	b0 := s[0]
+	if b0 < 0x80 {
+		return 1, 0
+	}
+
+	var contRanges [][2]byte
+	switch {
+	case b0 >= 0xC2 && b0 <= 0xDF:
+		contRanges = [][2]byte{{0x80, 0xBF}}
+	case b0 == 0xE0:
+		contRanges = [][2]byte{{0xA0, 0xBF}, {0x80, 0xBF}}
+	case b0 >= 0xE1 && b0 <= 0xEC:
+		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 == 0xED:
+		contRanges = [][2]byte{{0x80, 0x9F}, {0x80, 0xBF}}
+	case b0 >= 0xEE && b0 <= 0xEF:
+		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 == 0xF0:
+		contRanges = [][2]byte{{0x90, 0xBF}, {0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 >= 0xF1 && b0 <= 0xF3:
+		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 == 0xF4:
+		contRanges = [][2]byte{{0x80, 0x8F}, {0x80, 0xBF}, {0x80, 0xBF}}
+	default:
+		// A stray continuation byte (0x80-0xBF) or a byte that can
+		// never lead a sequence (0xC0, 0xC1, 0xF5-0xFF): a maximal
+		// subpart of length 1, on its own.
+		return 0, 1
+	}
+
+	for i, r := range contRanges {
+		if i+1 >= len(s) || s[i+1] < r[0] || s[i+1] > r[1] {
+			return 0, i + 1
+		}
+	}
+	return len(contRanges) + 1, 0
 }

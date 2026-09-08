@@ -245,15 +245,32 @@ func TestSafeCastBool(t *testing.T) {
 }
 
 // TestReplaceInvalidUTF8 grades ruling 10: invalid UTF-8 is replaced
-// with U+FFFD per code point on read, matching mutagen's
-// errors='replace'. The input carries a lone continuation byte (0x80)
-// between two valid runs; the want string is a hard-coded literal, not
-// computed from replaceInvalidUTF8 or utf8.ToValidString.
+// with U+FFFD on read, matching mutagen's errors='replace'
+// (mutagen/_vorbis.py:109), which follows Python's utf-8 "maximal
+// subpart" rule rather than a per-byte scan: an ill-formed sequence
+// collapses its longest well-formed prefix into a single U+FFFD, not
+// one U+FFFD per invalid byte. Every want string is a hard-coded
+// literal, never computed from replaceInvalidUTF8, utf8.ToValidString
+// or utf8.DecodeRuneInString (whose own invalid-encoding size is
+// always 1, not the maximal-subpart length).
 func TestReplaceInvalidUTF8(t *testing.T) {
-	in := "before\x80after"
-	want := "before�after"
-	if got := replaceInvalidUTF8(in); got != want {
-		t.Errorf("replaceInvalidUTF8(%q) = %q, want %q", in, got, want)
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"lone continuation byte between valid runs", "before\x80after", "before�after"},
+		{"truncated three-byte sequence", "\xe2\x82", "�"},
+		{"truncated four-byte sequence", "\xf0\x9f\x92", "�"},
+		{"two lone continuation bytes", "\x80\x80", "��"},
+		{"valid lead byte, invalid continuation", "\xc3(", "�("},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := replaceInvalidUTF8(c.in); got != c.want {
+				t.Errorf("replaceInvalidUTF8(%q) = %q, want %q", c.in, got, c.want)
+			}
+		})
 	}
 }
 
