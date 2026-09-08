@@ -49,77 +49,56 @@ type Threshold struct {
 	Doc     string
 }
 
-// ParseInt resolves t as an integer against environ: t.Default's own
-// parse when t.Key is unset or empty, or environ's value when set. It
-// records an error naming t.Key and t.Doc when a set value is not a
-// valid integer, and an error naming t.Key when Default itself does
-// not parse, which is a registration bug rather than an environment
-// one.
-func ParseInt(environ []string, t Threshold) (int, error) {
+// parseThreshold resolves t against environ through parse: t.Default's
+// own parse when t.Key is unset or empty, or environ's value when set.
+// It records an error naming t.Key and t.Doc when a set value fails to
+// parse, and an error naming t.Key alone when Default itself fails to
+// parse, which is a registration bug rather than an environment one.
+// ParseInt, ParseDuration, and ParseFloat each call it with their own
+// parse function, so the unset/set-value/bad-default shape lives once
+// for every numeric kind.
+func parseThreshold[T any](environ []string, t Threshold, parse func(string) (T, error)) (T, error) {
 	w := newWall(environ)
 
 	v, ok := w.get(t.Key)
 	if !ok {
-		def, err := strconv.Atoi(t.Default)
+		def, err := parse(t.Default)
 		if err != nil {
-			return 0, fmt.Errorf("%s: invalid default %q", t.Key, t.Default)
+			var zero T
+			return zero, fmt.Errorf("%s: invalid default %q", t.Key, t.Default)
 		}
 		return def, nil
 	}
 
-	n, err := strconv.Atoi(v)
+	n, err := parse(v)
 	if err != nil {
-		return 0, fmt.Errorf("%s: invalid value %q, want %s", t.Key, v, t.Doc)
+		var zero T
+		return zero, fmt.Errorf("%s: invalid value %q, want %s", t.Key, v, t.Doc)
 	}
 	return n, nil
 }
 
-// ParseDuration resolves t as a duration against environ, in ParseInt's
-// own shape: t.Default's parse when t.Key is unset, environ's value
-// when set, an error naming t.Key and t.Doc on a bad value, and an
-// error naming t.Key alone on a bad default, which is a registration
-// bug rather than an environment one.
-func ParseDuration(environ []string, t Threshold) (time.Duration, error) {
-	w := newWall(environ)
-
-	v, ok := w.get(t.Key)
-	if !ok {
-		def, err := time.ParseDuration(t.Default)
-		if err != nil {
-			return 0, fmt.Errorf("%s: invalid default %q", t.Key, t.Default)
-		}
-		return def, nil
-	}
-
-	d, err := time.ParseDuration(v)
-	if err != nil {
-		return 0, fmt.Errorf("%s: invalid value %q, want %s", t.Key, v, t.Doc)
-	}
-	return d, nil
+// ParseInt resolves t as an integer against environ; see
+// [parseThreshold] for the unset/set-value/bad-default shape it
+// shares with ParseDuration and ParseFloat.
+func ParseInt(environ []string, t Threshold) (int, error) {
+	return parseThreshold(environ, t, strconv.Atoi)
 }
 
-// ParseFloat resolves t as a float64 against environ, in ParseInt's own
-// shape: t.Default's parse when t.Key is unset, environ's value when
-// set, an error naming t.Key and t.Doc on a bad value, and an error
-// naming t.Key alone on a bad default, which is a registration bug
-// rather than an environment one.
+// ParseDuration resolves t as a duration against environ; see
+// [parseThreshold] for the unset/set-value/bad-default shape it
+// shares with ParseInt and ParseFloat.
+func ParseDuration(environ []string, t Threshold) (time.Duration, error) {
+	return parseThreshold(environ, t, time.ParseDuration)
+}
+
+// ParseFloat resolves t as a float64 against environ; see
+// [parseThreshold] for the unset/set-value/bad-default shape it
+// shares with ParseInt and ParseDuration.
 func ParseFloat(environ []string, t Threshold) (float64, error) {
-	w := newWall(environ)
-
-	v, ok := w.get(t.Key)
-	if !ok {
-		def, err := strconv.ParseFloat(t.Default, 64)
-		if err != nil {
-			return 0, fmt.Errorf("%s: invalid default %q", t.Key, t.Default)
-		}
-		return def, nil
-	}
-
-	f, err := strconv.ParseFloat(v, 64)
-	if err != nil {
-		return 0, fmt.Errorf("%s: invalid value %q, want %s", t.Key, v, t.Doc)
-	}
-	return f, nil
+	return parseThreshold(environ, t, func(s string) (float64, error) {
+		return strconv.ParseFloat(s, 64)
+	})
 }
 
 // ParseString resolves t as a string against environ: t.Default when

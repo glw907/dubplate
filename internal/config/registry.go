@@ -88,6 +88,14 @@ const (
 	familySuperseded  = "superseded names"
 )
 
+// panicDuplicate panics reporting that key, already declared in
+// existing, cannot also be declared in family. Every family's
+// collision check shares this one message shape, so a rung reading
+// one panic recognizes them all.
+func panicDuplicate(key, existing, family string) {
+	panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, existing, family))
+}
+
 // claim panics if key does not carry the DUBPLATE_ prefix (O5 class 3,
 // Resolution R16: every family's keys share one flat environment
 // namespace, so a declared key without the prefix would collide with
@@ -102,7 +110,7 @@ func (r *Registry) claim(family, key string) {
 		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))
 	}
 	if existing, ok := r.claims[key]; ok && existing != family {
-		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, existing, family))
+		panicDuplicate(key, existing, family)
 	}
 	r.claims[key] = family
 }
@@ -123,7 +131,7 @@ func (r *Registry) AddWallRow(row WallRow) {
 	switch {
 	case strings.HasPrefix(row.Name, "DUBPLATE_"):
 		if slices.ContainsFunc(r.ownedWall, func(existing WallRow) bool { return existing.Name == row.Name }) {
-			panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", row.Name, familyOwnedWall, familyOwnedWall))
+			panicDuplicate(row.Name, familyOwnedWall, familyOwnedWall)
 		}
 		r.claim(familyOwnedWall, row.Name)
 	case row.Pending != "":
@@ -146,13 +154,13 @@ func (r *Registry) OwnedWall() []WallRow {
 func (r *Registry) AddReservedClass(class ReservedClass) {
 	for i, key := range class.Keys {
 		if slices.Contains(class.Keys[:i], key) {
-			panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyReserved, familyReserved))
+			panicDuplicate(key, familyReserved, familyReserved)
 		}
 	}
 	for _, key := range class.Keys {
 		for _, existing := range r.reservedClasses {
 			if slices.Contains(existing.Keys, key) {
-				panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyReserved, familyReserved))
+				panicDuplicate(key, familyReserved, familyReserved)
 			}
 		}
 		r.claim(familyReserved, key)
@@ -205,13 +213,13 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 
 	for i, key := range keys {
 		if slices.Contains(keys[:i], key) {
-			panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyIntegration, familyIntegration))
+			panicDuplicate(key, familyIntegration, familyIntegration)
 		}
 	}
 	for _, key := range keys {
 		for _, existing := range r.integrationClasses {
 			if key == existing.Flag || slices.Contains(existing.Required, key) || slices.Contains(existing.Optional, key) {
-				panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyIntegration, familyIntegration))
+				panicDuplicate(key, familyIntegration, familyIntegration)
 			}
 		}
 	}
@@ -245,7 +253,7 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // provisional, conductor ruling owed, R11
 func (r *Registry) AddThreshold(t Threshold) {
 	if slices.ContainsFunc(r.thresholds, func(existing Threshold) bool { return existing.Key == t.Key }) {
-		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", t.Key, familyThresholds, familyThresholds))
+		panicDuplicate(t.Key, familyThresholds, familyThresholds)
 	}
 	validateThresholdDefault(t)
 	if !r.isOptionalIntegrationKey(t.Key) {
@@ -319,7 +327,7 @@ func (r *Registry) Thresholds() []Threshold {
 // provisional, conductor ruling owed, R8
 func (r *Registry) AddSuperseded(name, reason string) {
 	if _, ok := r.superseded[name]; ok {
-		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", name, familySuperseded, familySuperseded))
+		panicDuplicate(name, familySuperseded, familySuperseded)
 	}
 	r.claim(familySuperseded, name)
 	r.superseded[name] = reason
