@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -69,8 +69,21 @@ func TestNewVersionCmd_PrintsTwoLabeledRows(t *testing.T) {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
 
-	want := fmt.Sprintf("%-32s %s\n%-32s %s\n", "version", "v1.2.3", "matcher-commit", "abc123")
-	if stdout.String() != want {
-		t.Errorf("stdout = %q, want %q", stdout.String(), want)
+	// want is a literal, not a Sprintf built from the same "%-32s %s"
+	// format printRow uses: a shared format string would let both sides
+	// drift together if the column width or separator regressed.
+	want := "version                          v1.2.3\n" +
+		"matcher-commit                   abc123\n"
+	got := stdout.String()
+	if got != want {
+		t.Errorf("stdout = %q, want %q", got, want)
+	}
+
+	lines := strings.Split(strings.TrimSuffix(got, "\n"), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("stdout has %d lines, want 2: %q", len(lines), got)
+	}
+	if !strings.HasPrefix(lines[1], "matcher-commit") {
+		t.Errorf("second line = %q, want it to start with %q", lines[1], "matcher-commit")
 	}
 }
