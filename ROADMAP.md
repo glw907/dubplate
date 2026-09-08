@@ -66,7 +66,8 @@ Folded from the organizer spec's "Roadmap revisions this spec carries"
 Subsume Navidrome so the estate is one clean integrated system (Geoff,
 2026-09-07; primary driver: one binary a stranger can set up). Brainstormed
 2026-09-07; spec at `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`
-(revision 1). Settled so
+(revision 2.1, ratified 2026-09-07 after four adversarial reviews under
+`docs/superpowers/research/2026-09-07-streamer-2-0-review-*.md`). Settled so
 far: OpenSubsonic API first, first-party web player later; the pipeline's
 catalog is the index (no scanner admits music; a reconcile walk only
 reports drift); app passwords minted per device from the roster account;
