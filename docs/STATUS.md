@@ -22,18 +22,35 @@ then this file; the live-executor check is the lane registry.
 
 ## Next action
 
-Pass 4b, the rung 4 deploy, in the main tree. Its plan is owed
-just-in-time and does not exist yet. 4b cannot close without an owner
-sitting inside it (ruling 6), and its close records `started-at`,
-because the launch date is that date plus the 720h floor. HISTORY's
-4a to 4b handoff is what the plan builds from.
+Pass 4b, the rung 4 deploy, is executing in the main tree under the
+2026-09-07 unattended window (grants in memory
+`unattended-window-2026-09-07`: 8M cap, flag to the conductor,
+read-only `deploy.sh --check` allowed, no box write). Plan:
+`docs/superpowers/plans/2026-09-07-rung-4b-deploy.md` (revision 2,
+3M ceiling, flag 2.4M, checkpoint after Task 4). Task 0 ran clean on
+2026-09-07. The chain runs Tasks 2, 1, 3, 4, 5, 6; the conductor then
+runs the read-only `--check`, dispatches Task 7's fresh-context unit
+read, and Task 8 writes this file's handoff. **Task 9, the sitting, is
+Geoff's** (ruling 6); the pass stays OPEN until it runs, and its close
+records `started-at`, because the launch date is that date plus the
+720h floor.
+
+After 4b's Task 8: rung 1b in the main tree (plan
+`docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`,
+revision 2, 2.5M ceiling, flag 2.0M, eight tasks, KindString added
+from the 0c standard), then rung 8 if the window cap allows, then a
+rung 5 spec draft as a doc lane. Phase 0c is complete:
+`docs/superpowers/specs/2026-09-07-design-language-standard.md`
+(revision 2, six conductor rulings applied; one owner note rides to
+the rung 5 sitting, the CSP `style-src 'unsafe-inline'` relaxation).
 
 ## Lane registry
 
-- lane-1 (main tree): IDLE, pending 4b's plan.
-- lane-2 (worktree): BLOCKED until Phase 0b/0c.
-- doc lane: IDLE, one candidate queued (the 2.0 study rung). Whether to
-  run it before 4b is the conductor's call.
+- lane-1 (main tree): ACTIVE, pass 4b chain (pass-execute), then
+  rung 1b. One executor; nothing else edits code here.
+- lane-2 (worktree): BLOCKED until rung 1b lands (0c is done).
+- doc lane: IDLE; candidates queued: the rung 5 spec draft, the 2.0
+  study rung.
 
 ## Open items (carried)
 
@@ -44,10 +61,17 @@ because the launch date is that date plus the 720h floor. HISTORY's
   `KindFloat` need; `AdminEmail` and five 3b leftovers, none blocking.
   `profile_hashes` (m1) and the response-status extension open since
   2b/2c; `Case.Extra` and `MergePseudoRelease`'s `slices.Clone` to rung 9.
-- 4a-i code untouched by 4a-ii still carries "provisional, owner
-  ruling N open" marks; all six are ratified, retiring them is mechanical.
-- 17 unledgered tied candidates filed for lane E1; owner ask to
-  re-disposition `bug-assignment-rejection-gap` to `no-correct-answer`.
+- Five retireable "provisional" ruling marks (three in
+  `internal/engine/shadow`, two in `cmd/dubplate-server/shadow.go`)
+  retire in 4b Task 6; `flac.go:62` stays as a rung 8 handoff mark.
+- 17 unledgered tied candidates filed for lane E1.
+  `bug-assignment-rejection-gap` is re-dispositioned to
+  `no-correct-answer` (Geoff, 2026-09-07; 53f0405, 6aadf83): compat
+  mode still grades its six probe cases, default mode does not.
+- `docs/superpowers/research/2026-09-04-agentic-coding-public-evidence.md`
+  is corrupted (escaped newlines, a leaked transcript tail) and stays
+  untracked until Geoff regenerates it; the outreach doc stays
+  untracked by design.
 - Adjudication batch 1 fully ruled. Rewrite post-mortem owed; two albums
   await review in `/srv/music/review/2026-08-31/geoff/`;
   FILEBROWSER_ADMIN_PASSWORD orphaned; stale failed units.
