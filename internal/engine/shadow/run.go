@@ -291,7 +291,7 @@ func matchStep(ctx context.Context, store *Store, cfg Config, matched []*Observa
 
 		res.Observations = append(res.Observations, obs)
 		res.Fixtures = append(res.Fixtures, caseFixtureFor(obs, now))
-		if row, ok := pendingRowFor(obs, now); ok {
+		if row, ok := PendingRowFor(obs, now); ok {
 			res.Pending = append(res.Pending, row)
 		}
 	}
@@ -351,9 +351,12 @@ func caseFixtureFor(obs *Observation, now time.Time) CaseFixture {
 	}
 }
 
-// pendingRowFor stages one divergence for owner adjudication, and
+// PendingRowFor stages one divergence for owner adjudication, and
 // reports whether it staged anything: an agreement and a deferral stage
-// nothing.
+// nothing. It is exported for cmd/dubplate-server's reevaluate wiring: a
+// newly diverged observation Reevaluate promotes from an agreement was
+// never staged by an observe pass, so the verb stages one itself, off
+// the same construction an observe pass uses.
 //
 // News is every one of the three divergence classes, with one annotation
 // rather than one exclusion. A divergence the DefaultCompat re-score
@@ -365,7 +368,7 @@ func caseFixtureFor(obs *Observation, now time.Time) CaseFixture {
 // The four prose fields are rendered from the observation rather than
 // staged as TODO: a row that says nothing still consumes an owner
 // adjudication.
-func pendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
+func PendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
 	if !isDivergence(obs.Class) {
 		return PendingRow{}, false
 	}
@@ -384,14 +387,6 @@ func pendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
 			obs.MatcherCommit + ", pass " + passID(now),
 		Date: now.Format(time.DateOnly),
 	}, true
-}
-
-// PendingRowFor is pendingRowFor, exported for cmd/dubplate-server's
-// reevaluate wiring: a newly diverged observation Reevaluate promotes
-// from an agreement was never staged by an observe pass, so the verb
-// stages one itself, off the same construction an observe pass uses.
-func PendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
-	return pendingRowFor(obs, now)
 }
 
 // disputedRelease returns the release under dispute and the side that

@@ -65,7 +65,7 @@ type ResolvedRecord struct {
 //     retire-only design would silently lose it. The new pending row
 //     itself is staged by the caller, which is the one artifact this
 //     package may not marshal (contract S19); the observation carries
-//     everything pendingRowFor needs.
+//     everything PendingRowFor needs.
 //   - UNEVALUABLE: the replay asked for a request the recording does not
 //     carry. The row stays stamped and staged. A newer matcher revision
 //     can take a different branch through tag.Album for the same input,
@@ -114,7 +114,7 @@ func Reevaluate(ctx context.Context, cfg Config, s *Store, now time.Time) (*Reev
 				NewClass:       newClass,
 				OriginalGo:     originalGo,
 				NewGo:          newGo,
-				Date:           now.UTC().Format(time.RFC3339),
+				Date:           now.Format(time.DateOnly),
 			}
 			data, err := json.MarshalIndent(record, "", "  ")
 			if err != nil {
@@ -124,6 +124,18 @@ func Reevaluate(ctx context.Context, cfg Config, s *Store, now time.Time) (*Reev
 				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
 			}
 			if err := s.RemovePending(obs.ID); err != nil {
+				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
+			}
+			// The observation itself is restamped to the retiring commit
+			// and reclassified as an agreement: otherwise it keeps its
+			// superseded commit and its divergence class forever, so a
+			// later Reevaluate re-processes it (never lands in Skipped)
+			// and BuildReport's per-commit row keeps counting a
+			// divergence that resolved/ already says is retired.
+			obs.MatcherCommit = cfg.MatcherCommit
+			obs.Class = newClass
+			obs.Go = newGo
+			if err := s.PutObservation(obs); err != nil {
 				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
 			}
 			result.Retired = append(result.Retired, obs.ID)

@@ -495,9 +495,9 @@ func TestPendingRowNamesTheReleaseUnderDispute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			row, ok := pendingRowFor(tt.obs, passNow)
+			row, ok := PendingRowFor(tt.obs, passNow)
 			if ok != tt.wantRow {
-				t.Fatalf("pendingRowFor staged = %v, want %v", ok, tt.wantRow)
+				t.Fatalf("PendingRowFor staged = %v, want %v", ok, tt.wantRow)
 			}
 			if !ok {
 				return
@@ -546,7 +546,7 @@ func TestPendingRowSurvivesTheCompatClassAnnotation(t *testing.T) {
 		Class: ClassGoAppliesOracleSkipped,
 	}
 
-	row, ok := pendingRowFor(obs, passNow)
+	row, ok := PendingRowFor(obs, passNow)
 	if !ok {
 		t.Fatal("no row staged: a compat-class annotation is a hypothesis, never a suppression")
 	}

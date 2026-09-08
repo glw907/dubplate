@@ -246,6 +246,24 @@ func (s *Store) ResolvedIDs() ([]string, error) {
 	return s.stagedRowIDs(resolvedDir)
 }
 
+// Resolved reads back resolved/<obsID>.json, mirroring the pending and
+// observation readers: a caller that only checked ResolvedIDs never saw
+// what Reevaluate actually recorded there.
+func (s *Store) Resolved(obsID string) (*ResolvedRecord, error) {
+	if !validID(obsID) {
+		return nil, fmt.Errorf("resolved: invalid observation id %q", obsID)
+	}
+	data, err := os.ReadFile(filepath.Join(s.root, resolvedDir, obsID+".json"))
+	if err != nil {
+		return nil, fmt.Errorf("resolved %s: %w", obsID, err)
+	}
+	var rec ResolvedRecord
+	if err := json.Unmarshal(data, &rec); err != nil {
+		return nil, fmt.Errorf("decode resolved %s: %w", obsID, err)
+	}
+	return &rec, nil
+}
+
 func (s *Store) stagedRowIDs(sub string) ([]string, error) {
 	entries, err := os.ReadDir(filepath.Join(s.root, sub))
 	if err != nil {
