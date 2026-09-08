@@ -33,7 +33,11 @@ OpenSubsonic specification, Navidrome and gonic for behavior only under
 GPL, taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag
 tables, chromaprint); a rung plan names which entries it consulted and
 adopts or declines each with a reason, so no rung rebuilds what a
-license-compatible library already does well.
+license-compatible library already does well. An adoption is judged on
+license, code quality against the house bar, maintenance (release
+cadence, open-issue age, bus factor), and adoption (importers, who
+depends on it), with the evidence recorded in the plan, never on
+familiarity alone.
 
 ## Ledgers
 
