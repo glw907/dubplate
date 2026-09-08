@@ -297,8 +297,11 @@ degraded run because a retried request spends a second token by design
 (`client.go:343-347`). Sixty tokens therefore covers five albums in the
 worst case and eight or nine in the ordinary one, which outpaces any
 plausible arrival rate on owner-curated material (`BS:243-249`), and at
-one request per second the run's wire time stays inside sixty seconds,
-comfortably under the five-minute timer chosen below. `Budget.Spent()`
+two seconds a request the run's wire time stays inside two minutes,
+comfortably under the five-minute timer chosen below (corrected
+2026-09-07 at the 4a-ii close: the pre-fold sentence read "at one
+request per second ... inside sixty seconds", which the M6 fold and the
+conductor's pace ruling supersede). `Budget.Spent()`
 is the honest count the report prints (`limiter.go:400`), persisted per
 pass so `shadow report` can sum it.
 
@@ -843,9 +846,16 @@ MatcherConfigHash string `json:"matcher_config_hash,omitempty"`
 rules: a shadow-subject row (`Album` and `ReleaseMBID` both set,
 `adjudication.go:168`) requires `MatcherCommit`; a case-subject row is
 refused if it carries either field. Both are `omitempty`, so the 21
-committed corpus rows validate byte-for-byte unchanged. Each rule ships
-a hand-authored fixture in the package's own `testdata` proving it
-fires, per the standing assertion discipline.
+committed corpus rows round-trip through a decode and re-encode with no
+key gained or lost (corrected 2026-09-07 at the 4a-ii close: byte
+identity was never available, because the committed ledger orders
+`corrected_verdict` after `date` while `AdjudicationEntry` declares it
+before `Reason`, and the file carries a literal `<` and three `>` that
+Go's encoder escapes). Each rule ships a hand-authored fixture as an
+inline Go literal variant in the package's own table test, which is the
+package's landed precedent for a per-row rule; `testdata/` holds
+cross-ledger fixtures only (corrected 2026-09-07 at the 4a-ii close,
+Resolution R14).
 
 ### How a superseded-commit divergence is re-evaluated mechanically
 
@@ -1061,7 +1071,10 @@ registration.
 
 `cmd/dubplate-server/shadow.go`, one file, matching the shape
 `newCheckCmd` and `newDoctorCmd` already set: a constructor taking
-`(environ []string, stdout, stderr io.Writer)` returning
+`(environ []string, matcherCommit string, stdout, stderr io.Writer)`
+returning (corrected 2026-09-07 at the 4a-ii close, conductor ruling B7:
+the matcher stamp is a fourth parameter, because Resolution R3 rejects
+the package variable a stamp table would otherwise have to write)
 `*cobra.Command` (`cmd/dubplate-server/check.go:16`, `doctor.go:23`),
 with `SilenceUsage` and `SilenceErrors` both true and main as the sole
 stderr writer (`main.go:35-38`). Three verbs:
@@ -1264,7 +1277,7 @@ fact wrong.
 | `DUBPLATE_LIBRARY_ROOT` | **literal** `/srv/music/library`. The age store carries `DUBPLATE_LIBRARY_DIR`, the pre-rename name (`internal/config/keys.go:165`), so a bare `NAME=` line aborts the render |
 | `DUBPLATE_SITE_NAME` | **literal**, the estate's masthead text. The store carries `DUBPLATE_SERVE_SITE_NAME`, the pre-rename name (`keys.go:166`), and `~/.dotfiles/secrets/registry.md` records it as non-secret masthead text minted 2026-09-01. A rename in the age store would be a second place to keep one string in step; the literal keeps it in the estate's own operational record, where `BS:283-288` puts it |
 | `DUBPLATE_ADMIN_EMAIL` | **store lookup**, unchanged. Already minted and already in the incumbent manifest (`env/dubplate.env.template:25`) |
-| the four `DUBPLATE_SHADOW_*` rows | **literals**: the estate's inbox, oracle state and review paths, the floor, and the budget. Putting `/srv/music/inbox` in the age store is a category error |
+| the six `DUBPLATE_SHADOW_*` rows (corrected 2026-09-07 at the 4a-ii close from "the four"; the key table carries six, the enable flag included) | **literals**: the estate's inbox, oracle state and review paths, the floor, and the budget. Putting `/srv/music/inbox` in the age store is a category error |
 
 **Secrets: none, and now that is a checked statement rather than an
 assumed one.** No row above is a secret, `secret-set.sh` is not run,
@@ -1606,14 +1619,16 @@ and the pending count must be zero (`adjudication.go:10-12`).
 
 M band, **two passes**. The deployment half argues for the split, for
 one reason: 4b cannot close without an owner sitting inside it (ruling
-7), and a pass that stalls waiting on a sitting is a pass whose ceiling
+6, corrected 2026-09-07 at the 4a-ii close from "ruling 7"; the deploy
+sitting is Resolution R10's ruling 6), and a pass that stalls waiting on
+a sitting is a pass whose ceiling
 and checkpoint arithmetic stop meaning anything. Splitting also puts
 the merge point exactly at the phase boundary, since M1 is the deploy
 (`DA:335`).
 
 | Pass | Scope | Exit gate | Tree |
 | --- | --- | --- | --- |
-| **4a** The runner | `internal/atomicfile` re-landed; `matcher.QuietImportTunables`; the config integration class, the duration threshold, the six rows and their `Register` call site; the FLAC reader and its mapping; the capture with its grouping and partial-read rules; the reconcile step's basename join and consumed-report ledger; the match step; the store, including `passes/`; the recording transport and the `DefaultCompat` re-score; the divergence classification with its four deferring branches; `analysis.AdjudicationEntry`'s two fields and their checks; the marshalling in `cmd/dubplate-server`; the `shadow` subcommand's three verbs; the report; `reevaluate` | `bash scripts/check.sh` green, plus one end-to-end `observe` run against a hand-authored inbox and a hand-authored run report in the pass's own `testdata`, producing one agreement, one divergence of each class, one excluded multi-album directory, and one deferred observation of each error branch | Main tree |
+| **4a** The runner | `internal/atomicfile` re-landed; `matcher.QuietImportTunables`; the config integration class, the duration threshold, the six rows and their `Register` call site; the FLAC reader and its mapping; the capture with its grouping and partial-read rules; the reconcile step's basename join and consumed-report ledger; the match step; the store, including `passes/`; the recording transport and the `DefaultCompat` re-score; the divergence classification with its four deferring branches; `analysis.AdjudicationEntry`'s two fields and their checks; the marshalling in `cmd/dubplate-server`; the `shadow` subcommand's three verbs; the report; `reevaluate` | `bash scripts/check.sh` green, plus one end-to-end `observe` run against a hand-authored inbox and a hand-authored run report in the pass's own `testdata`, producing one agreement, one divergence of each class, one excluded multi-album directory, and one deferred observation of each error branch reachable in a single pass (corrected 2026-09-07 at the 4a-ii close: `Budget.wait` cannot be injected per album, so `ErrLimiterClosed` is proven in its own pass, Resolution R7) | Main tree |
 | **4b** The deployment | `systemd/dubplate-shadow.{service,timer}`; `env/dubplate-server.env.template` with its literal rows and the existing template's header amendment; deploy.sh's six edits, the sixth being the two `-ldflags` stamps and the smoke-test assertion; `dubplate-server version` printing both stamps; the fresh-context unit read; the deploy sitting; the SELinux verifications; the recorded deploy date | `check.sh` green, `deploy.sh --check` clean, a non-`dev` matcher stamp asserted by the smoke test, the sitting completed, the first pass verified in the journal | Main tree |
 
 Rung 4 writes `internal/harness/analysis`, and the standing policy is

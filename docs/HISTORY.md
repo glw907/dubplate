@@ -2,6 +2,483 @@
 
 Per-pass ledger, newest first.
 
+## Rung 4, pass 4a-ii (pass close, 2026-09-07)
+
+Tasks 10 through 15 executed sequentially in the main tree against
+`docs/superpowers/plans/2026-09-05-rung-4a-shadow-runner.md` (revision
+2.1), closing the fifteen-task 4a plan that pass 4a-i split at the Task
+9 / Task 10 boundary. Rung 4a is now closed. The chain was
+`wf_c97fd506-dda`: 16 agents, sonnet implementers and opus
+`diff-reviewer`s, strictly sequential, 1.32M tokens.
+
+### What landed
+
+Task 10 (`09353f0`, fix `8326499`) added
+`analysis.AdjudicationEntry.MatcherCommit` and `MatcherConfigHash`,
+both `omitempty`, with the two `checkAdjudicationEntry` rules that
+require the commit on a shadow-subject row and refuse either field on a
+case-subject row, plus
+`TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost`. Task 11
+(`bef628e`) built `caseJSON`, `pendingJSON` and `storeArtifacts` in
+`cmd/dubplate-server/shadow.go`, the marshalling that keeps
+`internal/engine/shadow` clear of both harness shapes: `pendingJSON`
+runs `analysis.CheckAdjudications` before it returns bytes, so a
+malformed row never reaches disk. Task 12 (`81183fe`, fix `3c229f0`)
+built `shadow.BuildReport` and the `shadow` subcommand's three verbs,
+`observe`, `report` and `reevaluate`, in `newCheckCmd`'s shape, with
+`main.matcherCommit` defaulting to `"dev"` and threaded through
+`newShadowCmd`. Task 13 (`f7cd7eb`, fixes `f7f82b7` and `0fed5b3`)
+built `shadow.Reevaluate`, the mechanical re-evaluation of an
+observation stamped at a superseded matcher commit: it replays that
+observation's own stored responses through `replayTransport` and
+`matchAlbum` under `musicbrainz.Unmetered()` at the observation's own
+`EvalDate`, and sorts every observation into `Retired`, `Restamped`,
+`NewlyDiverged`, `Unevaluable` or `Skipped`. Task 14 (`9c956b8`, fix
+`bb75cea`) built rung 4's exit gate, one end-to-end `observe` run over
+a hand-authored fourteen-directory inbox. The post-chain round
+(`85dcd37`) folded the Task 13 and Task 14 review leftovers.
+
+The close-out `code-simplifier` pass (`2992bbb`, 9 files, +140/-217)
+exported `shadow.StoreDir` to retire a twice-written directory literal,
+folded four identical merge loops in `BuildReport` onto one helper,
+collapsed `Reevaluate`'s three outcome arms onto one shared
+restamp-and-write block, replaced a hand-rolled map comparison with
+`maps.Equal`, and replaced collect-then-sort and membership loops with
+`slices.Sorted(maps.Keys)` and `slices.Contains`. Simplify review:
+accept, no blockers; the reviewer confirmed the outcome switch keeps the
+write order and the agreement-to-agreement skip, that `maps.Equal` is
+strictly stricter than the helper it replaced, and that the restamp
+assertions now read from disk rather than the mutated pointer.
+
+Also landed this session, outside the pass but inside this ledger's
+window: the streamer 2.0 initiative. Its design spec
+(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision
+2.1) is ratified after four reviews, `ROADMAP.md` carries the
+`streamer-2-0` initiative, and CLAUDE.md carries the build-for-2.0 and
+prior-art rules, the build spec's 2026-09-07 erratum, and the SvelteKit
+static web rule. The repo also gained an MIT `LICENSE`.
+
+### What the gate caught
+
+Two tasks accepted on the first review, Task 11 and Task 12's second
+round. Task 10 drew a `fix`: the `ReleaseMBID` doc comment landed only
+half of owner ruling 2, naming the field as the release under dispute
+and dropping "filled by whichever side proposed one," which is the
+clause that answers which MBID goes in the field. Task 12 drew a `fix`
+for a printed row rather than for logic: the report emitted the
+`go-applies-oracle-skipped` row with its off-box note but omitted the
+divergences-by-disposition row the criteria name, and the absence was
+explained only in a Go doc comment an operator never sees.
+
+Two tasks went past the one-re-dispatch rule and were ruled by the
+conductor.
+
+- **Task 13** drew a `fix` for a comment misattachment, landed as
+  `f7f82b7`, then a second `fix` on a real assertion gap: nothing read
+  `resolved/<obs-id>.json` back, and the reviewer proved the gap by
+  swapping `OriginalCommit` with `RetiringCommit`, `OriginalClass` with
+  `NewClass` and `OriginalGo` with `NewGo` all at once with the package
+  still green. The conductor ruled the second fix rather than accepting
+  a deliverable no test could fail on. `0fed5b3` reads the resolved
+  record back, restamps a retired observation so the per-commit report
+  row drains, merges the `PendingRowFor` pass-through into one exported
+  function, and dates the resolved record with `time.DateOnly` to match
+  the pending rows. Its review accepted, with three swap mutations run,
+  each firing two assertion misses.
+- **Task 14** **escalated**. Named mutations 4 and 6 did not fire, and
+  the implementer had written the mutation proofs as design commentary
+  at each defending assertion rather than running them. The reviewer
+  ran four of the six itself and reported the two that were unfired.
+  The conductor ruled a fix on `opus`, landed as `bb75cea`: all six
+  mutations run, firing 7, 8, 4, 2, 3 and 2 assertion misses in order.
+  The wall-time bound is a `time.AfterFunc` timer whose `Stop` return
+  is the assertion, because `TestEngineNeverReadsTheClock` bars
+  `time.Now` from every test under `internal/engine`. Determinism now
+  builds two trees rather than one. Row 04 is un-tag-logged, so its
+  review-tree collision suffix is load-bearing and the test asserts
+  which reader produced its oracle signal.
+
+**Conductor rulings taken this pass.**
+
+1. **B7 stands.** `newShadowCmd` keeps the injected `matcherCommit`
+   parameter. Resolution R3 rejects the package variable the
+   alternative would have to write.
+2. **Mutation proofs are run, never narrated.** A named mutation is
+   applied to the source, the suite is run red, and the source is
+   restored. This is now written into
+   `.claude/agents/dubplate-implementer.md`, the repo's own executor,
+   so it binds every later rung rather than this pass alone.
+3. **The exit gate's figures are 14 directories, 3 uploaders and 13
+   stored observations.** The plan's single-uploader fixture is
+   unachievable alongside its own row-04 backstop
+   (`reconcile.go:319-323`) and its per-uploader partial-skip flag
+   (`reconcile.go:103-106`, `:325-328`). Uploader `pk` carries row 09
+   and the ambiguous-basename partner, `bo` carries row 07, `ada`
+   carries the other eleven.
+4. **Retired observations are restamped; agreement-to-agreement
+   observations are not.** The asymmetry is recorded rather than
+   changed: a retire has a report row to drain, and a replay that
+   agrees the way it already agreed has nothing to record.
+5. **The plan's mutation-6 narration is a half-truth.** Dropping
+   `buildInbox`'s `os.Chtimes` calls fails
+   `TestRunIsDeterministicUnderAFrozenClock` only.
+   `TestObservePassIsIdempotent` is insensitive to mtime pinning,
+   because a second `Run` inside one process reads the same unpinned
+   mtimes.
+
+### The shadow contract coverage, S1 through S23
+
+The plan's contracts, each with the Go site that implements it and the
+test that proves it. A contract no end-to-end run can reach names the
+hand-authored fixture instead.
+
+| # | Contract | Go site | What proves it |
+| --- | --- | --- | --- |
+| S1 | `tag.Album` is the fixed entry point | `shadow/match.go` `matchAlbum` | `TestMatchAlbumTakesTheIDConsensusEarlyReturn`, `TestMatchAlbumSearchesWhenThereIsNoConsensus` |
+| S2 | The estate tunables are `QuietImportTunables()` | `matcher/tunables.go`, `shadow/match.go` | `TestMatchAlbumRunsUnderFullCompatAndQuietImportTunables`; `conform`'s drift guard against `gradeTunables("estate")` |
+| S3 | The oracle's signal is binary | `shadow/classify.go` | `TestClassifyVerdictReadsTheStoredAction` |
+| S4 | Four outcomes, three of them divergences | `shadow/classify.go` | `TestClassifyEveryOutcome`; all three classes in `TestObservePassEndToEnd` |
+| S5 | Four deferring branches, closed deliberately | `shadow/classify.go` | `TestClassifyUsesErrorsIsRatherThanEquality`; `TestObservePassEndToEnd` (unavailable, budget), `TestObservePassDefersEverythingOnAClosedLimiter` (limiter closed) |
+| S6 | No error but `ErrNoCandidates` is a Go skip | `shadow/classify.go` | `TestClassifyEveryOutcome`'s deferral rows |
+| S7 | The capture digest is the identity | `shadow/capture.go` | `TestCaptureDigestMovesWithEveryFileProperty`, `TestCaptureIsIdempotentUnderAnUnmovedDigest`, `TestHasObservationIsTheIdempotenceCheck` |
+| S8 | A partial read is discarded, never stored | `shadow/capture.go` | `TestCaptureDiscardsAPartialRead`, `TestCaptureTreatsAnUnreadableAlbumDirectoryAsAPartialRead` |
+| S9 | The grouping rule, with beets' artist fallback | `shadow/capture.go` | `TestCaptureExcludesAMultiAlbumDirectory`, `TestCaptureExcludesAFlatArtistOnlyMultiAlbumDirectory` |
+| S10 | The join key is the basename, never `SourceDir` | `shadow/reconcile.go` | `TestReconcileJoinsAnImportedRowByContentNotBySourceDir`, `TestReconcileResolvesASkipFromEitherBackstop`, `TestReconcileExcludesGateOutcomes`, `TestReconcileClaimsGateRejectedOnlyThroughReviewTree` |
+| S11 | Four `unreconciled` reasons | `shadow/reconcile.go` | `TestReconcileUnreconciledReasons`, `TestReconcilePartialSkipIsUnreconciledNotASkip`; all four counted in `TestObservePassEndToEnd` |
+| S12 | The reports are a rolling window, and gaps are named | `shadow/oraclereport.go`, `shadow/reconcile.go` | `TestReadRunReportsSortsByStartedAt`, `TestReconcileDetectsAReportGap`, `TestReconcileNoGapWhenReportsStillPresent` |
+| S13 | The store layout, rooted at one directory | `shadow/store.go` | `TestStoreRoundTripsEveryArtifact`, `TestStoreWritesNothingOutsideItsRoot`, `TestStoreLeavesNoTempFile` |
+| S14 | `passes/` exists because a `Budget` is in-process state | `shadow/store.go`, `shadow/report.go` | `TestBuildReportSumsTheStore` (11, not 3 and not the maximum), `TestPassIDCollisionSecondWriteWins` |
+| S15 | The budget, the pace and the contact | `shadow/config.go`, `cmd/dubplate-server/shadow.go` | `TestDefaultIntervalIsTwiceMusicbrainzDefault`; the cap asserted in `TestObservePassEndToEnd` against `observeBudgetCap` |
+| S16 | Mode one records, mode two re-scores | `shadow/rescore.go` | `TestRescoreDefaultScoresUnderDefaultCompat`, `TestRescoreDefaultMarksItsVerdictAsAHypothesis` |
+| S17 | Any replay client takes `Unmetered()` | `shadow/rescore.go`, `shadow/reevaluate.go` | `TestRescoreDefaultIssuesNoSearchAndSpendsNoToken`, `TestRunSpendsNoTokenOnTheRescore`, `TestReevaluateSpendsNoBudgetAndReachesNoNetwork` |
+| S18 | The replay transport refuses a miss with 501 | `shadow/transport.go` | `TestReplayTransportRefusesAMissWithoutA404`, `TestRescoreDefaultReportsAMissRatherThanDroppingACandidate`, `TestReevaluateReportsUnevaluableRatherThanRetiring` |
+| S19 | The engine marshals neither harness shape | `cmd/dubplate-server/shadow.go` | `TestCaseJSONRoundTripsThroughLoadCase`, `TestStoreArtifactsWritesOneFilePerObservationAndOnePerNewsRow`; `conform`'s `TestEngineNeverImportsHarness` |
+| S20 | Every staged row is validated before it is written | `cmd/dubplate-server/shadow.go` `pendingJSON` | `TestPendingJSONValidatesBeforeItReturns` (four-row table), `TestPendingJSONNeverEmitsATodo` |
+| S21 | The two schema additions and their rules | `analysis/adjudication.go` | Three inline table rows (`shadow-subject-no-commit`, `case-row-with-matcher-commit`, `case-row-with-matcher-config-hash-only`) plus `TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost` |
+| S22 | Two clauses gate, not one | `shadow/report.go`, `cmd/dubplate-server/shadow.go` | `TestBuildReportSumsTheStore`, `TestReportPrintsThePinnedRowForm`; the second clause's disposition join is declared off-box (gap 4) |
+| S23 | `disposition` stays owner-only | `cmd/dubplate-server/shadow.go` `pendingJSON` | `TestPendingJSONValidatesBeforeItReturns`'s `OracleWrong` row; the shadow writes into the committed ledger never |
+
+### The declared coverage gaps
+
+Nine, on one criterion: a surface 4a itself builds that no test in this
+pass can reach, or a real input shape the design deliberately does not
+observe. None blocks.
+
+1. **An archive upload is invisible to the capture** (Resolution R19).
+   `stageArchive` extracts a `.zip` and removes it from the inbox, so
+   the album that later appears in a run report has a basename the
+   shadow never saw.
+2. **The re-scored `DefaultCompat` verdict is a hypothesis, not a
+   measurement**, wherever the real flow would have widened the
+   candidate set. That is ruling 3's own limit, and the row says so.
+3. **`Budget.wait` cannot be injected per album** (Resolution R7), so
+   the deferral branches are proven in two runs rather than one.
+4. **The report's disposition rows cannot be computed on the box**
+   (Resolution R21). Owner dispositions live in the corpus on the
+   workstation, and the launch gate does that join.
+5. **`atomicfile`'s temp-directory property is unproven on a
+   single-filesystem workstation**, held by the doc comment plus 4b's
+   `ReadWritePaths` argument.
+6. **No test exercises a real library tree.** `readFLAC` runs against
+   an injected reader in the reconcile tests and against built FLACs in
+   the end-to-end run. A real beets-written library file is first read
+   at 4b's deploy.
+7. **The shadow's own timing against a live import is untested.** The
+   quiescence rule is a constraint on 4b's timer interval, and 4a
+   proves no part of it.
+8. **"`internal/engine/shadow` imports `internal/config` never" has no
+   mechanical guard.** Conductor ruling C3 keeps this a declared gap
+   with the `diff-reviewer` as the meanwhile guard, rather than
+   widening this pass's `conform` territory.
+9. **The cross-filesystem half of `atomicfile`'s rename property is
+   untested**, distinct from gap 5's temp-directory half. Nothing
+   proves what `os.Rename` does across an EXDEV boundary.
+
+Joined to rung 3's twenty-one, **the running total is thirty**. Rung 15
+reads that number rather than re-counting.
+
+### Evidence
+
+`bash scripts/check.sh` passed clean at every commit's review point.
+
+The exit gate, `TestObservePassEndToEnd`, drives one `observe` pass over
+fourteen album directories under three uploaders and asserts parsed
+structure only, with no golden file anywhere:
+
+- 2 agreements (row 01's ID consensus, row 02's empty search).
+- 1 divergence of each class: `go-skips-oracle-applied` (03),
+  `go-applies-oracle-skipped` (04), `go-applies-different-release`
+  (05).
+- 2 excluded: 1 multi-album (06), 1 gate-rejected (07).
+- 4 unreconciled reasons, 5 rows: no release id (08), partial skip
+  (09), ambiguous basename (10 and its structural partner), report
+  swept (11).
+- 2 deferred: `ErrUnavailable` (12), `ErrBudgetExhausted` (13).
+  `ErrLimiterClosed` is proven separately by
+  `TestObservePassDefersEverythingOnAClosedLimiter`, per gap 3.
+- 3 pending rows, one per divergence, each carrying a `release_mbid`.
+- 13 stored observations: the fourteen captured directories less row
+  06, which capture excludes before it ever becomes an observation.
+- `started-at` holds the pass clock, and `ClockStarted` is true.
+
+**The budget arithmetic.** `observeBudgetCap` is 12, a fixed literal
+rather than a figure derived from the fixture table: rows 01 through 05
+reserve one token each, and row 12's seven exhausted retry attempts
+spend one each, for 5 + 7 = 12. Row 13's reserve is blocked and spends
+nothing. `Budget.Spent` is asserted equal to the cap, so the cap is a
+cap and not a decoration.
+
+**Measured wall times.** `go test ./...` 2m15s to 2m27s;
+`internal/harness/conform` 132.8s to 143.0s; `internal/engine/shadow`
+0.175s to 0.2s; `bash scripts/check.sh` 1m6s to 3.5 minutes. The
+`internal/engine/shadow` figure is two orders of magnitude inside the
+five-second wall bound the exit gate asserts.
+
+**The conform figures are untouched by this pass**, read from the 4a-i
+entry rather than re-measured: tier 0 still replays 72/72, translation
+still grades 50/50, the request tier still runs 215/303/48, and tier 2
+still produces 215 verdicts. Nothing in `internal/engine/shadow`
+reaches the conform tree.
+
+### The mutation table
+
+Every named mutation across Tasks 10 through 14, each applied to the
+source, run red, and reverted.
+
+| Task | Mutation | Outcome |
+| --- | --- | --- |
+| 10 | Drop the shadow-row `MatcherCommit` requirement | fires, `shadow-subject-no-commit` |
+| 10 | Narrow the case-row guard to `MatcherCommit` only | fires, `case-row-with-matcher-config-hash-only` |
+| 10 | Drop `omitempty` from `MatcherCommit` | fires, the ledger round trip |
+| 11 | Skip the `CheckAdjudications` call | fires, the three refusal rows |
+| 11 | Substitute `analysis.OracleWrong` for `Pending` | fires, two `checkAdjudicationEntry` rules |
+| 11 | Emit a literal `TODO` for `ReleaseTruth` | fires, `TestPendingJSONNeverEmitsATodo` |
+| 11 | Corrupt `PathQuery` to a non-canonical form | fires, `cassette.LoadCase` rejects |
+| 12 | Let `observe` run on a `"dev"` stamp | fires, `TestObserveRefusesAnUnstampedBuild` |
+| 12 | Report the last pass's budget instead of the sum | fires, `TestBuildReportSumsTheStore` |
+| 12 | Call `time.Now` inside `BuildReport` | fires, `TestEngineNeverReadsTheClock` |
+| 12 | Print map rows in map order | fires, `TestReportPrintsMapRowsInSortedKeyOrder` |
+| 12 | Print to `os.Stdout` rather than the injected writer | fires, `TestShadowVerbsAreRegisteredAndPrintToStdout` |
+| 13 | Answer a replay miss with 404 rather than 501 | fires, `TestReevaluateReportsUnevaluableRatherThanRetiring` |
+| 13 | Drop the newly-diverged arm | fires, `TestReevaluateRecordsANewDivergenceOnAnObservationThatAgreed` |
+| 13 | Re-run at `now` rather than the stored `EvalDate` | fires, `TestReevaluateRetiresADivergenceThatNoLongerReproduces` |
+| 13 | Give the replay a metered budget | fires, `TestReevaluateSpendsNoBudgetAndReachesNoNetwork` |
+| 13 | Restamp an unevaluable observation | fires, `TestReevaluateReportsUnevaluableRatherThanRetiring` |
+| 13 (fix) | Swap the resolved record's commits, classes and verdict pairs, three swaps | each fires, 2 assertion misses each |
+| 14 | Make `capture` skip the grouping check | fires, 7 misses |
+| 14 | Make `reconcile` treat a `rejected` row as a skip | fires, 8 misses |
+| 14 | Set the budget cap to zero | fires, 4 misses |
+| 14 | Drop `Retry-After: 0` from the test server | fires, 2 misses, through the `AfterFunc` bound |
+| 14 | Reverse the fixture's numeric prefixes | fires, 3 misses |
+| 14 | Drop `buildInbox`'s `os.Chtimes` calls | fires, 2 misses, `TestRunIsDeterministicUnderAFrozenClock` only |
+
+Four mutations named in 4a-i stay unfired, each with the guard that
+holds the property instead, and none is re-litigated here: Task 1's
+mutations 1 and 3, Task 5's mutation 2 and Task 8's mutation 2. The 4a-i
+entry carries their reasons.
+
+### Non-blocking leftovers, condensed
+
+- `printCountRows` prints nothing for an empty map, so a launch-gate
+  reader cannot tell "zero divergences" from "this report does not
+  compute divergences." Every vocabulary is a closed constant set, so
+  printing the known keys at zero is available.
+- The store path literal `filepath.Join(cfg.StateDir, "shadow")` is
+  written in `cmd` twice, duplicating the engine's own unexported
+  `storeDirName`. An exported `shadow.StorePath(stateDir)` would keep
+  the layout in one place.
+- `report` calls `OpenStore`, which creates the store directory as a
+  side effect of merely printing a report on a box that has never run
+  `observe`.
+- The printed `go-applies-oracle-skipped` count is the raw count, while
+  the gated figure is the subset the owner has not disposed
+  `oracle-wrong`. The parenthetical carries the caveat and the raw
+  count can only over-report, so it fails safe.
+- `Report.MatcherCommits` counts non-agreement observations only, so a
+  commit observed under with zero divergences never gets a row.
+- Any replay error in `Reevaluate` that is neither a recording miss nor
+  `tag.ErrNoCandidates` aborts the whole call, discarding outcomes
+  already computed. `classify` defers per observation instead.
+- `stageNewlyDiverged` and the `reevaluate` verb's `RunE` have no test
+  in `cmd/dubplate-server`; `shadow_test.go` asserts only that the verb
+  is registered.
+- The four committed `testdata/observe` bodies are byte-for-byte what
+  the in-package `releaseBody` and `searchBody` helpers already
+  generate, so they are a second source of truth that can drift.
+- 4a-i's own leftover list stands unchanged: no directory fsync, the
+  non-`.json` decode in `Observations()` and `Passes()`, the uncapped
+  consumed ledger, the silent content-join drop, the unsynchronized
+  `recordingTransport`, and the terminal deferral.
+
+### Filed for other owners
+
+- Renaming `case.json`'s `Profile` the day the corpus grows a
+  `quiet-import` profile, for lane E1 (Resolution R8).
+- A `KindFloat` threshold variant, for the first rung 3 follow-on after
+  rung 1b lands (forward carry 3).
+- The 4a-i filings stand: rung 8 absorbs the FLAC reader, rung 16
+  retires the oracle report decode, and rung 1b absorbs
+  `integrationClasses` as data.
+
+### What a later pass would be wrong to rediscover
+
+1. **Mutation proofs are run, never narrated.** A mutation described in
+   a comment beside the assertion it is supposed to defend proves
+   nothing, and Task 14 shows why: two of six such mutations did not
+   fire, and no reader could tell from the commentary. The rule is now
+   in `.claude/agents/dubplate-implementer.md`.
+2. **The exit gate's uploader count is forced by the code, not by
+   taste.** `reconcile.go` scopes the partial-skip flag per uploader
+   and lets the first review-only capture under an uploader consume the
+   gate-rejected count, and an ambiguous basename is by construction a
+   collision between two uploaders. Any fixture that wants a clean
+   partial skip, a clean gate rejection and an ambiguous basename in
+   one pass needs three uploaders.
+3. **`TestEngineNeverReadsTheClock` covers tests too.** Nothing under
+   `internal/engine` may call `time.Now`, so a wall-time bound in an
+   engine test is a `time.AfterFunc` timer whose `Stop` return is the
+   assertion, never a stopwatch.
+4. **Retire restamps, agreement-to-agreement does not.** A retired
+   observation is restamped so `BuildReport`'s per-commit row drains
+   and a second `reevaluate` does not re-retire it. An observation that
+   agreed and still agrees is left untouched, because there is no row
+   to drain. The asymmetry is deliberate.
+5. **`os.ReadDir` mtime granularity is the digest's assumption.** The
+   capture digest ingests modification times, so a fixture that does
+   not pin mtimes with `os.Chtimes` produces a different digest on
+   every run. The determinism test is what catches that, and it needs
+   two separately built trees to catch it at all.
+6. **A retire is only idempotent because the observation is
+   restamped.** `RemovePending` tolerates `ENOENT` and `PutResolved`
+   overwrites, so without the restamp a second pass rewrites the
+   resolved record with a fresh date and reports the retire again.
+
+### The rung 4 spec corrections, applied at this close
+
+Each is marked in the spec as "(corrected 2026-09-07 at the 4a-ii
+close)": `spec:1608-1609`'s "(ruling 7)" reads ruling 6, the deploy
+sitting; `spec:299-301`'s pre-fold one-request-per-second sentence
+follows the conductor's pace ruling; `spec:1267`'s "the four
+`DUBPLATE_SHADOW_*` rows" reads six; `spec:845-848`'s byte-for-byte
+claim reads as the round trip that actually holds, and its fixture form
+reads as an inline Go literal variant; `spec:1616`'s exit gate names
+only the deferral branches one pass can reach; and `spec:1063-1066`'s
+`newShadowCmd` signature carries the matcher stamp. The `spec:441`
+grouping-key correction was already applied at the plan's own fold and
+needed nothing here. Rung 3d's own "rung 3 to rung 4 handoff"
+section carries the matching wire-pace amendment.
+
+### The six owner rulings, ratified
+
+Geoff ratified all six on 2026-09-07 (`57b49fd`), each as recommended:
+the integration-class wall, the release under dispute filled by
+whichever side proposed it, both compat modes, the 720h floor, the
+60-request cap at twice the limiter's own interval, and the deploy as an
+owner sitting. **The pass's batched owner ask is therefore answered
+rather than open.** What remains is mechanical: every provisional
+application still carries a "provisional, owner ruling N open" marker in
+the landed code, and retiring those markers is a search rather than a
+re-reading. 3d's inherited ask, re-dispositioning
+`bug-assignment-rejection-gap` from `oracle-wrong` to
+`no-correct-answer`, rides its own stream and is not rung 4's to raise.
+
+### The 4a to 4b handoff
+
+What 4b's plan needs from 4a, stated rather than derived.
+
+1. **The store's root and its footprint.** `<state dir>/shadow/` holds
+   `passes/`, `observations/<obs-id>/`, `pending/`, `resolved/`,
+   `started-at` and `consumed-reports.json`, and nothing is written
+   anywhere else. `TestStoreWritesNothingOutsideItsRoot` proves it, so
+   that root is 4b's `ReadWritePaths=` argument, static rather than
+   assumed.
+2. **The unit's `ExecStart` and its refusal.** `dubplate-server shadow
+   observe` errors rather than observing when `main.matcherCommit` is
+   empty or `"dev"`, and creates no store on either refusal. No build
+   path sets the stamp today. **4b's deploy edit 6 is what makes the
+   refusal observable**: without the two `-ldflags` stamps and the
+   smoke-test assertion, an unstamped binary deploys clean, every timer
+   pass refuses, and the `OnFailure=` chain fires into a slug whose URL
+   is unset and therefore no-ops. `reevaluate` carries the same
+   refusal.
+3. **The six config rows and how they render.** The three paths are
+   required-when-enabled and abort `Load` when the flag is set without
+   them. The flag and the two thresholds are accepted and never
+   required. An explicit `DUBPLATE_SHADOW_ENABLED=false` loads clean
+   with a nil `Shadow`, which is the adopter's own way to turn the
+   integration off. The greenfield template carries six
+   `DUBPLATE_SHADOW_*` rows, not four.
+4. **The wire pace and the cap.** `shadow.DefaultInterval` is
+   `2 * musicbrainz.DefaultInterval` and the cap is sixty tokens, both
+   now ratified under ruling 5 and both one literal away from a
+   different value. Sixty tokens at two seconds a token bounds a pass at
+   two minutes, comfortably inside 4b's five-minute timer.
+5. **The operator rule the unit's comment must carry.** A hand-run
+   shadow verb goes through `systemctl start dubplate-shadow.service`
+   or `systemd-run` with the same properties, never the bare binary as
+   root. The read-only guarantee is the unit's, not the binary's.
+6. **The clock's definition** (Resolution R11). `started-at` is written
+   on the first pass that completes all three steps without a fatal
+   error, including a pass that observes nothing, so the clock starts at
+   the deploy rather than at the first upload. **4b's close records that
+   date as a first-class figure**, because the launch date is that date
+   plus the floor.
+
+### Forward carries
+
+1. **The rung 15 re-run criterion** travels forward unchanged, as it
+   has from every rung 3 pass close, now joined by the shadow's own
+   launch-bar clause.
+2. **The declared coverage gaps are a running total of thirty**, rung
+   3's twenty-one plus 4a's nine. Read it, never re-count it.
+3. **The four-knob wall registration** stays the named follow-on for
+   the first pass after rung 1b, and **rung 4's own `KindFloat` need
+   joins it**. `Threshold.Kind` now has two values and the three float
+   rec thresholds want a third. `AdminEmail`'s dedicated contact row
+   sits beside both.
+4. **Rung 1b absorbs `integrationClasses` as data**, not as a shape to
+   invent, and the table's `Required`/`Optional` split is the semantics
+   it must preserve.
+5. **Rung 8 absorbs the FLAC reader** into `internal/engine/tagio` and
+   repoints the shadow. The nineteen-field mapping with its per-row
+   citations travels in 4a-i's entry, so rung 8 does not re-derive it.
+   The deployed binary carries landed-but-unwired packages from other
+   lanes, and none is reachable from the `shadow` subcommand's own call
+   graph; repointing is rung 8's task, never a silent adoption.
+6. **Rung 9 re-verifies the limiter's caller-priority policy against a
+   measurement.** 4a is the first `ClassBackground` caller and 4b puts
+   it beside a live import. 4a's own figure is the exit gate's spend of
+   twelve tokens; the live one arrives after 4b's deploy.
+7. **Rung 6's store supersedes none of this**, and `internal/lock`
+   stays unadopted. The timer path is a systemd singleton, `reevaluate`
+   writes only under `resolved/`, `report` opens nothing for writing,
+   and `observe` only ever creates.
+8. **The response store is a consequence of ratified ruling B rather
+   than a preference.** The retention knob is named rather than built:
+   the trigger is the report's own store-size row against the root
+   filesystem's free space, which 4b's sitting records as a baseline.
+9. **The streamer 2.0 forward hooks are binding on rungs 5 through 9
+   and rung 12**, through CLAUDE.md's build-for-2.0 and prior-art rules
+   rather than through this pass's own carries.
+
+**Resume prompt for the next session.** Rung 4b is next, in the main
+tree: the deploy, whose close needs an owner sitting per ruling 6. Its
+plan is owed just-in-time and does not exist yet.
+
+**Budget.** 4a-ii spent about 2.7M against its 3M ceiling (Geoff,
+2026-09-07), an estimate from the agent meters: staleness pre-task and
+chain-args extraction 0.26M, chain 1.32M, the Task 13 and Task 14 fix
+and review rounds 0.49M, simplify 0.18M plus its review, the close
+drafter 0.16M, and the conductor's own turns for the pass about 0.2M.
+The 2.4M flag was crossed at the close, after every task had landed,
+by the simplify and close rounds; nothing was cut. The 2.0 brainstorm's
+reviews and fold (about 0.9M) ran in the same session and are not
+counted here. The chain alone was 1.32M across 16 agents. Attended
+interactions for 4a-ii: planning misses 2 (the exit gate's
+single-uploader fixture figure, and the mutation-6 narration, both of
+which a probe at planning would have caught), execution sittings 0. The
+conductor asked Geoff nothing during execution.
+
 ## Rung 4, pass 4a-i (intermediate close, 2026-09-05)
 
 Nine plan tasks executed sequentially in the main tree against
@@ -563,7 +1040,11 @@ matcher commit.
    rung 4 caps its own MusicBrainz spend by the budget it builds the
    client with. The shadow's class is `ClassBackground`, deferred
    behind rung 7's user-present probe, and the wire pace is
-   `DefaultInterval = time.Second` (3c contract C20). Rung 4 branches
+   `shadow.DefaultInterval = 2 * musicbrainz.DefaultInterval`
+   (corrected 2026-09-07 at the 4a-ii close; this handoff recorded the
+   limiter's own `DefaultInterval = time.Second`, 3c contract C20,
+   which the conductor's pace ruling at rung 4's spec fold doubles for
+   the shadow's `ClassBackground` caller). Rung 4 branches
    on `musicbrainz.ErrUnavailable` to defer rather than record a
    divergence, and on `tag.ErrNoCandidates` to record "no match".
 4. **The pending-divergence file format.** A row a human commits into
