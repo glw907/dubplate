@@ -44,6 +44,7 @@ func TestDoctorCmd(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reg := config.NewRegistry()
+			registerShadowIntegration(reg)
 			registerShadowThresholds(reg)
 
 			var stdout, stderr bytes.Buffer
@@ -98,7 +99,7 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
-			for _, class := range config.IntegrationClasses() {
+			for _, class := range reg.IntegrationClasses() {
 				status := "disabled"
 				if enabled, err := class.Enabled(tt.environ); err == nil && enabled {
 					status = "enabled"
@@ -175,6 +176,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 // reflects its flag state.
 func TestDoctorCmd_ShadowRows(t *testing.T) {
 	reg := config.NewRegistry()
+	registerShadowIntegration(reg)
 	registerShadowThresholds(reg)
 
 	var stdout, stderr bytes.Buffer

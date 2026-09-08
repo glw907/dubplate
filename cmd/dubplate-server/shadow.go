@@ -16,6 +16,56 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// shadowIntegrationClass is rung 4's integration: its own enable flag,
+// its three required-when-enabled paths, and its two thresholds, all
+// declared in rung 4's own file rather than internal/config
+// (Resolution R5, re-expressing rung 4's own ruling 1 in registry
+// terms per Resolution R14). registerShadowIntegration and
+// registerShadowThresholds register it, and its two thresholds, onto
+// the production registry from newRootCmd.
+//
+// provisional, conductor ruling owed, R5
+var shadowIntegrationClass = config.IntegrationClass{
+	Name: "shadow",
+	Rung: 4,
+	Flag: "DUBPLATE_SHADOW_ENABLED",
+	Required: []string{
+		"DUBPLATE_SHADOW_OBSERVE_DIR",      // the inbox the incumbent consumes
+		"DUBPLATE_SHADOW_ORACLE_STATE_DIR", // where the incumbent's run reports and tag logs live
+		"DUBPLATE_SHADOW_REVIEW_DIR",       // where a skipped album is filed
+	},
+	Optional: []string{
+		"DUBPLATE_SHADOW_FLOOR",  // threshold, duration, default 720h
+		"DUBPLATE_SHADOW_BUDGET", // threshold, int, default 60
+	},
+}
+
+// ShadowIntegration is the shadow integration's resolved paths, the
+// three required-when-enabled rows of shadowIntegrationClass. The
+// floor and the request cap are registered thresholds rather than
+// fields here, because both carry defaults and shadowFromConfig
+// carries no defaulted value.
+type ShadowIntegration struct {
+	ObserveDir     string
+	OracleStateDir string
+	ReviewDir      string
+}
+
+// shadowFromConfig builds the shadow integration's resolved paths from
+// cfg's generic integration-resolution surface, or reports nil when
+// DUBPLATE_SHADOW_ENABLED did not resolve true: every adopter who has
+// not opted in.
+func shadowFromConfig(cfg *config.Config) *ShadowIntegration {
+	if !cfg.IntegrationEnabled(shadowIntegrationClass.Name) {
+		return nil
+	}
+	return &ShadowIntegration{
+		ObserveDir:     cfg.IntegrationValue(shadowIntegrationClass.Name, "DUBPLATE_SHADOW_OBSERVE_DIR"),
+		OracleStateDir: cfg.IntegrationValue(shadowIntegrationClass.Name, "DUBPLATE_SHADOW_ORACLE_STATE_DIR"),
+		ReviewDir:      cfg.IntegrationValue(shadowIntegrationClass.Name, "DUBPLATE_SHADOW_REVIEW_DIR"),
+	}
+}
+
 // shadowFloorThreshold is the evidence floor rung 15 measures the
 // shadow window against: a configurable duration with a 30-day default
 // (build spec ruling 1). Ratified as owner ruling 4.
@@ -39,6 +89,14 @@ var shadowBudgetThreshold = config.Threshold{
 	Kind:    config.KindInt,
 	Default: "60",
 	Doc:     "an integer request count per pass",
+}
+
+// registerShadowIntegration adds shadowIntegrationClass to reg,
+// separately from its two thresholds (registerShadowThresholds): the
+// class and the thresholds are two different registry families, and
+// each keeps its own single-purpose registration function.
+func registerShadowIntegration(reg *config.Registry) {
+	reg.AddIntegrationClass(shadowIntegrationClass)
 }
 
 // registerShadowThresholds adds the shadow integration's two thresholds
@@ -182,7 +240,7 @@ func newShadowCmd(environ []string, reg *config.Registry, matcherCommit string, 
 }
 
 // newShadowObserveCmd builds the observe verb. Its contract runs in
-// order: load config; refuse when cfg.Shadow is nil, naming
+// order: load config; refuse when shadowFromConfig(cfg) is nil, naming
 // DUBPLATE_SHADOW_ENABLED; refuse when matcherCommit is empty or "dev",
 // creating no store either way; resolve the floor and the cap through
 // the two registered thresholds; compose the User-Agent; open the
@@ -200,7 +258,8 @@ func newShadowObserveCmd(environ []string, reg *config.Registry, matcherCommit s
 			if err != nil {
 				return err
 			}
-			if cfg.Shadow == nil {
+			shadowCfg := shadowFromConfig(cfg)
+			if shadowCfg == nil {
 				return errors.New("shadow observe: DUBPLATE_SHADOW_ENABLED is not set")
 			}
 			if matcherCommit == "" || matcherCommit == "dev" {
@@ -224,9 +283,9 @@ func newShadowObserveCmd(environ []string, reg *config.Registry, matcherCommit s
 
 			res, err := shadow.Run(cmd.Context(), shadow.Config{
 				StateDir:       cfg.StateDir,
-				ObserveDir:     cfg.Shadow.ObserveDir,
-				OracleStateDir: cfg.Shadow.OracleStateDir,
-				ReviewDir:      cfg.Shadow.ReviewDir,
+				ObserveDir:     shadowCfg.ObserveDir,
+				OracleStateDir: shadowCfg.OracleStateDir,
+				ReviewDir:      shadowCfg.ReviewDir,
 				UserAgent:      userAgent,
 				MatcherCommit:  matcherCommit,
 				BudgetLimit:    budget,

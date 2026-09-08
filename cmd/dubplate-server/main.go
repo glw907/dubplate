@@ -61,6 +61,7 @@ func main() {
 // provisional, conductor ruling owed, R1
 func newRootCmd() *cobra.Command {
 	reg := config.NewRegistry()
+	registerShadowIntegration(reg)
 	registerShadowThresholds(reg)
 
 	cmd := &cobra.Command{

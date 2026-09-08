@@ -28,8 +28,9 @@
 //     required at Load once the flag is set, and its Optional rows
 //     are accepted as registered thresholds rather than wall fields.
 //     Setting a Required or Optional row without its flag enabled is
-//     a load error naming the flag. See [IntegrationClasses] for the
-//     exact membership; rung 4 registers the shadow class.
+//     a load error naming the flag. See [Registry.IntegrationClasses]
+//     for the exact membership; the owning package registers its own
+//     class (rung 4's shadow class, for example).
 //  4. Superseded: a pre-pivot name with no meaning here. Load errors
 //     naming the replacement, or, for a capability the greenfield
 //     server drops outright (the estate's beets and contributor-file
@@ -63,8 +64,12 @@ import (
 var ErrMissing = errors.New("required setting unset")
 
 // Config is the resolved configuration of one dubplate-server process.
-// Rung 1 carries the owned wall only; the identity-source selector and
-// the integrations behind it join their fields at their own rungs.
+// Rung 1 carries the owned wall only; the identity-source selector
+// joins its fields at its own rung. An enabled integration class's
+// resolved Required values are reachable by class name through
+// [Config.IntegrationEnabled] and [Config.IntegrationValue] rather than
+// a named field per class, so a second integration class needs no
+// second field (Resolution R5).
 type Config struct {
 	LibraryRoot string
 	StateDir    string
@@ -74,21 +79,37 @@ type Config struct {
 	// so the wall normalizes case at load time rather than leaving
 	// every caller to do it.
 	AdminEmail string
-	// Shadow is rung 4's integration, resolved from the
-	// required-when-enabled rows of the shadow class. It is nil when
-	// DUBPLATE_SHADOW_ENABLED is unset, which is every adopter who has
-	// not opted in.
-	Shadow *ShadowIntegration
+
+	// integrations holds every integration class's resolved state,
+	// keyed by class Name. It is populated for every class Load reads
+	// off reg, whether or not its flag resolved true.
+	integrations map[string]integrationResolution
 }
 
-// ShadowIntegration is the shadow integration's resolved paths, the
-// three required-when-enabled rows of the shadow class. The floor and
-// the request cap are registered thresholds rather than fields here,
-// because both carry defaults and Config carries no defaulted value.
-type ShadowIntegration struct {
-	ObserveDir     string
-	OracleStateDir string
-	ReviewDir      string
+// integrationResolution is one integration class's resolved state:
+// Enabled records whether its Flag resolved true, independently of
+// whether it resolved any key, so a class with an empty Required set
+// (hook 6's driver-declines-capabilities case) still reports enabled
+// when its flag is set. Required carries the class's own Required key
+// values, populated only when Enabled is true.
+type integrationResolution struct {
+	Enabled  bool
+	Required map[string]string
+}
+
+// IntegrationEnabled reports whether the integration class named
+// className had its Flag resolve true at Load. It answers false for a
+// class name Load never saw registered.
+func (c *Config) IntegrationEnabled(className string) bool {
+	return c.integrations[className].Enabled
+}
+
+// IntegrationValue returns the resolved value of key, one of
+// className's own Required rows, as Load resolved it. It returns the
+// empty string when className is not enabled or key is not one of its
+// Required rows.
+func (c *Config) IntegrationValue(className, key string) string {
+	return c.integrations[className].Required[key]
 }
 
 // wall indexes one environment snapshot and accumulates load errors. It
@@ -185,7 +206,7 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			continue // set but empty: treated as unset, nothing to flag
 		}
 
-		if class, ok := integrationClassOf(name); ok {
+		if class, ok := integrationClassOf(reg, name); ok {
 			// The flag names itself, so it is never "set without"
 			// itself. Load already reports an unparseable flag value;
 			// reporting it again here would emit two errors for one
@@ -221,36 +242,33 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 	w := newWall(environ)
 
 	cfg := &Config{
-		LibraryRoot: w.require("DUBPLATE_LIBRARY_ROOT"),
-		StateDir:    w.require("DUBPLATE_STATE_DIR"),
-		SiteName:    w.require("DUBPLATE_SITE_NAME"),
-		AdminEmail:  w.requireEmail("DUBPLATE_ADMIN_EMAIL"),
+		LibraryRoot:  w.require("DUBPLATE_LIBRARY_ROOT"),
+		StateDir:     w.require("DUBPLATE_STATE_DIR"),
+		SiteName:     w.require("DUBPLATE_SITE_NAME"),
+		AdminEmail:   w.requireEmail("DUBPLATE_ADMIN_EMAIL"),
+		integrations: make(map[string]integrationResolution, len(reg.integrationClasses)),
 	}
 
-	// integrationClasses stays a package-level read here, unlike the
-	// wall/reserved/superseded lookups above: rung 4's class has not
-	// migrated onto the registry yet (see integrationClassOf's own
-	// doc), so Load reads it exactly as it did before this task.
-	for _, class := range integrationClasses {
+	// Every enabled class's Required keys resolve here, generically, by
+	// class name: no class name appears in this loop, so a second
+	// integration class needs no second branch (Resolution R5). Enabled
+	// is recorded independently of whether Required resolved any key,
+	// which is what lets a class with an empty Required set (hook 6's
+	// driver-declines-capabilities case) still report enabled.
+	for _, class := range reg.integrationClasses {
 		enabled, err := w.integrationEnabled(class)
 		if err != nil {
 			w.errs = append(w.errs, err)
 			continue
 		}
-		if !enabled {
-			continue
-		}
-		resolved := make(map[string]string, len(class.Required))
-		for _, key := range class.Required {
-			resolved[key] = w.require(key)
-		}
-		if class.Name == "shadow" {
-			cfg.Shadow = &ShadowIntegration{
-				ObserveDir:     resolved["DUBPLATE_SHADOW_OBSERVE_DIR"],
-				OracleStateDir: resolved["DUBPLATE_SHADOW_ORACLE_STATE_DIR"],
-				ReviewDir:      resolved["DUBPLATE_SHADOW_REVIEW_DIR"],
+		resolution := integrationResolution{Enabled: enabled}
+		if enabled {
+			resolution.Required = make(map[string]string, len(class.Required))
+			for _, key := range class.Required {
+				resolution.Required[key] = w.require(key)
 			}
 		}
+		cfg.integrations[class.Name] = resolution
 	}
 
 	w.rejectNamespace(reg)

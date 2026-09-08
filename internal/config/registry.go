@@ -176,6 +176,15 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // one of the keys it gates could never be told apart from a required
 // row in an error message.
 //
+// Only Flag and Required claim across families here; Optional does
+// not. An Optional row is accepted and never required precisely
+// because it is also a registered [Threshold] (IntegrationClass's own
+// doc), so the same key legitimately carries two declarations, one per
+// family, and AddThreshold's own claim is what the gate checks for it
+// (Resolution R5, re-expressing rung 4's ruling 1: rung 4's shadow
+// class registers DUBPLATE_SHADOW_FLOOR and DUBPLATE_SHADOW_BUDGET
+// this way).
+//
 // provisional, conductor ruling owed, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	if class.Flag == "" {
@@ -201,6 +210,10 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 				panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyIntegration, familyIntegration))
 			}
 		}
+	}
+
+	claimed := append([]string{class.Flag}, class.Required...)
+	for _, key := range claimed {
 		r.claimCrossFamily(familyIntegration, key)
 	}
 	r.integrationClasses = append(r.integrationClasses, class)

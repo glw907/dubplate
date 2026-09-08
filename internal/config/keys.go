@@ -214,47 +214,16 @@ type IntegrationClass struct {
 	Optional []string
 }
 
-// integrationClasses is every adopter-optional capability the wall
-// accepts behind a flag. Rung 1b's registry absorbs this table as data
-// rather than re-deriving it (rung 4 spec, risk 6).
-var integrationClasses = []IntegrationClass{
-	{
-		Name: "shadow",
-		Rung: 4,
-		Flag: "DUBPLATE_SHADOW_ENABLED",
-		Required: []string{
-			"DUBPLATE_SHADOW_OBSERVE_DIR",      // the inbox the incumbent consumes
-			"DUBPLATE_SHADOW_ORACLE_STATE_DIR", // where the incumbent's run reports and tag logs live
-			"DUBPLATE_SHADOW_REVIEW_DIR",       // where a skipped album is filed
-		},
-		Optional: []string{
-			"DUBPLATE_SHADOW_FLOOR",  // threshold, duration, default 720h
-			"DUBPLATE_SHADOW_BUDGET", // threshold, int, default 60
-		},
-	},
-}
-
-// IntegrationClasses returns the integration classes in table order.
-func IntegrationClasses() []IntegrationClass {
-	return slices.Clone(integrationClasses)
-}
-
-// integrationClassOf reports the integration class name belongs to, by
-// its Flag, a Required key, or an Optional key, if any.
+// integrationClassOf reports the integration class name belongs to in
+// reg, by its Flag, a Required key, or an Optional key, if any. It
+// walks reg's own declared classes rather than a package-level table,
+// so a second integration class needs no second lookup site (rung 4's
+// class registers itself as an example, from
+// cmd/dubplate-server/shadow.go).
 //
-// integrationClassOf stays on the package-level integrationClasses
-// table rather than a registry, unlike its three siblings above: rung
-// 4's own class is the one family this task does not migrate (it
-// leaves keys.go for cmd/dubplate-server/shadow.go in Task 4, per
-// Resolution R4's "moves when the owning package is born" rule), and an
-// Optional key here is also a registered [Threshold]
-// (DUBPLATE_SHADOW_FLOOR, DUBPLATE_SHADOW_BUDGET): registering the same
-// key into both the integration and threshold families on one registry
-// trips the collision gate's cross-family check, which was not built
-// with that documented overlap in mind. Task 4 owns reconciling it
-// when the class moves.
-func integrationClassOf(name string) (IntegrationClass, bool) {
-	for _, class := range integrationClasses {
+// provisional, conductor ruling owed, R5
+func integrationClassOf(reg *Registry, name string) (IntegrationClass, bool) {
+	for _, class := range reg.integrationClasses {
 		if name == class.Flag || slices.Contains(class.Required, name) || slices.Contains(class.Optional, name) {
 			return class, true
 		}

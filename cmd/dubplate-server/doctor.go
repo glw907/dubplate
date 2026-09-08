@@ -44,11 +44,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			// IntegrationClasses stays a package-level read: rung 4's
-			// class has not migrated onto the registry yet (see
-			// internal/config's integrationClassOf doc), matching
-			// config.Load's own read path above.
-			for _, class := range config.IntegrationClasses() {
+			for _, class := range reg.IntegrationClasses() {
 				status := "disabled"
 				if enabled, err := class.Enabled(environ); err == nil && enabled {
 					status = "enabled"

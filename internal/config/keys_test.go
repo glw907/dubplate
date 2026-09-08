@@ -130,25 +130,32 @@ func TestSupersessionOf(t *testing.T) {
 	}
 }
 
+// TestIntegrationClassesCoverEveryShadowKey proves no integration key
+// is declared without appearing in its own class: every name a class
+// claims (its Flag, its Required rows, its Optional rows) resolves
+// back to that same class through integrationClassOf, which is what
+// rejectNamespace's acceptance path depends on. Retargeted at the
+// registry's integration family (Resolution R5), driven by
+// fixtureIntegrationClass (config_test.go), the fixture this package's
+// own tests declare rather than a rung-4 name.
 func TestIntegrationClassesCoverEveryShadowKey(t *testing.T) {
-	classes := IntegrationClasses()
-	if len(classes) != 1 {
-		t.Fatalf("IntegrationClasses len = %d, want 1", len(classes))
+	reg := fixtureRegistry()
+	classes := reg.IntegrationClasses()
+	if len(classes) != 2 {
+		t.Fatalf("IntegrationClasses len = %d, want 2", len(classes))
 	}
 	c := classes[0]
-	if c.Name != "shadow" || c.Rung != 4 || c.Flag != "DUBPLATE_SHADOW_ENABLED" {
-		t.Errorf("class = %+v, want the rung 4 shadow class", c)
+	if c.Name != fixtureIntegrationClass.Name || c.Flag != fixtureIntegrationClass.Flag {
+		t.Errorf("class = %+v, want the fixture class", c)
 	}
-	if len(c.Required) != 3 || len(c.Optional) != 2 {
-		t.Errorf("Required/Optional = %d/%d, want 3/2", len(c.Required), len(c.Optional))
+	if len(c.Required) != 2 || len(c.Optional) != 1 {
+		t.Errorf("Required/Optional = %d/%d, want 2/1", len(c.Required), len(c.Optional))
 	}
-	// Every name the class claims resolves back to it, which is what
-	// rejectNamespace's acceptance path depends on.
 	names := append([]string{c.Flag}, c.Required...)
 	names = append(names, c.Optional...)
 	for _, name := range names {
-		if got, ok := integrationClassOf(name); !ok || got.Name != c.Name {
-			t.Errorf("integrationClassOf(%s) = %v, %v; want the shadow class", name, got.Name, ok)
+		if got, ok := integrationClassOf(reg, name); !ok || got.Name != c.Name {
+			t.Errorf("integrationClassOf(%s) = %v, %v; want the fixture class", name, got.Name, ok)
 		}
 	}
 }

@@ -248,92 +248,113 @@ func templateKeys(t *testing.T) []string {
 	return names
 }
 
-// TestLoadShadowIntegration proves ruling 1's required-when-enabled
-// semantics: a shadow key set with the flag unset is a load error
-// naming the flag, every required path is reported at once when the
-// flag is set, a threshold row is accepted and never required, and an
-// unparseable flag is an error rather than a silent off.
-func TestLoadShadowIntegration(t *testing.T) {
-	base := []string{
-		"DUBPLATE_LIBRARY_ROOT=/srv/library",
-		"DUBPLATE_STATE_DIR=/var/lib/x",
-		"DUBPLATE_SITE_NAME=Example",
-		"DUBPLATE_ADMIN_EMAIL=admin@example.test",
-	}
-	shadowPaths := []string{
-		"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox",
-		"DUBPLATE_SHADOW_ORACLE_STATE_DIR=/var/lib/incumbent",
-		"DUBPLATE_SHADOW_REVIEW_DIR=/srv/review",
+// fixtureIntegrationClass is a fixture integration class this test
+// declares for itself, with no rung-4 name. It drives Load's generic
+// required-when-enabled resolution (Resolution R5): the eight-row
+// table TestLoadShadowIntegration used to prove moved verbatim to
+// cmd/dubplate-server/shadow_test.go, where the shadow class now
+// lives, and this test proves the same job generically instead.
+var fixtureIntegrationClass = IntegrationClass{
+	Name: "fixture",
+	Flag: "DUBPLATE_FIXTURE_ENABLED",
+	Required: []string{
+		"DUBPLATE_FIXTURE_REQUIRED_A",
+		"DUBPLATE_FIXTURE_REQUIRED_B",
+	},
+	Optional: []string{
+		"DUBPLATE_FIXTURE_OPTIONAL",
+	},
+}
+
+// fixtureNoRequiredClass is hook 6's motivating shape: an integration
+// declaring no Required key at all, the way a driver declining every
+// capability would. Its enabled state must be reachable independently
+// of whether Load resolved any key.
+var fixtureNoRequiredClass = IntegrationClass{
+	Name: "fixture-no-required",
+	Flag: "DUBPLATE_FIXTURE_NO_REQUIRED_ENABLED",
+}
+
+// fixtureRegistry returns a registry seeded with rung 1's own
+// declarations plus the two fixture integration classes above.
+func fixtureRegistry() *Registry {
+	reg := NewRegistry()
+	reg.AddIntegrationClass(fixtureIntegrationClass)
+	reg.AddIntegrationClass(fixtureNoRequiredClass)
+	return reg
+}
+
+// TestLoadIntegrationRequiredWhenEnabled proves Load's generic
+// required-when-enabled resolution, reachable by class name: a
+// required key set with the flag unset is a load error naming the
+// flag, every required key is reported at once when the flag is set
+// and resolves, and an optional key is accepted and never required.
+func TestLoadIntegrationRequiredWhenEnabled(t *testing.T) {
+	requiredKeys := []string{
+		"DUBPLATE_FIXTURE_REQUIRED_A=a-value",
+		"DUBPLATE_FIXTURE_REQUIRED_B=b-value",
 	}
 
 	tests := []struct {
-		name       string
-		extra      []string
-		wantErr    []string // substrings every one of which must appear
-		wantShadow bool
+		name        string
+		extra       []string
+		wantErr     []string // substrings every one of which must appear
+		wantEnabled bool
 	}{
 		{
-			name:  "flag unset, no shadow keys: loads with a nil Shadow",
+			name:  "flag unset, no fixture keys: loads, not enabled",
 			extra: nil,
 		},
 		{
-			name:    "a shadow key set with the flag unset names the flag",
-			extra:   []string{"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox"},
-			wantErr: []string{"DUBPLATE_SHADOW_OBSERVE_DIR", "DUBPLATE_SHADOW_ENABLED"},
+			name:    "a required key set with the flag unset names the flag",
+			extra:   []string{"DUBPLATE_FIXTURE_REQUIRED_A=a-value"},
+			wantErr: []string{"DUBPLATE_FIXTURE_REQUIRED_A", "DUBPLATE_FIXTURE_ENABLED"},
 		},
 		{
-			name:    "flag set with no paths reports every missing row at once",
-			extra:   []string{"DUBPLATE_SHADOW_ENABLED=true"},
-			wantErr: []string{"DUBPLATE_SHADOW_OBSERVE_DIR", "DUBPLATE_SHADOW_ORACLE_STATE_DIR", "DUBPLATE_SHADOW_REVIEW_DIR"},
+			name:    "flag set with no required keys reports every missing row at once",
+			extra:   []string{"DUBPLATE_FIXTURE_ENABLED=true"},
+			wantErr: []string{"DUBPLATE_FIXTURE_REQUIRED_A", "DUBPLATE_FIXTURE_REQUIRED_B"},
 		},
 		{
-			name:       "flag set with every path resolves Shadow",
-			extra:      append([]string{"DUBPLATE_SHADOW_ENABLED=true"}, shadowPaths...),
-			wantShadow: true,
+			name:        "flag set with every required key resolves, reachable by class name",
+			extra:       append([]string{"DUBPLATE_FIXTURE_ENABLED=true"}, requiredKeys...),
+			wantEnabled: true,
 		},
 		{
-			name:       "a threshold row is accepted and never required",
-			extra:      append([]string{"DUBPLATE_SHADOW_ENABLED=true", "DUBPLATE_SHADOW_FLOOR=48h"}, shadowPaths...),
-			wantShadow: true,
+			name:        "an optional key is accepted and never required",
+			extra:       append([]string{"DUBPLATE_FIXTURE_ENABLED=true", "DUBPLATE_FIXTURE_OPTIONAL=x"}, requiredKeys...),
+			wantEnabled: true,
 		},
 		{
-			name:    "an unparseable flag is an error rather than off",
-			extra:   []string{"DUBPLATE_SHADOW_ENABLED=maybe"},
-			wantErr: []string{"DUBPLATE_SHADOW_ENABLED"},
-		},
-		// The two rows fold M-d adds. An adopter who turns the
-		// integration off explicitly must be able to start the
-		// server, and a shadow key set beside an off flag must
-		// still name the flag.
-		{
-			name:  "an explicit false loads clean with a nil Shadow",
-			extra: []string{"DUBPLATE_SHADOW_ENABLED=false"},
+			name:    "an unparseable flag produces exactly one error",
+			extra:   []string{"DUBPLATE_FIXTURE_ENABLED=maybe"},
+			wantErr: []string{"DUBPLATE_FIXTURE_ENABLED"},
 		},
 		{
-			name:    "an explicit false with a shadow key still names the flag",
-			extra:   []string{"DUBPLATE_SHADOW_ENABLED=false", "DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox"},
-			wantErr: []string{"DUBPLATE_SHADOW_OBSERVE_DIR", "DUBPLATE_SHADOW_ENABLED"},
+			name:  "an explicit false loads clean, not enabled",
+			extra: []string{"DUBPLATE_FIXTURE_ENABLED=false"},
+		},
+		{
+			name:    "an explicit false with a required key still names the flag",
+			extra:   []string{"DUBPLATE_FIXTURE_ENABLED=false", "DUBPLATE_FIXTURE_REQUIRED_A=a-value"},
+			wantErr: []string{"DUBPLATE_FIXTURE_REQUIRED_A", "DUBPLATE_FIXTURE_ENABLED"},
 		},
 	}
 
-	// reg carries only rung 1's own declarations: rung 4's shadow class
-	// still lives in keys.go's package-level integrationClasses table
-	// (Resolution R4) and Load still reads it from there, unaffected by
-	// this task's migration (see integrationClassOf's own doc).
-	reg := NewRegistry()
+	reg := fixtureRegistry()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Load(append(slices.Clone(base), tt.extra...), reg)
+			cfg, err := Load(append(slices.Clone(baseEnviron()), tt.extra...), reg)
 			if len(tt.wantErr) == 0 {
 				if err != nil {
 					t.Fatalf("Load: %v", err)
 				}
-				if (cfg.Shadow != nil) != tt.wantShadow {
-					t.Fatalf("Shadow non-nil = %v, want %v", cfg.Shadow != nil, tt.wantShadow)
+				if got := cfg.IntegrationEnabled(fixtureIntegrationClass.Name); got != tt.wantEnabled {
+					t.Fatalf("IntegrationEnabled = %v, want %v", got, tt.wantEnabled)
 				}
-				if tt.wantShadow && cfg.Shadow.ObserveDir != "/srv/inbox" {
-					t.Errorf("ObserveDir = %q, want %q", cfg.Shadow.ObserveDir, "/srv/inbox")
+				if tt.wantEnabled && cfg.IntegrationValue(fixtureIntegrationClass.Name, "DUBPLATE_FIXTURE_REQUIRED_A") != "a-value" {
+					t.Errorf("IntegrationValue = %q, want %q", cfg.IntegrationValue(fixtureIntegrationClass.Name, "DUBPLATE_FIXTURE_REQUIRED_A"), "a-value")
 				}
 				return
 			}
@@ -345,10 +366,46 @@ func TestLoadShadowIntegration(t *testing.T) {
 					t.Errorf("error does not name %s: %v", want, err)
 				}
 			}
-			if tt.name == "an unparseable flag is an error rather than off" {
-				if n := strings.Count(err.Error(), "DUBPLATE_SHADOW_ENABLED"); n != 1 {
-					t.Errorf("error names DUBPLATE_SHADOW_ENABLED %d times, want exactly 1: %v", n, err)
+			if tt.name == "an unparseable flag produces exactly one error" {
+				if n := strings.Count(err.Error(), "DUBPLATE_FIXTURE_ENABLED"); n != 1 {
+					t.Errorf("error names DUBPLATE_FIXTURE_ENABLED %d times, want exactly 1: %v", n, err)
 				}
+			}
+		})
+	}
+}
+
+// TestLoadIntegrationEnabledIndependentOfResolvedKeys proves hook 6's
+// motivating shape: a class with an empty Required set still reports
+// enabled when its flag is set, and reports not enabled when its flag
+// is unset. A driver declining every capability declares no required
+// key and must still be told apart from a disabled one.
+func TestLoadIntegrationEnabledIndependentOfResolvedKeys(t *testing.T) {
+	tests := []struct {
+		name        string
+		extra       []string
+		wantEnabled bool
+	}{
+		{
+			name: "flag unset: not enabled",
+		},
+		{
+			name:        "flag set on an empty-Required class still reports enabled (hook 6)",
+			extra:       []string{"DUBPLATE_FIXTURE_NO_REQUIRED_ENABLED=true"},
+			wantEnabled: true,
+		},
+	}
+
+	reg := fixtureRegistry()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg, err := Load(append(slices.Clone(baseEnviron()), tt.extra...), reg)
+			if err != nil {
+				t.Fatalf("Load: %v", err)
+			}
+			if got := cfg.IntegrationEnabled(fixtureNoRequiredClass.Name); got != tt.wantEnabled {
+				t.Errorf("IntegrationEnabled = %v, want %v", got, tt.wantEnabled)
 			}
 		})
 	}
