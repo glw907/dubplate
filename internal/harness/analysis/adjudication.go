@@ -260,10 +260,7 @@ func checkAdjudicationEntry(known map[string]bool, e AdjudicationEntry) []error 
 	if e.AppliedField != nil {
 		// Legal only on a case-subject row: the block cites a corpus
 		// case's own ledger row, which a shadow subject (album plus
-		// release_mbid) or an empty subject has none of. A case-subject
-		// row already carries no matcher stamp (the check above), so
-		// this rule is what the doc comment's "no matcher stamp" clause
-		// leans on rather than a second check of its own.
+		// release_mbid) or an empty subject has none of.
 		if e.Subject.CaseID == "" {
 			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field block on a row whose subject is not a case id", e.ID))
 		}
@@ -272,6 +269,14 @@ func checkAdjudicationEntry(known map[string]bool, e AdjudicationEntry) []error 
 		}
 		if e.AppliedField.Commit == "" {
 			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field: commit: missing", e.ID))
+		}
+		// A case-subject row carrying a matcher stamp already fails the
+		// check above (matcher_commit and matcher_config_hash are a
+		// shadow row's alone), but that check is general, not
+		// applied_field's own; state it here too so an applied_field row
+		// names the violation as its own rule rather than borrowing one.
+		if e.MatcherCommit != "" || e.MatcherConfigHash != "" {
+			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field block carries a matcher stamp (matcher_commit or matcher_config_hash), which only a shadow row may carry", e.ID))
 		}
 	}
 

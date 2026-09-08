@@ -2,6 +2,7 @@ package tagio
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -119,6 +120,19 @@ func loadCase(t *testing.T, caseID string) caseDocument {
 	return doc
 }
 
+// hashTemplateFile reads path and returns its content's SHA-256 sum,
+// so the committed-template guard below compares content rather than
+// only size: a rewrite that happens to preserve the file's byte count
+// would otherwise pass a size-only check.
+func hashTemplateFile(t *testing.T, path string) [sha256.Size]byte {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read template at %s: %v", path, err)
+	}
+	return sha256.Sum256(data)
+}
+
 // filterToWritable selects applied's keys that name one of writable's
 // 69 fields, per the ledger's own writable_fields header rather than
 // a second hard-coded list (spec:843-847). It asserts the result
@@ -168,7 +182,7 @@ func assertCleanMatchFourStates(t *testing.T, ts TagSet) {
 	if ts.Bpm == nil || *ts.Bpm != 0 {
 		t.Errorf("clean-match: Bpm = %v, want a present value 0", derefInt(ts.Bpm))
 	}
-	if ts.Comp == nil || *ts.Comp != false {
+	if ts.Comp == nil || *ts.Comp {
 		t.Errorf("clean-match: Comp = %v, want a present value false", derefBool(ts.Comp))
 	}
 }
@@ -281,11 +295,10 @@ func compareSubject(subject string, ledger, readBack map[string]any) ([]divergen
 // to them only through testdata/divergence-example.json, which both
 // packages grade against.
 //
-// The route this block travels, in one place: staged here by the
-// conformance instrument, folded by the conductor into
-// corpus/analysis/adjudications.json by hand, adjudicated by the
-// owner, and blocking rung 15's launch gate for as long as its
-// disposition stays pending.
+// The route this block travels is documented once, on
+// analysis.AdjudicationEntry.AppliedField; it is named here rather
+// than restated, since this file cannot import that package to link
+// to it directly.
 type stagedRow struct {
 	ID           string        `json:"id"`
 	Subject      stagedSubject `json:"subject"`
@@ -378,6 +391,7 @@ func stageDivergenceRows(caseID string, itemIndex int, found []divergence, commi
 // day and tagio's own commit through from outside internal/engine (no
 // plumbing for either exists in this pass).
 const (
+	// instrumentDate is the committed example's own fixed date, not a clock read.
 	instrumentDate   = "2026-09-08"
 	instrumentCommit = "unset-conformance-instrument-commit"
 )
@@ -632,10 +646,7 @@ func TestConformanceLedgerSubjects(t *testing.T) {
 		t.Fatalf("ledger carries %d writable_fields, want 69", len(ledger.WritableFields))
 	}
 
-	templateBefore, err := os.Stat(templatePath)
-	if err != nil {
-		t.Fatalf("stat template at %s: %v", templatePath, err)
-	}
+	templateBefore := hashTemplateFile(t, templatePath)
 
 	ids := make([]string, 0, len(ledger.Rows))
 	scratchPaths := make([]string, 0, len(ledger.Rows))
@@ -739,11 +750,8 @@ func TestConformanceLedgerSubjects(t *testing.T) {
 		t.Errorf("wrote %d scratch copies, want 12", len(scratchPaths))
 	}
 
-	templateAfter, err := os.Stat(templatePath)
-	if err != nil {
-		t.Fatalf("re-stat template at %s: %v", templatePath, err)
-	}
-	if templateAfter.Size() != templateBefore.Size() {
-		t.Errorf("committed template changed size: was %d bytes, now %d", templateBefore.Size(), templateAfter.Size())
+	templateAfter := hashTemplateFile(t, templatePath)
+	if templateAfter != templateBefore {
+		t.Errorf("committed template's content hash changed: was %x, now %x", templateBefore, templateAfter)
 	}
 }

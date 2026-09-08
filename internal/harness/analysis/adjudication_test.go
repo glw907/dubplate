@@ -279,6 +279,11 @@ func TestCheckAdjudications_AppliedFieldWithinRowRules(t *testing.T) {
 	b3 := goodBlock
 	blockOnNonPendingAgentRow.AppliedField = &b3
 
+	blockWithMatcherStamp := base
+	b4 := goodBlock
+	blockWithMatcherStamp.AppliedField = &b4
+	blockWithMatcherStamp.MatcherCommit = "abc1234"
+
 	tests := []struct {
 		name    string
 		entry   AdjudicationEntry
@@ -289,6 +294,7 @@ func TestCheckAdjudications_AppliedFieldWithinRowRules(t *testing.T) {
 		{"a block with field empty", emptyField, "applied_field: field: missing"},
 		{"a block with commit empty", emptyCommit, "applied_field: commit: missing"},
 		{"a block on a row whose disposition is not pending with the agent adjudicator", blockOnNonPendingAgentRow, "only a human name may set anything but"},
+		{"a block on a row carrying a matcher stamp", blockWithMatcherStamp, "applied_field block carries a matcher stamp"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

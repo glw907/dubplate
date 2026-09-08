@@ -3,6 +3,7 @@ package tagio
 import (
 	"errors"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -105,6 +106,26 @@ func TestSupportedFormatsReturnsCopy(t *testing.T) {
 	}
 }
 
+// TestSupportedFormatsOrderedByValue proves the order is fixed rather
+// than a map's own iteration order, which Go deliberately randomizes:
+// a synthetic three-row registry, inserted in descending Format
+// value, must still come back ascending.
+func TestSupportedFormatsOrderedByValue(t *testing.T) {
+	saved := registry
+	registry = map[Format]formatEntry{
+		Format(5):  {},
+		Format(2):  {},
+		FormatFLAC: {magic: flacMagic, read: readFLAC, write: writeFLAC},
+	}
+	t.Cleanup(func() { registry = saved })
+
+	got := SupportedFormats()
+	want := []Format{FormatFLAC, Format(2), Format(5)}
+	if !slices.Equal(got, want) {
+		t.Fatalf("SupportedFormats = %v, want %v in ascending Format order", got, want)
+	}
+}
+
 // TestEmptyRegistryBypassesReadAndWriteButNotParse asserts the
 // dispatch is real rather than decorative: emptying the registry
 // stops Read and Write from reaching the golden, each answering
@@ -135,6 +156,30 @@ func TestEmptyRegistryBypassesReadAndWriteButNotParse(t *testing.T) {
 	}
 	if err := Write(path, TagSet{}, nil, 0o644); err != nil {
 		t.Errorf("Write after restoring registry: %v", err)
+	}
+	if _, err := Parse(path); err != nil {
+		t.Errorf("Parse after restoring registry: %v, want the golden to still parse", err)
+	}
+}
+
+// TestReadAndWriteRefuseAFuncLessRegistryRow proves Read and Write
+// answer ErrUnsupportedContainer rather than panicking when the
+// registry carries a row for the sniffed format whose func values are
+// unset: Sniff succeeds against the row's magic, so the panic this
+// guards against would otherwise happen inside Read and Write
+// themselves, not inside Sniff.
+func TestReadAndWriteRefuseAFuncLessRegistryRow(t *testing.T) {
+	path := copyFixture(t, filepath.Join("testdata", "golden.flac"))
+
+	saved := registry
+	registry = map[Format]formatEntry{FormatFLAC: {magic: flacMagic}}
+	t.Cleanup(func() { registry = saved })
+
+	if _, err := Read(path); !errors.Is(err, ErrUnsupportedContainer) {
+		t.Errorf("Read against a func-less registry row error = %v, want %v", err, ErrUnsupportedContainer)
+	}
+	if err := Write(path, TagSet{}, nil, 0o644); !errors.Is(err, ErrUnsupportedContainer) {
+		t.Errorf("Write against a func-less registry row error = %v, want %v", err, ErrUnsupportedContainer)
 	}
 }
 

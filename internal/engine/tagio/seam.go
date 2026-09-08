@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
+	"slices"
 )
 
 // Format identifies one container format tagio's seam registry
@@ -58,16 +60,17 @@ var registry = map[Format]formatEntry{
 // than restated as a byte literal.
 var flacMagic = [4]byte([]byte(flacSignature))
 
-// SupportedFormats returns a copy of the seam registry's key set, so
-// rung 7 can bound its allowlist against exactly what tagio can
-// handle. Each call clones the underlying set, so mutating the
-// returned slice never touches the registry itself (Mapping's own
-// precedent, tagset.go).
+// SupportedFormats returns a copy of the seam registry's key set,
+// ordered by each Format's own value, so rung 7 can bound its
+// allowlist against exactly what tagio can handle in a deterministic
+// order rather than a map's. A Format's value is assigned by
+// declaration order (the iota block above), so this ordering is also
+// registration order. Each call clones the underlying set, so
+// mutating the returned slice never touches the registry itself
+// (Mapping's own precedent, tagset.go).
 func SupportedFormats() []Format {
-	out := make([]Format, 0, len(registry))
-	for format := range registry {
-		out = append(out, format)
-	}
+	out := slices.Collect(maps.Keys(registry))
+	slices.Sort(out)
 	return out
 }
 

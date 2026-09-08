@@ -39,6 +39,22 @@ func wellFormedPicturePayload(typeIndex uint32) []byte {
 	return picturePayload(typeIndex, uint32(len("image/png")), "image/png", uint32(len("cover")), "cover", uint32(len(data)), data)
 }
 
+// shortGeometryPicturePayload builds a 32-byte payload, exactly
+// picturePayloadMin, whose media-type field (5 bytes, "image") and
+// zero-length description consume 17 of those 32 bytes, leaving 15
+// for geometry where decodePicture wants 20: the "carries no
+// geometry" refusal, which needs a payload that clears the 32-byte
+// floor but still runs out of room past the variable-length fields.
+func shortGeometryPicturePayload() []byte {
+	var buf []byte
+	buf = binary.BigEndian.AppendUint32(buf, 3) // type
+	buf = binary.BigEndian.AppendUint32(buf, uint32(len("image")))
+	buf = append(buf, "image"...)
+	buf = binary.BigEndian.AppendUint32(buf, 0) // description length
+	buf = append(buf, make([]byte, 32-len(buf))...)
+	return buf
+}
+
 // TestDecodePictureTypeIndex covers P4: the type index degrades to 0
 // above 20, front cover (3) and the boundary at 20 do not degrade.
 func TestDecodePictureTypeIndex(t *testing.T) {
@@ -93,6 +109,16 @@ func TestParsePictureRefusals(t *testing.T) {
 		{
 			name:    "block shorter than the 32-byte minimum",
 			payload: wellFormedPicturePayload(3)[:20],
+		},
+		{
+			// Exactly picturePayloadMin (32) bytes total, so the
+			// length-against-32 check passes, but a nonzero
+			// media-type length (5, "image") plus a zero-length
+			// description leaves only 15 bytes remaining where
+			// geometry needs 20: the "carries no geometry" branch,
+			// distinct from the block-too-short row above.
+			name:    "media type consumes the block, no room left for geometry",
+			payload: shortGeometryPicturePayload(),
 		},
 	}
 	for _, tt := range tests {
@@ -218,10 +244,14 @@ func TestPictureGoldenDecode(t *testing.T) {
 
 	// The block's own arithmetic: eight u(32) fields (32 bytes) plus
 	// the three variable-length fields sums to the declared length of
-	// 78 (golden.txt PICTURE block, c.Blocks[2].Length).
+	// 78 (golden.txt PICTURE block). 78 is hard-coded rather than read
+	// back from c.Blocks[2].Length, which is the very value this
+	// assertion exists to catch drifting from a field read at the
+	// wrong offset.
+	const wantPictureBlockLength = 78
 	sum := picturePayloadMin + len(p.MediaType) + len(p.Description) + len(p.Data)
-	if sum != c.Blocks[2].Length {
-		t.Errorf("field widths sum to %d, want %d (the block's declared length)", sum, c.Blocks[2].Length)
+	if sum != wantPictureBlockLength {
+		t.Errorf("field widths sum to %d, want %d (the block's declared length)", sum, wantPictureBlockLength)
 	}
 }
 

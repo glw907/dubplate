@@ -58,7 +58,10 @@ type Picture struct {
 	// Colors is the number of colours used for an indexed-colour
 	// picture, as decoded from the block.
 	Colors uint32
-	// Data is the picture's raw bytes.
+	// Data is the picture's raw bytes: a re-slice of the decoded
+	// block's own payload rather than a copy, so a caller that mutates
+	// Data in place mutates the bytes a later Write, called with a nil
+	// pictures argument, preserves untouched.
 	Data []byte
 }
 

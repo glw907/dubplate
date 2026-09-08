@@ -19,7 +19,11 @@ func Read(path string) (TagSet, error) {
 	if err != nil {
 		return TagSet{}, err
 	}
-	return registry[format].read(path)
+	entry, ok := registry[format]
+	if !ok || entry.read == nil {
+		return TagSet{}, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
+	}
+	return entry.read(path)
 }
 
 // readFLAC is FLAC's seam registry row for Read: it parses path

@@ -41,7 +41,11 @@ func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	return registry[format].write(path, ts, pictures, mode)
+	entry, ok := registry[format]
+	if !ok || entry.write == nil {
+		return fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
+	}
+	return entry.write(path, ts, pictures, mode)
 }
 
 // writeFLAC is FLAC's seam registry row for Write: every key ts owns
