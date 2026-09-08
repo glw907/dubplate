@@ -2343,6 +2343,11 @@ the verb, the config resolution, the tests). Gate green; commit.
 
 ## Task 8: The pass close, and the 5a to 5b handoff
 
+**Done, 2026-09-08.** Pass 5a closed and merged at `307001b`. The
+HISTORY entry, the security-review record, the spec corrections, and
+the 5b handoff this task specifies are landed; `docs/STATUS.md` carries
+the pass's close and the next action.
+
 Model: `sonnet`. Depends on Tasks 0 through 7.
 
 **Files:**

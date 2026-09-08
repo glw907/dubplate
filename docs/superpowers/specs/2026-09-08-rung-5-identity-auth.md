@@ -1,6 +1,12 @@
 # Rung 5: identity and auth
 
-Status: **revision 2.1, product forks ruled by Geoff 2026-09-08.**
+Status: **revision 2.1, product forks ruled by Geoff 2026-09-08.** Pass
+5a closed 2026-09-08 (`internal/serve`, merged at `307001b`) and its
+close applies the errata dated 2026-09-08 in "Errata the close
+applies", below: R23's ceiling, R24's review shape, the session-cookie
+pass assignment, the hop-by-hop scope, the trailer-coverage claim, the
+`X-Forwarded-*` family, rule 1's mechanism and rule 3's shape, the read
+timeout, and the template-classification test's home.
 
 Revision 2.1 folds Geoff's rulings on the six product forks. Fork 1
 reverses its recommendation: adding a group member is a web-interface
@@ -2025,6 +2031,128 @@ Three in-tree copies of the gate-rejoin sentence are corrected in pass
 5c rather than at the close, because the leg lands there:
 `CLAUDE.md:118`, `scripts/check.sh:5`, and `Makefile:33`. DL's section 6
 names only the first two.
+
+**Pass 5a's close, 2026-09-08, adds the corrections below.** Pass 5a
+(`internal/serve`, merged at `307001b`) closed with a fresh-context
+`web-auth-security-reviewer` read against this spec's own threat model
+(`spec:1903-1975`); its findings and their dispositions are the
+do-not-re-litigate record at
+`docs/superpowers/research/2026-09-08-rung-5a-security-review.md`.
+
+> Erratum, 2026-09-08 (pass 5a's close): **R23's ceiling table**
+> (`spec:563-567`) is corrected. 5a's ceiling was re-derived from rung
+> 8a's actual before 5a's own plan was drafted, from 3M to **4.25M**,
+> per the re-derivation rule R23 already states ("each ceiling is
+> re-derived from the previous pass's actual report before the next
+> plan is drafted"). Rung 5's combined reservation moves from 14.5M to
+> **15.75M**, the 1.25M difference recorded against the reservation
+> rather than taken from another pass. 5a's actual spend closed at
+> about 3.9M against the 4.25M ceiling.
+
+> Erratum, 2026-09-08 (pass 5a's close): **R24's review shape**
+> (`spec:571-580`) gains 5a's own reviewer. The conductor ruled
+> (R-J, 5a's plan) that a fresh-context `web-auth-security-reviewer`
+> read runs at 5a's own pass end, not only inside 5b and at 5c: the
+> shell's composition order is the artifact the whole trust boundary
+> rests on, and `spec:2043-2047`'s own split-point argument is the
+> reason a security read of it happens on its own rather than
+> alongside the token, session, nonce-store, roster, and limiter
+> surfaces 5b also carries. R24 otherwise stands as written.
+
+> Erratum, 2026-09-08 (pass 5a's close): **the session-cookie removal's
+> pass assignment** is settled. Neither `spec:2035-2041`'s 5a row nor
+> its 5b row named which pass removes rung 5's own session cookie from
+> a request before it reaches the fallthrough, though `spec:808-813`
+> requires the removal. Ruled R-E: 5a builds the removal, at the
+> fallthrough boundary, parameterized by the cookie name as a
+> construction value 5b supplies once the name exists.
+
+> Erratum, 2026-09-08 (pass 5a's close): **the hop-by-hop scope**
+> (`spec:796-806`) is narrowed to what 5a actually built. Serve removes
+> every header a request's own `Connection` header lists, with two
+> carve-outs: a `Connection` naming `Upgrade` keeps both `Upgrade` and
+> `Connection` standing, so a websocket handshake survives the listed
+> removal, and a fixed keep-set (`Cookie`, `Origin`, `Sec-Fetch-Site`,
+> and the shell's own session-cookie name) is never removed by the
+> listed rule regardless of what a client's `Connection` header names.
+> The fixed RFC 7230 hop-by-hop set (`Keep-Alive`, `Transfer-Encoding`,
+> `TE`, `Trailer`, `Proxy-Authorization`, `Proxy-Authenticate`) stays
+> unremoved by 5a's own code, on the finding that
+> `httputil.ReverseProxy` already removes that fixed set on the way out
+> (rung 12's concern, ruled R-O).
+
+> Erratum, 2026-09-08 (pass 5a's close): **the strip covers trailer
+> fields, not header fields alone** (`spec:772-812` names only
+> `r.Header`). Every identity spelling in group 1's set is deleted from
+> `r.Trailer` on the same pass as `r.Header` (ruled R-P), because
+> `net/http` moves an announced trailer key out of `r.Header` and into
+> `r.Trailer` once the body is consumed, which a header-only strip
+> cannot reach. The pass's first threat-model claim now names both
+> maps.
+
+> Erratum, 2026-09-08 (pass 5a's close): **group 2 extends to the whole
+> `X-Forwarded-*` family** (`spec:795-800` names only
+> `X-Forwarded-For`, `X-Real-IP`, and `Forwarded`). Ruled R-R:
+> `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Prefix` join
+> the three, carrying the same trusted-proxy carve-out, because each
+> remaining member steers an absolute URL a downstream handler (5b's
+> or rung 12's) builds from client-asserted input.
+
+> Erratum, 2026-09-08 (pass 5a's close): **rule 1's mechanism and rule
+> 3's shape** (`spec:918-928`, `spec:918-920` in particular) are
+> settled. Ruled R-D: rule 1 refuses when `r.URL.EscapedPath() !=
+> r.URL.Path`, a blanket ban on percent-encoding in the path rather
+> than a narrower `RawPath`-based test, because `RawPath` is populated
+> only when the escaped form differs from the default encoding of
+> `Path` and is undefined for an unencoded request. The strictness is
+> named rather than absorbed as a permanent default: rung 12 revisits
+> it against the streamer's real client paths, share links, cover-art
+> paths, and any path a Subsonic client percent-encodes, with measured
+> evidence before relaxing it. Rule 3, stated at `spec:918-928` and in
+> the composition order (`spec:907-944`) as "any empty segment", is
+> corrected to a doubled-separator rule: a single trailing separator is
+> admitted (`/`, `/dubplate/`, and `/dubplate/x/` all pass), and the
+> empty-segment reading contradicted C4's own routing of the bare
+> prefix. **The normalization rule count moves from four to six**: the
+> composition order's rule 2 (`spec:907-944`) and the pass-split
+> table's 5a row (`spec:2058`) both said "four-rule normalization";
+> the landed rule set adds a length bound (R-H, answered `414`) and a
+> refusal for a request target whose path does not begin with a
+> separator (R-U, admitting an absolute-form target while refusing a
+> `CONNECT` request's empty path).
+
+> Erratum, 2026-09-08 (pass 5a's close): **the read timeout**
+> (`spec:965-981`, which names a read-header timeout, an idle timeout,
+> and a default write timeout) gains a fourth. Ruled R-V: a 30-second
+> read timeout, adopted at the salvage server's own value, bounds a
+> request body trickled a byte at a time, since neither the read-header
+> timeout nor the idle timeout covers that shape. If a later rung wants
+> a streaming upload route, the alternative is `http.MaxBytesReader` on
+> the body plus `http.ResponseController.SetReadDeadline` per route,
+> carried to 5b as a named option rather than adopted here.
+
+> Erratum, 2026-09-08 (pass 5a's close): **the template-classification
+> test's home, and the wall's fifth classification.** `Wiring`
+> (`spec:982-1005`) does not say where the test proving every template
+> name classifies against the production registry lives. It lives in
+> `cmd/dubplate-server`, not `internal/config`: the rung 1b registry
+> contract composes the production registry as each rung declares its
+> own keys in its own file, so `internal/config` alone can no longer
+> classify a template's names without reporting a declared name as
+> unknown once a later rung's file exists only in the binary package.
+> `internal/config` keeps a generic classification-mechanics test
+> against a fixture registry it declares for itself.
+> `rejectNamespace`'s wall gains a fifth classification alongside
+> owned, reserved, superseded, and integration-class rows: a registered
+> threshold is a declared name, so `Load` accepts a value set against
+> it rather than reporting it unknown. Rung 4's thresholds classified
+> through their integration class and never exercised this branch;
+> `DUBPLATE_SERVE_PREFIX`, the first standalone threshold rung 5
+> declares, is what makes 5a the first pass to need it. Recorded as a
+> residual (security-review finding 24, above): no per-threshold value
+> validation runs at `Load` time beyond the registry's own
+> default-presence check, a property of the rung 1b wall contract
+> rather than a 5a gap.
 
 ---
 

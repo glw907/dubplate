@@ -2,6 +2,545 @@
 
 Per-pass ledger, newest first.
 
+## Rung 5, pass 5a (the serve shell and ingress): closed 2026-09-08, lane 2
+
+Executed against
+`docs/superpowers/plans/2026-09-08-rung-5a-serve-shell.md` (revision 2)
+in the worktree at `.claude/worktrees/lane-2-5a`, branch `lane-2-5a`
+from `8ac38d7`. Tasks 1 through 7 ran through the pass-execute chain
+(`wf_115f4cec-9c0`, 18 agents, 1.68M); this entry is Task 8, the close.
+Task 0 (2026-09-08) found no blockers: a stale lane-registry text, a
+kind-constants pointer resolving to `thresholds.go:16-21`, the tracked
+incumbent `systemd/dubplate-serve.service` making 5d's unit a
+replacement rather than a birth, and a gate time near five minutes
+cold. Task 0 also found the spec's 5a row stating a four-rule
+normalization where the plan lands six, corrected below.
+
+### What landed
+
+Task 1 (`bbf9b05`) added `internal/serve/clientaddr.go`:
+`TrustedProxyConfig`, `PeerAddress` (`RemoteAddr` with the port
+stripped, the sole input to every trust decision), `ClientIP` (the peer
+address unless a configured header arrives from a configured proxy,
+multi-hop values parsed right to left), and the `ProxyMode` descriptor
+5d's `doctor` row renders (R27).
+
+Task 2 (`df811a5`, fix `bba4422`) added `internal/serve/strip.go`: the
+three-group ingress strip. Group 1 removes every identity-header
+spelling in dash and underscore form, both derived from one data
+declaration (`identitySpellings`) and, after the fix, cleared from
+`r.Header` and `r.Trailer` on the same pass (R-P)—the fix corrected a
+gap the strip's own reviewer found, where the announced trailer key's
+value cleared only at end-of-stream, leaving the key standing before
+the body was read. Group 2 removes the forwarded-address family unless
+trusted-proxy mode is on and the peer matches, reading only Task 1's
+`PeerAddress` and `TrustedProxyConfig`. Group 3 removes every header a
+request's own `Connection` header lists, with the upgrade (R-O) and
+keep-set (R-S) carve-outs. The exemption mechanism (R-Q) ships
+unreachable at rung 5, since no front exists yet. The extras list is
+verified name by name against Authelia's, Navidrome's, oauth2-proxy's,
+and Cloudflare Access's own documentation, with citation and read date
+recorded beside each name.
+
+Task 3 (`d94fe4b`, `opus`) added `internal/serve/normalize.go`:
+`Normalize`'s six-rule refusal, wrapping the mux rather than
+registering as a route since `http.ServeMux` cleans and redirects
+before any route runs (measured: `/dubplate/../x` and `/dubplate/./x`
+both answer 307). Rule 1's predicate is
+`r.URL.EscapedPath() != r.URL.Path` (R-D), a blanket ban on
+percent-encoding rather than a `RawPath`-based test, because `RawPath`
+is populated only when the escaped form differs from `Path`'s default
+encoding and is empty for an unencoded request. Rule 3 is a
+doubled-separator rule, not an empty-segment rule, admitting a single
+trailing separator. Rule 5 answers `414` on a path past 2048 bytes,
+inclusive (R-H); every other rule answers `400` (R-T). Rule 6 refuses a
+request target whose path does not begin with a separator, admitting
+an absolute-form target while refusing a `CONNECT` request's empty
+path (R-U). The task carried two notes into Task 7's commit: rule 4 is
+defense in depth behind rule 1, and the 2048-byte bound is inclusive.
+
+Task 4 (`aaa8975`) added `internal/serve/prefix.go`: `Prefix`,
+validated at construction against a package sentinel; `Owns`, a
+segment-aware, case-sensitive-bytes match refusing the salvage tree's
+`mountBasePath` gap; and `Route`, composing `Owns` with a 404
+`Terminator` so an unregistered path under the prefix never reaches the
+fallthrough.
+
+Task 5 (`9388926`, fix `99d60e7`) added `internal/serve/serve.go`: the
+root composition. `Shell` composes the strip, normalization, prefix
+routing, and the fallthrough into the one `http.Handler` C1 requires,
+with `Register` (subtree by name, panics on collision) and
+`SetFallthrough` (one slot, panics on a second call), a structured
+refusal-log record proving the strip ran before normalization, and the
+session-cookie removal at the fallthrough boundary (R-E). The fix
+addressed the second review's findings: `statusCapture` gained
+`Unwrap`/`Flush`/`Hijack` so `http.ResponseController` and direct type
+assertions reach the real `ResponseWriter` through `logRefusal`'s
+wrapper; `removeCookie` moved from rebuilding the `Cookie` header via
+`http.Request.Cookies()` to editing the raw header text directly, so a
+surviving cookie's quoting and any header `net/http` would otherwise
+consider invalid pass through verbatim (this closed the multi-valued
+`Cookie` finding the second review filed); and a doc-comment
+correction to `logRefusal`.
+
+Task 6 (`322a8fc`) added `internal/serve/server.go`: the four `C6`
+timeout constants (read-header, read, idle, default write) and
+`MaxHeaderBytes`; the `IP_FREEBIND` listener set via
+`syscall.SetsockoptInt` inside a `net.ListenConfig.Control` hook (R-M),
+the constant verified against the kernel header rather than carried
+from memory; and `Run(ctx, ...)`. The default write timeout stays
+overridable per request through
+`http.ResponseController.SetWriteDeadline`, already exposed to the
+fallthrough by Task 5's `statusCapture`. The second review escalated
+two findings that the post-chain fix round closed rather than a
+same-task fix: `defaultWriteTimeout` as a mutable package variable
+(fixed by threading the write timeout through `newHTTPServer` as a
+parameter) and `serveUntilDone` not shutting the server down when one
+listener's `Serve` failed (fixed by shutting down the whole set on any
+one failure).
+
+Task 7 (`799419a`) declared `DUBPLATE_SERVE_BIND_ADDRS`,
+`DUBPLATE_SERVE_PORT`, and `DUBPLATE_SERVE_PREFIX` in
+`cmd/dubplate-server/serve.go` and deleted `internal/config/keys.go`'s
+`serve` reserved class in the same commit, the removal half of the
+rung 1b registry contract's first exercise. It wired `newServeCmd`
+into `newRootCmd`'s `AddCommand` block, validating the owned wall
+through `config.Load` before any listener opens. It moved the
+template-classification test to `cmd/dubplate-server`, where the
+production registry is composed as the binary builds it, since the
+rung 1b registry contract means `internal/config` alone can no longer
+classify a template's names once a later rung's keys live only in its
+own file; `internal/config` keeps a generic classification-mechanics
+test against a fixture registry it declares for itself. It taught the
+wall's fifth classification: a registered threshold is a declared
+name, so `rejectNamespace` (via `thresholdOf`) accepts a value set
+against it rather than reporting it unknown. This task first ran red
+and uncommitted: deleting the `serve` reserved class broke
+`internal/config`'s own template-classification test, the consequence
+the move to `cmd/dubplate-server` then resolved.
+
+The post-chain fix round (`0d3c644`, `opus`) folded the two chain
+reviews' escalations together: the trailer scrub arms unconditionally
+on the request rather than on the announcement, since a chunked
+request may send a trailer section it never announced; the group 3
+keep-set compares on header names alone (dropping the session-cookie
+name, which is a cookie and not a header) and the configured
+trusted-proxy header is exempt from group 1's own removal so a
+client-supplied `Connection` cannot delete a trusted front's own
+assertion; the session cookie is removed from every `Cookie` header
+line rather than the first, by raw-segment splitting; the refusal
+record is keyed on the shell's own refusals via a request-scoped
+marker, so a subtree answering 400 to its own bad input emits none;
+`Terminator` is wired explicitly for the owned prefix;
+`io.ReaderFrom` is forwarded through the status capture; every server
+timeout became a constant, the write timeout threaded through
+`newHTTPServer`; `serveUntilDone` shuts the whole listener set down on
+one failure; and the forwarding header is read across every line it
+arrived on, right to left as one chain, rather than from the first
+line alone.
+
+The fresh-context `web-auth-security-reviewer` (`claude-opus-5`) then
+read the whole shell against the plan's and the spec's threat model:
+24 findings (1 blocker, 5 majors, 18 minors), do not merge as-is. The
+fold (`307001b`, `opus`, cited by the review's disposition record as
+"5550e45" before the merge's rebase) closed all six of the
+blocker-and-majors plus nine of the eighteen minors: the refusal
+record bounds a logged path to a 256-byte prefix and its full length
+rather than writing it whole, closing a 1 MiB-per-request flood
+vector; `http.Server.ErrorLog` is wired to the shell's own logger at
+`warn`; the session-cookie removal's name-matching now mirrors
+`net/http`'s own `readCookies` trim order; group 2's removal set is
+derived at `NewStrip` as the fixed family plus the configured
+trusted-proxy header, and group 3 keeps those names standing for a
+trusted peer, closing the "Connection deletes a trusted proxy's own
+header" interaction; the trailer scrub gained a `Close` path so a
+handler that closes the body without reading it no longer sees a
+smuggled trailer; and `main` wires `signal.NotifyContext` plus
+`ExecuteContext`, which is what makes the graceful drain built at Task
+6 reachable at all outside a test. The nine folded minors also refuse
+the wildcard bind address, validate a `Register` subtree name, report
+each invalid-prefix shape by its own reason, refuse `TRACE` and
+`TRACK` with `405` and no `Allow` header (a stated deviation),
+build-constrain `IP_FREEBIND` behind `//go:build linux`, extend group
+2 to the CDN client-IP headers (`Cf-Connecting-Ip`, `True-Client-Ip`,
+`Fastly-Client-Ip`, `X-Azure-Clientip`), and complete a second citation
+pass over the identity-extras list (four names added, one retracted
+from the dropped list and cited, four candidates confirmed still
+uncitable). Every one of twelve named mutations in the fold's own
+review fired. The full findings list, its dispositions, and the
+verified-sound table are recorded at
+`docs/superpowers/research/2026-09-08-rung-5a-security-review.md`, the
+do-not-re-litigate record for 5b, 5c, and 5d.
+
+### The exported surface
+
+`TrustedProxyConfig`, `PeerAddress`, `ClientIP`, `ProxyMode`
+(`clientaddr.go`); `Strip`, `NewStrip`, `FrontExemption`,
+`NewFrontExemption` and the three groups (`strip.go`); `Normalize` and
+its six rules (`normalize.go`); `Prefix`, `NewPrefix`, `Owns`, `Route`,
+`Terminator` (`prefix.go`); `Shell`, `NewShell`, `Register`,
+`SetFallthrough`, `Handler`, `Logger`, and the refusal record
+(`serve.go`); `Listen`, `Run`, the timeout constants, `SplitBindAddrs`,
+and freebind (`server.go`, `bindaddrs.go`, `freebind_linux.go`,
+`freebind_other.go`); the `serve` verb and its three thresholds
+(`cmd/dubplate-server/serve.go`); the moved `templatekeys_test.go`; and
+`internal/config`'s fifth wall classification (`thresholdOf` inside
+`rejectNamespace`).
+
+### What the gate caught
+
+Task 3's review escalated on notes rather than a fix: rule 4 unreachable
+behind rule 1, and the 2048-byte bound's inclusivity, both folded into
+the task's own commit. Task 5's second review escalated on a
+multi-valued `Cookie` header, `logRefusal` keyed on status rather than
+the shell's own refusals, and `Terminator` left unwired for the owned
+prefix, all closed in `99d60e7`. Task 6's review escalated on
+`defaultWriteTimeout` as a mutable package variable and
+`serveUntilDone` not shutting down the listener set on one failure,
+both closed in the post-chain fix round rather than in-task. Task 7
+ran red once, uncommitted, on the template-classification consequence
+described above, resolved in the same task before commit. The
+fresh-context security review is the gate's largest catch by finding
+count (24) and is detailed above and in the security-review record.
+
+### The resolutions, as ruled
+
+All twenty-two resolutions, R-A through R-V, ruled by the conductor at
+dispatch, 2026-09-08, stand as applied. Each row names the file and
+symbol carrying the decision.
+
+| Resolution | Ruling | Landed at |
+| --- | --- | --- |
+| R-A | Owned prefix defaults to `/dubplate` | `cmd/dubplate-server/serve.go:57` |
+| R-B | Bind default `127.0.0.1`, port default `8080`, bind list as `KindString` split in-package | `cmd/dubplate-server/serve.go:30`, `internal/serve/bindaddrs.go:38` |
+| R-C | Serve keys declared in `cmd/dubplate-server/serve.go`, not `internal/config` | `cmd/dubplate-server/serve.go:13` |
+| R-D | Rule 1 refuses on `EscapedPath() != Path`, a blanket percent-encoding ban | `internal/serve/normalize.go:38` |
+| R-E | Session-cookie removal lands at 5a, at the fallthrough, cookie name a construction value | `internal/serve/serve.go:219` |
+| R-F | Origin check is 5b's; insertion point documented (after strip, after normalization) | Plan only, no 5a code |
+| R-G | `doctor`'s client-IP-mode and bound-address rows are 5d's; 5a exports the values | `internal/serve/clientaddr.go` (`ProxyMode`), `internal/serve/server.go:111` (`Addr`) |
+| R-H | Explicit path-length bound (2048, inclusive) and explicit `MaxHeaderBytes` | `internal/serve/normalize.go:19`, `internal/serve/server.go:45` |
+| R-I | Trusted-proxy configuration is 5d's; 5a's derivation takes plain values | `internal/serve/clientaddr.go:17` |
+| R-J | Fresh-context `web-auth-security-reviewer` runs at 5a's own pass end | This entry, security-review record |
+| R-K | 5a writes no systemd unit, no deploy path | Ruling only |
+| R-L | Extension point registers by subtree name, takes `http.Handler` | `internal/serve/serve.go:80` |
+| R-M | `IP_FREEBIND` through `syscall`, not `x/sys/unix` | `internal/serve/freebind_linux.go:10` |
+| R-N | Empty fallthrough answers 404 | `internal/serve/serve.go:133` |
+| R-O | Fixed hop-by-hop names stay rung 12's; `Connection`-listed removal with the upgrade carve-out | `internal/serve/strip.go:481` |
+| R-P | Strip clears identity spellings from `r.Trailer` alongside `r.Header` | `internal/serve/strip.go:268`, `:343` |
+| R-Q | Exempted header's duplicate collapses to its last value | `internal/serve/strip.go:350`, `:377` |
+| R-R | Group 2 extends to the whole `X-Forwarded-*` family | `internal/serve/strip.go:143` |
+| R-S | Group 3's keep-set (`Cookie`, `Origin`, `Sec-Fetch-Site`, session cookie) | `internal/serve/strip.go:187`, `:293` |
+| R-T | `400` is the shared refusal status; the length bound alone answers `414` | `internal/serve/normalize.go:80` |
+| R-U | Non-origin-form request target refused; absolute-form admitted | `internal/serve/normalize.go:71` |
+| R-V | Read timeout adopted at 30 seconds | `internal/serve/server.go:25`, `server_test.go:21` |
+
+### The shell's contract coverage, C1 through C8
+
+| Contract | Go site | Proved by | Reach |
+| --- | --- | --- | --- |
+| C1 root composition order | `Shell.Handler` (`serve.go:150`) | `TestOrderStripBeforeOwnedSubtree`, `TestOrderStripBeforeFallthrough`, `TestOrderRawVsDecodedRefusedBeforeAnyHandler`, `TestOrderPrefixRequiresSegmentBoundary` (`serve_test.go:69,94,123,160`) | Behavioral, not structural, per the plan's own rule |
+| C2 three-group ingress strip | `Strip.Wrap` (`strip.go:333`) | `TestStripWrapRemovesEveryIdentitySpelling`, `TestStripWrapConnectionListedRemoval`, `TestStripWrapGroup2ForwardedAddress`, plus 11 more rows in `strip_test.go` | Full, both header and trailer paths |
+| C3 normalization rules | `Normalize` (`normalize.go:83`) | `TestNormalize` (table over all six rules), `TestUnencodedPathCarriesEmptyRawPath`, `TestServeMuxCleansBeforeARouteRuns` | Full for all six rules |
+| C4 prefix routing and the terminator | `Prefix.Route`, `Terminator` (`prefix.go:149`, `:131`) | `TestRoute`, `TestNewPrefix`, `TestUnclaimedOwnedPathReachesTheTerminator` | Full |
+| C5 the extension point | `Shell.Register`, `Shell.SetFallthrough` (`serve.go:80`, `:136`) | `TestRegisterDuplicateSubtreePanics`, `TestSetFallthroughTwicePanics`, `TestTwoSubtreesEachReceiveOnlyOwnPaths`, `TestRegisterAfterHandlerPanics` | Full for the collision and slot rules; the static two-handler split is unreached, since 5a builds neither handler (declared gap 6) |
+| C6 the deadline policy | `newHTTPServer`, the timeout constants (`server.go:18`, `:92`) | `TestNewHTTPServerTimeouts`, `TestWriteDeadlineExtension` | Full for the mechanism; slowloris and slow-body resistance rest on the constants rather than a timing test (declared gap 5) |
+| C7 two addresses, two jobs | `PeerAddress`, `ClientIP` (`clientaddr.go:68`, `:102`) | `TestPeerAddress`, `TestClientIP`, `TestClientIPReadsEveryHeaderLineAsOneChain` | Full |
+| C8 the bind surface | `Listen`, `SplitBindAddrs`, freebind (`server.go:113`, `bindaddrs.go:38`, `freebind_linux.go`) | `TestListenBindsExactAddresses`, `TestControlHookOpensAnUnconfiguredAddress`, `TestSplitBindAddrs` | Full for binding; the `doctor` row surfacing a misconfigured address is 5d's (R-G) |
+
+### The mutation table
+
+Named mutations as the plan predicted them per task; an outcome
+attributed beyond the plan's own text is reported by the implementer
+or the review record cited above.
+
+**Task 1** (5 named): reading the header without checking the peer, a
+left-to-right multi-hop parse, an empty-header fallback, moving the
+header check into the peer-address function, and hand-splitting
+`RemoteAddr` on the last colon all fire on their named rows. Mutation
+4 is recorded as the one whose blast radius crosses into Tasks 2 and 5.
+
+**Task 2** (10 named): dropping the underscore derivation, deleting
+after the handler returns, skipping group 2 when mode is off, dropping
+the `Connection`-listed removal, exempting the configured header for
+every peer, reading the peer address from `X-Forwarded-For` inside the
+strip, dropping the trailer clause, removing every `Connection`-listed
+name unconditionally, taking the exempted header's first value instead
+of its last, and dropping the `X-Forwarded-*` family all fire on their
+named rows. Mutation 6 is the one Task 1's mutation 4 predicted, fired
+here.
+
+**Task 3** (10 named, `opus`): comparing `RawPath` against `Path`
+instead of `EscapedPath()` fires the plain-path row, the R-D trap
+proven real. Cleaning `..` instead of refusing, dropping the backslash
+rule, dropping the doubled-separator rule, registering the check as a
+route instead of wrapping it, varying the refusal status per rule,
+refusing an empty segment instead of a doubled separator, dropping the
+origin-form rule, admitting a benign encoded byte, and dropping the
+`.` segment from rule 2 all fire on their named rows.
+
+**Task 4** (5 named): `strings.HasPrefix` in place of the segment-aware
+match, lowercasing before matching, falling through instead of
+terminating, terminating with the wrong status, and accepting a prefix
+with a trailing separator at construction all fire on their named
+rows.
+
+**Task 5** (8 named): swapping the strip and normalization steps,
+registering normalization as a route, reordering the prefix match
+ahead of normalization, letting the fallthrough see a refused request,
+allowing a silent duplicate registration, removing the session cookie
+on every path instead of at the fallthrough, deleting the whole
+`Cookie` header at the fallthrough, and stripping after the prefix
+decision instead of before all fire on their named rows.
+
+**Task 6** (7 named): dropping the write deadline, dropping the
+`ResponseController` extension, binding `0.0.0.0` instead of the
+address list, returning on the first bind error without closing the
+openers, and dropping the `Control` hook all fire on their named rows;
+the `Control`-hook mutation is the one revision 1 pre-authorized as
+unfired on the belief every test address was already present, which
+this task's own execution corrected. Taking `ctx` off `Run` fails to
+compile, the mutation the language itself catches. Dropping the read
+timeout is **reported unfired by design**: a slow-body test is a
+timing test this gate does not carry, and the constant's presence in
+the server literal, with its reason comment, is what holds the
+property instead (declared gap 5).
+
+**Task 7** (6 named): declaring the keys without deleting the reserved
+class fires the registry collision panic; deleting the class without
+declaring the keys fails the declaration test; giving
+`DUBPLATE_SERVE_PREFIX` an empty default panics at
+`validateThresholdDefault`; wiring `newServeCmd` outside the
+`AddCommand` block fails the verb's invocation test; passing
+`*config.Config` into `internal/serve` is caught by the reviewer's read
+of the import list. Registering `DUBPLATE_SERVE_PORT` as `KindString`
+is **reported unfired by design**: the default `"8080"` still parses as
+a string and no test fails on the kind alone, held instead by the
+declaration's stated kind, read at review.
+
+**The security fold's own review** named twelve mutations against its
+six fixes; every one fired, reported by the fold's own review record.
+
+### The declared coverage gaps
+
+**Six declared by the plan's own Task 8 template, joined by five from
+the security review's residual findings, eleven new gaps against the
+running total of fifty-two after rung 8b (rung 3's twenty-one, rung
+4a's nine, rung 4b's four, rung 1b's two, rung 8a's seven, rung 8b's
+nine), bringing the total to sixty-three.**
+
+1. **The strip's extras list is complete only to the documentation each
+   name was verified against.** A spelling no reference implementation
+   documents is a spelling the set does not carry; the mitigation is
+   that a new one is one line of data.
+2. **The exemption mechanism is unreachable at rung 5** and is tested
+   against a synthetic front. No real forward-auth front exists to
+   grade it until one is built.
+3. **No `doctor` row reports the client-IP mode or the bound
+   addresses** (R-G). 5a exports both; 5d renders them.
+4. **The session-cookie removal is tested with an arbitrary cookie
+   name** (R-E), because the real name arrives at 5b.
+5. **Slowloris resistance and slow-body resistance rest on the timeout
+   constants rather than on a test**, since a byte-at-a-time client is
+   a timing test this gate should not carry.
+6. **No page, no auth handler, and no real consumer has registered at
+   the extension point.** 5b is the first real registration.
+7. **`identity_spelling_present` proves order, not value** (security
+   review finding 8). Go populates an announced trailer key with a nil
+   value before the handler reads anything, so the refusal-record
+   assertion reads key presence rather than content; sound for C1's
+   ordering claim, not a value-content proof.
+8. **No connection cap alongside the 120-second idle timeout**
+   (security review finding 14). The idle timeout is the stated
+   mitigation for how long one connection may sit; nothing bounds how
+   many a client holds open at once.
+9. **A `;`-separated path segment reaches the fallthrough unrefused**
+   (security review finding 17). Neither C3's rules nor
+   `http.ServeMux`'s own cleaning refuse it, so a router built to
+   interpret it differently than dubplate's own routing can disagree.
+10. **A case-varying path is routed, not refused, at the prefix
+    boundary** (security review finding 18). C4's case-sensitive match
+    is the stated policy; the residual is that the mismatch is silent
+    traffic on the fallthrough rather than a refusal.
+11. **A registered threshold is accepted by `Load` with any value**
+    (security review finding 24). The wall's fifth classification
+    accepts a threshold-classified name regardless of the value
+    supplied; no per-threshold value validation runs beyond the
+    registry's own default-presence check, a property of the rung 1b
+    wall contract rather than a 5a-created gap in the code this pass
+    wrote.
+
+Six review findings are recorded as forward-scope carries rather than
+gaps this pass created, since the surface each names does not exist
+yet: finding 7 (absolute-form `r.Host`, 5b), finding 16 (no
+`Referrer-Policy`, 5c), finding 22 (`netip`-typed proxy set, 5d), and
+finding 23 (`check`/`doctor` value validation, 5d). These are listed in
+the handoff and the security-review record, not counted twice here.
+
+### The 5a to 5b handoff
+
+5b inherits: the composed root handler it mounts auth handlers into
+through `Shell.Register`; the extension point's registration method
+and its collision panic; Task 1's `ClientIP` derivation, which the
+three limiter keys read and which 5b must not re-derive; the
+constraint that the origin check inserts after the strip and after
+normalization (R-F), so a smuggled path never reaches it and no
+inbound identity header is present when it decides; the session-cookie
+name the shell already takes at construction (R-E); the keep-set that
+guarantees `Origin` and `Sec-Fetch-Site` survive ingress (R-S),
+alongside the fact that Go's `CrossOriginProtection.Check` returns nil
+when both are absent; the 30-second read timeout and the
+`http.MaxBytesReader` alternative if a later rung wants a streaming
+upload (R-V); R33's disposal as 5b's post-login destination rule
+(`spec:674-686`, not Task 3's); rule 1's blanket percent-encoding ban
+as a named strictness rather than a permanent default, revisited at
+rung 12 against the streamer's real client paths with measured
+evidence before relaxing it; and the fact that `internal/config`'s
+`keys.go` still carries the `auth and identity` class and the pending
+wall row, both untouched and both 5b's to retire.
+
+The security review adds three requirements to that inheritance: 5b
+builds every URL from the configured public origin, never `r.Host`
+(finding 7); `Referrer-Policy: no-referrer` and the rest of the served
+header set are 5c's, not 5a's (finding 16); and the moved
+`templatekeys_test.go` classifies against the production registry as
+composed in `cmd/dubplate-server`, which 5b's own new keys join rather
+than re-derive.
+
+### Forward carries
+
+1. **The `netip`-typed trusted-proxy address set** (security review
+   finding 22) is 5d's, when the trusted-proxy integration class gives
+   the configured set real shape.
+2. **`check` and `doctor` gain no serve-value validation at 5a**
+   (security review finding 23); 5d's `doctor` row (R-G) is where a
+   configured bind address or prefix gains a live-evidence check.
+3. **`Referrer-Policy: no-referrer` and the rest of the served header
+   set** are 5c's (security review finding 16).
+4. **The `;`-segment and case-variant-prefix fallthrough gaps** (coverage
+   gaps 9 and 10 above) are rung 12's to close when a real driver gives
+   them a router to disagree with.
+5. **`internal/config`'s `auth and identity` reserved class, the
+   pending identity-source wall row, and the three supersession-message
+   rewrites** are untouched by 5a and are 5b's whole edit to
+   `keys.go` and `config.go`, per the contested-surfaces table.
+
+### The spec corrections
+
+Applied directly to
+`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md` as dated
+errata under "Errata the close applies":
+
+1. **R23's ceiling table**: 5a's ceiling re-derived from rung 8a's
+   actual, 3M to 4.25M; rung 5's combined reservation moves from
+   14.5M to 15.75M.
+2. **R24's review shape**: gains 5a's own fresh-context
+   `web-auth-security-reviewer` read (R-J), argued from the spec's own
+   split-point paragraph.
+3. **The session-cookie removal's pass assignment** (R-E): settled as
+   5a's, at the fallthrough, parameterized by the cookie name.
+4. **The hop-by-hop scope** (R-O): narrowed to the `Connection`-listed
+   removal with the upgrade and keep-set carve-outs; the fixed RFC 7230
+   set stays unremoved by 5a's own code, on `httputil.ReverseProxy`
+   already removing it.
+5. **The strip's trailer coverage** (R-P): the claim list now names
+   both `r.Header` and `r.Trailer`.
+6. **Group 2's `X-Forwarded-*` extension** (R-R): the fixed three-name
+   list grows to the whole family.
+7. **Rule 1's mechanism and rule 3's shape** (R-D, and the composition
+   order's "any empty segment" corrected to a doubled-separator rule
+   with a single trailing separator admitted). **The normalization
+   rule count moves from four to six**, correcting `spec:2058`'s pass-
+   split row.
+8. **The read timeout** (R-V): a fourth timeout named alongside the
+   three the deadlines section already carried.
+9. **The template-classification test's home and the wall's fifth
+   classification**: the test lives in `cmd/dubplate-server`, a
+   consequence of the rung 1b registry contract; `rejectNamespace`
+   gains the registered-threshold branch.
+
+### The evidence
+
+`go test ./internal/serve/... -count=1` is green in 1.130s-1.143s
+across repeated runs. `go test ./... -count=1` (every package) is
+green in 2m33.785s, no existing suite's result changed by this pass.
+The strip's extras list, final: `Remote-User`, `Remote-Name`,
+`Remote-Email`, `Remote-Groups`, `X-Forwarded-User`,
+`X-Forwarded-Email`, `X-Forwarded-Preferred-Username`,
+`X-Forwarded-Groups`, `X-Forwarded-Access-Token`, `X-Forwarded-Uri`,
+`X-Forwarded-Method`, `Cf-Access-Jwt-Assertion`,
+`Cf-Access-Authenticated-User-Email`, `X-Webauth-User`, the five
+`X-Authentik-*` names, `Tailscale-User-Login`, `Tailscale-User-Name`,
+and `X-Original-Url`, each dash-and-underscore, cited against Authelia,
+Navidrome, oauth2-proxy, Cloudflare Access, Grafana, Gitea, authentik,
+and Tailscale's own documentation; `X-Client-Ip`, `X-Cluster-Client-Ip`,
+`X-Original-Method`, `X-Rewrite-Url`, Miniflux's `AUTH_PROXY_HEADER`,
+oauth2-proxy's `X-Auth-Request-*` set, and Cloudflare's service-token
+headers stay dropped, each reason recorded beside it in
+`internal/serve/strip.go`. `internal/config` and `cmd/dubplate-server`
+each carry only the touch this pass's Global Constraints named: the
+`serve` reserved-class deletion and the templatekeys-test move,
+nothing else in `internal/config`.
+
+### What a later pass would be wrong to rediscover
+
+`RawPath` is never the basis for the percent-encoding rule: it is
+populated only when the escaped form differs from `Path`'s default
+encoding, so a `RawPath`-keyed test passes over an ordinary path by
+accident. The trailer scrub must run on both the read path and the
+`Close` path; a handler that closes the body without reading it is a
+real request shape, not a hypothetical one. A client's `Connection`
+header can delete a trusted front's own forwarded-address assertion
+unless group 3's removal explicitly excludes group 2's kept names for
+a trusted peer; the two groups are not independent. `net/http`'s own
+`readCookies` trims a cookie name after the `=` cut, not before; a
+cookie-removal routine that trims first admits a name carrying a
+trailing space as a distinct cookie from the one it means to remove.
+The graceful drain `Run` builds is inert without a signal-driven
+context in `main`; a shutdown mechanism with no caller that cancels
+its context is not shipped, whatever its own tests prove. The
+template-classification test's home is a permanent consequence of the
+rung 1b registry contract, not a 5a-specific choice: any later rung
+declaring its own keys in its own file, as rung 5 does, moves the
+"every template name classifies" proof to `cmd/dubplate-server` with
+it, since `internal/config` alone can no longer see the whole
+registry.
+
+### Deviations
+
+The conditional `opus` upshift named for Task 5 (if Task 3's review
+returned `fix`) was not applied: Task 3's review escalated on notes,
+not a `fix` verdict. The post-chain fix round and the security fold
+both ran on `opus` by conductor choice rather than the plan's own
+per-task model assignment. The refusal marker is a request-context
+value rather than a capture-field, a shape difference from how earlier
+rungs held similar per-request state. `Run` gained a logger parameter
+beyond what the plan's own signature draft named.
+
+### Spend
+
+About 3.9M against the 4.25M ceiling: plan preparation, 0.83M; Task 0,
+0.13M; the chain, 1.68M across 18 agents; the post-chain fix round,
+0.27M; the security review, 0.18M; the security fold, 0.22M; the merge
+review, 0.09M; arguments and commits, 0.3M; conductor turns, about
+0.2M. The 3.4M flag was crossed by the security fold, after every task
+had already landed. Attended interactions: one planning miss (the
+template-classification consequence of rung 1b's contract, which a
+planning-time probe of `config_test.go` would have caught), zero
+execution sittings.
+
+### The merge ritual
+
+Rebase onto master clean (master had moved by 8b's own close); full
+gate green in the worktree; `--ff-only` merge to `307001b`; full gate
+green on master; one `diff-reviewer` over the merged range, since the
+rebase was not a fast-forward: accept, with three carries for 5b
+(`templatekeys_test.go` classifies a pending wall row as owned where
+`Load` would refuse it; `productionRegistry` restates `newRootCmd`'s
+register calls by hand; `server.go:161` passes the listener as a
+goroutine parameter, a pre-1.22 idiom) and the note that the arch
+tests root at `internal/engine`, so `internal/serve` sits outside them
+by design. The second code slot released; the worktree torn down.
+
 ## Rung 8, pass 8b (PICTURE and the conformance instrument): closed 2026-09-08
 
 Tasks 0 through 6 executed against
