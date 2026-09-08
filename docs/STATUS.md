@@ -23,10 +23,12 @@ the lane registry, not `pgrep`, and the box is production.
 
 ## Lane registry
 
-- lane-1 (main tree): next action **4a-ii (Tasks 10-15) via the
-  pass-execute chain, after a staleness check; then 4b (deploy, owner
-  sitting, ruling 6)**. 4a-ii ceiling 3M (Geoff, 2026-09-07), flag at
-  2.4M to Geoff; chain args and prep scripts in the project handoff dir.
+- lane-1 (main tree): **EXECUTING 4a-ii (Tasks 10-14 via the
+  pass-execute chain, launched 2026-09-07 after a clean staleness
+  check; Task 15 is the conductor's close)**; then 4b (deploy, owner
+  sitting, ruling 6). 4a-ii ceiling 3M (Geoff, 2026-09-07), flag at
+  2.4M to Geoff; chain args in the project handoff dir
+  (`4a-ii-chain-args.json`).
   lane-2 (worktree): BLOCKED until Phase 0b/0c. Doc lane: IDLE.
 
 ## Open items (carried)
