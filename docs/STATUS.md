@@ -21,7 +21,7 @@ live, production.
 ## Next action
 
 Lane-1 (main tree): ACTIVE, pass 8b chain (pass-execute
-wf_7f5b05d7-373, launched 2026-09-08 11:20; Task 0 clean; plan
+wf_7f5b05d7-373, launched 2026-09-08 11:20; Task 0 clean; checkpoint 13:05: Tasks 1 to 4 landed, a4c2bcf to f11e6fa, one fix round on Task 3; plan
 1cbd270; the 8a simplifier landed at 0f2b61d). Lane-2 (worktree `.claude/worktrees/lane-2-5a`,
 branch `lane-2-5a` from 8ac38d7): ACTIVE, pass 5a chain (pass-execute
 wf_115f4cec-9c0, launched 2026-09-08 11:10; Task 0 clean; checkpoint 12:02: Tasks 1 to 3 landed on the branch, 013c5ee to 6c20369, one fix round on Task 2); one
