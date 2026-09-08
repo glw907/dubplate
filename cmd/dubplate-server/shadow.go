@@ -173,7 +173,7 @@ func newShadowCmd(environ []string, matcherCommit string, stdout, stderr io.Writ
 	cmd.AddCommand(
 		newShadowObserveCmd(environ, matcherCommit, stdout, stderr),
 		newShadowReportCmd(environ, stdout, stderr),
-		newShadowReevaluateCmd(environ, stdout, stderr),
+		newShadowReevaluateCmd(environ, matcherCommit, stdout, stderr),
 	)
 	return cmd
 }
@@ -283,23 +283,90 @@ func newShadowReportCmd(environ []string, stdout, stderr io.Writer) *cobra.Comma
 	return cmd
 }
 
-// newShadowReevaluateCmd builds the reevaluate verb. Its RunE is filled
-// in by Task 13's shadow.Reevaluate, which reruns every observation
-// stamped with a superseded matcher commit against its own stored
-// responses.
-func newShadowReevaluateCmd(_ []string, stdout, stderr io.Writer) *cobra.Command {
+// newShadowReevaluateCmd builds the reevaluate verb: it reruns every
+// observation stamped with a superseded matcher commit against its own
+// stored responses, refusing to run on an unstamped build on the same
+// grounds observe does (an unstamped commit can never be mechanically
+// distinguished from a later one, so "reevaluate" against it would
+// either restamp everything or nothing).
+func newShadowReevaluateCmd(environ []string, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "reevaluate",
 		Short:         "Re-run stamped observations against their stored responses",
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(*cobra.Command, []string) error {
-			_, err := fmt.Fprintln(stdout, "shadow reevaluate: not yet implemented")
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			cfg, err := config.Load(environ)
+			if err != nil {
+				return err
+			}
+			if matcherCommit == "" || matcherCommit == "dev" {
+				return fmt.Errorf("shadow reevaluate: refusing to run on an unstamped matcher commit %q", matcherCommit)
+			}
+
+			store, err := shadow.OpenStore(filepath.Join(cfg.StateDir, "shadow"))
+			if err != nil {
+				return err
+			}
+
+			now := time.Now()
+			res, err := shadow.Reevaluate(cmd.Context(), shadow.Config{MatcherCommit: matcherCommit}, store, now)
+			if err != nil {
+				return err
+			}
+			if err := stageNewlyDiverged(store, res.NewlyDiverged, now); err != nil {
+				return err
+			}
+
+			_, err = fmt.Fprintf(stdout,
+				"shadow reevaluate: retired %d, restamped %d, newly diverged %d, unevaluable %d, skipped %d\n",
+				len(res.Retired), len(res.Restamped), len(res.NewlyDiverged), len(res.Unevaluable), len(res.Skipped))
 			return err
 		},
 	}
 	cmd.SetErr(stderr)
 	return cmd
+}
+
+// stageNewlyDiverged stages a pending row for every observation
+// Reevaluate reports as newly diverged: an agreement that reevaluate
+// promoted to a divergence was never staged in the first place, so this
+// is the one outcome that needs a fresh row rather than a removal or an
+// untouched one. internal/engine/shadow may import no harness package
+// (contract S19), so the row's own construction (pendingRowFor) lives
+// there and only the marshalling into analysis.AdjudicationEntry's
+// shape happens here, exactly as storeArtifacts does for an observe
+// pass's own pending rows.
+func stageNewlyDiverged(s *shadow.Store, ids []string, now time.Time) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	obsList, err := s.Observations()
+	if err != nil {
+		return err
+	}
+	byID := make(map[string]*shadow.Observation, len(obsList))
+	for _, obs := range obsList {
+		byID[obs.ID] = obs
+	}
+	for _, id := range ids {
+		obs, ok := byID[id]
+		if !ok {
+			return fmt.Errorf("shadow reevaluate: newly diverged observation %s not found", id)
+		}
+		row, ok := shadow.PendingRowFor(obs, now)
+		if !ok {
+			return fmt.Errorf("shadow reevaluate: observation %s reported newly diverged but carries no divergence", id)
+		}
+		data, err := pendingJSON(row)
+		if err != nil {
+			return err
+		}
+		if err := s.PutPending(row.ID, data); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // printShadowReport writes r's rows in the pinned "%-32s %s" form,

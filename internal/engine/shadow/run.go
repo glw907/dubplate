@@ -365,6 +365,14 @@ func caseFixtureFor(obs *Observation, now time.Time) CaseFixture {
 // The four prose fields are rendered from the observation rather than
 // staged as TODO: a row that says nothing still consumes an owner
 // adjudication.
+// PendingRowFor is pendingRowFor, exported for cmd/dubplate-server's
+// reevaluate wiring: a newly diverged observation Reevaluate promotes
+// from an agreement was never staged by an observe pass, so the verb
+// stages one itself, off the same construction an observe pass uses.
+func PendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
+	return pendingRowFor(obs, now)
+}
+
 func pendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
 	if !isDivergence(obs.Class) {
 		return PendingRow{}, false
