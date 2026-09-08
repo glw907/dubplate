@@ -224,3 +224,93 @@ func TestPictureGoldenDecode(t *testing.T) {
 		t.Errorf("field widths sum to %d, want %d (the block's declared length)", sum, c.Blocks[2].Length)
 	}
 }
+
+// TestSniffMediaType covers R2's six recognized rows by their whole
+// magic-byte test rather than a leading prefix, plus a no-match
+// refusal. Four rows exist for the shapes a prefix-only sniff gets
+// wrong: a RIFF blob carrying WEBP at 8 and VP at 12 (accepted), a
+// RIFF blob carrying WEBP at 8 without VP (refused), a TIFF-prefixed
+// blob without CR at 8 (accepted), and a CR2-prefixed blob (refused,
+// R2's stated deviation). Every expected media type is hard-coded from
+// filetype's own MIME constant rather than derived from this package.
+func TestSniffMediaType(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    []byte
+		want    string
+		wantErr bool
+	}{
+		{"JPEG whole magic", []byte{0xFF, 0xD8, 0xFF, 0x00}, "image/jpeg", false},
+		{"PNG whole magic", []byte{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A}, "image/png", false},
+		{"GIF whole magic", []byte("GIF89a"), "image/gif", false},
+		{"BMP whole magic", []byte{0x42, 0x4D, 0x00, 0x00}, "image/bmp", false},
+		{"RIFF WEBP with VP at 12 accepted", []byte("RIFF\x00\x00\x00\x00WEBPVP8 "), "image/webp", false},
+		{"RIFF WEBP without VP at 12 refused", []byte("RIFF\x00\x00\x00\x00WEBPAVIF"), "", true},
+		{"TIFF-prefixed without CR at 8 accepted", []byte{0x49, 0x49, 0x2A, 0x00, 0, 0, 0, 0, 0, 0}, "image/tiff", false},
+		{"CR2-prefixed refused", []byte{0x49, 0x49, 0x2A, 0x00, 0, 0, 0, 0, 'C', 'R'}, "", true},
+		{"no match refused", []byte{0x01, 0x02, 0x03, 0x04}, "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := sniffMediaType(tt.data)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("sniffMediaType: got nil error, want a refusal")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("sniffMediaType: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("sniffMediaType = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestEncodePictureZerosGeometry covers P6 and P7 together at the
+// encode level: a picture carrying non-zero geometry and a declared
+// media type that disagrees with its data encodes with all four
+// geometry fields zero and the sniffed media type, asserted both on
+// the payload's own bytes and on decodePicture's round trip.
+func TestEncodePictureZerosGeometry(t *testing.T) {
+	p := Picture{
+		Type:        3,
+		MediaType:   "image/jpeg", // declared, disagrees with the PNG-signed data (P7)
+		Description: "cover",
+		Width:       100,
+		Height:      200,
+		Depth:       24,
+		Colors:      5,
+		Data:        []byte{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0xAA},
+	}
+	b, err := encodePicture(p)
+	if err != nil {
+		t.Fatalf("encodePicture: %v", err)
+	}
+	if b.Type != blockPicture {
+		t.Fatalf("block type = %d, want %d", b.Type, blockPicture)
+	}
+
+	const wantMediaType = "image/png"
+	const wantDesc = "cover"
+	geomStart := 4 + 4 + len(wantMediaType) + 4 + len(wantDesc)
+	geometryBytes := b.Payload[geomStart : geomStart+16]
+	for _, by := range geometryBytes {
+		if by != 0 {
+			t.Fatalf("geometry bytes = % x, want all zero", geometryBytes)
+		}
+	}
+
+	got, err := decodePicture(b.Payload, 0)
+	if err != nil {
+		t.Fatalf("decodePicture(encodePicture(p)): %v", err)
+	}
+	if got.Width != 0 || got.Height != 0 || got.Depth != 0 || got.Colors != 0 {
+		t.Errorf("geometry = {%d %d %d %d}, want all zero", got.Width, got.Height, got.Depth, got.Colors)
+	}
+	if got.MediaType != wantMediaType {
+		t.Errorf("MediaType = %q, want the sniffed %q, not the declared %q", got.MediaType, wantMediaType, p.MediaType)
+	}
+}

@@ -79,4 +79,52 @@ package tagio
 //     rules_test.go's hand-built rows rather than by any conformance
 //     run against the oracle, because the corpus carries no non-empty
 //     value for them to compare against.
+//
+//  7. A picture write discards incoming geometry (P6). Width, height,
+//     colour depth and indexed-colour count are always written as
+//     zero, regardless of what the caller's Picture carried, because
+//     mediafile's FLAC image write builds a fresh mutagen.flac.Picture
+//     and sets only data, type, mime and desc
+//     (mediafile/storage/flac.py:30-37), and Picture.__init__
+//     initialises all four to 0 (mutagen/flac.py:577-586). A rewrite
+//     therefore never round-trips real dimensions;
+//     TestWriteGeometryAlwaysZero and TestEncodePictureZerosGeometry
+//     are this package's evidence.
+//
+//  8. APNG discrimination is not reproduced (R3). Pinned filetype
+//     tries APNG before PNG and tells them apart by walking the chunk
+//     table for an acTL chunk appearing before IDAT or IEND
+//     (filetype/types/image.py:51-88); this package matches PNG's own
+//     eight-byte signature and reports image/png for both. An animated
+//     cover is not a case this estate or any adopter's library
+//     realistically holds, and a chunk-table walk over caller-supplied
+//     bytes is new attack surface for no benefit. This is a declared
+//     coverage gap: no test in this package exercises an APNG blob.
+//
+//  9. A CR2-prefixed blob is refused rather than sniffed (R2). Pinned
+//     filetype's Tiff.match excludes CR at offset 8 from its own TIFF
+//     test and routes that shape to Cr2, reporting image/x-canon-cr2
+//     (filetype/types/image.py:193-199, filetype/types/__init__.py:15-32);
+//     this package's sniffMediaType applies the same CR exclusion but
+//     has no seventh row to route the exclusion to, so a CR2-prefixed
+//     blob matches nothing and the write is refused. A cover
+//     realistically never carries a camera raw file, so the refusal
+//     costs no format this estate needs.
+//
+//  10. Every declared block length is trusted rather than
+//     re-derived from the file, for both VORBIS_COMMENT and PICTURE.
+//     Mutagen sets _distrust_size = True on Picture
+//     (mutagen/flac.py:575) and on VCFLACDict (:350), and
+//     FLAC.__read_metadata_block therefore ignores the 24-bit block
+//     length and parses each block from the file object using its own
+//     internal lengths instead (:712-724, whose comment cites
+//     quodlibet/mutagen issue 106 for the real-world shape a wrong
+//     block length takes). tagio trusts the block header's declared
+//     length outright (P3) and bounds-checks a block's own internal
+//     lengths against it, vorbisField (container.go:358) having
+//     already applied the same policy to VORBIS_COMMENT without
+//     recording it. A library file whose block length disagrees with
+//     its own content is one beets can tag and tagio refuses, and the
+//     refusal reaches rung 7's intake gate as a rejection rather than
+//     a hardened re-derivation.
 var Deviations struct{}

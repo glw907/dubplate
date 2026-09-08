@@ -107,16 +107,45 @@ func frameHash(t *testing.T, path string) [32]byte {
 	return sha256.Sum256(data[c.FrameOffset : c.FrameOffset+c.FrameLength])
 }
 
+// goldenPicture is the golden's own recorded picture, hand-transcribed
+// from the provenance record (golden.txt:71-74 and
+// gen_golden_flac.py:115 and :131) rather than produced by Parse or
+// Task 1's decoder (R4). Type, Description and Data are the values
+// gen_golden_flac.py's Image() call actually took; mediafile's own
+// Image() never takes a declared mime or geometry at all, so
+// MediaType and the geometry fields carry no provenance literal to
+// transcribe and are instead set deliberately wrong (a foreign
+// declared type, non-zero dimensions): the golden byte assertion below
+// only passes if Write sniffs image/png from Data rather than writing
+// the declared MediaType through (P7), and zeros the geometry
+// regardless of what was carried in (P6).
+func goldenPicture() Picture {
+	data := append([]byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}, "invented-picture-payload"...)
+	return Picture{
+		Type:        3,
+		MediaType:   "application/octet-stream",
+		Description: "cover",
+		Width:       640,
+		Height:      480,
+		Depth:       24,
+		Colors:      16,
+		Data:        data,
+	}
+}
+
 // TestWriteGoldenBytes is R4: a write of the golden's own recorded
 // input, applied to a copy of the golden, emits a VORBIS_COMMENT
-// header and payload byte-identical to the golden's own. The header
-// comparison pins the three-byte big-endian length and the cleared
-// last-block flag together, C11's asymmetry (risk 2b).
+// header and payload byte-identical to the golden's own, and a
+// PICTURE header and payload byte-identical to the golden's own too.
+// The header comparisons pin the three-byte big-endian length and the
+// cleared last-block flag together, C11's asymmetry (risk 2b); the
+// PICTURE comparison additionally pins P7's sniff-not-declared media
+// type and P6's zeroed geometry against the golden's own bytes.
 func TestWriteGoldenBytes(t *testing.T) {
 	goldenPath := filepath.Join("testdata", "golden.flac")
 	copyPath := copyFixture(t, goldenPath)
 
-	if err := Write(copyPath, goldenTagSet(), 0o644); err != nil {
+	if err := Write(copyPath, goldenTagSet(), []Picture{goldenPicture()}, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
@@ -128,6 +157,15 @@ func TestWriteGoldenBytes(t *testing.T) {
 	if !bytes.Equal(wantPayload, gotPayload) {
 		t.Errorf("VORBIS_COMMENT payload differs from the golden's")
 	}
+
+	wantPictureHeader, wantPicturePayload := blockHeaderAndPayload(t, goldenPath, 2)
+	gotPictureHeader, gotPicturePayload := blockHeaderAndPayload(t, copyPath, 2)
+	if !bytes.Equal(wantPictureHeader, gotPictureHeader) {
+		t.Errorf("PICTURE header = % x, want % x", gotPictureHeader, wantPictureHeader)
+	}
+	if !bytes.Equal(wantPicturePayload, gotPicturePayload) {
+		t.Errorf("PICTURE payload differs from the golden's")
+	}
 }
 
 // TestWriteCommentSet asserts the emitted comment set key by key
@@ -137,7 +175,7 @@ func TestWriteGoldenBytes(t *testing.T) {
 // ARTISTS, a read-only style, anywhere in the output.
 func TestWriteCommentSet(t *testing.T) {
 	copyPath := copyFixture(t, filepath.Join("testdata", "golden.flac"))
-	if err := Write(copyPath, goldenTagSet(), 0o644); err != nil {
+	if err := Write(copyPath, goldenTagSet(), nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
@@ -188,7 +226,7 @@ func TestWriteRoundTripEveryBlockType(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("new")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("new")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
@@ -239,7 +277,7 @@ func TestWriteForeignKeyPreserved(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("new")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("new")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
@@ -271,7 +309,7 @@ func TestWriteReplacesLowercaseTitleCaseInsensitively(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("new")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("new")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
@@ -332,7 +370,7 @@ func TestWriteCollidingPairLeavesPluralComments(t *testing.T) {
 			}
 			path := writeFixture(t, buildContainer(blocks, nil))
 
-			if err := Write(path, tt.ts, 0o644); err != nil {
+			if err := Write(path, tt.ts, nil, 0o644); err != nil {
 				t.Fatalf("Write: %v", err)
 			}
 
@@ -359,7 +397,7 @@ func TestWriteBlockChainPaddingPolicy(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("A")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("A")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	sizeOnce, err := os.Stat(path)
@@ -367,7 +405,7 @@ func TestWriteBlockChainPaddingPolicy(t *testing.T) {
 		t.Fatalf("stat: %v", err)
 	}
 
-	if err := Write(path, TagSet{Title: new("A")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("A")}, nil, 0o644); err != nil {
 		t.Fatalf("second Write: %v", err)
 	}
 	sizeTwice, err := os.Stat(path)
@@ -409,7 +447,7 @@ func TestWriteFrameRegionUnchanged(t *testing.T) {
 	path := writeFixture(t, buildContainer(blocks, frame))
 
 	before := frameHash(t, path)
-	if err := Write(path, TagSet{Title: new("A")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("A")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	after := frameHash(t, path)
@@ -441,7 +479,7 @@ func TestWriteModeIsCallerMode(t *testing.T) {
 	path := writeFixture(t, buildContainer(blocks, nil))
 
 	const mode = 0o640
-	if err := Write(path, TagSet{Title: new("A")}, mode); err != nil {
+	if err := Write(path, TagSet{Title: new("A")}, nil, mode); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	info, err := os.Stat(path)
@@ -465,7 +503,7 @@ func TestWriteVendorRewritePreservesLoaded(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("new")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("new")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	c, err := Parse(path)
@@ -489,7 +527,7 @@ func TestWriteVendorFreshOnCreatePrefixed(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("A")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("A")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	c, err := Parse(path)
@@ -512,7 +550,7 @@ func TestWriteNoCommentBlockInsertsAfterStreamInfo(t *testing.T) {
 	}
 	path := writeFixture(t, buildContainer(blocks, nil))
 
-	if err := Write(path, TagSet{Title: new("A")}, 0o644); err != nil {
+	if err := Write(path, TagSet{Title: new("A")}, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	c, err := Parse(path)
@@ -572,7 +610,7 @@ func TestWriteRefusalNeverCreatesTempFile(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(dir, 0o755) })
 
-	err := Write(path, TagSet{Title: new("A")}, 0o644)
+	err := Write(path, TagSet{Title: new("A")}, nil, 0o644)
 	if !errors.Is(err, ErrMalformedContainer) {
 		t.Errorf("err = %v, want errors.Is(err, ErrMalformedContainer): a permission error here means the target directory was opened for writing before the container was validated", err)
 	}
@@ -663,7 +701,7 @@ func TestWriteRefusals(t *testing.T) {
 			data := tt.data()
 			path := writeFixture(t, data)
 
-			err := Write(path, TagSet{Title: new("A")}, 0o644)
+			err := Write(path, TagSet{Title: new("A")}, nil, 0o644)
 			if err == nil {
 				t.Fatalf("Write: got nil error, want %v", tt.wantErr)
 			}
@@ -678,5 +716,290 @@ func TestWriteRefusals(t *testing.T) {
 				t.Errorf("target file changed on disk after a refused write")
 			}
 		})
+	}
+}
+
+// TestWritePicturesNilLeavesExistingUntouched covers R1's leave-alone
+// state on a file that already carries a picture: a nil picture set
+// leaves the PICTURE block untouched byte for byte.
+func TestWritePicturesNilLeavesExistingUntouched(t *testing.T) {
+	copyPath := copyFixture(t, filepath.Join("testdata", "golden.flac"))
+	wantHeader, wantPayload := blockHeaderAndPayload(t, copyPath, 2)
+
+	if err := Write(copyPath, TagSet{Title: new("new title")}, nil, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	gotHeader, gotPayload := blockHeaderAndPayload(t, copyPath, 2)
+	if !bytes.Equal(wantHeader, gotHeader) {
+		t.Errorf("PICTURE header = % x, want % x", gotHeader, wantHeader)
+	}
+	if !bytes.Equal(wantPayload, gotPayload) {
+		t.Errorf("PICTURE payload changed by a nil picture set")
+	}
+}
+
+// TestWritePicturesEmptySliceStrips covers R1's strip state on a file
+// that already carries a picture: a non-nil empty set leaves no
+// PICTURE block in the chain.
+func TestWritePicturesEmptySliceStrips(t *testing.T) {
+	copyPath := copyFixture(t, filepath.Join("testdata", "golden.flac"))
+
+	if err := Write(copyPath, TagSet{Title: new("new title")}, []Picture{}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	c, err := Parse(copyPath)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	for _, b := range c.Blocks {
+		if b.Type == blockPicture {
+			t.Fatalf("PICTURE block survived a non-nil empty picture set: %+v", c.Blocks)
+		}
+	}
+	if len(c.Pictures) != 0 {
+		t.Errorf("got %d pictures, want 0", len(c.Pictures))
+	}
+}
+
+// TestWriteEmptyPictureSetLeavesCommentsUnchanged proves the strip
+// does not disturb the tags: a write with a non-nil empty picture set
+// leaves every VORBIS_COMMENT behavior 8a's own merge-contract
+// assertions already cover, graded here against the same golden
+// comment sequence TestWriteCommentSet grades.
+func TestWriteEmptyPictureSetLeavesCommentsUnchanged(t *testing.T) {
+	copyPath := copyFixture(t, filepath.Join("testdata", "golden.flac"))
+
+	if err := Write(copyPath, goldenTagSet(), []Picture{}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	c, err := Parse(copyPath)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	want := commentsFrom(goldenComments...)
+	if !reflect.DeepEqual(c.VorbisComment.Comments, want) {
+		t.Errorf("comment set =\n%+v\nwant\n%+v", c.VorbisComment.Comments, want)
+	}
+	if len(c.Pictures) != 0 {
+		t.Errorf("got %d pictures, want 0 (strip)", len(c.Pictures))
+	}
+}
+
+// TestWritePicturesReplaceTwoPictures covers R1's replace state: a
+// two-picture set over a file that already carries one picture leaves
+// exactly two PICTURE blocks, in the order passed, with both type
+// indexes intact.
+func TestWritePicturesReplaceTwoPictures(t *testing.T) {
+	copyPath := copyFixture(t, filepath.Join("testdata", "golden.flac"))
+	first := Picture{Type: 3, MediaType: "image/png", Description: "front", Data: []byte{0x89, 'P', 'N', 'G', 0, 0, 0, 0}}
+	second := Picture{Type: 4, MediaType: "image/jpeg", Description: "back", Data: []byte{0xFF, 0xD8, 0xFF, 0, 0, 0}}
+
+	if err := Write(copyPath, TagSet{Title: new("new title")}, []Picture{first, second}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	c, err := Parse(copyPath)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(c.Pictures) != 2 {
+		t.Fatalf("got %d pictures, want 2: %+v", len(c.Pictures), c.Pictures)
+	}
+	if c.Pictures[0].Type != 3 || c.Pictures[1].Type != 4 {
+		t.Errorf("Pictures = %+v, want type indexes [3 4] in order", c.Pictures)
+	}
+	pictureBlocks := 0
+	for _, b := range c.Blocks {
+		if b.Type == blockPicture {
+			pictureBlocks++
+		}
+	}
+	if pictureBlocks != 2 {
+		t.Errorf("PICTURE block count = %d, want 2", pictureBlocks)
+	}
+}
+
+// TestWriteMediaTypeSniffOverridesDeclared covers P7: a picture whose
+// declared MediaType disagrees with its data (a PNG blob declared
+// image/jpeg) writes image/png, read back to prove the sniff overrides
+// rather than defaults.
+func TestWriteMediaTypeSniffOverridesDeclared(t *testing.T) {
+	blocks := wellFormedBlocks()
+	path := writeFixture(t, buildContainer(blocks, nil))
+
+	png := Picture{Type: 3, MediaType: "image/jpeg", Description: "cover", Data: []byte{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0xAB, 0xCD}}
+	if err := Write(path, TagSet{Title: new("A")}, []Picture{png}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	c, err := Parse(path)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(c.Pictures) != 1 {
+		t.Fatalf("got %d pictures, want 1", len(c.Pictures))
+	}
+	if c.Pictures[0].MediaType != "image/png" {
+		t.Errorf("MediaType = %q, want the sniffed %q, not the declared %q", c.Pictures[0].MediaType, "image/png", "image/jpeg")
+	}
+}
+
+// TestWriteGeometryAlwaysZero covers P6 at the full write pipeline: a
+// picture carrying non-zero geometry writes zero for all four fields,
+// asserted on the emitted block's own bytes and on the read-back round
+// trip.
+func TestWriteGeometryAlwaysZero(t *testing.T) {
+	blocks := []testBlock{
+		{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 0)},
+		{Type: blockVorbisComment, Payload: vorbisCommentPayload("vendor", []string{"TITLE=old"})},
+		{Type: blockPadding, Last: true, Payload: make([]byte, 16)},
+	}
+	path := writeFixture(t, buildContainer(blocks, nil))
+
+	p := Picture{Type: 3, MediaType: "image/png", Description: "cover", Width: 640, Height: 480, Depth: 24, Colors: 16, Data: []byte{0x89, 'P', 'N', 'G', 0, 0, 0, 0}}
+	if err := Write(path, TagSet{Title: new("A")}, []Picture{p}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	// STREAMINFO(0), VORBIS_COMMENT(1), PICTURE(2): the fixture carries
+	// no incoming PICTURE block, so the new one lands right after
+	// VORBIS_COMMENT (P8).
+	_, payload := blockHeaderAndPayload(t, path, 2)
+	geomStart := 4 + 4 + len(p.MediaType) + 4 + len(p.Description)
+	geometry := payload[geomStart : geomStart+16]
+	for _, b := range geometry {
+		if b != 0 {
+			t.Fatalf("geometry bytes = % x, want all zero", geometry)
+		}
+	}
+
+	c, err := Parse(path)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(c.Pictures) != 1 {
+		t.Fatalf("got %d pictures, want 1", len(c.Pictures))
+	}
+	got := c.Pictures[0]
+	if got.Width != 0 || got.Height != 0 || got.Depth != 0 || got.Colors != 0 {
+		t.Errorf("geometry = {%d %d %d %d}, want all zero", got.Width, got.Height, got.Depth, got.Colors)
+	}
+}
+
+// TestWriteRefusalLeavesFileUnchanged covers R2's refusing rows at the
+// write level: a picture whose data sniffs to no recognized format
+// refuses the write and leaves the target file unchanged on disk. The
+// table covers the two prefix-only-sniff traps (RIFF WEBP without VP,
+// a CR2-prefixed blob) plus a blob matching nothing.
+func TestWriteRefusalLeavesFileUnchanged(t *testing.T) {
+	tests := []struct {
+		name string
+		data []byte
+	}{
+		{"RIFF WEBP without VP at 12", []byte("RIFF\x00\x00\x00\x00WEBPAVIF")},
+		{"CR2-prefixed", []byte{0x49, 0x49, 0x2A, 0x00, 0, 0, 0, 0, 'C', 'R'}},
+		{"no match", []byte{0x01, 0x02, 0x03, 0x04}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := buildContainer(wellFormedBlocks(), nil)
+			path := writeFixture(t, data)
+
+			p := Picture{Type: 0, MediaType: "image/png", Description: "d", Data: tt.data}
+			err := Write(path, TagSet{Title: new("A")}, []Picture{p}, 0o644)
+			if err == nil {
+				t.Fatalf("Write: got nil error, want a refusal")
+			}
+			got, readErr := os.ReadFile(path)
+			if readErr != nil {
+				t.Fatalf("read %s after refusal: %v", path, readErr)
+			}
+			if !bytes.Equal(got, data) {
+				t.Errorf("target file changed on disk after a refused write")
+			}
+		})
+	}
+}
+
+// TestWriteBlockChainOrderPictureReplacedInPlace covers P8's ownership
+// transition on the golden, which already carries a picture: the
+// emitted chain reads STREAMINFO, VORBIS_COMMENT, PICTURE, PADDING,
+// with the picture replaced in place, exactly one PADDING block, 8
+// KiB, last, and the frame region's hash unchanged.
+func TestWriteBlockChainOrderPictureReplacedInPlace(t *testing.T) {
+	copyPath := copyFixture(t, filepath.Join("testdata", "golden.flac"))
+	before := frameHash(t, copyPath)
+
+	if err := Write(copyPath, goldenTagSet(), []Picture{goldenPicture()}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	c, err := Parse(copyPath)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	assertBlockOrder(t, c, []byte{blockStreamInfo, blockVorbisComment, blockPicture, blockPadding})
+	assertSinglePadding(t, c)
+	if after := frameHash(t, copyPath); before != after {
+		t.Errorf("frame region hash changed: before %x, after %x", before, after)
+	}
+}
+
+// TestWriteBlockChainOrderPictureNewlyPlaced covers P8's placement
+// rule on a container carrying no PICTURE block: the new picture lands
+// after VORBIS_COMMENT and before the trailing PADDING block.
+func TestWriteBlockChainOrderPictureNewlyPlaced(t *testing.T) {
+	blocks := []testBlock{
+		{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 0)},
+		{Type: blockVorbisComment, Payload: vorbisCommentPayload("existing vendor", []string{"TITLE=old"})},
+		{Type: blockPadding, Last: true, Payload: make([]byte, 16)},
+	}
+	path := writeFixture(t, buildContainer(blocks, nil))
+
+	if err := Write(path, TagSet{Title: new("new")}, []Picture{goldenPicture()}, 0o644); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	c, err := Parse(path)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	assertBlockOrder(t, c, []byte{blockStreamInfo, blockVorbisComment, blockPicture, blockPadding})
+	assertSinglePadding(t, c)
+}
+
+// assertBlockOrder fails the test unless c.Blocks carries exactly
+// want's types, in order.
+func assertBlockOrder(t *testing.T, c Container, want []byte) {
+	t.Helper()
+	if len(c.Blocks) != len(want) {
+		t.Fatalf("got %d blocks, want %d: %+v", len(c.Blocks), len(want), c.Blocks)
+	}
+	for i, b := range c.Blocks {
+		if b.Type != want[i] {
+			t.Errorf("block %d: type = %d, want %d", i, b.Type, want[i])
+		}
+	}
+}
+
+// assertSinglePadding fails the test unless c.Blocks carries exactly
+// one PADDING block, last, 8 KiB (rulings 5 and 6).
+func assertSinglePadding(t *testing.T, c Container) {
+	t.Helper()
+	last := c.Blocks[len(c.Blocks)-1]
+	count := 0
+	for _, b := range c.Blocks {
+		if b.Type == blockPadding {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Errorf("PADDING block count = %d, want 1", count)
+	}
+	if last.Type != blockPadding || !last.Last || last.Length != paddingSize {
+		t.Errorf("trailing block = %+v, want PADDING, last=true, length=%d", last, paddingSize)
 	}
 }

@@ -27,7 +27,7 @@ func baseFixtureBlocks() []testBlock {
 func writeAndRead(t *testing.T, ts TagSet) ([]Comment, TagSet) {
 	t.Helper()
 	path := writeFixture(t, buildContainer(baseFixtureBlocks(), nil))
-	if err := Write(path, ts, 0o644); err != nil {
+	if err := Write(path, ts, nil, 0o644); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 	c, err := Parse(path)

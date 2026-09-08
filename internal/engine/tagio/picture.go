@@ -2,6 +2,7 @@ package tagio
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 )
 
@@ -136,6 +137,112 @@ func decodePicture(payload []byte, index int) (Picture, error) {
 		Colors:      colors,
 		Data:        rest[:dataLen],
 	}, nil
+}
+
+// Recognized media types this package sniffs on write (P7, R2),
+// matching pinned filetype 1.2.0's own MIME constants for the raster
+// formats a cover realistically carries.
+const (
+	mimeJPEG = "image/jpeg"
+	mimePNG  = "image/png"
+	mimeGIF  = "image/gif"
+	mimeWEBP = "image/webp"
+	mimeTIFF = "image/tiff"
+	mimeBMP  = "image/bmp"
+)
+
+// sniffMediaType reports data's media type by its whole magic-byte
+// test, reproducing pinned filetype 1.2.0's own image type checks
+// (filetype/types/image.py, read at the pinned version) rather than a
+// leading-prefix approximation. Two of the six tests carry an
+// exclusion a leading-prefix sniff misses. WEBP additionally requires
+// "VP" at offset 12, since a RIFF container that is not a WebP
+// bitstream would otherwise match on "RIFF" and "WEBP" alone
+// (:144-155). TIFF additionally excludes "CR" at offset 8, the byte
+// pair that routes a Canon raw file to CR2 rather than TIFF in the
+// reference (:193-199); a CR2-prefixed blob therefore matches no row
+// here, which is R2's stated deviation, recorded in deviations.go: the
+// reference reports image/x-canon-cr2 where this package refuses. A
+// blob matching no row is refused with a wrapped error rather than
+// written with a guessed or empty media type (R2); no caller branches
+// on this case yet, so it carries no new sentinel (C14).
+func sniffMediaType(data []byte) (string, error) {
+	switch {
+	case len(data) >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF:
+		return mimeJPEG, nil
+	case len(data) >= 4 && data[0] == 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G':
+		return mimePNG, nil
+	case len(data) >= 3 && data[0] == 'G' && data[1] == 'I' && data[2] == 'F':
+		return mimeGIF, nil
+	case len(data) >= 14 && string(data[0:4]) == "RIFF" && string(data[8:12]) == "WEBP" && data[12] == 'V' && data[13] == 'P':
+		return mimeWEBP, nil
+	case len(data) >= 10 && isTIFFMagic(data) && (data[8] != 'C' || data[9] != 'R'):
+		return mimeTIFF, nil
+	case len(data) >= 2 && data[0] == 0x42 && data[1] == 0x4D:
+		return mimeBMP, nil
+	default:
+		return "", errors.New("tagio: picture data matches no recognized image format")
+	}
+}
+
+// isTIFFMagic reports whether data opens with either byte order TIFF
+// permits: little-endian "II\x2A\x00" or big-endian "MM\x00\x2A".
+func isTIFFMagic(data []byte) bool {
+	return (data[0] == 0x49 && data[1] == 0x49 && data[2] == 0x2A && data[3] == 0x00) ||
+		(data[0] == 0x4D && data[1] == 0x4D && data[2] == 0x00 && data[3] == 0x2A)
+}
+
+// encodePicture lays out p as a PICTURE block payload (RFC 9639
+// section 8.8, Table 12), big-endian throughout, the same asymmetry
+// with VORBIS_COMMENT's little-endian framing decodePicture already
+// carries. The media type is sniffed from p.Data and overrides
+// whatever p.MediaType declares (P7); geometry is always written zero
+// regardless of what p carries (P6), since mediafile's FLAC image
+// write builds a fresh picture and sets only data, type, mime and desc
+// (mediafile/storage/flac.py:30-37).
+func encodePicture(p Picture) (writeBlock, error) {
+	mediaType, err := sniffMediaType(p.Data)
+	if err != nil {
+		return writeBlock{}, fmt.Errorf("tagio: encode picture: %w", err)
+	}
+	var buf []byte
+	buf = binary.BigEndian.AppendUint32(buf, uint32(p.Type))
+	buf = appendPictureField(buf, mediaType)
+	buf = appendPictureField(buf, p.Description)
+	buf = binary.BigEndian.AppendUint32(buf, 0) // width, always zero (P6)
+	buf = binary.BigEndian.AppendUint32(buf, 0) // height, always zero (P6)
+	buf = binary.BigEndian.AppendUint32(buf, 0) // depth, always zero (P6)
+	buf = binary.BigEndian.AppendUint32(buf, 0) // colours, always zero (P6)
+	buf = binary.BigEndian.AppendUint32(buf, uint32(len(p.Data)))
+	buf = append(buf, p.Data...)
+	return writeBlock{Type: blockPicture, Payload: buf}, nil
+}
+
+// appendPictureField appends s to buf as a big-endian uint32 length
+// prefix followed by s's bytes, PICTURE's own framing (unlike
+// VORBIS_COMMENT's little-endian appendVorbisField).
+func appendPictureField(buf []byte, s string) []byte {
+	buf = binary.BigEndian.AppendUint32(buf, uint32(len(s)))
+	return append(buf, s...)
+}
+
+// encodePictures encodes every picture in pictures, in order, index by
+// index, wrapping any sniff refusal with the picture's position. A nil
+// pictures returns nil, nil: Write never calls this for R1's
+// leave-alone state, since there is nothing to encode.
+func encodePictures(pictures []Picture) ([]writeBlock, error) {
+	if pictures == nil {
+		return nil, nil
+	}
+	out := make([]writeBlock, 0, len(pictures))
+	for i, p := range pictures {
+		b, err := encodePicture(p)
+		if err != nil {
+			return nil, fmt.Errorf("picture %d: %w", i, err)
+		}
+		out = append(out, b)
+	}
+	return out, nil
 }
 
 // pictureField splits one length-prefixed field off the front of b,

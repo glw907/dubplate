@@ -31,25 +31,37 @@ const vendorPrefix = "dubplate "
 // "(devel)".
 const developmentVendorMarker = "development"
 
-// Write rewrites path's tags: every key ts owns is replaced, matching
-// a comment's field name case insensitively as RFC 9639 section 8.6
-// requires, and every other comment survives in place and in order
-// (C8). It refuses a malformed or unsupported container before path is
-// ever opened for writing (C7, C14), so a refusal never half-writes a
-// file, and every block this package does not own survives under a
-// re-emitted header, with the last-block flag owned by the trailing
-// PADDING block this write always appends (C10, C11). mode is the
-// file's mode after the write, passed straight through to the rename
-// rather than inherited from a temp file's default. The rewrite goes
-// through atomicfile.WriteStream (C13), so a crash or a concurrent
-// reader never observes a partial file.
-func Write(path string, ts TagSet, mode os.FileMode) error {
+// Write rewrites path's tags and pictures: every key ts owns is
+// replaced, matching a comment's field name case insensitively as RFC
+// 9639 section 8.6 requires, and every other comment survives in place
+// and in order (C8). pictures carries R1's three caller states: nil
+// leaves path's existing pictures untouched, a non-nil empty slice
+// strips every picture, and a non-empty slice replaces the whole set
+// in the order passed (P8). Every picture's media type is sniffed from
+// its own data and overrides whatever the caller declared (P7), and
+// every picture's geometry is written as zero regardless of what the
+// caller carried (P6). Write refuses a malformed or unsupported
+// container, or a picture whose data matches no recognized image
+// format, before path is ever opened for writing (C7, C14), so a
+// refusal never half-writes a file, and every block this package does
+// not own survives under a re-emitted header, with the last-block flag
+// owned by the trailing PADDING block this write always appends (C10,
+// C11). mode is the file's mode after the write, passed straight
+// through to the rename rather than inherited from a temp file's
+// default. The rewrite goes through atomicfile.WriteStream (C13), so a
+// crash or a concurrent reader never observes a partial file.
+func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
 	c, err := Parse(path)
 	if err != nil {
 		return err
 	}
 
-	blocks := planBlocks(c, ts)
+	newPictures, err := encodePictures(pictures)
+	if err != nil {
+		return err
+	}
+
+	blocks := planBlocks(c, ts, pictures != nil, newPictures)
 	return atomicfile.WriteStream(path, mode, func(w io.Writer) error {
 		if err := writeBlocks(w, blocks); err != nil {
 			return err
@@ -68,15 +80,28 @@ type writeBlock struct {
 
 // planBlocks decides the block chain Write emits, without the trailing
 // PADDING block. Every block in c.Blocks survives in place, except
-// every PADDING block, which is dropped outright (rulings 5 and 6),
-// and the VORBIS_COMMENT block, which is replaced with ts merged onto
-// whatever comments c already carries (C8), keeping its loaded vendor.
-// A container carrying no VORBIS_COMMENT block gets one created
-// fresh, with a fresh vendor, immediately after STREAMINFO (C9a):
-// hasComment is resolved once, ahead of the loop, so that placement
-// happens exactly once regardless of where the loop is when it learns
+// every PADDING block, which is dropped outright (rulings 5 and 6);
+// the VORBIS_COMMENT block, which is replaced with ts merged onto
+// whatever comments c already carries (C8), keeping its loaded vendor;
+// and PICTURE, whose fate depends on replacePictures (P8, R1). A
+// container carrying no VORBIS_COMMENT block gets one created fresh,
+// with a fresh vendor, immediately after STREAMINFO (C9a): hasComment
+// is resolved once, ahead of the loop, so that placement happens
+// exactly once regardless of where the loop is when it learns
 // STREAMINFO has gone by.
-func planBlocks(c Container, ts TagSet) []writeBlock {
+//
+// replacePictures is pictures != nil, resolved by the caller so this
+// function only ever sees a bool and the already-encoded newPictures
+// (R1's nil-vs-non-nil-empty distinction is Write's to make, not
+// planBlocks's). When it is false, every incoming PICTURE block
+// survives untouched: the leave-alone state. When it is true, every
+// incoming PICTURE block is dropped and newPictures takes its place:
+// the first incoming PICTURE block's own position if one existed,
+// replacing it in place, or after VORBIS_COMMENT and before the
+// trailing PADDING block if none did (P8), which planBlocks gets for
+// free by appending newPictures once the loop over c.Blocks ends
+// without ever having placed it.
+func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writeBlock) []writeBlock {
 	hasComment, vendor := false, freshVendor()
 	for _, b := range c.Blocks {
 		if b.Type == blockVorbisComment {
@@ -89,11 +114,21 @@ func planBlocks(c Container, ts TagSet) []writeBlock {
 		Payload: encodeVorbisComment(vendor, mergeComments(c.VorbisComment.Comments, ts)),
 	}
 
-	out := make([]writeBlock, 0, len(c.Blocks)+1)
+	out := make([]writeBlock, 0, len(c.Blocks)+1+len(newPictures))
+	picturesPlaced := false
 	for _, b := range c.Blocks {
 		switch b.Type {
 		case blockPadding:
 			continue
+		case blockPicture:
+			if !replacePictures {
+				out = append(out, writeBlock{Type: b.Type, Payload: b.Payload})
+				continue
+			}
+			if !picturesPlaced {
+				out = append(out, newPictures...)
+				picturesPlaced = true
+			}
 		case blockVorbisComment:
 			out = append(out, comment)
 		case blockStreamInfo:
@@ -104,6 +139,9 @@ func planBlocks(c Container, ts TagSet) []writeBlock {
 		default:
 			out = append(out, writeBlock{Type: b.Type, Payload: b.Payload})
 		}
+	}
+	if replacePictures && !picturesPlaced {
+		out = append(out, newPictures...)
 	}
 	return out
 }
