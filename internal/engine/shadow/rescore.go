@@ -25,7 +25,7 @@ const (
 
 // rescoreScoring returns the tunables and compat pair the re-score
 // scores under: DefaultCompat applied to the estate's own tunables
-// (ruling 3, provisional). It mirrors shadowScoring, so a test can hash
+// (ruling 3). It mirrors shadowScoring, so a test can hash
 // exactly what the re-score used rather than inferring it from a verdict
 // that names no table.
 func rescoreScoring() (matcher.Tunables, matcher.Compat) {

@@ -385,7 +385,7 @@ func PendingRowFor(obs *Observation, now time.Time) (PendingRow, bool) {
 }
 
 // disputedRelease returns the release under dispute and the side that
-// proposed it (ruling 2, provisional): the oracle's release wherever the
+// proposed it (ruling 2): the oracle's release wherever the
 // oracle applied, and the Go matcher's own wherever it did not. Every
 // divergence has exactly one release under dispute, and the observation
 // record says which side proposed it, so nothing is lost and the

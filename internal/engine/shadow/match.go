@@ -17,7 +17,7 @@ import (
 
 // shadowScoring returns the tunables and compat pair matchAlbum scores
 // under: matcher.QuietImportTunables() and matcher.FullCompat() (ruling
-// 3, provisional). It is its own function, rather than two inline calls
+// 3). It is its own function, rather than two inline calls
 // inside matchAlbum, so a test can hash exactly what matchAlbum used
 // against the two constructors' own literal calls: a silent substitute
 // (fold, m11's DefaultTunables-with-Quiet-set near miss) moves this

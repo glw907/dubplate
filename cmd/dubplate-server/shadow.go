@@ -19,7 +19,7 @@ import (
 
 // shadowFloorThreshold is the evidence floor rung 15 measures the
 // shadow window against: a configurable duration with a 30-day default
-// (build spec ruling 1). Provisional, owner ruling 4 open.
+// (build spec ruling 1). Ratified as ruling 4.
 var shadowFloorThreshold = config.Threshold{
 	Key:     "DUBPLATE_SHADOW_FLOOR",
 	Kind:    config.KindDuration,
@@ -34,7 +34,7 @@ var shadowFloorThreshold = config.Threshold{
 // candidate (internal/engine/musicbrainz/client.go:320-333), so the
 // real per-album bound is eleven rather than seven. Sixty tokens at two
 // seconds a token bounds a pass at two minutes.
-// Provisional, owner ruling 5 open.
+// Ratified as ruling 5.
 var shadowBudgetThreshold = config.Threshold{
 	Key:     "DUBPLATE_SHADOW_BUDGET",
 	Kind:    config.KindInt,
