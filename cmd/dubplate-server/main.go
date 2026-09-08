@@ -59,7 +59,7 @@ func main() {
 // explicit-registration rule stated in the Registry doc comment
 // (internal/config/registry.go).
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func newRootCmd() *cobra.Command {
 	reg := config.NewRegistry()
 	registerShadowIntegration(reg)

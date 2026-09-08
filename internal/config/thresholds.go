@@ -10,7 +10,7 @@ import (
 // KindInt is the zero value, so a Threshold declared before this field
 // existed keeps its meaning.
 //
-// provisional, conductor ruling owed, R11
+// ruled, conductor 2026-09-07, R11
 type ThresholdKind int
 
 const (

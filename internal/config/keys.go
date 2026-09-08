@@ -32,7 +32,7 @@ func OwnedWall() []WallRow {
 // ownedNow reports whether name is an owned row in reg that [Load]
 // requires now, as opposed to a row still carrying a Pending status.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func ownedNow(reg *Registry, name string) bool {
 	for _, row := range reg.ownedWall {
 		if row.Name == name {
@@ -150,7 +150,7 @@ func ReservedClasses() []ReservedClass {
 
 // reservedClassOf reports the class name belongs to in reg, if any.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func reservedClassOf(reg *Registry, name string) (ReservedClass, bool) {
 	for _, class := range reg.reservedClasses {
 		if slices.Contains(class.Keys, name) {
@@ -189,7 +189,7 @@ var supersededKeys = map[string]string{
 // supersessionOf reports the disposition message reg carries for a
 // superseded name, if any.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func supersessionOf(reg *Registry, name string) (string, bool) {
 	msg, ok := reg.superseded[name]
 	return msg, ok
@@ -222,7 +222,7 @@ type IntegrationClass struct {
 // class registers itself as an example, from
 // cmd/dubplate-server/shadow.go).
 //
-// provisional, conductor ruling owed, R5
+// ruled, conductor 2026-09-07, R5
 func integrationClassOf(reg *Registry, name string) (IntegrationClass, bool) {
 	for _, class := range reg.integrationClasses {
 		if name == class.Flag || slices.Contains(class.Required, name) || slices.Contains(class.Optional, name) {

@@ -147,7 +147,7 @@ func TestDoctorCmd(t *testing.T) {
 // block: one per owned wall row, one per reserved class regardless of
 // its key count, one per integration class, one per threshold.
 //
-// provisional, conductor ruling owed, R10
+// ruled, conductor 2026-09-07, R10
 func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	reg := config.NewRegistry()
 	lines := doctorLines(t, reg)

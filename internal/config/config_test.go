@@ -223,7 +223,7 @@ var templateEnvPaths = []string{
 // class registers so the generic classification mechanism has
 // something to resolve against.
 //
-// provisional, conductor ruling owed, R10
+// ruled, conductor 2026-09-07, R10
 var classificationFixtureIntegrationClass = IntegrationClass{
 	Name: "shadow classification fixture",
 	Flag: "DUBPLATE_SHADOW_ENABLED",
@@ -259,7 +259,7 @@ var classificationFixtureIntegrationClass = IntegrationClass{
 // ships. It is not asserted against dubplate.env.template, whose own
 // header says it describes the frozen pre-pivot binary's wall.
 //
-// provisional, conductor ruling owed, R10
+// ruled, conductor 2026-09-07, R10
 //
 // The rule that cannot be mechanical: a rung that declares a new
 // owned-now row adds it to env/dubplate-server.env.template in the same

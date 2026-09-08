@@ -196,7 +196,7 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 // unknown. Owned rows are validated by their own require calls, not
 // here, so a valid owned value is never flagged.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func (w *wall) rejectNamespace(reg *Registry) {
 	for name := range w.env {
 		if !strings.HasPrefix(name, "DUBPLATE_") || ownedNow(reg, name) {
@@ -237,7 +237,7 @@ func (w *wall) rejectNamespace(reg *Registry) {
 // first one: every unset owned row, every reserved or superseded key
 // set before its rung, and every unrecognized DUBPLATE_* key.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func Load(environ []string, reg *Registry) (*Config, error) {
 	w := newWall(environ)
 

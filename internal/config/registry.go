@@ -30,7 +30,7 @@ import (
 // binary does, so a collision fails the gate on the lane that
 // introduced it rather than surfacing only when the binary runs.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 type Registry struct {
 	ownedWall          []WallRow
 	reservedClasses    []ReservedClass
@@ -60,7 +60,7 @@ type Registry struct {
 // declaration registered into two separately-constructed registries
 // panics in neither.
 //
-// provisional, conductor ruling owed, R4
+// ruled, conductor 2026-09-07, R4
 func NewRegistry() *Registry {
 	r := &Registry{
 		claims:     make(map[string]string),
@@ -134,7 +134,7 @@ func (r *Registry) claim(family, key string) {
 // treating it as a key would make rejectNamespace claim "identity
 // source" is owned.
 //
-// provisional, conductor ruling owed, R16
+// ruled, conductor 2026-09-08, R16
 func (r *Registry) AddWallRow(row WallRow) {
 	switch {
 	case strings.HasPrefix(row.Name, "DUBPLATE_"):
@@ -182,7 +182,7 @@ func (r *Registry) AddReservedClass(class ReservedClass) {
 // never sorted: doctor prints them in table order, which is not rung
 // order, and that order is the contract (Resolution R15).
 //
-// provisional, conductor ruling owed, R15
+// ruled, conductor 2026-09-07, R15
 func (r *Registry) ReservedClasses() []ReservedClass {
 	return slices.Clone(r.reservedClasses)
 }
@@ -207,7 +207,7 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // this way). This method and [Registry.AddThreshold] each recognize
 // that one pairing and skip the claim rather than panicking on it.
 //
-// provisional, conductor ruling owed, R2
+// ruled, conductor 2026-09-07, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	if class.Flag == "" {
 		panic(fmt.Sprintf("%s: integration class declared with an empty Flag", class.Name))
@@ -263,7 +263,7 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // the check's seat only: rung 1 registers no thresholds, and the kind
 // that motivates the check's own test lands with Task 5.
 //
-// provisional, conductor ruling owed, R11
+// ruled, conductor 2026-09-07, R11
 func (r *Registry) AddThreshold(t Threshold) {
 	requirePrefix(familyThresholds, t.Key)
 	if slices.ContainsFunc(r.thresholds, func(existing Threshold) bool { return existing.Key == t.Key }) {
@@ -302,7 +302,7 @@ func (r *Registry) isOptionalIntegrationKey(key string) bool {
 // rather than by a parse attempt, since every string parses; the
 // reason is [ParseString]'s own doc.
 //
-// provisional, conductor ruling owed, R11
+// ruled, conductor 2026-09-07, R11
 func validateThresholdDefault(t Threshold) {
 	switch t.Kind {
 	case KindInt:
@@ -337,7 +337,7 @@ func (r *Registry) Thresholds() []Threshold {
 // because no caller enumerates it: supersessionOf is a single lookup,
 // and order is meaningless for one (Resolution R8).
 //
-// provisional, conductor ruling owed, R8
+// ruled, conductor 2026-09-07, R8
 func (r *Registry) AddSuperseded(name, reason string) {
 	requirePrefix(familySuperseded, name)
 	if _, ok := r.superseded[name]; ok {

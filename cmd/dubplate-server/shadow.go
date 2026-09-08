@@ -24,7 +24,7 @@ import (
 // registerShadowThresholds register it, and its two thresholds, onto
 // the production registry from newRootCmd.
 //
-// provisional, conductor ruling owed, R5
+// ruled, conductor 2026-09-08, R5
 var shadowIntegrationClass = config.IntegrationClass{
 	Name: "shadow",
 	Rung: 4,
@@ -106,7 +106,7 @@ func registerShadowIntegration(reg *config.Registry) {
 // it can never collide with a prior process's own registration the way
 // appending to a shared package-level slice could.
 //
-// provisional, conductor ruling owed, R1
+// ruled, conductor 2026-09-07, R1
 func registerShadowThresholds(reg *config.Registry) {
 	reg.AddThreshold(shadowFloorThreshold)
 	reg.AddThreshold(shadowBudgetThreshold)
