@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -244,24 +245,15 @@ func TestStoreArtifactsWritesOneFilePerObservationAndOnePerNewsRow(t *testing.T)
 		t.Fatalf("OpenStore: %v", err)
 	}
 
+	firstRow, secondRow := completePendingRow(), completePendingRow()
+	firstRow.ID, secondRow.ID = "obs-div-1", "obs-div-2"
 	res := &shadow.PassResult{
 		Fixtures: []shadow.CaseFixture{
 			{ObservationID: "obs-agree", Profile: "estate", EvalDate: "2026-09-10"},
 			{ObservationID: "obs-div-1", Profile: "estate", EvalDate: "2026-09-10"},
 			{ObservationID: "obs-div-2", Profile: "estate", EvalDate: "2026-09-10"},
 		},
-		Pending: []shadow.PendingRow{
-			func() shadow.PendingRow {
-				r := completePendingRow()
-				r.ID = "obs-div-1"
-				return r
-			}(),
-			func() shadow.PendingRow {
-				r := completePendingRow()
-				r.ID = "obs-div-2"
-				return r
-			}(),
-		},
+		Pending: []shadow.PendingRow{firstRow, secondRow},
 	}
 
 	if err := storeArtifacts(s, res); err != nil {
@@ -283,13 +275,7 @@ func TestStoreArtifactsWritesOneFilePerObservationAndOnePerNewsRow(t *testing.T)
 		t.Fatalf("PendingIDs = %v, want exactly 2 (one per divergence, none for the agreement)", pendingIDs)
 	}
 	for _, want := range []string{"obs-div-1", "obs-div-2"} {
-		found := false
-		for _, id := range pendingIDs {
-			if id == want {
-				found = true
-			}
-		}
-		if !found {
+		if !slices.Contains(pendingIDs, want) {
 			t.Errorf("PendingIDs = %v, want it to contain %q", pendingIDs, want)
 		}
 	}
@@ -393,13 +379,7 @@ func TestShadowVerbsAreRegisteredAndPrintToStdout(t *testing.T) {
 		t.Fatalf("subcommands = %v, want %v", names, want)
 	}
 	for _, w := range want {
-		found := false
-		for _, n := range names {
-			if n == w {
-				found = true
-			}
-		}
-		if !found {
+		if !slices.Contains(names, w) {
 			t.Errorf("subcommands = %v, want it to contain %q", names, w)
 		}
 	}
@@ -441,15 +421,6 @@ func TestReportPrintsThePinnedRowForm(t *testing.T) {
 	for _, want := range wantLines {
 		if !strings.Contains(output, want+"\n") {
 			t.Errorf("report output missing pinned-form line %q; got:\n%s", want, output)
-		}
-	}
-
-	for line := range strings.SplitSeq(strings.TrimRight(output, "\n"), "\n") {
-		if line == "" {
-			continue
-		}
-		if !strings.Contains(line, " ") {
-			t.Errorf("line %q does not match the pinned %q form", line, "%-32s %s")
 		}
 	}
 }

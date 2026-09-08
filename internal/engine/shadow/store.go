@@ -36,6 +36,17 @@ const (
 	consumedReports = "consumed-reports.json"
 )
 
+// storeDirName is the one directory under the state directory the
+// shadow writes, so 4b's ReadWritePaths is a single static path.
+const storeDirName = "shadow"
+
+// StoreDir returns the shadow store's directory under stateDir. Run and
+// cmd/dubplate-server's three verbs all open the store there, so the
+// directory name has one home rather than a literal per call site.
+func StoreDir(stateDir string) string {
+	return filepath.Join(stateDir, storeDirName)
+}
+
 // OpenStore creates root and its four subdirectories if they do not
 // exist and returns a Store over them. Directories are 0755 and files
 // 0644, per go-conventions.

@@ -104,6 +104,7 @@ func Reevaluate(ctx context.Context, cfg Config, s *Store, now time.Time) (*Reev
 		originalCommit := obs.MatcherCommit
 		newClass := reclassify(*obs.Oracle, newGo.Compat)
 
+		var moved *[]string
 		switch {
 		case isDivergence(originalClass) && newClass == ClassAgreement:
 			record := &ResolvedRecord{
@@ -126,38 +127,30 @@ func Reevaluate(ctx context.Context, cfg Config, s *Store, now time.Time) (*Reev
 			if err := s.RemovePending(obs.ID); err != nil {
 				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
 			}
-			// The observation itself is restamped to the retiring commit
-			// and reclassified as an agreement: otherwise it keeps its
-			// superseded commit and its divergence class forever, so a
-			// later Reevaluate re-processes it (never lands in Skipped)
-			// and BuildReport's per-commit row keeps counting a
-			// divergence that resolved/ already says is retired.
-			obs.MatcherCommit = cfg.MatcherCommit
-			obs.Class = newClass
-			obs.Go = newGo
-			if err := s.PutObservation(obs); err != nil {
-				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
-			}
-			result.Retired = append(result.Retired, obs.ID)
+			moved = &result.Retired
 		case isDivergence(originalClass):
-			obs.MatcherCommit = cfg.MatcherCommit
-			obs.Class = newClass
-			obs.Go = newGo
-			if err := s.PutObservation(obs); err != nil {
-				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
-			}
-			result.Restamped = append(result.Restamped, obs.ID)
+			moved = &result.Restamped
 		case isDivergence(newClass):
-			obs.MatcherCommit = cfg.MatcherCommit
-			obs.Class = newClass
-			obs.Go = newGo
-			if err := s.PutObservation(obs); err != nil {
-				return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
-			}
-			result.NewlyDiverged = append(result.NewlyDiverged, obs.ID)
+			moved = &result.NewlyDiverged
+		default:
+			// An agreement that re-ran as an agreement is left exactly
+			// as it was.
+			continue
 		}
-		// An agreement that re-ran as an agreement falls through every
-		// case above and is left exactly as it was.
+
+		// Every outcome above restamps and reclassifies the observation,
+		// the retired one included: otherwise it keeps its superseded
+		// commit and its divergence class forever, so a later Reevaluate
+		// re-processes it (never lands in Skipped) and BuildReport's
+		// per-commit row keeps counting a divergence that resolved/
+		// already says is retired.
+		obs.MatcherCommit = cfg.MatcherCommit
+		obs.Class = newClass
+		obs.Go = newGo
+		if err := s.PutObservation(obs); err != nil {
+			return nil, fmt.Errorf("reevaluate %s: %w", obs.ID, err)
+		}
+		*moved = append(*moved, obs.ID)
 	}
 	return result, nil
 }

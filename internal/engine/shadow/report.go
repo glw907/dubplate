@@ -73,18 +73,10 @@ func BuildReport(s *Store, now time.Time, floor time.Duration) (*Report, error) 
 		return nil, err
 	}
 	for _, p := range passes {
-		for reason, n := range p.Excluded {
-			r.Excluded[reason] += n
-		}
-		for reason, n := range p.Unreconciled {
-			r.Unreconciled[reason] += n
-		}
-		for reason, n := range p.Deferred {
-			r.Deferred[reason] += n
-		}
-		for class, n := range p.Divergences {
-			r.Divergences[class] += n
-		}
+		addCounts(r.Excluded, p.Excluded)
+		addCounts(r.Unreconciled, p.Unreconciled)
+		addCounts(r.Deferred, p.Deferred)
+		addCounts(r.Divergences, p.Divergences)
 		r.ReportGaps += p.ReportGaps
 		r.Passes = append(r.Passes, p.Budget)
 		r.BudgetTotal += p.Budget.Spent
@@ -128,4 +120,10 @@ func BuildReport(s *Store, now time.Time, floor time.Duration) (*Report, error) 
 	r.StoreBytes = size
 
 	return r, nil
+}
+
+func addCounts(dst, src map[string]int) {
+	for key, n := range src {
+		dst[key] += n
+	}
 }

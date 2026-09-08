@@ -10,11 +10,11 @@ import (
 	"testing"
 )
 
-// repoRootForAdjudicationTest walks up from the working directory to
-// the nearest ancestor holding go.mod, matching corpus_test.go's own
-// helper: `go test` runs from this package's directory, so corpus/
-// has to be resolved relative to the module root, not the CWD.
-func repoRootForAdjudicationTest(t *testing.T) string {
+// repoRoot walks up from the working directory to the nearest ancestor
+// holding go.mod, matching corpus_test.go's own helper: `go test` runs
+// from this package's directory, so corpus/ has to be resolved relative
+// to the module root, not the CWD.
+func repoRoot(t *testing.T) string {
 	t.Helper()
 	dir, err := os.Getwd()
 	if err != nil {
@@ -346,7 +346,7 @@ func TestCheckDefectFree(t *testing.T) {
 // pass a field-set comparison but would print the key with an empty
 // value.
 func TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost(t *testing.T) {
-	root := repoRootForAdjudicationTest(t)
+	root := repoRoot(t)
 	path := filepath.Join(root, "corpus", "analysis", "adjudications.json")
 	original, err := os.ReadFile(path)
 	if err != nil {

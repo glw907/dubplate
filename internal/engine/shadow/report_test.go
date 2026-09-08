@@ -1,6 +1,7 @@
 package shadow
 
 import (
+	"maps"
 	"path/filepath"
 	"testing"
 	"time"
@@ -94,7 +95,7 @@ func TestBuildReportSumsTheStore(t *testing.T) {
 	}
 
 	wantExcluded := map[string]int{ExcludedMultiAlbum: 1, ExcludedGateRejected: 1, ExcludedNoTracks: 1}
-	if !mapsEqual(r.Excluded, wantExcluded) {
+	if !maps.Equal(r.Excluded, wantExcluded) {
 		t.Errorf("Excluded = %v, want %v", r.Excluded, wantExcluded)
 	}
 
@@ -104,7 +105,7 @@ func TestBuildReportSumsTheStore(t *testing.T) {
 		UnreconciledReportSwept:       1,
 		UnreconciledPartialSkip:       1,
 	}
-	if !mapsEqual(r.Unreconciled, wantUnreconciled) {
+	if !maps.Equal(r.Unreconciled, wantUnreconciled) {
 		t.Errorf("Unreconciled = %v, want %v", r.Unreconciled, wantUnreconciled)
 	}
 
@@ -118,7 +119,7 @@ func TestBuildReportSumsTheStore(t *testing.T) {
 		DeferLimiterClosed:   1,
 		DeferUnclassified:    1,
 	}
-	if !mapsEqual(r.Deferred, wantDeferred) {
+	if !maps.Equal(r.Deferred, wantDeferred) {
 		t.Errorf("Deferred = %v, want %v", r.Deferred, wantDeferred)
 	}
 
@@ -127,7 +128,7 @@ func TestBuildReportSumsTheStore(t *testing.T) {
 		ClassGoSkipsOracleApplied:      1,
 		ClassGoAppliesDifferentRelease: 1,
 	}
-	if !mapsEqual(r.Divergences, wantDivergences) {
+	if !maps.Equal(r.Divergences, wantDivergences) {
 		t.Errorf("Divergences = %v, want %v", r.Divergences, wantDivergences)
 	}
 	if r.GoAppliesOracleSkipped != 1 {
@@ -135,7 +136,7 @@ func TestBuildReportSumsTheStore(t *testing.T) {
 	}
 
 	wantCommits := map[string]int{"aaa": 2, "bbb": 1}
-	if !mapsEqual(r.MatcherCommits, wantCommits) {
+	if !maps.Equal(r.MatcherCommits, wantCommits) {
 		t.Errorf("MatcherCommits = %v, want %v", r.MatcherCommits, wantCommits)
 	}
 
@@ -228,16 +229,4 @@ func TestBuildReportOnAnEmptyStore(t *testing.T) {
 	if len(r.Passes) != 0 {
 		t.Errorf("Passes = %v, want empty", r.Passes)
 	}
-}
-
-func mapsEqual(a, b map[string]int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k, v := range a {
-		if b[k] != v {
-			return false
-		}
-	}
-	return true
 }

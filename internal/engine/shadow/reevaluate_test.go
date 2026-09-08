@@ -115,6 +115,51 @@ func stagedIDs(t *testing.T, s *Store) []string {
 	return ids
 }
 
+// storedObservation reads one observation back out of the store, so a
+// test asserts against what the store holds rather than the pointer
+// Reevaluate mutated in memory.
+func storedObservation(t *testing.T, s *Store, id string) *Observation {
+	t.Helper()
+	stored, err := s.Observations()
+	if err != nil {
+		t.Fatalf("Observations: %v", err)
+	}
+	idx := slices.IndexFunc(stored, func(o *Observation) bool { return o.ID == id })
+	if idx < 0 {
+		t.Fatalf("observation %s vanished", id)
+	}
+	return stored[idx]
+}
+
+// observationsJSON marshals every stored observation, so a test can
+// compare the whole store across two Reevaluate calls.
+func observationsJSON(t *testing.T, s *Store) string {
+	t.Helper()
+	obs, err := s.Observations()
+	if err != nil {
+		t.Fatalf("Observations: %v", err)
+	}
+	data, err := json.Marshal(obs)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	return string(data)
+}
+
+// resolvedJSON marshals one resolved record, for the same comparison.
+func resolvedJSON(t *testing.T, s *Store, id string) string {
+	t.Helper()
+	rec, err := s.Resolved(id)
+	if err != nil {
+		t.Fatalf("Resolved: %v", err)
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	return string(data)
+}
+
 const (
 	windroseID  = "66666666-6666-6666-6666-666666666666"
 	mismatchID  = "77777777-7777-7777-7777-777777777777"
@@ -194,24 +239,17 @@ func TestReevaluateRetiresADivergenceThatNoLongerReproduces(t *testing.T) {
 		t.Error("the pending row is still staged after a retire; it should have been removed")
 	}
 
-	stored, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
+	stored := storedObservation(t, s, obs.ID)
+	if stored.MatcherCommit != "new-commit" {
+		t.Errorf("MatcherCommit = %q, want it restamped to %q", stored.MatcherCommit, "new-commit")
 	}
-	idx := slices.IndexFunc(stored, func(o *Observation) bool { return o.ID == obs.ID })
-	if idx < 0 {
-		t.Fatalf("observation %s vanished", obs.ID)
+	if stored.Class != ClassAgreement {
+		t.Errorf("Class = %q, want it reclassified to %q", stored.Class, ClassAgreement)
 	}
-	if stored[idx].MatcherCommit != "new-commit" {
-		t.Errorf("MatcherCommit = %q, want it restamped to %q", stored[idx].MatcherCommit, "new-commit")
-	}
-	if stored[idx].Class != ClassAgreement {
-		t.Errorf("Class = %q, want it reclassified to %q", stored[idx].Class, ClassAgreement)
-	}
-	if stored[idx].Go == nil || stored[idx].Go.Compat == nil ||
-		stored[idx].Go.Compat.Recommendation == matcher.RecStrong.String() ||
-		stored[idx].Go.Compat.Action == string(matcher.ActionApply) {
-		t.Errorf("Go = %+v, want it restamped to the replay's own (weaker, skip) verdict", stored[idx].Go)
+	if stored.Go == nil || stored.Go.Compat == nil ||
+		stored.Go.Compat.Recommendation == matcher.RecStrong.String() ||
+		stored.Go.Compat.Action == string(matcher.ActionApply) {
+		t.Errorf("Go = %+v, want it restamped to the replay's own (weaker, skip) verdict", stored.Go)
 	}
 }
 
@@ -237,22 +275,8 @@ func TestReevaluateOfARetiredObservationIsIdempotent(t *testing.T) {
 		t.Fatalf("first Reevaluate: %v", err)
 	}
 
-	obsBefore, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
-	}
-	obsBeforeData, err := json.Marshal(obsBefore)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-	resolvedBefore, err := s.Resolved(obs.ID)
-	if err != nil {
-		t.Fatalf("Resolved: %v", err)
-	}
-	resolvedBeforeData, err := json.Marshal(resolvedBefore)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	obsBefore := observationsJSON(t, s)
+	resolvedBefore := resolvedJSON(t, s, obs.ID)
 
 	res, err := Reevaluate(context.Background(), Config{MatcherCommit: "new-commit"}, s, passNow)
 	if err != nil {
@@ -262,28 +286,11 @@ func TestReevaluateOfARetiredObservationIsIdempotent(t *testing.T) {
 		t.Fatalf("Skipped = %v, want it to contain the retired observation %s", res.Skipped, obs.ID)
 	}
 
-	obsAfter, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
+	if obsAfter := observationsJSON(t, s); obsAfter != obsBefore {
+		t.Errorf("observation moved on a second reevaluate:\nbefore: %s\nafter:  %s", obsBefore, obsAfter)
 	}
-	obsAfterData, err := json.Marshal(obsAfter)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-	if string(obsBeforeData) != string(obsAfterData) {
-		t.Errorf("observation moved on a second reevaluate:\nbefore: %s\nafter:  %s", obsBeforeData, obsAfterData)
-	}
-
-	resolvedAfter, err := s.Resolved(obs.ID)
-	if err != nil {
-		t.Fatalf("Resolved: %v", err)
-	}
-	resolvedAfterData, err := json.Marshal(resolvedAfter)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-	if string(resolvedBeforeData) != string(resolvedAfterData) {
-		t.Errorf("resolved record moved on a second reevaluate:\nbefore: %s\nafter:  %s", resolvedBeforeData, resolvedAfterData)
+	if resolvedAfter := resolvedJSON(t, s, obs.ID); resolvedAfter != resolvedBefore {
+		t.Errorf("resolved record moved on a second reevaluate:\nbefore: %s\nafter:  %s", resolvedBefore, resolvedAfter)
 	}
 
 	if slices.Contains(stagedIDs(t, s), obs.ID) {
@@ -314,16 +321,9 @@ func TestReevaluateRestampsADivergenceThatStillReproduces(t *testing.T) {
 		t.Fatalf("Restamped = %v, want it to contain %s", res.Restamped, obs.ID)
 	}
 
-	stored, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
-	}
-	idx := slices.IndexFunc(stored, func(o *Observation) bool { return o.ID == obs.ID })
-	if idx < 0 {
-		t.Fatalf("observation %s vanished", obs.ID)
-	}
-	if stored[idx].MatcherCommit != "new-commit" {
-		t.Errorf("MatcherCommit = %q, want %q", stored[idx].MatcherCommit, "new-commit")
+	stored := storedObservation(t, s, obs.ID)
+	if stored.MatcherCommit != "new-commit" {
+		t.Errorf("MatcherCommit = %q, want %q", stored.MatcherCommit, "new-commit")
 	}
 	if !slices.Contains(stagedIDs(t, s), obs.ID) {
 		t.Error("the pending row was removed by a restamp; it should still be staged")
@@ -360,22 +360,15 @@ func TestReevaluateRecordsANewDivergenceOnAnObservationThatAgreed(t *testing.T) 
 		t.Fatalf("NewlyDiverged = %v, want it to contain %s", res.NewlyDiverged, obs.ID)
 	}
 
-	stored, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
-	}
-	idx := slices.IndexFunc(stored, func(o *Observation) bool { return o.ID == obs.ID })
-	if idx < 0 {
-		t.Fatalf("observation %s vanished", obs.ID)
-	}
-	if !isDivergence(stored[idx].Class) {
-		t.Errorf("Class = %q, want a divergence", stored[idx].Class)
+	stored := storedObservation(t, s, obs.ID)
+	if !isDivergence(stored.Class) {
+		t.Errorf("Class = %q, want a divergence", stored.Class)
 	}
 
 	// The wiring this package hands cmd/dubplate-server: PendingRowFor
 	// builds a valid row off the now-updated observation, which is what
 	// proves a pending row can be staged where none existed.
-	row, ok := PendingRowFor(stored[idx], passNow)
+	row, ok := PendingRowFor(stored, passNow)
 	if !ok {
 		t.Fatal("PendingRowFor reports no news for a newly diverged observation")
 	}
@@ -433,16 +426,9 @@ func TestReevaluateReportsUnevaluableRatherThanRetiring(t *testing.T) {
 		t.Fatalf("result = %+v, want obs-unevaluable in Unevaluable alone", res)
 	}
 
-	stored, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
-	}
-	idx := slices.IndexFunc(stored, func(o *Observation) bool { return o.ID == obs.ID })
-	if idx < 0 {
-		t.Fatalf("observation %s vanished", obs.ID)
-	}
-	if stored[idx].MatcherCommit != "old-commit" {
-		t.Errorf("MatcherCommit = %q, want it to survive at %q (mutation 5)", stored[idx].MatcherCommit, "old-commit")
+	stored := storedObservation(t, s, obs.ID)
+	if stored.MatcherCommit != "old-commit" {
+		t.Errorf("MatcherCommit = %q, want it to survive at %q (mutation 5)", stored.MatcherCommit, "old-commit")
 	}
 	if !slices.Contains(stagedIDs(t, s), obs.ID) {
 		t.Error("the pending row was removed for an unevaluable observation; it should survive")
@@ -518,14 +504,7 @@ func TestReevaluateSkipsObservationsAtTheCurrentCommit(t *testing.T) {
 	if err := s.PutObservation(obs); err != nil {
 		t.Fatalf("PutObservation: %v", err)
 	}
-	before, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
-	}
-	beforeData, err := json.Marshal(before)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	before := observationsJSON(t, s)
 
 	res, err := Reevaluate(context.Background(), Config{MatcherCommit: "current-commit"}, s, passNow)
 	if err != nil {
@@ -538,15 +517,7 @@ func TestReevaluateSkipsObservationsAtTheCurrentCommit(t *testing.T) {
 		t.Fatalf("result = %+v, want everything else empty", res)
 	}
 
-	after, err := s.Observations()
-	if err != nil {
-		t.Fatalf("Observations: %v", err)
-	}
-	afterData, err := json.Marshal(after)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-	if string(beforeData) != string(afterData) {
-		t.Errorf("observation moved:\nbefore: %s\nafter:  %s", beforeData, afterData)
+	if after := observationsJSON(t, s); after != before {
+		t.Errorf("observation moved:\nbefore: %s\nafter:  %s", before, after)
 	}
 }

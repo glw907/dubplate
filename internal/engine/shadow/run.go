@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -14,10 +13,6 @@ import (
 )
 
 const (
-	// storeDirName is the one directory under the state directory the
-	// shadow writes, so 4b's ReadWritePaths is a single static path.
-	storeDirName = "shadow"
-
 	// budgetName names this caller's spend in the limiter's own records
 	// and in every pass record the report sums.
 	budgetName = "shadow"
@@ -97,7 +92,7 @@ type PendingRow struct {
 // measures the observation window and not the arrival rate. A deferred
 // observation is an ordinary branch and never makes a pass unsuccessful.
 func Run(ctx context.Context, cfg Config, now time.Time) (*PassResult, error) {
-	store, err := OpenStore(filepath.Join(cfg.StateDir, storeDirName))
+	store, err := OpenStore(StoreDir(cfg.StateDir))
 	if err != nil {
 		return nil, fmt.Errorf("shadow: %w", err)
 	}

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
+	"maps"
 	"slices"
 	"sync"
 	"time"
@@ -214,7 +214,7 @@ func newShadowObserveCmd(environ []string, matcherCommit string, stdout, stderr 
 
 			userAgent := fmt.Sprintf("dubplate-server/%s ( %s )", version, cfg.AdminEmail)
 
-			store, err := shadow.OpenStore(filepath.Join(cfg.StateDir, "shadow"))
+			store, err := shadow.OpenStore(shadow.StoreDir(cfg.StateDir))
 			if err != nil {
 				return err
 			}
@@ -268,7 +268,7 @@ func newShadowReportCmd(environ []string, stdout, stderr io.Writer) *cobra.Comma
 				return err
 			}
 
-			store, err := shadow.OpenStore(filepath.Join(cfg.StateDir, "shadow"))
+			store, err := shadow.OpenStore(shadow.StoreDir(cfg.StateDir))
 			if err != nil {
 				return err
 			}
@@ -304,7 +304,7 @@ func newShadowReevaluateCmd(environ []string, matcherCommit string, stdout, stde
 				return fmt.Errorf("shadow reevaluate: refusing to run on an unstamped matcher commit %q", matcherCommit)
 			}
 
-			store, err := shadow.OpenStore(filepath.Join(cfg.StateDir, "shadow"))
+			store, err := shadow.OpenStore(shadow.StoreDir(cfg.StateDir))
 			if err != nil {
 				return err
 			}
@@ -442,12 +442,7 @@ func printShadowReport(w io.Writer, r *shadow.Report) error {
 // labeled "<label> <key>": the sorted order is what keeps a map-valued
 // row reproducible across runs.
 func printCountRows(w io.Writer, label string, counts map[string]int) error {
-	keys := make([]string, 0, len(counts))
-	for k := range counts {
-		keys = append(keys, k)
-	}
-	slices.Sort(keys)
-	for _, k := range keys {
+	for _, k := range slices.Sorted(maps.Keys(counts)) {
 		if err := printRow(w, label+" "+k, fmt.Sprintf("%d", counts[k])); err != nil {
 			return err
 		}
