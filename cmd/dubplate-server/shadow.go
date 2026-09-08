@@ -333,7 +333,7 @@ func newShadowReevaluateCmd(environ []string, matcherCommit string, stdout, stde
 // promoted to a divergence was never staged in the first place, so this
 // is the one outcome that needs a fresh row rather than a removal or an
 // untouched one. internal/engine/shadow may import no harness package
-// (contract S19), so the row's own construction (pendingRowFor) lives
+// (contract S19), so the row's own construction (PendingRowFor) lives
 // there and only the marshalling into analysis.AdjudicationEntry's
 // shape happens here, exactly as storeArtifacts does for an observe
 // pass's own pending rows.

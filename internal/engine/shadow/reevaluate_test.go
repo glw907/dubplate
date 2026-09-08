@@ -208,6 +208,11 @@ func TestReevaluateRetiresADivergenceThatNoLongerReproduces(t *testing.T) {
 	if stored[idx].Class != ClassAgreement {
 		t.Errorf("Class = %q, want it reclassified to %q", stored[idx].Class, ClassAgreement)
 	}
+	if stored[idx].Go == nil || stored[idx].Go.Compat == nil ||
+		stored[idx].Go.Compat.Recommendation == matcher.RecStrong.String() ||
+		stored[idx].Go.Compat.Action == string(matcher.ActionApply) {
+		t.Errorf("Go = %+v, want it restamped to the replay's own (weaker, skip) verdict", stored[idx].Go)
+	}
 }
 
 // TestReevaluateOfARetiredObservationIsIdempotent asserts that a second
@@ -279,6 +284,10 @@ func TestReevaluateOfARetiredObservationIsIdempotent(t *testing.T) {
 	}
 	if string(resolvedBeforeData) != string(resolvedAfterData) {
 		t.Errorf("resolved record moved on a second reevaluate:\nbefore: %s\nafter:  %s", resolvedBeforeData, resolvedAfterData)
+	}
+
+	if slices.Contains(stagedIDs(t, s), obs.ID) {
+		t.Error("the pending row is staged again after a second reevaluate of a retired observation")
 	}
 }
 

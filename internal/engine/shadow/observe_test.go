@@ -226,13 +226,21 @@ func indexByBasename(t *testing.T, observations []*Observation) map[string]*Obse
 	return byBasename
 }
 
-// observeWallBound is how long one exit-gate pass may take. The whole
-// package is held under thirty seconds, and the row that can blow that
-// is 12: seven attempts against a 503 cost 0+1+2+4+8+16 seconds of
-// backoff unless the server sends Retry-After: 0 (client.go:42,
-// :418-423). Five seconds leaves the measured pass (a fifth of a
-// second) two orders of magnitude of headroom and still catches that
-// thirty-one-second run by a factor of six.
+// observeBudgetCap is the fixture table's own budget cap, set to the exact
+// sum album 12's deferral spends through: 01 through 05 reserve one token
+// each (5), and 12's seven exhausted retry attempts spend one token each
+// (7), for 1+1+1+1+1+7 = 12. It is a fixed literal, not derived from the
+// fixture table, so a future row that changes that arithmetic must update
+// this constant deliberately rather than have the cap silently track it.
+const observeBudgetCap = 12
+
+// observeWallBound is how long TestObservePassEndToEnd's own pass may
+// take: the row that can blow that is 12, where seven attempts against a
+// 503 cost 0+1+2+4+8+16 seconds of backoff unless the server sends
+// Retry-After: 0 (client.go:42, :418-423). Five seconds leaves the
+// measured run (about three hundredths of a second) two orders of
+// magnitude of headroom and still catches that thirty-one-second run by
+// a factor of six.
 const observeWallBound = 5 * time.Second
 
 // TestObservePassEndToEnd is the exit gate: one hand-authored, fourteen
@@ -259,23 +267,21 @@ func TestObservePassEndToEnd(t *testing.T) {
 	srv := observeServer(t)
 
 	cfg := tr.config(srv.URL)
-	cfg.BudgetLimit = 12 // the exact sum spent through album 12: 1+1+1+1+1+7 (mutation 3, 5)
+	cfg.BudgetLimit = observeBudgetCap // mutation 3, 5
 
 	// A timer rather than a stopwatch: nothing under internal/engine may
 	// call time.Now, tests included (TestEngineNeverReadsTheClock,
-	// internal/harness/conform/arch_test.go:152-157).
-	overran := make(chan struct{})
-	bound := time.AfterFunc(observeWallBound, func() { close(overran) })
+	// internal/harness/conform/arch_test.go:152-157). Stop returns false
+	// only if the timer already fired, which is the deterministic form of
+	// "Run took longer than the bound."
+	bound := time.AfterFunc(observeWallBound, func() {})
 
 	res, err := Run(context.Background(), cfg, passNow)
 	if err != nil {
 		t.Fatalf("Run: %v", err)
 	}
-	bound.Stop()
-	select {
-	case <-overran:
+	if !bound.Stop() {
 		t.Errorf("one pass took longer than %s, so the 503 row is spending real backoff: the test server must send Retry-After: 0 beside its status (mutation 4)", observeWallBound)
-	default:
 	}
 
 	if !res.Pass.StartedAt.Equal(passNow) || !res.ClockStarted {
@@ -303,7 +309,11 @@ func TestObservePassEndToEnd(t *testing.T) {
 	// count above proves a signal arrived; this proves which reader
 	// produced it, which is the only assertion the suffix form can fail.
 	byBasename := indexByBasename(t, res.Observations)
-	if sig := byBasename["04-diorite"].Oracle; sig.Signal != "skip" || sig.ReadFrom != "review-tree" {
+	diorite, ok := byBasename["04-diorite"]
+	if !ok {
+		t.Fatalf("no matched observation for basename %q", "04-diorite")
+	}
+	if sig := diorite.Oracle; sig.Signal != "skip" || sig.ReadFrom != "review-tree" {
 		t.Errorf("04-diorite oracle signal = %q read from %q, want a skip read from the review tree", sig.Signal, sig.ReadFrom)
 	}
 
@@ -344,8 +354,8 @@ func TestObservePassEndToEnd(t *testing.T) {
 	// and 12 and 13 would never defer. This positive cap, sized to the
 	// exact sum spent through album 12, is what makes the assertion
 	// above discriminating.
-	if res.Pass.Budget.Spent != 12 {
-		t.Errorf("Budget.Spent = %d, want 12 (1 each for 01-05, 7 for 12's exhausted retries, 0 for 13's blocked reserve)", res.Pass.Budget.Spent)
+	if res.Pass.Budget.Spent != observeBudgetCap {
+		t.Errorf("Budget.Spent = %d, want %d (1 each for 01-05, 7 for 12's exhausted retries, 0 for 13's blocked reserve)", res.Pass.Budget.Spent, observeBudgetCap)
 	}
 
 	if len(res.Pending) != 3 {
@@ -364,7 +374,7 @@ func TestObservePassEndToEnd(t *testing.T) {
 	// Thirteen: the twelve captured, non-excluded-at-capture rows the
 	// table names (13 rows minus 06, which capture excludes before it
 	// ever becomes an observation) plus the ambiguous-basename partner
-	// on uploader "xx" (see the function doc comment above).
+	// on uploader "pk" (see TestObservePassEndToEnd).
 	if len(stored) != 13 {
 		t.Fatalf("stored %d observations, want 13", len(stored))
 	}
@@ -431,7 +441,7 @@ func TestObservePassIsIdempotent(t *testing.T) {
 	srv := observeServer(t)
 
 	cfg := tr.config(srv.URL)
-	cfg.BudgetLimit = 12
+	cfg.BudgetLimit = observeBudgetCap
 
 	first, err := Run(context.Background(), cfg, passNow)
 	if err != nil {

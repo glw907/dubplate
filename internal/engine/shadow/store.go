@@ -246,9 +246,9 @@ func (s *Store) ResolvedIDs() ([]string, error) {
 	return s.stagedRowIDs(resolvedDir)
 }
 
-// Resolved reads back resolved/<obsID>.json, mirroring the pending and
-// observation readers: a caller that only checked ResolvedIDs never saw
-// what Reevaluate actually recorded there.
+// Resolved reads back resolved/<obsID>.json, mirroring ResolvedIDs and
+// the Observations reader: a caller that only checked ResolvedIDs never
+// saw what Reevaluate actually recorded there.
 func (s *Store) Resolved(obsID string) (*ResolvedRecord, error) {
 	if !validID(obsID) {
 		return nil, fmt.Errorf("resolved: invalid observation id %q", obsID)
