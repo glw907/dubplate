@@ -21,7 +21,9 @@ this is the input, not the emitted comment set -- nothing below
 reconstructs it from golden.flac's bytes)
 -------------------------------------------------------------------
 
-INV:409-427's own shape, restated:
+This script's own declared covering shape, chosen to reach every
+comment key INV:409-427 measured (INV publishes the output of a round
+trip, not an input list; no such list appears there to restate):
   album          = "Al"
   albumartists   = ["X", "Y"]
   artist         = "A"
@@ -37,10 +39,16 @@ INV:409-427's own shape, restated:
 
 The four corpus-unreachable cases a mediafile write can express:
   year           = 0        (the zero year)
-  original_year  = 0        (the zero year, second date field)
   arrangers      = []       (the empty list)
   catalognum     = ""       (empty; C5's read-only-trailing-style pair)
   barcode        = ""       (empty; C5's other read-only-trailing-style pair)
+
+The second date field carries INV's own measured date rather than a
+second zero year, so the month/day decomposition rule INV:409-427
+measured (ORIGINALDATE=1999-03-04) stays exercised in this fixture:
+  original_year  = 1999
+  original_month = 3
+  original_day   = 4
 
 Task 8's sixteen ledger-silent keys, each given a real value:
   acoustid_fingerprint = "invented-fingerprint-value"
@@ -68,9 +76,17 @@ This is a small invented blob with a sniffable PNG magic prefix, not a
 decodable image; 8a asserts nothing about it beyond its block
 surviving a parse (8b grades it).
 
-Cases the record names as expressible-but-not-included: none. Every
-rule this task lists as reachable through a mediafile write is
-present above.
+Cases the record names as expressible-but-not-included:
+  - DATE/YEAR: INV:409-427 measured this field carrying a non-zero
+    date (its own 2001 case). This fixture moves that value out to
+    make room for the zero-year case above, because one file holds
+    one date triple per date field and the zero-date case needs one
+    of the two date fields to hold it. The second date field
+    (ORIGINALDATE/original_year) keeps a non-zero measured date in
+    its place, so the month/day decomposition rule stays exercised.
+
+Every other rule this task lists as reachable through a mediafile
+write is present above.
 
 Two cases stay out of INPUT by construction, and are Task 8's
 hand-built cases instead:
@@ -83,7 +99,8 @@ hand-built cases instead:
 Read-back of the four corpus-unreachable cases, confirmed against the
 committed golden.flac (mediafile.MediaFile, same pinned venv):
   year           -> 0, month -> None, day -> None
-  original_year  -> 0, original_month -> None, original_day -> None
+  original_year  -> 1999, original_month -> 3, original_day -> 4
+                    (the moved-out zero-date case; see above)
   arrangers      -> None (empty on disk reads back indistinguishable
                     from absent, per C2)
   catalognum     -> None (CATALOGNUMBER="" is on disk; the read-only
@@ -96,19 +113,19 @@ committed golden.flac (mediafile.MediaFile, same pinned venv):
 golden.flac
 -----------
 
-Size: 2216 bytes (well under 10 KiB).
+Size: 2222 bytes (well under 10 KiB).
 
 Decoded block chain, in on-disk order (type, last-block flag, declared
 payload length in bytes, not counting the 4-byte block header):
 
   0  STREAMINFO      type=0  last=false  declared_len=34
-  1  VORBIS_COMMENT  type=4  last=false  declared_len=1060
+  1  VORBIS_COMMENT  type=4  last=false  declared_len=1066
   2  PICTURE         type=6  last=false  declared_len=78
   3  PADDING         type=1  last=true   declared_len=1024
 
-Total metadata region: 4 (signature) + (4+34) + (4+1060) + (4+78) +
-(4+1024) = 2216 bytes, matching the file size exactly: the frame
-region's offset is 2216 and its length is 0 (the template is silent,
+Total metadata region: 4 (signature) + (4+34) + (4+1066) + (4+78) +
+(4+1024) = 2222 bytes, matching the file size exactly: the frame
+region's offset is 2222 and its length is 0 (the template is silent,
 carries zero audio samples, and this script never adds any).
 
 VORBIS_COMMENT is written immediately after STREAMINFO, as C9a states
@@ -152,7 +169,7 @@ implements to):
   GROUPING=Invented Grouping
   INITIALKEY=Am
   LYRICS=la la la
-  ORIGINALDATE=0000
+  ORIGINALDATE=1999-03-04
   R128_ALBUM_GAIN=-576
   R128_TRACK_GAIN=-384
   REMIXER=Invented Remixer

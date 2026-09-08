@@ -15,14 +15,19 @@ restated field by field, the golden's byte size, its decoded block
 chain in order, and its decoded comment sequence in on-disk order;
 nothing here reconstructs ``INPUT`` from ``golden.flac``'s bytes.
 
-``INPUT`` widens ``INV:409-427``'s emitted shape (the fifteen-field
-round trip measured against the pinned venv) to reach two further
-sets: every one of Task 8's sixteen ledger-silent keys (empty or null
-on every row of the corpus's own ledger, so they need a real value
-here to be exercised at all), and every corpus-unreachable case a
-mediafile write can express: the zero year, an empty list, and
-``catalognum`` and ``barcode`` both empty. Two further
-corpus-unreachable cases stay out of ``INPUT`` by construction:
+``INPUT`` is this script's own declared input, chosen so the emitted
+comment set covers ``INV:409-427``'s measured comment keys (``INV``
+publishes the output of a round trip, not an input list; no such list
+appears there for this script to restate). ``INPUT`` widens that
+covering set to reach two further sets: every one of Task 8's sixteen
+ledger-silent keys (empty or null on every row of the corpus's own
+ledger, so they need a real value here to be exercised at all), and
+every corpus-unreachable case a mediafile write can express: the zero
+year on one of the two date fields (the other carries INV's own
+measured date, so the month/day decomposition rule stays exercised
+too), an empty list, and ``catalognum`` and ``barcode`` both empty.
+Two further corpus-unreachable cases stay out of ``INPUT`` by
+construction:
 mediafile writes valid UTF-8 only, and mutagen's ``is_valid_key``
 (``mutagen/_vorbis.py:25-41``) refuses a comment name above ``0x7D``,
 so an invalid-UTF-8 sequence and a ``U+007E`` field name cannot reach
@@ -63,22 +68,28 @@ _LEDGER_SILENT = {
 }
 
 # The four corpus-unreachable cases a mediafile write can still
-# express: a zero year on both date fields, an empty list on a field
-# the ledger never leaves empty, and the two fields C5 exists for
-# (their trailing styles are read-only, so an empty write reads back
-# absent even though the comment itself is empty on disk).
+# express: a zero year on the primary date field only (the second
+# date field keeps INV's own measured 1999-03-04 below, so the
+# month/day decomposition rule stays exercised even though this file
+# also carries a zero-date case), an empty list on a field the ledger
+# never leaves empty, and the two fields C5 exists for (their trailing
+# styles are read-only, so an empty write reads back absent even
+# though the comment itself is empty on disk).
 _CORPUS_UNREACHABLE = {
     "year": 0,
-    "original_year": 0,
+    "original_year": 1999,
+    "original_month": 3,
+    "original_day": 4,
     "arrangers": [],
     "catalognum": "",
     "barcode": "",
 }
 
-# INV:409-427's own fifteen-field shape, restated here rather than
-# imported: the collision pair (RELEASETYPE / MUSICBRAINZ_ALBUMTYPE),
-# the three-style totals, and the two-style pairs it measured.
-_INV_409_427_SHAPE = {
+# This script's own declared covering shape, chosen to reach every
+# comment key INV:409-427 measured: the collision pair (RELEASETYPE /
+# MUSICBRAINZ_ALBUMTYPE), the three-style totals, and the two-style
+# pairs it measured.
+_DECLARED_COVERING_SHAPE = {
     "album": "Al",
     "albumartists": ["X", "Y"],
     "artist": "A",
@@ -94,7 +105,7 @@ _INV_409_427_SHAPE = {
 }
 
 INPUT: dict[str, object] = {
-    **_INV_409_427_SHAPE,
+    **_DECLARED_COVERING_SHAPE,
     **_CORPUS_UNREACHABLE,
     **_LEDGER_SILENT,
 }
