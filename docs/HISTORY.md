@@ -2,6 +2,174 @@
 
 Per-pass ledger, newest first.
 
+## Rung 4, pass 4b (OPEN, handoff to the sitting, 2026-09-08)
+
+Tasks 0 through 7 executed in the main tree against
+`docs/superpowers/plans/2026-09-07-rung-4b-deploy.md` (revision 2) on
+2026-09-07. **The pass stays open**: Task 8 (this entry) hands off to
+Task 9, Geoff's attended deploy sitting, which is not this pass's work.
+
+### What landed
+
+Task 0, the staleness pre-task, ran clean with no blockers. The chain
+landed six tasks: Task 2 (`c8b6d71`, fix `30f3faa`) built the greenfield
+environment template and amended the incumbent template's header; Task 1
+(`9a61145`, fix `f287fc0`) added the two shadow units and their
+`UNIT_FILES` manifest row; Task 3 (`e22c252`, fix `c83c197`) added the
+pre-create step and the timer-list comment; Task 4 (`6f698b1`) built the
+render pass and the per-template install step; Task 5 (`25d3e4e`, fix
+`47e80cc`) added the two build stamps, the `Makefile` plumbing, the
+two-row version verb, and the smoke assertion; Task 6 (`4fa812f`) retired
+five of the six ratified provisional marks. Every task was accepted by
+`diff-reviewer`.
+
+The post-chain round folded nine reviewer minors and retired the
+launch-date wording from four shadow comment sites under Geoff's
+no-calendar-schedule ruling (`a86475c`). Task 7's fold (`992e39c`) split
+the smoke step's single assertion into two: an unrunnable binary now
+fails with its own diagnosis, separate from the matcher-commit check, and
+a new `scripts/check.sh` leg holds the three copies of the state
+directory (the template, the shadow unit's `ReadWritePaths`, and
+`deploy.sh`'s own variable) in agreement. A follow-up commit (`89920ba`)
+pinned the version verb's test to a literal two-row expectation. The
+`code-simplifier` agent reviewed Task 5's Go and changed nothing.
+
+### Task 2's provenance line
+
+`env/dubplate-server.env.template:55-60` forward-references this entry
+for `DUBPLATE_SITE_NAME`'s copy provenance: the literal was copied
+verbatim from the age store's `DUBPLATE_SERVE_SITE_NAME` by exit-status
+comparison, and the value itself was never printed in any report or
+commit message.
+
+### The conductor's `--check` record
+
+`bash scripts/deploy.sh --check 5.78.148.42` ran read-only on
+2026-09-08 00:35 and exited 0 across sixteen announced steps.
+`/etc/dubplate/env` reports no changes across its 42 variables.
+`/etc/dubplate/server.env` reports would change across its 10 variables,
+expected because the file does not exist on the box yet. The units rsync
+lists exactly the two new units. The binary rsync lists one file. The
+repo-config rsync with `--delete` would remove the orphaned
+`/opt/dubplate/config/filebrowser.yaml`, dropped from the repo at
+`b4295f1`.
+
+### Task 7's verdict (fresh-context unit read, `claude-opus-5`)
+
+The sitting may apply the units as they stand. The
+`ReadWritePaths=/var/lib/dubplate/shadow` grant is the minimum, argued
+statically from the store's own footprint. The hardening set matches
+`dubplate-serve.service`'s directive-for-directive, with the `AF_NETLINK`
+exclusion the one reasoned deviation, for a unit that runs no subprocess.
+Both units verify under `systemd-analyze verify`. Three items fold at
+close and carry into the sitting checklist below: the apply re-runs seven
+pre-existing idempotent steps beyond this pass's five new artifacts; the
+operator rule for a hand-run shadow verb; and the `DUBPLATE_SITE_NAME`
+universality debt.
+
+### The ten retired resolutions
+
+Each provisional mark is now ratified. The location named is where the
+application sits at HEAD.
+
+- **R2** (five provisional marks retire): `internal/engine/shadow/rescore.go:28`
+  and `match.go:20` carry ruling 3; `internal/engine/shadow/run.go:388`
+  carries ruling 2; `cmd/dubplate-server/shadow.go:22` and `:37` carry
+  rulings 4 and 5. `internal/engine/shadow/flac.go:62` stays as written,
+  a rung 8 handoff mark rather than a pending decision.
+- **R3** (the version verb prints two labeled rows): `cmd/dubplate-server/main.go:73-90`,
+  `newVersionCmd`, printing `version` then `matcher-commit` in
+  `doctor.go`'s own row shape.
+- **R4** (the smoke assertion runs inside the single remote command):
+  `scripts/deploy.sh:364-366`, one `run_remote` string that both a
+  `--check` print and a real apply run verbatim.
+- **R6** (`/etc/dubplate/server.env` is 0600 root:root): `scripts/deploy.sh:403-410`,
+  the same mode and ownership as `/etc/dubplate/env`, with the reason
+  stated in the comment at `:410`.
+- **R7** (the masthead literal is copied, never invented):
+  `env/dubplate-server.env.template:55-61`.
+- **R8** (the floor and budget ship as literals): `env/dubplate-server.env.template:102-109`,
+  `DUBPLATE_SHADOW_FLOOR=720h` and `DUBPLATE_SHADOW_BUDGET=60`, matching
+  the registered defaults.
+- **R10** (`TIMER_UNITS` keeps its list and gains a sentence):
+  `scripts/deploy.sh:521-524`, the comment naming why
+  `dubplate-shadow.timer` is absent from the unattended enable list.
+- **R11** (the conductor runs `--check`, not the implementer): applied
+  above, this entry's `--check` record.
+- **R12** (doctor prints neither stamp): declined, so no file changes;
+  filed as a note for whichever rung next touches `cmd/dubplate-server/doctor.go`.
+- **R14** (the spec's stale citations are corrected at the close): the
+  eight corrections are queued for the conductor's next spec-touching
+  batch; `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+  is not edited by this pass.
+
+### The sitting checklist (Task 9, Geoff's attended session)
+
+Run in order, every `deploy.sh` invocation carrying its address so a
+bare invocation never resolves the box through `hcloud`:
+
+1. Confirm the box is quiet: no live executor, no warm uncommitted
+   change the sitting did not author.
+2. `bash scripts/deploy.sh --check 5.78.148.42` and compare its output
+   against this entry's `--check` record above; a drift is a stop.
+3. `bash scripts/deploy.sh 5.78.148.42`, the apply. It re-runs seven
+   pre-existing idempotent steps beyond this pass's five artifacts (the
+   `filebrowser.yaml` deletion, `systemd-tmpfiles --create`, four
+   `mkdir`/`chown` steps, `docker compose up -d`, the four guardian
+   timers' `enable --now`, and the unconditional
+   `uv tool install --force beets==2.13.1` reinstall) as ordinary parts
+   of the same script, not surprises.
+4. `docker compose ps`, then one Navidrome reachability check, before
+   any timer enable.
+5. `systemctl enable --now dubplate-shadow.timer`: the act that starts
+   the shadow's evidence clock.
+6. Read the journal for the shadow's first pass and record whether it
+   observed anything.
+7. `ls -Zd /var/lib/dubplate /var/lib/dubplate/shadow` and
+   `ls -Zd /var/lib/musicbox`, both SELinux verifications.
+8. `df -h /`, the free-space baseline.
+9. Read `started-at` off the box rather than off the sitting's wall
+   clock; it is written on the first pass that completes all three
+   steps without a fatal error, including a pass that observes nothing.
+10. **Operator rule**: a hand-run shadow verb goes through
+    `systemctl start dubplate-shadow.service` or `systemd-run` with the
+    same unit properties, never the bare binary run as root.
+11. Two non-blocking options remain open at the sitting's discretion:
+    whether to write the rewrite post-mortem now or later, and whether
+    to review the two albums waiting in
+    `/srv/music/review/2026-08-31/geoff/` in the same session.
+
+The floor the launch gate reads is an evidence minimum, not a calendar
+date; this checklist and entry name no launch date and no calendar
+arithmetic.
+
+### Carried items
+
+- The `DUBPLATE_SITE_NAME` universality debt: a site-specific literal in
+  `env/dubplate-server.env.template`, retired when the name is re-minted
+  through `secret-set.sh` and the row flipped back to bare.
+- Doctor rows for both build stamps, filed for whichever rung next
+  touches `cmd/dubplate-server/doctor.go` (R12).
+- The retention knob's trigger: the report's store-size row against the
+  sitting's free-space baseline (forward carry 8).
+- Rung 9's re-verification of the limiter's caller-priority policy
+  against a live measurement, which arrives only after the deploy
+  (forward carry 6).
+- The declared coverage-gap total gains four at this pass (the grant's
+  minimality has no mechanical check; the environment template's values
+  have no checker; the smoke assertion has never run against a box; the
+  unit has never started), bringing the running total to thirty-four
+  (rung 3's twenty-one, rung 4a's nine, rung 4b's four). Rung 15 reads
+  the total rather than re-counting it.
+
+### Spend
+
+4b's unattended half ran about 2.6M against its 3M ceiling: the chain,
+1.03M across 20 agents; Task 0, 0.09M; Task 7, 0.12M; the leftovers
+round, the test pin, and the simplifier pass together, about 0.32M; plan
+preparation, 1.06M; conductor turns, about 0.1M. Attended interactions:
+zero planning misses, zero execution sittings.
+
 ## Rung 4, pass 4a-ii (pass close, 2026-09-07)
 
 Tasks 10 through 15 executed sequentially in the main tree against
