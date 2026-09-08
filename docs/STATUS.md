@@ -28,14 +28,19 @@ Pass 4b, the rung 4 deploy, is executing in the main tree under the
 read-only `deploy.sh --check` allowed, no box write). Plan:
 `docs/superpowers/plans/2026-09-07-rung-4b-deploy.md` (revision 2,
 3M ceiling, flag 2.4M, checkpoint after Task 4). Task 0 ran clean on
-2026-09-07. The chain runs Tasks 2, 1, 3, 4, 5, 6; the conductor then
+2026-09-07. Checkpoint 2026-09-07 23:40: Tasks 2, 1, 3, 4 landed (6f698b1,
+two fix rounds), Tasks 5 and 6 next; the conductor then
 runs the read-only `--check`, dispatches Task 7's fresh-context unit
 read, and Task 8 writes this file's handoff. **Task 9, the sitting, is
 Geoff's** (ruling 6); the pass stays OPEN until it runs, and its close
 records `started-at`, the fact the launch gate's 720h floor check
 reads.
 
-After 4b's Task 8: rung 1b in the main tree (plan
+Rung 8's spec is ratified at revision 2
+(`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`, a7e10c4; fourteen
+conductor rulings; fork B, a FLAC-only 1.0 with MP3 as the first
+follow-on pass, applied provisionally and owed to Geoff); pass 8a's
+plan is in prep. After 4b's Task 8: rung 1b in the main tree (plan
 `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`,
 revision 2, 2.5M ceiling, flag 2.0M, eight tasks, KindString added
 from the 0c standard), then rung 8 if the window cap allows, then a
