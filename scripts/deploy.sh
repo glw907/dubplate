@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Deploys dubplate to the box: rsyncs repo config, renders /etc/dubplate/env
-# from env/dubplate.env.template plus the workstation age-store values,
+# and /etc/dubplate/server.env from env/dubplate.env.template and
+# env/dubplate-server.env.template plus the workstation age-store values,
 # cross-compiles and ships the dubplate Go binary, installs every
 # dubplate-* systemd unit to its fixed path, brings the compose stack up,
 # and installs beets via uv as the "music" user. Idempotent: re-running
@@ -24,8 +25,10 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_TEMPLATE="$REPO_ROOT/env/dubplate.env.template"
+SERVER_ENV_TEMPLATE="$REPO_ROOT/env/dubplate-server.env.template"
 REMOTE_DIR="/opt/dubplate"
 REMOTE_ENV="/etc/dubplate/env"
+REMOTE_SERVER_ENV="/etc/dubplate/server.env"
 BEETS_VERSION="2.13.1"
 
 # Pinned uv installer: a specific release tag (an immutable GitHub release
@@ -169,28 +172,69 @@ deploy_file() {
   fi
 }
 
-# --- render the env file, in memory only ------------------------------
-# Every NAME= line in the template must resolve to a non-empty value,
-# either already exported in this shell or sourced from ~/.local/secrets
-# above; every missing one is reported together, not one at a time.
-missing=()
-env_lines=()
-while IFS= read -r line; do
-  case "$line" in
-  '' | '#'*) continue ;;
-  esac
-  name="${line%%=*}"
-  value="${!name:-}"
-  if [ -z "$value" ]; then
-    missing+=("$name")
-  else
-    env_lines+=("$name=$value")
-  fi
-done <"$ENV_TEMPLATE"
+# --- render both env templates, in memory only ------------------------
+# render_missing accumulates across both templates so one run reports
+# every unresolvable row together, not one template at a time; a render
+# pass over the second template never runs if the first already failed on
+# its own (it does not -- both run, then the combined list is checked
+# once), so a fix-one-rerun-hits-the-next-miss loop never happens.
+render_missing=()
 
-if [ "${#missing[@]}" -gt 0 ]; then
+# render_template TEMPLATE OUT_ARRAY_NAME
+# Resolves one line-oriented template into the array named by
+# OUT_ARRAY_NAME (bash nameref), entirely in memory. Three row states
+# (both templates' own headers name all three):
+#   - blank or '#'-comment: skipped.
+#   - NAME=value (non-empty right-hand side): a literal, used verbatim
+#     and never looked up in the environment, even when a variable of
+#     that name happens to be exported -- this is the row state that
+#     lets env/dubplate-server.env.template's DUBPLATE_STATE_DIR win over
+#     the incumbent's own exported value of the same name (spec's
+#     flat-namespace hazard).
+#   - bare NAME= (empty right-hand side): resolved from this shell's own
+#     environment (already exported, or sourced from ~/.local/secrets
+#     above); unresolved names are appended to render_missing together
+#     with the template they came from, never reported one at a time.
+# A literal value may itself contain '=': the name is everything before
+# the first '=' (`${line%%=*}`), and the literal is everything after the
+# first '=' (`${line#*=}`, which strips only the shortest -- i.e. first --
+# match), so a literal like `FOO=a=b` renders as `a=b`.
+render_template() {
+  local template="$1" out_name="$2"
+  local -n out_ref="$out_name"
+  local line name rhs value
+  while IFS= read -r line; do
+    case "$line" in
+    '' | '#'*) continue ;;
+    esac
+    name="${line%%=*}"
+    rhs="${line#*=}"
+    if [ -n "$rhs" ]; then
+      out_ref+=("$name=$rhs")
+    else
+      value="${!name:-}"
+      if [ -z "$value" ]; then
+        render_missing+=("$template: $name")
+      else
+        out_ref+=("$name=$value")
+      fi
+    fi
+  done <"$template"
+}
+
+# SC2034: both arrays are only ever written and read through
+# render_template's and install_env_step's own `local -n` namerefs, passed
+# by name; shellcheck does not follow that indirection.
+# shellcheck disable=SC2034
+env_lines=()
+# shellcheck disable=SC2034
+server_env_lines=()
+render_template "$ENV_TEMPLATE" env_lines
+render_template "$SERVER_ENV_TEMPLATE" server_env_lines
+
+if [ "${#render_missing[@]}" -gt 0 ]; then
   echo "deploy.sh: missing a value for the following variables (mint them via secret-set.sh, Task 0, then re-source ~/.local/secrets):" >&2
-  printf '  %s\n' "${missing[@]}" >&2
+  printf '  %s\n' "${render_missing[@]}" >&2
   exit 1
 fi
 
@@ -289,32 +333,53 @@ fi
 echo "== smoke test: dubplate-server version =="
 run_remote "/usr/local/bin/dubplate-server version"
 
-# --- /etc/dubplate/env --------------------------------------------------
-# Not deploy_file: this content is assembled in memory from secrets and must
-# never touch local disk (see the usage note at the top of this file), so
-# there is no LOCAL path to hand the helper. It already avoids the
-# fixed-/tmp-name problem deploy_file solves too -- install(1) reads it
-# straight off stdin, with no staged copy on the box at all.
-echo "== $REMOTE_ENV (${#env_lines[@]} variables) =="
-if $check_only; then
-  if remote_reachable; then
-    # shellcheck disable=SC2029
-    if diff -q <(printf '%s\n' "${env_lines[@]}") \
-      <(ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cat $REMOTE_ENV 2>/dev/null") >/dev/null 2>&1; then
-      echo "  no changes (contents match; diff not shown, it's secrets)"
+# --- /etc/dubplate/env and /etc/dubplate/server.env ---------------------
+# Not deploy_file: this content is assembled in memory from secrets and
+# literals and must never touch local disk (see the usage note at the top
+# of this file), so there is no LOCAL path to hand the helper. Each step
+# below announces its own remote path and its own variable count, so the
+# operator reading --check sees two distinct env steps rather than one.
+
+# install_env_step REMOTE_PATH LINES_ARRAY_NAME
+# Shared check/report/install shape for one rendered env array. --check
+# probes reachability, then diffs the rendered lines against REMOTE_PATH's
+# live content without ever printing content itself (it's secrets, same
+# wording as before this refactor). Apply mode pipes the rendered lines
+# straight into install(1) over stdin -- no staged copy on the box at all
+# (Resolution R6), and -D creates the parent directory (/etc/dubplate) on
+# the box's first deploy; install itself no-ops that part on every later
+# run.
+install_env_step() {
+  local remote_path="$1" lines_name="$2"
+  local -n lines_ref="$lines_name"
+  echo "== $remote_path (${#lines_ref[@]} variables) =="
+  if $check_only; then
+    if remote_reachable; then
+      # shellcheck disable=SC2029
+      if diff -q <(printf '%s\n' "${lines_ref[@]}") \
+        <(ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cat $remote_path 2>/dev/null") >/dev/null 2>&1; then
+        echo "  no changes (contents match; diff not shown, it's secrets)"
+      else
+        echo "  would change (contents differ; diff not shown, it's secrets)"
+      fi
     else
-      echo "  would change (contents differ; diff not shown, it's secrets)"
+      echo "  can't reach $SSH_TARGET to diff; would write ${#lines_ref[@]} variables"
     fi
   else
-    echo "  can't reach $SSH_TARGET to diff; would write ${#env_lines[@]} variables"
+    # shellcheck disable=SC2029
+    printf '%s\n' "${lines_ref[@]}" | ssh "${SSH_OPTS[@]}" "$SSH_TARGET" \
+      "install -D -m 600 -o root -g root /dev/stdin $remote_path"
   fi
-else
-  # -D creates $REMOTE_ENV's parent (/etc/dubplate) if this is the box's
-  # first deploy; install itself no-ops that part on every later run.
-  # shellcheck disable=SC2029
-  printf '%s\n' "${env_lines[@]}" | ssh "${SSH_OPTS[@]}" "$SSH_TARGET" \
-    "install -D -m 600 -o root -g root /dev/stdin $REMOTE_ENV"
-fi
+}
+
+install_env_step "$REMOTE_ENV" env_lines
+
+# dubplate-server's own env file, installed 0600 root:root exactly like
+# /etc/dubplate/env above (Resolution R6): systemd reads EnvironmentFile=
+# as PID 1 before dropping privileges, so this mode and ownership are not
+# a default to widen once dubplate-server itself runs as a lower-privilege
+# user.
+install_env_step "$REMOTE_SERVER_ENV" server_env_lines
 
 # msmtp retired at T13: internal/notify sends mail itself (SMTP, no local
 # MTA), and notify parity against msmtp had already passed before this
