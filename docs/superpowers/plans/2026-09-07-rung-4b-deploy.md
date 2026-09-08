@@ -206,10 +206,11 @@ inventory's corrections applied. Read-only ssh at every step until step 4.
    store sits on root, not on the 50 GB `/srv/music` volume
    (`spec:1765-1778`), and this figure is the trigger the retention knob
    waits on (HISTORY forward carry 8).
-10. **Record the deploy date as a first-class figure.** The launch date
-    is that date plus the 720h floor. Read `started-at` off the box to
-    get the clock's own value rather than the wall clock of the sitting,
-    and write both the date and the derived launch date into the close.
+10. **Record the deploy date as a first-class figure.** Read
+    `started-at` off the box to get the clock's own value rather than
+    the wall clock of the sitting, and write the date into the close;
+    the 720h floor is a gate the launch reads, not a date derived from
+    it.
 11. **Read the operator rule once, out loud.** After the sitting, a
     hand-run shadow verb goes through `systemctl start
     dubplate-shadow.service` or `systemd-run` carrying the unit's own
@@ -256,8 +257,8 @@ and does not record a deploy date, because none of those figures exists
 yet.
 
 **Attended, a later session: Task 9.** The sitting checklist above, then
-the pass close carrying `started-at`, the deploy date, and the derived
-launch date as first-class figures.
+the pass close carrying `started-at` and the deploy date as first-class
+figures.
 
 The pass ledger stays open across the boundary. `docs/STATUS.md`'s next
 action after Task 8 is the sitting, not the next rung.
@@ -1860,8 +1861,6 @@ worth its own task:**
   fatal error, **including a pass that observes nothing**, so the clock
   starts at the deploy (HISTORY handoff item 6, Resolution R11 of the 4a
   plan).
-- **The derived launch date**, that date plus the 720h floor, with the
-  arithmetic shown.
 - **Both SELinux verdicts**, with the `ls -Zd` output. The
   `/var/lib/musicbox` half closes the item carried open at
   `docs/HISTORY.md:3082-3083` since the rewrite pass, and the close says

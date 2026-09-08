@@ -2,6 +2,8 @@
 
 Status: **DRAFT, rulings ratified.** Revision 2, 2026-09-05. All six open rulings below were accepted as recommended by Geoff, 2026-09-07: (1) the integration class in `internal/config`, option (a); (2) `ReleaseMBID` is the release under dispute, option (a); (3) both compat modes with the second a re-score, option (c); (4) the shipped 720h floor; (5) 60 requests per run; (6) the first deploy is a short owner sitting, option (a). Every "provisional, owner ruling N open" mark in the 4a plan reads as ruled.
 
+Erratum, 2026-09-07 (Geoff): the build carries no calendar schedule; the shadow floor is an evidence minimum, never a launch date, and the date arithmetic below was removed.
+
 The six open rulings in the next section go to Geoff. Under the
 2026-09-05 unattended grant, the plan that follows this spec applies
 each recommendation **provisionally** and marks every provisional
@@ -262,7 +264,7 @@ moves with it.
 
 The build spec's ruling 1 makes the floor a configurable duration with
 a 30-day default (`BS:804-815`). The estate's own value is a separate choice and is the
-launch date's dominant term (`DA:511-520`).
+figure the launch gate's floor check reads (`DA:511-520`).
 
 **Options.** Any duration. The shipped default is `720h`.
 
@@ -1003,11 +1005,11 @@ offers one usable idea, the `exec.CommandContext` shape, and no code.
 --export-tags-to=-` per file. (c) Depend on rung 8's `tagio`.
 
 **The rung 4 answer is (a), and it is a decision this spec takes rather
-than a ruling.** (c) blocks the calendar-critical rung on lane T, and
-launch date equals rung 4's deploy date plus the floor (`DA:525`), so
-waiting on another lane is the single most expensive thing rung 4 can
-do. (b) adds a subprocess and a binary dependency to a hardened unit,
-costs a fork and exec per file, and still leaves rung 4 owning the
+than a ruling.** (c) blocks rung 4 on lane T, and rung 4's deploy date
+starts the shadow's evidence clock (`DA:525`), so waiting on another
+lane delays that clock for no reason. (b) adds a subprocess and a
+binary dependency to a hardened unit, costs a fork and exec per file,
+and still leaves rung 4 owning the
 Vorbis-key to beets-field mapping, which is the actual work. (a) pays
 that same mapping cost and nothing else: a FLAC file is a `fLaC`
 marker, a run of metadata blocks, and the two the shadow reads are
@@ -1401,9 +1403,9 @@ evidence window rather than starting a new one.
 
 **Discard the evidence.** Removing `/var/lib/dubplate` deletes every
 observation, every stored response the mechanical re-evaluator depends
-on, and `started-at` itself. Launch date equals rung 4's deploy date
-plus the floor (`DA:524-527`), so this restarts the floor from zero and
-throws away up to thirty days of the launch bar's own material. It is
+on, and `started-at` itself. This restarts the floor from zero and
+throws away up to thirty days of accumulated evidence toward the
+launch bar's own material (`DA:524-527`). It is
 **the owner's explicit decision, never a tidy-up step**, and the
 procedure says so in those words.
 
@@ -1602,7 +1604,7 @@ of the deploy sitting's hand enable, so it agrees with "rung 4 starts
 the clock at deploy" (`DA:315`) by construction rather than by
 bookkeeping. **Rung 4's close records that date as a first-class figure
 in `docs/HISTORY.md` and `docs/STATUS.md`**, alongside the running
-observed-album count, because launch date equals it plus the floor
+observed-album count, because the launch gate's floor check reads it
 (`DA:525`, `PA:303`) and reconstructing it later from journal entries
 is worse than writing it down once.
 
@@ -1759,8 +1761,8 @@ costs at most a re-captured fixture.
 **4. The FLAC reader is rung 8's territory arriving early.**
 Mitigation: it is unexported, shadow-local, named provisional in its
 own doc comment, and rung 8's plan carries the absorption task. The
-alternative, waiting on lane T, spends calendar on the one rung whose
-calendar is the launch date.
+alternative, waiting on lane T, delays rung 4's deploy, which starts
+the shadow's evidence clock.
 
 **5. The store grows unboundedly.** Ratified ruling B keeps response
 bodies (the retirement note in the rulings section). A MusicBrainz

@@ -421,8 +421,8 @@ What 4b's plan needs from 4a, stated rather than derived.
    on the first pass that completes all three steps without a fatal
    error, including a pass that observes nothing, so the clock starts at
    the deploy rather than at the first upload. **4b's close records that
-   date as a first-class figure**, because the launch date is that date
-   plus the floor.
+   date as a first-class figure**, the fact the launch gate's floor
+   check reads.
 
 ### Forward carries
 

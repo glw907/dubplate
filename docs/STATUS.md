@@ -32,8 +32,8 @@ read-only `deploy.sh --check` allowed, no box write). Plan:
 runs the read-only `--check`, dispatches Task 7's fresh-context unit
 read, and Task 8 writes this file's handoff. **Task 9, the sitting, is
 Geoff's** (ruling 6); the pass stays OPEN until it runs, and its close
-records `started-at`, because the launch date is that date plus the
-720h floor.
+records `started-at`, the fact the launch gate's 720h floor check
+reads.
 
 After 4b's Task 8: rung 1b in the main tree (plan
 `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`,

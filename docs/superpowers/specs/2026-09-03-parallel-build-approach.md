@@ -2,6 +2,8 @@
 
 Status: PROPOSAL, **revision 2 (folded)**, 2026-09-03. Revision 1 was ratified by Geoff on 2026-09-03 (decisions 1 and 2 as proposed, decision 3 reframed); revision 2 folds the adversarial review at `research/2026-09-02-greenfield-spec-reviews/parallel-approach-review.md`. Amends the execution model of the ratified build spec (`2026-09-02-greenfield-server-build.md`, revision 2.1). It changes no rung's deliverables, no acceptance criterion, and no launch bar item.
 
+Erratum, 2026-09-07 (Geoff): the build carries no calendar schedule; the shadow floor is an evidence minimum, never a launch date, and the date arithmetic below was removed.
+
 ## Fold note (revision 2, 2026-09-03)
 
 The adversarial review returned 4 blockers, 13 majors, 8 minors, and 10 verified-sound items. All 25 findings are folded. Three took an adaptation rather than the literal fix, each named below; nothing was rejected.
@@ -98,7 +100,7 @@ Merge point **M1 is rung 4's deploy**, which starts the shadow calendar clock an
 
 Rungs 5 and 8 move into this phase. Rung 5's inbound is rung 1 (discharged) plus the two edges B4 surfaced, both now discharged by Phase 0: the mail seam it births itself (see the ownership table) and the design-language standard it authors against. Rung 8's inbound is rung 2's expected applied tag sets, which are shipped in machinery and format but **not in population**: the corpus stands at 146 cases against a 150 to 300 target with the real-catalog stratum still landing through 2c and 2d, and rung 8's only acceptance evidence is per-case applied-field agreement. The 61 structural synthetic cases shipped in 2b are the stratum least likely to exercise real tag diversity. Rung 8's plan therefore states that its acceptance is provisional against the corpus at its then-current size, and rung 15 carries an acceptance criterion re-running rung 8's applied-field agreement against the complete corpus.
 
-E2 is the critical path and is protected. Conductor attention diverted from `3 → 4` pushes the launch date; attention on any other lane is spent on slack. A and T share the second code slot, one at a time. E1 stays in the primary tree as policy (M5).
+E2 is the critical path and is protected. Conductor attention diverted from `3 → 4` delays the shadow's evidence clock from starting; attention on any other lane is spent on slack. A and T share the second code slot, one at a time. E1 stays in the primary tree as policy (M5).
 
 ### Phase 2: spine, inside the shadow window
 
@@ -127,7 +129,7 @@ Maximum width by dependency is 5, 4, 3, 1. Proposed width by contention is two c
 
 ## 2. What stays serial, and the named reason
 
-- **`3 → 4`, the calendar wall, then `15 → 16 → 17`.** The critical path: hard edges throughout plus two calendar gates.
+- **`3 → 4`, then `15 → 16 → 17`.** The critical path: hard edges throughout, plus the shadow's evidence clock spanning rung 4's deploy to rung 15's floor check.
 - **`5 → 12`.** Ingress-before-ExtAuth is a birth requirement. The session cookie, verify-identity seam, and header-strip set are rung 5 artifacts.
 - **`6 → 7, 9, 10, 11, 13, 14`.** The store schema and ops vocabulary. C runs alone.
 - **`8 → 9`** (tag writing is the pipeline's primary side effect) and **`9 → 10`** (the layout engine is what the parity diff grades).
@@ -322,7 +324,7 @@ The quality bar (exemplary Go, idiomatic Svelte, render-and-read every user-path
 
 ## 7. What this buys, and what it costs
 
-**The honest headline: the shadow floor sets the launch date, so spine concurrency buys slack, not schedule.** Launch equals rung 4's deploy date plus the floor. Rungs 5 through 14 are three L-band rungs (5, 9, 12) and seven M-band (6, 7, 8, 10, 11, 13, 14), and since an L rung splits into several passes that is more than ten passes, which fit inside a 30-day window at the pace rungs 1 through 2c have demonstrated. The one place parallelism moves the launch date is pulling rung 4's deploy earlier, and that comes from protecting the `3 → 4` chain rather than from running more lanes.
+**The honest headline: spine concurrency buys slack, not pace.** Rungs 5 through 14 are three L-band rungs (5, 9, 12) and seven M-band (6, 7, 8, 10, 11, 13, 14), and since an L rung splits into several passes that is more than ten passes. The one place parallelism helps the shadow's evidence clock is pulling rung 4's deploy earlier, and that comes from protecting the `3 → 4` chain rather than from running more lanes.
 
 What actually collapses from serial to concurrent:
 
@@ -349,10 +351,11 @@ and the serve mount seam) as the second lane's prerequisite. Decision
 3's framing is corrected rather than answered with a number: the
 shadow floor is an ordinary configuration variable, and since the
 shadow accumulates from rung 4 through the whole remaining build, any
-plausible floor is satisfied before the spine completes - it does not
-gate the launch date, which follows from completeness and a clean
-shadow record. The estate's value gets set like any other config
-choice under the defaults discipline; nothing pre-commits now.
+plausible floor is comfortably satisfied before the spine completes -
+so the floor is not what decides when launch is ready, which follows
+from completeness and a clean shadow record. The estate's value gets
+set like any other config choice under the defaults discipline;
+nothing pre-commits now.
 Next per process: the adversarial review round, then the fold of
 section 5's amendment text into the build spec.
 
