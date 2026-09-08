@@ -282,32 +282,64 @@ func TestWriteReplacesLowercaseTitleCaseInsensitively(t *testing.T) {
 }
 
 // TestWriteCollidingPairLeavesPluralComments is INV:306-308's own
-// measurement: writing both members of a colliding pair in one call
-// leaves the plural's comments.
+// measurement: writing both members of each colliding pair in one
+// call leaves the plural's comments. All three colliding pairs are
+// covered here at the surviving-comments level that Write owns;
+// tagset_test.go covers WriteOrder only.
 func TestWriteCollidingPairLeavesPluralComments(t *testing.T) {
-	blocks := []testBlock{
-		{Type: blockStreamInfo, Payload: streamInfoPayload(22050, 1, 8, 0)},
-		{Type: blockPadding, Last: true, Payload: make([]byte, 16)},
+	tests := []struct {
+		name string
+		ts   TagSet
+		want []Comment
+	}{
+		{
+			name: "Albumtype/Albumtypes",
+			ts:   TagSet{Albumtype: new("album"), Albumtypes: []string{"album", "live"}},
+			want: []Comment{
+				{Name: "RELEASETYPE", Value: "album"},
+				{Name: "RELEASETYPE", Value: "live"},
+				{Name: "MUSICBRAINZ_ALBUMTYPE", Value: "album"},
+				{Name: "MUSICBRAINZ_ALBUMTYPE", Value: "live"},
+			},
+		},
+		{
+			name: "MBArtistid/MBArtistids",
+			ts:   TagSet{MBArtistid: new("single-id"), MBArtistids: []string{"id-1", "id-2"}},
+			want: []Comment{
+				{Name: "MUSICBRAINZ_ARTISTID", Value: "id-1"},
+				{Name: "MUSICBRAINZ_ARTISTID", Value: "id-2"},
+			},
+		},
+		{
+			name: "MBAlbumartistid/MBAlbumartistids",
+			ts:   TagSet{MBAlbumartistid: new("single-id"), MBAlbumartistids: []string{"id-1", "id-2"}},
+			want: []Comment{
+				{Name: "MUSICBRAINZ_ALBUMARTISTID", Value: "id-1"},
+				{Name: "MUSICBRAINZ_ALBUMARTISTID", Value: "id-2"},
+			},
+		},
 	}
-	path := writeFixture(t, buildContainer(blocks, nil))
 
-	ts := TagSet{Albumtype: new("album"), Albumtypes: []string{"album", "live"}}
-	if err := Write(path, ts, 0o644); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			blocks := []testBlock{
+				{Type: blockStreamInfo, Payload: streamInfoPayload(22050, 1, 8, 0)},
+				{Type: blockPadding, Last: true, Payload: make([]byte, 16)},
+			}
+			path := writeFixture(t, buildContainer(blocks, nil))
 
-	c, err := Parse(path)
-	if err != nil {
-		t.Fatalf("Parse: %v", err)
-	}
-	want := []Comment{
-		{Name: "RELEASETYPE", Value: "album"},
-		{Name: "RELEASETYPE", Value: "live"},
-		{Name: "MUSICBRAINZ_ALBUMTYPE", Value: "album"},
-		{Name: "MUSICBRAINZ_ALBUMTYPE", Value: "live"},
-	}
-	if !reflect.DeepEqual(c.VorbisComment.Comments, want) {
-		t.Errorf("comments = %+v, want %+v", c.VorbisComment.Comments, want)
+			if err := Write(path, tt.ts, 0o644); err != nil {
+				t.Fatalf("Write: %v", err)
+			}
+
+			c, err := Parse(path)
+			if err != nil {
+				t.Fatalf("Parse: %v", err)
+			}
+			if !reflect.DeepEqual(c.VorbisComment.Comments, tt.want) {
+				t.Errorf("comments = %+v, want %+v", c.VorbisComment.Comments, tt.want)
+			}
+		})
 	}
 }
 
