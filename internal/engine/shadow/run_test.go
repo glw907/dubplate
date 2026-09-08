@@ -211,6 +211,14 @@ func TestRunSpendsNoTokenOnTheRescore(t *testing.T) {
 	}
 }
 
+// modTimeGranularity is the interval the two fixture trees below are
+// built apart, so that an unpinned file would carry two distinct
+// modification times. The kernel stamps mtimes from a coarse clock:
+// files written back to back share one, and the observed step on this
+// tree's filesystems is under a millisecond. Ten is well past it and
+// costs the package run nothing worth measuring.
+const modTimeGranularity = 10 * time.Millisecond
+
 func TestRunIsDeterministicUnderAFrozenClock(t *testing.T) {
 	// One server and one library directory for both trees, so the
 	// recorded bodies are identical and the path the oracle signal
@@ -219,6 +227,12 @@ func TestRunIsDeterministicUnderAFrozenClock(t *testing.T) {
 	// fixedModTime, without which the capture digest, and therefore
 	// every id below, would be a function of when the test ran
 	// (Resolution R5, fold B3).
+	//
+	// That pin is only under test because the two trees are built a real
+	// interval apart into two temp roots. Two builds inside one clock
+	// tick would carry identical mtimes on their own and the ids would
+	// agree however the writers behaved, which is the shape that let
+	// this proof pass against an unpinned tree (mutation 6).
 	srv := windroseServer(t)
 	library := t.TempDir()
 
@@ -233,6 +247,7 @@ func TestRunIsDeterministicUnderAFrozenClock(t *testing.T) {
 	}
 
 	firstTree, first := runOnce()
+	time.Sleep(modTimeGranularity)
 	secondTree, second := runOnce()
 
 	if first.Pass.ID != second.Pass.ID {

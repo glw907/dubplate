@@ -28,66 +28,56 @@ const (
 	obsRel13       = "a0000000-0000-0000-0000-000000000013"
 )
 
-// observeServer answers WS/2 requests for the thirteen-row fixture from
-// the committed testdata/observe bodies (rows 1, 4 and 5's own
-// RecStrong-scoring documents, plus one shared empty search.json), with
-// one status override: obsRel12 always answers 503 with Retry-After: 0,
-// the collapse fold M-h's own servers use so a maxAttempts exhaustion
-// costs no real wall time (mutation 4).
+// observeServer serves the thirteen-row fixture's WS/2 traffic from the
+// committed testdata/observe bodies (rows 1, 4 and 5's own
+// RecStrong-scoring documents, plus one shared empty search.json)
+// through releaseServer, with one status override: obsRel12 answers 503
+// for every attempt. releaseServer sends Retry-After: 0 beside that
+// status, so a maxAttempts exhaustion costs no real wall time; dropping
+// that header is mutation 4, and the bound in TestObservePassEndToEnd
+// is what catches it.
 func observeServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
 	dir := filepath.Join("testdata", "observe")
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Retry-After", "0")
-
-		var id string
-		if r.URL.Path == "/ws/2/release" {
-			id = "search"
-		} else {
-			id = strings.TrimPrefix(r.URL.Path, "/ws/2/release/")
-		}
-		if id == obsRel12 {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-
-		file := "release-" + id + ".json"
-		if id == "search" {
-			file = "search.json"
-		}
-		body, err := os.ReadFile(filepath.Join(dir, file))
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("read %s: %v", dir, err)
+	}
+	bodies := make(map[string][]byte, len(entries))
+	for _, e := range entries {
+		body, err := os.ReadFile(filepath.Join(dir, e.Name()))
 		if err != nil {
-			http.NotFound(w, r)
-			return
+			t.Fatalf("read %s: %v", e.Name(), err)
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(body) //nolint:errcheck // best-effort write to a test stub
-	}))
-	t.Cleanup(srv.Close)
-	return srv
+		key := strings.TrimSuffix(strings.TrimPrefix(e.Name(), "release-"), ".json")
+		bodies[key] = body
+	}
+	if _, ok := bodies["search"]; !ok {
+		t.Fatalf("testdata/observe carries no search.json; every untagged row's lookup would 404 instead of returning no candidates")
+	}
+	return releaseServer(t, bodies, map[string]int{obsRel12: http.StatusServiceUnavailable})
 }
 
 // buildInbox writes the thirteen-row fixture table (plus the one
 // structurally necessary fourteenth directory the ambiguous-basename
-// row needs; see the package doc comment on TestObservePassEndToEnd)
-// and every artifact reconcile reads to resolve it: the incumbent's
-// library files, tag log, review tree and one run report, plus a
-// pre-existing consumed-report entry old enough to open the gap row 11
-// needs.
+// row needs; see the doc comment on TestObservePassEndToEnd) and every
+// artifact reconcile reads to resolve it: the incumbent's library
+// files, tag log, review tree and one run report.
 //
 // Every file writeAlbum and writeLibraryFile write is pinned to
 // fixedModTime through os.Chtimes (mutation 6): the capture digest
 // ingests mtime (digestFor, capture.go), so an unpinned file would make
-// the observation ids, and therefore determinism and idempotence both,
-// a function of when the test ran rather than of the fixture alone.
-func buildInbox(t *testing.T, tr shadowTree, library string) {
+// the observation ids a function of when the test ran rather than of
+// the fixture alone. TestRunIsDeterministicUnderAFrozenClock is what
+// catches that, by building two trees a real interval apart.
+func buildInbox(t *testing.T, tr shadowTree) {
 	t.Helper()
 
 	// 01: unanimous ID-consensus early return, agreement (apply/apply,
 	// same release both sides).
 	writeAlbum(t, tr.observe, "ada", "01-anvil", albumTracks(obsRel01, "Anvil", "One"))
-	lib01 := writeLibraryFile(t, library, "ada-01-anvil.flac", obsRel01, "One")
+	lib01 := writeLibraryFile(t, tr.library, "ada-01-anvil.flac", obsRel01, "One")
 
 	// 02: empty search returning tag.ErrNoCandidates, agreement
 	// (skip/skip): no MUSICBRAINZ_ALBUMID tag, so match_by_id never
@@ -97,23 +87,23 @@ func buildInbox(t *testing.T, tr shadowTree, library string) {
 	// 03: go-skips-oracle-applied. The same empty-search shape as 02,
 	// but the oracle applied a release the inbox tags never named.
 	writeAlbum(t, tr.observe, "ada", "03-cobalt", albumTracks("", "Cobalt", "Three"))
-	lib03 := writeLibraryFile(t, library, "ada-03-cobalt.flac", obsRel03Oracle, "Three")
+	lib03 := writeLibraryFile(t, tr.library, "ada-03-cobalt.flac", obsRel03Oracle, "Three")
 
 	// 04: go-applies-oracle-skipped, the oracle's skip signal read
 	// through the review tree's -HHMMSS collision-suffix form
-	// (reviewSuffixPattern). It also carries a plain tag-log skip line
-	// naming its own literal basename, so !tagLogSkips[c.Basename] is
-	// false for it and it can never be mistaken for row 07's
-	// gate-rejected exclusion regardless of the two rows' relative
-	// order in the store's own id-sorted read (Store.Observations
-	// sorts by digest, not by basename).
+	// (reviewSuffixPattern) and through nothing else. It is deliberately
+	// NOT tag-logged: a tag-log line naming the same basename would
+	// claim the capture on its own, leaving the -HHMMSS match free to
+	// break without any assertion noticing. The test reads this
+	// observation's OracleSignal.ReadFrom back to prove the review tree
+	// is the path that resolved it.
 	writeAlbum(t, tr.observe, "ada", "04-diorite", albumTracks(obsRel04, "Diorite", "Four"))
 
 	// 05: go-applies-different-release. The inbox tags carry one
 	// unanimous release id and the incumbent's own library file names
 	// another.
 	writeAlbum(t, tr.observe, "ada", "05-ecolite", albumTracks(obsRel05Go, "Ecolite", "Five"))
-	lib05 := writeLibraryFile(t, library, "ada-05-ecolite.flac", obsRel05Oracle, "Five")
+	lib05 := writeLibraryFile(t, tr.library, "ada-05-ecolite.flac", obsRel05Oracle, "Five")
 
 	// 06: excluded multi-album directory. Two tracks group to two
 	// distinct (artist, album) keys, so capture excludes the whole
@@ -123,18 +113,21 @@ func buildInbox(t *testing.T, tr shadowTree, library string) {
 		{"ALBUMARTIST=Marble", "ARTIST=Marble", "ALBUM=Feldspar B", "TITLE=Six B", "TRACKNUMBER=1"},
 	})
 
-	// 07: excluded gate-rejected. Filed under the review tree at its
-	// own plain basename and never tag-logged, so it is the only
-	// capture that can ever satisfy resolveSkips' gate-rejected branch
-	// (viaReview && !tagLogSkips && gateRejectedRemaining > 0).
-	writeAlbum(t, tr.observe, "ada", "07-gneiss", albumTracks("", "Gneiss", "Seven"))
-	writeReviewDir(t, tr.review, "2026-09-01", "ada", "07-gneiss")
+	// 07: excluded gate-rejected, on its own uploader "bo".
+	// gateRejectedRemaining is scoped by uploader and consumed by the
+	// FIRST review-only, non-tag-logged capture under it
+	// (reconcile.go:319-323), and row 04 is now exactly that shape and
+	// sorts ahead of this one. Sharing an uploader would hand 04 the
+	// exclusion and leave this album to resolve as an ordinary skip, so
+	// the two rows are separated rather than ordered by luck.
+	writeAlbum(t, tr.observe, "bo", "07-gneiss", albumTracks("", "Gneiss", "Seven"))
+	writeReviewDir(t, tr.review, "2026-09-01", "bo", "07-gneiss")
 
 	// 08: imported-with-no-release-id. The library file the incumbent
 	// named carries no MUSICBRAINZ_ALBUMID, so the content join
 	// succeeds but the release itself is empty (Resolution R22).
 	writeAlbum(t, tr.observe, "ada", "08-hematite", albumTracks("", "Hematite", "Eight"))
-	lib08 := writeLibraryFile(t, library, "ada-08-hematite.flac", "", "Eight")
+	lib08 := writeLibraryFile(t, tr.library, "ada-08-hematite.flac", "", "Eight")
 
 	// 09: partial-skip, on its own uploader. partialSkipUploader is
 	// scoped by uploader for the whole pass (Resolution R4), so a
@@ -150,14 +143,16 @@ func buildInbox(t *testing.T, tr shadowTree, library string) {
 	// DIFFERENT uploaders sharing one basename; it cannot be produced
 	// by two captures under a single uploader, since a filesystem
 	// cannot hold two directories of the same name in one parent. The
-	// partner lives on its own throwaway uploader "xx" purely to
-	// manufacture the collision.
+	// partner rides "pk" rather than a fourth uploader: the ambiguity
+	// loop claims both captures before the partial-skip branch is ever
+	// reached (reconcile.go:297-306), so pk's partial-skip flag cannot
+	// reach it.
 	writeAlbum(t, tr.observe, "ada", "10-jasper", albumTracks("", "Jasper", "Ten"))
-	writeAlbum(t, tr.observe, "xx", "10-jasper", albumTracks("", "Jasper Partner", "Ten Partner"))
+	writeAlbum(t, tr.observe, "pk", "10-jasper", albumTracks("", "Jasper Partner", "Ten Partner"))
 
 	// 11: report-swept. Named nowhere: not tag-logged, not filed under
 	// review, not named in the run report below. Reconciled purely by
-	// the gap: buildInbox seeds an old consumed-report entry whose
+	// the gap: seedReportGap writes an old consumed-report entry whose
 	// EndedAt precedes this pass's own report's StartedAt, and this
 	// capture's CapturedAt (the pass clock) precedes that StartedAt in
 	// turn.
@@ -166,16 +161,16 @@ func buildInbox(t *testing.T, tr shadowTree, library string) {
 	// 12: deferred, ErrUnavailable. A unanimous id consensus whose
 	// lookup 503s for all seven attempts.
 	writeAlbum(t, tr.observe, "ada", "12-lepidolite", albumTracks(obsRel12, "Lepidolite", "Twelve"))
-	lib12 := writeLibraryFile(t, library, "ada-12-lepidolite.flac", obsRel12, "Twelve")
+	lib12 := writeLibraryFile(t, tr.library, "ada-12-lepidolite.flac", obsRel12, "Twelve")
 
 	// 13: deferred, ErrBudgetExhausted. Its own release id is never
 	// requested: the pass's budget cap is sized to the exact sum spent
 	// through album 12 (below), so this album's first reserve already
 	// exceeds it.
 	writeAlbum(t, tr.observe, "ada", "13-muscovite", albumTracks(obsRel13, "Muscovite", "Thirteen"))
-	lib13 := writeLibraryFile(t, library, "ada-13-muscovite.flac", obsRel13, "Thirteen")
+	lib13 := writeLibraryFile(t, tr.library, "ada-13-muscovite.flac", obsRel13, "Thirteen")
 
-	writeTagLog(t, tr.oracle, []string{"02-basalt", "04-diorite", "09-iolite", "10-jasper"})
+	writeTagLog(t, tr.oracle, []string{"02-basalt", "09-iolite", "10-jasper"})
 	writeReviewDir(t, tr.review, "2026-09-01", "ada", "04-diorite-153000")
 
 	reportStartedAt := passNow.Add(time.Minute)
@@ -187,7 +182,7 @@ func buildInbox(t *testing.T, tr shadowTree, library string) {
 			{Uploader: "ada", Outcome: outcomeImported, LibraryPaths: []string{lib01}},
 			{Uploader: "ada", Outcome: outcomeImported, LibraryPaths: []string{lib03}},
 			{Uploader: "ada", Outcome: outcomeImported, LibraryPaths: []string{lib05}},
-			{Uploader: "ada", Outcome: outcomeQuarantined},
+			{Uploader: "bo", Outcome: outcomeQuarantined},
 			{Uploader: "ada", Outcome: outcomeImported, LibraryPaths: []string{lib08}},
 			{Uploader: "ada", Outcome: outcomeImported, LibraryPaths: []string{lib12}},
 			{Uploader: "ada", Outcome: outcomeImported, LibraryPaths: []string{lib13}},
@@ -212,34 +207,75 @@ func seedReportGap(t *testing.T, store *Store) {
 	}
 }
 
-// TestObservePassEndToEnd is the exit gate: one hand-authored,
-// thirteen-row inbox under uploader "ada" exercising one of every shape
-// contract S1 through S22 admits, run through the whole Run pipeline at
-// once.
+// indexByBasename indexes a pass's observations by inbox basename. Only
+// an observation that gained an oracle signal reaches the result
+// (matchStep), so an unreconciled or excluded row is absent by
+// construction and every basename here is unique; a collision means the
+// fixture grew a second matched row under one name and the index would
+// silently hide one of them.
+func indexByBasename(t *testing.T, observations []*Observation) map[string]*Observation {
+	t.Helper()
+
+	byBasename := make(map[string]*Observation, len(observations))
+	for _, obs := range observations {
+		if prior, ok := byBasename[obs.Capture.Basename]; ok {
+			t.Fatalf("two matched observations share basename %q: %s and %s", obs.Capture.Basename, prior.ID, obs.ID)
+		}
+		byBasename[obs.Capture.Basename] = obs
+	}
+	return byBasename
+}
+
+// observeWallBound is how long one exit-gate pass may take. The whole
+// package is held under thirty seconds, and the row that can blow that
+// is 12: seven attempts against a 503 cost 0+1+2+4+8+16 seconds of
+// backoff unless the server sends Retry-After: 0 (client.go:42,
+// :418-423). Five seconds leaves the measured pass (a fifth of a
+// second) two orders of magnitude of headroom and still catches that
+// thirty-one-second run by a factor of six.
+const observeWallBound = 5 * time.Second
+
+// TestObservePassEndToEnd is the exit gate: one hand-authored, fourteen
+// directory inbox exercising one of every shape contract S1 through S22
+// admits, run through the whole Run pipeline at once. Thirteen of the
+// directories are the fixture table's own rows; the fourteenth is the
+// ambiguous-basename row's partner. Thirteen observations are stored:
+// the fourteen captured directories less row 06, which capture excludes
+// as multi-album before it ever becomes one.
 //
-// The fixture carries a fourteenth directory beyond the thirteen the
-// table names, under a throwaway uploader "xx": the ambiguous-basename
-// row (10) is, by reconcile.go's own resolveSkips doc comment,
-// necessarily a collision between two DIFFERENT uploaders' captures
-// sharing one basename, which a single uploader's directory tree cannot
-// produce (two directories cannot share one name under one parent).
-// Stored observations therefore total thirteen, not twelve: the twelve
-// the thirteen-row table itself accounts for (06 is excluded at capture
-// and never becomes one) plus the ambiguous partner.
+// Three uploaders carry them, each separation forced by a rule the
+// reconcile step scopes per uploader rather than by taste. "ada" holds
+// eleven rows. "pk" holds 09, because a partial-skip flag relabels every
+// skip under its uploader (Resolution R4, reconcile.go:325-328), and the
+// 10-jasper partner, because an ambiguous basename is by construction a
+// collision between two uploaders. "bo" holds 07, because the
+// gate-rejected count is consumed by the first review-only capture under
+// its uploader (reconcile.go:319-323), which would otherwise be 04.
 func TestObservePassEndToEnd(t *testing.T) {
 	tr := newShadowTree(t)
-	library := t.TempDir()
 	store := tr.openStore(t)
 	seedReportGap(t, store)
-	buildInbox(t, tr, library)
+	buildInbox(t, tr)
 	srv := observeServer(t)
 
 	cfg := tr.config(srv.URL)
 	cfg.BudgetLimit = 12 // the exact sum spent through album 12: 1+1+1+1+1+7 (mutation 3, 5)
 
+	// A timer rather than a stopwatch: nothing under internal/engine may
+	// call time.Now, tests included (TestEngineNeverReadsTheClock,
+	// internal/harness/conform/arch_test.go:152-157).
+	overran := make(chan struct{})
+	bound := time.AfterFunc(observeWallBound, func() { close(overran) })
+
 	res, err := Run(context.Background(), cfg, passNow)
 	if err != nil {
 		t.Fatalf("Run: %v", err)
+	}
+	bound.Stop()
+	select {
+	case <-overran:
+		t.Errorf("one pass took longer than %s, so the 503 row is spending real backoff: the test server must send Retry-After: 0 beside its status (mutation 4)", observeWallBound)
+	default:
 	}
 
 	if !res.Pass.StartedAt.Equal(passNow) || !res.ClockStarted {
@@ -260,6 +296,15 @@ func TestObservePassEndToEnd(t *testing.T) {
 		if res.Pass.Divergences[class] != want {
 			t.Errorf("Divergences[%s] = %d, want %d (all: %v)", class, res.Pass.Divergences[class], want, res.Pass.Divergences)
 		}
+	}
+
+	// Row 04's oracle signal has one available path: the review tree,
+	// through the -HHMMSS collision suffix its directory carries. The
+	// count above proves a signal arrived; this proves which reader
+	// produced it, which is the only assertion the suffix form can fail.
+	byBasename := indexByBasename(t, res.Observations)
+	if sig := byBasename["04-diorite"].Oracle; sig.Signal != "skip" || sig.ReadFrom != "review-tree" {
+		t.Errorf("04-diorite oracle signal = %q read from %q, want a skip read from the review tree", sig.Signal, sig.ReadFrom)
 	}
 
 	wantDeferred := map[string]int{
@@ -335,9 +380,8 @@ func TestObservePassDefersEverythingOnAClosedLimiter(t *testing.T) {
 	tr := newShadowTree(t)
 	writeAlbum(t, tr.observe, "ada", "01-anvil", albumTracks(obsRel01, "Anvil", "One"))
 	writeAlbum(t, tr.observe, "ada", "02-basalt", albumTracks(obsRel04, "Basalt", "Two"))
-	lib := t.TempDir()
-	lib1 := writeLibraryFile(t, lib, "ada-01.flac", obsRel01, "One")
-	lib2 := writeLibraryFile(t, lib, "ada-02.flac", obsRel04, "Two")
+	lib1 := writeLibraryFile(t, tr.library, "ada-01.flac", obsRel01, "One")
+	lib2 := writeLibraryFile(t, tr.library, "ada-02.flac", obsRel04, "Two")
 	writeRunReport(t, tr.oracle, oracleRunReport{
 		RunID: "run1", StartedAt: passNow.Add(-time.Hour), EndedAt: passNow.Add(-time.Hour).Add(time.Minute),
 		Albums: []oracleAlbumOutcome{
@@ -381,10 +425,9 @@ func TestObservePassDefersEverythingOnAClosedLimiter(t *testing.T) {
 // byte-identical to the first pass's own.
 func TestObservePassIsIdempotent(t *testing.T) {
 	tr := newShadowTree(t)
-	library := t.TempDir()
 	store := tr.openStore(t)
 	seedReportGap(t, store)
-	buildInbox(t, tr, library)
+	buildInbox(t, tr)
 	srv := observeServer(t)
 
 	cfg := tr.config(srv.URL)
