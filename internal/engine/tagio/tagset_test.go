@@ -187,32 +187,32 @@ func TestFourStates(t *testing.T) {
 	})
 
 	t.Run("list", func(t *testing.T) {
-		cases := map[string][]string{
-			"value":  {"jazz", "trip-hop"},
-			"empty":  EmptyList(),
-			"absent": nil,
+		cases := map[string]*TagSet{
+			"value":  {Genres: []string{"jazz", "trip-hop"}},
+			"empty":  {Genres: EmptyList()},
+			"absent": {},
 		}
-		if cases["value"] == nil || len(cases["value"]) != 2 {
+		if cases["value"].Genres == nil || len(cases["value"].Genres) != 2 {
 			t.Error("value state: Genres does not hold the values")
 		}
-		if cases["empty"] == nil || len(cases["empty"]) != 0 {
+		if cases["empty"].Genres == nil || len(cases["empty"].Genres) != 0 {
 			t.Error("empty state: Genres is not a non-nil zero-length slice")
 		}
-		if cases["absent"] != nil {
+		if cases["absent"].Genres != nil {
 			t.Error("absent state: Genres is not nil")
 		}
 	})
 
 	t.Run("numeric", func(t *testing.T) {
 		n := 7
-		cases := map[string]*int{
-			"value":  &n,
-			"absent": nil,
+		cases := map[string]*TagSet{
+			"value":  {Track: &n},
+			"absent": {},
 		}
-		if cases["value"] == nil || *cases["value"] != 7 {
+		if cases["value"].Track == nil || *cases["value"].Track != 7 {
 			t.Error("value state: Track does not hold the value")
 		}
-		if cases["absent"] != nil {
+		if cases["absent"].Track != nil {
 			t.Error("absent state: Track is not nil")
 		}
 	})
