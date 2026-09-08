@@ -17,7 +17,7 @@ resolutions, and the conductor's `deploy.sh --check` record. Streamer
 box (5.78.148.42) runs Navidrome, cloudflared, and guardian timers only;
 the family system is not live, and the box is production.
 
-**Lane registry.** lane-1 (main tree): rung 1b closed; next is pass 8a.
+- lane-1 (main tree): ACTIVE, pass 8a chain running (pass-execute wf_a6f1705e-408, launched 2026-09-08 04:50; Task 0 clean; window cap 15M binds before the pass's own 4.5M ceiling, so the chain may stop at a task boundary with STATUS pointing at the resume).
 lane-2 (worktree): **UNBLOCKED** (0b and 0c both landed). doc lane: pass
 8a plan prep.
 
