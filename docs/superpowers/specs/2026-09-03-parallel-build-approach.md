@@ -55,6 +55,21 @@ Phase 0 is three items of different kinds, and the review's blocker was that rev
 
 **0c. The design-language standard** (document, small). The theme-variable contract, the two-axis match/palette composition model, and the embedded font delivery mechanism (woff2 via `go:embed`, never a CDN) are pulled out of rung 7 into a documented standard, derived from the ratified rung 7 theming ruling and the existing `research/2026-09-03-theme-collection-brief.md` standing input. This is a promotion, not a content move: rung 7 still owns the roster, the visual authoring of every surface including rung 5's login pages, and the attended before/after. Without it, rung 5's login pages are the first rendered user-path surface in the build and would be authored ahead of the contract every surface is bound to. It also fixes the same problem for rung 12's driver pairing.
 
+**Phase 0c is complete (2026-09-07):**
+`specs/2026-09-07-design-language-standard.md` carries the
+theme-variable contract as 32 gated names, the two-axis
+match/palette model with the composed `data-theme` identity rung 5
+stamps, and the embedded woff2 delivery mechanism with the CSP its
+stack actually needs. Revision 2 folds two adversarial reviews
+(`research/2026-09-07-design-language-standard-review.md`), whose
+blocker was that revision 1's inherited CSP would have let rung 5's
+login page load and never boot. Rung 5 authors its login pages
+against the numbered clauses; rung 7 still owns the roster, the
+visual authoring, and the attended before/after; rung 12's seam
+declares no theming capability. Six readings carry a conductor
+ruling owed, and the one that touches lane scheduling is whether
+the `web/` gate leg rejoins at rung 5 rather than rung 7.
+
 **The serve mount seam is not a Phase 0 artifact.** `Mount(prefix, http.Handler)` cannot express rung 12's needs: rung 12 is the ingress reverse proxy and by the one-owned-prefix rule the streamer owns everything else, so it is the root mux's fallthrough rather than a mounted subtree, and its birth requirements (the header-strip set driven by the driver's configured header name, path normalization rejecting raw/decoded mismatches and `..` segments before prefix routing, per-route write-timeout handling for SSE and audio streams) are all shell-level. The seam is therefore two things with no code ahead of rung 5:
 
 - **A requirement recorded in rung 5's spec.** Rung 5 owns the serve shell, the mux, and the ingress strip, and its spec must name the root-level composition order (ingress strip, then path normalization, then prefix routing, then fallthrough), declare the extension point every later consumer adds a file at, and state which of those points the driver's proxy occupies. Building the ingress strip as an unplanned Phase 0 chore would strip the full fresh-context adversarial cycle from the single artifact the whole trust boundary rests on.
