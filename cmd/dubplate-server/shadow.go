@@ -342,7 +342,10 @@ func printShadowReport(w io.Writer, r *shadow.Report) error {
 	if err := printCountRows(w, "divergences", r.Divergences); err != nil {
 		return err
 	}
-	if err := printRow(w, "go-applies-oracle-skipped", fmt.Sprintf("%d (owner disposition joined off-box)", r.GoAppliesOracleSkipped)); err != nil {
+	if err := printRow(w, "go-applies-oracle-skipped", fmt.Sprintf("%d false confident matches (owner disposition joined off-box)", r.GoAppliesOracleSkipped)); err != nil {
+		return err
+	}
+	if err := printRow(w, "divergences by disposition", "joined off-box against corpus/analysis/adjudications.json"); err != nil {
 		return err
 	}
 	if err := printRow(w, "staged pending", fmt.Sprintf("%d", r.StagedPending)); err != nil {

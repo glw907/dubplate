@@ -7,13 +7,13 @@ import "time"
 // row form doctor already uses (cmd/dubplate-server/doctor.go:64-66),
 // so an operator reads one table shape across the binary.
 //
-// Two rows the spec's table names are deliberately absent, because the
-// box cannot know them: divergences by owner disposition, and false
-// confident matches net of oracle-wrong rulings. Owner dispositions
+// The report prints what the store knows and labels the two rows the
+// spec's table joins against owner disposition, divergences by owner
+// disposition and false confident matches net of oracle-wrong rulings,
+// with a note that the join itself runs off-box: owner dispositions
 // live in corpus/analysis/adjudications.json on the workstation, which
-// the box never reads. The report prints what the store knows, and the
-// disposition join is the launch gate's own, run on the workstation
-// against the committed corpus (Resolution R21).
+// the box never reads, and the join is the launch gate's own, run on
+// the workstation against the committed corpus (Resolution R21).
 type Report struct {
 	ClockStart             time.Time
 	ClockStarted           bool
