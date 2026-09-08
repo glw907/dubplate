@@ -17,8 +17,9 @@ import (
 //
 // Registration is an explicit call rather than an init function, so
 // declaration order stays visible in the caller's own code and a test
-// that imports this package alone still sees rung 1's own rows
-// (thresholds.go:36-39's reason, carried forward to every family here).
+// that imports this package alone still sees rung 1's own rows, the
+// reason rung 1 gave for Threshold registration, carried forward to
+// every family here.
 //
 // A duplicate or malformed declaration panics rather than returning an
 // error, on the precedent of the three stdlib registries that face the
@@ -87,35 +88,23 @@ const (
 	familySuperseded  = "superseded names"
 )
 
-// claim panics if key was already claimed by a family other than
-// family (O5 class 2), then records that family claims key. It
-// deliberately does not flag a repeat claim from the same family: that
-// is a within-family duplicate (O5 class 1), and each family's own
-// entry point checks for it separately, so the two checks stay
-// independent of each other.
+// claim panics if key does not carry the DUBPLATE_ prefix (O5 class 3,
+// Resolution R16: every family's keys share one flat environment
+// namespace, so a declared key without the prefix would collide with
+// an adopter's own variables), then panics if key was already claimed
+// by a family other than family (O5 class 2), then records that family
+// claims key. It deliberately does not flag a repeat claim from the
+// same family: that is a within-family duplicate (O5 class 1), and
+// each family's own entry point checks for it separately, so the two
+// checks stay independent of each other.
 func (r *Registry) claim(family, key string) {
+	if !strings.HasPrefix(key, "DUBPLATE_") {
+		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))
+	}
 	if existing, ok := r.claims[key]; ok && existing != family {
 		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, existing, family))
 	}
 	r.claims[key] = family
-}
-
-// claimCrossFamily panics if key does not carry the DUBPLATE_ prefix
-// (O5 class 3, Resolution R16: rejectNamespace walks names by that
-// prefix, so a declared key without it would never be classified and
-// the declaration would silently do nothing), then claims key as
-// claim does. It is claim's own prefix-enforcing variant, used by the
-// three families rejectNamespace classifies by that walk: owned wall,
-// reserved classes, and integration classes (and the superseded map,
-// whose names share the same namespace). AddThreshold uses claim
-// instead: a threshold's Key is read directly by wall.get and never
-// classified by rejectNamespace's DUBPLATE_ walk, so R16's own
-// justification for the prefix requirement does not reach it.
-func (r *Registry) claimCrossFamily(family, key string) {
-	if !strings.HasPrefix(key, "DUBPLATE_") {
-		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))
-	}
-	r.claim(family, key)
 }
 
 // AddWallRow registers row as an owned wall row. A row is either a
@@ -136,7 +125,7 @@ func (r *Registry) AddWallRow(row WallRow) {
 		if slices.ContainsFunc(r.ownedWall, func(existing WallRow) bool { return existing.Name == row.Name }) {
 			panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", row.Name, familyOwnedWall, familyOwnedWall))
 		}
-		r.claimCrossFamily(familyOwnedWall, row.Name)
+		r.claim(familyOwnedWall, row.Name)
 	case row.Pending != "":
 		// Status row: not a key, not claimed.
 	default:
@@ -166,7 +155,7 @@ func (r *Registry) AddReservedClass(class ReservedClass) {
 				panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyReserved, familyReserved))
 			}
 		}
-		r.claimCrossFamily(familyReserved, key)
+		r.claim(familyReserved, key)
 	}
 	r.reservedClasses = append(r.reservedClasses, class)
 }
@@ -188,14 +177,17 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // one of the keys it gates could never be told apart from a required
 // row in an error message.
 //
-// Only Flag and Required claim across families here; Optional does
-// not. An Optional row is accepted and never required precisely
-// because it is also a registered [Threshold] (IntegrationClass's own
-// doc), so the same key legitimately carries two declarations, one per
-// family, and AddThreshold's own claim is what the gate checks for it
-// (Resolution R5, re-expressing rung 4's ruling 1: rung 4's shadow
-// class registers DUBPLATE_SHADOW_FLOOR and DUBPLATE_SHADOW_BUDGET
-// this way).
+// Flag, Required, and Optional all claim across families, so an
+// Optional key that collides with an owned-wall, reserved, or
+// superseded name is refused rather than registering silently. The one
+// deliberate overlap is an Optional key that is also a registered
+// [Threshold]: an Optional row is accepted and never required
+// precisely because it carries a threshold default (IntegrationClass's
+// own doc), so the same key legitimately carries two declarations, one
+// per family (Resolution R5, re-expressing rung 4's ruling 1: rung 4's
+// shadow class registers DUBPLATE_SHADOW_FLOOR and DUBPLATE_SHADOW_BUDGET
+// this way). This method and [Registry.AddThreshold] each recognize
+// that one pairing and skip the claim rather than panicking on it.
 //
 // provisional, conductor ruling owed, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
@@ -226,7 +218,13 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 
 	claimed := append([]string{class.Flag}, class.Required...)
 	for _, key := range claimed {
-		r.claimCrossFamily(familyIntegration, key)
+		r.claim(familyIntegration, key)
+	}
+	for _, key := range class.Optional {
+		if existing, ok := r.claims[key]; ok && existing == familyThresholds {
+			continue // already a registered threshold: the documented pairing (R5)
+		}
+		r.claim(familyIntegration, key)
 	}
 	r.integrationClasses = append(r.integrationClasses, class)
 }
@@ -250,8 +248,25 @@ func (r *Registry) AddThreshold(t Threshold) {
 		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", t.Key, familyThresholds, familyThresholds))
 	}
 	validateThresholdDefault(t)
-	r.claim(familyThresholds, t.Key)
+	if !r.isOptionalIntegrationKey(t.Key) {
+		r.claim(familyThresholds, t.Key)
+	}
 	r.thresholds = append(r.thresholds, t)
+}
+
+// isOptionalIntegrationKey reports whether key is already registered as
+// some integration class's Optional row. An Optional row is, by
+// design, also a registered threshold ([Registry.AddIntegrationClass]'s
+// own doc, Resolution R5), so AddThreshold skips the generic
+// cross-family claim for it rather than panicking on the pairing its
+// own Optional registration already claimed.
+func (r *Registry) isOptionalIntegrationKey(key string) bool {
+	for _, class := range r.integrationClasses {
+		if slices.Contains(class.Optional, key) {
+			return true
+		}
+	}
+	return false
 }
 
 // validateThresholdDefault panics if t's Default cannot be parsed
@@ -306,7 +321,7 @@ func (r *Registry) AddSuperseded(name, reason string) {
 	if _, ok := r.superseded[name]; ok {
 		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", name, familySuperseded, familySuperseded))
 	}
-	r.claimCrossFamily(familySuperseded, name)
+	r.claim(familySuperseded, name)
 	r.superseded[name] = reason
 }
 

@@ -20,6 +20,24 @@ const (
 	KindString
 )
 
+// String returns k's name, or "ThresholdKind(N)" for a kind no rung
+// has named, so a registration-bug panic naming an unrecognized Kind
+// reports it rather than a bare integer.
+func (k ThresholdKind) String() string {
+	switch k {
+	case KindInt:
+		return "KindInt"
+	case KindDuration:
+		return "KindDuration"
+	case KindFloat:
+		return "KindFloat"
+	case KindString:
+		return "KindString"
+	default:
+		return fmt.Sprintf("ThresholdKind(%d)", int(k))
+	}
+}
+
 // Threshold describes one behavior tunable: its environment key, its
 // default value in string form, and, in Doc, the accepted form a
 // caller reports on a parse error. Rungs register thresholds as they

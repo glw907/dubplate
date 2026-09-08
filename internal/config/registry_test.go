@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -30,7 +31,7 @@ func panicMessage(t *testing.T, fn func()) string {
 func TestNewRegistry_CarriesRung1Declarations(t *testing.T) {
 	r := NewRegistry()
 
-	if got := r.OwnedWall(); !slicesEqualWallRow(got, ownedWall) {
+	if got := r.OwnedWall(); !slices.Equal(got, ownedWall) {
 		t.Errorf("OwnedWall() = %+v, want %+v", got, ownedWall)
 	}
 	if got := r.ReservedClasses(); !reflect.DeepEqual(got, reservedClasses) {
@@ -45,18 +46,6 @@ func TestNewRegistry_CarriesRung1Declarations(t *testing.T) {
 	if got := r.Thresholds(); len(got) != 0 {
 		t.Errorf("Thresholds() = %+v, want empty: rung 1 registers none", got)
 	}
-}
-
-func slicesEqualWallRow(a, b []WallRow) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func TestRegistry_AccessorsReturnCopy(t *testing.T) {
@@ -180,6 +169,25 @@ func TestCollisionGate_CrossFamily(t *testing.T) {
 	}
 }
 
+// TestCollisionGate_OptionalCrossFamily proves an integration class's
+// Optional key claims across families exactly as Flag and Required do
+// (Resolution B): an Optional key that repeats a reserved-class key
+// panics naming both families, rather than registering silently.
+func TestCollisionGate_OptionalCrossFamily(t *testing.T) {
+	r := NewRegistry()
+	r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_OPTIONAL_CROSS"}})
+
+	msg := panicMessage(t, func() {
+		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Optional: []string{"DUBPLATE_TEST_OPTIONAL_CROSS"}})
+	})
+	if !strings.Contains(msg, "DUBPLATE_TEST_OPTIONAL_CROSS") {
+		t.Errorf("panic message %q does not name the offending key", msg)
+	}
+	if !strings.Contains(msg, familyReserved) || !strings.Contains(msg, familyIntegration) {
+		t.Errorf("panic message %q does not name both families", msg)
+	}
+}
+
 // TestCollisionGate_MissingPrefix fires O5 class 3: a declared key
 // without the DUBPLATE_ prefix (Resolution R16).
 func TestCollisionGate_MissingPrefix(t *testing.T) {
@@ -235,9 +243,9 @@ func TestCollisionGate_KindDefaultMismatch(t *testing.T) {
 // real declaration exists yet, so this is a scratch fixture.
 func TestCollisionGate_KindStringEmptyDefault(t *testing.T) {
 	msg := panicMessage(t, func() {
-		NewRegistry().AddThreshold(Threshold{Key: "TEST_STRING", Kind: KindString, Default: ""})
+		NewRegistry().AddThreshold(Threshold{Key: "DUBPLATE_TEST_STRING", Kind: KindString, Default: ""})
 	})
-	if !strings.Contains(msg, "TEST_STRING") {
+	if !strings.Contains(msg, "DUBPLATE_TEST_STRING") {
 		t.Errorf("panic message %q does not name the offending key", msg)
 	}
 }
@@ -283,12 +291,12 @@ func TestCollisionGate_IntegrationFlag(t *testing.T) {
 		{
 			name:  "flag in required",
 			class: IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{"DUBPLATE_TEST_FLAG"}},
-			want:  "DUBPLATE_TEST_FLAG",
+			want:  "integration class's Flag DUBPLATE_TEST_FLAG also appears in its own key set",
 		},
 		{
 			name:  "flag in optional",
 			class: IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Optional: []string{"DUBPLATE_TEST_FLAG"}},
-			want:  "DUBPLATE_TEST_FLAG",
+			want:  "integration class's Flag DUBPLATE_TEST_FLAG also appears in its own key set",
 		},
 	}
 	for _, tt := range tests {

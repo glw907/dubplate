@@ -56,12 +56,14 @@ func TestOwnedWall_ReturnsCopy(t *testing.T) {
 	}
 }
 
-// Both table-driven tests below name their fixture field input rather
-// than key. A struct field named key sitting on the same line as a
-// value whose entropy clears gitleaks' generic-api-key threshold trips
-// the rule, because the rule needs both halves: a key-like field name
-// and a high-entropy neighbor. The same discipline applies to any
+// Both table-driven tests below (TestReservedClassOf and
+// TestSupersessionOf) name their fixture field input rather than key. A
+// struct field named key sitting on the same line as a value whose
+// entropy clears gitleaks' generic-api-key threshold trips the rule,
+// because the rule needs both halves: a key-like field name and a
+// high-entropy neighbor. The same discipline applies to any
 // declaration file that writes a key literal beside a field named Key.
+
 func TestReservedClassOf(t *testing.T) {
 	tests := []struct {
 		input     string
@@ -107,6 +109,8 @@ func TestReservedClasses_ReturnsCopy(t *testing.T) {
 	}
 }
 
+// TestSupersessionOf also names its fixture field input, for the
+// gitleaks reason stated above TestReservedClassOf.
 func TestSupersessionOf(t *testing.T) {
 	tests := []struct {
 		input     string

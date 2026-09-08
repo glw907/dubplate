@@ -55,8 +55,9 @@ func main() {
 
 // newRootCmd builds the production registry once, visibly, and passes
 // it to every subcommand that enforces against it: registration order
-// stays readable here rather than hidden behind an init function
-// (thresholds.go:36-39's rule, carried forward to the registry).
+// stays readable here rather than hidden behind an init function, the
+// explicit-registration rule stated in the Registry doc comment
+// (internal/config/registry.go).
 //
 // provisional, conductor ruling owed, R1
 func newRootCmd() *cobra.Command {

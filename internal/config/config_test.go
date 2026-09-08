@@ -263,15 +263,15 @@ var classificationFixtureIntegrationClass = IntegrationClass{
 //
 // The rule that cannot be mechanical: a rung that declares a new
 // owned-now row adds it to env/dubplate-server.env.template in the same
-// pass, with the minting that implies (scripts/deploy.sh:171-194).
-// scripts/deploy.sh renders both templates (ENV_TEMPLATE at :27,
-// SERVER_ENV_TEMPLATE at :28, render_template at :205, called at :240
-// and :241), so a name missing from either template fails deploy the
-// same way; a rung that adds an owned-now row without adding it here
-// discovers the gap at deploy time rather than at test time. Neither
-// this test nor any other in this package may add that name itself:
-// doing so would mint a value outside the age store, an owner
-// touchpoint this pass does not take.
+// pass, with the minting that implies. scripts/deploy.sh renders both
+// templates (ENV_TEMPLATE at :27, SERVER_ENV_TEMPLATE at :28,
+// render_template at :205, called at :240 and :241) and refuses to
+// deploy when render_missing is non-empty (:243-247), so a name missing
+// from either template fails deploy the same way; a rung that adds an
+// owned-now row without adding it here discovers the gap at deploy time
+// rather than at test time. Neither this test nor any other in this
+// package may add that name itself: doing so would mint a value outside
+// the age store, an owner touchpoint this pass does not take.
 func TestLoad_TemplateKeysClassified(t *testing.T) {
 	reg := NewRegistry()
 	reg.AddIntegrationClass(classificationFixtureIntegrationClass)
@@ -322,7 +322,7 @@ func TestLoad_OwnedNowRowsInGreenfieldTemplate(t *testing.T) {
 			continue
 		}
 		if !slices.Contains(names, row.Name) {
-			t.Errorf("%s: owned-now row %s does not appear in %s; a rung adding an owned-now row must add it to the greenfield template in the same pass", row.Name, row.Name, greenfieldTemplate)
+			t.Errorf("%s: owned-now row %s does not appear; a rung adding an owned-now row must add it to the greenfield template in the same pass", greenfieldTemplate, row.Name)
 		}
 	}
 }

@@ -341,12 +341,8 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
 
-	th := reg.Thresholds()[0]
-	wantLine := fmt.Sprintf("%-32s %s\n", th.Key, thresholdStatus(baseEnviron(), th))
+	wantLine := fmt.Sprintf("%-32s %s\n", "DUBPLATE_TEST_STRONG_REC_THRESH", "0.04")
 	if !strings.Contains(stdout.String(), wantLine) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantLine)
-	}
-	if !strings.Contains(stdout.String(), fmt.Sprintf("%-32s %s\n", "DUBPLATE_TEST_STRONG_REC_THRESH", "0.04")) {
-		t.Errorf("stdout = %q, want the float row to print 0.04", stdout.String())
 	}
 }
