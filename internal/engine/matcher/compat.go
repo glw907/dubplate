@@ -4,14 +4,16 @@ package matcher
 // reproduces pinned beets' defect or the adjudicated corrected
 // behavior. A true field means "reproduce beets".
 //
-// Two classes and no more. corpus/analysis/oracle_bugs.json carries four
-// oracle-wrong hypotheses, and only these two have a fix a port can
-// express: bug-nonlatin-alias-selection's corrected verdict is an
-// applied artist string rung 3 computes none of, and
-// bug-assignment-rejection-gap needs a per-pair rejection mechanism
-// beets does not have, which ruling A itself calls a fix with no beets
-// counterfactual. Both are recorded as improvements-register items
-// rather than shipped as switches nobody can flip.
+// Two classes and no more. corpus/analysis/oracle_bugs.json carries
+// three oracle-wrong hypotheses and one disposed no-correct-answer
+// (bug-assignment-rejection-gap, owner ruling 2026-09-07), and only
+// these two have a fix a port can express: bug-nonlatin-alias-selection's
+// corrected verdict is an applied artist string rung 3 computes none of,
+// and bug-assignment-rejection-gap needs a per-pair rejection mechanism
+// beets does not have at all, which is why it carries no correct answer
+// for the oracle to have produced rather than a corrected verdict rung 3
+// merely fails to express. Both are recorded as improvements-register
+// items rather than shipped as switches nobody can flip.
 type Compat struct {
 	// FtPattern reproduces bug-ft-pattern: SD_PATTERNS' featuring
 	// pattern matching "ft" inside an ordinary word such as "Draft".

@@ -51,7 +51,10 @@ const (
 const DefectFreeFloor = 10
 
 // ProbeCaseFloor is the number of probe cases across the four
-// oracle-wrong hypotheses.
+// oracle-bug hypotheses carrying probe cases: bug-ft-pattern,
+// bug-remix-parenthetical, and bug-nonlatin-alias-selection (all
+// oracle-wrong), and bug-assignment-rejection-gap (no-correct-answer,
+// owner ruling 2026-09-07).
 const ProbeCaseFloor = 20
 
 // ProbeCaseOracleCorrectRows is the number of those probe cases whose
@@ -119,7 +122,7 @@ type CaseGradeSummary struct {
 	TiesExcluded       int
 	TiesAwaitingRuling []string // ruling F is owed on these; graded as pending, never as passing
 	Pending            []string // case ids whose adjudication row leaves the verdict ungraded
-	Ungraded           []string // probe cases of an oracle-wrong class with no expressible rung-3 fix
+	Ungraded           []string // cases with no gradable corrected verdict: an oracle-wrong class with no expressible rung-3 fix, or a no-correct-answer disposition
 	NearMisses         []NearMiss
 	VerdictMoves       []string // ModeDefault only
 }
@@ -448,11 +451,18 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 // case's computed recommendation and action against its own committed
 // record, honoring the pending escape (a policy with GradeVerdict false
 // is never compared at all) and refusing to absorb an unadjudicated
-// divergence silently (Resolution R15, rung 3 spec :311). ModeDefault's
-// own comparison, against the ten defect_free rows, is
-// gradeCaseDefault's.
+// divergence silently (Resolution R15, rung 3 spec :311). A case ruled
+// pending is already reported via res.pending; any other GradeVerdict
+// false policy (a no-correct-answer hypothesis or case row) is reported
+// ungraded instead, so ModeCompat and ModeDefault agree on which cases
+// carry a gradable verdict. ModeDefault's own comparison, against the
+// ten defect_free rows, is gradeCaseDefault's.
 func gradeCaseVerdict(caseID string, policy casePolicy, wantRec, wantAction string, gotRec matcher.Recommendation, gotAction matcher.Action, res *caseGradeResult) error {
 	if !policy.GradeVerdict {
+		if !policy.Pending {
+			res.ungraded = true
+			res.ungradedReason = fmt.Sprintf("%s: adjudicated no-correct-answer, so it has no corrected verdict to grade against (Resolution R1)", caseID)
+		}
 		return nil
 	}
 	if gotRec.String() == wantRec && string(gotAction) == wantAction {
@@ -529,15 +539,16 @@ func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 //
 // A case whose adjudication row reads pending-adjudication is ungraded
 // and reported pending, exactly as ModeCompat's own escape works. Every
-// other case falls into one of three buckets, resolved from
-// policy.VerdictFrom (set only when the case is a probe of an
-// oracle-wrong hypothesis whose OWN row agrees) and whether that row
-// carries a defect_free block: the ten defect_free rows are graded
-// against their own block; the eight probe cases of the two hypotheses
-// with no expressible rung-3 fix (Resolution R1) are marked ungraded;
-// every other case is compared against its own committed (that is,
-// ModeCompat) verdict, and a difference is a VerdictMoves entry rather
-// than a failure (Resolution R9).
+// other case falls into one of three buckets: a case ruled
+// no-correct-answer (policy.GradeVerdict false) has no corrected verdict
+// to grade against and is marked ungraded; a probe of an oracle-wrong
+// hypothesis whose OWN row agrees (policy.VerdictFrom) is graded against
+// its defect_free block when the row carries one (the ten defect_free
+// rows), or otherwise marked ungraded, since it has no expressible
+// rung-3 fix (Resolution R1) either; every other case is compared
+// against its own committed (that is, ModeCompat) verdict, and a
+// difference is a VerdictMoves entry rather than a failure (Resolution
+// R9).
 func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGradeResult, err error) {
 	var errs []error
 	defer func() {
@@ -625,6 +636,15 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 
 	row, hasRow := led.adj.BySubjectCase()[c.ID]
 	switch {
+	case !policy.GradeVerdict:
+		// A hypothesis (or its case's own row) ruled no-correct-answer:
+		// the defect stays reproduced, since no compat switch exists to
+		// fix it, but there is no corrected verdict to grade against
+		// (Resolution R1). Honors the same GradeVerdict escape
+		// gradeCaseVerdict does for ModeCompat, so the two modes agree
+		// on which cases carry a gradable verdict at all.
+		res.ungraded = true
+		res.ungradedReason = fmt.Sprintf("%s: adjudicated no-correct-answer, so it has no corrected verdict to grade against (Resolution R1)", c.ID)
 	case policy.VerdictFrom == verdictFromAdjudication && hasRow && row.DefectFree != nil:
 		// One of the ten defect_free rows: graded against the block
 		// rather than the case's own (defective) committed record.
@@ -643,9 +663,10 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		}
 		res.verdicts++
 	case policy.VerdictFrom == verdictFromAdjudication:
-		// One of the eight probe cases of the two no-fix hypotheses
-		// (Resolution R1): no rung-3 port can express its corrected
-		// verdict, so it is neither graded nor compared for movement.
+		// One of bug-nonlatin-alias-selection's two oracle-wrong probe
+		// cases with no defect_free block (Resolution R1): no rung-3
+		// port can express its corrected verdict, so it is neither
+		// graded nor compared for movement.
 		res.ungraded = true
 		res.ungradedReason = fmt.Sprintf("%s: probe of an oracle-wrong hypothesis with no rung-3 fix, so its corrected verdict is not machine-readable (Resolution R1)", c.ID)
 	default:
@@ -968,7 +989,9 @@ func policyFor(caseID string, ties *analysis.TieLedger, prox *analysis.Proximity
 // every other class as it was. A hypothesis whose defect no compat
 // switch can express widens nothing: matcher.Compat carries the two
 // string-heuristic classes and no more, because the other two
-// oracle-wrong hypotheses have no fix a rung-3 port can express.
+// hypotheses (bug-nonlatin-alias-selection, oracle-wrong;
+// bug-assignment-rejection-gap, no-correct-answer) have no fix a rung-3
+// port can express.
 func widenCompat(c matcher.Compat, hypothesisID string) matcher.Compat {
 	switch hypothesisID {
 	case "bug-ft-pattern":

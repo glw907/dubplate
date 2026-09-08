@@ -2338,13 +2338,18 @@ two not:
   `import.languages` makes it reachable, contradicting the report.
 
 All six hypotheses were ruled by the owner on 2026-09-04, and none is
-pending. `bug-ft-pattern`, `bug-remix-parenthetical`,
-`bug-nonlatin-alias-selection`, and `bug-assignment-rejection-gap` sit
-at `disposition: "oracle-wrong"`; `bug-threshold-boundary` and
-`bug-locale-alias-ignored` sit at `disposition: "oracle-correct"`.
-Disposition stays owner-only, so a new hypothesis lands pending and
-waits for a ruling even where the written evidence already points one
-way.
+pending. `bug-ft-pattern`, `bug-remix-parenthetical`, and
+`bug-nonlatin-alias-selection` sit at `disposition: "oracle-wrong"`;
+`bug-threshold-boundary` and `bug-locale-alias-ignored` sit at
+`disposition: "oracle-correct"`. `bug-assignment-rejection-gap` was
+re-disposed by the owner on 2026-09-07, applying rung 3d's inherited
+ask (`docs/HISTORY.md`, Resolution R1), from `oracle-wrong` to
+`disposition: "no-correct-answer"`: `assign_items`/`lap.lapjv` never
+rejecting a costly pair is still a real defect, but pinned beets has no
+per-pair rejection mechanism at all, so there is no beets counterfactual
+a corrected verdict could be computed against. Disposition stays
+owner-only, so a new hypothesis lands pending and waits for a ruling
+even where the written evidence already points one way.
 
 ## Handoff to rung 8: what pure-Go FLAC tag writing may assume
 

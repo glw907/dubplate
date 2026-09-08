@@ -92,9 +92,11 @@ type DefectFree struct {
 // StringHeuristicHypotheses names the oracle-bug hypotheses whose
 // defect is a defect OF SD_PATTERNS, and therefore the only ones whose
 // corrected expectation a pattern-table swap can express. The other two
-// oracle-wrong hypotheses are excluded on purpose:
-// bug-nonlatin-alias-selection is a translation defect with no
-// SD_PATTERNS counterfactual, and bug-assignment-rejection-gap is the
+// are excluded on purpose: bug-nonlatin-alias-selection (oracle-wrong)
+// is a translation defect with no SD_PATTERNS counterfactual, and
+// bug-assignment-rejection-gap (no-correct-answer, owner ruling
+// 2026-09-07: pinned beets has no per-pair rejection mechanism at all,
+// so no correct answer exists for the oracle to have produced) is the
 // class ruling A names as having no beets counterfactual at all, so its
 // six adv-assign-* probe cases owe no block.
 var StringHeuristicHypotheses = []string{"bug-ft-pattern", "bug-remix-parenthetical"}
