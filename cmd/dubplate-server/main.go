@@ -69,13 +69,22 @@ func newRootCmd() *cobra.Command {
 	return cmd
 }
 
+// newVersionCmd prints two labeled rows, "version" then
+// "matcher-commit", in doctor.go's own printRow shape. The
+// matcher-commit row is what a real deploy's smoke step asserts on
+// (Resolution R4): shadow observe refuses to run on a "dev" or empty
+// matcherCommit, so an operator reading this output can see the same
+// value the refusal checks before it ever reaches the box.
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print the dubplate-server version",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := fmt.Fprintln(cmd.OutOrStdout(), version)
-			return err
+			out := cmd.OutOrStdout()
+			if err := printRow(out, "version", version); err != nil {
+				return err
+			}
+			return printRow(out, "matcher-commit", matcherCommit)
 		},
 	}
 }

@@ -315,8 +315,18 @@ fi
 # picks up real Vite output, not just the placeholder) is U9's concern,
 # not this pass's -- no web/ build step exists yet for this line to order
 # against.
+# DUBPLATE_STAMP_VERSION and DUBPLATE_STAMP_MATCHER_COMMIT are the two
+# values that make the smoke step's own assertion meaningful: main.go's
+# matcherCommit stays "dev" (and shadow observe refuses to run) on any
+# build that skips these -X flags, so a bare `go build` or `make
+# build-linux` run outside this script never reaches the box stamped.
+# `git describe` covers the human-facing version; `git rev-parse HEAD`
+# pins the exact commit the box's Go matcher runs, independent of tags.
+DUBPLATE_STAMP_VERSION="$(git -C "$REPO_ROOT" describe --tags --always --dirty)"
+DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+
 echo "== dubplate-server binary -> $SSH_TARGET:/usr/local/bin/dubplate-server =="
-make -C "$REPO_ROOT" build-linux
+make -C "$REPO_ROOT" build-linux LDFLAGS="-X main.version=$DUBPLATE_STAMP_VERSION -X main.matcherCommit=$DUBPLATE_STAMP_MATCHER_COMMIT"
 DUBPLATE_SERVER_BINARY="$REPO_ROOT/dubplate-server-linux-amd64"
 if $check_only; then
   rsync -avzn -e "$RSYNC_SSH" "$DUBPLATE_SERVER_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate-server" || true
@@ -329,9 +339,17 @@ fi
 # execute (wrong GOARCH, a missing dynamic dependency the box lacks); `set
 # -euo pipefail` makes a non-zero exit here abort the whole deploy rather
 # than leaving a broken binary in place undetected until the next timer
-# fires.
+# fires. The assertion below extends that same abort to a binary that
+# executes fine but never got stamped: it prints both "version" rows for
+# the operator, then exits nonzero when matcher-commit is empty or "dev"
+# (main.go's own workstation default), which shadow observe would refuse
+# to run against for thirty days until the next deploy caught it. R9: the
+# version this command prints also becomes the MusicBrainz User-Agent
+# shadow.go:215 sends on every request, so this same stamp -dirty means
+# the box's User-Agent carries -dirty too.
 echo "== smoke test: dubplate-server version =="
-run_remote "/usr/local/bin/dubplate-server version"
+# shellcheck disable=SC2016
+run_remote 'output="$(/usr/local/bin/dubplate-server version)"; printf "%s\n" "$output"; commit=$(printf "%s\n" "$output" | awk "/^matcher-commit/{print \$2}"); if [ -z "$commit" ] || [ "$commit" = "dev" ]; then echo "matcher-commit is dev or empty; aborting deploy" >&2; exit 1; fi'
 
 # --- /etc/dubplate/env and /etc/dubplate/server.env ---------------------
 # Not deploy_file: this content is assembled in memory from secrets and

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -48,5 +49,28 @@ func TestNewRootCmd_RegistersShadowThresholdsOnce(t *testing.T) {
 
 	if second != first {
 		t.Errorf("Thresholds() len after a second newRootCmd() = %d, want %d (unchanged)", second, first)
+	}
+}
+
+// TestNewVersionCmd_PrintsTwoLabeledRows proves R3: the version verb
+// prints exactly two rows, "version" then "matcher-commit", in
+// doctor.go's own "%-32s %s" column shape, and that the assertion
+// reads the package variables' values rather than their labels.
+func TestNewVersionCmd_PrintsTwoLabeledRows(t *testing.T) {
+	origVersion, origMatcherCommit := version, matcherCommit
+	defer func() { version, matcherCommit = origVersion, origMatcherCommit }()
+	version, matcherCommit = "v1.2.3", "abc123"
+
+	cmd := newVersionCmd()
+	var stdout bytes.Buffer
+	cmd.SetOut(&stdout)
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+
+	want := fmt.Sprintf("%-32s %s\n%-32s %s\n", "version", "v1.2.3", "matcher-commit", "abc123")
+	if stdout.String() != want {
+		t.Errorf("stdout = %q, want %q", stdout.String(), want)
 	}
 }
