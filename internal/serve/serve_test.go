@@ -282,6 +282,20 @@ func cookieNames(got *recorder) []string {
 	return names
 }
 
+// cookieValue returns the value got's Cookie header carries for name,
+// decoded through the stdlib cookie parser, or "" if name is absent.
+func cookieValue(got *recorder, name string) string {
+	if got.header == nil {
+		return ""
+	}
+	req := &http.Request{Header: got.header}
+	c, err := req.Cookie(name)
+	if err != nil {
+		return ""
+	}
+	return c.Value
+}
+
 const testSessionCookie = "dubplate_session"
 
 // TestSessionCookieRemovedAtFallthroughPresentAtOwnedPrefix: the
@@ -314,9 +328,11 @@ func TestSessionCookieRemovedAtFallthroughPresentAtOwnedPrefix(t *testing.T) {
 
 // TestSessionCookieOtherCookiesSurviveAtFallthrough: a request carrying
 // three cookies, including the named one, arrives at the fallthrough
-// with the other two unchanged. Deleting the whole Cookie header would
-// satisfy the row above while removing the streamer's own cookies from
-// every proxied request.
+// with the other two unchanged in both name and value. Asserting names
+// alone would pass an implementation that rebuilds each surviving
+// cookie's text (for example by round-tripping through
+// [http.Request.Cookies], which strips RFC 6265 double quotes on
+// read), which is why this row checks the exact surviving value too.
 func TestSessionCookieOtherCookiesSurviveAtFallthrough(t *testing.T) {
 	shell := newTestShell(t, testSessionCookie)
 	var fall recorder
@@ -333,8 +349,38 @@ func TestSessionCookieOtherCookiesSurviveAtFallthrough(t *testing.T) {
 	if slices.Contains(names, testSessionCookie) {
 		t.Errorf("fallthrough handler cookies = %v, want %q removed", names, testSessionCookie)
 	}
-	if !slices.Contains(names, "a") || !slices.Contains(names, "b") {
-		t.Errorf("fallthrough handler cookies = %v, want %q and %q both surviving", names, "a", "b")
+	if got, want := cookieValue(&fall, "a"), "1"; got != want {
+		t.Errorf("fallthrough handler cookie %q = %q, want %q", "a", got, want)
+	}
+	if got, want := cookieValue(&fall, "b"), "2"; got != want {
+		t.Errorf("fallthrough handler cookie %q = %q, want %q", "b", got, want)
+	}
+}
+
+// TestSessionCookieRawHeaderSurvivesVerbatim: a request whose raw
+// Cookie header carries a double-quoted value arrives at the
+// fallthrough with that exact header text minus the named cookie, not
+// a value net/http's cookie parser has normalized. This is the row
+// that would catch an implementation rebuilding the header from
+// [http.Request.Cookies], which the row above's name-and-value check
+// cannot distinguish from a correct one when the surviving value has
+// no quotes to lose.
+func TestSessionCookieRawHeaderSurvivesVerbatim(t *testing.T) {
+	shell := newTestShell(t, testSessionCookie)
+	var fall recorder
+	shell.SetFallthrough(recordingHandler(&fall))
+
+	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+	r.Header.Set("Cookie", `a="quoted"; `+testSessionCookie+`=abc; b=2`)
+
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+	if fall.header == nil {
+		t.Fatal("the fallthrough handler was never invoked")
+	}
+	want := `a="quoted"; b=2`
+	if got := fall.header.Get("Cookie"); got != want {
+		t.Errorf("fallthrough handler Cookie header = %q, want %q", got, want)
 	}
 }
 
@@ -383,5 +429,41 @@ func TestTwoSubtreesEachReceiveOnlyOwnPaths(t *testing.T) {
 	}
 	if alpha.header != nil {
 		t.Error("alpha was invoked for a path under beta")
+	}
+}
+
+// flushingHandler calls http.NewResponseController(w).Flush() and
+// records the error it returns, so a test can prove the writer a
+// handler receives is not opaque to [http.ResponseController]: logRefusal
+// wraps the whole chain, and rung 12's reverse proxy occupies the
+// fallthrough this handler stands in for, so a writer that answers
+// "feature not supported" here would defeat the streaming rung 12
+// needs.
+func flushingHandler(dst *error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		*dst = http.NewResponseController(w).Flush()
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+// TestResponseControllerFlushReachesRealWriter: logRefusal's status
+// capture stays transparent to http.ResponseController at both a
+// registered subtree and the fallthrough, proving the root handler
+// never hands rung 12's proxy an opaque writer.
+func TestResponseControllerFlushReachesRealWriter(t *testing.T) {
+	shell := newTestShell(t, "")
+	var ownedErr, fallErr error
+	shell.Register("echo", flushingHandler(&ownedErr))
+	shell.SetFallthrough(flushingHandler(&fallErr))
+	root := shell.Handler()
+
+	root.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, testPrefix+"/echo", nil))
+	if ownedErr != nil {
+		t.Errorf("Flush() at the owned prefix = %v, want nil", ownedErr)
+	}
+
+	root.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/outside", nil))
+	if fallErr != nil {
+		t.Errorf("Flush() at the fallthrough = %v, want nil", fallErr)
 	}
 }

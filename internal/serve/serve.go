@@ -1,8 +1,10 @@
 package serve
 
 import (
+	"bufio"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"strings"
 )
@@ -119,8 +121,13 @@ func (s *Shell) stripSessionCookie(next http.Handler) http.Handler {
 	})
 }
 
-// removeCookie deletes every cookie named name from r's Cookie header,
-// leaving every other cookie, in order, unchanged. A request carrying
+// removeCookie deletes every cookie named name from r's raw Cookie
+// header, leaving every other cookie's text byte-for-byte as the
+// client sent it. It operates on the header string directly rather
+// than [http.Request.Cookies] and a rebuilt Name+"="+Value: the latter
+// loses RFC 6265 double quotes net/http strips on parse and drops any
+// pair net/http considers invalid, either of which would hand rung
+// 12's proxy a Cookie header the client never sent. A request carrying
 // name twice loses both instances, so a front that appends rather than
 // replaces cannot smuggle a second value past the removal. An empty
 // name is a no-op, the shape a shell built before 5b's cookie exists
@@ -129,30 +136,39 @@ func removeCookie(r *http.Request, name string) {
 	if name == "" {
 		return
 	}
-	cookies := r.Cookies()
-	if len(cookies) == 0 {
+	header := r.Header.Get("Cookie")
+	if header == "" {
 		return
 	}
 
-	kept := make([]string, 0, len(cookies))
-	for _, c := range cookies {
-		if c.Name == name {
+	segments := strings.Split(header, ";")
+	kept := make([]string, 0, len(segments))
+	for _, seg := range segments {
+		cookieName, _, _ := strings.Cut(strings.TrimSpace(seg), "=")
+		if cookieName == name {
 			continue
 		}
-		kept = append(kept, c.Name+"="+c.Value)
+		kept = append(kept, seg)
 	}
 
 	if len(kept) == 0 {
 		r.Header.Del("Cookie")
 		return
 	}
-	r.Header.Set("Cookie", strings.Join(kept, "; "))
+	r.Header.Set("Cookie", strings.Join(kept, ";"))
 }
 
-// statusCapture is a minimal http.ResponseWriter wrapper that records
-// the status written, so logRefusal can decide whether the wrapped
-// chain refused a request by observing the response it actually sent,
-// never by reading the chain's construction.
+// statusCapture is a http.ResponseWriter wrapper that records the
+// status written, so logRefusal can decide whether the wrapped chain
+// refused a request by observing the response it actually sent, never
+// by reading the chain's construction. logRefusal wraps the whole
+// chain, so statusCapture reaches every handler the shell dispatches
+// to, registered subtrees and the fallthrough alike; doc.go reserves
+// the fallthrough for rung 12's reverse proxy, and strip.go keeps the
+// websocket Upgrade handshake intact, so statusCapture stays
+// transparent to both: Unwrap lets [http.ResponseController] reach the
+// real writer, and Flush and Hijack pass through directly for a caller
+// that asserts [http.Flusher] or [http.Hijacker] itself.
 type statusCapture struct {
 	http.ResponseWriter
 	status int
@@ -163,18 +179,43 @@ func (c *statusCapture) WriteHeader(status int) {
 	c.ResponseWriter.WriteHeader(status)
 }
 
+// Unwrap exposes the wrapped writer to [http.ResponseController], so a
+// handler that reaches it via the controller sees the real writer's
+// capabilities rather than statusCapture's own limited surface.
+func (c *statusCapture) Unwrap() http.ResponseWriter {
+	return c.ResponseWriter
+}
+
+// Flush passes through to the wrapped writer's [http.Flusher] when it
+// has one, for a handler that type-asserts http.Flusher directly
+// instead of going through http.ResponseController.
+func (c *statusCapture) Flush() {
+	if f, ok := c.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+// Hijack passes through to the wrapped writer's [http.Hijacker] when
+// it has one, returning [http.ErrNotSupported] otherwise, for a
+// handler that type-asserts http.Hijacker directly.
+func (c *statusCapture) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if h, ok := c.ResponseWriter.(http.Hijacker); ok {
+		return h.Hijack()
+	}
+	return nil, nil, http.ErrNotSupported
+}
+
 // logRefusal wraps the whole composed chain (next) and, once it
 // returns, writes one structured log record naming whether any strip-set
 // identity spelling was present on the request, for every request C3
-// refused (400 or 414, its only two refusal statuses). Positioned
+// refused (400 or 414, its only two refusal statuses; a 404 from the
+// prefix terminator or the empty fallthrough emits no record). Positioned
 // outside strip, normalization, and prefix routing alike, it relies on
 // http.Request's shared pointer rather than its own nesting position:
 // by the time next.ServeHTTP returns, r.Header carries whatever the
 // chain actually did to it, strip's removal included if strip ran
 // before the refusal and not otherwise. This is the mechanism the
-// fourth order assertion reads (spec:938-944), and the one R-N
-// promised for telling the terminator from the empty fallthrough,
-// though 5a's own tests read only the refusal row.
+// fourth order assertion reads (spec:938-944).
 func (s *Shell) logRefusal(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		capture := &statusCapture{ResponseWriter: w, status: http.StatusOK}
