@@ -6,6 +6,17 @@
 // It sits beside internal/engine/tag, which computes the applied field
 // and touches no file (internal/engine/tag/doc.go:8-11).
 //
+// Read and Write dispatch through the seam registry (seam.go), an
+// unexported map keyed by Format that pairs each container's magic
+// bytes with its read and write funcs; Sniff and SupportedFormats
+// are the registry's exported surface. The registry carries exactly
+// one row today, FLAC. The MP3 pass adds the registry's second row
+// and, at that same moment, the interface this package deliberately
+// does not declare yet: a struct of func values dispatches Read and
+// Write with only one implementation, and a second registration
+// costs exactly one more registry entry plus that interface, nothing
+// more (ruling 14).
+//
 // Read stays tag-only: it returns a TagSet and nothing else. Pictures
 // live on Container, populated by Parse, because a picture is not one
 // of the 69 writable keys the tag projection carries (R12). A caller

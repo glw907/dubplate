@@ -126,6 +126,12 @@ type Container struct {
 // A signature other than fLaC returns [ErrUnsupportedContainer]. Any
 // of C7's refusal shapes returns [ErrMalformedContainer], and the
 // returned Container is always the zero value in that case.
+//
+// Parse deliberately never consults the seam registry (seam.go): it
+// is FLAC's own entry point and always returns a FLAC Container, and
+// a registry whose later rows return other formats' containers has
+// nothing to hand it for those inputs (ruled, conductor 2026-09-08,
+// m6).
 func Parse(path string) (Container, error) {
 	f, err := os.Open(path)
 	if err != nil {
