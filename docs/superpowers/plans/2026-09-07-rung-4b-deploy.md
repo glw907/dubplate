@@ -50,9 +50,10 @@ verdict on any task is the conductor's decision at the 2.4M flag), and
 R13 (the `Makefile` rides the `systemd/`, `scripts/deploy.sh`, `env/`
 ownership row, now written into
 `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s section
-3 table). R2, R3, R4, R6, R7, R8, R10, R11, R12 and R14 stay provisional
-for Task 8 to retire. Task 0 ran on 2026-09-07 with no blockers; its one
-finding, the gitleaks red in
+3 table). R2, R3, R4, R6, R7, R8, R10, R11, R12 and R14 retired at the
+4b close (`docs/HISTORY.md`'s "The ten retired resolutions"), R12
+declined with no file change. Task 0 ran on 2026-09-07 with no blockers;
+its one finding, the gitleaks red in
 `docs/superpowers/research/2026-09-07-rung-1b-plan-review.md`, is fixed
 in this commit.
 
@@ -626,7 +627,8 @@ decline rather than an omission.**
 
 ### R2: five provisional marks retire, and `flac.go:62` stays
 
-**Provisional, conductor ruling owed**, because it widens the task past
+**Retired at the 4b close** (`docs/HISTORY.md`'s "The ten retired
+resolutions"), because it widened the task past
 the four the dispatch brief named. Inventory surprise 5: the brief says
 four, and `grep -rni provisional internal/ cmd/` returns six.
 **The grep is what establishes the count**, and it must be
@@ -653,7 +655,7 @@ choice was made.
 
 ### R3: the version verb prints two labeled rows
 
-**Provisional, conductor ruling owed.** The spec says `dubplate-server
+**Retired at the 4b close.** The spec says `dubplate-server
 version` prints both rows and cites `main.go:56-64` for the current
 one-line print; at HEAD those lines are `newRootCmd`'s command
 construction and `newVersionCmd` is `main.go:72-81` (inventory surprise
@@ -674,7 +676,7 @@ assertion's field selector.
 
 ### R4: the smoke assertion runs inside the single remote command
 
-**Provisional, conductor ruling owed.** `run_remote` prints `would run:
+**Retired at the 4b close.** `run_remote` prints `would run:
 <command>` under `--check` and issues the ssh otherwise, which is what
 stops a step's check line from drifting from what apply runs
 (`deploy.sh:129-137`). An assertion written in the local shell around a
@@ -737,7 +739,7 @@ accepted and named in the helper's own comment.
 
 ### R6: `/etc/dubplate/server.env` is 0600 root:root, exactly like the incumbent's
 
-**Provisional, conductor ruling owed.** The unit runs `User=music`, and a
+**Retired at the 4b close.** The unit runs `User=music`, and a
 reviewer may read 0600 root:root as a file the service cannot read.
 
 **Applied:** the same mode and ownership as `/etc/dubplate/env`, for the
@@ -750,7 +752,7 @@ gain.
 
 ### R7: the masthead literal is copied, never invented
 
-**Provisional, conductor ruling owed.** The spec rules `DUBPLATE_SITE_NAME`
+**Retired at the 4b close.** The spec rules `DUBPLATE_SITE_NAME`
 a literal carrying "the estate's masthead text" (`spec:1278`), on two
 grounds: a bare `NAME=` aborts the render because the age store carries
 the pre-rename `DUBPLATE_SERVE_SITE_NAME`, and re-keying the store would
@@ -768,7 +770,7 @@ appear on every page rung 7 builds.
 
 ### R8: the floor and the budget ship as literals matching their registered defaults
 
-**Provisional, conductor ruling owed.** `DUBPLATE_SHADOW_FLOOR` and
+**Retired at the 4b close.** `DUBPLATE_SHADOW_FLOOR` and
 `DUBPLATE_SHADOW_BUDGET` are registered thresholds with defaults that
 stand when unset (`thresholds.go:55-96`), so the template could omit them
 entirely. The spec names them literals (`spec:1280`).
@@ -799,7 +801,7 @@ sitting's step 2 checks for it.
 
 ### R10: `TIMER_UNITS` keeps its list and gains a sentence
 
-**Provisional, conductor ruling owed.** The spec calls edit 2 "unchanged"
+**Retired at the 4b close.** The spec calls edit 2 "unchanged"
 (`spec:1311`). Read literally, that is a no-op and the file records
 nothing about why the shadow timer is absent.
 
@@ -814,7 +816,7 @@ already answers for itself.
 
 ### R11: the conductor runs `--check`, not the implementer
 
-**Provisional, conductor ruling owed.** The exit gate says "`deploy.sh
+**Retired at the 4b close.** The exit gate says "`deploy.sh
 --check` clean" (`spec:1632`), and the implementer agent is forbidden any
 ssh.
 
@@ -827,7 +829,8 @@ task, or a finding recorded for the sitting.
 
 ### R12: doctor prints neither stamp, and that stays true
 
-**Provisional, conductor ruling owed.** Inventory surprise 11:
+**Declined at the 4b close, no file change**; filed for whichever rung
+next touches `cmd/dubplate-server/doctor.go`. Inventory surprise 11:
 `doctor.go:24-72` derives four row groups from `internal/config`'s tables
 and mentions neither `version` nor `matcherCommit`.
 
@@ -852,7 +855,9 @@ ownership table.
 
 ### R14: the spec's stale citations are corrected at the close, never in flight
 
-**Provisional, conductor ruling owed.** Five citations in the spec point
+**Retired at the 4b close**, corrections queued for the conductor's next
+spec-touching batch, the spec left unedited by this pass. Five citations
+in the spec point
 at lines that have moved or at work already landed: the nine-step count
 against fourteen announced steps (surprise 2), `main.go:56-64` for the
 version verb (surprise 3), the threshold `Kind` work rung 4a already
@@ -1839,7 +1844,7 @@ their running total).
 
 ---
 
-## Task 9: The sitting, and the pass close
+## Task 9: The sitting, and the pass close (done, 2026-09-08)
 
 **Attended, a later session.** Not a chain task and not this window's
 work. Ruling 6 makes the first deploy of greenfield code an owner

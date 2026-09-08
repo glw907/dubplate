@@ -746,12 +746,12 @@ interactions: one planning miss (the unprefixed threshold fixture,
 `TEST_STRING`, that forced R16's threshold-family reversal rather than
 catching it in review), zero execution sittings.
 
-## Rung 4, pass 4b (OPEN, handoff to the sitting, 2026-09-08)
+## Rung 4, pass 4b (closed 2026-09-08 at the sitting)
 
 Tasks 0 through 7 executed in the main tree against
 `docs/superpowers/plans/2026-09-07-rung-4b-deploy.md` (revision 2) on
-2026-09-07. **The pass stays open**: Task 8 (this entry) hands off to
-Task 9, Geoff's attended deploy sitting, which is not this pass's work.
+2026-09-07. Task 8 handed off to Task 9, Geoff's attended deploy sitting,
+which ran 2026-09-08 and closes the pass below.
 
 ### What landed
 
@@ -911,8 +911,68 @@ arithmetic.
 4b's unattended half ran about 2.6M against its 3M ceiling: the chain,
 1.03M across 20 agents; Task 0, 0.09M; Task 7, 0.12M; the leftovers
 round, the test pin, and the simplifier pass together, about 0.32M; plan
-preparation, 1.06M; conductor turns, about 0.1M. Attended interactions:
-zero planning misses, zero execution sittings.
+preparation, 1.06M; conductor turns, about 0.1M. The sitting added about
+0.05M conductor turns. Attended interactions for the whole pass:
+planning misses 0, execution sittings 1 (the sitting below, a planned
+one, not a miss).
+
+### The sitting, and the close
+
+Task 9 ran 2026-09-08 with Geoff present and the conductor at the
+keyboard, against the plan's Task 9 and "The sitting checklist" above.
+
+**The quiet-box check**, 17:24 UTC: load 0.00, no running import, no
+failed units, one entry in `/srv/music/inbox`, four guardian timers
+scheduled.
+
+**`deploy.sh --check 5.78.148.42`** matched the recorded 2026-09-08
+00:35 output except transfer statistics, the rebuilt binary's size, and
+the smoke assertion's improved shape from the Task 7 fold; no drift.
+
+**The apply**, `deploy.sh 5.78.148.42`, exited 0 at about 17:25 UTC:
+sixteen steps. The orphaned `/opt/dubplate/config/filebrowser.yaml` was
+deleted by `rsync --delete`; the two shadow units and the binary were
+installed; the smoke test printed `version pre-greenfield-321-gbe27434`
+and `matcher-commit be274346add7abc339bd6ca0cf4c3b3071dd1fdf`;
+`/etc/dubplate/env` was unchanged (42 variables); `/etc/dubplate/server.env`
+was written (10 variables, mode 0600 root:root, 366 bytes);
+`/var/lib/dubplate` and `/var/lib/dubplate/shadow` were created and
+chowned `music:music`; `docker compose up -d` ran; the four guardian
+timers were re-enabled; beets 2.13.1 was reinstalled via `uv` (with
+uv's PATH warning, harmless).
+
+**After the apply**, `docker compose ps` showed `musicbox-navidrome-1`
+and `musicbox-cloudflared-1` both Up 6 days; Navidrome's `/ping`
+answered HTTP 200 in about a millisecond; SELinux Enforcing with
+`unconfined_u:object_r:var_lib_t:s0` on `/var/lib/dubplate`,
+`/var/lib/dubplate/shadow` and `/var/lib/musicbox`, closing the
+`/var/lib/musicbox` check carried open since the rewrite pass. `df -h /`
+showed 75G size, 4.5G used, 68G available, 7%, the free-space baseline
+for the response-store retention trigger.
+
+**The shadow's evidence clock started at the timer enable.**
+`systemctl enable --now dubplate-shadow.timer` ran at 17:25:56 UTC, its
+first fire scheduled 17:30:26 UTC. The first pass ran at 17:30:30 UTC:
+`Result=success`, exit 0; the journal line read `shadow observe:
+captured 0, observed 0 (0 agreement(s), 0 divergence(s))`; the store
+root was created with `observations/`, `passes/`, `pending/`,
+`resolved/` (0750), `consumed-reports.json` (4770 bytes) and
+`started-at`; no failed units. **`started-at` reads
+`2026-09-08T17:30:30.116835324Z`**, written on the box by the first pass
+that completes all three steps without a fatal error, and is the deploy
+date as a first-class figure. The pass file is
+`pass-20260908T173030Z.json`.
+
+**The deploy date is 2026-09-08**, the apply at about 17:25 UTC and the
+clock start at the `started-at` value above.
+
+**Two discretionary items were left open at Geoff's discretion**: the
+rewrite post-mortem, and the two albums in
+`/srv/music/review/2026-08-31/geoff/`.
+
+**Rung 4 is now closed end to end**, 4a and 4b both: the shadow contract
+lands, the units run on the box, and the evidence clock is running
+toward the launch gate's floor.
 
 ## Rung 4, pass 4a-ii (pass close, 2026-09-07)
 
