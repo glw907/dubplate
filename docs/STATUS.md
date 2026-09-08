@@ -23,10 +23,13 @@ the lane registry, not `pgrep`, and the box is production.
 
 ## Lane registry
 
-- lane-1 (main tree): **EXECUTING 4a-ii (Tasks 10-14 via the
-  pass-execute chain, launched 2026-09-07 after a clean staleness
-  check; Task 15 is the conductor's close)**; then 4b (deploy, owner
-  sitting, ruling 6). 4a-ii ceiling 3M (Geoff, 2026-09-07), flag at
+- lane-1 (main tree): **EXECUTING 4a-ii post-chain fix rounds**. The
+  chain (wf_c97fd506-dda, 16 agents, 1.32M) accepted Tasks 10-12
+  (09353f0..3c229f0); Task 13 (f7cd7eb, f7f82b7) drew a second `fix`
+  and Task 14 (9c956b8) escalated (mutations 4 and 6 unfired, proofs
+  written as commentary). Conductor-ruled fixes run sequentially, 13
+  then 14 (opus), then code-simplifier and the Task 15 close. Then 4b
+  (deploy, owner sitting, ruling 6). 4a-ii ceiling 3M (Geoff, 2026-09-07), flag at
   2.4M to Geoff; chain args in the project handoff dir
   (`4a-ii-chain-args.json`).
   lane-2 (worktree): BLOCKED until Phase 0b/0c. Doc lane: IDLE.
