@@ -1,0 +1,196 @@
+golden.flac provenance record
+==============================
+
+Produced by:
+  tools/venv/.venv/bin/python3 internal/engine/tagio/testdata/gen_golden_flac.py
+
+Pinned versions (tools/venv/requirements.txt, confirmed at generation time):
+  beets      2.13.1
+  mediafile  0.17.0
+  mutagen    1.48.1 (vendor string, confirmed on the golden's own
+             VORBIS_COMMENT block: "Mutagen 1.48.1")
+
+Starting point: internal/harness/oracle/testdata/template.flac, the
+committed 42-byte tag-free STREAMINFO-only container, copied to a
+scratch path before any write. The script reads that path at
+generation time only; golden.flac is thereafter self-contained
+(Resolution R3).
+
+Declared input (INPUT in gen_golden_flac.py, restated field by field;
+this is the input, not the emitted comment set -- nothing below
+reconstructs it from golden.flac's bytes)
+-------------------------------------------------------------------
+
+INV:409-427's own shape, restated:
+  album          = "Al"
+  albumartists   = ["X", "Y"]
+  artist         = "A"
+  bpm            = 120
+  comp           = True
+  disc           = 1
+  disctotal      = 2
+  title          = "T"
+  track          = 3
+  tracktotal     = 12
+  albumtype      = "album"
+  albumtypes     = ["album", "live"]
+
+The four corpus-unreachable cases a mediafile write can express:
+  year           = 0        (the zero year)
+  original_year  = 0        (the zero year, second date field)
+  arrangers      = []       (the empty list)
+  catalognum     = ""       (empty; C5's read-only-trailing-style pair)
+  barcode        = ""       (empty; C5's other read-only-trailing-style pair)
+
+Task 8's sixteen ledger-silent keys, each given a real value:
+  acoustid_fingerprint = "invented-fingerprint-value"
+  acoustid_id           = "11111111-2222-3333-4444-555555555555"
+  comments              = "Invented comment text."
+  encoder               = "Invented Encoder 1.0"
+  genres                = ["Ambient", "Drone"]
+  grouping              = "Invented Grouping"
+  initial_key           = "Am"
+  lyrics                = "la la la"
+  r128_album_gain       = -2.25
+  r128_track_gain       = -1.5
+  remixers              = ["Invented Remixer"]
+  rg_album_gain         = -6.5
+  rg_album_peak         = 0.654321
+  rg_track_gain         = -7.25
+  rg_track_peak         = 0.123456
+  subtitle              = "Invented Subtitle"
+
+Plus one picture, added after MediaFile.update via mf.images = [Image(...)]:
+  data = b"\x89PNG\r\n\x1a\n" + b"invented-picture-payload" (32 bytes)
+  desc = "cover"
+  type = ImageType.front (APIC index 3)
+This is a small invented blob with a sniffable PNG magic prefix, not a
+decodable image; 8a asserts nothing about it beyond its block
+surviving a parse (8b grades it).
+
+Cases the record names as expressible-but-not-included: none. Every
+rule this task lists as reachable through a mediafile write is
+present above.
+
+Two cases stay out of INPUT by construction, and are Task 8's
+hand-built cases instead:
+  - An invalid-UTF-8 byte sequence: mediafile writes valid UTF-8 only,
+    so no value it accepts can carry one.
+  - A U+007E comment field name: mutagen's is_valid_key
+    (mutagen/_vorbis.py:25-41) refuses any name above 0x7D, so
+    mediafile's own write path cannot reach it.
+
+Read-back of the four corpus-unreachable cases, confirmed against the
+committed golden.flac (mediafile.MediaFile, same pinned venv):
+  year           -> 0, month -> None, day -> None
+  original_year  -> 0, original_month -> None, original_day -> None
+  arrangers      -> None (empty on disk reads back indistinguishable
+                    from absent, per C2)
+  catalognum     -> None (CATALOGNUMBER="" is on disk; the read-only
+                    trailing styles CATALOGID and DISCOGS_CATALOG make
+                    the last-applicable-style read return absent, C5)
+  barcode        -> None (BARCODE="" is on disk; the read-only
+                    trailing styles UPC, EAN/UPN, EAN and UPN make the
+                    last-applicable-style read return absent, C5)
+
+golden.flac
+-----------
+
+Size: 2216 bytes (well under 10 KiB).
+
+Decoded block chain, in on-disk order (type, last-block flag, declared
+payload length in bytes, not counting the 4-byte block header):
+
+  0  STREAMINFO      type=0  last=false  declared_len=34
+  1  VORBIS_COMMENT  type=4  last=false  declared_len=1060
+  2  PICTURE         type=6  last=false  declared_len=78
+  3  PADDING         type=1  last=true   declared_len=1024
+
+Total metadata region: 4 (signature) + (4+34) + (4+1060) + (4+78) +
+(4+1024) = 2216 bytes, matching the file size exactly: the frame
+region's offset is 2216 and its length is 0 (the template is silent,
+carries zero audio samples, and this script never adds any).
+
+VORBIS_COMMENT is written immediately after STREAMINFO, as C9a states
+a freshly created block always is. This chain does not contradict
+C9a.
+
+Vendor string (verbatim): "Mutagen 1.48.1"
+
+Decoded comment sequence, in on-disk order (this is what Task 7
+implements to):
+
+  ACOUSTID_FINGERPRINT=invented-fingerprint-value
+  ACOUSTID_ID=11111111-2222-3333-4444-555555555555
+  ALBUM=Al
+  ALBUMARTISTS=X
+  ALBUMARTISTS=Y
+  ALBUM_ARTISTS=X
+  ALBUM_ARTISTS=Y
+  RELEASETYPE=album
+  RELEASETYPE=live
+  MUSICBRAINZ_ALBUMTYPE=album
+  MUSICBRAINZ_ALBUMTYPE=live
+  ARTIST=A
+  BARCODE=
+  BPM=120
+  CATALOGNUMBER=
+  DESCRIPTION=Invented comment text.
+  COMMENT=Invented comment text.
+  COMPILATION=1
+  DATE=0000
+  YEAR=0
+  DISC=1
+  DISCNUMBER=1
+  DISCTOTAL=2
+  DISCC=2
+  TOTALDISCS=2
+  ENCODEDBY=Invented Encoder 1.0
+  ENCODER=Invented Encoder 1.0
+  GENRE=Ambient
+  GENRE=Drone
+  GROUPING=Invented Grouping
+  INITIALKEY=Am
+  LYRICS=la la la
+  ORIGINALDATE=0000
+  R128_ALBUM_GAIN=-576
+  R128_TRACK_GAIN=-384
+  REMIXER=Invented Remixer
+  REPLAYGAIN_ALBUM_GAIN=-6.50 dB
+  REPLAYGAIN_ALBUM_PEAK=0.654321
+  REPLAYGAIN_TRACK_GAIN=-7.25 dB
+  REPLAYGAIN_TRACK_PEAK=0.123456
+  SUBTITLE=Invented Subtitle
+  TITLE=T
+  TRACK=3
+  TRACKNUMBER=3
+  TRACKTOTAL=12
+  TRACKC=12
+  TOTALTRACKS=12
+
+This sequence matches this plan's hypothesis: sorted_fields order
+first (with DateItemField names sorted as date0/date1/date2, which is
+why DATE/YEAR lands between COMPILATION and DISC rather than near the
+end of the alphabet, and why ORIGINALDATE lands near "original_year"'s
+own alphabetical position), then style declaration order within a
+field (RELEASETYPE before MUSICBRAINZ_ALBUMTYPE, ALBUMARTISTS before
+ALBUM_ARTISTS, DESCRIPTION before COMMENT, and so on), then list order
+within a style (X before Y, album before live, Ambient before Drone).
+The albumtype/albumtypes collision confirms the plural-wins rule
+(C3): albumtype writes RELEASETYPE=[album] and
+MUSICBRAINZ_ALBUMTYPE=[album] first (its comments sort earlier,
+alphabetically before "albumtypes"), then albumtypes overwrites both
+keys' values in place to the two-element list, without moving their
+position in the block. No mismatch to report.
+
+PICTURE block payload, decoded (mutagen.flac.Picture):
+  type  = 3 (front cover, APIC index)
+  mime  = "image/png" (sniffed from the data's magic prefix)
+  desc  = "cover"
+  width, height, depth, colors = 0, 0, 0, 0 (mediafile's FLAC image
+          write always emits zero geometry; see spec's PICTURE
+          section)
+  data length = 32 bytes, prefix \x89PNG\r\n\x1a\n
+
+gitleaks: golden.flac was not flagged by a local gitleaks run over the
+tracked worktree; .gitleaksignore is unchanged.
