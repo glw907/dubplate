@@ -1,9 +1,11 @@
 package tagio
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"slices"
 	"strconv"
@@ -267,6 +269,204 @@ func compareSubject(subject string, ledger, readBack map[string]any) ([]divergen
 	return found, len(keys)
 }
 
+// stagedRow is the conformance instrument's own local mirror of
+// analysis.AdjudicationEntry's applied-field shape (R7), declared here
+// rather than imported: TestEngineNeverImportsHarness
+// (internal/harness/conform/arch_test.go:141) walks this package's
+// test files too, so an import of internal/harness/analysis from this
+// file turns the gate red. It carries only the fields an applied-field
+// row ever needs; disposition and adjudicator are the two literals R7
+// spells out directly, "pending-adjudication" and "agent", the same
+// strings analysis.Pending and analysis.AgentAdjudicator hold, tied
+// to them only through testdata/divergence-example.json, which both
+// packages grade against.
+//
+// The route this block travels, in one place: staged here by the
+// conformance instrument, folded by the conductor into
+// corpus/analysis/adjudications.json by hand, adjudicated by the
+// owner, and blocking rung 15's launch gate for as long as its
+// disposition stays pending.
+type stagedRow struct {
+	ID           string        `json:"id"`
+	Subject      stagedSubject `json:"subject"`
+	Suspected    string        `json:"suspected"`
+	Citation     string        `json:"citation"`
+	ReleaseTruth string        `json:"release_truth"`
+	Disposition  string        `json:"disposition"`
+	Reason       string        `json:"reason"`
+	Adjudicator  string        `json:"adjudicator"`
+	Date         string        `json:"date"`
+	AppliedField stagedApplied `json:"applied_field"`
+}
+
+// stagedSubject is stagedRow's subject: a case-subject row is the only
+// shape an applied-field block is ever legal on (analysis's own
+// checker rule), so this local mirror carries no album/release_mbid
+// alternative at all.
+type stagedSubject struct {
+	CaseID string `json:"case_id"`
+}
+
+// stagedApplied is the applied_field block itself: which item and
+// field diverged, both sides' already-rendered values (the same
+// rendering divergence.String() uses for a failure message), and the
+// tagio commit under test. Its field order matches
+// analysis.AppliedField's declared order, because
+// TestStagedRowMatchesTheCommittedExample compares this type's own
+// json.MarshalIndent output byte for byte against
+// testdata/divergence-example.json, the literal both packages grade
+// against.
+type stagedApplied struct {
+	ItemIndex     int    `json:"item_index"`
+	Field         string `json:"field"`
+	LedgerValue   string `json:"ledger_value"`
+	ReadBackValue string `json:"read_back_value"`
+	Commit        string `json:"commit"`
+}
+
+// stageDivergenceRow builds the pending row the instrument stages for
+// one field-level divergence between the ledger and tagio's read-back
+// projection. date and commit are parameters the caller supplies and
+// this function stamps neither itself (R7's clock walk): nothing under
+// internal/engine may call time.Now (TestEngineNeverReadsTheClock),
+// and the tagio commit under test has no lookup of its own here
+// either, on the same rule.
+func stageDivergenceRow(caseID string, itemIndex int, d divergence, commit, date string) stagedRow {
+	return stagedRow{
+		ID:      fmt.Sprintf("adj-tagio-%s-item%d-%s", caseID, itemIndex, d.key),
+		Subject: stagedSubject{CaseID: caseID},
+		Suspected: fmt.Sprintf(
+			"tagio's write/read round trip disagreed with corpus/analysis/file_tags.json's ledger row for case %q item %d, field %q",
+			caseID, itemIndex, d.key,
+		),
+		Citation:     "rung 8 conformance instrument, TestConformanceLedgerSubjects",
+		ReleaseTruth: fmt.Sprintf("corpus/analysis/file_tags.json's ledger row is the truth: %s reads %s", d.key, d.ledger),
+		Disposition:  "pending-adjudication",
+		Reason:       "staged automatically by the rung 8 conformance instrument on a divergence; the owner adjudicates by hand",
+		Adjudicator:  "agent",
+		Date:         date,
+		AppliedField: stagedApplied{
+			ItemIndex:     itemIndex,
+			Field:         d.key,
+			LedgerValue:   d.ledger,
+			ReadBackValue: d.readBack,
+			Commit:        commit,
+		},
+	}
+}
+
+// stageDivergenceRows builds one stagedRow per key-level divergence in
+// found, and nothing when found is empty: an agreeing subject stages
+// no row at all, which is what
+// TestStageDivergenceRowsEmitsOnlyOnDisagreement asserts.
+func stageDivergenceRows(caseID string, itemIndex int, found []divergence, commit, date string) []stagedRow {
+	if len(found) == 0 {
+		return nil
+	}
+	rows := make([]stagedRow, 0, len(found))
+	for _, d := range found {
+		rows = append(rows, stageDivergenceRow(caseID, itemIndex, d, commit, date))
+	}
+	return rows
+}
+
+// instrumentDate and instrumentCommit are the caller-supplied date and
+// commit stageAndReportDivergences hands the emitter for a real staged
+// row. R7 requires the emitter to take both as parameters and derive
+// neither itself, so these are named literals rather than a clock read
+// or a commit lookup, correct until a later task wires the run's own
+// day and tagio's own commit through from outside internal/engine (no
+// plumbing for either exists in this pass).
+const (
+	instrumentDate   = "2026-09-08"
+	instrumentCommit = "unset-conformance-instrument-commit"
+)
+
+// stageAndReportDivergences stages one row per key-level divergence in
+// found under t.TempDir() and fails loudly, naming the staged path,
+// corpus/analysis/adjudications.json as the row's destination, and the
+// two fields the owner fills once the conductor folds it in
+// (disposition and adjudicator). It writes nothing under corpus/: the
+// fold is the conductor's, into a hand-written ledger
+// (corpus/README.md's adjudication-artifacts section). An agreeing
+// subject (found is empty) stages nothing.
+func stageAndReportDivergences(t *testing.T, caseID string, itemIndex int, found []divergence) {
+	t.Helper()
+	rows := stageDivergenceRows(caseID, itemIndex, found, instrumentCommit, instrumentDate)
+	if len(rows) == 0 {
+		return
+	}
+	dir := t.TempDir()
+	for _, row := range rows {
+		data := marshalStagedRow(t, row)
+		path := filepath.Join(dir, row.ID+".json")
+		if err := os.WriteFile(path, data, 0o644); err != nil {
+			t.Fatalf("write staged divergence row to %s: %v", path, err)
+		}
+		t.Errorf("staged a writer-conformance divergence row at %s; hand it to the conductor to fold into corpus/analysis/adjudications.json, where the owner fills in disposition and adjudicator:\n%s", path, data)
+	}
+}
+
+// marshalStagedRow renders row the same way the committed example was
+// rendered: two-space indent, a trailing newline, matching every other
+// committed JSON fixture in this repo.
+func marshalStagedRow(t *testing.T, row stagedRow) []byte {
+	t.Helper()
+	data, err := json.MarshalIndent(&row, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal staged row %s: %v", row.ID, err)
+	}
+	return append(data, '\n')
+}
+
+// TestStagedRowMatchesTheCommittedExample proves the emitter reproduces
+// testdata/divergence-example.json byte for byte from a synthetic
+// divergence and the example's own date and commit: one literal, two
+// graders, this one and
+// analysis.TestAppliedFieldExampleDecodesAndPasses.
+func TestStagedRowMatchesTheCommittedExample(t *testing.T) {
+	d := divergence{
+		subject:  "clean-match",
+		key:      "rg_track_peak",
+		ledger:   "0.9999999",
+		readBack: "0.9999998",
+	}
+	row := stageDivergenceRow("clean-match", 0, d, "abc1234", "2026-09-08")
+	got := marshalStagedRow(t, row)
+
+	want, err := os.ReadFile("testdata/divergence-example.json")
+	if err != nil {
+		t.Fatalf("read committed example: %v", err)
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("staged row does not match the committed example byte for byte:\ngot:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+// TestStageDivergenceRowsEmitsOnlyOnDisagreement proves the instrument
+// stages a row only when a subject disagrees: a synthetic agreeing run
+// (found is empty) produces none, and a synthetic disagreeing run
+// produces exactly one row per divergence.
+func TestStageDivergenceRowsEmitsOnlyOnDisagreement(t *testing.T) {
+	if rows := stageDivergenceRows("clean-match", 0, nil, "abc1234", "2026-09-08"); rows != nil {
+		t.Errorf("stageDivergenceRows(agreeing run) = %v, want nil", rows)
+	}
+
+	found := []divergence{
+		{subject: "clean-match", key: "album", ledger: `"Rumours"`, readBack: `"Tusk"`},
+		{subject: "clean-match", key: "year", ledger: "1977", readBack: "1978"},
+	}
+	rows := stageDivergenceRows("clean-match", 0, found, "abc1234", "2026-09-08")
+	if len(rows) != len(found) {
+		t.Fatalf("stageDivergenceRows(disagreeing run) staged %d rows, want %d", len(rows), len(found))
+	}
+	for i, row := range rows {
+		if row.AppliedField.Field != found[i].key {
+			t.Errorf("row %d: applied_field.field = %q, want %q", i, row.AppliedField.Field, found[i].key)
+		}
+	}
+}
+
 // projectToLedgerShape marshals ts through R11's JSON tags and
 // decodes the result back through encoding/json, so the read-back
 // side of a comparison carries the same number type the ledger's own
@@ -510,6 +710,7 @@ func TestConformanceLedgerSubjects(t *testing.T) {
 			for _, d := range found {
 				t.Errorf("%s", d)
 			}
+			stageAndReportDivergences(t, row.CaseID, row.ItemIndex, found)
 		})
 	}
 

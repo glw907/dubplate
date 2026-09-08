@@ -1,0 +1,20 @@
+{
+  "id": "adj-tagio-clean-match-item0-rg_track_peak",
+  "subject": {
+    "case_id": "clean-match"
+  },
+  "suspected": "tagio's write/read round trip disagreed with corpus/analysis/file_tags.json's ledger row for case \"clean-match\" item 0, field \"rg_track_peak\"",
+  "citation": "rung 8 conformance instrument, TestConformanceLedgerSubjects",
+  "release_truth": "corpus/analysis/file_tags.json's ledger row is the truth: rg_track_peak reads 0.9999999",
+  "disposition": "pending-adjudication",
+  "reason": "staged automatically by the rung 8 conformance instrument on a divergence; the owner adjudicates by hand",
+  "adjudicator": "agent",
+  "date": "2026-09-08",
+  "applied_field": {
+    "item_index": 0,
+    "field": "rg_track_peak",
+    "ledger_value": "0.9999999",
+    "read_back_value": "0.9999998",
+    "commit": "abc1234"
+  }
+}

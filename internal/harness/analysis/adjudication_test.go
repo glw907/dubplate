@@ -232,6 +232,112 @@ func TestCheckAdjudications_DefectFreeWithinRowRules(t *testing.T) {
 	}
 }
 
+// TestCheckAdjudications_AppliedFieldWithinRowRules extends
+// TestCheckAdjudications with R7's three rules over the applied_field
+// block: legal only on a case-subject row, field and commit both
+// required when the block is present, and the pre-existing
+// agent-may-only-set-pending rule still fires when a block rides along
+// with it (the malformed-row table's fourth case), proving the new
+// block does not carve out an exception to that rule.
+func TestCheckAdjudications_AppliedFieldWithinRowRules(t *testing.T) {
+	base := AdjudicationEntry{
+		ID:           "adj-1",
+		Subject:      AdjudicationSubject{CaseID: "clean-match"},
+		Suspected:    "tagio's read-back disagreed with the ledger on one field",
+		Citation:     "rung 8 conformance instrument",
+		ReleaseTruth: "the ledger's own value is the truth: rg_track_peak reads 0.9999999",
+		Disposition:  Pending,
+		Reason:       "staged automatically on a divergence; awaiting the owner's ruling",
+		Adjudicator:  AgentAdjudicator,
+		Date:         "2026-09-08",
+	}
+	goodBlock := AppliedField{ItemIndex: 0, Field: "rg_track_peak", LedgerValue: "0.9999999", ReadBackValue: "0.9999998", Commit: "abc1234"}
+
+	withBlock := base
+	block := goodBlock
+	withBlock.AppliedField = &block
+
+	blockOnShadowSubject := base
+	blockOnShadowSubject.Subject = AdjudicationSubject{Album: "Some Album", ReleaseMBID: "aaaa-bbbb"}
+	blockOnShadowSubject.MatcherCommit = "abc1234"
+	shadowBlock := goodBlock
+	blockOnShadowSubject.AppliedField = &shadowBlock
+
+	emptyField := base
+	b1 := goodBlock
+	b1.Field = ""
+	emptyField.AppliedField = &b1
+
+	emptyCommit := base
+	b2 := goodBlock
+	b2.Commit = ""
+	emptyCommit.AppliedField = &b2
+
+	blockOnNonPendingAgentRow := base
+	blockOnNonPendingAgentRow.Disposition = OracleWrong
+	blockOnNonPendingAgentRow.CorrectedVerdict = "medium"
+	b3 := goodBlock
+	blockOnNonPendingAgentRow.AppliedField = &b3
+
+	tests := []struct {
+		name    string
+		entry   AdjudicationEntry
+		wantHas string
+	}{
+		{"a well-formed applied_field block", withBlock, ""},
+		{"a block on a shadow-subject row", blockOnShadowSubject, "applied_field block on a row whose subject is not a case id"},
+		{"a block with field empty", emptyField, "applied_field: field: missing"},
+		{"a block with commit empty", emptyCommit, "applied_field: commit: missing"},
+		{"a block on a row whose disposition is not pending with the agent adjudicator", blockOnNonPendingAgentRow, "only a human name may set anything but"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := CheckAdjudications([]string{"clean-match"}, &AdjudicationLedger{Entries: []AdjudicationEntry{tt.entry}})
+			if tt.wantHas == "" {
+				if err != nil {
+					t.Fatalf("CheckAdjudications: %v", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatalf("CheckAdjudications accepted a ledger that is %s", tt.name)
+			}
+			if !strings.Contains(err.Error(), tt.wantHas) {
+				t.Errorf("error %q does not mention %q", err, tt.wantHas)
+			}
+		})
+	}
+}
+
+// TestAppliedFieldExampleDecodesAndPasses proves R7's committed
+// example, internal/engine/tagio/testdata/divergence-example.json,
+// decodes into AdjudicationEntry and passes CheckAdjudications on its
+// own, with a caller-supplied caseIDs slice standing in for the corpus
+// (CheckAdjudications resolves a case-subject row against the caller's
+// list, adjudication.go:156-159 and :183-185, rather than against the
+// corpus). This is the byte-identical literal
+// internal/engine/tagio grades its own emitter against.
+func TestAppliedFieldExampleDecodesAndPasses(t *testing.T) {
+	root := repoRoot(t)
+	path := filepath.Join(root, "internal", "engine", "tagio", "testdata", "divergence-example.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read example at %s: %v", path, err)
+	}
+
+	var entry AdjudicationEntry
+	if err := json.Unmarshal(data, &entry); err != nil {
+		t.Fatalf("decode example at %s: %v", path, err)
+	}
+	if entry.AppliedField == nil {
+		t.Fatalf("example at %s decoded with no applied_field block", path)
+	}
+
+	if err := CheckAdjudications([]string{entry.Subject.CaseID}, &AdjudicationLedger{Entries: []AdjudicationEntry{entry}}); err != nil {
+		t.Errorf("CheckAdjudications rejected the committed example: %v", err)
+	}
+}
+
 // loadDefectFreeFixture loads the hand-authored oracle-bug and
 // adjudication ledgers under testdata/defect_free: three hypotheses (two
 // StringHeuristicHypotheses members and bug-assignment-rejection-gap,

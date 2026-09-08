@@ -78,6 +78,18 @@ type AdjudicationEntry struct {
 	// switch defaults off (ruling A / M6). A pointer because absence is
 	// meaningful and omitempty does not omit a struct value.
 	DefectFree *DefectFree `json:"defect_free,omitempty"`
+
+	// AppliedField is R7's schema addition: a writer-conformance
+	// divergence rung 8's conformance instrument stages, never
+	// hand-authored. Its route is staged by the instrument (a go test
+	// under internal/engine/tagio, which may not import this package
+	// and so builds the same shape over a local struct), folded by the
+	// conductor into corpus/analysis/adjudications.json by hand, then
+	// adjudicated by the owner like any other row, and it blocks rung
+	// 15's launch gate for as long as its disposition stays Pending. A
+	// pointer for the same reason DefectFree is one: omitempty does
+	// not omit a struct value, and absence is meaningful.
+	AppliedField *AppliedField `json:"applied_field,omitempty"`
 }
 
 // DefectFree is the derived-distance block ruling A / M6 attaches to an
@@ -87,6 +99,24 @@ type DefectFree struct {
 	Recommendation string  `json:"recommendation"`
 	Action         string  `json:"action"`
 	PatternTable   string  `json:"pattern_table"`
+}
+
+// AppliedField is R7's writer-conformance divergence block: one item's
+// one field, disagreeing between corpus/analysis/file_tags.json's
+// ledger row and tagio's own write-then-read-back projection at the
+// named commit. LedgerValue and ReadBackValue are already rendered
+// text, in the same shape the conformance instrument's own failure
+// message renders a disagreement (a JSON literal such as `"Rumours"`,
+// `null` or `[]`, or the absent sentinel), never re-decoded to a Go
+// value here: this package has no reason to compare them again, since
+// CheckAdjudications only proves the row is well-formed. See
+// [AdjudicationEntry.AppliedField].
+type AppliedField struct {
+	ItemIndex     int    `json:"item_index"`
+	Field         string `json:"field"`
+	LedgerValue   string `json:"ledger_value"`
+	ReadBackValue string `json:"read_back_value"`
+	Commit        string `json:"commit"`
 }
 
 // StringHeuristicHypotheses names the oracle-bug hypotheses whose
@@ -225,6 +255,24 @@ func checkAdjudicationEntry(known map[string]bool, e AdjudicationEntry) []error 
 	}
 	if e.Disposition == OracleWrong && e.CorrectedVerdict == "" {
 		errs = append(errs, fmt.Errorf("adjudications: %s: disposition %q needs a corrected_verdict", e.ID, OracleWrong))
+	}
+
+	if e.AppliedField != nil {
+		// Legal only on a case-subject row: the block cites a corpus
+		// case's own ledger row, which a shadow subject (album plus
+		// release_mbid) or an empty subject has none of. A case-subject
+		// row already carries no matcher stamp (the check above), so
+		// this rule is what the doc comment's "no matcher stamp" clause
+		// leans on rather than a second check of its own.
+		if e.Subject.CaseID == "" {
+			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field block on a row whose subject is not a case id", e.ID))
+		}
+		if e.AppliedField.Field == "" {
+			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field: field: missing", e.ID))
+		}
+		if e.AppliedField.Commit == "" {
+			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field: commit: missing", e.ID))
+		}
 	}
 
 	if e.DefectFree != nil {
