@@ -14,7 +14,7 @@ the conductor's `deploy.sh --check` record. Streamer 2.0 (ROADMAP
 family system is not live, and the box is production.
 
 **Lane registry.** lane-1 (main tree): pass 4b OPEN at the sitting
-boundary, ACTIVE on rung 1b next. lane-2 (worktree): BLOCKED until rung
+boundary, ACTIVE, rung 1b chain running (plan revision 2.1 at ca73f3f; pass-execute wf_d85e78c4-d50, launched 2026-09-08 01:25). lane-2 (worktree): BLOCKED until rung
 1b lands. doc lane: pass 8a plan prep.
 
 ## Next action
