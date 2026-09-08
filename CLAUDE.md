@@ -103,9 +103,9 @@ rung 16 cutover sitting.
 ## Gate
 
 `bash scripts/check.sh` before every commit — `make check` (vet,
-golangci-lint, test, tidy-check) over the whole module (`./...`, today
-`cmd/dubplate-server` and `internal/config`; `_salvage/` is invisible to
-the go tool), shellcheck over `scripts/*`, ruff (`check` and `format
+golangci-lint, test, tidy-check) over the whole module (`./...`;
+`_salvage/` is invisible to the go tool), shellcheck over `scripts/*`,
+ruff (`check` and `format
 --check`) over every tracked `*.py` (the oracle shim and its derivation
 siblings under `internal/harness/oracle/`, that package's FLAC template
 generator, tagio's golden-FLAC generator under
@@ -114,7 +114,9 @@ gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
 excluded), `docker compose config` (skipped when Docker isn't present),
-and a pattern-filtered `systemd-analyze verify`.
+a pattern-filtered `systemd-analyze verify`, and the state-dir agreement
+leg (the env template, the shadow unit, and `deploy.sh` name the same
+state directory).
 The `web/` leg rejoins at rung 7, when `web/` is rebuilt against the
 greenfield server. A check either gates or does not exist; never guard
 one with `command -v || skip`. Never commit red.

@@ -2,6 +2,475 @@
 
 Per-pass ledger, newest first.
 
+## Rung 8, pass 8b (PICTURE and the conformance instrument): closed 2026-09-08
+
+Tasks 0 through 6 executed against
+`docs/superpowers/plans/2026-09-08-rung-8b-picture-conformance.md`
+(revision 2) in the main tree. This entry is Task 7, the pass close.
+Task 0 found no blockers: 8a's simplifier round at `0f2b61d` moved no
+citation, `.gitleaksignore` stayed tracked and empty, and
+`adjudication.go`'s required-field checks sit at `:201-215` as the plan
+assumed. Task 0 also flagged `docs/HISTORY.md:442-447`'s forward-carry-5
+pointer as stale (corrected below, at the rung 4b entry's own item 5)
+and noted gitleaks now also scans lane 2's worktree from the main
+tree's run, about three minutes added to that leg.
+
+### What landed
+
+Task 1 (`a4c2bcf`) added `Picture` (`internal/engine/tagio/picture.go:40`)
+and widened `Container` to decode every PICTURE block in the chain
+(`Container.Pictures`, `container.go:112`): all eight RFC 9639 section
+8.8 values, bounds-checked against the block's own payload extent
+before a slice is taken, an out-of-range type index degraded to 0, and
+`FrontCover()` (`picture.go:76`) reproducing the single-candidate-then-
+front selection. The fix in the same commit repaired an 8a
+write-round-trip fixture that used arbitrary bytes for block type 6,
+which real PICTURE decode now rejects.
+
+Task 2 (`1b8bd85`) widened `Write` (`write.go:39`) with the ordered
+picture set between the tag set and the file mode: R1's three caller
+states (nil leaves pictures untouched, a non-nil empty slice strips,
+a non-empty slice replaces), P7's sniff-overrides-declared media type
+over R2's six-row recognized set, and P6's zeroed geometry on every
+write. PICTURE joined VORBIS_COMMENT as a block type the writer owns:
+`planBlocks` (`write.go:121`) stopped carrying incoming PICTURE blocks
+through, a rewritten picture replaces its own block in place, and a
+picture written into a container with none lands after VORBIS_COMMENT
+and before the trailing PADDING. `deviations.go` gained four rows
+(P6's zero geometry, R3's undetected APNG, R2's CR2 refusal, and P3's
+block-length trust, the last covering VORBIS_COMMENT as well and
+recording a policy 8a already applied silently). The widened signature
+touched sixteen call sites, all inside the package's own tests.
+
+Task 3 (`a803ba1`, fix `ae37b5e`) added the seam registry
+(`seam.go:50`, keyed by the exported `Format`, `seam.go:21`) so `Read`
+and `Write` sniff, look up and dispatch through one unexported
+`map[Format]formatEntry` of func values rather than an interface
+(ruling 14). `Parse` deliberately bypasses the registry (ruled, m6):
+it stays the FLAC-specific entry point, and the emptied-registry test
+proves `Read` and `Write` stop reaching the golden while `Parse` keeps
+parsing it. The fix documented the bypass on `Parse`'s own doc comment
+and in the package doc.
+
+Task 4 (`f11e6fa`, fix `b0d2107`) added R11's JSON tags to all 69
+`TagSet` members (`tagset.go`), each naming the ledger's own field
+name with no `omitempty`, tied to `Field` two ways (by name through
+`fieldStructName`, by position against `Mapping()`), and landed
+`TestConformanceLedgerSubjects` (`conform_test.go:640`) through P10's
+first three steps: the twelve subjects derive from
+`corpus/analysis/file_tags.json`'s own rows (R6), each subject's
+applied fields are filtered to the ledger's own `writable_fields`
+header, and the filtered object fills a `TagSet` under the four-state
+rule and writes through `Write` into a per-subject scratch copy of the
+template (R5's path constants, local decode types per the arch walk).
+The fix repointed a doc comment from the wrong test name to
+`TestTagSetJSONTagsTieToFieldConstants`, the one that actually ties the
+tags.
+
+Task 5 (`d824be5`, `opus`) landed P10's steps 4 and 5 and the exit
+gate's proof that the instrument can fail. Each subject's scratch file
+is read back through `tagio.Read`, the package's one read entry point,
+and projected to the ledger's shape through R11's tags, so no second
+projection exists. `compareSubject` (`conform_test.go:257`) grades the
+union of both sides' keys under R10's exact typed comparison: both
+sides decoded through `encoding/json`, equality exact with no
+tolerance on any float, a list compared in its own order, and a key
+present on one side alone a divergence rather than a silent non-
+comparison. `TestCompareSubjectNamesEveryDisagreement` discharges the
+exit gate's fail-proof requirement as a standing table over synthetic
+rows rather than a one-off demonstration. **All twelve subjects agree
+on all 69 keys**, so nothing was folded into
+`corpus/analysis/adjudications.json`.
+
+Task 6 (`f146623`) closed `RE:192` (rung 3 had a tier-2 pending-row
+escape, rung 8 had none): `AdjudicationEntry` gained an optional
+`AppliedField` block (`internal/harness/analysis/adjudication.go:92`,
+type at `:114`) carrying the item index, the field name, the ledger's
+value, the writer's read-back value, and the `tagio` commit, legal only
+on a case-subject row. `internal/engine/tagio` builds the same shape
+over a local struct (`conform_test.go`, disposition and adjudicator
+spelled as literals) because it may never import the harness; the two
+packages are tied only through the committed example both grade
+byte for byte and by decode against
+(`internal/engine/tagio/testdata/divergence-example.json`).
+
+The leftovers round (`a70b346`) closed four findings without a second
+reviewer, under the window-cap ruling: `SupportedFormats` now returns
+registry keys sorted by `Format` value rather than a map's own
+iteration order, and `read.go`/`write.go` nil-guard the registry row
+lookup, answering `ErrUnsupportedContainer` instead of panicking on an
+absent or func-less row; `adjudication.go`'s "no matcher stamp on an
+applied-field row" rule became its own check rather than leaning on the
+general case-subject check, proven by a mutation that removes it and
+watches the new check's own message disappear while the older, general
+check still fires; the golden PICTURE block's sum-to-declared-length
+assertion now compares against the literal 78 rather than
+`c.Blocks[2].Length`, so it cannot pass by agreeing with itself, a
+refusal row was added for a payload carrying no geometry, and
+`Picture.Data`'s aliasing of the decoded block's own payload is now
+documented on the field; and `conform_test.go` dropped a restated
+divergence-route paragraph in favor of citing
+`analysis.AdjudicationEntry.AppliedField`, marked `instrumentDate` as
+the committed example's fixed date rather than a clock read, simplified
+`*ts.Comp != false` to `*ts.Comp`, and swapped the committed template's
+before/after guard from a size comparison to a SHA-256 content hash.
+
+The batched `code-simplifier` round (`ce0ac2e`) ran once over 8b's Go
+after Task 6, per the plan's single named round: it extracted
+`resolveEntry` (`seam.go:112`) so `Read` and `Write` share the same
+sniff-then-lookup dispatch instead of repeating it.
+
+**The exported surface added this pass**: `Picture`
+(`picture.go:40`), `Container.Pictures` and `FrontCover()`
+(`container.go:112`, `picture.go:76`), `Write`'s picture argument and
+its three states (nil, non-nil empty, non-empty), the sniff and its
+six recognized formats (`picture.go:172`), `Format` and
+`SupportedFormats()` and the unexported registry (`seam.go:21`, `:71`,
+`:50`), the conformance instrument (`conform_test.go`) and its
+comparator `compareSubject`, and
+`analysis.AdjudicationEntry.AppliedField` with the divergence example
+it and the instrument's emitter both grade against.
+
+### What the gate caught
+
+No task needed a second `diff-reviewer` round beyond Task 3's single
+fix and Task 4's single fix, both targeted documentation corrections
+rather than behavioral defects. The leftovers round's four findings
+(above) are review nits and one hardening (the nil-guard on an absent
+registry row), not defects a mutation caught unaware; each carries its
+own proof in the commit body rather than a fresh adversarial pass, per
+the same window-cap reasoning 8a's own leftovers round used.
+
+### The resolutions and rulings, as applied
+
+All twelve Resolutions stand as ruled, conductor 2026-09-08, per the
+plan's Resolutions section; none folded.
+
+- **R1** (three caller states: nil leaves pictures untouched, non-nil
+  empty strips, non-empty replaces): `write.go:39`'s argument list,
+  proven by Task 2's three-state tests.
+- **R2** (the six-row recognized set, reproducing `filetype`'s whole
+  test rather than its leading prefix, and a CR2-prefixed blob
+  refused): `picture.go:172` (`sniffMediaType`), the CR2 row in
+  `deviations.go`. Ruled otherwise, a seventh sniff row would reproduce
+  `image/x-canon-cr2` at the cost of a format no cover realistically
+  carries.
+- **R3** (APNG discrimination not reproduced, PNG's signature alone):
+  `picture.go`'s sniff, the deviation row in `deviations.go`. Ruled
+  otherwise, Task 2 would add the chunk walk and its own bounds checks.
+- **R4** (picture fixtures built in-test, no new binary committed): no
+  file joined `testdata` this pass; every fixture in `picture_test.go`
+  and `write_test.go` is a hand-written literal.
+- **R5** (the instrument's three tracked inputs named as relative path
+  constants, no conditional skip): `conform_test.go`'s path-constant
+  block.
+- **R6** (the twelve subjects derive from the ledger's own rows, not a
+  second hard-coded list): `TestConformanceLedgerSubjects`
+  (`conform_test.go:640`).
+- **R7** (the schema addition on `AdjudicationEntry`, the instrument's
+  own emitter over a local struct taking date and commit as parameters,
+  the conductor's hand-fold as the route, and the committed example as
+  the anchor against drift): `adjudication.go:92`, `:114`;
+  `testdata/divergence-example.json`.
+- **R8** (the `io.ReaderAt` gap declined at 8b): no task widened
+  `Parse`'s signature; the gap stays declared, below, now named as
+  8c's call alone.
+- **R9** (the registry row carries the magic prefix beside its func
+  values, a struct rather than an interface): `seam.go:33`
+  (`formatEntry`), `:50` (`registry`).
+- **R10** (typed comparison, exact equality, no tolerance introduced):
+  `compareSubject` (`conform_test.go:257`). Task 5's mutation report
+  (below) is this resolution's sharpest proof: a tolerance mutation
+  fired, correcting the plan's own "no test fails" prediction, so
+  R10's rule catches more than the plan expected.
+- **R11** (JSON tags naming the ledger's own field names, no
+  `omitempty`, tied two ways): `tagset.go`'s 69 member tags,
+  `tagset_test.go`'s `TestTagSetJSONTagsTieToFieldConstants` and
+  `TestTagSetJSONTagsCarryNoOmitempty`.
+- **R12** (`Read` stays tag-only; the picture read reaches through
+  `Parse`'s `Container.Pictures`; the double parse is a stated
+  deviation): `read.go:17`, `picture.go:76`. Ruled otherwise, Task 1
+  would have added a sibling read entry point returning both the tag
+  set and the pictures from one parse, and `Read` would become a thin
+  wrapper over it; neither this pass's exit gate nor rung 9's arrival
+  forced that shape, so the call site is left to pick it, per the
+  spec's own correction (below).
+
+### The mutation table
+
+Every task's named mutations, as the plan predicted them and as the
+implementer reported running them; outcomes beyond a commit message
+are attributed to the implementer's own report.
+
+**Task 1** (7 named): the endianness, bounds-check, type-index-degrade,
+and description-length mutations fire on the golden's decode and the
+refusal table; decoding only the first PICTURE block fails the
+two-block fixture. Mutation 4 (returning the first picture rather than
+the first front cover) fires the back-cover-then-front-cover row.
+**Mutation 5** (applying the front-cover rule before the single-
+candidate rule) has no reproducible form against the single-candidate
+shape as literally described: the implementer constructed a faithful
+variant to exercise the ordering, which fires the lone-back-cover row,
+recorded as a coverage-list item below rather than a plain "fired".
+
+**Task 2** (11 named): reported by the implementer as run per the
+plan's predictions, covering the declared-versus-sniffed media type,
+non-zero geometry, the three caller-state mutations, the append-versus-
+replace mutation, PICTURE's ownership-transition mutation (leaving it
+in `planBlocks`'s preserve-unknown path), the little-endian mutation
+against the golden's big-endian bytes, the unsniffable-blob mutation,
+the two prefix-only-sniff mutations (RIFF without `VP`, TIFF without
+the CR2 exclusion), and the chain-order mutations. Mutation 11
+(dropping one of `deviations.go`'s four rows) is reported unfired by
+design, the same reviewer's-read shape 8a's Task 8 used.
+
+**Task 3** (no named-mutation list of its own; proven by the
+emptied-registry test): emptying the registry stops `Read` and `Write`
+from reaching the golden while `Parse` keeps parsing it, which is the
+proof the registry bypass is a decision rather than an oversight (m6).
+
+**Task 4** (8 named): the tag-mutation, `omitempty`-addition, and the
+three four-state mutations (null-as-empty-string, `[]`-as-absent,
+zero-as-absent) all fire on the tie assertion or the four-state table.
+The writable-filter-skip mutation fires the count assertion at 99
+rather than 69. Mutation 7, sharing one scratch path across the twelve
+subjects, fires the distinct-path assertion here (the path-level half);
+Task 5 carries the same mutation's value-level half. Mutation 8
+(hard-coding the twelve subject ids) is reported unfired by design,
+held by the reviewer's read of R6's diff.
+
+**Task 5** (7 named): the own-fixture, key-coverage, untouched-template,
+null-versus-empty, and list-order mutations all fire as predicted.
+**Mutation 6**, the value-level half of the shared-scratch-path leak
+(subject N's values appearing in subject N+1's read-back), is
+**unfirable by construction**: `Write` rewrites or deletes every owned
+key on every call, so a shared path never actually carries a stale
+value forward for the comparator to catch, whatever the path-level half
+(Task 4) already proves about the paths themselves. **Mutation 7**, introducing a float tolerance, is reported firing at a
+tolerance of about 1e-6, correcting the plan's own prediction of "no
+test fails": the corpus carries real precision differences a coarse
+tolerance would mask, so R10's no-tolerance rule catches more than the
+plan expected, never less.
+
+**Task 6** (7 named): the disposition-mutation, shadow-subject
+mutation, missing-commit mutation, key-order/indentation mutation, and
+no-divergence-no-row mutation all fire on the byte-equality assertion
+against the committed example or on the new checker rules. The
+relax-the-new-rule mutation fires the malformed-row table's first row.
+Mutation 7, stamping the date from the clock inside the instrument,
+fires `TestEngineNeverReadsTheClock`, the constraint R7's date-and-
+commit parameterisation exists for; the task reports it fired by
+design.
+
+**The leftovers round's own mutation** (adjudication.go's stamp rule):
+removing the new "no matcher stamp on an applied-field row" check makes
+the new subtest fail on a different message (the older, general
+case-subject check's), which is the proof the new check is its own
+rule rather than borrowed; restored, it passes again.
+
+### The declared coverage gaps
+
+Nine gaps this pass creates, joined to the running total of
+forty-three (rung 3's twenty-one, rung 4a's nine, rung 4b's four, rung
+1b's two, rung 8a's seven; `docs/HISTORY.md`'s rung 8a entry), bringing
+the total to **fifty-two**. Two items this pass's own list carries are
+not counted again here because they restate an already-counted 8a gap
+rather than declare a new one: "no real library file has been graded"
+restates 8a's gap 6, and "the `io.ReaderAt` gap" restates 8a's gap 7,
+now narrowed to name 8c alone as the decision-maker.
+
+1. **APNG is reported as PNG** (R3). A stated deviation, held by
+   `deviations.go` and by this entry.
+2. **The picture set has no oracle-produced multi-picture fixture.**
+   The golden carries one picture, so the two-picture and
+   front-cover-selection rows are all hand-built.
+3. **The sniff covers six formats and the reference covers
+   seventeen** (`filetype/types/__init__.py:15-32`). A cover in a
+   format outside the six is refused where the reference would have
+   written it.
+4. **`Read` returns no pictures** (R12), so a caller wanting the tags
+   and the cover parses the file twice. A stated deviation from
+   `spec:729-733`, handed to rung 9 as the first caller, and now
+   corrected at the spec itself (below).
+5. **A CR2-prefixed blob is refused** where the reference writes it as
+   `image/x-canon-cr2` (R2). A stated deviation, held by
+   `deviations.go`.
+6. **A block whose declared length disagrees with its contents is
+   refused** where mutagen parses it anyway (P3). A stated deviation
+   covering VORBIS_COMMENT as well as PICTURE, and the one gap this
+   pass records against 8a's landed code as well as its own.
+7. **The divergence schema's field name is not checked against the 69
+   writable keys**, because the checker does not load the ledger. A
+   row naming a field that is not writable passes.
+8. **Task 1's mutation 5 (front-cover rule before single-candidate
+   rule) has no reproducible form** against the actual single-candidate
+   shape; the implementer built a faithful variant rather than the
+   literal mutant the plan named, so the ordering proof rests one step
+   removed from the plan's own description.
+9. **Task 5's mutation 6, the value-level half of the shared-
+   scratch-path leak, is unfirable by construction**: `Write`'s
+   contract rewrites or deletes every owned key on every call, so no
+   scenario exists in which a stale value from a prior subject's write
+   survives into the next subject's read-back for the comparator to
+   catch.
+
+### The 8b to 8c handoff
+
+8c inherits the widened `Container` and `Write` signatures its absorbed
+reader must satisfy: `Container.Pictures` and `Write`'s picture
+argument are landed, and the shadow's reader moves against them rather
+than against 8a's narrower shapes. 8c's reader routes through the seam
+registry the way `Read` and `Write` do; `Parse` stays the one
+deliberate bypass (m6), so 8c's absorbed reader is a registry
+consumer, not a second bypass. The conformance instrument,
+`TestConformanceLedgerSubjects` beside the `-run Conformance` command
+rung 15 re-runs (`go test ./internal/engine/tagio/... -run Conformance
+-count=1`), must stay green as the shadow's reader moves; a regression
+there is a defect in the absorption, not a reason to relax the
+instrument. The `io.ReaderAt` call is now 8c's alone (R8): whether
+`Parse` grows a second, injectable entry point is 8c's decision, with
+no consumer forcing it before then. 8c's plan inherits R12's read-side
+answer, and the double parse it accepts, as settled rather than as an
+open question: 8c's absorbed reader may keep reading through `Parse`
+and `Container.Pictures` directly, since it already holds a parsed
+`Container`, and it owes no fold into a combined `Read`. The
+tightened refusal set is unchanged by this pass, so 8c's capture-path
+work (the tightened refusal ruling 9 names) is written against 8a's
+rules, not against anything 8b added.
+
+### Forward carries
+
+1. **Fork B stays open and owed to Geoff**, unchanged by this pass: a
+   FLAC-only 1.0 with the MP3 pass immediately after cutover, applied
+   provisionally by the conductor per the plan's header.
+2. **The family non-FLAC question** (`docs/HISTORY.md`'s rung 8a
+   entry) stays carried and is not decided here: this pass builds one
+   container's picture layer and the seam that would hold a second,
+   and neither answers whether a family member's non-FLAC library gets
+   a rung 8-shaped pass.
+3. **The gitleaks worktree-scan cost** is a `check.sh` follow-on: Task
+   0 found gitleaks from the main tree now also scans lane 2's
+   worktree, adding about three minutes to that leg. No task in this
+   pass owns `scripts/check.sh`; the follow-on is recorded here for
+   whichever pass next touches the gate script.
+4. **The stale `docs/HISTORY.md:442-447` forward-carry-5 pointer** is
+   corrected in this entry's own edit to the rung 4b entry (that
+   entry's item 5 now names the mapping's field count correctly and
+   points at the 4a plan and `flac.go` rather than the 4a-i entry).
+
+### The spec corrections
+
+Drafted by Task 7 and applied directly to
+`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` as dated errata,
+in the same shape the 8a-close erratum used:
+
+1. **The `spec:1103` pointer is stale.** The 8a-close erratum's own
+   item (1) cited `spec:1103` for the clause "the seam registry with
+   its supported set, its func-value dispatch, and its unsupported-
+   container sentinel"; both that erratum's own insertion and this
+   pass's own erratum insertion moved the clause, which now sits at
+   `spec:1167`, the pass-split table's 8b row. The registry, the
+   dispatch and the supported set landed at 8b as that row said; only
+   the citation was wrong.
+2. **R12's spec correction.** The "two entry points" paragraph's "one
+   reads a file's tag set and its pictures" (originally `spec:729-733`,
+   now `spec:752-756` after this pass's own erratum insertions moved
+   it) is corrected: `Read` stays tag-only, and the picture read is
+   reached through `Parse`'s `Container.Pictures`. A caller wanting
+   both parses twice, handed to rung 9 as a stated deviation and
+   declared coverage gap 4 above, not a defect.
+3. **The ceiling table** (originally `spec:1181-1196`, now the
+   paragraph at `spec:1214`) is corrected: the 8b row's proposed 3M is
+   3.25M, re-derived after Task 2 against this plan's own review. Rung
+   8's ceilings now stand at 8.75M against the spec's 8M reservation,
+   with 8a's 0.9M underspend as the offset (8a's own close entry,
+   above, records 3.6M actual against the 4.5M ceiling it operated
+   under, raised from the spec's proposed 4M by the same re-derivation
+   rule this correction applies); 8c's proposed 1M line stands
+   unchanged, since 4.5M plus
+   3.25M plus 1M is 8.75M and 8c is the mechanical absorption pass the
+   budget table's close-shaped range already covers.
+4. **CLAUDE.md's gate sentence** was checked: this pass adds no
+   tracked Python file, so the sentence's set-by-role Python wording
+   (already corrected at an earlier close) stands unchanged. Two
+   corrections found in the checking: the `./...` parenthetical still
+   named `cmd/dubplate-server` and `internal/config` as "today"'s
+   packages, stale since rung 8's own packages joined the module gate
+   before this pass even started, so the aside is dropped; and the
+   state-dir agreement leg, a `check.sh` leg the sentence did not yet
+   name, is added to the listed legs.
+5. **`docs/HISTORY.md:442-447`'s forward-carry-5 correction**, which
+   the spec's own errata section already named, had not been applied
+   at 8a's close; it is applied by this entry, at the rung 4b entry's
+   item 5 (`docs/HISTORY.md:1876-1883` as this entry lands; the pointer
+   moves again the next time a pass prepends an entry above it, the
+   same drift that made the original `:442-447` pointer stale).
+
+### The evidence
+
+The golden's PICTURE block arithmetic: type index 3, media type
+`image/png`, description `cover`, geometry all zero, 32 data bytes
+beginning with PNG's signature, the decoded field widths summing to the
+block's declared length of 78 (checked against the literal 78 after the
+leftovers round, not against the block's own recorded length). `go test
+./internal/engine/tagio/... -run Conformance -count=1` runs
+`TestConformanceLedgerSubjects` with twelve subtests in about 0.05s; the
+package's own suite runs in about 0.1s. The twelve subject ids:
+`clean-match`, `media-uneven-split`, `va-exact`,
+`non-latin-pseudo-release`, `year-reissue-ratio-penalty`,
+`real-classical-karajan-beethoven-89`, `real-reissue-nevermind-2011`,
+`real-boxset-james-brown-star-time`, `real-nonlatin-utada-first-love`,
+`real-noise-dylan-bootleg`, `real-genre-public-enemy-nation-millions`,
+`real-decoy-mozart-requiem`. All twelve agree with the ledger on all 69
+keys; zero divergences, so nothing is staged into
+`corpus/analysis/adjudications.json`. `internal/harness/analysis` gains
+its own test coverage for the schema addition
+(`adjudication_test.go`), and its existing suite passes unchanged.
+`go test ./... -count=1` (every package) is green in 2m28.693s, no
+existing suite's result changed by this pass. `bash scripts/check.sh`
+is green in 2m20.204s, gitleaks the dominant cost at about 2m14s
+scanning 235.58 MB, now also covering lane 2's worktree (Task 0's
+about-three-minutes estimate, above); no new tracked file was flagged.
+
+### What a later pass would be wrong to rediscover
+
+The seam registry is the one dispatch point for `Read` and `Write`;
+`Parse` is a deliberate, tested bypass, not an oversight (m6), so a
+future pass that wants `Parse` to route through the registry is
+reopening a ruled decision rather than closing a gap. `Write`'s picture
+argument's three states mirror `TagSet`'s own list-member idiom
+exactly (nil, non-nil empty, non-empty); a caller that wants to leave
+pictures untouched passes nil, never an empty slice built from the
+current read. `Picture.Data` aliases the decoded block's own payload
+rather than copying it, so a caller mutating it in place mutates what a
+later `Write`, called with a nil pictures argument, preserves untouched.
+The instrument's 69-key comparison exists because `Write` rewrites or
+deletes every owned key on every call (the fact that makes Task 5's
+mutation 6 unfirable, above); a future pass adding a partial-write mode
+reopens that property and must re-derive whichever mutations depended
+on it. `Read` staying tag-only is a stated, ruled choice (R12), not an
+oversight rung 9 has to notice on its own; rung 9 picks between a
+second read entry point and an exported projection over `Container`,
+and either choice retires coverage gap 4 above.
+
+### Deviations
+
+Recorded as package documentation in
+`internal/engine/tagio/deviations.go` rather than repeated here in
+full: APNG discrimination (R3), the CR2 collision (R2), the zeroed
+write geometry (P6), and the block-length trust extended to cover
+VORBIS_COMMENT as well as PICTURE (P3), the last naming 8a's own
+`vorbisField` as the code the policy already applied unrecorded.
+
+### Spend
+
+About 2.9M against the 3.25M ceiling: plan preparation, 0.87M; Task 0,
+0.11M; the chain, 1.51M across 16 agents; the leftovers round, 0.18M;
+the batched `code-simplifier` round, 0.13M; conductor turns, about
+0.1M. The 2.6M flag was crossed by the leftovers round, after every
+task had already landed. Attended interactions: zero planning misses,
+zero execution sittings.
+
 ## Rung 8, pass 8a (the tagio writer core and reader): closed 2026-09-08
 
 Tasks 0 through 9 executed against
@@ -1412,11 +1881,13 @@ What 4b's plan needs from 4a, stated rather than derived.
    invent, and the table's `Required`/`Optional` split is the semantics
    it must preserve.
 5. **Rung 8 absorbs the FLAC reader** into `internal/engine/tagio` and
-   repoints the shadow. The nineteen-field mapping with its per-row
-   citations travels in 4a-i's entry, so rung 8 does not re-derive it.
-   The deployed binary carries landed-but-unwired packages from other
-   lanes, and none is reachable from the `shadow` subcommand's own call
-   graph; repointing is rung 8's task, never a silent adoption.
+   repoints the shadow. **Corrected, pass 8b's close, 2026-09-08**: the
+   mapping has eighteen fields, not nineteen (`DataSource` is never a
+   file tag), and it lives in the 4a plan (`:2453-2478`) and inline at
+   `flac.go:210-228`, not in the 4a-i entry; rung 8 does not re-derive
+   it. The deployed binary carries landed-but-unwired packages from
+   other lanes, and none is reachable from the `shadow` subcommand's own
+   call graph; repointing is rung 8's task, never a silent adoption.
 6. **Rung 9 re-verifies the limiter's caller-priority policy against a
    measurement.** 4a is the first `ClassBackground` caller and 4b puts
    it beside a live import. 4a's own figure is the exit gate's spend of

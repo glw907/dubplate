@@ -3,37 +3,35 @@
 ## Current state
 
 The greenfield dubplate-server build is the one active initiative. Rung
-3 (3a-3d), rung 1b, rung 8 pass 8a (the tagio writer core and reader),
-and **rung 4 (4a and 4b) are all closed** (`docs/HISTORY.md`'s "Rung 4,
-pass 4b" entry). The 4b sitting deployed the two shadow units to the box
-2026-09-08: `systemctl enable --now dubplate-shadow.timer` started the
-evidence clock, `started-at` reads `2026-09-08T17:30:30.116835324Z` on
-the box, and the shadow's adjudication stream is now live. Geoff's
-standing touchpoint is divergences under
-`/var/lib/dubplate/shadow/pending`, read through `dubplate-server shadow
-report` via `systemctl start` or `systemd-run`, never the bare binary
-run as root. The rung 5 identity and auth spec is ratified at revision
-2.1 (`c5021ce`), Geoff's six rulings applied. Streamer 2.0 (ROADMAP
-`streamer-2-0`) binds rungs 5-9 and 12. The box (5.78.148.42) runs
-Navidrome, cloudflared, guardian timers, and now the shadow timers; not
-live, production.
+3 (3a-3d), rung 1b, rung 8 (pass 8a and now **pass 8b, PICTURE and the
+conformance instrument**), and rung 4 (4a and 4b) are all closed
+(`docs/HISTORY.md`'s "Rung 8, pass 8b" entry). The 4b sitting deployed
+the two shadow units to the box 2026-09-08; the shadow's adjudication
+stream is live. Geoff's standing touchpoint is divergences under
+`/var/lib/dubplate/shadow/pending`, read through `dubplate-server
+shadow report` via `systemctl start` or `systemd-run`, never the bare
+binary as root. The rung 5 identity and auth spec is ratified at
+revision 2.1 (`c5021ce`). Streamer 2.0 (ROADMAP `streamer-2-0`) binds
+rungs 5-9 and 12. The box (5.78.148.42) is production and runs
+Navidrome, cloudflared, and the guardian and shadow timers; the family
+system is not live.
 
 ## Next action
 
-Lane-1 (main tree): ACTIVE, pass 8b chain (pass-execute
-wf_7f5b05d7-373, launched 2026-09-08 11:20; Task 0 clean; checkpoint 13:05: Tasks 1 to 4 landed, a4c2bcf to f11e6fa, one fix round on Task 3; plan
-1cbd270; the 8a simplifier landed at 0f2b61d). Lane-2 (worktree `.claude/worktrees/lane-2-5a`,
-branch `lane-2-5a` from 8ac38d7): ACTIVE, pass 5a chain (pass-execute
-wf_115f4cec-9c0, launched 2026-09-08 11:10; Task 0 clean; checkpoint 12:02: Tasks 1 to 3 landed on the branch, 013c5ee to 6c20369, one fix round on Task 2); one
-executor; the merge ritual closes it. Phase cap 10M, flag to the
+Lane-1 (main tree): IDLE. Pass 8b closed at `ce0ac2e`; pass 8c's plan
+(absorb the shadow's reader into `tagio`, repoint its call sites) is
+next, authored just-in-time from 8b's handoff. Lane-2 (worktree
+`.claude/worktrees/lane-2-5a`, branch `lane-2-5a` from `8ac38d7`):
+ACTIVE, pass 5a (wf_115f4cec-9c0) in its security review and close; the
+merge ritual follows. One executor; phase cap 10M, flag to the
 conductor (Geoff, 2026-09-08).
 
 ## Open items (carried)
 
-- Forty-three declared coverage gaps (rung 3's twenty-one, rung 4a's
-  nine, rung 4b's four, rung 1b's two, rung 8a's seven), none blocking;
-  the sitting added none. The `io.ReaderAt`-injection gap (`Parse` takes
-  a path only) is 8b's or 8c's call. Fork B (FLAC-only 1.0, MP3 after
+- Fifty-two declared coverage gaps (rung 3's twenty-one, rung 4a's
+  nine, rung 4b's four, rung 1b's two, rung 8a's seven, rung 8b's
+  nine), none blocking. The `io.ReaderAt`-injection gap (`Parse` takes
+  a path only) is 8c's call alone. Fork B (FLAC-only 1.0, MP3 after
   cutover) stays open, owed to Geoff; the family non-FLAC question is
   unresolved, carried.
 - Four-knob wall registration unblocked, named for the first rung 3 pass
@@ -45,8 +43,7 @@ conductor (Geoff, 2026-09-08).
   re-dispositioned `no-correct-answer`, Geoff 2026-09-07). Rewrite
   post-mortem owed; two albums await review in
   `/srv/music/review/2026-08-31/geoff/`; `FILEBROWSER_ADMIN_PASSWORD`
-  orphaned; stale failed units; `DUBPLATE_SITE_NAME` retires when
-  re-minted.
+  orphaned; stale failed units; `DUBPLATE_SITE_NAME` retires when re-minted.
 
 ## Pinned versions (looked up 2026-08-30)
 
@@ -59,5 +56,5 @@ conductor (Geoff, 2026-09-08).
 | unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
 | lap (matcher tie mirroring, 3d) | PyPI `lap` | `0.5.13` |
 
-Spend to date: about 52.7M through pass 8a's close, plus 4b's sitting
-spend of about 0.05M conductor turns.
+Spend to date: about 55.7M through pass 8b's close (8a's 52.7M plus
+4b's sitting spend of about 0.05M plus 8b's 2.9M).
