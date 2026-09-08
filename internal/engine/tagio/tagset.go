@@ -120,9 +120,11 @@ const (
 // a read-back TagSet by marshalling it, and every ledger row carries
 // all 69 keys, absent values included as explicit nulls, so an
 // omitted member would drop an absent field from the round trip.
-// TestTagSetMembersTieToMapping ties every tag to the Field constant
-// that names it, so a wrong tag fails loudly rather than silently
-// swapping two fields' values while both sides of a comparison agree.
+// TestTagSetJSONTagsTieToFieldConstants ties every tag to the Field
+// constant that names it (TestTagSetJSONTagsCarryNoOmitempty grades
+// the no-omitempty half), so a wrong tag fails loudly rather than
+// silently swapping two fields' values while both sides of a
+// comparison agree.
 type TagSet struct {
 	AcoustIDFingerprint *string  `json:"acoustid_fingerprint"`
 	AcoustIDID          *string  `json:"acoustid_id"`
