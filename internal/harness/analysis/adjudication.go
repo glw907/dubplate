@@ -33,8 +33,9 @@ const AgentAdjudicator = "agent"
 // a corpus case id today, or an album plus release MBID for a live
 // shadow divergence rung 4 will write. Exactly one shape is populated.
 type AdjudicationSubject struct {
-	CaseID      string `json:"case_id,omitempty"`
-	Album       string `json:"album,omitempty"`
+	CaseID string `json:"case_id,omitempty"`
+	Album  string `json:"album,omitempty"`
+	// ReleaseMBID is the release under dispute.
 	ReleaseMBID string `json:"release_mbid,omitempty"`
 }
 
@@ -54,6 +55,17 @@ type AdjudicationEntry struct {
 	Reason           string              `json:"reason"`
 	Adjudicator      string              `json:"adjudicator"`
 	Date             string              `json:"date"`
+
+	// MatcherCommit is the matcher's git commit at the time a shadow row
+	// (an album-plus-release-mbid subject) was written: required on that
+	// shape, since a live shadow divergence has no committed case to
+	// anchor it to a matcher version otherwise.
+	MatcherCommit string `json:"matcher_commit,omitempty"`
+	// MatcherConfigHash is the matcher's config hash at the same moment.
+	// Named apart from cassette.Expected.ConfigHash on purpose: that
+	// field hashes the oracle shim's config, and this one the matcher's,
+	// two different things a shadow row must not conflate.
+	MatcherConfigHash string `json:"matcher_config_hash,omitempty"`
 
 	// DefectFree is the distance a case scores once the named defect is
 	// removed, derived through pinned beets with one SD_PATTERNS
@@ -167,10 +179,17 @@ func checkAdjudicationEntry(known map[string]bool, e AdjudicationEntry) []error 
 		}
 	case e.Subject.Album != "" && e.Subject.ReleaseMBID != "":
 		// A shadow-divergence subject; nothing to resolve against the corpus.
+		if e.MatcherCommit == "" {
+			errs = append(errs, fmt.Errorf("adjudications: %s: subject is a shadow row, but matcher_commit is missing", e.ID))
+		}
 	case e.Subject.Album != "" || e.Subject.ReleaseMBID != "":
 		errs = append(errs, fmt.Errorf("adjudications: %s: subject: album and release_mbid must both be set, or neither", e.ID))
 	default:
 		errs = append(errs, fmt.Errorf("adjudications: %s: subject: names neither a case id nor an album/release_mbid pair", e.ID))
+	}
+
+	if e.Subject.CaseID != "" && (e.MatcherCommit != "" || e.MatcherConfigHash != "") {
+		errs = append(errs, fmt.Errorf("adjudications: %s: subject is a case row, but carries matcher_commit or matcher_config_hash, which only a shadow row may carry", e.ID))
 	}
 
 	if e.Suspected == "" {

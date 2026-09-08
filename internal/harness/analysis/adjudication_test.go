@@ -1,11 +1,36 @@
 package analysis
 
 import (
+	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
+
+// repoRootForAdjudicationTest walks up from the working directory to
+// the nearest ancestor holding go.mod, matching corpus_test.go's own
+// helper: `go test` runs from this package's directory, so corpus/
+// has to be resolved relative to the module root, not the CWD.
+func repoRootForAdjudicationTest(t *testing.T) string {
+	t.Helper()
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("locate repo root: %v", err)
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			t.Fatalf("locate repo root: no go.mod above %s", dir)
+		}
+		dir = parent
+	}
+}
 
 func TestCheckAdjudications(t *testing.T) {
 	base := AdjudicationEntry{
@@ -22,6 +47,16 @@ func TestCheckAdjudications(t *testing.T) {
 
 	shadowSubject := base
 	shadowSubject.Subject = AdjudicationSubject{Album: "Some Album", ReleaseMBID: "aaaa-bbbb"}
+	shadowSubject.MatcherCommit = "abc1234"
+
+	shadowSubjectNoCommit := base
+	shadowSubjectNoCommit.Subject = AdjudicationSubject{Album: "Some Album", ReleaseMBID: "aaaa-bbbb"}
+
+	caseSubjectWithMatcherFields := base
+	caseSubjectWithMatcherFields.MatcherCommit = "abc1234"
+
+	caseSubjectWithConfigHashOnly := base
+	caseSubjectWithConfigHashOnly.MatcherConfigHash = "deadbeef"
 
 	bothSubjects := base
 	bothSubjects.Subject = AdjudicationSubject{CaseID: "clean-match", Album: "Some Album"}
@@ -72,6 +107,9 @@ func TestCheckAdjudications(t *testing.T) {
 	}{
 		{"a well-formed pending row", []string{"clean-match"}, []AdjudicationEntry{base}, ""},
 		{"a well-formed shadow-subject row", nil, []AdjudicationEntry{shadowSubject}, ""},
+		{"a shadow-subject row with no matcher_commit", nil, []AdjudicationEntry{shadowSubjectNoCommit}, "subject is a shadow row, but matcher_commit is missing"},
+		{"a case-subject row carrying matcher_commit", []string{"clean-match"}, []AdjudicationEntry{caseSubjectWithMatcherFields}, "subject is a case row, but carries matcher_commit or matcher_config_hash"},
+		{"a case-subject row carrying matcher_config_hash only", []string{"clean-match"}, []AdjudicationEntry{caseSubjectWithConfigHashOnly}, "subject is a case row, but carries matcher_commit or matcher_config_hash"},
 		{"a human ruling oracle-wrong with a corrected verdict", []string{"clean-match"}, []AdjudicationEntry{humanRulesOracleWrong}, ""},
 		{"a subject naming both a case id and an album", []string{"clean-match"}, []AdjudicationEntry{bothSubjects}, "case_id and album/release_mbid both set"},
 		{"a shadow subject missing release_mbid", nil, []AdjudicationEntry{halfShadowSubject}, "album and release_mbid must both be set"},
@@ -288,6 +326,63 @@ func TestCheckDefectFree(t *testing.T) {
 				t.Errorf("error %q does not contain %q", err, tt.wantHas)
 			}
 		})
+	}
+}
+
+// TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost proves
+// AdjudicationEntry's field set matches corpus/analysis/adjudications.json
+// exactly: decoding the file into AdjudicationLedger and re-encoding
+// must not gain or lose a key. Byte-for-byte identity is impossible
+// (fold B2): the committed key order puts corrected_verdict after
+// date while the struct declares it before Reason, and the file's
+// literal angle brackets get escaped by Go's encoder unless
+// SetEscapeHTML(false) is used. So the comparison decodes both the
+// original bytes and the re-encoded bytes into map[string]any trees
+// and compares those, order-independent. It also asserts the raw
+// re-encoded bytes carry neither "matcher_commit" nor
+// "matcher_config_hash" anywhere, which is the real detector for
+// omitempty: every committed row is a case-subject row, so both
+// fields are always empty, and a missing omitempty tag would still
+// pass a field-set comparison but would print the key with an empty
+// value.
+func TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost(t *testing.T) {
+	root := repoRootForAdjudicationTest(t)
+	path := filepath.Join(root, "corpus", "analysis", "adjudications.json")
+	original, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read committed ledger: %v", err)
+	}
+
+	var ledger AdjudicationLedger
+	if err := json.Unmarshal(original, &ledger); err != nil {
+		t.Fatalf("decode committed ledger: %v", err)
+	}
+
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(&ledger); err != nil {
+		t.Fatalf("re-encode ledger: %v", err)
+	}
+	reencoded := buf.Bytes()
+
+	var wantTree, gotTree map[string]any
+	if err := json.Unmarshal(original, &wantTree); err != nil {
+		t.Fatalf("decode original as tree: %v", err)
+	}
+	if err := json.Unmarshal(reencoded, &gotTree); err != nil {
+		t.Fatalf("decode re-encoded bytes as tree: %v", err)
+	}
+	if !reflect.DeepEqual(wantTree, gotTree) {
+		t.Fatalf("re-encoded ledger tree does not match the original: gained or lost a key")
+	}
+
+	if bytes.Contains(reencoded, []byte("matcher_commit")) {
+		t.Error("re-encoded ledger carries matcher_commit, but every committed row is a case-subject row")
+	}
+	if bytes.Contains(reencoded, []byte("matcher_config_hash")) {
+		t.Error("re-encoded ledger carries matcher_config_hash, but every committed row is a case-subject row")
 	}
 }
 
