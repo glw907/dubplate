@@ -192,6 +192,8 @@ screenshots, fresh-context `visual-verifier`, Geoff's before/after).
 - Collections route via a beets flexible attribute with query-prefixed path
   formats; the default collection keeps the unprefixed layout. No second
   beets database, ever.
+- Config keys are declared through the registry in each rung's own file,
+  never by editing `internal/config/keys.go` (rung 1b).
 
 ## Safety rails
 

@@ -1,6 +1,6 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2.1, ratified 2026-09-02, with one erratum.
+Status: revision 2.1, ratified 2026-09-02, with two errata.
 
 **Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
 `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
@@ -16,6 +16,26 @@ its Navidrome theming note is dropped. The seam stays universal because
 2.0's built-in streamer arrives as one more driver. Also (3): the web
 stack rule moves to SvelteKit in static mode (CLAUDE.md, Stack rules),
 adopted before rung 5's plan is authored.
+
+**Erratum 2026-09-08 (rung 1b close, source
+`docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`).** The
+config-wall section's `:182-183` sentence is superseded: the wall is no
+longer a complete, closed table rung 1 alone derives. The classification
+stays the contract, but the wall is now registry contents each rung
+declares in its own file; rung 1b's own contract-change paragraph
+follows this erratum block.
+
+**The config wall is registry contents, not a closed table.** After
+rung 1b, `internal/config.Load` takes the registry it enforces against
+rather than reading package-level tables, and the five-class
+classification is the contract, not the table `internal/config` alone
+derives it into. Thresholds are one declaration family among four —
+owned wall rows, reserved classes, integration classes, and thresholds
+— all registered the same way. A rung declares its keys in its own
+file, inside the package that owns them; no lane adds a name to
+`internal/config/keys.go`, and a lane removes only its own reserved
+class from that file, in the same commit that declares the class in
+its own package.
 
 Revision 1 was drafted
 from the ratified rulings
@@ -179,8 +199,9 @@ value.
   for users with customized plugin lists; that failure class is
   refused at the wall.
 
-Rung 1 derives the complete table from this classification and it
-becomes the config core's contract. The estate's
+The classification becomes the config core's contract; the wall is
+registry contents each rung declares, not a complete table rung 1
+alone derives (Erratum 2026-09-08, above). The estate's
 `env/dubplate.env.template` is an instance of the wall, never its
 definition.
 

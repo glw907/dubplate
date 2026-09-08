@@ -2,6 +2,342 @@
 
 Per-pass ledger, newest first.
 
+## Rung 1b (Phase 0b, the config wall-row registry): closed 2026-09-08
+
+Tasks 1 through 6 executed against
+`docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`
+(revision 2.1) in the main tree. This entry is Task 7, the pass close.
+
+### What landed
+
+Task 1 (`3a35558`) retired the `.gitleaksignore` line pin: renamed the
+fixture field the generic-api-key rule keyed on, in both tables of
+`internal/config/keys_test.go`, rather than re-fingerprinting a file
+that would only go stale again. Task 2 (`060f743`, fix `859f26c`) added
+`Registry`, the collision-gate panic, and its six O5 checks; the fix
+closed a within-class repeat hole the first pass left open (a key
+repeated inside one `ReservedClass` or `IntegrationClass` literal, or
+listed in both `Required` and `Optional` of one integration class,
+registered silently). Task 3 (`82169b6`) migrated rung 1's own
+declarations onto the registry and rewired `Load` and doctor to take it
+as a parameter; three citations left dangling by `Register`'s deletion
+were retargeted in the post-chain round. Task 4 (`87053c3`) absorbed the
+integration family as data and retired `Load`'s `class.Name == "shadow"`
+branch; rung 4's shadow class and its two thresholds moved to
+`cmd/dubplate-server/shadow.go`, and `TestLoadShadowIntegration`'s eight
+rows moved with it, verbatim, to `shadow_test.go`. Task 5 (`ae1e951`)
+added `KindFloat` and `KindString` and moved threshold validation to
+registration time, parsing each declaration's own `Default` under its
+declared `Kind`; a doctor test crash (four `t.Errorf` calls followed by
+an unguarded slice index) was fixed separately (`1ab8c93`) before Task 6
+landed. Task 6 (`1952ea8`) derived doctor's line count from the registry
+and stated Resolution R10's both directions, the classification
+completeness the shipped template satisfies and the greenfield
+template's owned-row completeness it does not yet.
+
+The post-chain round (`b7e9d71`) closed four gaps the chain left open:
+the prefix check had to reach the thresholds family too, which forced
+renaming a threshold test fixture off its own unprefixed literal
+(`TEST_STRING` to `DUBPLATE_TEST_STRING`); `AddIntegrationClass` did not
+claim `Optional` keys across families, so an Optional key colliding with
+an owned or reserved name registered silently; Task 2's `Flag`-specific
+subtests asserted the generic duplicate message rather than the
+`Flag`-naming one; and three more citations had gone stale under the
+same deletion. Its own `diff-reviewer` sent back a fix round (`e364aa4`):
+hoisted the prefix check out of `claim` into a standalone
+`requirePrefix`, called unconditionally before any claim or claim-skip
+decision, so the R5 Optional-plus-Threshold pairing's claim skip could
+never bypass it; added a reverse-order test for that pairing; and
+corrected one more stale citation and a doctor test's kind-name
+assertion. `code-simplifier` (`d5c44ac`) then extracted `panicDuplicate`
+for the eight repeated collision messages and a generic `parseThreshold`
+helper shared by `ParseInt`, `ParseDuration`, and the new `ParseFloat`.
+
+### What the gate caught
+
+Task 2's within-class repeat hole (above) drew a second `diff-reviewer`
+pass before it was accepted. Task 3 left three `thresholds.go:` and
+`registry.go:` citations dangling after `Register`'s deletion, closed in
+the post-chain round. Task 5's registration-time check carried a carve-out
+for thresholds that skipped the `DUBPLATE_` prefix rule, on the reasoning
+that a threshold is read directly by `wall.get` and never classified by
+`rejectNamespace`'s prefix walk; the conductor reversed the carve-out in
+the post-chain round, forced by the plan's own fixture: a threshold test
+declared under the literal `TEST_STRING`, with no prefix, was the exact
+case the reversed rule now refuses at registration rather than letting
+register unprefixed and unreachable. Task 4's Optional keys went
+unclaimed cross-family until the round closed it, proven by
+`TestCollisionGate_OptionalCrossFamily`. The round's own four evidence
+gaps (the missing reverse-order pairing test, an uncomputed citation, an
+underspecified panic-message assertion, and a doctor test's literal kind
+name) were all closed in the fix round `e364aa4`.
+
+### The contract change, recorded as a contract change
+
+Rung 1's config-core contract stated two things: every `DUBPLATE_*` name
+falls into one of five classes, and `[Thresholds]` is a separate,
+open-ended registry distinct from the wall, which was a closed table.
+**After rung 1b, the wall stops being a closed table and becomes
+registry contents.** The five-class classification stays the contract;
+thresholds are now one declaration family among four (owned wall rows,
+reserved classes, integration classes, thresholds), all registered
+through the same `Registry` value. `Load` takes the registry it enforces
+against rather than reading package-level tables. A rung declares its
+keys in its own file, inside the package that owns them, and no lane
+adds a name to `internal/config/keys.go`; a lane removes only its own
+reserved class from that file, in the same commit that declares the
+class in its own package (rung 5 is first, taking `auth and identity`
+and `serve`). The build spec's `:182-183` sentence and the parallel
+spec's `PA:56` paragraph are corrected to match, both below.
+
+### The sixteen resolutions, ruled
+
+All sixteen are ruled as applied, 2026-09-07, per the plan's revision 2
+header; two markers carry 2026-09-08, the date the post-chain round
+reversed or hardened them. Location is where the application sits at
+HEAD, drawn from the task returns and this pass's close commit
+(`db040ec`).
+
+- **R1** (the registry is a value `cmd/dubplate-server` assembles and
+  `Load` takes): `internal/config/config.go:199`, `:240`;
+  `internal/config/keys.go:35`, `:153`, `:192`;
+  `internal/config/registry.go:33`; `cmd/dubplate-server/shadow.go:109`;
+  `cmd/dubplate-server/main.go:62`.
+- **R2** (the two class shapes, `ReservedClass` and `IntegrationClass`,
+  stay distinct): `internal/config/registry.go:210`.
+- **R3** (a collision panics at registration; a gate-resident test
+  constructs the production registry): no single inline marker, the
+  ruling covers the panic sites `panicDuplicate` serves throughout
+  `internal/config/registry.go` plus the eleven-test
+  `TestCollisionGate_*` family at `internal/config/registry_test.go:97-336`.
+- **R4** (rung 1's own rows stay declared inside `internal/config`):
+  `internal/config/registry.go:63`.
+- **R5** (`Load`'s `class.Name == "shadow"` branch retires; the two
+  class shapes are re-expressed as a pairing exemption): general
+  application at `internal/config/keys.go:225`,
+  `cmd/dubplate-server/shadow.go:27`; the pairing exemption itself,
+  ruled 2026-09-08 in the post-chain round, is the code at
+  `internal/config/registry.go:244-249` (`AddIntegrationClass`'s skip)
+  and `:279-291` (`isOptionalIntegrationKey`), guarded by
+  `TestCollisionGate_OptionalCrossFamily` and
+  `TestCollisionGate_OptionalThresholdPairing_ReverseOrder`.
+- **R6** (`KindFloat`'s mechanism lands here; the four knobs do not): no
+  code surface this pass; carried forward, below.
+- **R7** (`AdminEmail`'s dedicated contact row does not land here): no
+  code surface this pass; carried forward, below.
+- **R8** (the superseded map is 1b's by necessity): `internal/config/registry.go:340`.
+- **R9** (the gitleaks fix is the field rename plus a comment, not a
+  `.gitleaks.toml`): `internal/config/keys_test.go:59-64`, applied
+  2026-09-07 at `3a35558`.
+- **R10** (1b adds no name to any template; the coupling gets a test and
+  a stated rule): `internal/config/config_test.go:226`, `:262`;
+  `cmd/dubplate-server/doctor_test.go:150`.
+- **R11** (`KindInt` stays the zero value; an unnamed or mis-defaulted
+  kind is a registration error): `internal/config/registry.go:266`,
+  `:305`; `internal/config/thresholds.go:13`.
+- **R12** (pattern key families and `DUBPLATE_COLLECTIONS` declined and
+  filed to rung 9): no code surface this pass; filed, not carried, since
+  no rung yet owns the class.
+- **R13** (the three missing reserved classes recorded, not declared):
+  no code surface this pass; filed to rungs 5 and 12's own spec work.
+- **R14** (rung 4's ruling 1 re-expressed in registry terms is 1b's own
+  migration work): landed as Task 4, same locations as R5's general
+  application above.
+- **R15** (declaration order is preserved; the registry never sorts):
+  `internal/config/registry.go:185`.
+- **R16** (every declared key carries the `DUBPLATE_` prefix; the
+  pending row is not a key): general carve-out ruled 2026-09-07 at
+  `internal/config/registry.go:137`; the threshold-family clarification,
+  that the prefix check reaches thresholds too and cannot be bypassed by
+  `AddThreshold`'s R5-pairing skip, ruled 2026-09-08 in the post-chain
+  round and hardened in the fix round, at `requirePrefix`
+  (`internal/config/registry.go:106-110`), called unconditionally from
+  every `Add*` entry point.
+
+### The mutation table
+
+Every named mutation Tasks 1 through 6 report, reported by the
+implementer and re-confirmed for Task 2 in the post-chain round
+(`b7e9d71`, "the seven named Task 2 mutations re-ran clean against the
+current tree, mutation 1 confirmed 4 of 4 families, mutation 5 confirmed
+independently").
+
+**Task 1** (2 mutations): 1, revert the rename → gitleaks reports one
+finding again, fired. 2, add a high-entropy row to each table in turn →
+zero findings both times against the fix as landed; against a rename
+scoped to `TestReservedClassOf` alone, `TestSupersessionOf`'s row
+reported one finding, measured, which is what the fix's second table
+closes.
+
+**Task 2** (7 mutations): 1, drop one family's within-family duplicate
+check → that family's test fails, confirmed 4 of 4 families. 2, drop the
+cross-family check → the cross-family test fails, within-family tests
+still pass. 3, drop the prefix check → the prefix test fails. 4, return
+the backing slice instead of a copy → the copy test fails. 5, share one
+registry across two constructions → the two-independent-registries test
+fails, confirmed independently, the proof `sync.OnceFunc`'s retirement
+rests on. 6, let a status row through the prefix check → the
+identity-source carve-out test fails. 7, drop the integration `Flag`
+check → both the empty-`Flag` and `Flag`-in-`Required` tests fail,
+reworded in the round to assert the `Flag`-specific message rather than
+the generic duplicate one.
+
+**Task 3** (5 mutations): 1, sort reserved classes by rung → the R15
+order assertion in `TestDoctorCmd_LiteralSpotCheck` fails, `TestDoctorCmd`
+itself stays order-blind and passes, both outcomes reported. 2, drop the
+identity-source `Pending` handling → the literal-spot-check fails and a
+satisfied wall starts requiring a key named `identity source`. 3, drop
+the rung number from a reserved-class error → the contract table's
+"reserved key early" row fails. 4, route an accessor around `wall.get`
+directly → **reported as a gap**: no existing test covered the bypass
+for the accessor chosen, so the mutation could not be run against a
+failing test; folded into this pass's own coverage-gap count, below. 5,
+register rung 4's thresholds onto one registry and pass a fresh second
+one to `newDoctorCmd` → `TestDoctorCmd_ShadowRows` fails on both
+threshold lines, the proof the wiring is a value pass rather than a
+hidden global.
+
+**Task 4** (7 mutations): 1, resolve every class's values regardless of
+enabled state → the flag-unset row fails, proving the reworded
+assertions still fire. 2, accept every integration key unconditionally
+in `rejectNamespace` → the flag-unset row fails. 3, move both threshold
+names from `Optional` to `Required` → the flag-set-with-every-path row
+fails, reporting both missing. 4, read an unparseable flag as off → the
+unparseable-flag row fails. 5, drop the `name == class.Flag` guard → both
+explicit-false rows fail. 6, restore a class-name branch with a second,
+branchless class → the second class's resolved values come back empty,
+the proof outcome 1 (the branch's retirement) landed. 7, derive enabled
+state from whether any key resolved → the empty-`Required` row fails,
+the hook 6 shape.
+
+**Task 5** (5 mutations): 1, make the float parser's bad-default and
+bad-value messages match → the fourth test row fails, the two are
+asserted to differ. 2, drop default validation, keep enum-membership →
+the float-defaulted threshold with no explicit `Kind` registers clean
+and doctor prints `invalid: invalid default "0.04"`; both halves
+reported, the proof the enum check alone hides the defect. 3, drop the
+kind check from the collision gate entirely → the registration test
+fails, both the unnamed-kind and unparseable-default thresholds register
+silently. 4, change `KindFloat`'s value so `KindInt` is no longer the
+zero value → every `Threshold` literal that omits `Kind` changes
+meaning, existing integer threshold tests fail, the proof R11's
+zero-value choice is load-bearing. 5, drop `KindString`'s empty-default
+check → the scratch threshold with an empty `Default` registers clean
+and later reads as unset rather than as its declared default.
+
+**Task 6** (5 mutations): 1, remove the new declaration's family from
+the scratch registry's accessor → the scratch test fails while the
+landed `doctor_test.go:127-129` count assertion still passes, both
+outcomes reported, the pair showing the new test covers ground the old
+one does not. 2, remove one family's block from doctor entirely → the
+landed count assertion fails, naming the family by its count
+difference. 3, point the classification test at a file assigning no
+`DUBPLATE_*` names → the zero-names guard fires. 4, point it at a
+nonexistent path → fails at the open, proving a moved template is fatal
+rather than silently skipped. 5, remove `DUBPLATE_LIBRARY_ROOT` from the
+greenfield template the completeness test reads → the completeness test
+fails naming that row; reverted without committing the template edit.
+
+### The declared coverage gaps
+
+Two gaps this pass builds and no test in this pass can reach, joined to
+the running total of thirty-four (rung 3's twenty-one, rung 4a's nine,
+rung 4b's four, `HISTORY:158-163`), bringing the total to **thirty-six**.
+
+- **The registry's collision panic is unreachable in the deployed
+  binary as shipped.** The gate-resident `TestCollisionGate_*` family
+  catches every collision before a commit lands, so the panic path
+  itself is proven only by tests that recover it, by design.
+- **`wall.get`'s choke-point property has no mechanical guard.** Task
+  3's mutation 4 (routing an accessor around `wall.get` directly) found
+  no existing test covering the empty-value-equals-unset property for
+  an accessor that bypassed it; a future accessor written directly
+  against the environment map would pass every other test.
+
+Two further items are declined and filed rather than counted as gaps,
+since neither is a surface 1b itself builds: pattern key families and
+`DUBPLATE_COLLECTIONS` (Resolution R12, filed to rung 9, which owns the
+monitoring class and the pipeline), and the three reserved classes the
+build spec names and the tree lacks, an SSO proxy, a trusted-proxy mode,
+and a forward-auth front (Resolution R13, filed to rungs 5 and 12).
+
+### What a later pass would be wrong to rediscover
+
+The R5 pairing exemption is order-symmetric: an `Optional` key may be
+registered as a `Threshold` in either order, `Threshold` first or
+`IntegrationClass` first, and both directions are gated
+(`TestCollisionGate_OptionalCrossFamily`,
+`TestCollisionGate_OptionalThresholdPairing_ReverseOrder`). The prefix
+check is its own unconditional step, `requirePrefix`, called before any
+claim or claim-skip decision in every `Add*` entry point; a check folded
+back into `claim` alone will silently exempt whatever skips `claim`, the
+exact bug the post-chain round found and the fix round proved with a
+table-driven mutation. The gitleaks trigger is a single field name on a
+single line, `key` beside a high-entropy `DUBPLATE_*` value in exactly
+one production name (`DUBPLATE_R2_BUCKET`); a rename generalizes across
+a file, not a table, and the second table in `keys_test.go` is where
+revision 1's fix would have missed it. `KindInt` is deliberately the
+zero value of `ThresholdKind`, so a threshold declared before a `Kind`
+field existed keeps its old meaning; the hazard it creates is caught by
+parsing each declaration's own `Default` under its declared `Kind` at
+registration, not by an enum-membership check, which a zero-value kind
+passes trivially. `parseThreshold` is the one generic parser
+`ParseInt`, `ParseDuration`, and `ParseFloat` share the
+unset/set-value/bad-default shape through; a fourth kind extends it
+rather than triplicating it again. The template classification's fourth
+branch, `integrationClassOf`, is mandatory, not optional: the shipped
+template carries zero shadow names today, but pass 4b's own template
+carries six, and a walk that tries only `ownedNow`, `reservedClassOf`,
+and `supersessionOf` reports six names unknown and reds the gate for
+every lane.
+
+### Forward carries
+
+1. **The four-knob wall registration is unblocked** and is the named
+   task for the first rung 3 pass that runs. `KindFloat` and its parser
+   are landed, so that pass registers `StrongRecThresh`,
+   `MediumRecThresh`, `RecGapThresh`, and `SearchLimit` and adds no
+   registry capability. It must decide whether
+   `internal/engine/matcher` may import `internal/config`, which
+   `tunables.go:50-54` currently declines in writing, or whether the
+   knobs are declared from `cmd/dubplate-server` instead.
+2. **`AdminEmail`'s dedicated contact row** stays post-1b, and is now
+   cheap: one declaration in whichever package owns the User-Agent,
+   plus the owner touchpoint that minting a new required key implies.
+3. **How a rung declares its keys after 1b**: in its own file, inside
+   the package that owns them, per O1/O2; rung 4's shadow class
+   (`cmd/dubplate-server/shadow.go`) is the worked example. A rung
+   taking over a reserved class deletes it from
+   `internal/config/keys.go` in the same commit that declares it in its
+   own package, the registration-time class-arrives-intact check is
+   what stops the move from dropping a key, and that deletion is the
+   only edit any lane makes to `keys.go` after 1b. Rung 5 is first,
+   taking `auth and identity` and `serve`.
+4. **Rung 12's streamer class moves to the driver's own package** when
+   that package is born, and the three Navidrome names go with it. This
+   is hook 6; 1b landed the seam, not the move.
+5. **A string or enumerated threshold kind** is the next kind anyone
+   will want, for hook 12's forbidden-character set and hook 14's ID3
+   version; the mechanism is now three edits and its registration-time
+   check is already in place.
+6. **The gitleaks pin is gone and is not coming back.** Any future
+   declaration file that writes a key literal beside a `Key:` field
+   applies the same rename discipline.
+7. **Lane-2 is now unblocked.** 0c landed at `b77e159`; 1b's own close is
+   what unblocks lane-2 outright.
+
+### Spend
+
+About 3.7M against the 2.5M ceiling: plan preparation, 1.07M; Task 0,
+0.14M; the revision 2.1 re-point, 0.24M; the chain, 1.55M across 16
+agents; the post-chain round, 0.25M; its review, 0.09M; the simplify
+pass, 0.11M; the fix round, 0.13M; conductor turns, about 0.15M. The
+2.0M flag was crossed inside the chain and the conductor did not act on
+it, a conductor miss this entry records rather than omits. Attended
+interactions: one planning miss (the unprefixed threshold fixture,
+`TEST_STRING`, that forced R16's threshold-family reversal rather than
+catching it in review), zero execution sittings.
+
 ## Rung 4, pass 4b (OPEN, handoff to the sitting, 2026-09-08)
 
 Tasks 0 through 7 executed in the main tree against

@@ -4,6 +4,8 @@ Status: **DRAFT, rulings ratified.** Revision 2, 2026-09-05. All six open ruling
 
 Erratum, 2026-09-07 (Geoff): the build carries no calendar schedule; the shadow floor is an evidence minimum, never a launch date, and the date arithmetic below was removed.
 
+Erratum, 2026-09-08 (rung 1b close): four passages below are corrected, source `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`. The `.gitleaksignore` fragility this spec restates twice (`:1476-1485`, `:1787-1788`) is retired: rung 1b renamed the field the finding keyed on rather than re-pinning the file, and the repo carries no suppression. The staleness pre-task's "Has rung 1b landed?" ordering assumption (`:1689-1692`) never fires, because this window ran 1b after pass 4b; the re-expression of ruling 1's option (a) into registry terms is rung 1b's own migration work (its Task 4), already landed. Its `.gitleaksignore` staleness question (`:1697-1699`) is answered permanently rather than restated: there is no pin left to go stale.
+
 The six open rulings in the next section go to Geoff. Under the
 2026-09-05 unattended grant, the plan that follows this spec applies
 each recommendation **provisionally** and marks every provisional
@@ -1473,16 +1475,14 @@ records the identical gap for rung 3's three float thresholds; a
 `KindFloat` follows the same shape and stays that follow-on's, not
 rung 4's.
 
-**The `.gitleaksignore` fragility, restated because it reds the gate
-for every lane at once.** The single allowed finding is pinned by line
-number: `.gitleaksignore:1` reads
-`internal/config/keys_test.go:generic-api-key:66`, and line 66 today is
-the `DUBPLATE_R2_BUCKET` fixture row
-(`internal/config/keys_test.go:66`). Any insertion above that line in
-that file moves the finding and reds `scripts/check.sh`'s gitleaks leg.
-The rule for every rung 4 task touching `keys_test.go`: add below line
-66, or re-fingerprint `.gitleaksignore` in the same commit. Rung 1b
-carries the same rider (`PA:54`).
+**The discipline that succeeds the `.gitleaksignore` fragility this
+passage used to restate.** Rung 1b (Task 1) retired the pin instead of
+re-fingerprinting it: the fixture field the generic-api-key rule keyed
+on is renamed, `.gitleaksignore` is empty, and there is no allowed
+finding and no line to protect. The discipline that replaces the old
+rule: a declaration file that writes a key literal beside a `Key:`
+field applies the same field-name rename, and the reason lives in the
+comment Task 1 wrote beside each renamed field.
 
 ## What rung 4 does not build
 
@@ -1686,17 +1686,21 @@ move dispositions.
 
 The first three are blockers; a "no" stops the launch.
 
-- **Has rung 1b landed?** If yes, the integration class and the
-  duration threshold register through its registry and never by editing
-  `keys.go`, and ruling 1's option (a) is re-expressed in that
-  registry's own terms.
+- **Rung 1b landed after this pass, not before it.** This window ran
+  1b after pass 4b, so the blocker below never fires as written; the
+  re-expression of ruling 1's option (a) into the registry's own terms
+  happened as rung 1b's own migration work instead (its Task 4), and
+  the shadow integration class and its duration threshold now register
+  through `cmd/dubplate-server/shadow.go` rather than by editing
+  `keys.go`.
 - **Is the lane registry consistent with where this pass intends to
   run, and is the primary tree free?** The live-executor check is the
   registry, never `pgrep -f Projects/dubplate`, which matches every
   lane once a worktree exists.
-- **Is `.gitleaksignore:1` still
-  `internal/config/keys_test.go:generic-api-key:66`, and is line 66
-  still the row it names?**
+- **Retired permanently.** `.gitleaksignore` no longer exists: rung 1b
+  (Task 1) renamed the fixture field the generic-api-key rule keyed on
+  instead of re-pinning the file, so this question has no pin left to
+  ask about.
 - Does `config/beets-config.yaml` still set `group_albums: yes`? The
   capture's grouping rule and its excluded-directory count are written
   against it.
@@ -1784,8 +1788,8 @@ it is a table in `keys.go` beside `reservedClasses`, in the same shape,
 so 1b absorbs it as data. The staleness pre-task's first blocker
 catches the case where 1b lands mid-rung.
 
-**7. `.gitleaksignore`'s line pin reds the gate for every lane.**
-Mitigation: the rule above, and the pre-task check.
+**7. Retired.** Rung 1b (Task 1) removed the `.gitleaksignore` pin this
+risk named; there is no line left to red the gate.
 
 **8. A superseded-commit divergence consumes owner adjudication
 anyway.** This is what happens if `reevaluate` is cut for scope.
