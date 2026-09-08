@@ -20,9 +20,9 @@ live, production.
 
 ## Next action
 
-Lane-1 (main tree): pass 8b's plan is at revision 2 (1cbd270); the
-8a simplifier round landed (0f2b61d); the 8b chain launches after
-its Task 0 report. Lane-2 (worktree `.claude/worktrees/lane-2-5a`,
+Lane-1 (main tree): ACTIVE, pass 8b chain (pass-execute
+wf_7f5b05d7-373, launched 2026-09-08 11:20; Task 0 clean; plan
+1cbd270; the 8a simplifier landed at 0f2b61d). Lane-2 (worktree `.claude/worktrees/lane-2-5a`,
 branch `lane-2-5a` from 8ac38d7): ACTIVE, pass 5a chain (pass-execute
 wf_115f4cec-9c0, launched 2026-09-08 11:10; Task 0 clean); one
 executor; the merge ritual closes it. Phase cap 10M, flag to the
