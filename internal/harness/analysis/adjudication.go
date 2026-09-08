@@ -35,7 +35,9 @@ const AgentAdjudicator = "agent"
 type AdjudicationSubject struct {
 	CaseID string `json:"case_id,omitempty"`
 	Album  string `json:"album,omitempty"`
-	// ReleaseMBID is the release under dispute.
+	// ReleaseMBID is the release under dispute, filled by whichever side
+	// proposed one: the oracle's when the oracle applied, the Go matcher's
+	// when the oracle skipped and Go applied.
 	ReleaseMBID string `json:"release_mbid,omitempty"`
 }
 
