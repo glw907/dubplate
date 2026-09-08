@@ -149,7 +149,7 @@ func TestLoad_ContractTable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Load(tt.environ)
+			cfg, err := Load(tt.environ, NewRegistry())
 
 			if tt.wantErr {
 				if err == nil {
@@ -199,14 +199,15 @@ func TestLoad_TemplateKeysClassified(t *testing.T) {
 		t.Fatal("templateKeys found no DUBPLATE_* names; template path or format changed")
 	}
 
+	reg := NewRegistry()
 	for _, name := range names {
-		if ownedNow(name) {
+		if ownedNow(reg, name) {
 			continue
 		}
-		if _, ok := reservedClassOf(name); ok {
+		if _, ok := reservedClassOf(reg, name); ok {
 			continue
 		}
-		if _, ok := supersessionOf(name); ok {
+		if _, ok := supersessionOf(reg, name); ok {
 			continue
 		}
 		t.Errorf("%s: classifies as unknown; add it to ownedWall, a reserved class, or supersededKeys", name)
@@ -315,9 +316,15 @@ func TestLoadShadowIntegration(t *testing.T) {
 		},
 	}
 
+	// reg carries only rung 1's own declarations: rung 4's shadow class
+	// still lives in keys.go's package-level integrationClasses table
+	// (Resolution R4) and Load still reads it from there, unaffected by
+	// this task's migration (see integrationClassOf's own doc).
+	reg := NewRegistry()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Load(append(slices.Clone(base), tt.extra...))
+			cfg, err := Load(append(slices.Clone(base), tt.extra...), reg)
 			if len(tt.wantErr) == 0 {
 				if err != nil {
 					t.Fatalf("Load: %v", err)

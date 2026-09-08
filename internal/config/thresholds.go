@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"slices"
 	"strconv"
 	"time"
 )
@@ -26,24 +25,6 @@ type Threshold struct {
 	Kind    ThresholdKind
 	Default string
 	Doc     string
-}
-
-// registeredThresholds holds every [Threshold] added by [Register], in
-// registration order. Rung 1 registers none: the registry is the
-// deliverable, not a deferred set of values.
-var registeredThresholds []Threshold
-
-// Register adds t to the threshold registry. A rung's own package
-// calls Register once per tunable it introduces, from an explicit
-// setup call rather than an init function, so registration order stays
-// visible in the caller's own code.
-func Register(t Threshold) {
-	registeredThresholds = append(registeredThresholds, t)
-}
-
-// Thresholds returns the registered tunables in registration order.
-func Thresholds() []Threshold {
-	return slices.Clone(registeredThresholds)
 }
 
 // ParseInt resolves t as an integer against environ: t.Default's own

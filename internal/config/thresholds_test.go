@@ -6,29 +6,22 @@ import (
 	"time"
 )
 
-// withRegistry saves and restores the package-level threshold
-// registry around a test, so tests that call Register do not leak
-// entries into unrelated tests.
-func withRegistry(t *testing.T) {
-	t.Helper()
-	saved := registeredThresholds
-	registeredThresholds = nil
-	t.Cleanup(func() { registeredThresholds = saved })
-}
-
+// TestRegister_AppearsInThresholds proves AddThreshold accumulates in
+// registration order onto a registry a test constructs itself: rung 1
+// registers no package-level threshold, so a test that needs one builds
+// its own registry rather than saving and restoring shared state.
 func TestRegister_AppearsInThresholds(t *testing.T) {
-	withRegistry(t)
-
-	if got := Thresholds(); len(got) != 0 {
-		t.Fatalf("Thresholds() before Register = %v, want empty", got)
+	reg := NewRegistry()
+	if got := reg.Thresholds(); len(got) != 0 {
+		t.Fatalf("Thresholds() before AddThreshold = %v, want empty", got)
 	}
 
 	first := Threshold{Key: "DUBPLATE_TEST_FIRST", Default: "1", Doc: "a positive integer"}
 	second := Threshold{Key: "DUBPLATE_TEST_SECOND", Default: "2", Doc: "a positive integer"}
-	Register(first)
-	Register(second)
+	reg.AddThreshold(first)
+	reg.AddThreshold(second)
 
-	got := Thresholds()
+	got := reg.Thresholds()
 	if len(got) != 2 {
 		t.Fatalf("Thresholds() len = %d, want 2", len(got))
 	}
@@ -37,14 +30,17 @@ func TestRegister_AppearsInThresholds(t *testing.T) {
 	}
 }
 
+// TestThresholds_ReturnsCopy proves the copy property [Registry.OwnedWall]
+// already carries survives the accessor's move onto the registry:
+// mutating a returned slice must not corrupt what a second call returns.
 func TestThresholds_ReturnsCopy(t *testing.T) {
-	withRegistry(t)
-	Register(Threshold{Key: "DUBPLATE_TEST_ONE", Default: "1", Doc: "a positive integer"})
+	reg := NewRegistry()
+	reg.AddThreshold(Threshold{Key: "DUBPLATE_TEST_ONE", Default: "1", Doc: "a positive integer"})
 
-	got := Thresholds()
+	got := reg.Thresholds()
 	got[0].Key = "mutated"
 
-	if registeredThresholds[0].Key == "mutated" {
+	if reg.thresholds[0].Key == "mutated" {
 		t.Fatal("Thresholds() leaked the backing array; a caller can corrupt the registry")
 	}
 }

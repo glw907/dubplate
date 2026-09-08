@@ -29,10 +29,12 @@ func OwnedWall() []WallRow {
 	return slices.Clone(ownedWall)
 }
 
-// ownedNow reports whether name is an owned row [Load] requires now,
-// as opposed to a row still carrying a Pending status.
-func ownedNow(name string) bool {
-	for _, row := range ownedWall {
+// ownedNow reports whether name is an owned row in reg that [Load]
+// requires now, as opposed to a row still carrying a Pending status.
+//
+// provisional, conductor ruling owed, R1
+func ownedNow(reg *Registry, name string) bool {
+	for _, row := range reg.ownedWall {
 		if row.Name == name {
 			return row.Pending == ""
 		}
@@ -146,9 +148,11 @@ func ReservedClasses() []ReservedClass {
 	return slices.Clone(reservedClasses)
 }
 
-// reservedClassOf reports the class name belongs to, if any.
-func reservedClassOf(name string) (ReservedClass, bool) {
-	for _, class := range reservedClasses {
+// reservedClassOf reports the class name belongs to in reg, if any.
+//
+// provisional, conductor ruling owed, R1
+func reservedClassOf(reg *Registry, name string) (ReservedClass, bool) {
+	for _, class := range reg.reservedClasses {
 		if slices.Contains(class.Keys, name) {
 			return class, true
 		}
@@ -182,10 +186,12 @@ var supersededKeys = map[string]string{
 		"this directly, dubplate-server never does",
 }
 
-// supersessionOf reports the disposition message for a superseded
-// name, if any.
-func supersessionOf(name string) (string, bool) {
-	msg, ok := supersededKeys[name]
+// supersessionOf reports the disposition message reg carries for a
+// superseded name, if any.
+//
+// provisional, conductor ruling owed, R1
+func supersessionOf(reg *Registry, name string) (string, bool) {
+	msg, ok := reg.superseded[name]
 	return msg, ok
 }
 
@@ -235,6 +241,18 @@ func IntegrationClasses() []IntegrationClass {
 
 // integrationClassOf reports the integration class name belongs to, by
 // its Flag, a Required key, or an Optional key, if any.
+//
+// integrationClassOf stays on the package-level integrationClasses
+// table rather than a registry, unlike its three siblings above: rung
+// 4's own class is the one family this task does not migrate (it
+// leaves keys.go for cmd/dubplate-server/shadow.go in Task 4, per
+// Resolution R4's "moves when the owning package is born" rule), and an
+// Optional key here is also a registered [Threshold]
+// (DUBPLATE_SHADOW_FLOOR, DUBPLATE_SHADOW_BUDGET): registering the same
+// key into both the integration and threshold families on one registry
+// trips the collision gate's cross-family check, which was not built
+// with that documented overlap in mind. Task 4 owns reconciling it
+// when the class moves.
 func integrationClassOf(name string) (IntegrationClass, bool) {
 	for _, class := range integrationClasses {
 		if name == class.Flag || slices.Contains(class.Required, name) || slices.Contains(class.Optional, name) {

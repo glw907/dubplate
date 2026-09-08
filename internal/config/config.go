@@ -40,8 +40,12 @@
 //     plugin-list regression: an unrecognized key refuses the start
 //     rather than degrading it.
 //
-// [Thresholds] is a separate, open-ended registry for the behavior
-// tunables rungs introduce as they land; rung 1 registers none.
+// Every declaration above -- the owned wall, the reserved classes, the
+// adopter-optional integrations, the superseded names, plus the
+// behavior tunables a rung registers as it lands -- lives in one
+// [Registry] a caller assembles and passes to [Load]. [NewRegistry]
+// returns a registry already seeded with rung 1's own rows; rung 1
+// registers no threshold.
 package config
 
 import (
@@ -165,14 +169,16 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 }
 
 // rejectNamespace walks every DUBPLATE_*-prefixed name present in the
-// wall's environment and records an error for any that is not an owned
-// row: a reserved name errors naming its class and rung, a superseded
+// wall's environment and records an error for any that is not a row reg
+// owns: a reserved name errors naming its class and rung, a superseded
 // name errors naming its replacement, and anything else errors as
 // unknown. Owned rows are validated by their own require calls, not
 // here, so a valid owned value is never flagged.
-func (w *wall) rejectNamespace() {
+//
+// provisional, conductor ruling owed, R1
+func (w *wall) rejectNamespace(reg *Registry) {
 	for name := range w.env {
-		if !strings.HasPrefix(name, "DUBPLATE_") || ownedNow(name) {
+		if !strings.HasPrefix(name, "DUBPLATE_") || ownedNow(reg, name) {
 			continue
 		}
 		if _, ok := w.get(name); !ok {
@@ -192,11 +198,11 @@ func (w *wall) rejectNamespace() {
 			}
 			continue
 		}
-		if class, ok := reservedClassOf(name); ok {
+		if class, ok := reservedClassOf(reg, name); ok {
 			w.errs = append(w.errs, fmt.Errorf("%s: reserved for %s, arrives at rung %d", name, class.Name, class.Rung))
 			continue
 		}
-		if msg, ok := supersessionOf(name); ok {
+		if msg, ok := supersessionOf(reg, name); ok {
 			w.errs = append(w.errs, fmt.Errorf("%s: %s", name, msg))
 			continue
 		}
@@ -204,12 +210,14 @@ func (w *wall) rejectNamespace() {
 	}
 }
 
-// Load resolves [Config] from environ (os.Environ() form). It reads
-// only DUBPLATE_-prefixed keys and returns an error naming every
-// problem at once, rather than stopping at the first one: every unset
-// owned row, every reserved or superseded key set before its rung, and
-// every unrecognized DUBPLATE_* key.
-func Load(environ []string) (*Config, error) {
+// Load resolves [Config] from environ (os.Environ() form), enforced
+// against reg. It reads only DUBPLATE_-prefixed keys and returns an
+// error naming every problem at once, rather than stopping at the
+// first one: every unset owned row, every reserved or superseded key
+// set before its rung, and every unrecognized DUBPLATE_* key.
+//
+// provisional, conductor ruling owed, R1
+func Load(environ []string, reg *Registry) (*Config, error) {
 	w := newWall(environ)
 
 	cfg := &Config{
@@ -219,6 +227,10 @@ func Load(environ []string) (*Config, error) {
 		AdminEmail:  w.requireEmail("DUBPLATE_ADMIN_EMAIL"),
 	}
 
+	// integrationClasses stays a package-level read here, unlike the
+	// wall/reserved/superseded lookups above: rung 4's class has not
+	// migrated onto the registry yet (see integrationClassOf's own
+	// doc), so Load reads it exactly as it did before this task.
 	for _, class := range integrationClasses {
 		enabled, err := w.integrationEnabled(class)
 		if err != nil {
@@ -241,7 +253,7 @@ func Load(environ []string) (*Config, error) {
 		}
 	}
 
-	w.rejectNamespace()
+	w.rejectNamespace(reg)
 
 	if len(w.errs) > 0 {
 		return nil, errors.Join(w.errs...)

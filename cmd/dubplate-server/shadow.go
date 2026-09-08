@@ -7,7 +7,6 @@ import (
 	"io"
 	"maps"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -42,14 +41,18 @@ var shadowBudgetThreshold = config.Threshold{
 	Doc:     "an integer request count per pass",
 }
 
-// registerShadowThresholds runs once per process, from newRootCmd
-// (Resolution R12): config.Register appends without dedup
-// (internal/config/thresholds.go:40-42) and newRootCmd runs more than
-// once in a test binary.
-var registerShadowThresholds = sync.OnceFunc(func() {
-	config.Register(shadowFloorThreshold)
-	config.Register(shadowBudgetThreshold)
-})
+// registerShadowThresholds adds the shadow integration's two thresholds
+// to reg. It is a plain function rather than the sync.OnceFunc rung 1
+// needed (Resolution R12): newRootCmd builds a fresh, independent
+// registry on every construction (Resolution R1), so registering onto
+// it can never collide with a prior process's own registration the way
+// appending to a shared package-level slice could.
+//
+// provisional, conductor ruling owed, R1
+func registerShadowThresholds(reg *config.Registry) {
+	reg.AddThreshold(shadowFloorThreshold)
+	reg.AddThreshold(shadowBudgetThreshold)
+}
 
 // caseJSON marshals one shadow fixture into cassette.Case's shape, with
 // Expected nil: internal/engine/shadow may import no harness package
@@ -162,7 +165,7 @@ func storeArtifacts(s *shadow.Store, res *shadow.PassResult) error {
 // vary the stamp cannot prove the refusal. newRootCmd passes
 // main.matcherCommit, so production behavior is unchanged and no test
 // writes a global.
-func newShadowCmd(environ []string, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
+func newShadowCmd(environ []string, reg *config.Registry, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "shadow",
 		Short:         "Run the shadow matcher against the incumbent's own decisions",
@@ -171,9 +174,9 @@ func newShadowCmd(environ []string, matcherCommit string, stdout, stderr io.Writ
 	}
 	cmd.SetErr(stderr)
 	cmd.AddCommand(
-		newShadowObserveCmd(environ, matcherCommit, stdout, stderr),
-		newShadowReportCmd(environ, stdout, stderr),
-		newShadowReevaluateCmd(environ, matcherCommit, stdout, stderr),
+		newShadowObserveCmd(environ, reg, matcherCommit, stdout, stderr),
+		newShadowReportCmd(environ, reg, stdout, stderr),
+		newShadowReevaluateCmd(environ, reg, matcherCommit, stdout, stderr),
 	)
 	return cmd
 }
@@ -186,14 +189,14 @@ func newShadowCmd(environ []string, matcherCommit string, stdout, stderr io.Writ
 // store; call shadow.Run with time.Now(), legal here because cmd/ is
 // outside the engine's no-clock walk; write the artifacts through
 // storeArtifacts; print a one-line summary.
-func newShadowObserveCmd(environ []string, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
+func newShadowObserveCmd(environ []string, reg *config.Registry, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "observe",
 		Short:         "Run one capture, reconcile and match pass",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load(environ)
+			cfg, err := config.Load(environ, reg)
 			if err != nil {
 				return err
 			}
@@ -252,14 +255,14 @@ func newShadowObserveCmd(environ []string, matcherCommit string, stdout, stderr 
 // newShadowReportCmd builds the report verb: it prints the launch-gate
 // report in doctor's own "%-32s %s" row form, so an operator reads one
 // table shape across the binary.
-func newShadowReportCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
+func newShadowReportCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "report",
 		Short:         "Print the launch-gate report",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(*cobra.Command, []string) error {
-			cfg, err := config.Load(environ)
+			cfg, err := config.Load(environ, reg)
 			if err != nil {
 				return err
 			}
@@ -289,14 +292,14 @@ func newShadowReportCmd(environ []string, stdout, stderr io.Writer) *cobra.Comma
 // grounds observe does (an unstamped commit can never be mechanically
 // distinguished from a later one, so "reevaluate" against it would
 // either restamp everything or nothing).
-func newShadowReevaluateCmd(environ []string, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
+func newShadowReevaluateCmd(environ []string, reg *config.Registry, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "reevaluate",
 		Short:         "Re-run stamped observations against their stored responses",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load(environ)
+			cfg, err := config.Load(environ, reg)
 			if err != nil {
 				return err
 			}

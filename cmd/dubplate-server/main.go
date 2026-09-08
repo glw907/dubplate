@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -52,8 +53,15 @@ func main() {
 	}
 }
 
+// newRootCmd builds the production registry once, visibly, and passes
+// it to every subcommand that enforces against it: registration order
+// stays readable here rather than hidden behind an init function
+// (thresholds.go:36-39's rule, carried forward to the registry).
+//
+// provisional, conductor ruling owed, R1
 func newRootCmd() *cobra.Command {
-	registerShadowThresholds()
+	reg := config.NewRegistry()
+	registerShadowThresholds(reg)
 
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",
@@ -63,9 +71,9 @@ func newRootCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		newVersionCmd(),
-		newCheckCmd(os.Environ(), os.Stdout, os.Stderr),
-		newDoctorCmd(os.Environ(), os.Stdout, os.Stderr),
-		newShadowCmd(os.Environ(), matcherCommit, os.Stdout, os.Stderr),
+		newCheckCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newShadowCmd(os.Environ(), reg, matcherCommit, os.Stdout, os.Stderr),
 	)
 	return cmd
 }

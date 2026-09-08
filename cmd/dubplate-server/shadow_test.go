@@ -11,10 +11,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/shadow"
 	"github.com/glw907/dubplate/internal/harness/analysis"
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
+
+// shadowTestRegistry returns a registry carrying the shadow
+// integration's two thresholds, mirroring the production wiring
+// newRootCmd builds, so a test that runs the shadow subcommand directly
+// (rather than through newRootCmd) sees the same registry shape. The
+// shadow integration class itself is not registered here: it has not
+// migrated onto the registry yet (internal/config's integrationClassOf
+// doc), so config.Load still resolves it from the package-level table.
+func shadowTestRegistry() *config.Registry {
+	reg := config.NewRegistry()
+	registerShadowThresholds(reg)
+	return reg
+}
 
 // TestCaseJSONRoundTripsThroughLoadCase proves caseJSON's bytes are a
 // legal cassette.Case: Expected nil, path_query accepted as already
@@ -318,7 +332,7 @@ func TestObserveRefusesAnUnstampedBuild(t *testing.T) {
 			environ := append(baseServerEnviron(root), shadowEnabledEnviron(root)...)
 			var stdout, stderr bytes.Buffer
 
-			cmd := newShadowCmd(environ, tt.stamp, &stdout, &stderr)
+			cmd := newShadowCmd(environ, shadowTestRegistry(), tt.stamp, &stdout, &stderr)
 			cmd.SetArgs([]string{"observe"})
 			err := cmd.Execute()
 			if err == nil {
@@ -342,7 +356,7 @@ func TestObserveRefusesWhenTheIntegrationIsDisabled(t *testing.T) {
 	environ := baseServerEnviron(root)
 	var stdout, stderr bytes.Buffer
 
-	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd := newShadowCmd(environ, shadowTestRegistry(), "cafebabe", &stdout, &stderr)
 	cmd.SetArgs([]string{"observe"})
 	err := cmd.Execute()
 	if err == nil {
@@ -362,7 +376,7 @@ func TestShadowVerbsAreRegisteredAndPrintToStdout(t *testing.T) {
 	environ := baseServerEnviron(root)
 	var stdout, stderr bytes.Buffer
 
-	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd := newShadowCmd(environ, shadowTestRegistry(), "cafebabe", &stdout, &stderr)
 	if !cmd.SilenceUsage || !cmd.SilenceErrors {
 		t.Errorf("shadow: SilenceUsage=%v SilenceErrors=%v, want both true", cmd.SilenceUsage, cmd.SilenceErrors)
 	}
@@ -400,7 +414,7 @@ func TestReportPrintsThePinnedRowForm(t *testing.T) {
 	environ := baseServerEnviron(root)
 	var stdout, stderr bytes.Buffer
 
-	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd := newShadowCmd(environ, shadowTestRegistry(), "cafebabe", &stdout, &stderr)
 	cmd.SetArgs([]string{"report"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute report: %v", err)
@@ -451,7 +465,7 @@ func TestReportPrintsMapRowsInSortedKeyOrder(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd := newShadowCmd(environ, shadowTestRegistry(), "cafebabe", &stdout, &stderr)
 	cmd.SetArgs([]string{"report"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute report: %v", err)

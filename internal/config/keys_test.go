@@ -78,9 +78,10 @@ func TestReservedClassOf(t *testing.T) {
 		{input: "DUBPLATE_NONSENSE", wantFound: false},
 	}
 
+	reg := NewRegistry()
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			class, ok := reservedClassOf(tt.input)
+			class, ok := reservedClassOf(reg, tt.input)
 			if ok != tt.wantFound {
 				t.Fatalf("reservedClassOf(%q) found = %v, want %v", tt.input, ok, tt.wantFound)
 			}
@@ -118,9 +119,10 @@ func TestSupersessionOf(t *testing.T) {
 		{input: "DUBPLATE_LIBRARY_ROOT", wantFound: false},
 	}
 
+	reg := NewRegistry()
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			_, ok := supersessionOf(tt.input)
+			_, ok := supersessionOf(reg, tt.input)
 			if ok != tt.wantFound {
 				t.Errorf("supersessionOf(%q) found = %v, want %v", tt.input, ok, tt.wantFound)
 			}

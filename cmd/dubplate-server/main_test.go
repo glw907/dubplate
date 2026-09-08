@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"strings"
 	"testing"
-
-	"github.com/glw907/dubplate/internal/config"
 )
 
 // TestRootCmd_UnknownSubcommand proves the fix for the silent-failure
@@ -34,22 +32,37 @@ func TestRootCmd_UnknownSubcommand(t *testing.T) {
 	}
 }
 
-// TestNewRootCmd_RegistersShadowThresholdsOnce proves R12:
-// newRootCmd runs more than once in a test binary (main_test.go's own
-// TestRootCmd_UnknownSubcommand above, plus doctor_test.go's direct
-// registerShadowThresholds calls), and config.Register appends without
-// dedup, so a bare call from newRootCmd would grow the registry every
-// construction.
-func TestNewRootCmd_RegistersShadowThresholdsOnce(t *testing.T) {
-	newRootCmd()
-	first := len(config.Thresholds())
-
-	newRootCmd()
-	second := len(config.Thresholds())
-
-	if second != first {
-		t.Errorf("Thresholds() len after a second newRootCmd() = %d, want %d (unchanged)", second, first)
-	}
+// TestNewRootCmd_ConstructsIndependentRegistries proves R12's
+// double-registration hazard is gone under R1's value registry:
+// newRootCmd runs more than once in a test binary (this file's own
+// TestRootCmd_UnknownSubcommand, plus doctor_test.go's direct
+// registerShadowThresholds calls), and each call now builds its own
+// fresh *config.Registry rather than sharing one. A registry panics on
+// a duplicate key (internal/config/registry.go), so a newRootCmd that
+// leaked a shared registry across calls would panic here on the
+// second construction; this replaces the retired
+// TestNewRootCmd_RegistersShadowThresholdsOnce, whose own proof read
+// config.Thresholds(), a package-level function Task 3 retires along
+// with registeredThresholds. internal/config/registry_test.go's own
+// TestNewRegistry_Independent proves the same property at the
+// registry's own level.
+func TestNewRootCmd_ConstructsIndependentRegistries(t *testing.T) {
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("first newRootCmd() panicked: %v", r)
+			}
+		}()
+		newRootCmd()
+	}()
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("second newRootCmd() panicked: %v", r)
+			}
+		}()
+		newRootCmd()
+	}()
 }
 
 // TestNewVersionCmd_PrintsTwoLabeledRows proves R3: the version verb

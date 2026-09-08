@@ -13,14 +13,14 @@ import (
 // success. On failure it returns the load error unprinted: main is
 // the sole writer of command errors to stderr, so a failed check in a
 // systemd journal is the error alone, never doubled.
-func newCheckCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
+func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "check",
 		Short:         "Validate configuration",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(*cobra.Command, []string) error {
-			if _, err := config.Load(environ); err != nil {
+			if _, err := config.Load(environ, reg); err != nil {
 				return err
 			}
 			_, err := fmt.Fprintln(stdout, "configuration: ok")

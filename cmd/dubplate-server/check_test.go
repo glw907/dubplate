@@ -56,7 +56,7 @@ func TestCheckCmd(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newCheckCmd(tt.environ, &stdout, &stderr)
+			cmd := newCheckCmd(tt.environ, config.NewRegistry(), &stdout, &stderr)
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
@@ -104,13 +104,14 @@ func TestCheckCmd(t *testing.T) {
 // main_test.go and the build-and-run probe); check's own stdout and
 // stderr stay empty.
 func TestCheckCmd_EmptyEnvironment(t *testing.T) {
-	_, loadErr := config.Load(nil)
+	reg := config.NewRegistry()
+	_, loadErr := config.Load(nil, reg)
 	if loadErr == nil {
 		t.Fatal("config.Load(nil) error = nil, want error; fixture assumption broken")
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := newCheckCmd(nil, &stdout, &stderr)
+	cmd := newCheckCmd(nil, reg, &stdout, &stderr)
 	cmd.SetOut(&stdout)
 	err := cmd.Execute()
 
