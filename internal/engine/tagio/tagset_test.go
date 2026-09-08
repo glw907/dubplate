@@ -3,6 +3,7 @@ package tagio
 import (
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -210,6 +211,87 @@ func TestTagSetMembersTieToMapping(t *testing.T) {
 	for f := range gotMapping {
 		if _, ok := fieldStructName[f]; !ok {
 			t.Errorf("mapping names %q, fieldStructName does not", f)
+		}
+	}
+}
+
+// TestTagSetJSONTagsTieToFieldConstants grades R11's mandatory safety
+// net in two halves, because a wrong tag is otherwise invisible: the
+// conformance instrument's fill and its projection both go through
+// the same tag, so a tag that maps album to the artist member writes
+// ARTIST and reads it back under album, and the comparison agrees
+// while the file on disk is wrong.
+//
+// By name: for each entry in fieldStructName, the named TagSet
+// member's JSON tag, read through reflection, equals the Field
+// constant that names it. This ties the tag, the member and the
+// mapping row together by fieldStructName's one literal rather than
+// by struct declaration order.
+//
+// By position: for each index, the struct field at that index's JSON
+// tag equals Mapping()'s row at the same index, and the member count
+// equals 69. This is the cheaper, position-based check that fails
+// loudly if TagSet's declaration order ever drifts from mapping's.
+func TestTagSetJSONTagsTieToFieldConstants(t *testing.T) {
+	typ := reflect.TypeFor[TagSet]()
+
+	t.Run("by name", func(t *testing.T) {
+		for field, structName := range fieldStructName {
+			structField, ok := typ.FieldByName(structName)
+			if !ok {
+				t.Errorf("TagSet has no field named %q (fieldStructName[%q])", structName, field)
+				continue
+			}
+			tag, ok := structField.Tag.Lookup("json")
+			if !ok {
+				t.Errorf("TagSet.%s carries no json tag, want %q", structName, field)
+				continue
+			}
+			if tag != string(field) {
+				t.Errorf("TagSet.%s json tag = %q, want %q (the Field constant naming it)", structName, tag, field)
+			}
+		}
+	})
+
+	t.Run("by position", func(t *testing.T) {
+		if typ.NumField() != 69 {
+			t.Fatalf("TagSet has %d fields, want 69", typ.NumField())
+		}
+		if len(mapping) != 69 {
+			t.Fatalf("mapping has %d rows, want 69", len(mapping))
+		}
+		for i, row := range mapping {
+			structField := typ.Field(i)
+			tag, ok := structField.Tag.Lookup("json")
+			if !ok {
+				t.Errorf("TagSet field %d (%s) carries no json tag, want %q", i, structField.Name, row.Field)
+				continue
+			}
+			if tag != string(row.Field) {
+				t.Errorf("TagSet field %d (%s) json tag = %q, want %q (Mapping()[%d].Field)", i, structField.Name, tag, row.Field, i)
+			}
+		}
+	})
+}
+
+// TestTagSetJSONTagsCarryNoOmitempty grades R11: every ledger row
+// carries all 69 keys, absent values included as explicit nulls, so
+// an omitempty tag would drop an absent member from the projection
+// and fail the conformance instrument's 69-key count on every
+// subject carrying that field as null.
+func TestTagSetJSONTagsCarryNoOmitempty(t *testing.T) {
+	typ := reflect.TypeFor[TagSet]()
+	if typ.NumField() != 69 {
+		t.Fatalf("TagSet has %d fields, want 69", typ.NumField())
+	}
+	for f := range typ.Fields() {
+		tag, ok := f.Tag.Lookup("json")
+		if !ok {
+			t.Errorf("TagSet.%s carries no json tag", f.Name)
+			continue
+		}
+		if strings.Contains(tag, "omitempty") {
+			t.Errorf("TagSet.%s json tag %q carries omitempty, want none", f.Name, tag)
 		}
 	}
 }

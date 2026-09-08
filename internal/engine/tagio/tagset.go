@@ -112,76 +112,87 @@ const (
 // Both nil-vs-empty distinctions are read and written directly, with
 // no second lookup: a caller checking presence reads the one field
 // TagSet already exposes for it.
+//
+// Every member carries a JSON tag naming the ledger's own field name
+// (its Field constant's value), with no omitempty (R11): the
+// conformance instrument fills a TagSet by unmarshalling a ledger
+// row's filtered applied-fields object straight into it and projects
+// a read-back TagSet by marshalling it, and every ledger row carries
+// all 69 keys, absent values included as explicit nulls, so an
+// omitted member would drop an absent field from the round trip.
+// TestTagSetMembersTieToMapping ties every tag to the Field constant
+// that names it, so a wrong tag fails loudly rather than silently
+// swapping two fields' values while both sides of a comparison agree.
 type TagSet struct {
-	AcoustIDFingerprint *string
-	AcoustIDID          *string
-	Album               *string
-	Albumartist         *string
-	AlbumartistCredit   *string
-	AlbumartistSort     *string
-	Albumartists        []string
-	AlbumartistsCredit  []string
-	AlbumartistsSort    []string
-	Albumdisambig       *string
-	Albumstatus         *string
-	Albumtype           *string
-	Albumtypes          []string
-	Arrangers           []string
-	Artist              *string
-	ArtistCredit        *string
-	ArtistSort          *string
-	Artists             []string
-	ArtistsCredit       []string
-	ArtistsSort         []string
-	Asin                *string
-	Barcode             *string
-	Bpm                 *int
-	Catalognum          *string
-	Comments            *string
-	Comp                *bool
-	ComposerSort        *string
-	Composers           []string
-	Country             *string
-	Year                *int
-	Month               *int
-	Day                 *int
-	Disc                *int
-	Disctitle           *string
-	Disctotal           *int
-	Encoder             *string
-	Genres              []string
-	Grouping            *string
-	InitialKey          *string
-	Isrc                *string
-	Label               *string
-	Language            *string
-	Lyricists           []string
-	Lyrics              *string
-	MBAlbumartistid     *string
-	MBAlbumartistids    []string
-	MBAlbumid           *string
-	MBArtistid          *string
-	MBArtistids         []string
-	MBReleasegroupid    *string
-	MBReleasetrackid    *string
-	MBTrackid           *string
-	MBWorkid            *string
-	Media               *string
-	OriginalYear        *int
-	OriginalMonth       *int
-	OriginalDay         *int
-	R128AlbumGain       *float64
-	R128TrackGain       *float64
-	Remixers            []string
-	RgAlbumGain         *float64
-	RgAlbumPeak         *float64
-	RgTrackGain         *float64
-	RgTrackPeak         *float64
-	Script              *string
-	Subtitle            *string
-	Title               *string
-	Track               *int
-	Tracktotal          *int
+	AcoustIDFingerprint *string  `json:"acoustid_fingerprint"`
+	AcoustIDID          *string  `json:"acoustid_id"`
+	Album               *string  `json:"album"`
+	Albumartist         *string  `json:"albumartist"`
+	AlbumartistCredit   *string  `json:"albumartist_credit"`
+	AlbumartistSort     *string  `json:"albumartist_sort"`
+	Albumartists        []string `json:"albumartists"`
+	AlbumartistsCredit  []string `json:"albumartists_credit"`
+	AlbumartistsSort    []string `json:"albumartists_sort"`
+	Albumdisambig       *string  `json:"albumdisambig"`
+	Albumstatus         *string  `json:"albumstatus"`
+	Albumtype           *string  `json:"albumtype"`
+	Albumtypes          []string `json:"albumtypes"`
+	Arrangers           []string `json:"arrangers"`
+	Artist              *string  `json:"artist"`
+	ArtistCredit        *string  `json:"artist_credit"`
+	ArtistSort          *string  `json:"artist_sort"`
+	Artists             []string `json:"artists"`
+	ArtistsCredit       []string `json:"artists_credit"`
+	ArtistsSort         []string `json:"artists_sort"`
+	Asin                *string  `json:"asin"`
+	Barcode             *string  `json:"barcode"`
+	Bpm                 *int     `json:"bpm"`
+	Catalognum          *string  `json:"catalognum"`
+	Comments            *string  `json:"comments"`
+	Comp                *bool    `json:"comp"`
+	ComposerSort        *string  `json:"composer_sort"`
+	Composers           []string `json:"composers"`
+	Country             *string  `json:"country"`
+	Year                *int     `json:"year"`
+	Month               *int     `json:"month"`
+	Day                 *int     `json:"day"`
+	Disc                *int     `json:"disc"`
+	Disctitle           *string  `json:"disctitle"`
+	Disctotal           *int     `json:"disctotal"`
+	Encoder             *string  `json:"encoder"`
+	Genres              []string `json:"genres"`
+	Grouping            *string  `json:"grouping"`
+	InitialKey          *string  `json:"initial_key"`
+	Isrc                *string  `json:"isrc"`
+	Label               *string  `json:"label"`
+	Language            *string  `json:"language"`
+	Lyricists           []string `json:"lyricists"`
+	Lyrics              *string  `json:"lyrics"`
+	MBAlbumartistid     *string  `json:"mb_albumartistid"`
+	MBAlbumartistids    []string `json:"mb_albumartistids"`
+	MBAlbumid           *string  `json:"mb_albumid"`
+	MBArtistid          *string  `json:"mb_artistid"`
+	MBArtistids         []string `json:"mb_artistids"`
+	MBReleasegroupid    *string  `json:"mb_releasegroupid"`
+	MBReleasetrackid    *string  `json:"mb_releasetrackid"`
+	MBTrackid           *string  `json:"mb_trackid"`
+	MBWorkid            *string  `json:"mb_workid"`
+	Media               *string  `json:"media"`
+	OriginalYear        *int     `json:"original_year"`
+	OriginalMonth       *int     `json:"original_month"`
+	OriginalDay         *int     `json:"original_day"`
+	R128AlbumGain       *float64 `json:"r128_album_gain"`
+	R128TrackGain       *float64 `json:"r128_track_gain"`
+	Remixers            []string `json:"remixers"`
+	RgAlbumGain         *float64 `json:"rg_album_gain"`
+	RgAlbumPeak         *float64 `json:"rg_album_peak"`
+	RgTrackGain         *float64 `json:"rg_track_gain"`
+	RgTrackPeak         *float64 `json:"rg_track_peak"`
+	Script              *string  `json:"script"`
+	Subtitle            *string  `json:"subtitle"`
+	Title               *string  `json:"title"`
+	Track               *int     `json:"track"`
+	Tracktotal          *int     `json:"tracktotal"`
 }
 
 // EmptyString returns a present-but-empty value for a TagSet string
