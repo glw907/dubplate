@@ -20,10 +20,13 @@ live, production.
 
 ## Next action
 
-Lane-1 (main tree, IDLE): author pass 8b's plan (PICTURE and
-conformance) from 8a's handoff, then run `code-simplifier` over 8a's
-changed Go before Task 1 dispatches. Lane-2 (worktree, IDLE): author
-pass 5a's plan from the rung 5 spec. Both plans are just-in-time.
+Lane-1 (main tree): pass 8b's plan is at revision 2 (1cbd270); the
+8a simplifier round landed (0f2b61d); the 8b chain launches after
+its Task 0 report. Lane-2 (worktree `.claude/worktrees/lane-2-5a`,
+branch `lane-2-5a` from 8ac38d7): ACTIVE, pass 5a chain (pass-execute
+wf_115f4cec-9c0, launched 2026-09-08 11:10; Task 0 clean); one
+executor; the merge ritual closes it. Phase cap 10M, flag to the
+conductor (Geoff, 2026-09-08).
 
 ## Open items (carried)
 
