@@ -21,6 +21,15 @@ launches complete (Go matcher included). Two standing bars, from memory:
 exemplary Go (`idiomatic-beautiful-go`) and render-and-read every
 user-path page before any attended ask (`see-it-before-geoff-tests-it`).
 
+**Build for 2.0 (Geoff, 2026-09-07).** The next initiative after launch
+is dubplate-server 2.0, the built-in OpenSubsonic streamer that subsumes
+Navidrome (ROADMAP `streamer-2-0`; spec under `docs/superpowers/specs/`).
+Every rung plan authored from now on weighs its surface against that
+spec's forward-hooks list and states per task whether it lands a hook or
+is neutral; a rung 6 schema or a rung 12 driver seam built without 2.0 in
+view is rework. Route newly discovered hooks into that list; never build
+2.0 features early.
+
 ## Ledgers
 
 - `docs/STATUS.md` — read in full at session start; present tense only.

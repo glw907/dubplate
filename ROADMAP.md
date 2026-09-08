@@ -62,6 +62,32 @@ Folded from the organizer spec's "Roadmap revisions this spec carries"
 
 ## Planned
 
+### dubplate-server 2.0: the built-in streamer `streamer-2-0`
+Subsume Navidrome so the estate is one clean integrated system (Geoff,
+2026-09-07; primary driver: one binary a stranger can set up). Brainstormed
+2026-09-07, spec in progress under `docs/superpowers/specs/`. Settled so
+far: OpenSubsonic API first, first-party web player later; the pipeline's
+catalog is the index (no scanner admits music; a reconcile walk only
+reports drift); app passwords minted per device from the roster account;
+ffmpeg transcoding under a content-keyed cache with a size cap; playlists,
+starred, timestamped play history, and the saved queue at launch; art
+resized on demand from a pipeline-admitted blob; FTS5 trigram search over
+folded text. Build shape A: an oracle harness (Navidrome and dubplate
+against one library, responses diffed and adjudicated) and a written
+Navidrome study first, then vertical slices each walked by a named client
+roster. Sequenced after launch (rung 17); the driver seam stays and
+Navidrome remains the escape hatch through 2.0's first months. Navidrome
+is GPLv3: study it for behavior, never copy; its permissive dependencies
+(taglib via wazero, x/image, fscache) are ours to use. **Standing rule
+while the ladder builds:** each rung's plan weighs its surface against
+the 2.0 spec's forward-hooks list (content hash and folded sort key on
+the catalog row, the art blob recorded at admit, play history as events)
+and says per task whether it lands a hook or is neutral. 2.1 list:
+scrobbling (ListenBrainz, Last.fm), ratings, artist images, transcode
+pre-warming per profile, the web player, metrics, an edit-distance
+search rerank.
+
+
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): family accounts
 and live-use intake move to the new server's launch; what survives is the
