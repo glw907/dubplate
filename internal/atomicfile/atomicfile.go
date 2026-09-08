@@ -59,27 +59,23 @@ func WriteStream(path string, perm os.FileMode, write func(io.Writer) error) err
 		return fmt.Errorf("create temp file in %s: %w", dir, err)
 	}
 	tmpPath := tmp.Name()
+	defer func() { _ = os.Remove(tmpPath) }()
 
 	if err := write(tmp); err != nil {
 		_ = tmp.Close()
-		_ = os.Remove(tmpPath)
 		return fmt.Errorf("write %s: %w", tmpPath, err)
 	}
 	if err := tmp.Sync(); err != nil {
 		_ = tmp.Close()
-		_ = os.Remove(tmpPath)
 		return fmt.Errorf("sync %s: %w", tmpPath, err)
 	}
 	if err := tmp.Close(); err != nil {
-		_ = os.Remove(tmpPath)
 		return fmt.Errorf("close %s: %w", tmpPath, err)
 	}
 	if err := os.Chmod(tmpPath, perm); err != nil {
-		_ = os.Remove(tmpPath)
 		return fmt.Errorf("chmod %s: %w", tmpPath, err)
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
-		_ = os.Remove(tmpPath)
 		return fmt.Errorf("rename %s to %s: %w", tmpPath, path, err)
 	}
 
