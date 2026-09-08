@@ -204,14 +204,25 @@ func (s Strip) Wrap(next http.Handler) http.Handler {
 }
 
 // stripIdentity removes group 1: every identity spelling from r.Header
-// immediately, and the same set from r.Trailer once the request body
-// has been read (R-P). The one exemption a configured front may carry
-// is honored here (R-Q, R-S's sibling for group 1).
+// and r.Trailer on the same pass (R-P), then wraps r.Body so the same
+// names are deleted from r.Trailer again once the client's trailer
+// section has actually arrived. The up-front delete removes the
+// announced key before the body is read; net/http's mergeSetHeader
+// re-adds that key once the trailer's value arrives, so the read-time
+// scrub is what removes a value smuggled after the body. The one
+// exemption a configured front may carry is honored in both passes
+// (R-Q, R-S's sibling for group 1).
 func (s Strip) stripIdentity(r *http.Request) {
 	exempt := s.exemption.headerFor(PeerAddress(r))
 	if exempt != "" {
 		collapseToLast(r.Header, exempt)
 	}
+
+	// A request that announces a Trailer name populates r.Trailer with
+	// that name up front, mapped to nil; the length check has to run
+	// before the deletion loop empties the map, or scrubTrailerOnRead
+	// below would wrongly conclude no trailer was announced at all.
+	announcedTrailer := len(r.Trailer) > 0
 
 	names := identitySpellings(s.header)
 	for _, name := range names {
@@ -219,8 +230,11 @@ func (s Strip) stripIdentity(r *http.Request) {
 			continue
 		}
 		r.Header.Del(name)
+		r.Trailer.Del(name)
 	}
-	scrubTrailerOnRead(r, names, exempt)
+	if announcedTrailer {
+		scrubTrailerOnRead(r, names, exempt)
+	}
 }
 
 // collapseToLast rewrites h so name carries only the last value among
@@ -242,13 +256,13 @@ func sameHeaderName(a, b string) bool {
 
 // scrubTrailerOnRead wraps r.Body so that once the client's trailer
 // section has arrived, every name in names, other than exempt, is
-// deleted from r.Trailer. Go's server populates r.Trailer's announced
-// keys only when the handler reads the body through to io.EOF, and a
-// delete issued before that point is silently overwritten once the
-// trailer arrives (measured on go1.27.1); wrapping the body is the one
-// point that reliably runs after.
+// deleted from r.Trailer again. net/http's mergeSetHeader (transfer.go)
+// copies the wire trailer's values into r.Trailer unconditionally once
+// the body reaches io.EOF, which re-adds any name this task's up-front
+// delete removed; wrapping the body is the one point that reliably runs
+// after that merge.
 func scrubTrailerOnRead(r *http.Request, names []string, exempt string) {
-	if len(r.Trailer) == 0 || r.Body == nil {
+	if r.Body == nil {
 		return
 	}
 	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, trailer: r.Trailer, names: names, exempt: exempt}

@@ -90,11 +90,12 @@ func TestStripWrapClearsAnnouncedTrailerOnceBodyIsRead(t *testing.T) {
 	// R-P: Go populates a server request's Trailer map only once the
 	// handler reads the body through to io.EOF, so the strip must
 	// clear it on that same pass, not only on r.Header up front.
-	var beforeHeader, beforeTrailer, afterHeader, afterTrailer string
+	var beforeHeader, afterHeader, afterTrailer string
+	var beforeTrailerPresent bool
 	srv := httptest.NewServer(NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}).Wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			beforeHeader = r.Header.Get("Remote-User")
-			beforeTrailer = r.Trailer.Get("Remote-User")
+			_, beforeTrailerPresent = r.Trailer["Remote-User"]
 			io.Copy(io.Discard, r.Body) //nolint:errcheck // test drains to trigger trailer population
 			afterHeader = r.Header.Get("Remote-User")
 			afterTrailer = r.Trailer.Get("Remote-User")
@@ -126,8 +127,8 @@ func TestStripWrapClearsAnnouncedTrailerOnceBodyIsRead(t *testing.T) {
 	if beforeHeader != "" {
 		t.Errorf("before body read: r.Header[Remote-User] = %q, want empty", beforeHeader)
 	}
-	if beforeTrailer != "" {
-		t.Errorf("before body read: r.Trailer[Remote-User] = %q, want empty", beforeTrailer)
+	if beforeTrailerPresent {
+		t.Error("before body read: r.Trailer still has the Remote-User key announced by the request, want the strip to have deleted it up front")
 	}
 	if afterHeader != "" {
 		t.Errorf("after body read: r.Header[Remote-User] = %q, want empty", afterHeader)
