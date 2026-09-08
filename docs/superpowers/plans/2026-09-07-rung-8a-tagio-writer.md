@@ -7,14 +7,15 @@ majors and eleven minors, every one re-verified against the tree at
 rejected. The blockers were the golden's own input recorded nowhere, the
 field-name rule sitting in a task with no input path, and a ceiling
 derivation that divided by ten where the measurement is over nine. Seven
-folds are applied as the recommendation and marked **provisional,
-conductor ruling owed**; each names what changes if the ruling comes back
-the other way. Seventeen `spec:` pointers that opened on a different
-subject are corrected in place, and the verification stamp moves from
+folds are applied as the recommendation. **Pass 8a's close (Task 9,
+2026-09-08) retires all seven from provisional to ruled**: the
+conductor's eight rulings of 2026-09-08, folded throughout and marked
+**ruled, conductor 2026-09-08** at each site, cover them, and each site
+still names what would have changed had the ruling come back the other
+way. Seventeen `spec:` pointers that opened on a different subject are
+corrected in place, and the verification stamp moves from
 `8031e3b` to `47e80cc`. The ceiling moves from 4M to 4.5M with the
-arithmetic shown. The task count is unchanged at Task 0 plus nine. The
-conductor's eight rulings of 2026-09-08 are folded throughout, each
-marked **ruled, conductor 2026-09-08** at its site; Fork B stays open and
+arithmetic shown. The task count is unchanged at Task 0 plus nine. Fork B stays open and
 owed to Geoff.
 
 **Revision 1, 2026-09-07.** Drafted against the rung 8 spec at

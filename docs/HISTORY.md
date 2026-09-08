@@ -2,6 +2,414 @@
 
 Per-pass ledger, newest first.
 
+## Rung 8, pass 8a (the tagio writer core and reader): closed 2026-09-08
+
+Tasks 0 through 9 executed against
+`docs/superpowers/plans/2026-09-07-rung-8a-tagio-writer.md` (revision 2)
+in the main tree. This entry is Task 9, the pass close. Task 0 found no
+blockers: `.gitleaksignore` is unchanged and empty of new pins, and
+`gen_template_flac.py`'s path sat one directory level deeper than the
+plan assumed, a drift note rather than a stop.
+
+### What landed
+
+`internal/engine/tagio` is born this pass, plus one added exported
+function on `internal/atomicfile`. Task 1 (`149d10c`) added
+`atomicfile.WriteStream` (`internal/atomicfile/atomicfile.go:55`), the
+streaming atomic write `tagio`'s writer rides: a temp file in the
+target's own directory, the caller's write function, sync, chmod to the
+caller's mode, rename, then a directory fsync. `WriteFile` is
+unchanged. Task 2 (`986eb1c`, fix `81efc0d`) authored
+`internal/engine/tagio/testdata/golden.flac` and its provenance record,
+`golden.txt`, generated once from the pinned oracle venv (beets 2.13.1,
+mediafile 0.17.0, mutagen 1.48.1) over a declared input reaching every
+one of Task 8's ledger-silent keys plus the four corpus-unreachable
+cases; the fix restored a real second date so the golden still exercises
+month/day decomposition, and corrected the input's attribution to name
+the covering shape as the generator's own rather than a reproduction of
+an `INV` input list, since `INV:409-427` publishes an emitted shape, not
+an input.
+
+Task 3 (`f7c8ffc`) added `Parse` (`internal/engine/tagio/container.go:122`),
+the container reader: the block chain in order, STREAMINFO and
+VORBIS_COMMENT decoded, and the frame region as `Container.FrameOffset`
+and `Container.FrameLength` rather than as bytes (C15, C7a). It refuses
+all seven of C7's malformed and unsupported shapes, including the two
+this pass's review folded and the conductor ruled 2026-09-08: a comment
+field name outside U+0020-U+007E, and a second SEEKTABLE block, both no
+longer non-refusals under C10's general preserve-unknown-by-length rule
+(RFC 9639 section 8.5 allows at most one). Task 4 (`8c0722d`, fix
+`c6ea3f6`) added `TagSet` (`internal/engine/tagio/tagset.go:115`) with
+its four states carried in Go-native pointer and slice types, and
+`Mapping()`/`WriteOrder()` (`:332`, `:320`) reproducing `INV:315-385`'s
+69-row table with the three colliding pairs resolved plural-last; the
+fix repaired two subtests that built assertions on bare maps instead of
+reading `TagSet`'s own fields, so a dropped read never actually failed
+them.
+
+Task 5 (`8c03957`, fix `a12d81c`) added `Serialize`
+(`internal/engine/tagio/encode.go:33`) and the `safe_cast` read-side
+primitives, covering every serialization rule in the package contract:
+float places, the `" dB"` suffix, the R128 Q8 shift, list repetition,
+the bool encoding, and date decomposition with its four-digit year and
+unpadded `YEAR` fallback. The fix replaced a naive per-invalid-byte
+`utf8.DecodeRuneInString` scan with `utf8SequenceSpan`
+(`internal/engine/tagio/encode.go:460`), which collapses a maximal
+ill-formed subpart into one U+FFFD the way Python's `errors='replace'`
+does, a real divergence the fix's four table rows pin. Task 6
+(`933f043`, reviewed clean by opus) added `Read`
+(`internal/engine/tagio/read.go:14`), the exported 69-key read
+projection: first-truthy-style precedence, C5's last-style rule,
+`safe_cast`'s numeric behavior, date recomposition, and the Q8
+division, asserted in one equality against golden.txt's transcribed 69
+values.
+
+Task 7 (`88e7ecf`, fix `4834199`) added `Write`
+(`internal/engine/tagio/write.go:46`), the merge contract: a
+case-insensitive delete-then-append over `Serialize`'s fixed order,
+every unowned block preserved under a re-emitted header, the vendor
+preserved on rewrite and freshly named (`dubplate `-prefixed, per R9)
+on creation, exactly one 8 KiB PADDING block written last, and the
+frame region copied verbatim. It refuses a malformed or unsupported
+container before the target is ever opened for writing. The fix widened
+the surviving-comments assertion from one colliding pair to all three.
+Task 8 (`b42e3b2`) added the ruling 1 unit tests over the sixteen
+ledger-silent keys plus `bpm`, and the six corpus-unreachable cases
+(zero year, empty list, `catalognum`/`barcode` empty, invalid UTF-8, the
+U+007E field name), and `deviations.go`, the package-documentation
+deviation note rung 15's launch gate reads directly.
+
+The exported surface, as it stands at close: `Parse` and `Read` for the
+two read paths, `Write` for the merge contract, `TagSet` with its four
+states, `Mapping()` and `WriteOrder()` for the 69-key table and its
+fixed write order, `Serialize` for the encoding rules, and the two
+sentinels `ErrUnsupportedContainer` and `ErrMalformedContainer`
+(`internal/engine/tagio/container.go:41`, `:46`). No signature carries a
+picture parameter (R5); 8b widens `Container` and `Write`'s argument
+list for PICTURE as one in-package refactor with no consumer wired yet.
+
+The leftovers round (`8ff65bd`) closed six findings across the accepted
+tasks in one post-chain pass, without a second reviewer (below): the
+count-and-names test enumerated `Mapping`'s rows rather than `TagSet`'s
+members, so a dropped struct member could not fail it, closed by
+`TestTagSetMembersTieToMapping`; `Mapping` was unexported and returned
+its backing slice, now `Mapping()` returns a `slices.Clone`, proven by
+`TestMappingAccessorReturnsCopy`; `emitBlock`'s payload length overflows
+its three-byte field at 1<<24 bytes, closed by `checkBlockPayloadSize`
+and `TestCheckBlockPayloadSize`; the U+007E field-name test asserted
+only that `TITLE` still projected, not that the tilde-named comment
+itself survived, tightened; three comment and doc fixes (a garbled
+sentence, a nonexistent stdlib name, one wrong noun); and CLAUDE.md's
+gate sentence, which named a stale Python file count, rewritten to name
+the files by role.
+
+### What the gate caught
+
+Task 4's fix (`c6ea3f6`) is a mutation-testing catch turned real defect:
+the four-state table's list and numeric subtests built `[]string` and
+`*int` values directly rather than reading them off a constructed
+`TagSet`, so `TagSet.Genres` and `TagSet.Track` were named in the
+failure message but never actually read; the second `diff-reviewer` pass
+caught it and the conductor folded the fix in the leftovers round rather
+than a third chain round. Task 5's fix (`a12d81c`) is a real behavioral
+divergence the plan's own citation work found, not a review nit: mutagen
+decodes invalid UTF-8 with Python's maximal-ill-formed-subpart rule, and
+a naive per-byte scan emits one U+FFFD per invalid byte instead of one
+per subpart. Task 7's twelve named mutations ran and restored: ten fired
+as the plan predicted; one (opening the target before validating the
+container) needed a dedicated test to observe, since
+`atomicfile.WriteStream`'s own cleanup on error masked the reordering
+from a bytes-unchanged assertion alone, closed by adding
+`TestWriteRefusalNeverCreatesTempFile`; one (a whole-file read on the
+write path) stayed unfired by design, held by the reviewer's read per
+the plan. Every other task's fix round is a targeted correction the
+`diff-reviewer` sent back once; none needed a second re-dispatch.
+
+### The resolutions and rulings, as applied
+
+All ten resolutions stand as ruled, conductor 2026-09-08, per the plan's
+Resolutions section; none folded.
+
+- **R1** (the golden's generator is a committed, hand-run script beside
+  the golden): `internal/engine/tagio/testdata/gen_golden_flac.py`.
+- **R2** (one golden, widened to reach every ledger-silent key and every
+  corpus-unreachable case): `internal/engine/tagio/testdata/golden.txt`'s
+  declared-input section.
+- **R3** (the oracle template is read at generation time only, never by
+  a Go test): `gen_golden_flac.py`'s copy step; no `_test.go` file in
+  the package opens a path outside `internal/engine/tagio`.
+- **R4** (the byte assertion writes into a copy of the golden, not the
+  template): `write_test.go:115` (`TestWriteGoldenBytes`).
+- **R5** (no picture parameter on 8a's signatures): `write.go:46`
+  (`Write`'s argument list), `container.go:102` (`Container`).
+- **R6** (no `ctx` on `tagio`'s entry points): `read.go:14`, `write.go:46`.
+- **R7** (both sentinels land in 8a; 8b adopts the unsupported one
+  unchanged): `container.go:41`, `:46`; crosses `spec:1103`, corrected
+  below.
+- **R8** (the four-state representation is the implementer's, under two
+  stated properties): `tagset.go:115`, proven by
+  `tagset_test.go:323` (`TestFourStates`).
+- **R9** (the fresh vendor asserted by prefix, version from the build):
+  `write.go:184` (`freshVendor`), `write_test.go:481`.
+- **R10** (`WriteFile` untouched; the streaming write is its sibling):
+  `internal/atomicfile/atomicfile.go:55`.
+
+**C7's sixth refusal (double SEEKTABLE) is reversed from the draft
+reading**, ruled by the conductor 2026-09-08: RFC 9639 section 8.5
+allows at most one SEEKTABLE block, so `tagio` refuses a second rather
+than copying it through under C10's general rule. **C9a's fresh-block
+placement is confirmed, not corrected**: `golden.txt`'s recorded block
+chain shows VORBIS_COMMENT immediately after STREAMINFO, matching the
+oracle measurement, and `TestWriteNoCommentBlockInsertsAfterStreamInfo`
+grades the writer to it. **The date triple's compose-as-a-unit rule**
+(an absent year deletes `DATE` and its `YEAR` fallback together; an
+absent month or day beside a present year is treated as falsy) is
+applied at `encode.go:330` (`serializeDate`) and proven by
+`encode_test.go:73` (`TestSerializeDateTable`) and `:118`
+(`TestSerializeOriginalDateEveryComponentZero`). **The 4.5M ceiling**
+held; the pass did not cross it (Spend, below).
+
+### The mutation table
+
+Every task's named mutations, as the plan predicted them and as the
+implementer reported running them; per-mutation counts below are the
+plan's own list, and outcomes beyond a task's commit message are
+attributed to the implementer's report rather than restated in detail
+here.
+
+**Task 1** (5 named): the mode-drop and early-return mutations fire on
+the mode and leftover-temp rows; the directory-fsync drop and the
+buffered-internal-`WriteFile` mutation are both reported unfired by
+design (a power-cut property and a memory property, neither observable
+from a workstation test; both held by the doc comment, ruling 12, and
+the reviewer's read).
+
+**Task 2** (2 named): the regenerate-with-one-field-changed mutation
+fires the recorded-sequence check; the one-byte-truncation mutation is
+reported unfired by design, since Task 3 is the first task that parses
+the golden and carries the matching mutation itself.
+
+**Task 3** (11 named): reported by the implementer as run per the
+plan's predictions, covering the header-endianness asymmetry, the
+STREAMINFO offset window, all seven refusal rows including the two this
+pass added, repeated-key merging, and the U+007E preservation pair. The
+whole-file-read mutation is reported unfired by design, held by the
+reviewer's read for C7a.
+
+**Task 4** (6 named): the field-drop, colliding-pair-order, and
+determinism mutations fire on `TestFieldCountAndNames`,
+`TestCollidingPairsWriteOrder`, and `TestWriteOrderDeterministic`; the
+two empty-state-collapse mutations are kept and graded separately per
+`TestFourStates`, which the ledger's 45 empty-list-versus-149
+empty-string split argues for; the read-only-mark-drop mutation on
+`barcode`'s `UPC` style is reported unfired in this task by design,
+since its consequence is a write Task 7 grades.
+
+**Task 5** (9 named): reported by the implementer as run per the plan's
+predictions, covering float formatting, the `" dB"` suffix asymmetry
+between the gain and peak rows, the R128 Q8 shift, year padding, the
+zero-month `-DD` guard, the empty-string-versus-empty-list write
+divergence, invalid-UTF-8 replacement, and the compose-as-a-unit
+`DATE` rule. One (stripping the suffix after rather than before the
+cast) is reported unfired by construction: `safe_cast`'s leading-prefix
+match makes the ordering unobservable across all 69 keys, cited against
+`mediafile/utils/type_conversion.py:52`.
+
+**Task 6** (7 named): reported by the implementer as run per the plan's
+predictions, covering style-break precedence, the last-style rule on
+`catalognum`/`barcode`, list projection, the R128 divisor, absent-key
+typed zeros, and a two-field-swap caught only by the golden's whole-set
+comparison. One (stripping the suffix after the cast) is reported
+unfired by construction, the same citation as Task 5's mirrored case.
+
+**Task 7** (12 named), the pass's most detailed report: ten fired as
+predicted (big-endian header fields, last-style write coverage, the
+foreign-key merge, the padding-and-append guard, the last-block-flag
+placement, STREAMINFO's untouched MD5, the frame-region hash, the
+write-target-unchanged refusal guard, the caller-mode chmod, and
+map-order iteration); one (opening the target before validating)
+required `TestWriteRefusalNeverCreatesTempFile` as a dedicated test,
+since `atomicfile.WriteStream`'s own error-path cleanup otherwise
+masked the reordering; one (a whole-file read on the write path) stayed
+unfired by design, the reviewer's read the acceptance criterion names.
+
+**Task 8** (4 named): the computed-not-hard-coded mutation is a review
+check rather than a test run, and the reviewer rejected it as the
+self-derived-expectation anti-pattern it is; the `" dB"`-suffix-drop
+mutation fires here too, the deliberate redundancy with Task 5; the
+`BPM`-as-absent-at-zero mutation fires the `bpm` row. The
+remove-a-key-from-the-deviation-note mutation is reported unfired by
+design: the note's completeness is a reviewer's read against the task's
+key list, not a test assertion.
+
+### The reviewer-read proofs
+
+Two properties in the package contract are held by a reviewer's read
+rather than by an assertion, and this close records who verified each.
+**No whole-file read in `Parse`**: `container.go:122`'s doc comment
+states the parse reads the metadata region only and bounds-checks every
+declared length before a slice is taken; Task 3's `diff-reviewer` pass
+read the diff against this criterion and accepted it, and the leftovers
+round's mutation-testing catch on `parseBlocks`'s short-read handling
+(`8ff65bd`, item 7) touched the same code path without finding a
+buffered whole-file read. **The frame region copied, not buffered, in
+`Write`**: `write.go:252`'s `copyFrameRegion` streams from the source
+file's offset directly into the atomic-write pipe; Task 7's
+`diff-reviewer` pass accepted the diff against this criterion on the
+first round, and the twelve named mutations' eleventh (reading the
+source whole before rewriting) is the one Task 7 itself reports unfired
+by design, naming the same reviewer's read as the proof.
+
+### The declared coverage gaps
+
+Seven gaps this pass builds or uncovers and no test in this pass can
+reach, joined to the running total of thirty-six (rung 3's twenty-one,
+rung 4a's nine, rung 4b's four, rung 1b's two, `HISTORY:241-259`),
+bringing the total to **forty-three**. A container carrying two
+SEEKTABLE blocks is not on this list: ruled a refusal rather than a
+non-refusal (above), Task 3's `TestParseRefusals` and `TestWriteRefusals`
+grade it, so it never became a gap.
+
+1. **The directory fsync's crash property is unproven.** Task 1's
+   mutation 2 names it; held by the doc comment on
+   `atomicfile.WriteStream` and ruling 12, not by a test, because a
+   power-cut is not observable from a workstation test.
+2. **The streaming property is held by a reviewer's read, not an
+   assertion, at three sites**: Task 1's buffered-write mutation, Task
+   3's whole-file-read mutation (C7a), and Task 7's whole-file read on
+   the write path. All three hold one property, that a multi-gigabyte
+   rewrite costs a fixed amount of memory rather than a file-sized one.
+3. **`atomicfile`'s cross-filesystem rename behavior is untested** on a
+   single-filesystem workstation, inherited from rung 4a's own gap
+   list.
+4. **No test grades against the twelve ledger subjects.** That is 8b's
+   whole pass; 8a's read-back agreement rests on the golden and on
+   ruling 1's unit tests until 8b's conformance instrument runs.
+5. **PICTURE is parsed and preserved, never decoded.** 8b owns its
+   fields and its geometry rule.
+6. **No real library file has been written.** Every fixture in this
+   pass is the golden, a `buildContainer` product, or a writer product;
+   a real beets-written library file is first written at rung 9.
+7. **A genuine mid-chain I/O error is indistinguishable from EOF in
+   tests.** The leftovers round's fix to `parseBlocks` (`8ff65bd`, item
+   7) now propagates any `ReadAt` error that is not `io.EOF`, but
+   `Parse` takes only a path and opens its own `*os.File`, and a
+   regular file's short `ReadAt` past the declared block chain always
+   reports `io.EOF`, so there is no cheap device on this workstation to
+   inject a failing `io.ReaderAt` without changing `Parse`'s signature.
+   An injectable reader is 8b's or 8c's call.
+
+### The measured evidence
+
+`golden.flac` is 2222 bytes: STREAMINFO (34 bytes), VORBIS_COMMENT
+(1066 bytes), PICTURE (78 bytes), PADDING (1024 bytes, last), each with
+its 4-byte header, matching the file size exactly (a silent template
+with no audio frames). **C9a**: the golden's VORBIS_COMMENT sits
+immediately after STREAMINFO, confirming the fresh-block-placement
+hypothesis; no correction to the plan followed. **The comment-order
+hypothesis**: the golden's recorded on-disk sequence matches the
+plan's prediction (`sorted_fields()` field order, then style
+declaration order within a field, then list order within a style) with
+no mismatch to report, including the `albumtype`/`albumtypes`
+collision, which resolves the plural in place rather than moving its
+position. `go test ./internal/engine/tagio/... -count=1` runs 59 tests
+in 0.121s within the full-suite run; `go test ./... -count=1` (every
+package) is green in 2m20s with no existing suite's result changed,
+since this pass touches no landed package but `internal/atomicfile`.
+`bash scripts/check.sh` is green in 1m26s, gitleaks the dominant cost at
+1m19s scanning the tracked worktree (117.85 MB); `golden.flac` was not
+flagged, and `.gitleaksignore` needed no new fingerprint.
+
+### What a later pass would be wrong to rediscover
+
+`Mapping()`'s ordering is the write order and the only order: a caller
+that wants the colliding pairs resolved plural-last iterates
+`WriteOrder()`, and `Mapping()` itself returns a `slices.Clone`, so
+mutating a caller's copy never touches the package's table. `Parse`
+takes a path rather than an `io.ReaderAt`, which is why a genuine
+mid-chain I/O error cannot be distinguished from a clean end of chain in
+this package's own tests (gap 7); a future pass that wants that
+distinguished needs to widen `Parse`'s signature first, not add a test
+against the current one. The invalid-UTF-8 replacement follows the
+Unicode maximal-ill-formed-subpart rule, not a naive per-byte scan, and
+`utf8SequenceSpan` is where that lives; a rewrite that reaches for
+`utf8.DecodeRuneInString` per byte reintroduces the exact divergence
+Task 5's fix closed. `checkBlockPayloadSize`'s boundary is the
+three-byte length field's own limit (1<<24), not a memory ceiling
+someone picked; grade it on the length alone, never with a 16 MiB
+allocation. The date triple composes as a unit: an absent month or day
+beside a present year is falsy, not a reason to omit `DATE`, and this
+diverges from mediafile's own read-modify-write semantics by design,
+recorded in `deviations.go` rather than rediscovered as a bug.
+
+### The 8a to 8b handoff
+
+8b calls `tagio.Read` as the package's one read entry point rather than
+carrying a second projection; its conformance instrument grades the
+twelve ledger subjects through it directly. 8b regenerates no golden:
+`testdata/golden.flac` already carries a PICTURE block, and `golden.txt`
+records its decoded header, so 8b's byte assertion reads the same file
+8a committed. The refusal set (`container.go:41`, `:46`, and
+`TestParseRefusals`'s seven rows) is closed; 8b adds no new refusal
+without a fresh ruling. `ErrUnsupportedContainer` is landed and 8b's
+seam registry adopts it unchanged rather than reclassifying an error
+that already exists, per R7's crossing of `spec:1103` (corrected,
+below): the registry, its func-value dispatch, and its supported set
+are 8b's, and 8b's own sentinel work is only the malformed-versus-
+unsupported split, already done. The PADDING policy (drop every
+incoming block, write exactly one 8 KiB block last) is `write.go`'s and
+does not change under PICTURE. `Mapping()` is the exported accessor for
+8b's own citation work if it needs the 69-row table; it returns a copy,
+never the package's backing slice.
+
+### Forward carries
+
+1. **`code-simplifier` did not run over 8a's Go** and is owed at 8b's
+   opening, per the conductor's window-cap ruling (below).
+2. **The `io.ReaderAt` gap** (coverage gap 7, above) is 8b's or 8c's
+   call: whether `Parse` grows a second, injectable entry point or
+   stays path-only.
+3. **Fork B stays open and owed to Geoff**, unchanged by this pass: a
+   FLAC-only 1.0 with the MP3 pass immediately after cutover, applied
+   provisionally by the conductor per the plan's header.
+4. **The family non-FLAC question** (whether a family member's non-FLAC
+   library gets a rung 8-shaped pass or stays out of scope) is
+   unresolved and carried, not decided here.
+
+### The deviations recorded
+
+Two deviations from Task 9's own review, both already package
+documentation in `internal/engine/tagio/deviations.go` rather than
+repeated here in full: the date triple's compose-as-a-unit rule
+diverges from `DateItemField.__set__`'s read-modify-write semantics
+where `tagio`'s write entry point has no partial-update surface to
+express the difference, and `tagio`'s field-name bound is RFC 9639's,
+one code point wider than mutagen's `is_valid_key` bound, unreachable
+at the encoder because C1's constants and C7's refusal make an invalid
+name impossible to construct on the write side.
+
+### Two deviations from the plan's own execution model
+
+Task 7's conditional opus upshift (triggered by Task 5's fix verdict,
+per the plan's escalation rule) was not applied, by conductor ruling
+under the unattended-window cap, with the `diff-reviewer` standing as
+the net; Task 7 landed clean on its own review round regardless. The
+leftovers round (`8ff65bd`) ran without a second reviewer, for the same
+window-cap reason; its six findings are individually small and each
+carries its own proof (above) rather than a fresh adversarial pass.
+`code-simplifier` owed at 8b's opening (forward carry 1) is the same
+cap's third consequence.
+
+### Spend
+
+About 3.6M against the 4.5M ceiling: plan preparation, 0.87M; Task 0,
+0.1M; the chain, 2.27M across 24 agents; the leftovers round, 0.2M;
+conductor turns, about 0.15M. The 3.6M flag was not crossed. Attended
+interactions: one planning miss (Task 4's count-and-names criterion let
+the test enumerate the mapping rather than the members, closed in the
+leftovers round by `TestTagSetMembersTieToMapping`), zero execution
+sittings.
+
 ## Rung 1b (Phase 0b, the config wall-row registry): closed 2026-09-08
 
 Tasks 1 through 6 executed against
