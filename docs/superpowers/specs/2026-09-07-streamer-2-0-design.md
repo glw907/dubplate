@@ -116,6 +116,21 @@ retrofitted (every early slice is re-verified once the harness exists,
 the plan-staleness defect class this repo has already paid for), a port
 of Navidrome's architecture (license risk and the scanner model).
 
+### Local mirroring: one writer per collection
+
+The server stands on its own. Its intake, catalog, and streamer are the
+complete product, and the launch estate has no local binary anywhere.
+When a person runs the future local dubplate binary (the organizer
+spec's post-launch two-binary split), the local catalog is authoritative
+for the collections it owns and mirrors them to the server: a push of
+catalog rows plus the content-addressed files the server lacks, keyed on
+hashes and idempotent. Collections the server owns are written only by
+the server's intake. Every collection has exactly one writer, so no
+merge rule exists. Rejected: bidirectional sync (a conflict model, the
+class of problem that sinks sync products), server as writer with the
+local binary as a cache (inverts the local workflow Geoff described).
+Collection ownership is therefore a catalog attribute, forward hook 8.
+
 ### License
 
 dubplate is MIT (Geoff, 2026-09-07). Navidrome and gonic are GPLv3 and
@@ -296,6 +311,9 @@ task whether it lands a hook or is neutral (CLAUDE.md, "Build for
 7. **Schema migrations** (rung 6). 2.0 guarantees the schema evolves
    across versions; the store's migration mechanism is chosen with that
    in view.
+8. **Collection ownership** (rung 6). Each collection records its
+   writer (this server, or a named local binary), so mirroring has one
+   writer per collection from the first schema.
 
 ## Prior art
 
