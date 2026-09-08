@@ -28,7 +28,12 @@ Every rung plan authored from now on weighs its surface against that
 spec's forward-hooks list and states per task whether it lands a hook or
 is neutral; a rung 6 schema or a rung 12 driver seam built without 2.0 in
 view is rework. Route newly discovered hooks into that list; never build
-2.0 features early.
+2.0 features early. The same spec carries a prior-art list (the
+OpenSubsonic specification, Navidrome and gonic for behavior only under
+GPL, taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag
+tables, chromaprint); a rung plan names which entries it consulted and
+adopts or declines each with a reason, so no rung rebuilds what a
+license-compatible library already does well.
 
 ## Ledgers
 

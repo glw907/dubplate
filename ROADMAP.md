@@ -82,7 +82,7 @@ is GPLv3: study it for behavior, never copy; its permissive dependencies
 while the ladder builds:** each rung's plan weighs its surface against
 the 2.0 spec's forward-hooks list (content hash and folded sort key on
 the catalog row, the art blob recorded at admit, play history as events)
-and says per task whether it lands a hook or is neutral. 2.1 list:
+and says per task whether it lands a hook or is neutral, and names which prior-art entries it consulted (rung 6: modernc sqlite, goose; rung 7: mewkiz/flac for the intake integrity check; rung 8: taglib via wazero and Picard's tag tables). 2.1 list:
 scrobbling (ListenBrainz, Last.fm), ratings, artist images, transcode
 pre-warming per profile, the web player, metrics, an edit-distance
 search rerank.
