@@ -397,9 +397,10 @@ run_remote "mkdir -p $DUBPLATE_UPLOADS_DIR && chown music:music $DUBPLATE_UPLOAD
 # requirement as /var/lib/musicbox above. The unit's own OpenStore
 # (internal/engine/shadow/store.go) cannot create it either: startup fails
 # before dubplate-server ever runs, so nothing inside the process gets a
-# chance to mkdir it. Both /var/lib/dubplate and its shadow leaf are made
-# here even though only the leaf is granted, because ReadWritePaths= names
-# the leaf and mkdir -p needs its parent to exist first (Resolution R1).
+# chance to mkdir it. mkdir -p creates /var/lib/dubplate as a side effect
+# and leaves it root-owned, so the chown below names both the parent and
+# the granted leaf, even though ReadWritePaths= grants only the leaf
+# (Resolution R1).
 # music:music matches dubplate-shadow.service's own User=music.
 DUBPLATE_LIB_DIR="/var/lib/dubplate"
 DUBPLATE_SHADOW_DIR="$DUBPLATE_LIB_DIR/shadow"
