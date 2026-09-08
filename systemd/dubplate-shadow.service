@@ -28,6 +28,15 @@ ExecStart=/usr/local/bin/dubplate-server shadow observe
 # edit); without that pre-create, startup fails with "Failed to set up
 # mount namespacing", systemd's own error for a ReadWritePaths= entry
 # that does not exist on the host yet.
+#
+# This literal is derived, not chosen independently: it is
+# DUBPLATE_STATE_DIR (env/dubplate-server.env.template) plus
+# /shadow, the same join shadow.StoreDir(cfg.StateDir) makes at
+# runtime (cmd/dubplate-server/shadow.go). Three copies move
+# together -- the template row, this grant, and deploy.sh's
+# DUBPLATE_LIB_DIR pre-create -- or the unit starts and fails at
+# first write with EROFS under ProtectSystem=strict. scripts/check.sh
+# gates the three staying in agreement.
 ReadWritePaths=/var/lib/dubplate/shadow
 
 # The operator rule (HISTORY handoff item 5, spec:1387-1391): a

@@ -147,6 +147,23 @@ else
   echo "check.sh: systemd-analyze not found; skipping unit verification." >&2
 fi
 
+echo "== state-dir agreement (env template, shadow unit, deploy.sh) =="
+# DUBPLATE_STATE_DIR (env/dubplate-server.env.template), the shadow
+# unit's ReadWritePaths= leaf, and deploy.sh's DUBPLATE_LIB_DIR
+# assignment are three copies of one path with nothing but this leg
+# holding them together: an edit to one alone gives a unit that
+# starts and fails at first write with EROFS under
+# ProtectSystem=strict (see the derivation comment above
+# ReadWritePaths= in systemd/dubplate-shadow.service).
+template_state_dir="$(sed -n 's/^DUBPLATE_STATE_DIR=//p' env/dubplate-server.env.template)"
+unit_read_write_paths="$(sed -n 's/^ReadWritePaths=//p' systemd/dubplate-shadow.service)"
+deploy_lib_dir="$(sed -n 's/^DUBPLATE_LIB_DIR="\(.*\)"$/\1/p' scripts/deploy.sh)"
+echo "check.sh: DUBPLATE_STATE_DIR=$template_state_dir ReadWritePaths=$unit_read_write_paths DUBPLATE_LIB_DIR=$deploy_lib_dir"
+if [ "$unit_read_write_paths" != "${template_state_dir}/shadow" ] || [ "$deploy_lib_dir" != "$template_state_dir" ]; then
+  echo "check.sh: state-dir literals disagree (want ReadWritePaths=${template_state_dir}/shadow and DUBPLATE_LIB_DIR=${template_state_dir})" >&2
+  status=1
+fi
+
 if [ "$status" -eq 0 ]; then
   echo "check.sh: all checks passed."
 else
