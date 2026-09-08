@@ -188,38 +188,151 @@ func dropKey(environ []string, name string) []string {
 	return out
 }
 
-// TestLoad_TemplateKeysClassified proves the template disposition walk
-// is complete: every DUBPLATE_* name env/dubplate.env.template lists
-// must classify as owned, reserved, or superseded, never unknown, or a
-// real adopter's template-derived env file would trip a load error
-// this package never intended.
-func TestLoad_TemplateKeysClassified(t *testing.T) {
-	names := templateKeys(t)
-	if len(names) == 0 {
-		t.Fatal("templateKeys found no DUBPLATE_* names; template path or format changed")
-	}
+// templateEnvPaths names every environment template this package's
+// tests classify against, one entry per adopter-facing template
+// scripts/deploy.sh renders (ENV_TEMPLATE at deploy.sh:27,
+// SERVER_ENV_TEMPLATE at deploy.sh:28, both rendered by render_template
+// at deploy.sh:205, called at deploy.sh:240 and deploy.sh:241). A name
+// missing from either fails deploy the same way, which is why both are
+// read rather than one.
+//
+// dubplate.env.template is the frozen pre-pivot template, kept so a
+// name this package still classifies as superseded stays proven
+// reachable from a real file rather than only from supersededKeys'
+// own literal table. dubplate-server.env.template is the greenfield
+// template (Task 0, landed c8b6d71): the completeness direction below
+// reads it by name, and it is also the template carrying the six
+// DUBPLATE_SHADOW_* rows that make the classification walk's fourth
+// branch mandatory rather than optional.
+var templateEnvPaths = []string{
+	"../../env/dubplate.env.template",
+	"../../env/dubplate-server.env.template",
+}
 
+// classificationFixtureIntegrationClass mirrors, by literal key name
+// only, rung 4's shadowIntegrationClass (cmd/dubplate-server/shadow.go)
+// so this test's classification walk can resolve
+// env/dubplate-server.env.template's six DUBPLATE_SHADOW_* rows through
+// integrationClassOf's fourth branch (Resolution R10). internal/config
+// cannot import cmd/dubplate-server, which imports internal/config
+// already, so this test classifies against a registry it builds for
+// itself rather than the production registry cmd/dubplate-server
+// assembles: NewRegistry() (rung 1's own declarations) plus this one
+// fixture class. It declares no name that is not already assigned in
+// the tracked template; it only re-states the shape a real integration
+// class registers so the generic classification mechanism has
+// something to resolve against.
+//
+// provisional, conductor ruling owed, R10
+var classificationFixtureIntegrationClass = IntegrationClass{
+	Name: "shadow classification fixture",
+	Flag: "DUBPLATE_SHADOW_ENABLED",
+	Required: []string{
+		"DUBPLATE_SHADOW_OBSERVE_DIR",
+		"DUBPLATE_SHADOW_ORACLE_STATE_DIR",
+		"DUBPLATE_SHADOW_REVIEW_DIR",
+	},
+	Optional: []string{
+		"DUBPLATE_SHADOW_FLOOR",
+		"DUBPLATE_SHADOW_BUDGET",
+	},
+}
+
+// TestLoad_TemplateKeysClassified proves the template disposition walk
+// is complete, in both directions Resolution R10 states.
+//
+// The classification direction (mechanical, asserted here): every
+// DUBPLATE_* name any template under env/ lists must classify as owned,
+// reserved, superseded, or as an integration class's Flag, Required key
+// or Optional key, never unknown, or a real adopter's template-derived
+// env file would trip a load error this package never intended. The
+// fourth branch exists because env/dubplate-server.env.template carries
+// six DUBPLATE_SHADOW_* rows that classify only through
+// integrationClassOf; without it those six report unknown and this
+// test reds for every lane. It classifies against NewRegistry() plus
+// classificationFixtureIntegrationClass, stated above, since this
+// package cannot reach rung 4's own registration.
+//
+// The completeness direction (mechanical only against a greenfield
+// template, asserted here as TestLoad_OwnedNowRowsInGreenfieldTemplate):
+// every owned-now row must appear in the template the greenfield server
+// ships. It is not asserted against dubplate.env.template, whose own
+// header says it describes the frozen pre-pivot binary's wall.
+//
+// provisional, conductor ruling owed, R10
+//
+// The rule that cannot be mechanical: a rung that declares a new
+// owned-now row adds it to env/dubplate-server.env.template in the same
+// pass, with the minting that implies (scripts/deploy.sh:171-194).
+// scripts/deploy.sh renders both templates (ENV_TEMPLATE at :27,
+// SERVER_ENV_TEMPLATE at :28, render_template at :205, called at :240
+// and :241), so a name missing from either template fails deploy the
+// same way; a rung that adds an owned-now row without adding it here
+// discovers the gap at deploy time rather than at test time. Neither
+// this test nor any other in this package may add that name itself:
+// doing so would mint a value outside the age store, an owner
+// touchpoint this pass does not take.
+func TestLoad_TemplateKeysClassified(t *testing.T) {
 	reg := NewRegistry()
-	for _, name := range names {
-		if ownedNow(reg, name) {
-			continue
+	reg.AddIntegrationClass(classificationFixtureIntegrationClass)
+
+	for _, path := range templateEnvPaths {
+		names := templateKeys(t, path)
+		if len(names) == 0 {
+			t.Fatalf("%s: templateKeys found no DUBPLATE_* names; template path or format changed", path)
 		}
-		if _, ok := reservedClassOf(reg, name); ok {
-			continue
+		t.Logf("%s: classified %d DUBPLATE_* names", path, len(names))
+
+		for _, name := range names {
+			if ownedNow(reg, name) {
+				continue
+			}
+			if _, ok := reservedClassOf(reg, name); ok {
+				continue
+			}
+			if _, ok := supersessionOf(reg, name); ok {
+				continue
+			}
+			if _, ok := integrationClassOf(reg, name); ok {
+				continue
+			}
+			t.Errorf("%s: %s classifies as unknown; add it to ownedWall, a reserved class, supersededKeys, or an integration class", path, name)
 		}
-		if _, ok := supersessionOf(reg, name); ok {
-			continue
-		}
-		t.Errorf("%s: classifies as unknown; add it to ownedWall, a reserved class, or supersededKeys", name)
 	}
 }
 
-// templateKeys parses env/dubplate.env.template for every DUBPLATE_*
-// name assigned on its own line, in file order.
-func templateKeys(t *testing.T) []string {
+// TestLoad_OwnedNowRowsInGreenfieldTemplate asserts R10's completeness
+// direction: every owned-now row (ownedNow reports true, meaning
+// [Load] requires it now rather than carrying a Pending status)
+// appears in env/dubplate-server.env.template, the greenfield template
+// Task 0 confirmed landed at c8b6d71 carrying all four
+// (DUBPLATE_LIBRARY_ROOT:36, DUBPLATE_STATE_DIR:53,
+// DUBPLATE_SITE_NAME:61, DUBPLATE_ADMIN_EMAIL:66). This test never
+// writes the template; a missing row is reported, not repaired.
+func TestLoad_OwnedNowRowsInGreenfieldTemplate(t *testing.T) {
+	const greenfieldTemplate = "../../env/dubplate-server.env.template"
+	names := templateKeys(t, greenfieldTemplate)
+	if len(names) == 0 {
+		t.Fatalf("%s: templateKeys found no DUBPLATE_* names; template path or format changed", greenfieldTemplate)
+	}
+
+	reg := NewRegistry()
+	for _, row := range reg.OwnedWall() {
+		if !ownedNow(reg, row.Name) {
+			continue
+		}
+		if !slices.Contains(names, row.Name) {
+			t.Errorf("%s: owned-now row %s does not appear in %s; a rung adding an owned-now row must add it to the greenfield template in the same pass", row.Name, row.Name, greenfieldTemplate)
+		}
+	}
+}
+
+// templateKeys parses the template at path for every DUBPLATE_* name
+// assigned on its own line, in file order.
+func templateKeys(t *testing.T, path string) []string {
 	t.Helper()
 
-	f, err := os.Open("../../env/dubplate.env.template")
+	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open template: %v", err)
 	}

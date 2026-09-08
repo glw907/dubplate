@@ -133,6 +133,110 @@ func TestDoctorCmd(t *testing.T) {
 	}
 }
 
+// TestDoctorCmd_LineCountFollowsRegistry proves doctor's derivation in
+// the direction TestDoctorCmd's own line-count assertion (preserved
+// unchanged above, at its "stdout has %d extra line(s)" check) cannot
+// reach. TestDoctorCmd re-derives its expectation from the same
+// registry it hands to newDoctorCmd, so it proves the two agree, not
+// that adding a declaration moves the count: a family rung 1 never
+// populates (rung 1 registers no threshold and no integration class of
+// its own) could never fail that assertion. This test starts from a
+// fresh registry and adds one declaration to each of the four families
+// in turn, on scratch DUBPLATE_TEST_SCRATCH_* names, proving each
+// addition costs exactly one doctor line, printed in that family's own
+// block: one per owned wall row, one per reserved class regardless of
+// its key count, one per integration class, one per threshold.
+//
+// provisional, conductor ruling owed, R10
+func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
+	reg := config.NewRegistry()
+	lines := doctorLines(t, reg)
+
+	ownedCount := len(reg.OwnedWall())
+	reservedCount := len(reg.ReservedClasses())
+	integrationCount := len(reg.IntegrationClasses())
+	thresholdCount := len(reg.Thresholds())
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount
+	if len(lines) != wantTotal {
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d)",
+			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount)
+	}
+
+	// Owned wall: one line per declared row.
+	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SCRATCH_OWNED"})
+	lines = doctorLines(t, reg)
+	ownedCount++
+	wantTotal++
+	if len(lines) != wantTotal {
+		t.Errorf("adding one owned wall row: doctor printed %d lines, want %d", len(lines), wantTotal)
+	}
+	if got, wantPrefix := lines[ownedCount-1], "DUBPLATE_TEST_SCRATCH_OWNED"; !strings.HasPrefix(got, wantPrefix) {
+		t.Errorf("owned block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
+	}
+
+	// Reserved: one line per class, regardless of how many keys the
+	// class carries.
+	reg.AddReservedClass(config.ReservedClass{
+		Name: "scratch reserved",
+		Rung: 99,
+		Keys: []string{
+			"DUBPLATE_TEST_SCRATCH_RESERVED_A",
+			"DUBPLATE_TEST_SCRATCH_RESERVED_B",
+			"DUBPLATE_TEST_SCRATCH_RESERVED_C",
+		},
+	})
+	lines = doctorLines(t, reg)
+	reservedCount++
+	wantTotal++
+	if len(lines) != wantTotal {
+		t.Errorf("adding one reserved class of three keys: doctor printed %d lines, want %d (one line per class, not per key)", len(lines), wantTotal)
+	}
+	if got, wantPrefix := lines[ownedCount+reservedCount-1], "scratch reserved"; !strings.HasPrefix(got, wantPrefix) {
+		t.Errorf("reserved block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
+	}
+
+	// Integration: one line per class.
+	reg.AddIntegrationClass(config.IntegrationClass{
+		Name:     "scratch integration",
+		Flag:     "DUBPLATE_TEST_SCRATCH_FLAG",
+		Required: []string{"DUBPLATE_TEST_SCRATCH_REQUIRED"},
+	})
+	lines = doctorLines(t, reg)
+	integrationCount++
+	wantTotal++
+	if len(lines) != wantTotal {
+		t.Errorf("adding one integration class: doctor printed %d lines, want %d", len(lines), wantTotal)
+	}
+	if got, wantPrefix := lines[ownedCount+reservedCount+integrationCount-1], "scratch integration"; !strings.HasPrefix(got, wantPrefix) {
+		t.Errorf("integration block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
+	}
+
+	// Thresholds: one line per threshold.
+	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Default: "1"})
+	lines = doctorLines(t, reg)
+	thresholdCount++
+	wantTotal++
+	if len(lines) != wantTotal {
+		t.Errorf("adding one threshold: doctor printed %d lines, want %d", len(lines), wantTotal)
+	}
+	if got, wantPrefix := lines[ownedCount+reservedCount+integrationCount+thresholdCount-1], "DUBPLATE_TEST_SCRATCH_THRESH"; !strings.HasPrefix(got, wantPrefix) {
+		t.Errorf("threshold block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
+	}
+}
+
+// doctorLines runs newDoctorCmd against reg with a satisfied base
+// environ and returns its stdout split into lines. It ignores
+// Execute's own error: a scratch owned row this test never sets a
+// value for makes the wall incomplete, which is expected and beside
+// the point of a line-count assertion.
+func doctorLines(t *testing.T, reg *config.Registry) []string {
+	t.Helper()
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(baseEnviron(), reg, &stdout, &stderr)
+	_ = cmd.Execute()
+	return strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
+}
+
 // TestDoctorCmd_LiteralSpotCheck hard-codes two known lines so the
 // table-driven test above cannot go vacuous if OwnedWall ever returned
 // an empty table.
