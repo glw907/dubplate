@@ -2,7 +2,7 @@
 Description=dubplate: observe the incumbent importer's decisions against the Go matcher (oracle)
 # Why the network-online pairing is taken: five sibling oneshots carry
 # it (dubplate-import, dubplate-backup, dubplate-disk-check,
-# dubplate-navidrome-check, dubplate-ping-fail@) and the serve unit's
+# dubplate-navidrome-check, dubplate-import-nudge) and the serve unit's
 # fifteen-line comment (dubplate-serve.service:12-26) explains why it
 # does not. This unit's own reason: a *:0/5 timer otherwise fires
 # before the network is up after a reboot and turns a boot into a
