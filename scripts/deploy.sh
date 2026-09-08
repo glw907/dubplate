@@ -58,6 +58,7 @@ UNIT_FILES=(
   dubplate-backup.service dubplate-backup.timer
   dubplate-disk-check.service dubplate-disk-check.timer
   dubplate-navidrome-check.service dubplate-navidrome-check.timer
+  dubplate-shadow.service dubplate-shadow.timer
   "dubplate-ping-fail@.service"
   dubplate-serve.service
   dubplate-import-nudge.path dubplate-import-nudge.service
