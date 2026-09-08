@@ -101,9 +101,12 @@ echo "== gitleaks (secret scan) =="
 # the repo's first large data directory, and every response body in
 # it is verbatim wire data from a live service, so this is the rail
 # that makes CLAUDE.md's "eyeball the diff for stray personal values"
-# instruction a backstop rather than the only net. .gitleaksignore
-# carries the one known false positive (a config-key-name test
-# fixture that happens to look like a generic API key).
+# instruction a backstop rather than the only net. The generic-api-key
+# rule fires only when a key-like field name sits on the same line as
+# a value whose entropy clears its threshold; exactly one of the
+# tree's 54 DUBPLATE_* names used to pair that way in a test fixture,
+# and it is renamed rather than suppressed, so no .gitleaksignore
+# entry remains.
 if ! gitleaks detect --no-git -s . --redact; then
   status=1
 fi
