@@ -143,6 +143,11 @@ func (r *Registry) OwnedWall() []WallRow {
 // other family, so a reserved key that is also, say, an integration
 // key panics naming both classes.
 func (r *Registry) AddReservedClass(class ReservedClass) {
+	for i, key := range class.Keys {
+		if slices.Contains(class.Keys[:i], key) {
+			panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyReserved, familyReserved))
+		}
+	}
 	for _, key := range class.Keys {
 		for _, existing := range r.reservedClasses {
 			if slices.Contains(existing.Keys, key) {
@@ -185,6 +190,11 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	keys = append(keys, class.Required...)
 	keys = append(keys, class.Optional...)
 
+	for i, key := range keys {
+		if slices.Contains(keys[:i], key) {
+			panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, familyIntegration, familyIntegration))
+		}
+	}
 	for _, key := range keys {
 		for _, existing := range r.integrationClasses {
 			if key == existing.Flag || slices.Contains(existing.Required, key) || slices.Contains(existing.Optional, key) {

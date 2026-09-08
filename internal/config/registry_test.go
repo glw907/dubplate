@@ -125,10 +125,22 @@ func TestCollisionGate_WithinFamily(t *testing.T) {
 			},
 		},
 		{
+			name: "reserved classes, single class repeats its own key",
+			fn: func(r *Registry) {
+				r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_DUP", "DUBPLATE_TEST_DUP"}})
+			},
+		},
+		{
 			name: "integration classes",
 			fn: func(r *Registry) {
 				r.AddIntegrationClass(IntegrationClass{Name: "test a", Flag: "DUBPLATE_TEST_FLAG_A", Required: []string{"DUBPLATE_TEST_DUP"}})
 				r.AddIntegrationClass(IntegrationClass{Name: "test b", Flag: "DUBPLATE_TEST_FLAG_B", Required: []string{"DUBPLATE_TEST_DUP"}})
+			},
+		},
+		{
+			name: "integration classes, single class repeats a key across Required and Optional",
+			fn: func(r *Registry) {
+				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{"DUBPLATE_TEST_DUP"}, Optional: []string{"DUBPLATE_TEST_DUP"}})
 			},
 		},
 		{
