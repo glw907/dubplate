@@ -64,6 +64,7 @@ func newRootCmd() *cobra.Command {
 	reg := config.NewRegistry()
 	registerShadowIntegration(reg)
 	registerShadowThresholds(reg)
+	registerServeConfig(reg)
 
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",
@@ -76,6 +77,7 @@ func newRootCmd() *cobra.Command {
 		newCheckCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newShadowCmd(os.Environ(), reg, matcherCommit, os.Stdout, os.Stderr),
+		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 	)
 	return cmd
 }

@@ -227,6 +227,13 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			w.errs = append(w.errs, fmt.Errorf("%s: %s", name, msg))
 			continue
 		}
+		if thresholdOf(reg, name) {
+			// A registered threshold is a declared name whose own
+			// Parse* call resolves and validates it at the point of
+			// use. Flagging it here would make a binary refuse the
+			// very tunable it registered.
+			continue
+		}
 		w.errs = append(w.errs, fmt.Errorf("%s: unknown configuration key", name))
 	}
 }

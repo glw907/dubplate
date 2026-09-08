@@ -1,8 +1,6 @@
 package config
 
 import (
-	"bufio"
-	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -188,177 +186,134 @@ func dropKey(environ []string, name string) []string {
 	return out
 }
 
-// templateEnvPaths names every environment template this package's
-// tests classify against, one entry per adopter-facing template
-// scripts/deploy.sh renders (ENV_TEMPLATE at deploy.sh:27,
-// SERVER_ENV_TEMPLATE at deploy.sh:28, both rendered by render_template
-// at deploy.sh:205, called at deploy.sh:240 and deploy.sh:241). A name
-// missing from either fails deploy the same way, which is why both are
-// read rather than one.
-//
-// dubplate.env.template is the frozen pre-pivot template, kept so a
-// name this package still classifies as superseded stays proven
-// reachable from a real file rather than only from supersededKeys'
-// own literal table. dubplate-server.env.template is the greenfield
-// template (Task 0, landed c8b6d71): the completeness direction below
-// reads it by name, and it is also the template carrying the six
-// DUBPLATE_SHADOW_* rows that make the classification walk's fourth
-// branch mandatory rather than optional.
-var templateEnvPaths = []string{
-	"../../env/dubplate.env.template",
-	"../../env/dubplate-server.env.template",
-}
-
-// classificationFixtureIntegrationClass mirrors, by literal key name
-// only, rung 4's shadowIntegrationClass (cmd/dubplate-server/shadow.go)
-// so this test's classification walk can resolve
-// env/dubplate-server.env.template's six DUBPLATE_SHADOW_* rows through
-// integrationClassOf's fourth branch (Resolution R10). internal/config
-// cannot import cmd/dubplate-server, which imports internal/config
-// already, so this test classifies against a registry it builds for
-// itself rather than the production registry cmd/dubplate-server
-// assembles: NewRegistry() (rung 1's own declarations) plus this one
-// fixture class. It declares no name that is not already assigned in
-// the tracked template; it only re-states the shape a real integration
-// class registers so the generic classification mechanism has
-// something to resolve against.
-//
-// ruled, conductor 2026-09-07, R10
-var classificationFixtureIntegrationClass = IntegrationClass{
-	Name: "shadow classification fixture",
-	Flag: "DUBPLATE_SHADOW_ENABLED",
-	Required: []string{
-		"DUBPLATE_SHADOW_OBSERVE_DIR",
-		"DUBPLATE_SHADOW_ORACLE_STATE_DIR",
-		"DUBPLATE_SHADOW_REVIEW_DIR",
-	},
-	Optional: []string{
-		"DUBPLATE_SHADOW_FLOOR",
-		"DUBPLATE_SHADOW_BUDGET",
-	},
-}
-
-// TestLoad_TemplateKeysClassified proves the template disposition walk
-// is complete, in both directions Resolution R10 states.
-//
-// The classification direction (mechanical, asserted here): every
-// DUBPLATE_* name any template under env/ lists must classify as owned,
-// reserved, superseded, or as an integration class's Flag, Required key
-// or Optional key, never unknown, or a real adopter's template-derived
-// env file would trip a load error this package never intended. The
-// fourth branch exists because env/dubplate-server.env.template carries
-// six DUBPLATE_SHADOW_* rows that classify only through
-// integrationClassOf; without it those six report unknown and this
-// test reds for every lane. It classifies against NewRegistry() plus
-// classificationFixtureIntegrationClass, stated above, since this
-// package cannot reach rung 4's own registration.
-//
-// The completeness direction (mechanical only against a greenfield
-// template, asserted here as TestLoad_OwnedNowRowsInGreenfieldTemplate):
-// every owned-now row must appear in the template the greenfield server
-// ships. It is not asserted against dubplate.env.template, whose own
-// header says it describes the frozen pre-pivot binary's wall.
-//
-// ruled, conductor 2026-09-07, R10
-//
-// The rule that cannot be mechanical: a rung that declares a new
-// owned-now row adds it to env/dubplate-server.env.template in the same
-// pass, with the minting that implies. scripts/deploy.sh renders both
-// templates (ENV_TEMPLATE at :27, SERVER_ENV_TEMPLATE at :28,
-// render_template at :205, called at :240 and :241) and refuses to
-// deploy when render_missing is non-empty (:243-247), so a name missing
-// from either template fails deploy the same way; a rung that adds an
-// owned-now row without adding it here discovers the gap at deploy time
-// rather than at test time. Neither this test nor any other in this
-// package may add that name itself: doing so would mint a value outside
-// the age store, an owner touchpoint this pass does not take.
-func TestLoad_TemplateKeysClassified(t *testing.T) {
+// classificationRegistry returns a registry carrying one fixture
+// declaration in every family the wall classifies a DUBPLATE_* name
+// against, plus a pending owned row. Every name is this test's own; no
+// rung's real key appears.
+func classificationRegistry() *Registry {
 	reg := NewRegistry()
-	reg.AddIntegrationClass(classificationFixtureIntegrationClass)
+	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_OWNED"})
+	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_PENDING", Pending: "pending (arrives later)"})
+	reg.AddReservedClass(ReservedClass{
+		Name: "classification fixture",
+		Rung: 99,
+		Keys: []string{"DUBPLATE_CLASSIFY_RESERVED"},
+	})
+	reg.AddSuperseded("DUBPLATE_CLASSIFY_SUPERSEDED", "renamed to DUBPLATE_CLASSIFY_OWNED")
+	reg.AddIntegrationClass(IntegrationClass{
+		Name:     "classification integration",
+		Rung:     99,
+		Flag:     "DUBPLATE_CLASSIFY_ENABLED",
+		Required: []string{"DUBPLATE_CLASSIFY_REQUIRED"},
+		Optional: []string{"DUBPLATE_CLASSIFY_OPTIONAL"},
+	})
+	reg.AddThreshold(Threshold{
+		Key:     "DUBPLATE_CLASSIFY_THRESHOLD",
+		Kind:    KindInt,
+		Default: "1",
+		Doc:     "an integer",
+	})
+	return reg
+}
 
-	for _, path := range templateEnvPaths {
-		names := templateKeys(t, path)
-		if len(names) == 0 {
-			t.Fatalf("%s: templateKeys found no DUBPLATE_* names; template path or format changed", path)
-		}
-		t.Logf("%s: classified %d DUBPLATE_* names", path, len(names))
+// TestClassificationFamilies proves the five classification helpers
+// rejectNamespace consults each answer for their own family's names
+// and for no other's, and that a name declared in none of them
+// classifies as unknown.
+//
+// This package tests the mechanics alone. It cannot test them against
+// a real environment template, and the assertion that once did was
+// moved to cmd/dubplate-server: under the rung 1b registry contract
+// each rung declares its keys in its own file, so internal/config's
+// base registry can no longer see a name rung 4 or rung 5 declares,
+// and only the composed production registry can classify a template
+// without reporting a declared key as unknown.
+func TestClassificationFamilies(t *testing.T) {
+	const (
+		owned       = "owned"
+		pending     = "pending"
+		reserved    = "reserved"
+		superseded  = "superseded"
+		integration = "integration"
+		threshold   = "threshold"
+		unknown     = "unknown"
+	)
 
-		for _, name := range names {
-			if ownedNow(reg, name) {
-				continue
+	tests := []struct {
+		name string
+		key  string
+		want string
+	}{
+		{name: "owned-now row", key: "DUBPLATE_CLASSIFY_OWNED", want: owned},
+		{name: "pending owned row", key: "DUBPLATE_CLASSIFY_PENDING", want: pending},
+		{name: "reserved class key", key: "DUBPLATE_CLASSIFY_RESERVED", want: reserved},
+		{name: "superseded name", key: "DUBPLATE_CLASSIFY_SUPERSEDED", want: superseded},
+		{name: "integration flag", key: "DUBPLATE_CLASSIFY_ENABLED", want: integration},
+		{name: "integration required key", key: "DUBPLATE_CLASSIFY_REQUIRED", want: integration},
+		{name: "integration optional key", key: "DUBPLATE_CLASSIFY_OPTIONAL", want: integration},
+		{name: "registered threshold", key: "DUBPLATE_CLASSIFY_THRESHOLD", want: threshold},
+		{name: "declared nowhere", key: "DUBPLATE_CLASSIFY_ABSENT", want: unknown},
+	}
+
+	reg := classificationRegistry()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Each helper is asserted on its own, so a row states one
+			// true answer and five false ones rather than echoing
+			// rejectNamespace's own branch order back at itself.
+			_, isReserved := reservedClassOf(reg, tt.key)
+			_, isSuperseded := supersessionOf(reg, tt.key)
+			_, isIntegration := integrationClassOf(reg, tt.key)
+			got := map[string]bool{
+				owned:       ownedNow(reg, tt.key),
+				pending:     wallRowPending(reg, tt.key),
+				reserved:    isReserved,
+				superseded:  isSuperseded,
+				integration: isIntegration,
+				threshold:   thresholdOf(reg, tt.key),
 			}
-			if _, ok := reservedClassOf(reg, name); ok {
-				continue
+			for family, reported := range got {
+				if reported != (family == tt.want) {
+					t.Errorf("%s classified as %s = %t, want %t", tt.key, family, reported, family == tt.want)
+				}
 			}
-			if _, ok := supersessionOf(reg, name); ok {
-				continue
-			}
-			if _, ok := integrationClassOf(reg, name); ok {
-				continue
-			}
-			t.Errorf("%s: %s classifies as unknown; add it to ownedWall, a reserved class, supersededKeys, or an integration class", path, name)
-		}
+		})
 	}
 }
 
-// TestLoad_OwnedNowRowsInGreenfieldTemplate asserts R10's completeness
-// direction: every owned-now row (ownedNow reports true, meaning
-// [Load] requires it now rather than carrying a Pending status)
-// appears in env/dubplate-server.env.template, the greenfield template
-// Task 0 confirmed landed at c8b6d71 carrying all four
-// (DUBPLATE_LIBRARY_ROOT:36, DUBPLATE_STATE_DIR:53,
-// DUBPLATE_SITE_NAME:61, DUBPLATE_ADMIN_EMAIL:66). This test never
-// writes the template; a missing row is reported, not repaired.
-func TestLoad_OwnedNowRowsInGreenfieldTemplate(t *testing.T) {
-	const greenfieldTemplate = "../../env/dubplate-server.env.template"
-	names := templateKeys(t, greenfieldTemplate)
-	if len(names) == 0 {
-		t.Fatalf("%s: templateKeys found no DUBPLATE_* names; template path or format changed", greenfieldTemplate)
-	}
-
-	reg := NewRegistry()
+// wallRowPending reports whether key is an owned wall row carrying a
+// Pending status, the one classification with no helper of its own:
+// ownedNow answers false for a pending row and for an undeclared name
+// alike, so the test above needs this to tell the two apart.
+func wallRowPending(reg *Registry, key string) bool {
 	for _, row := range reg.OwnedWall() {
-		if !ownedNow(reg, row.Name) {
-			continue
-		}
-		if !slices.Contains(names, row.Name) {
-			t.Errorf("%s: owned-now row %s does not appear; a rung adding an owned-now row must add it to the greenfield template in the same pass", greenfieldTemplate, row.Name)
+		if row.Name == key {
+			return row.Pending != ""
 		}
 	}
+	return false
 }
 
-// templateKeys parses the template at path for every DUBPLATE_* name
-// assigned on its own line, in file order.
-func templateKeys(t *testing.T, path string) []string {
-	t.Helper()
+// TestLoad_RegisteredThresholdIsNotUnknown proves the fifth
+// classification branch: a threshold a rung declares in its own file
+// is a declared name, so setting it loads cleanly rather than erroring
+// as an unknown key. Without the branch a binary would refuse the very
+// tunable it registered. The negative half is the same registry with
+// the threshold's name changed by one character.
+func TestLoad_RegisteredThresholdIsNotUnknown(t *testing.T) {
+	reg := classificationRegistry()
 
-	f, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("open template: %v", err)
+	if _, err := Load(append(baseEnviron(), "DUBPLATE_CLASSIFY_THRESHOLD=7"), reg); err != nil {
+		t.Errorf("Load() error = %v, want nil for a registered threshold", err)
 	}
-	defer func() {
-		if err := f.Close(); err != nil {
-			t.Errorf("close template: %v", err)
-		}
-	}()
 
-	var names []string
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if !strings.HasPrefix(line, "DUBPLATE_") {
-			continue
-		}
-		name, _, ok := strings.Cut(line, "=")
-		if !ok {
-			continue
-		}
-		names = append(names, name)
+	_, err := Load(append(baseEnviron(), "DUBPLATE_CLASSIFY_THRESHOLDX=7"), reg)
+	if err == nil {
+		t.Fatal("Load() error = nil for an undeclared key, want an unknown-key error")
 	}
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("scan template: %v", err)
+	if !strings.Contains(err.Error(), "unknown configuration key") {
+		t.Errorf("Load() error = %v, want it to name the key as unknown", err)
 	}
-	return names
 }
 
 // fixtureIntegrationClass is a fixture integration class this test

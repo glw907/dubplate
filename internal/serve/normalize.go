@@ -13,6 +13,9 @@ import (
 // configuration surface for nothing. The value leaves room for a deep
 // catalog path under the owned prefix while keeping an oversized path
 // away from the prefix match.
+//
+// 2048 bytes is the stated bound, and the bound is inclusive: a path
+// measuring exactly 2048 bytes is admitted, and 2049 is refused.
 const maxPathBytes = 2048
 
 // Normalize returns a handler that answers every request breaking one
@@ -56,7 +59,13 @@ const maxPathBytes = 2048
 //     "/dubplate/", and "/dubplate/x/" pass while "//dubplate" and
 //     "/dubplate//x" are refused.
 //  4. No backslash, which a streamer's own router may read as a
-//     separator on the fallthrough.
+//     separator on the fallthrough. This rule is defense in depth
+//     behind rule 1 rather than the first line against a backslash:
+//     net/url escapes a backslash in a path, so a request carrying one
+//     normally has EscapedPath differ from Path and rule 1 refuses it
+//     first. Rule 4 is what still refuses one should a future net/url
+//     stop escaping it, or should rule 1's strictness be relaxed the
+//     way rule 1's own note reserves for rung 12.
 //  5. No path past maxPathBytes.
 //  6. No request target whose path fails to begin with a separator
 //     (ruled, conductor 2026-09-08, R-U, as applied). A CONNECT

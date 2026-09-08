@@ -72,18 +72,6 @@ var reservedClasses = []ReservedClass{
 		},
 	},
 	{
-		// The minimal serve shell (ladder rung 5) binds its listener
-		// alongside auth landing in the same rung, but the wall names
-		// it as its own class: a bind address is not an identity
-		// concern.
-		Name: "serve",
-		Rung: 5,
-		Keys: []string{
-			"DUBPLATE_SERVE_BIND_ADDRS",
-			"DUBPLATE_SERVE_PORT",
-		},
-	},
-	{
 		Name: "backup targets",
 		Rung: 6,
 		Keys: []string{
