@@ -196,7 +196,7 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | `internal/atomicfile` (conductor ruling, 2026-09-05, at rung 4's spec fold) | born in rung 4 pass 4a, re-landed from salvage on merit | rungs 6, 9, 13 |
 | `cmd/dubplate-server` (`main.go`'s `AddCommand` block, `doctor.go`'s rows; conductor ruling, 2026-09-05) | rung 1's skeleton; each rung adds its own file and registers through it (`RE:101`) | every rung adding a verb |
 | `internal/config` (`keys.go`, `thresholds.go`; conductor ruling, 2026-09-05) | rung 1b's registry when it lands; until then rung 4 as the only live code lane, under the single-lane grant the rung 4 spec records, re-fingerprinting `.gitleaksignore` on any insertion above its pinned line | every rung declares its keys |
-| `systemd/`, `scripts/deploy.sh`, `env/` (conductor ruling, 2026-09-05) | rung 1's; rung 4 pass 4b adds two units, one template, and six deploy edits; rung 16 converges all of it | rungs 5, 7, 12, 16 |
+| `systemd/`, `scripts/deploy.sh`, `env/`, `Makefile` (conductor ruling, 2026-09-05; `Makefile` added by conductor ruling, 2026-09-07, resolution R13) | rung 1's; rung 4 pass 4b adds two units, one template, and six deploy edits; rung 16 converges all of it | rungs 5, 7, 12, 16 |
 
 **Rejected alternatives.**
 
