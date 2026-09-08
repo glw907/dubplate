@@ -188,15 +188,60 @@ func TestCollisionGate_OptionalCrossFamily(t *testing.T) {
 	}
 }
 
-// TestCollisionGate_MissingPrefix fires O5 class 3: a declared key
-// without the DUBPLATE_ prefix (Resolution R16).
-func TestCollisionGate_MissingPrefix(t *testing.T) {
+// TestCollisionGate_OptionalThresholdPairing_ReverseOrder proves the
+// R5 pairing ([Registry.AddIntegrationClass]'s own doc) also holds in
+// the order production never exercises: a threshold registered first,
+// then an integration class carrying that same key as Optional.
+// AddIntegrationClass's own `continue` exemption for a key already
+// claimed by the thresholds family is what this guards.
+func TestCollisionGate_OptionalThresholdPairing_ReverseOrder(t *testing.T) {
 	r := NewRegistry()
-	msg := panicMessage(t, func() {
-		r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"BAD_NO_PREFIX"}})
-	})
-	if !strings.Contains(msg, "BAD_NO_PREFIX") {
-		t.Errorf("panic message %q does not name the offending key", msg)
+	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_REVERSE_PAIR", Default: "1"})
+
+	func() {
+		defer func() {
+			if rec := recover(); rec != nil {
+				t.Fatalf("registering the already-thresholded key as Optional panicked: %v", rec)
+			}
+		}()
+		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_REVERSE_FLAG", Optional: []string{"DUBPLATE_TEST_REVERSE_PAIR"}})
+	}()
+}
+
+// TestCollisionGate_MissingPrefix fires O5 class 3: a declared key
+// without the DUBPLATE_ prefix (Resolution R16). The threshold case
+// proves the prefix rule holds for the one family whose entry point
+// can also skip the claim itself (AddThreshold's R5 pairing skip),
+// requirePrefix (registry.go) running unconditionally ahead of that
+// skip.
+func TestCollisionGate_MissingPrefix(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func(r *Registry)
+	}{
+		{
+			name: "reserved classes",
+			fn: func(r *Registry) {
+				r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"BAD_NO_PREFIX"}})
+			},
+		},
+		{
+			name: "thresholds",
+			fn: func(r *Registry) {
+				r.AddThreshold(Threshold{Key: "BAD_NO_PREFIX", Kind: KindInt, Default: "1"})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg := panicMessage(t, func() { tt.fn(NewRegistry()) })
+			if !strings.Contains(msg, "BAD_NO_PREFIX") {
+				t.Errorf("panic message %q does not name the offending key", msg)
+			}
+			if !strings.Contains(msg, "without the DUBPLATE_ prefix") {
+				t.Errorf("panic message %q does not name the missing prefix", msg)
+			}
+		})
 	}
 }
 
@@ -223,7 +268,7 @@ func TestCollisionGate_KindDefaultMismatch(t *testing.T) {
 		{
 			name: "Kind names no parser",
 			th:   Threshold{Key: "DUBPLATE_TEST_UNNAMED_KIND", Kind: ThresholdKind(99), Default: "1"},
-			want: "DUBPLATE_TEST_UNNAMED_KIND",
+			want: "DUBPLATE_TEST_UNNAMED_KIND: unnamed threshold kind ThresholdKind(99)",
 		},
 	}
 	for _, tt := range tests {

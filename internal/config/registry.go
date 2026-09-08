@@ -96,19 +96,27 @@ func panicDuplicate(key, existing, family string) {
 	panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, existing, family))
 }
 
-// claim panics if key does not carry the DUBPLATE_ prefix (O5 class 3,
-// Resolution R16: every family's keys share one flat environment
-// namespace, so a declared key without the prefix would collide with
-// an adopter's own variables), then panics if key was already claimed
-// by a family other than family (O5 class 2), then records that family
-// claims key. It deliberately does not flag a repeat claim from the
-// same family: that is a within-family duplicate (O5 class 1), and
-// each family's own entry point checks for it separately, so the two
-// checks stay independent of each other.
-func (r *Registry) claim(family, key string) {
+// requirePrefix panics if key does not carry the DUBPLATE_ prefix (O5
+// class 3, Resolution R16: every family's keys share one flat
+// environment namespace, so a declared key without the prefix would
+// collide with an adopter's own variables). Every Add* entry point
+// calls this for each of its keys before any claim or claim-skip
+// decision, so a key that never reaches claim (AddThreshold's
+// R5-pairing skip, AddIntegrationClass's own) still gets checked.
+func requirePrefix(family, key string) {
 	if !strings.HasPrefix(key, "DUBPLATE_") {
 		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))
 	}
+}
+
+// claim panics if key was already claimed by a family other than
+// family (O5 class 2), then records that family claims key. It
+// deliberately does not flag a repeat claim from the same family: that
+// is a within-family duplicate (O5 class 1), and each family's own
+// entry point checks for it separately, so the two checks stay
+// independent of each other. Callers run [requirePrefix] on key before
+// calling claim.
+func (r *Registry) claim(family, key string) {
 	if existing, ok := r.claims[key]; ok && existing != family {
 		panicDuplicate(key, existing, family)
 	}
@@ -130,6 +138,7 @@ func (r *Registry) claim(family, key string) {
 func (r *Registry) AddWallRow(row WallRow) {
 	switch {
 	case strings.HasPrefix(row.Name, "DUBPLATE_"):
+		requirePrefix(familyOwnedWall, row.Name)
 		if slices.ContainsFunc(r.ownedWall, func(existing WallRow) bool { return existing.Name == row.Name }) {
 			panicDuplicate(row.Name, familyOwnedWall, familyOwnedWall)
 		}
@@ -158,6 +167,7 @@ func (r *Registry) AddReservedClass(class ReservedClass) {
 		}
 	}
 	for _, key := range class.Keys {
+		requirePrefix(familyReserved, key)
 		for _, existing := range r.reservedClasses {
 			if slices.Contains(existing.Keys, key) {
 				panicDuplicate(key, familyReserved, familyReserved)
@@ -211,6 +221,9 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	keys = append(keys, class.Required...)
 	keys = append(keys, class.Optional...)
 
+	for _, key := range keys {
+		requirePrefix(familyIntegration, key)
+	}
 	for i, key := range keys {
 		if slices.Contains(keys[:i], key) {
 			panicDuplicate(key, familyIntegration, familyIntegration)
@@ -252,6 +265,7 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 //
 // provisional, conductor ruling owed, R11
 func (r *Registry) AddThreshold(t Threshold) {
+	requirePrefix(familyThresholds, t.Key)
 	if slices.ContainsFunc(r.thresholds, func(existing Threshold) bool { return existing.Key == t.Key }) {
 		panicDuplicate(t.Key, familyThresholds, familyThresholds)
 	}
@@ -263,11 +277,10 @@ func (r *Registry) AddThreshold(t Threshold) {
 }
 
 // isOptionalIntegrationKey reports whether key is already registered as
-// some integration class's Optional row. An Optional row is, by
-// design, also a registered threshold ([Registry.AddIntegrationClass]'s
-// own doc, Resolution R5), so AddThreshold skips the generic
-// cross-family claim for it rather than panicking on the pairing its
-// own Optional registration already claimed.
+// some integration class's Optional row. An Optional row may also be a
+// registered threshold, the R5 pairing ([Registry.AddIntegrationClass]'s
+// own doc); that pairing is the one exemption AddThreshold makes from
+// the generic cross-family claim, rather than panicking on it.
 func (r *Registry) isOptionalIntegrationKey(key string) bool {
 	for _, class := range r.integrationClasses {
 		if slices.Contains(class.Optional, key) {
@@ -326,6 +339,7 @@ func (r *Registry) Thresholds() []Threshold {
 //
 // provisional, conductor ruling owed, R8
 func (r *Registry) AddSuperseded(name, reason string) {
+	requirePrefix(familySuperseded, name)
 	if _, ok := r.superseded[name]; ok {
 		panicDuplicate(name, familySuperseded, familySuperseded)
 	}

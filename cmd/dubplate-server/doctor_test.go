@@ -323,9 +323,8 @@ func TestDoctorCmd_ShadowRows(t *testing.T) {
 
 // TestDoctorCmd_FloatThreshold proves a registered KindFloat threshold
 // prints its effective value in the thresholds block, in the same
-// pinned "%-32s %s" form every other row uses, and that the value comes
-// through the same round-tripping parser thresholdStatus itself calls
-// (config.ParseFloat), rather than a captured golden string.
+// pinned "%-32s %s" form every other row uses. wantLine is a literal
+// ("0.04"), not derived by calling config.ParseFloat itself.
 func TestDoctorCmd_FloatThreshold(t *testing.T) {
 	reg := config.NewRegistry()
 	reg.AddThreshold(config.Threshold{
