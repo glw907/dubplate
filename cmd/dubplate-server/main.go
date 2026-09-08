@@ -30,6 +30,19 @@ import (
 // time; it stays "dev" for workstation builds.
 var version = "dev"
 
+// matcherCommit is the Go matcher revision this build carries, set via
+// -ldflags "-X main.matcherCommit=..." at build time. It stays "dev"
+// for workstation builds, and shadow observe REFUSES to run on "dev"
+// or on an empty value, because an unstamped divergence cannot be
+// mechanically re-evaluated and is therefore worse than no
+// observation.
+//
+// Pass 4b lands the build path that sets it: today no build path does,
+// so this value is "dev" everywhere and the refusal fires everywhere,
+// which is the correct behavior for a binary whose divergences would
+// be unretireable.
+var matcherCommit = "dev"
+
 func main() {
 	cmd := newRootCmd()
 	if err := cmd.Execute(); err != nil {
@@ -51,6 +64,7 @@ func newRootCmd() *cobra.Command {
 		newVersionCmd(),
 		newCheckCmd(os.Environ(), os.Stdout, os.Stderr),
 		newDoctorCmd(os.Environ(), os.Stdout, os.Stderr),
+		newShadowCmd(os.Environ(), matcherCommit, os.Stdout, os.Stderr),
 	)
 	return cmd
 }

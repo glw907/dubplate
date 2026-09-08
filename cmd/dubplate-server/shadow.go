@@ -2,13 +2,19 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"path/filepath"
+	"slices"
 	"sync"
+	"time"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/shadow"
 	"github.com/glw907/dubplate/internal/harness/analysis"
 	"github.com/glw907/dubplate/internal/harness/cassette"
+	"github.com/spf13/cobra"
 )
 
 // shadowFloorThreshold is the evidence floor rung 15 measures the
@@ -138,6 +144,241 @@ func storeArtifacts(s *shadow.Store, res *shadow.PassResult) error {
 			return err
 		}
 		if err := s.PutPending(row.ID, data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// newShadowCmd builds the shadow subcommand and its three verbs:
+// observe runs one capture, reconcile and match pass and is the timer's
+// ExecStart; report prints the launch-gate report; reevaluate runs the
+// mechanical re-evaluation ratified ruling B's adjudication-load
+// reduction rests on.
+//
+// matcherCommit is a parameter rather than a package variable read
+// inside RunE, on the same injection grounds environ already uses: the
+// observe verb refuses an empty or "dev" stamp, and a test that cannot
+// vary the stamp cannot prove the refusal. newRootCmd passes
+// main.matcherCommit, so production behavior is unchanged and no test
+// writes a global.
+func newShadowCmd(environ []string, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:           "shadow",
+		Short:         "Run the shadow matcher against the incumbent's own decisions",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+	}
+	cmd.SetErr(stderr)
+	cmd.AddCommand(
+		newShadowObserveCmd(environ, matcherCommit, stdout, stderr),
+		newShadowReportCmd(environ, stdout, stderr),
+		newShadowReevaluateCmd(environ, stdout, stderr),
+	)
+	return cmd
+}
+
+// newShadowObserveCmd builds the observe verb. Its contract runs in
+// order: load config; refuse when cfg.Shadow is nil, naming
+// DUBPLATE_SHADOW_ENABLED; refuse when matcherCommit is empty or "dev",
+// creating no store either way; resolve the floor and the cap through
+// the two registered thresholds; compose the User-Agent; open the
+// store; call shadow.Run with time.Now(), legal here because cmd/ is
+// outside the engine's no-clock walk; write the artifacts through
+// storeArtifacts; print a one-line summary.
+func newShadowObserveCmd(environ []string, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:           "observe",
+		Short:         "Run one capture, reconcile and match pass",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			cfg, err := config.Load(environ)
+			if err != nil {
+				return err
+			}
+			if cfg.Shadow == nil {
+				return errors.New("shadow observe: DUBPLATE_SHADOW_ENABLED is not set")
+			}
+			if matcherCommit == "" || matcherCommit == "dev" {
+				return fmt.Errorf("shadow observe: refusing to run on an unstamped matcher commit %q", matcherCommit)
+			}
+
+			if _, err := config.ParseDuration(environ, shadowFloorThreshold); err != nil {
+				return err
+			}
+			budget, err := config.ParseInt(environ, shadowBudgetThreshold)
+			if err != nil {
+				return err
+			}
+
+			userAgent := fmt.Sprintf("dubplate-server/%s ( %s )", version, cfg.AdminEmail)
+
+			store, err := shadow.OpenStore(filepath.Join(cfg.StateDir, "shadow"))
+			if err != nil {
+				return err
+			}
+
+			res, err := shadow.Run(cmd.Context(), shadow.Config{
+				StateDir:       cfg.StateDir,
+				ObserveDir:     cfg.Shadow.ObserveDir,
+				OracleStateDir: cfg.Shadow.OracleStateDir,
+				ReviewDir:      cfg.Shadow.ReviewDir,
+				UserAgent:      userAgent,
+				MatcherCommit:  matcherCommit,
+				BudgetLimit:    budget,
+			}, time.Now())
+			if err != nil {
+				return err
+			}
+
+			if err := storeArtifacts(store, res); err != nil {
+				return err
+			}
+
+			divergences := 0
+			for _, n := range res.Pass.Divergences {
+				divergences += n
+			}
+			_, err = fmt.Fprintf(stdout, "shadow observe: captured %d, observed %d (%d agreement(s), %d divergence(s))\n",
+				res.Pass.Captured, res.Pass.Observed, res.Pass.Agreements, divergences)
+			return err
+		},
+	}
+	cmd.SetErr(stderr)
+	return cmd
+}
+
+// newShadowReportCmd builds the report verb: it prints the launch-gate
+// report in doctor's own "%-32s %s" row form, so an operator reads one
+// table shape across the binary.
+func newShadowReportCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:           "report",
+		Short:         "Print the launch-gate report",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(*cobra.Command, []string) error {
+			cfg, err := config.Load(environ)
+			if err != nil {
+				return err
+			}
+			floor, err := config.ParseDuration(environ, shadowFloorThreshold)
+			if err != nil {
+				return err
+			}
+
+			store, err := shadow.OpenStore(filepath.Join(cfg.StateDir, "shadow"))
+			if err != nil {
+				return err
+			}
+			report, err := shadow.BuildReport(store, time.Now(), floor)
+			if err != nil {
+				return err
+			}
+			return printShadowReport(stdout, report)
+		},
+	}
+	cmd.SetErr(stderr)
+	return cmd
+}
+
+// newShadowReevaluateCmd builds the reevaluate verb. Its RunE is filled
+// in by Task 13's shadow.Reevaluate, which reruns every observation
+// stamped with a superseded matcher commit against its own stored
+// responses.
+func newShadowReevaluateCmd(_ []string, stdout, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:           "reevaluate",
+		Short:         "Re-run stamped observations against their stored responses",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(*cobra.Command, []string) error {
+			_, err := fmt.Fprintln(stdout, "shadow reevaluate: not yet implemented")
+			return err
+		},
+	}
+	cmd.SetErr(stderr)
+	return cmd
+}
+
+// printShadowReport writes r's rows in the pinned "%-32s %s" form,
+// printing every map-valued row in sorted key order so the table is
+// reproducible rather than map-iteration-ordered.
+func printShadowReport(w io.Writer, r *shadow.Report) error {
+	clockStart := "not started"
+	if r.ClockStarted {
+		clockStart = r.ClockStart.Format(time.RFC3339)
+	}
+	if err := printRow(w, "clock start", clockStart); err != nil {
+		return err
+	}
+	if err := printRow(w, "floor", r.Floor.String()); err != nil {
+		return err
+	}
+	pct := 0.0
+	if r.Floor > 0 {
+		pct = 100 * float64(r.Elapsed) / float64(r.Floor)
+	}
+	if err := printRow(w, "elapsed", fmt.Sprintf("%s (%.1f%% of floor)", r.Elapsed, pct)); err != nil {
+		return err
+	}
+	if err := printRow(w, "observed albums", fmt.Sprintf("%d applied, %d skipped", r.ObservedApplied, r.ObservedSkipped)); err != nil {
+		return err
+	}
+
+	if err := printCountRows(w, "excluded", r.Excluded); err != nil {
+		return err
+	}
+	if err := printCountRows(w, "unreconciled", r.Unreconciled); err != nil {
+		return err
+	}
+	if err := printRow(w, "report gaps", fmt.Sprintf("%d", r.ReportGaps)); err != nil {
+		return err
+	}
+	if err := printCountRows(w, "deferred", r.Deferred); err != nil {
+		return err
+	}
+	if err := printCountRows(w, "divergences", r.Divergences); err != nil {
+		return err
+	}
+	if err := printRow(w, "go-applies-oracle-skipped", fmt.Sprintf("%d (owner disposition joined off-box)", r.GoAppliesOracleSkipped)); err != nil {
+		return err
+	}
+	if err := printRow(w, "staged pending", fmt.Sprintf("%d", r.StagedPending)); err != nil {
+		return err
+	}
+	if err := printRow(w, "resolved", fmt.Sprintf("%d", r.Resolved)); err != nil {
+		return err
+	}
+	if err := printCountRows(w, "matcher commits", r.MatcherCommits); err != nil {
+		return err
+	}
+
+	for i, p := range r.Passes {
+		label := fmt.Sprintf("budget pass %d", i+1)
+		if err := printRow(w, label, fmt.Sprintf("%s %d", p.Name, p.Spent)); err != nil {
+			return err
+		}
+	}
+	if err := printRow(w, "budget total", fmt.Sprintf("%d", r.BudgetTotal)); err != nil {
+		return err
+	}
+
+	return printRow(w, "store size", fmt.Sprintf("%d bytes", r.StoreBytes))
+}
+
+// printCountRows prints one line per key in counts, sorted, each
+// labeled "<label> <key>": the sorted order is what keeps a map-valued
+// row reproducible across runs.
+func printCountRows(w io.Writer, label string, counts map[string]int) error {
+	keys := make([]string, 0, len(counts))
+	for k := range counts {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	for _, k := range keys {
+		if err := printRow(w, label+" "+k, fmt.Sprintf("%d", counts[k])); err != nil {
 			return err
 		}
 	}

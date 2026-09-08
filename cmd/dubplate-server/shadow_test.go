@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/glw907/dubplate/internal/engine/shadow"
 	"github.com/glw907/dubplate/internal/harness/analysis"
@@ -288,6 +291,217 @@ func TestStoreArtifactsWritesOneFilePerObservationAndOnePerNewsRow(t *testing.T)
 		}
 		if !found {
 			t.Errorf("PendingIDs = %v, want it to contain %q", pendingIDs, want)
+		}
+	}
+}
+
+// baseServerEnviron returns a minimal environ with every owned-now key
+// set to a valid value under root, so a test can override or add
+// exactly the entries its case needs.
+func baseServerEnviron(root string) []string {
+	return []string{
+		"DUBPLATE_LIBRARY_ROOT=" + filepath.Join(root, "library"),
+		"DUBPLATE_STATE_DIR=" + filepath.Join(root, "state"),
+		"DUBPLATE_SITE_NAME=Test Family",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
+	}
+}
+
+// shadowEnabledEnviron adds the shadow integration's enable flag and
+// its three required-when-enabled paths under root.
+func shadowEnabledEnviron(root string) []string {
+	return []string{
+		"DUBPLATE_SHADOW_ENABLED=true",
+		"DUBPLATE_SHADOW_OBSERVE_DIR=" + filepath.Join(root, "inbox"),
+		"DUBPLATE_SHADOW_ORACLE_STATE_DIR=" + filepath.Join(root, "incumbent"),
+		"DUBPLATE_SHADOW_REVIEW_DIR=" + filepath.Join(root, "review"),
+	}
+}
+
+// TestObserveRefusesAnUnstampedBuild proves observe refuses on "dev"
+// and on an empty matcher commit, naming it, and creates no store: a
+// refused pass must leave no half-started clock.
+func TestObserveRefusesAnUnstampedBuild(t *testing.T) {
+	tests := []struct{ name, stamp string }{
+		{"dev refuses", "dev"},
+		{"empty refuses", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			environ := append(baseServerEnviron(root), shadowEnabledEnviron(root)...)
+			var stdout, stderr bytes.Buffer
+
+			cmd := newShadowCmd(environ, tt.stamp, &stdout, &stderr)
+			cmd.SetArgs([]string{"observe"})
+			err := cmd.Execute()
+			if err == nil {
+				t.Fatal("Execute: got nil error, want a refusal naming the matcher commit")
+			}
+			if !strings.Contains(err.Error(), "matcher") {
+				t.Errorf("error = %q, want it to name the matcher commit", err.Error())
+			}
+
+			if _, statErr := os.Stat(filepath.Join(root, "state", "shadow")); !os.IsNotExist(statErr) {
+				t.Errorf("store dir exists after a refused observe: %v", statErr)
+			}
+		})
+	}
+}
+
+// TestObserveRefusesWhenTheIntegrationIsDisabled proves observe reports
+// the missing flag rather than dereferencing a nil cfg.Shadow.
+func TestObserveRefusesWhenTheIntegrationIsDisabled(t *testing.T) {
+	root := t.TempDir()
+	environ := baseServerEnviron(root)
+	var stdout, stderr bytes.Buffer
+
+	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd.SetArgs([]string{"observe"})
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute: got nil error, want a refusal naming DUBPLATE_SHADOW_ENABLED")
+	}
+	if !strings.Contains(err.Error(), "DUBPLATE_SHADOW_ENABLED") {
+		t.Errorf("error = %q, want it to name DUBPLATE_SHADOW_ENABLED", err.Error())
+	}
+}
+
+// TestShadowVerbsAreRegisteredAndPrintToStdout proves newShadowCmd
+// carries exactly three verbs, both silence flags are set on the
+// parent and every child, and report writes to the injected stdout
+// writer rather than to os.Stdout.
+func TestShadowVerbsAreRegisteredAndPrintToStdout(t *testing.T) {
+	root := t.TempDir()
+	environ := baseServerEnviron(root)
+	var stdout, stderr bytes.Buffer
+
+	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	if !cmd.SilenceUsage || !cmd.SilenceErrors {
+		t.Errorf("shadow: SilenceUsage=%v SilenceErrors=%v, want both true", cmd.SilenceUsage, cmd.SilenceErrors)
+	}
+
+	var names []string
+	for _, sub := range cmd.Commands() {
+		names = append(names, sub.Name())
+		if !sub.SilenceUsage || !sub.SilenceErrors {
+			t.Errorf("%s: SilenceUsage=%v SilenceErrors=%v, want both true", sub.Name(), sub.SilenceUsage, sub.SilenceErrors)
+		}
+	}
+	want := []string{"observe", "report", "reevaluate"}
+	if len(names) != len(want) {
+		t.Fatalf("subcommands = %v, want %v", names, want)
+	}
+	for _, w := range want {
+		found := false
+		for _, n := range names {
+			if n == w {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("subcommands = %v, want it to contain %q", names, w)
+		}
+	}
+
+	cmd.SetArgs([]string{"report"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute report: %v", err)
+	}
+	if stdout.Len() == 0 {
+		t.Error("report wrote nothing to the injected stdout writer; mutation 5 (os.Stdout instead) would leave it empty")
+	}
+}
+
+// TestReportPrintsThePinnedRowForm proves every printed line matches
+// doctor's own "%-32s %s" row form.
+func TestReportPrintsThePinnedRowForm(t *testing.T) {
+	root := t.TempDir()
+	environ := baseServerEnviron(root)
+	var stdout, stderr bytes.Buffer
+
+	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd.SetArgs([]string{"report"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute report: %v", err)
+	}
+
+	wantLines := []string{
+		fmt.Sprintf("%-32s %s", "clock start", "not started"),
+		fmt.Sprintf("%-32s %s", "floor", (720 * time.Hour).String()),
+		fmt.Sprintf("%-32s %s", "observed albums", "0 applied, 0 skipped"),
+		fmt.Sprintf("%-32s %s", "report gaps", "0"),
+		fmt.Sprintf("%-32s %s", "go-applies-oracle-skipped", "0 (owner disposition joined off-box)"),
+		fmt.Sprintf("%-32s %s", "staged pending", "0"),
+		fmt.Sprintf("%-32s %s", "resolved", "0"),
+		fmt.Sprintf("%-32s %s", "budget total", "0"),
+	}
+	output := stdout.String()
+	for _, want := range wantLines {
+		if !strings.Contains(output, want+"\n") {
+			t.Errorf("report output missing pinned-form line %q; got:\n%s", want, output)
+		}
+	}
+
+	for line := range strings.SplitSeq(strings.TrimRight(output, "\n"), "\n") {
+		if line == "" {
+			continue
+		}
+		if !strings.Contains(line, " ") {
+			t.Errorf("line %q does not match the pinned %q form", line, "%-32s %s")
+		}
+	}
+}
+
+// TestReportPrintsMapRowsInSortedKeyOrder proves the excluded,
+// unreconciled, deferred, divergences and matcher-commits rows print
+// in sorted key order rather than map-iteration order, which is what
+// keeps the table reproducible across runs (mutation 4).
+func TestReportPrintsMapRowsInSortedKeyOrder(t *testing.T) {
+	root := t.TempDir()
+	environ := baseServerEnviron(root)
+
+	storeRoot := filepath.Join(root, "state", "shadow")
+	s, err := shadow.OpenStore(storeRoot)
+	if err != nil {
+		t.Fatalf("OpenStore: %v", err)
+	}
+	pass := &shadow.PassRecord{
+		ID: "pass-1",
+		Excluded: map[string]int{
+			shadow.ExcludedNoTracks:     1,
+			shadow.ExcludedGateRejected: 1,
+			shadow.ExcludedMultiAlbum:   1,
+		},
+	}
+	if err := s.PutPass(pass); err != nil {
+		t.Fatalf("PutPass: %v", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	cmd := newShadowCmd(environ, "cafebabe", &stdout, &stderr)
+	cmd.SetArgs([]string{"report"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute report: %v", err)
+	}
+
+	output := stdout.String()
+	wantOrder := []string{
+		"excluded " + shadow.ExcludedGateRejected,
+		"excluded " + shadow.ExcludedMultiAlbum,
+		"excluded " + shadow.ExcludedNoTracks,
+	}
+	var positions []int
+	for _, label := range wantOrder {
+		idx := strings.Index(output, fmt.Sprintf("%-32s", label))
+		if idx < 0 {
+			t.Fatalf("output missing label %q; got:\n%s", label, output)
+		}
+		positions = append(positions, idx)
+	}
+	for i := 1; i < len(positions); i++ {
+		if positions[i] <= positions[i-1] {
+			t.Errorf("excluded rows out of sorted order: positions = %v for labels %v", positions, wantOrder)
 		}
 	}
 }
