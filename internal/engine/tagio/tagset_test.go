@@ -1,6 +1,7 @@
 package tagio
 
 import (
+	"reflect"
 	"slices"
 	"testing"
 )
@@ -39,12 +40,12 @@ func TestFieldCountAndNames(t *testing.T) {
 	if len(handoffNames) != 69 {
 		t.Fatalf("handoffNames has %d entries, want 69", len(handoffNames))
 	}
-	if len(Mapping) != 69 {
-		t.Errorf("Mapping has %d rows, want 69", len(Mapping))
+	if len(mapping) != 69 {
+		t.Errorf("mapping has %d rows, want 69", len(mapping))
 	}
 
-	got := make(map[string]bool, len(Mapping))
-	for _, row := range Mapping {
+	got := make(map[string]bool, len(mapping))
+	for _, row := range mapping {
 		got[string(row.Field)] = true
 	}
 	want := make(map[string]bool, len(handoffNames))
@@ -67,7 +68,7 @@ func TestFieldCountAndNames(t *testing.T) {
 // TestMappingCitations walks Mapping and grades C16: every row carries
 // at least one Vorbis key and a non-empty mediafile citation.
 func TestMappingCitations(t *testing.T) {
-	for _, row := range Mapping {
+	for _, row := range mapping {
 		if len(row.Styles) == 0 {
 			t.Errorf("field %q has no Vorbis keys", row.Field)
 		}
@@ -79,6 +80,154 @@ func TestMappingCitations(t *testing.T) {
 		if row.Citation == "" {
 			t.Errorf("field %q has no mediafile citation", row.Field)
 		}
+	}
+}
+
+// fieldStructName pairs each Field constant with the TagSet struct
+// field it names, hand-authored independent of both tagset.go's
+// struct literal and mapping: naming a removed Field constant here
+// fails to compile, which is the mechanical tie a dropped constant
+// needs. TestTagSetMembersTieToMapping compares this map's keys
+// against mapping's Field set and its values against TagSet's own
+// field names by reflection, so a dropped struct member or a dropped
+// mapping row each fail a named assertion below, not just a bare
+// count.
+var fieldStructName = map[Field]string{
+	FieldAcoustIDFingerprint: "AcoustIDFingerprint",
+	FieldAcoustIDID:          "AcoustIDID",
+	FieldAlbum:               "Album",
+	FieldAlbumartist:         "Albumartist",
+	FieldAlbumartistCredit:   "AlbumartistCredit",
+	FieldAlbumartistSort:     "AlbumartistSort",
+	FieldAlbumartists:        "Albumartists",
+	FieldAlbumartistsCredit:  "AlbumartistsCredit",
+	FieldAlbumartistsSort:    "AlbumartistsSort",
+	FieldAlbumdisambig:       "Albumdisambig",
+	FieldAlbumstatus:         "Albumstatus",
+	FieldAlbumtype:           "Albumtype",
+	FieldAlbumtypes:          "Albumtypes",
+	FieldArrangers:           "Arrangers",
+	FieldArtist:              "Artist",
+	FieldArtistCredit:        "ArtistCredit",
+	FieldArtistSort:          "ArtistSort",
+	FieldArtists:             "Artists",
+	FieldArtistsCredit:       "ArtistsCredit",
+	FieldArtistsSort:         "ArtistsSort",
+	FieldAsin:                "Asin",
+	FieldBarcode:             "Barcode",
+	FieldBpm:                 "Bpm",
+	FieldCatalognum:          "Catalognum",
+	FieldComments:            "Comments",
+	FieldComp:                "Comp",
+	FieldComposerSort:        "ComposerSort",
+	FieldComposers:           "Composers",
+	FieldCountry:             "Country",
+	FieldYear:                "Year",
+	FieldMonth:               "Month",
+	FieldDay:                 "Day",
+	FieldDisc:                "Disc",
+	FieldDisctitle:           "Disctitle",
+	FieldDisctotal:           "Disctotal",
+	FieldEncoder:             "Encoder",
+	FieldGenres:              "Genres",
+	FieldGrouping:            "Grouping",
+	FieldInitialKey:          "InitialKey",
+	FieldIsrc:                "Isrc",
+	FieldLabel:               "Label",
+	FieldLanguage:            "Language",
+	FieldLyricists:           "Lyricists",
+	FieldLyrics:              "Lyrics",
+	FieldMBAlbumartistid:     "MBAlbumartistid",
+	FieldMBAlbumartistids:    "MBAlbumartistids",
+	FieldMBAlbumid:           "MBAlbumid",
+	FieldMBArtistid:          "MBArtistid",
+	FieldMBArtistids:         "MBArtistids",
+	FieldMBReleasegroupid:    "MBReleasegroupid",
+	FieldMBReleasetrackid:    "MBReleasetrackid",
+	FieldMBTrackid:           "MBTrackid",
+	FieldMBWorkid:            "MBWorkid",
+	FieldMedia:               "Media",
+	FieldOriginalYear:        "OriginalYear",
+	FieldOriginalMonth:       "OriginalMonth",
+	FieldOriginalDay:         "OriginalDay",
+	FieldR128AlbumGain:       "R128AlbumGain",
+	FieldR128TrackGain:       "R128TrackGain",
+	FieldRemixers:            "Remixers",
+	FieldRgAlbumGain:         "RgAlbumGain",
+	FieldRgAlbumPeak:         "RgAlbumPeak",
+	FieldRgTrackGain:         "RgTrackGain",
+	FieldRgTrackPeak:         "RgTrackPeak",
+	FieldScript:              "Script",
+	FieldSubtitle:            "Subtitle",
+	FieldTitle:               "Title",
+	FieldTrack:               "Track",
+	FieldTracktotal:          "Tracktotal",
+}
+
+// TestTagSetMembersTieToMapping grades finding 1: removing a TagSet
+// member, a mapping row or a Field constant each fail a named
+// assertion here. A removed Field constant fails fieldStructName's
+// own compilation, before the test ever runs; the two loops below
+// catch a removed struct member (against reflect.TypeOf(TagSet{}))
+// and a removed mapping row (against mapping's own Field set).
+func TestTagSetMembersTieToMapping(t *testing.T) {
+	if len(fieldStructName) != 69 {
+		t.Fatalf("fieldStructName has %d entries, want 69", len(fieldStructName))
+	}
+
+	typ := reflect.TypeFor[TagSet]()
+	gotStruct := make(map[string]bool, typ.NumField())
+	for f := range typ.Fields() {
+		gotStruct[f.Name] = true
+	}
+	if typ.NumField() != 69 {
+		t.Errorf("TagSet has %d exported fields, want 69", typ.NumField())
+	}
+	wantStruct := make(map[string]bool, len(fieldStructName))
+	for _, name := range fieldStructName {
+		wantStruct[name] = true
+	}
+	for name := range wantStruct {
+		if !gotStruct[name] {
+			t.Errorf("fieldStructName names TagSet field %q, TagSet does not have it", name)
+		}
+	}
+	for name := range gotStruct {
+		if !wantStruct[name] {
+			t.Errorf("TagSet has field %q, fieldStructName does not name it", name)
+		}
+	}
+
+	gotMapping := make(map[Field]bool, len(mapping))
+	for _, row := range mapping {
+		gotMapping[row.Field] = true
+	}
+	for f := range fieldStructName {
+		if !gotMapping[f] {
+			t.Errorf("fieldStructName names %q, mapping does not", f)
+		}
+	}
+	for f := range gotMapping {
+		if _, ok := fieldStructName[f]; !ok {
+			t.Errorf("mapping names %q, fieldStructName does not", f)
+		}
+	}
+}
+
+// TestMappingAccessorReturnsCopy grades finding 2: a caller cannot
+// reorder WriteOrder's underlying table by mutating Mapping's
+// returned slice.
+func TestMappingAccessorReturnsCopy(t *testing.T) {
+	before := WriteOrder()
+	got := Mapping()
+	if len(got) < 2 {
+		t.Fatal("Mapping() returned fewer than 2 rows")
+	}
+	got[0], got[1] = got[1], got[0]
+
+	after := WriteOrder()
+	if !slices.Equal(before, after) {
+		t.Error("mutating Mapping()'s returned slice changed WriteOrder")
 	}
 }
 
@@ -166,53 +315,57 @@ func TestCollidingPairsWriteOrder(t *testing.T) {
 // TestFourStates grades C2 for a representative string field, list
 // field and numeric field: value, present-but-empty and absent are
 // each distinguishable by reading the one TagSet member directly, no
-// second lookup. The numeric row has no empty state, per C2.
+// second lookup. The numeric row has no empty state, per C2. Each
+// subtest's rows are a table indexed by position, and the absent row
+// is a bare TagSet{} rather than a field set to nil by name, so the
+// assertion reads a value the row's own construction produced instead
+// of re-reading a nil the same statement just wrote.
 func TestFourStates(t *testing.T) {
 	value := "Wowbagger"
 	t.Run("string", func(t *testing.T) {
-		cases := map[string]*TagSet{
-			"value":  {Title: &value},
-			"empty":  {Title: EmptyString()},
-			"absent": {Title: nil},
+		rows := []TagSet{
+			{Title: &value},
+			{Title: EmptyString()},
+			{},
 		}
-		if cases["value"].Title == nil || *cases["value"].Title != value {
+		if rows[0].Title == nil || *rows[0].Title != value {
 			t.Error("value state: Title does not hold the value")
 		}
-		if cases["empty"].Title == nil || *cases["empty"].Title != "" {
+		if rows[1].Title == nil || *rows[1].Title != "" {
 			t.Error("empty state: Title is not a non-nil pointer to \"\"")
 		}
-		if cases["absent"].Title != nil {
+		if rows[2].Title != nil {
 			t.Error("absent state: Title is not nil")
 		}
 	})
 
 	t.Run("list", func(t *testing.T) {
-		cases := map[string]*TagSet{
-			"value":  {Genres: []string{"jazz", "trip-hop"}},
-			"empty":  {Genres: EmptyList()},
-			"absent": {},
+		rows := []TagSet{
+			{Genres: []string{"jazz", "trip-hop"}},
+			{Genres: EmptyList()},
+			{},
 		}
-		if cases["value"].Genres == nil || len(cases["value"].Genres) != 2 {
+		if rows[0].Genres == nil || len(rows[0].Genres) != 2 {
 			t.Error("value state: Genres does not hold the values")
 		}
-		if cases["empty"].Genres == nil || len(cases["empty"].Genres) != 0 {
+		if rows[1].Genres == nil || len(rows[1].Genres) != 0 {
 			t.Error("empty state: Genres is not a non-nil zero-length slice")
 		}
-		if cases["absent"].Genres != nil {
+		if rows[2].Genres != nil {
 			t.Error("absent state: Genres is not nil")
 		}
 	})
 
 	t.Run("numeric", func(t *testing.T) {
 		n := 7
-		cases := map[string]*TagSet{
-			"value":  {Track: &n},
-			"absent": {},
+		rows := []TagSet{
+			{Track: &n},
+			{},
 		}
-		if cases["value"].Track == nil || *cases["value"].Track != 7 {
+		if rows[0].Track == nil || *rows[0].Track != 7 {
 			t.Error("value state: Track does not hold the value")
 		}
-		if cases["absent"].Track != nil {
+		if rows[1].Track != nil {
 			t.Error("absent state: Track is not nil")
 		}
 	})
@@ -222,7 +375,7 @@ func TestFourStates(t *testing.T) {
 // exists.
 func mustRow(t *testing.T, f Field) FieldMapping {
 	t.Helper()
-	for _, row := range Mapping {
+	for _, row := range mapping {
 		if row.Field == f {
 			return row
 		}

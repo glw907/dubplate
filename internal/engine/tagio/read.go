@@ -41,7 +41,7 @@ func Read(path string) (TagSet, error) {
 func project(c Container) TagSet {
 	cs := c.VorbisComment.Comments
 	var ts TagSet
-	for _, row := range Mapping {
+	for _, row := range mapping {
 		projectField(&ts, row, cs)
 	}
 	return ts

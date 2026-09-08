@@ -250,7 +250,7 @@ func TestSafeCastBool(t *testing.T) {
 // subpart" rule rather than a per-byte scan: an ill-formed sequence
 // collapses its longest well-formed prefix into a single U+FFFD, not
 // one U+FFFD per invalid byte. Every want string is a hard-coded
-// literal, never computed from replaceInvalidUTF8, utf8.ToValidString
+// literal, never computed from replaceInvalidUTF8, strings.ToValidUTF8
 // or utf8.DecodeRuneInString (whose own invalid-encoding size is
 // always 1, not the maximal-subpart length).
 func TestReplaceInvalidUTF8(t *testing.T) {
@@ -292,7 +292,7 @@ func mustKeyWrite(t *testing.T, kws []KeyWrite, field Field) KeyWrite {
 // rather than the field name.
 func fieldFor(t *testing.T, vorbisKey string) Field {
 	t.Helper()
-	for _, row := range Mapping {
+	for _, row := range mapping {
 		for _, s := range row.Styles {
 			if s.Key == vorbisKey {
 				return row.Field

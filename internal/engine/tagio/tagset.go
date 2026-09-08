@@ -1,9 +1,11 @@
 package tagio
 
+import "slices"
+
 // Field names one of TagSet's 69 writable members, spelled the way
 // corpus/README.md's handoff section and INV:315-385 both spell it
 // (mediafile's own field name, snake_case). It is the identifier
-// Mapping's rows key on and the value WriteOrder yields.
+// mapping's rows key on and the value WriteOrder yields.
 type Field string
 
 // The 69 writable fields, one constant per TagSet member. Names come
@@ -220,7 +222,7 @@ type FieldMapping struct {
 	Citation string
 }
 
-// Mapping is the 69-key table, one row per TagSet member, in the
+// mapping is the 69-key table, one row per TagSet member, in the
 // fixed order MediaFile.sorted_fields() writes them (C3): lexicographic
 // by field name, except year, month and day (and their original_
 // counterparts) sort as if named date0, date1 and date2, so a date
@@ -233,7 +235,12 @@ type FieldMapping struct {
 // each singular name is a strict prefix of its plural and a prefix
 // sorts first, so the plural writes last and wins the shared key
 // (spec:401-410, INV surprise 4).
-var Mapping = []FieldMapping{
+//
+// mapping is unexported so that no caller outside this file can
+// reorder or mutate the table WriteOrder and Serialize both walk; a
+// caller that needs the rows reads them from Mapping, which hands
+// back a copy.
+var mapping = []FieldMapping{
 	{FieldAcoustIDFingerprint, []Style{{"ACOUSTID_FINGERPRINT", true}}, "mediafile:817"},
 	{FieldAcoustIDID, []Style{{"ACOUSTID_ID", true}}, "mediafile:823"},
 	{FieldAlbum, []Style{{"ALBUM", true}}, "mediafile:410"},
@@ -305,15 +312,23 @@ var Mapping = []FieldMapping{
 	{FieldTracktotal, []Style{{"TRACKTOTAL", true}, {"TRACKC", true}, {"TOTALTRACKS", true}}, "mediafile:471,472,473"},
 }
 
-// WriteOrder returns the 69 field identifiers in Mapping's fixed
-// write order (C3). It walks Mapping rather than a map, so calling it
+// WriteOrder returns the 69 field identifiers in mapping's fixed
+// write order (C3). It walks mapping rather than a map, so calling it
 // repeatedly always yields the same sequence; a Go map's range order
 // is randomized per range statement and would make this
 // non-deterministic across calls.
 func WriteOrder() []Field {
-	order := make([]Field, len(Mapping))
-	for i, row := range Mapping {
+	order := make([]Field, len(mapping))
+	for i, row := range mapping {
 		order[i] = row.Field
 	}
 	return order
+}
+
+// Mapping returns a copy of the 69-row field-to-Vorbis-key table, in
+// MediaFile.sorted_fields() write order (C3). Each call clones the
+// underlying rows, so mutating the returned slice never reorders or
+// changes what WriteOrder and Serialize see.
+func Mapping() []FieldMapping {
+	return slices.Clone(mapping)
 }

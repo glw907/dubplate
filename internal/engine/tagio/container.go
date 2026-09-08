@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -142,12 +143,15 @@ func Parse(path string) (Container, error) {
 // signature. It stops the first time the next four bytes cannot be
 // read as a structurally valid block header: a clean end of file, a
 // declared type of 127 (never legal, per the format's own reserved
-// value), or a declared length running past the end of the file.
-// That stopping point is the frame region's start, provided the
-// chain ends with exactly one block carrying the last-block flag;
-// otherwise the file is malformed, whether it ran out of valid
-// blocks before ever setting the flag or kept offering valid blocks
-// after it (refusal 3 and refusal 4 of C7 share this one mechanism).
+// value), or a declared length running past the end of the file. A
+// short header read that carries an error other than io.EOF is a
+// genuine I/O failure, not a clean end of chain, and is returned
+// wrapped rather than treated as the frame region's start. That
+// stopping point is the frame region's start, provided the chain
+// ends with exactly one block carrying the last-block flag; otherwise
+// the file is malformed, whether it ran out of valid blocks before
+// ever setting the flag or kept offering valid blocks after it
+// (refusal 3 and refusal 4 of C7 share this one mechanism).
 func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 	var (
 		blocks           []Block
@@ -161,7 +165,11 @@ func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 	offset := int64(len(flacSignature))
 	for {
 		header := make([]byte, 4)
-		if n, _ := f.ReadAt(header, offset); n < 4 {
+		n, err := f.ReadAt(header, offset)
+		if n < 4 {
+			if err != nil && !errors.Is(err, io.EOF) {
+				return Container{}, fmt.Errorf("tagio: %s: read block header at offset %d: %w", path, offset, err)
+			}
 			break
 		}
 		last := header[0]&0x80 != 0

@@ -31,8 +31,8 @@ type KeyWrite struct {
 // ORIGINALDATE are written once from all three components together
 // rather than once per component (the compose-as-a-unit rule).
 func Serialize(ts TagSet) []KeyWrite {
-	out := make([]KeyWrite, 0, len(Mapping))
-	for _, row := range Mapping {
+	out := make([]KeyWrite, 0, len(mapping))
+	for _, row := range mapping {
 		switch row.Field {
 		case FieldMonth, FieldDay, FieldOriginalMonth, FieldOriginalDay:
 			continue
@@ -425,10 +425,11 @@ func safeCastBool(s string) bool {
 // well-formed prefix (the lead byte plus whatever continuation bytes
 // already matched) into a single U+FFFD, then resumes scanning at the
 // byte that broke the sequence. unicode/utf8's own DecodeRuneInString
-// does not have these semantics (it always reports size 1 on an
-// invalid encoding, mutagen/_vorbis.py:109 does not), so this scans
-// the byte structure explicitly via utf8SequenceSpan rather than
-// leaning on the stdlib decoder. Values are valid UTF-8 by
+// does not have these semantics: it always reports size 1 on an
+// invalid encoding, where mutagen/_vorbis.py:109 collapses the whole
+// maximal subpart instead, so this scans the byte structure explicitly
+// via utf8SequenceSpan rather than leaning on the stdlib decoder.
+// Values are valid UTF-8 by
 // construction on write, so this only ever runs on read.
 func replaceInvalidUTF8(s string) string {
 	if utf8.ValidString(s) {

@@ -39,8 +39,9 @@ package tagio
 //
 //  2. The date triple is composed as a unit. mediafile's own
 //     MediaFile.update performs a read-modify-write over each date
-//     component it is given, so setting only a track's month leaves
-//     its existing year and day untouched. tagio's Write takes a whole
+//     component it is given (mediafile:365-378), so setting only a
+//     track's month leaves its existing year and day untouched.
+//     tagio's Write takes a whole
 //     TagSet rather than a partial update, so it has no surface for
 //     that partial case: serializeDate always composes DATE (or
 //     ORIGINALDATE) from the year, month and day it is handed in one
@@ -70,7 +71,7 @@ package tagio
 //     container that carries none gets a vendor this package invents,
 //     "dubplate " followed by the build's module version (or
 //     "development" when the toolchain embeds none), never mutagen's
-//     own "Lavf" or "mutagen" style string. A byte inspecting a
+//     own "Lavf" or "mutagen" style string. A reader inspecting a
 //     freshly created VORBIS_COMMENT block can tell tagio wrote it.
 //
 //  6. The sixteen keys the ledger cannot grade, and bpm alongside them

@@ -520,6 +520,32 @@ func TestWriteNoCommentBlockInsertsAfterStreamInfo(t *testing.T) {
 	}
 }
 
+// TestCheckBlockPayloadSize grades emitBlock's length guard against
+// its boundary directly, on the length alone, so the test never
+// allocates a maxBlockPayload-sized slice to exercise it.
+func TestCheckBlockPayloadSize(t *testing.T) {
+	tests := []struct {
+		name    string
+		length  int
+		wantErr bool
+	}{
+		{"one byte under the bound", maxBlockPayload - 1, false},
+		{"exactly at the bound", maxBlockPayload, true},
+		{"one byte over the bound", maxBlockPayload + 1, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := checkBlockPayloadSize(tt.length)
+			if tt.wantErr && !errors.Is(err, ErrMalformedContainer) {
+				t.Errorf("checkBlockPayloadSize(%d) = %v, want errors.Is(err, ErrMalformedContainer)", tt.length, err)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("checkBlockPayloadSize(%d) = %v, want nil", tt.length, err)
+			}
+		})
+	}
+}
+
 // TestWriteRefusalNeverCreatesTempFile proves the container is
 // validated before the target is ever opened for writing, on a
 // directory Write itself cannot write into: if Write tried

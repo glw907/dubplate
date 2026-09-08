@@ -42,11 +42,10 @@ func WriteFile(path string, data []byte, perm os.FileMode) error {
 	return nil
 }
 
-// WriteStream writes path atomically the same way WriteFile does, except
-// the content comes from write, which streams into an io.Writer rather
-// than arriving as an in-memory []byte. Content never buffers in full, so
-// a multi-gigabyte rewrite costs one file's worth of disk and a fixed
-// amount of memory. perm is a parameter rather than inherited from
+// WriteStream writes path atomically the same way WriteFile does.
+// Content never buffers in full, so a multi-gigabyte rewrite costs
+// one file's worth of disk and a fixed amount of memory. perm is a
+// parameter rather than inherited from
 // os.CreateTemp's 0600 default, because a caller rewriting a library file
 // in place needs the rename to land the file's real mode, not a
 // temp-file mode that would leave it unreadable. After the rename,

@@ -2,6 +2,7 @@ package tagio
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -116,7 +117,7 @@ func TestRulesLedgerSilentKeys(t *testing.T) {
 				{Name: "GENRE", Value: "Drone"},
 			},
 			checkRead: func(t *testing.T, got TagSet) {
-				if !slicesEqual(got.Genres, []string{"Ambient", "Drone"}) {
+				if !slices.Equal(got.Genres, []string{"Ambient", "Drone"}) {
 					t.Errorf("Genres = %v, want [Ambient Drone]", got.Genres)
 				}
 			},
@@ -187,7 +188,7 @@ func TestRulesLedgerSilentKeys(t *testing.T) {
 			ts:           TagSet{Remixers: []string{"Invented Remixer"}},
 			wantComments: []Comment{{Name: "REMIXER", Value: "Invented Remixer"}},
 			checkRead: func(t *testing.T, got TagSet) {
-				if !slicesEqual(got.Remixers, []string{"Invented Remixer"}) {
+				if !slices.Equal(got.Remixers, []string{"Invented Remixer"}) {
 					t.Errorf("Remixers = %v, want [Invented Remixer]", got.Remixers)
 				}
 			},
@@ -278,21 +279,6 @@ func TestRulesLedgerSilentKeys(t *testing.T) {
 			tt.checkRead(t, gotRead)
 		})
 	}
-}
-
-// slicesEqual reports whether a and b hold the same elements in the
-// same order. It exists so the table above can compare a []string
-// member without importing reflect a second time per case.
-func slicesEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 // TestRulesZeroYearRoundTrip covers the zero year, a case the corpus
@@ -436,5 +422,22 @@ func TestRulesU007EFieldNamePreservedThroughRead(t *testing.T) {
 	}
 	if got.Title == nil || *got.Title != "A" {
 		t.Errorf("Title = %v, want %q: a foreign key at the U+007E bound must not break projection of a known field", got.Title, "A")
+	}
+
+	c, err := Parse(path)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	found := false
+	for _, com := range c.VorbisComment.Comments {
+		if com.Name == "X~" {
+			found = true
+			if com.Value != "tilde value" {
+				t.Errorf("X~ value = %q, want %q", com.Value, "tilde value")
+			}
+		}
+	}
+	if !found {
+		t.Error("X~ comment did not survive the parse")
 	}
 }

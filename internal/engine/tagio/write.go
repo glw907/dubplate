@@ -205,16 +205,36 @@ func writeBlocks(w io.Writer, blocks []writeBlock) error {
 	return emitBlock(w, blockPadding, true, make([]byte, paddingSize))
 }
 
+// maxBlockPayload is the largest payload a three-byte length field can
+// declare (RFC 9639 section 8.1): 1<<24 bytes and above overflow it.
+const maxBlockPayload = 1 << 24
+
+// checkBlockPayloadSize reports [ErrMalformedContainer] when length
+// cannot fit emitBlock's three-byte length field, taking the length
+// alone so a test can grade the boundary without allocating a
+// maxBlockPayload-sized slice.
+func checkBlockPayloadSize(length int) error {
+	if length >= maxBlockPayload {
+		return fmt.Errorf("tagio: block payload %d bytes: %w", length, ErrMalformedContainer)
+	}
+	return nil
+}
+
 // emitBlock writes one block header, RFC 9639 section 8.1's
 // last-block flag in the header's top bit and the type in its low
 // seven bits, then the payload's length as a three-byte big-endian
-// integer, followed by payload itself.
+// integer, followed by payload itself. A payload at or beyond
+// maxBlockPayload cannot fit the three-byte length field, so emitBlock
+// refuses it before writing anything.
 func emitBlock(w io.Writer, blockType byte, last bool, payload []byte) error {
+	length := len(payload)
+	if err := checkBlockPayloadSize(length); err != nil {
+		return err
+	}
 	header := blockType
 	if last {
 		header |= 0x80
 	}
-	length := len(payload)
 	if _, err := w.Write([]byte{header, byte(length >> 16), byte(length >> 8), byte(length)}); err != nil {
 		return fmt.Errorf("tagio: write block header: %w", err)
 	}

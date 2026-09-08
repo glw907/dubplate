@@ -106,9 +106,11 @@ rung 16 cutover sitting.
 golangci-lint, test, tidy-check) over the whole module (`./...`, today
 `cmd/dubplate-server` and `internal/config`; `_salvage/` is invisible to
 the go tool), shellcheck over `scripts/*`, ruff (`check` and `format
---check`) over every tracked `*.py` (six today: the oracle shim and its
-three derivation siblings under `internal/harness/oracle/`, its FLAC
-template generator, and `tools/unidecode-table/generate.py`), gitleaks over
+--check`) over every tracked `*.py` (the oracle shim and its derivation
+siblings under `internal/harness/oracle/`, that package's FLAC template
+generator, tagio's golden-FLAC generator under
+`internal/engine/tagio/testdata/`, and `tools/unidecode-table/generate.py`),
+gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
 excluded), `docker compose config` (skipped when Docker isn't present),
