@@ -41,7 +41,7 @@ func TestStartClockWritesOnceAndNeverRewrites(t *testing.T) {
 		t.Fatalf("ClockStart = %v, %v, %v", got, ok, err)
 	}
 	if !got.Equal(first) {
-		t.Errorf("ClockStart = %v, want %v; a rewrite moves the launch date silently", got, first)
+		t.Errorf("ClockStart = %v, want %v; a rewrite moves the clock start and the floor check would read a wrong start", got, first)
 	}
 }
 

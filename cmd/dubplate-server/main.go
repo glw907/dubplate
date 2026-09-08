@@ -5,7 +5,7 @@
 // not exist on the greenfield server. Each verb names the rung that
 // lands it; a rung claiming a new verb amends this list.
 //
-//   - version: print the build version (rung 1)
+//   - version: print the build version and matcher commit (rung 1)
 //   - check: validate configuration, exit nonzero on failure (rung 1)
 //   - doctor: report the full config wall's effective values (rung 1)
 //   - shadow: run the matcher against an existing library without writing (rung 4)

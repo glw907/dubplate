@@ -361,7 +361,7 @@ func TestRunStartsTheClockOnAPassThatObservesNothing(t *testing.T) {
 		t.Fatalf("second Run: %v", err)
 	}
 	if later.ClockStarted {
-		t.Error("the second pass restarted the clock; launch date is the clock start plus the floor")
+		t.Error("the second pass restarted the clock; the clock start moved and the floor check would read a wrong start")
 	}
 }
 

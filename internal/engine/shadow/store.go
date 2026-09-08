@@ -88,8 +88,9 @@ func (s *Store) ClockStart() (time.Time, bool, error) {
 
 // StartClock writes started-at if and only if no clock start exists.
 // It reports whether this call wrote it. The clock start is written
-// once and never rewritten: launch date is this date plus the floor, so
-// a rewrite would silently move the launch date.
+// once and never rewritten: the launch gate's floor check reads this
+// date, so a rewrite would silently shorten or lengthen the evidence
+// window.
 func (s *Store) StartClock(now time.Time) (bool, error) {
 	_, ok, err := s.ClockStart()
 	if err != nil {

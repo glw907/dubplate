@@ -61,8 +61,8 @@ type flacFile struct {
 //
 // It is a provisional reader. Rung 8 owns tag I/O and the full field
 // surface in internal/engine/tagio (internal/engine/tag/doc.go:8-11);
-// rung 4 builds this because waiting on that lane would spend calendar
-// on the one rung whose calendar IS the launch date, and rung 8's plan
+// rung 4 builds this because waiting on that lane would delay the
+// deploy that starts the shadow's evidence clock, and rung 8's plan
 // carries the task of absorbing it. It writes no tag, reads no format
 // but FLAC, and reads exactly two of the container's metadata blocks:
 // STREAMINFO (type 0) for the track length, and VORBIS_COMMENT (type 4)
