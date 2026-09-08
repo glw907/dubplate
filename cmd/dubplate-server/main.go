@@ -37,10 +37,11 @@ var version = "dev"
 // mechanically re-evaluated and is therefore worse than no
 // observation.
 //
-// Pass 4b lands the build path that sets it: today no build path does,
-// so this value is "dev" everywhere and the refusal fires everywhere,
-// which is the correct behavior for a binary whose divergences would
-// be unretireable.
+// scripts/deploy.sh is the only build path that sets it, passing
+// -X main.matcherCommit= through make build-linux's LDFLAGS variable;
+// every other build (bare `go build`, `make build`, a bare `make
+// build-linux`) leaves it "dev", so the refusal keeps firing for
+// workstation builds.
 var matcherCommit = "dev"
 
 func main() {
