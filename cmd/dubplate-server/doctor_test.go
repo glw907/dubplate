@@ -168,7 +168,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	ownedCount++
 	wantTotal++
 	if len(lines) != wantTotal {
-		t.Errorf("adding one owned wall row: doctor printed %d lines, want %d", len(lines), wantTotal)
+		t.Fatalf("adding one owned wall row: doctor printed %d lines, want %d", len(lines), wantTotal)
 	}
 	if got, wantPrefix := lines[ownedCount-1], "DUBPLATE_TEST_SCRATCH_OWNED"; !strings.HasPrefix(got, wantPrefix) {
 		t.Errorf("owned block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
@@ -189,7 +189,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	reservedCount++
 	wantTotal++
 	if len(lines) != wantTotal {
-		t.Errorf("adding one reserved class of three keys: doctor printed %d lines, want %d (one line per class, not per key)", len(lines), wantTotal)
+		t.Fatalf("adding one reserved class of three keys: doctor printed %d lines, want %d (one line per class, not per key)", len(lines), wantTotal)
 	}
 	if got, wantPrefix := lines[ownedCount+reservedCount-1], "scratch reserved"; !strings.HasPrefix(got, wantPrefix) {
 		t.Errorf("reserved block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
@@ -205,7 +205,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	integrationCount++
 	wantTotal++
 	if len(lines) != wantTotal {
-		t.Errorf("adding one integration class: doctor printed %d lines, want %d", len(lines), wantTotal)
+		t.Fatalf("adding one integration class: doctor printed %d lines, want %d", len(lines), wantTotal)
 	}
 	if got, wantPrefix := lines[ownedCount+reservedCount+integrationCount-1], "scratch integration"; !strings.HasPrefix(got, wantPrefix) {
 		t.Errorf("integration block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
@@ -217,7 +217,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	thresholdCount++
 	wantTotal++
 	if len(lines) != wantTotal {
-		t.Errorf("adding one threshold: doctor printed %d lines, want %d", len(lines), wantTotal)
+		t.Fatalf("adding one threshold: doctor printed %d lines, want %d", len(lines), wantTotal)
 	}
 	if got, wantPrefix := lines[ownedCount+reservedCount+integrationCount+thresholdCount-1], "DUBPLATE_TEST_SCRATCH_THRESH"; !strings.HasPrefix(got, wantPrefix) {
 		t.Errorf("threshold block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
