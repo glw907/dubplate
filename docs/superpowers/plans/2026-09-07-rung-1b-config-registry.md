@@ -1,11 +1,11 @@
 # Rung 1b (The Config Wall-Row Registry) Implementation Plan
 
 **Revision 2, 2026-09-07. Band S**, per the parallel-approach spec's Phase
-0b paragraph (`PA:54`), with its own plan and the standard
+0b paragraph (`PA:56`), with its own plan and the standard
 implementer/`diff-reviewer`/gate chain. Drafted against HEAD `c98a916`, after rung 4a
 closed and before pass 4b runs. **This plan changes rung 1's ratified
 config-core contract**, which is why 1b is a rung with a plan rather than
-an unplanned chore (`PA:54`). The contract change is stated in its own
+an unplanned chore (`PA:56`). The contract change is stated in its own
 section below, and Task 7 records it as a correction to the build spec
 rather than leaving the spec describing a wall that no longer exists.
 
@@ -41,6 +41,31 @@ and the conductor accepts each as recommended, with no reversal. Task 5
 grows by one kind: `KindString`, alongside `KindFloat`, for the two
 string-valued theme keys the Phase 0c design-language standard needs.
 
+**Revision 2.1, 2026-09-08.** Task 0 ran against HEAD `2204947`, after
+pass 4b closed, and reported no blocker. This revision folds its
+staleness findings as a re-pointing edit; no task's outcomes change
+except where a finding forced one. Every citation this plan carries
+against the pre-4b tree is corrected: the parallel spec's Phase 0b
+paragraph and contested-surface rows (`PA:56`, `:175`, `:194`, `:199`,
+`:200`, `:201`, the last now also naming `Makefile`), the rung 4 spec's
+four anchors (each shifted two lines by an earlier 4b edit),
+`shadow.go`'s and `main.go`'s registration lines, `HISTORY`'s carries 3
+and 4, `tunables.go`'s four-knob paragraph, and `STATUS`'s spend figure.
+The measured gate timings replace the "about two minutes" and "about
+three and a half" estimates: a cold run is about five minutes ten
+seconds, a warm one about seventy-seven seconds. The Global Constraints'
+inline-marker exemplar is reworded, because 4b's Task 6 ratified the two
+markers it cited. Task 6's completeness direction becomes a mandatory
+assertion, since `env/dubplate-server.env.template` landed (`c8b6d71`)
+carrying all four owned-now rows; its classification helper generalizes
+to both templates; its doc-comment rule names both templates rendering
+through `deploy.sh`; and its duplicated mutation number is fixed, re-aimed
+at `DUBPLATE_LIBRARY_ROOT` rather than `DUBPLATE_STATE_DIR`, which 4b's
+own state-dir gate leg now also reads. Task 7 records 0c as landed fact,
+committed at `b77e159`, and folds its own declared coverage gaps into
+4b's running total of thirty-four rather than re-counting from rung 4a's
+nine.
+
 > **For agentic workers:** workflow mode per CLAUDE.md's "Build process"
 > section, the pass-execute chain per task, strictly sequential. The
 > conductor consumes reports and never reads a diff, a source file, or a
@@ -71,15 +96,18 @@ Read these before Task 1, in this order.
    one forward.** Where it contradicts a spec, the tree wins and Task 7
    drafts the correction.
 2. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`**,
-   the Phase 0b paragraph (`:54`) and the contested-surface table, whose
+   the Phase 0b paragraph (`:56`) and the contested-surface table, whose
    config-wall row is this pass's mandate. **Every `PA:` line number in
-   this plan is measured against committed HEAD**, where the table
-   header sits at `:156` and the config-wall row at `:158`. The working
-   tree carries an uncommitted fifteen-line Phase 0c completion note
-   inserted after `:54`, which shifts every row below it down by
-   fifteen. `PA:54` itself is unaffected. **Task 0 item 13 re-reports
-   the live numbers** and the conductor re-points the citations in one
-   edit.
+   this plan is re-pointed to revision 2.1's tree**, HEAD `2204947`,
+   where Task 0 measured the Phase 0b paragraph at `:56` and the
+   contested-surface rows at `:175` (config wall), `:194` (docs/
+   ledgers), `:199` (`cmd/dubplate-server`), `:200` (`internal/config`)
+   and `:201` (`systemd`/`deploy.sh`/`env`/`Makefile`). These sit
+   seventeen lines below where committed HEAD `c98a916` had them,
+   because 4b's Phase 0c completion note (fifteen lines, now committed
+   at `b77e159`) landed after the Phase 0b paragraph, whose own
+   position shifted two lines from earlier 4b edits. **Task 0 item 13
+   is where this was measured.**
 3. **`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`**,
    "The config wall, derived" (`:148-199`) and "The Go bar" (`:200-207`).
 4. **`docs/HISTORY.md`'s 4a-ii forward carries** (`:429-468`), especially
@@ -142,8 +170,8 @@ one if a task reaches it:
 ## Spec
 
 `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`, Phase 0b
-(`:54`), quoted in full at inventory `:6-21`, with the ownership row at
-`:158`. Behind it,
+(`:56`), quoted in full at inventory `:6-21`, with the ownership row at
+`:175`. Behind it,
 `docs/superpowers/specs/2026-09-02-greenfield-server-build.md` (revision
 2.1, ratified), "The config wall, derived" (`:148-199`), which is the
 classification rung 1 implemented and rung 1b re-homes without changing.
@@ -277,38 +305,38 @@ three more sites stale than revision 1 counted.
    classification stays the contract. The table stops being complete and
    closed, and becomes registry contents each rung declares. Rung 1's own
    rows stay in `internal/config`.
-2. **`PA:54`**, the 0b scope sentence, which names "wall rows and
+2. **`PA:56`**, the 0b scope sentence, which names "wall rows and
    reserved classes" only. The code and the carries both assign
-   `integrationClasses` to 1b (`keys.go:211-213`, `HISTORY:439`), and the
+   `integrationClasses` to 1b (`keys.go:211-213`, `HISTORY:607`), and the
    superseded map comes with it by necessity, because it is the fourth
    branch of `rejectNamespace` and a name has to resolve somewhere
    (Resolution R8, inventory surprise 8).
-3. **`PA:54`**, the gitleaks rider's blast-radius sentence, "any
+3. **`PA:56`**, the gitleaks rider's blast-radius sentence, "any
    insertion above line 66 reds the gate for every lane at once". The
    `--no-git` fingerprint is `file:ruleID:startLine`, so only an
    insertion above line 66 **of `internal/config/keys_test.go`** breaks
    the ignore. Every lane feels it because `scripts/check.sh` is the
    whole build's one gate (inventory surprise 6).
-4. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1687-1690`**,
+4. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1689-1692`**,
    the rung 4 staleness question "Has rung 1b landed?". This window runs
    1b after 4b, so the branch never fires for 4b and the re-expression of
    ruling 1's option (a) into registry terms becomes 1b's own migration
    work (Resolution R14, inventory surprise 13).
-5. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1695-1697`**,
+5. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1697-1699`**,
    the standing staleness question about `.gitleaksignore`'s pinned line.
    Task 1 retires the pin, so the question is answered permanently rather
    than restated in every later plan.
-6. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1474-1483`**,
+6. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1476-1485`**,
    which restates the fragility in full, names `.gitleaksignore:1` and
-   line 66 by value, and states the standing rule "add below line 66, or
-   re-fingerprint `.gitleaksignore` in the same commit". After Task 1
-   there is no pin, no allowed finding, and no such rule. The
-   replacement states the discipline that succeeds it: a declaration
-   file that writes a key literal beside a `Key:` field applies the
-   field-name rename, and the repo carries no suppression.
-7. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1785-1786`**,
+   line 66 by value, and states the standing rule (`:1483-1484`) "add
+   below line 66, or re-fingerprint `.gitleaksignore` in the same
+   commit". After Task 1 there is no pin, no allowed finding, and no
+   such rule. The replacement states the discipline that succeeds it: a
+   declaration file that writes a key literal beside a `Key:` field
+   applies the field-name rename, and the repo carries no suppression.
+7. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1787-1788`**,
    risk 7 and its mitigation, which point at the same retired rule.
-8. **`PA:54`**, the 0b rider's first clause, "the work must
+8. **`PA:56`**, the 0b rider's first clause, "the work must
    re-fingerprint `.gitleaksignore`". The work retired the file instead,
    which discharges the rider more completely than re-fingerprinting
    would have. Correction 3 covers the rider's second clause, the blast
@@ -332,7 +360,7 @@ one visible wiring function in `cmd/dubplate-server` stays readable and
 is the reason Resolution R1 prefers explicit composition to `init`.
 
 **O2. No lane adds to `keys.go` after 1b, and a lane removes only the
-class it is taking over.** The contested-surface row (`PA:158`) becomes
+class it is taking over.** The contested-surface row (`PA:175`) becomes
 true rather than aspirational, in that precise form. The stronger form,
 that no lane touches the file at all, is false by R4's own design: all
 eight reserved classes belong to future rungs (5, 5, 6, 7, 9, 9, 13, 12
@@ -445,8 +473,9 @@ flag carries a name, a default, a usage string, and a parser, which is
 exactly `Threshold`'s four fields; `flag` ships both a value type and a
 package-level `CommandLine` behind one type. A value registry retires two
 workarounds that exist only because today's registry is a global: the
-`sync.OnceFunc` around `registerShadowThresholds` (`shadow.go:46-52`) and
-its regression test (`main_test.go:36-58`), which exist because
+`sync.OnceFunc` around `registerShadowThresholds` (`shadow.go:49-52`,
+doc `:45-48`) and its regression test (`main_test.go:43-53`, doc
+`:36-42`), which exist because
 `newRootCmd` runs more than once in a test binary and `Register` cannot
 refuse a duplicate; and `withRegistry` (`thresholds_test.go:12-17`),
 which saves and restores package state around each test. A value registry
@@ -596,11 +625,11 @@ and contains two (inventory surprise 14). The kind is a registry
 capability and the registry pass takes it. The registration of
 `StrongRecThresh`, `MediumRecThresh`, `RecGapThresh` and `SearchLimit` is
 explicitly the first rung 3 pass after 1b closes, said three times
-(`HISTORY:434`, `:1063`, `:1434`) and carried in `docs/STATUS.md:41-43`.
+(`HISTORY:602`, `:1231`, `:1602`) and carried in `docs/STATUS.md:34-37`.
 
 Registering the four knobs here would also make `internal/engine/matcher`
 import `internal/config`, which no package under `internal/` does today
-and which `tunables.go:49-56` declines in writing.
+and which `tunables.go:50-54` declines in writing.
 
 **Fold if ruled otherwise.** If the four knobs are ruled into 1b, Task 5
 grows a fifth deliverable, `internal/engine/matcher` gains its first
@@ -811,7 +840,7 @@ has to author, which is a rung 5 and rung 12 spec question rather than a
 
 **Ruled, conductor 2026-09-07, as applied.** Rung 4's staleness pre-task asks
 "Has rung 1b landed?" as a blocker and rules that a yes moves ruling 1's
-option (a) into registry terms (`rung-4:1687-1690`). This window inverts
+option (a) into registry terms (`rung-4:1689-1692`). This window inverts
 the order, so the branch never fires for 4b and the re-expression lands
 here (inventory surprise 13). Task 4 is that work, and Task 7 records the
 spec correction.
@@ -929,16 +958,16 @@ against it:
 
 The lane-launch checklist requires a written owner for every surface a
 lane touches. Every row 1b writes has one. **The `PA:` numbers below are
-committed-HEAD numbers**, and Task 0 item 13 reports the live ones (see
-Primary inputs, item 2).
+the live ones Task 0 measured** at revision 2.1 (see Primary inputs,
+item 2), seventeen lines below their committed-HEAD `c98a916` positions.
 
 | Surface this pass writes | Row | Note |
 |---|---|---|
-| `internal/config` (`keys.go`, `thresholds.go`, `config.go` and their tests) | `PA:158` and `PA:183` | 1b is the owner named in both. The interim rung 4 grant (`rung-4:1650`) is spent and retires with this pass. |
-| `cmd/dubplate-server` (`main.go`'s wiring, `doctor.go`'s rows, `shadow.go`'s declarations, `check.go`'s `Load` call) | `PA:182`, "rung 1's skeleton; each rung adds its own file and registers through it" | 1b edits rung 1's skeleton itself and rung 4's own declaration file. |
-| `.gitleaksignore` and `scripts/check.sh`'s gitleaks comment | The 0b rider (`PA:54`) | The rider is the mandate; Task 1 discharges it. |
-| `env/dubplate.env.template` | `PA:184`, rung 1's, with 4b adding one template | **1b writes no name into it.** Task 6 reads it and points a test at it; that is all. |
-| `docs/` ledgers | `PA:177`, conductor-owned | A pass drafts and never commits. |
+| `internal/config` (`keys.go`, `thresholds.go`, `config.go` and their tests) | `PA:175` and `PA:200` | 1b is the owner named in both. The interim rung 4 grant (`rung-4:1650`) is spent and retires with this pass. |
+| `cmd/dubplate-server` (`main.go`'s wiring, `doctor.go`'s rows, `shadow.go`'s declarations, `check.go`'s `Load` call) | `PA:199`, "rung 1's skeleton; each rung adds its own file and registers through it" | 1b edits rung 1's skeleton itself and rung 4's own declaration file. |
+| `.gitleaksignore` and `scripts/check.sh`'s gitleaks comment | The 0b rider (`PA:56`) | The rider is the mandate; Task 1 discharges it. |
+| `env/dubplate.env.template` | `PA:201`, which now also names `Makefile`, rung 1's, with 4b adding one template | **1b writes no name into it.** Task 6 reads it and points a test at it; that is all. |
+| `docs/` ledgers | `PA:194`, conductor-owned | A pass drafts and never commits. |
 
 **Pass 4b precedes 1b in the same tree**, and its named deliverables
 exclude `internal/config` (`rung-4:1632`). Two edges survive that clean
@@ -948,7 +977,7 @@ separation, and **Task 0 re-reads both**:
    the existing template's header.
    `TestLoad_TemplateKeysClassified` reads
    `../../env/dubplate.env.template` by a hard-coded relative path
-   (`config_test.go:224`). Whichever pass lands second owns the
+   (`config_test.go:221`). Whichever pass lands second owns the
    reconciliation, and in this window that is 1b. Task 0 reports which
    templates exist, which names each carries, and whether the four
    owned-now rows appear in a greenfield one. Task 6 acts on the answer.
@@ -960,7 +989,8 @@ separation, and **Task 0 re-reads both**:
 
 **The other 4b files Task 0 re-reads**, because 1b cites the tree at
 `c98a916` and 4b lands between: `scripts/deploy.sh` (six edits, and the
-template constant at `:26`), `Makefile`, `cmd/dubplate-server/version.go`
+template constants `ENV_TEMPLATE` at `:27` and `SERVER_ENV_TEMPLATE` at
+`:28`), `Makefile`, `cmd/dubplate-server/version.go`
 or wherever the stamps print, `systemd/dubplate-shadow.service` and
 `.timer`, and `docs/STATUS.md`'s lane registry. If 4b touched
 `internal/config` at all, that is a Task 0 blocker: every citation in
@@ -974,7 +1004,7 @@ count, with the arithmetic shown, per the standing habit of refining a
 ceiling from a measurement rather than asserting one.
 
 **The measurement.** 4a-ii spent about 2.7M against a 3M ceiling
-(`HISTORY:468-481`): staleness pre-task and chain-args extraction 0.26M,
+(`HISTORY:636-648`): staleness pre-task and chain-args extraction 0.26M,
 the chain 1.32M, the Task 13 and Task 14 fix and review rounds 0.49M,
 simplify 0.18M plus its review, the close drafter 0.16M, and the
 conductor's own turns about 0.2M. The pass ran six tasks in a chain of
@@ -1036,7 +1066,7 @@ Task 3 and at Task 7, at any split, and before any question. Every task
 reports its own spend and its own gate evidence, and the conductor sizes
 the next task against it.
 
-Cumulative spend to date is about 42.8M (`docs/STATUS.md:66`).
+Cumulative spend to date is about 45.4M (`docs/STATUS.md:59`).
 
 ## Global Constraints
 
@@ -1088,12 +1118,15 @@ Cumulative spend to date is about 42.8M (`docs/STATUS.md:66`).
   dash is banned in Go comments**, no opt-out, and vale scans a brand-new
   file before it is staged.
 - **Every task leaves an inline resolution marker where it applies a
-  resolution's shape.** One line on the symbol, naming the resolution and
-  "provisional, conductor ruling owed", in the shape rung 4 already uses
-  (`cmd/dubplate-server/shadow.go:22`, `:38`). Each task reports the file
-  and the symbol in its return, which is what makes Task 7's marker list
-  a search rather than a re-reading, and what makes a conductor ruling
-  that goes the other way a named edit.
+  resolution's shape.** One line on the symbol, naming "provisional,
+  conductor ruling owed" followed by the resolution's own number, in the
+  form this plan's Resolutions section spells out (R1 through R16). Rung
+  4 used to carry two such markers; 4b's Task 6 ratified them, replacing
+  the provisional wording with "Ratified as owner ruling N" at the lines
+  such markers used to sit (`cmd/dubplate-server/shadow.go:22`, `:37`).
+  Each task reports the file and the symbol in its return, which is what
+  makes Task 7's marker list a search rather than a re-reading, and what
+  makes a conductor ruling that goes the other way a named edit.
 - **Every error message keeps the `key: reason` shape.** `rowStatuses`
   splits on the first `": "`. Losing the shape blanks an owned row's
   doctor status (`doctor.go:35`) or a threshold's parse-error status
@@ -1197,9 +1230,11 @@ launch rather than producing a note.**
 8. **Is `registerShadowThresholds` still a `sync.OnceFunc` called as
    `newRootCmd`'s first statement, and does
    `TestNewRootCmd_RegistersShadowThresholdsOnce` still exist?**
-   *(Expected: yes, `shadow.go:46-52` and `main.go:55`, the test at
-   `main_test.go:36-58`.)* Both retire in Task 4; report their current
-   lines so the retirement is a named edit.
+   *(Expected: yes, `shadow.go:49-52` (doc `:45-48`) and `main.go:56`,
+   the test's func at `main_test.go:43-53` with its doc at `:36-42`, and
+   `doctor_test.go:46` and `:159` as two further direct callers.)* Both
+   retire in Task 4; report their current lines so the retirement is a
+   named edit.
 9. **Do the four tests the migration must keep green unchanged still
    assert what this plan says they assert?** `TestLoadShadowIntegration`
    (`config_test.go:255`), `TestIntegrationClassesCoverEveryShadowKey`
@@ -1209,38 +1244,43 @@ launch rather than producing a note.**
    test's row count and its assertion targets.
 10. **Does `internal/engine/matcher/tunables.go` still name the four
     knobs and still declare that it imports nothing from
-    `internal/config`?** *(Expected: `:49-56`, and the four knobs at
+    `internal/config`?** *(Expected: `:50-54`, and the four knobs at
     `:62-66`, `:68-72`, `:74-78`, `:138-147`.)* Resolution R6 rests on
     this; a change is a finding, not a licence to register them.
 11. **Do `docs/HISTORY.md` and `docs/STATUS.md` still describe the state
     this plan assumes?** *(Expected: 4a closed; carries 3 and 4 at
-    `HISTORY:434-441`; the four-knob and `KindFloat` items open in
+    `HISTORY:602-609`; the four-knob and `KindFloat` items open in
     STATUS; the lane registry as item 2 describes. If 4b closed, its
     HISTORY entry and its own forward carries are new input and the task
     reports them.)*
 12. **Is `bash scripts/check.sh`'s wall time still what this plan sizes
     gate runs against?** Run `go test ./... -count=1` once and report the
-    total, then report `bash scripts/check.sh`'s total. *(4a-ii measured
-    `go test ./...` at about two minutes and the full gate at about three
-    and a half.)*
+    total, then report `bash scripts/check.sh`'s total. **Task 0
+    measured a task's first gate run, cold, at about five minutes ten
+    seconds**: `go test ./...` 235 seconds, of which
+    `internal/harness/conform` is 232 seconds, plus `check.sh`'s own 77
+    seconds, 71 of which is gitleaks scanning 117 MB. **A later run, Go
+    cache warm, is about 77 seconds.** Size later tasks' gate evidence
+    against the warm figure.
 13. **Where do the parallel spec's own rows sit now?** Re-read
     `2026-09-03-parallel-build-approach.md`'s Phase 0b paragraph and its
     contested-surface table as they stand in the tree, and report the
     current line numbers for five rows: the config wall, `docs/`
     ledgers, `cmd/dubplate-server`, `internal/config`, and
-    `systemd`/`deploy.sh`/`env`. *(Expected at committed HEAD: `:54`,
-    `:158`, `:177`, `:182`, `:183`, `:184`. The uncommitted Phase 0c
-    note shifts everything below `:54` down by fifteen, so a tree
-    carrying it reports `:173`, `:192`, `:197`, `:198`, `:199`.)* The
-    conductor re-points the plan's citations in one edit from this
-    answer.
+    `systemd`/`deploy.sh`/`env`. **Task 0 ran 2026-09-08 and reported
+    the Phase 0b paragraph at `:56` and the five rows at `:175`, `:194`,
+    `:199`, `:200`, `:201`, the last now also naming `Makefile`.** The
+    committed-HEAD figures this item was drafted against (`:54`, `:158`,
+    `:177`, `:182`, `:183`, `:184`) are superseded by that reading, and
+    revision 2.1 re-points every citation in this plan to match.
 14. **Do the eight spec-correction anchors still name what Task 7 will
-    replace?** For each of `BS:182-183`, `PA:54` (twice, the scope
-    sentence and both rider clauses), `rung-4:1474-1483`, `:1687-1690`,
-    `:1695-1697` and `:1785-1786`, **quote the first six words at that
+    replace?** For each of `BS:182-183`, `PA:56` (twice, the scope
+    sentence and both rider clauses), `rung-4:1476-1485`, `:1689-1692`,
+    `:1697-1699` and `:1787-1788`, **quote the first six words at that
     line** and report any that has moved. Task 7 drafts against a
-    checked anchor rather than a carried one, and revision 2 already
-    corrected two of them.
+    checked anchor rather than a carried one. **Task 0 re-verified all
+    eight at revision 2.1 and found none moved further**; the rung 4
+    anchors above already carry the shift its own pass introduced.
 
 **Deliverable count: 1** (the blocker report, each item with its evidence
 and each blocker with the file and line that proves it).
@@ -1726,6 +1766,11 @@ rung 4's ruling 1 is re-expressed in registry terms (Resolution R14).
    more than once in a test binary. Task 2's constructor makes each
    construction independent, so the workaround has no remaining job. The
    retirement is stated in the report with the property that replaced it.
+   `doctor_test.go`'s own two direct callers of `registerShadowThresholds`
+   (`:46`, `:159`), which call it without going through `newRootCmd`,
+   keep working under the retired shape for the same reason: each call
+   registers into its own independent construction rather than a shared
+   global.
 6. **The `Required`/`Optional` split's semantics survive verbatim**
    (HISTORY carry 4): `Load` requires every `Required` key when the flag
    is set; an `Optional` key is accepted and never required.
@@ -1906,7 +1951,7 @@ template.
 **Constraints:**
 
 - No knob is registered. `internal/engine/matcher` is not in this pass's
-  package territory, and `tunables.go:49-56` declines the
+  package territory, and `tunables.go:50-54` declines the
   `internal/config` import in writing.
 - Both new parsers route through `wall.get` like the existing two, so
   empty-equals-unset and last-wins are identical across all four.
@@ -2033,36 +2078,49 @@ because they are different problems.
    line per declaration**, which is one per owned wall row, one per
    reserved class regardless of key count, one per integration class,
    and one per threshold.
-2. **The template coupling states both its directions** (Resolution R10):
+2. **The template coupling states both its directions** (Resolution
+   R10), against both templates now that Task 0 confirms the greenfield
+   one, `env/dubplate-server.env.template`, landed at `c8b6d71`:
    - The classification direction stays asserted, now against the
-     registry: every `DUBPLATE_*` name a template assigns classifies as
-     owned, reserved, superseded, **or as an integration class's flag,
-     `Required` key or `Optional` key**, never unknown. The fourth
-     branch is what a greenfield template carrying six
-     `DUBPLATE_SHADOW_*` rows requires; without it the test reports six
+     registry: every `DUBPLATE_*` name either template assigns
+     classifies as owned, reserved, superseded, **or as an integration
+     class's flag, `Required` key or `Optional` key**, never unknown.
+     The fourth branch is what the greenfield template's six
+     `DUBPLATE_SHADOW_*` rows require; without it the test reports six
      names unknown and the gate reds for every lane. Because rung 4's
      class is declared in `cmd/dubplate-server` after Task 4, the test
      classifies against the registry it is handed rather than against
      package tables, and the task states which registry that is.
-   - The completeness direction is asserted **only if** Task 0 found a
-     greenfield template carrying the four owned-now rows. If it did,
-     the test asserts every owned-now row appears in that template. If it
-     did not, the direction stays a documented rule and Task 7 carries it
-     forward.
+   - **The completeness direction is now an assertion, not a
+     conditional.** The greenfield template carries all four owned-now
+     rows (`DUBPLATE_LIBRARY_ROOT:36`, `DUBPLATE_STATE_DIR:53`,
+     `DUBPLATE_SITE_NAME:61`, `DUBPLATE_ADMIN_EMAIL:66`), so the test
+     asserts every owned-now row appears in it. **The "documented rule"
+     alternative retires**: a rung that adds an owned-now row without
+     adding it to the greenfield template now fails a test rather than a
+     review.
 3. **The rule that cannot be mechanical is written where it will be
    read**: the test's own doc comment states that a rung declaring an
    owned-now row adds it to the greenfield template in the same pass,
    with the minting that implies, and names `scripts/deploy.sh`'s
-   manifest behavior as the reason.
-4. **The template file the test reads is stated explicitly**, with its
-   reason, rather than left as a hard-coded relative path a later reader
-   has to interpret.
+   manifest behavior as the reason: both templates render
+   (`ENV_TEMPLATE` at `:27`, `SERVER_ENV_TEMPLATE` at `:28`,
+   `render_template` at `:205`, called at `:240` and `:241`), so a name
+   missing from either fails deploy the same way.
+4. **`templateKeys` generalizes to take a template path rather than a
+   hard-coded one.** Today it opens `../../env/dubplate.env.template`
+   unconditionally (`config_test.go:221`), so no test reads the
+   greenfield template. Both directions call the generalized helper: the
+   classification direction walks both templates in `env/`, and the
+   completeness direction walks the greenfield one by name, each with
+   its reason stated rather than left as a path a later reader has to
+   interpret.
 
 **Constraints:**
 
 - **No name is added to any template.** Adding one requires minting its
-  value and is an owner touchpoint. If the completeness direction cannot
-  be asserted, it stays a rule; it does not become a template edit.
+  value and is an owner touchpoint; the completeness assertion reads the
+  greenfield template and never writes it.
 - The classification test keeps its existing guard that finding zero
   names is itself a failure, which is what catches a moved template path
   or a changed format.
@@ -2085,9 +2143,8 @@ because they are different problems.
 - The classification test passes against every template present in
   `env/`, including any greenfield template carrying `DUBPLATE_SHADOW_*`
   rows, and reports which files it read.
-- If the completeness direction is asserted, it passes and the task
-  reports the template it asserted against. If it is not, the task
-  reports why, quoting Task 0's finding.
+- The completeness direction passes against `env/dubplate-server.env.template`,
+  the greenfield template Task 0 found carrying all four owned-now rows.
 - The documented rule appears in the test's doc comment and names
   `deploy.sh`'s manifest behavior.
 - `bash scripts/check.sh` green.
@@ -2117,9 +2174,15 @@ because they are different problems.
    open with "open template", proving that a moved template is fatal
    rather than skipped. This is a separate property from mutation 3 and
    is reported separately.
-4. If the completeness direction is asserted: remove one owned-now row
-   from the template read by the test → the test fails naming that row.
-   Revert without committing the template edit.
+5. Remove `DUBPLATE_LIBRARY_ROOT` from the greenfield template read by
+   the test → the completeness test fails naming that row. Revert
+   without committing the template edit. **The row is
+   `DUBPLATE_LIBRARY_ROOT`, not `DUBPLATE_STATE_DIR`**: removing
+   `DUBPLATE_STATE_DIR` also reds 4b's own state-dir agreement leg
+   (`scripts/check.sh:150-166`), which reads that name from the same
+   template, so that row's mutation would prove two gate failures at
+   once instead of isolating this task's own assertion.
+   `DUBPLATE_LIBRARY_ROOT` is read by no other gate leg.
 
 **2.0 hook statement: neutral.** No forward hook reads a doctor row or a
 template. The task's value to 2.0 is indirect: a derived doctor is what
@@ -2161,8 +2224,8 @@ Model: `sonnet`. Depends on Tasks 0 through 6.
    blast-radius sentence; the rung 4 spec's "Has rung 1b landed?"
    ordering assumption; the rung 4 spec's standing `.gitleaksignore`
    staleness question, now retired permanently; the rung 4 spec's full
-   fragility restatement at `:1474-1483`; its risk 7 at `:1785-1786`;
-   and the 0b rider's re-fingerprint clause at `PA:54`. **Each is
+   fragility restatement at `:1476-1485`; its risk 7 at `:1787-1788`;
+   and the 0b rider's re-fingerprint clause at `PA:56`. **Each is
    re-read at its line before its replacement is written**, and any that
    has moved is reported with its new line, on Task 0 item 14's
    evidence.
@@ -2185,8 +2248,6 @@ Model: `sonnet`. Depends on Tasks 0 through 6.
      future accessor that reads the environment map directly would pass
      every test unless that accessor's own test covers the empty-value
      case. Task 3's mutation 4 reports whether a gap exists.
-   - **The template completeness direction**, if Task 6 could not assert
-     it.
    - **Pattern key families and `DUBPLATE_COLLECTIONS`** (Resolution
      R12), declined and filed to rung 9. `DUBPLATE_COLLECTIONS` is the
      sharper one: an adopter setting it today gets "unknown configuration
@@ -2194,8 +2255,11 @@ Model: `sonnet`. Depends on Tasks 0 through 6.
      behavior.
    - **The three reserved classes the build spec names and the tree
      lacks** (Resolution R13), recorded for rungs 5 and 12.
-   - Each gap is **joined to the running total of thirty** (rung 3's
-     twenty-one plus rung 4a's nine) rather than re-counted.
+   - Each gap is **joined to the running total of thirty-four** (rung
+     3's twenty-one, rung 4a's nine, rung 4b's four, `HISTORY:158-163`)
+     rather than re-counted. 4b's own HISTORY entry adds its declared
+     gaps to that total; this task folds its own gaps into the same
+     figure rather than re-counting what 4b already added.
 6. **The evidence, not a bare "green"**: every task's measured wall time
    for `go test ./... -count=1` and `bash scripts/check.sh`; the
    mutation table with every named mutation across Tasks 1 through 6 and
@@ -2209,7 +2273,7 @@ Model: `sonnet`. Depends on Tasks 0 through 6.
       parser are landed, so that pass registers four knobs and adds no
       registry capability. **The one thing it must decide is whether
       `internal/engine/matcher` may import `internal/config`**, which
-      `tunables.go:49-56` currently declines in writing, or whether the
+      `tunables.go:50-54` currently declines in writing, or whether the
       knobs are declared from `cmd/dubplate-server` instead.
    2. **`AdminEmail`'s dedicated contact row** stays post-1b and is now
       cheap: one declaration in whichever package owns the User-Agent,
@@ -2236,8 +2300,9 @@ Model: `sonnet`. Depends on Tasks 0 through 6.
       applies the same rename discipline; the reason lives in the comment
       Task 1 wrote.
 8. **The lane handoff**: 1b's landing is what unblocks lane-2, alongside
-   0c. The close states plainly whether 0c has landed, because lane-2
-   needs both, and updates the lane registry accordingly.
+   0c. **0c has landed**, committed at `b77e159`, so 1b's own close is
+   what unblocks lane-2 outright; the close states this and updates the
+   lane registry accordingly.
 9. **STATUS stays present tense and under 60 lines.** Anything historical
    moves to HISTORY. The next action points at whatever the conductor
    sequences next, and the carried open items are updated: the four-knob
