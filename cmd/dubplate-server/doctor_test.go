@@ -216,3 +216,33 @@ func TestDoctorCmd_ShadowRows(t *testing.T) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantEnabled)
 	}
 }
+
+// TestDoctorCmd_FloatThreshold proves a registered KindFloat threshold
+// prints its effective value in the thresholds block, in the same
+// pinned "%-32s %s" form every other row uses, and that the value comes
+// through the same round-tripping parser thresholdStatus itself calls
+// (config.ParseFloat), rather than a captured golden string.
+func TestDoctorCmd_FloatThreshold(t *testing.T) {
+	reg := config.NewRegistry()
+	reg.AddThreshold(config.Threshold{
+		Key:     "DUBPLATE_TEST_STRONG_REC_THRESH",
+		Kind:    config.KindFloat,
+		Default: "0.04",
+		Doc:     "a float between 0 and 1",
+	})
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(baseEnviron(), reg, &stdout, &stderr)
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+
+	th := reg.Thresholds()[0]
+	wantLine := fmt.Sprintf("%-32s %s\n", th.Key, thresholdStatus(baseEnviron(), th))
+	if !strings.Contains(stdout.String(), wantLine) {
+		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantLine)
+	}
+	if !strings.Contains(stdout.String(), fmt.Sprintf("%-32s %s\n", "DUBPLATE_TEST_STRONG_REC_THRESH", "0.04")) {
+		t.Errorf("stdout = %q, want the float row to print 0.04", stdout.String())
+	}
+}

@@ -106,9 +106,22 @@ func rowStatuses(err error) map[string]string {
 
 // thresholdStatus resolves t's effective value against environ,
 // reporting a parse failure the same way an owned row reports one:
-// "invalid: " plus the reason.
+// "invalid: " plus the reason. The switch names every registered kind
+// explicitly; its default arm never fires against a threshold the
+// registry accepted, because [config.Registry.AddThreshold] refuses an
+// unnamed kind at registration, but it reports the registration bug in
+// its own words rather than falling through to ParseInt, which would
+// misreport a mis-declared threshold as an environment problem
+// (inventory surprise 11).
 func thresholdStatus(environ []string, t config.Threshold) string {
 	switch t.Kind {
+	case config.KindInt:
+		v, err := config.ParseInt(environ, t)
+		if err != nil {
+			_, reason := splitKeyReason(err)
+			return "invalid: " + reason
+		}
+		return strconv.Itoa(v)
 	case config.KindDuration:
 		d, err := config.ParseDuration(environ, t)
 		if err != nil {
@@ -116,13 +129,25 @@ func thresholdStatus(environ []string, t config.Threshold) string {
 			return "invalid: " + reason
 		}
 		return d.String()
-	default:
-		v, err := config.ParseInt(environ, t)
+	case config.KindFloat:
+		f, err := config.ParseFloat(environ, t)
 		if err != nil {
 			_, reason := splitKeyReason(err)
 			return "invalid: " + reason
 		}
-		return strconv.Itoa(v)
+		// 'g' with precision -1 prints the shortest decimal that
+		// round-trips back to f through strconv.ParseFloat, which is
+		// the same parser config.ParseFloat reads a set value through.
+		return strconv.FormatFloat(f, 'g', -1, 64)
+	case config.KindString:
+		v, err := config.ParseString(environ, t)
+		if err != nil {
+			_, reason := splitKeyReason(err)
+			return "invalid: " + reason
+		}
+		return v
+	default:
+		return "invalid: registered with an unnamed threshold kind, a registration bug"
 	}
 }
 

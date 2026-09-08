@@ -87,23 +87,35 @@ const (
 	familySuperseded  = "superseded names"
 )
 
-// claimCrossFamily panics if key does not carry the DUBPLATE_ prefix
-// (O5 class 3, Resolution R16: rejectNamespace walks names by that
-// prefix, so a declared key without it would never be classified and
-// the declaration would silently do nothing), or if key was already
-// claimed by a family other than family (O5 class 2), then records
-// that family claims key. It deliberately does not flag a repeat claim
-// from the same family: that is a within-family duplicate (O5 class
-// 1), and each family's own entry point checks for it separately, so
-// the two checks stay independent of each other.
-func (r *Registry) claimCrossFamily(family, key string) {
-	if !strings.HasPrefix(key, "DUBPLATE_") {
-		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))
-	}
+// claim panics if key was already claimed by a family other than
+// family (O5 class 2), then records that family claims key. It
+// deliberately does not flag a repeat claim from the same family: that
+// is a within-family duplicate (O5 class 1), and each family's own
+// entry point checks for it separately, so the two checks stay
+// independent of each other.
+func (r *Registry) claim(family, key string) {
 	if existing, ok := r.claims[key]; ok && existing != family {
 		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, existing, family))
 	}
 	r.claims[key] = family
+}
+
+// claimCrossFamily panics if key does not carry the DUBPLATE_ prefix
+// (O5 class 3, Resolution R16: rejectNamespace walks names by that
+// prefix, so a declared key without it would never be classified and
+// the declaration would silently do nothing), then claims key as
+// claim does. It is claim's own prefix-enforcing variant, used by the
+// three families rejectNamespace classifies by that walk: owned wall,
+// reserved classes, and integration classes (and the superseded map,
+// whose names share the same namespace). AddThreshold uses claim
+// instead: a threshold's Key is read directly by wall.get and never
+// classified by rejectNamespace's DUBPLATE_ walk, so R16's own
+// justification for the prefix requirement does not reach it.
+func (r *Registry) claimCrossFamily(family, key string) {
+	if !strings.HasPrefix(key, "DUBPLATE_") {
+		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))
+	}
+	r.claim(family, key)
 }
 
 // AddWallRow registers row as an owned wall row. A row is either a
@@ -237,23 +249,41 @@ func (r *Registry) AddThreshold(t Threshold) {
 	if slices.ContainsFunc(r.thresholds, func(existing Threshold) bool { return existing.Key == t.Key }) {
 		panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", t.Key, familyThresholds, familyThresholds))
 	}
-	r.claimCrossFamily(familyThresholds, t.Key)
 	validateThresholdDefault(t)
+	r.claim(familyThresholds, t.Key)
 	r.thresholds = append(r.thresholds, t)
 }
 
 // validateThresholdDefault panics if t's Default cannot be parsed
 // under its declared Kind, or if Kind names no parser: both are
-// registration bugs, never an adopter's environment problem.
+// registration bugs, never an adopter's environment problem. This is
+// the check that catches a threshold whose Kind was never set: KindInt
+// is iota's zero (Resolution R11), so a float threshold with no
+// explicit Kind carries a named kind and would pass an enum-membership
+// test alone; only parsing Default under the declared Kind catches it.
+//
+// KindString's own invalid Default is the empty string, checked here
+// rather than by a parse attempt, since every string parses; the
+// reason is [ParseString]'s own doc.
+//
+// provisional, conductor ruling owed, R11
 func validateThresholdDefault(t Threshold) {
 	switch t.Kind {
 	case KindInt:
 		if _, err := strconv.Atoi(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q for KindInt", t.Key, t.Default))
+			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
 		}
 	case KindDuration:
 		if _, err := time.ParseDuration(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q for KindDuration", t.Key, t.Default))
+			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
+		}
+	case KindFloat:
+		if _, err := strconv.ParseFloat(t.Default, 64); err != nil {
+			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
+		}
+	case KindString:
+		if t.Default == "" {
+			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
 		}
 	default:
 		panic(fmt.Sprintf("%s: unnamed threshold kind %v", t.Key, t.Kind))

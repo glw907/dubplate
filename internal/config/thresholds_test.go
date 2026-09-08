@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -153,5 +154,158 @@ func TestParseDurationRejectsABadDefaultAsARegistrationBug(t *testing.T) {
 	_, err := ParseDuration(nil, Threshold{Key: "K", Kind: KindDuration, Default: "not a duration"})
 	if err == nil || !strings.Contains(err.Error(), "K") {
 		t.Errorf("ParseDuration on a bad default = %v; want an error naming the key", err)
+	}
+}
+
+// TestKindInt_IsZeroValue pins Resolution R11: KindInt is iota's zero,
+// so a Threshold literal that omits Kind keeps meaning KindInt across
+// every rung that ever wrote one before KindDuration, KindFloat and
+// KindString existed. Named mutation 4 reorders the const block so
+// KindFloat sits at position zero instead; this test is the direct
+// proof that the reorder changes every such literal's meaning.
+func TestKindInt_IsZeroValue(t *testing.T) {
+	if KindInt != 0 {
+		t.Fatalf("KindInt = %d, want 0", KindInt)
+	}
+	var zero ThresholdKind
+	if zero != KindInt {
+		t.Fatalf("the zero ThresholdKind = %v, want KindInt", zero)
+	}
+}
+
+// TestThresholdKinds is the one test-row table the four parsers share:
+// one row per kind, and per row, the same four cases every parser must
+// answer identically. wantErrSub is empty when the case wants no error.
+//
+// The set+invalid-value case is n/a for KindString, because no string
+// value can fail ParseString; that row's third cell is skipped rather
+// than forced into a shape it cannot take, and the row's fourth cell
+// (its one invalid Default, the empty string) is the case that still
+// proves it distinct from a merely-absent third cell.
+func TestThresholdKinds(t *testing.T) {
+	tests := []struct {
+		name           string
+		kind           ThresholdKind
+		doc            string
+		validDefault   string
+		wantDefault    string // string form validDefault parses to
+		validValue     string
+		wantValid      string // string form validValue parses to
+		invalidValue   string // "", meaning n/a, for KindString
+		invalidDefault string
+		parse          func(environ []string, th Threshold) (string, error)
+	}{
+		{
+			name:           "KindInt",
+			kind:           KindInt,
+			doc:            "an integer",
+			validDefault:   "10",
+			wantDefault:    "10",
+			validValue:     "30",
+			wantValid:      "30",
+			invalidValue:   "soon",
+			invalidDefault: "not-a-number",
+			parse: func(environ []string, th Threshold) (string, error) {
+				v, err := ParseInt(environ, th)
+				return strconv.Itoa(v), err
+			},
+		},
+		{
+			name:           "KindDuration",
+			kind:           KindDuration,
+			doc:            "a Go duration",
+			validDefault:   "10m",
+			wantDefault:    "10m0s",
+			validValue:     "30m",
+			wantValid:      "30m0s",
+			invalidValue:   "soon",
+			invalidDefault: "not a duration",
+			parse: func(environ []string, th Threshold) (string, error) {
+				d, err := ParseDuration(environ, th)
+				return d.String(), err
+			},
+		},
+		{
+			name:           "KindFloat",
+			kind:           KindFloat,
+			doc:            "a float",
+			validDefault:   "0.1",
+			wantDefault:    "0.1",
+			validValue:     "0.04",
+			wantValid:      "0.04",
+			invalidValue:   "soon",
+			invalidDefault: "not-a-float",
+			parse: func(environ []string, th Threshold) (string, error) {
+				f, err := ParseFloat(environ, th)
+				return strconv.FormatFloat(f, 'g', -1, 64), err
+			},
+		},
+		{
+			name:         "KindString",
+			kind:         KindString,
+			doc:          "a string",
+			validDefault: "default-value",
+			wantDefault:  "default-value",
+			validValue:   "set-value",
+			wantValid:    "set-value",
+			// invalidValue is n/a: no string fails ParseString.
+			invalidDefault: "",
+			parse: func(environ []string, th Threshold) (string, error) {
+				return ParseString(environ, th)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			key := "DUBPLATE_TEST_" + tt.name
+
+			// unset, valid default.
+			th := Threshold{Key: key, Kind: tt.kind, Default: tt.validDefault, Doc: tt.doc}
+			got, err := tt.parse(nil, th)
+			if err != nil {
+				t.Fatalf("unset+valid-default: parse() error = %v, want nil", err)
+			}
+			if got != tt.wantDefault {
+				t.Errorf("unset+valid-default: parse() = %q, want %q", got, tt.wantDefault)
+			}
+
+			// set, valid value.
+			got, err = tt.parse([]string{key + "=" + tt.validValue}, th)
+			if err != nil {
+				t.Fatalf("set+valid-value: parse() error = %v, want nil", err)
+			}
+			if got != tt.wantValid {
+				t.Errorf("set+valid-value: parse() = %q, want %q", got, tt.wantValid)
+			}
+
+			// set, invalid value: n/a for KindString.
+			if tt.invalidValue != "" {
+				_, err := tt.parse([]string{key + "=" + tt.invalidValue}, th)
+				if err == nil {
+					t.Fatal("set+invalid-value: parse() error = nil, want error naming the key and Doc")
+				}
+				if !strings.Contains(err.Error(), key) || !strings.Contains(err.Error(), tt.doc) {
+					t.Errorf("set+invalid-value: parse() error = %q, want it to contain %q and %q", err.Error(), key, tt.doc)
+				}
+			}
+
+			// unset, invalid default: a registration bug, naming the
+			// key alone. Distinguishable from the set+invalid-value
+			// case above because it must not name Doc: an environment
+			// error explains the accepted form, a registration error
+			// does not, since no environment value is at fault.
+			badDefault := Threshold{Key: key, Kind: tt.kind, Default: tt.invalidDefault, Doc: tt.doc}
+			_, err = tt.parse(nil, badDefault)
+			if err == nil {
+				t.Fatal("unset+invalid-default: parse() error = nil, want error naming the key alone")
+			}
+			if !strings.Contains(err.Error(), key) {
+				t.Errorf("unset+invalid-default: parse() error = %q, want it to contain %q", err.Error(), key)
+			}
+			if tt.invalidValue != "" && strings.Contains(err.Error(), tt.doc) {
+				t.Errorf("unset+invalid-default: parse() error = %q, must not contain Doc %q, or it is indistinguishable from a set+invalid-value error", err.Error(), tt.doc)
+			}
+		})
 	}
 }

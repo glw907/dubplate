@@ -192,6 +192,56 @@ func TestCollisionGate_MissingPrefix(t *testing.T) {
 	}
 }
 
+// TestCollisionGate_KindDefaultMismatch fires O5 class 4: a threshold
+// whose declared Default does not parse under its declared Kind, or
+// whose Kind names no parser (Resolution R11, Task 5's own mutation 3
+// for the collision gate). The float-defaulted fixture is written
+// against rung 3's real StrongRecThresh (default 0.04,
+// tunables.go:62-66): a Threshold declared with that default and no
+// explicit Kind carries the zero value, KindInt, which is a named kind
+// and would pass an enum-membership check alone. Only parsing Default
+// under Kind catches it.
+func TestCollisionGate_KindDefaultMismatch(t *testing.T) {
+	tests := []struct {
+		name string
+		th   Threshold
+		want string
+	}{
+		{
+			name: "float default with no explicit Kind, the StrongRecThresh hazard",
+			th:   Threshold{Key: "DUBPLATE_STRONG_REC_THRESH", Default: "0.04"},
+			want: `DUBPLATE_STRONG_REC_THRESH: invalid default "0.04"`,
+		},
+		{
+			name: "Kind names no parser",
+			th:   Threshold{Key: "DUBPLATE_TEST_UNNAMED_KIND", Kind: ThresholdKind(99), Default: "1"},
+			want: "DUBPLATE_TEST_UNNAMED_KIND",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg := panicMessage(t, func() { NewRegistry().AddThreshold(tt.th) })
+			if !strings.Contains(msg, tt.want) {
+				t.Errorf("panic message %q, want it to contain %q", msg, tt.want)
+			}
+		})
+	}
+}
+
+// TestCollisionGate_KindStringEmptyDefault fires the KindString half of
+// O5 class 4: an empty Default is KindString's one invalid value,
+// because wall.get's empty-equals-unset convention would otherwise make
+// an empty-string default indistinguishable from no default at all. No
+// real declaration exists yet, so this is a scratch fixture.
+func TestCollisionGate_KindStringEmptyDefault(t *testing.T) {
+	msg := panicMessage(t, func() {
+		NewRegistry().AddThreshold(Threshold{Key: "TEST_STRING", Kind: KindString, Default: ""})
+	})
+	if !strings.Contains(msg, "TEST_STRING") {
+		t.Errorf("panic message %q does not name the offending key", msg)
+	}
+}
+
 // TestCollisionGate_IdentitySourceCarveOut proves R16's carve-out in
 // the other direction, O5 class 6: the identity-source status row must
 // not be claimed as a key. If the prefix rule wrongly reached it, this
