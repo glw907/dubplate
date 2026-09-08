@@ -2,6 +2,7 @@ package serve
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -465,5 +466,267 @@ func TestResponseControllerFlushReachesRealWriter(t *testing.T) {
 	root.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/outside", nil))
 	if fallErr != nil {
 		t.Errorf("Flush() at the fallthrough = %v, want nil", fallErr)
+	}
+}
+
+// cookieLines returns every Cookie header line got carries, in order,
+// as the raw text the handler received.
+func cookieLines(got *recorder) []string {
+	if got.header == nil {
+		return nil
+	}
+	return got.header["Cookie"]
+}
+
+// TestSessionCookieRemovedFromEveryCookieLine: a client may send Cookie
+// more than once, and net/http keeps each line separately. The named
+// cookie goes from every line, each surviving line keeps its own text
+// byte for byte (the quoted value included), and no line is folded
+// into another. An implementation reading only the first line would
+// leave the second line's session cookie standing and collapse the
+// rest of the request's cookies into nothing.
+func TestSessionCookieRemovedFromEveryCookieLine(t *testing.T) {
+	shell := newTestShell(t, testSessionCookie)
+	var fall recorder
+	shell.SetFallthrough(recordingHandler(&fall))
+
+	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+	r.Header.Add("Cookie", `a="quoted"; `+testSessionCookie+`=first`)
+	r.Header.Add("Cookie", testSessionCookie+`=second; b=2`)
+
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+	if fall.header == nil {
+		t.Fatal("the fallthrough handler was never invoked")
+	}
+	want := []string{`a="quoted"`, `b=2`}
+	if got := cookieLines(&fall); !slices.Equal(got, want) {
+		t.Errorf("fallthrough handler Cookie lines = %q, want %q", got, want)
+	}
+}
+
+// TestSessionCookieRemovedFirstInLineLeavesNoLeadingSpace: dropping the
+// first segment of a line must not leave the separator's own space at
+// the head of the value, which would hand the fallthrough a Cookie
+// header no client would have sent.
+func TestSessionCookieRemovedFirstInLineLeavesNoLeadingSpace(t *testing.T) {
+	shell := newTestShell(t, testSessionCookie)
+	var fall recorder
+	shell.SetFallthrough(recordingHandler(&fall))
+
+	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+	r.Header.Set("Cookie", testSessionCookie+`=abc; a=1; b=2`)
+
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+	if fall.header == nil {
+		t.Fatal("the fallthrough handler was never invoked")
+	}
+	want := `a=1; b=2`
+	if got := fall.header.Get("Cookie"); got != want {
+		t.Errorf("fallthrough handler Cookie header = %q, want %q", got, want)
+	}
+}
+
+// TestSessionCookieOnlyCookieOnALineDropsTheLine: a line carrying
+// nothing but the named cookie leaves no empty Cookie header behind.
+func TestSessionCookieOnlyCookieOnALineDropsTheLine(t *testing.T) {
+	shell := newTestShell(t, testSessionCookie)
+	var fall recorder
+	shell.SetFallthrough(recordingHandler(&fall))
+
+	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+	r.Header.Add("Cookie", testSessionCookie+`=abc`)
+	r.Header.Add("Cookie", `a=1`)
+
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+	if fall.header == nil {
+		t.Fatal("the fallthrough handler was never invoked")
+	}
+	want := []string{`a=1`}
+	if got := cookieLines(&fall); !slices.Equal(got, want) {
+		t.Errorf("fallthrough handler Cookie lines = %q, want %q", got, want)
+	}
+}
+
+// TestUnclaimedOwnedPathReachesTheTerminator: a path under the owned
+// prefix that no registered subtree claims answers 404 through
+// [Terminator], reaching neither a registered subtree nor the
+// fallthrough. Rung 14 depends on this: an unknown owned path must not
+// reach the proxy the fallthrough holds.
+func TestUnclaimedOwnedPathReachesTheTerminator(t *testing.T) {
+	shell := newTestShell(t, "")
+	var owned, fall recorder
+	shell.Register("echo", recordingHandler(&owned))
+	shell.SetFallthrough(recordingHandler(&fall))
+
+	rec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, testPrefix+"/unclaimed", nil))
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+	if owned.header != nil {
+		t.Error("the registered subtree was invoked for a path it does not claim")
+	}
+	if fall.header != nil {
+		t.Error("the fallthrough was invoked for a path under the owned prefix; the terminator must stop it")
+	}
+}
+
+// TestRegisterAfterHandlerPanics: registration belongs to
+// construction. A registration after the root chain is composed lands
+// on a mux an already-serving binary is reading, so it panics naming
+// the subtree rather than racing.
+func TestRegisterAfterHandlerPanics(t *testing.T) {
+	shell := newTestShell(t, "")
+	shell.Handler()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("Register did not panic after Handler")
+		}
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, "late") {
+			t.Errorf("panic value = %v, want a message naming %q", r, "late")
+		}
+	}()
+	shell.Register("late", http.NotFoundHandler())
+}
+
+// TestRefusalRecordOnlyForTheShellsOwnRefusals: a registered subtree
+// answering 400 to its own bad input is not an ingress refusal and
+// emits no record, while the shell's own normalization refusal on the
+// same subtree does. Keying the record on the response status alone
+// would report an ingress refusal every time a handler rejected a
+// malformed request of its own.
+func TestRefusalRecordOnlyForTheShellsOwnRefusals(t *testing.T) {
+	newShellWithLog := func(t *testing.T) (*Shell, *capturingHandler) {
+		t.Helper()
+		prefix, err := NewPrefix(testPrefix)
+		if err != nil {
+			t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		}
+		log := &capturingHandler{}
+		strip := NewStrip("", "", TrustedProxyConfig{}, FrontExemption{})
+		return NewShell(prefix, strip, slog.New(log)), log
+	}
+
+	t.Run("a subtree's own 400 emits no record", func(t *testing.T) {
+		shell, log := newShellWithLog(t)
+		shell.Register("echo", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "bad form", http.StatusBadRequest)
+		}))
+
+		rec := httptest.NewRecorder()
+		shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, testPrefix+"/echo", nil))
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadRequest)
+		}
+		if records := log.snapshot(); len(records) != 0 {
+			t.Errorf("got %d log record(s) for a handler's own 400, want none: %v", len(records), records)
+		}
+	})
+
+	t.Run("the shell's own refusal on the same subtree emits one", func(t *testing.T) {
+		shell, log := newShellWithLog(t)
+		shell.Register("echo", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "bad form", http.StatusBadRequest)
+		}))
+
+		rec := httptest.NewRecorder()
+		shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, testPrefix+"/echo/../secret", nil))
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadRequest)
+		}
+		if records := log.snapshot(); len(records) != 1 {
+			t.Fatalf("got %d log record(s) for the shell's own refusal, want 1: %v", len(records), records)
+		}
+	})
+}
+
+// readerFromRecorder is an http.ResponseWriter that implements
+// [io.ReaderFrom], standing in for net/http's own response writer,
+// which implements it to reach sendfile(2).
+type readerFromRecorder struct {
+	*httptest.ResponseRecorder
+	used bool
+}
+
+func (w *readerFromRecorder) ReadFrom(src io.Reader) (int64, error) {
+	w.used = true
+	return io.Copy(w.Body, src)
+}
+
+// plainReader hides the io.WriterTo a strings.Reader carries. io.Copy
+// consults the source for io.WriterTo before the destination for
+// io.ReaderFrom, so a bare strings.Reader would take its own fast path
+// and the test would prove nothing about the destination.
+type plainReader struct{ io.Reader }
+
+// TestReadFromReachesRealWriter: the status capture forwards
+// [io.ReaderFrom] to the writer beneath it, so a handler copying a
+// stream through io.Copy keeps the underlying writer's fast path.
+// Without the forward, io.Copy would find no ReaderFrom on the capture
+// and silently fall back to a userspace copy for every stream rung
+// 12's proxy serves.
+func TestReadFromReachesRealWriter(t *testing.T) {
+	shell := newTestShell(t, "")
+	shell.SetFallthrough(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := io.Copy(w, plainReader{strings.NewReader("payload")}); err != nil {
+			t.Errorf("io.Copy: %v", err)
+		}
+	}))
+
+	w := &readerFromRecorder{ResponseRecorder: httptest.NewRecorder()}
+	shell.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/outside", nil))
+
+	if !w.used {
+		t.Error("io.Copy did not reach the underlying writer's ReadFrom, want the capture to forward it")
+	}
+	if got := w.Body.String(); got != "payload" {
+		t.Errorf("body = %q, want %q", got, "payload")
+	}
+}
+
+// TestIdentitySpellingPresentReadsKeyPresence: the refusal record says
+// whether an identity header arrived, not whether it arrived carrying
+// something. A header sent with an empty value is one the client sent,
+// and a value test would report it as absent.
+func TestIdentitySpellingPresentReadsKeyPresence(t *testing.T) {
+	tests := []struct {
+		name   string
+		header http.Header
+		want   bool
+	}{
+		{
+			name:   "an empty-valued identity header is present",
+			header: http.Header{"Remote-User": []string{""}},
+			want:   true,
+		},
+		{
+			name:   "a valued identity header is present",
+			header: http.Header{"Remote-User": []string{"attacker"}},
+			want:   true,
+		},
+		{
+			name:   "an unrelated header is not",
+			header: http.Header{"X-App-Debug-Trace": []string{"trace-id"}},
+			want:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header = tt.header
+			if got := identitySpellingPresent(r, ""); got != tt.want {
+				t.Errorf("identitySpellingPresent() = %t, want %t", got, tt.want)
+			}
+		})
 	}
 }

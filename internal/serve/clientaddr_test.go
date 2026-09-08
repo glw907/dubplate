@@ -195,3 +195,63 @@ func TestProxyModeString(t *testing.T) {
 		t.Errorf("ModeTrustedProxy.String() = %q, want %q", got, "trusted proxy")
 	}
 }
+
+// TestClientIPReadsEveryHeaderLineAsOneChain proves the forwarding
+// header is read across every line it arrived on, right to left, and
+// not from the first line alone. A proxy that adds its own field line
+// rather than extending the existing one is ordinary, and RFC 9110
+// makes the repeated lines equivalent to one comma-joined value; a
+// reader that took only the first would take the leftmost,
+// attacker-controlled end of the chain as the whole of it.
+func TestClientIPReadsEveryHeaderLineAsOneChain(t *testing.T) {
+	const peer = "192.0.2.9"
+
+	tests := []struct {
+		name    string
+		proxies []string
+		lines   []string
+		want    string
+	}{
+		{
+			// The first line is the attacker's own forged entry; the
+			// real chain arrived on the second. Reading line one alone
+			// reports 198.51.100.1.
+			name:    "the nearest hop is on the last line",
+			proxies: []string{peer},
+			lines:   []string{"198.51.100.1", "203.0.113.50, " + peer},
+			want:    "203.0.113.50",
+		},
+		{
+			// Every hop on the last line is a configured proxy, so the
+			// scan continues backward into the line before it.
+			name:    "a fully trusted last line continues into the earlier one",
+			proxies: []string{peer},
+			lines:   []string{"203.0.113.50", peer},
+			want:    "203.0.113.50",
+		},
+		{
+			// No line carries an untrusted hop, so the answer is the
+			// peer rather than an empty rate-limiter key.
+			name:    "every hop on every line trusted falls back to the peer",
+			proxies: []string{peer, "192.0.2.8"},
+			lines:   []string{"192.0.2.8", peer},
+			want:    peer,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := NewTrustedProxyConfig(tt.proxies, "X-Forwarded-For")
+
+			r := httptest.NewRequest("GET", "/", nil)
+			r.RemoteAddr = peer + ":1111"
+			for _, line := range tt.lines {
+				r.Header.Add("X-Forwarded-For", line)
+			}
+
+			if got := ClientIP(r, cfg); got != tt.want {
+				t.Errorf("ClientIP() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

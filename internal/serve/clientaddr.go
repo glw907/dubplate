@@ -92,6 +92,13 @@ func PeerAddress(r *http.Request) string {
 // malformed or empty header falls back to PeerAddress rather than an
 // empty string, since an empty rate-limiter key is one bucket every
 // attacker shares.
+//
+// Every line the header arrives on is read, not the first alone. RFC
+// 9110 makes repeated field lines equivalent to one comma-joined
+// value, and a proxy that appends its own line rather than extending
+// the existing one is ordinary; reading the first line would take the
+// leftmost, attacker-controlled end of the chain as though it were the
+// whole of it.
 func ClientIP(r *http.Request, cfg TrustedProxyConfig) string {
 	peer := PeerAddress(r)
 	if cfg.header == "" {
@@ -100,26 +107,29 @@ func ClientIP(r *http.Request, cfg TrustedProxyConfig) string {
 	if _, trusted := cfg.proxies[peer]; !trusted {
 		return peer
 	}
-	if hop := cfg.rightmostUntrusted(r.Header.Get(cfg.header)); hop != "" {
+	if hop := cfg.rightmostUntrusted(r.Header.Values(cfg.header)); hop != "" {
 		return hop
 	}
 	return peer
 }
 
-// rightmostUntrusted returns the rightmost hop in header that is not
-// a configured proxy, or "" when header is empty, malformed, or every
-// hop is a configured proxy.
-func (c TrustedProxyConfig) rightmostUntrusted(header string) string {
-	hops := splitHops(header)
-	for _, raw := range slices.Backward(hops) {
-		hop := trimHop(raw)
-		if hop == "" {
-			continue
+// rightmostUntrusted returns the rightmost hop across values that is
+// not a configured proxy, or "" when the chain is empty, malformed, or
+// entirely configured proxies. The lines are one chain: the last
+// line's rightmost hop is the nearest, so the scan runs backward
+// through the lines and backward through each line's own hops.
+func (c TrustedProxyConfig) rightmostUntrusted(values []string) string {
+	for _, value := range slices.Backward(values) {
+		for _, raw := range slices.Backward(splitHops(value)) {
+			hop := trimHop(raw)
+			if hop == "" {
+				continue
+			}
+			if _, isProxy := c.proxies[hop]; isProxy {
+				continue
+			}
+			return hop
 		}
-		if _, isProxy := c.proxies[hop]; isProxy {
-			continue
-		}
-		return hop
 	}
 	return ""
 }

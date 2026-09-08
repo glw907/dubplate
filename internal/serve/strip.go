@@ -95,11 +95,18 @@ var forwardedAddressHeaders = []string{
 	"X-Forwarded-Prefix",
 }
 
-// group3KeepSet is R-S's carve-out: canonical names stripConnectionListed
-// never deletes, whatever a request's Connection header lists. Cookie,
-// Origin, and Sec-Fetch-Site are end-to-end headers a client has no
-// business declaring hop-by-hop, and 5b's origin check reads the
-// latter two.
+// group3KeepSet is R-S's carve-out: canonical header names
+// stripConnectionListed never deletes, whatever a request's Connection
+// header lists. Cookie, Origin, and Sec-Fetch-Site are end-to-end
+// headers a client has no business declaring hop-by-hop, and 5b's
+// origin check reads the latter two.
+//
+// The set holds header names and nothing else. The shell's own
+// session-cookie name was once compared against it as though it were
+// one, which it is not: a cookie name lives inside the Cookie header's
+// value, so keeping Cookie here is already what protects it, and
+// canonicalizing a cookie name as a header key compared two different
+// kinds of name.
 var group3KeepSet = map[string]struct{}{
 	"Cookie":         {},
 	"Origin":         {},
@@ -183,8 +190,9 @@ type Strip struct {
 // identity header name, a construction value that is empty at rung 5
 // since no driver exists yet; rung 12 supplies it through the driver
 // seam. sessionCookie is the shell's own session-cookie name (R-S), a
-// construction value that does not exist until 5b; a Strip built with
-// no session-cookie name adds nothing beyond the fixed keep-set. proxy
+// construction value that does not exist until 5b; the strip itself
+// never removes a cookie, and [Shell] reads this name to remove that
+// one cookie on the way out to the fallthrough. proxy
 // is Task 1's trusted-proxy configuration and the sole input to group
 // 2's carve-out. exemption is the mechanism a later front configures;
 // the zero value exempts nothing.
@@ -206,23 +214,25 @@ func (s Strip) Wrap(next http.Handler) http.Handler {
 // stripIdentity removes group 1: every identity spelling from r.Header
 // and r.Trailer on the same pass (R-P), then wraps r.Body so the same
 // names are deleted from r.Trailer again once the client's trailer
-// section has actually arrived. The up-front delete removes the
+// section has actually arrived. The up-front delete removes an
 // announced key before the body is read; net/http's mergeSetHeader
 // re-adds that key once the trailer's value arrives, so the read-time
 // scrub is what removes a value smuggled after the body. The one
 // exemption a configured front may carry is honored in both passes
 // (R-Q, R-S's sibling for group 1).
+//
+// The body is wrapped unconditionally, never only when the request
+// announced a Trailer header. A chunked request may send a trailer
+// section it never announced: r.Trailer is nil at wrap time, and
+// mergeSetHeader installs the wire trailer's own map wholesale at
+// end of stream. Arming the scrub on the announcement would leave that
+// request's identity headers standing, which is the whole strip
+// bypassed by omitting one header.
 func (s Strip) stripIdentity(r *http.Request) {
 	exempt := s.exemption.headerFor(PeerAddress(r))
 	if exempt != "" {
 		collapseToLast(r.Header, exempt)
 	}
-
-	// A request that announces a Trailer name populates r.Trailer with
-	// that name up front, mapped to nil; the length check has to run
-	// before the deletion loop empties the map, or scrubTrailerOnRead
-	// below would wrongly conclude no trailer was announced at all.
-	announcedTrailer := len(r.Trailer) > 0
 
 	names := identitySpellings(s.header)
 	for _, name := range names {
@@ -232,9 +242,7 @@ func (s Strip) stripIdentity(r *http.Request) {
 		r.Header.Del(name)
 		r.Trailer.Del(name)
 	}
-	if announcedTrailer {
-		scrubTrailerOnRead(r, names, exempt)
-	}
+	scrubTrailerOnRead(r, names, exempt)
 }
 
 // collapseToLast rewrites h so name carries only the last value among
@@ -265,18 +273,24 @@ func scrubTrailerOnRead(r *http.Request, names []string, exempt string) {
 	if r.Body == nil {
 		return
 	}
-	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, trailer: r.Trailer, names: names, exempt: exempt}
+	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, req: r, names: names, exempt: exempt}
 }
 
-// trailerScrubbingBody deletes names, other than exempt, from trailer
-// the moment the wrapped reader signals end of stream, which is when
-// net/http has just finished populating trailer with the values the
-// client sent.
+// trailerScrubbingBody deletes names, other than exempt, from its
+// request's Trailer the moment the wrapped reader signals end of
+// stream, which is when net/http has just finished populating that
+// map with the values the client sent.
+//
+// It holds the request rather than the Trailer map it had at wrap
+// time. For a request that announced no trailer, r.Trailer is nil
+// until end of stream and mergeSetHeader then assigns the wire
+// trailer's own map to the field; a captured nil map would leave the
+// scrub deleting from nothing while the request carried the values.
 type trailerScrubbingBody struct {
 	io.ReadCloser
-	trailer http.Header
-	names   []string
-	exempt  string
+	req    *http.Request
+	names  []string
+	exempt string
 }
 
 func (b *trailerScrubbingBody) Read(p []byte) (int, error) {
@@ -286,7 +300,7 @@ func (b *trailerScrubbingBody) Read(p []byte) (int, error) {
 			if b.exempt != "" && sameHeaderName(name, b.exempt) {
 				continue
 			}
-			b.trailer.Del(name)
+			b.req.Trailer.Del(name)
 		}
 	}
 	return n, err
@@ -312,12 +326,21 @@ func (s Strip) stripForwardedAddress(r *http.Request) {
 // Upgrade keeps both Upgrade and Connection, since a websocket
 // handshake sends Connection: Upgrade alongside Upgrade: websocket and
 // the listed removal would otherwise delete the handshake it needs.
-// group3KeepSet and the shell's own session-cookie name are never
-// removed by this rule (R-S), whatever Connection says.
+// group3KeepSet is never removed by this rule (R-S), whatever
+// Connection says, and neither is the one header a configured front is
+// exempt from group 1 on: an attacker who could name that header in
+// Connection would delete the front's own identity assertion, turning
+// a header a trusted peer set into a request the shell reads as
+// anonymous.
 func (s Strip) stripConnectionListed(r *http.Request) {
 	tokens := connectionTokens(r.Header.Values("Connection"))
 	if len(tokens) == 0 {
 		return
+	}
+
+	exempt := ""
+	if header := s.exemption.headerFor(PeerAddress(r)); header != "" {
+		exempt = textproto.CanonicalMIMEHeaderKey(header)
 	}
 
 	upgrade := false
@@ -336,7 +359,7 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 		if _, keep := group3KeepSet[canon]; keep {
 			continue
 		}
-		if s.sessionCookie != "" && canon == textproto.CanonicalMIMEHeaderKey(s.sessionCookie) {
+		if exempt != "" && canon == exempt {
 			continue
 		}
 		r.Header.Del(token)

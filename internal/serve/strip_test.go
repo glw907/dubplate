@@ -1,7 +1,9 @@
 package serve
 
 import (
+	"bufio"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -375,4 +377,110 @@ func TestStripWrapEmptyExemptionExemptsNothing(t *testing.T) {
 	if v := got.header.Get("X-Driver-Identity"); v != "" {
 		t.Errorf("X-Driver-Identity = %q, want removed: no front is configured, so nothing is exempt", v)
 	}
+}
+
+// TestStripWrapClearsUnannouncedTrailerOnceBodyIsRead is the
+// announcement-free half of R-P: a chunked request may send a trailer
+// section it never named in a Trailer header, and net/http merges that
+// section into r.Trailer at end of stream all the same. Arming the
+// read-time scrub on the announcement alone would leave this request's
+// identity header standing, which is the whole of group 1 bypassed by
+// omitting one header.
+//
+// The request is written onto the socket rather than built with
+// http.NewRequest, because net/http's own client sends only the
+// trailers a request announces; the server side is still net/http's
+// own chunked parsing.
+func TestStripWrapClearsUnannouncedTrailerOnceBodyIsRead(t *testing.T) {
+	var afterHeader, afterTrailer string
+	var trailerKeyPresent bool
+	srv := httptest.NewServer(NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}).Wrap(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(io.Discard, r.Body) //nolint:errcheck // test drains to trigger trailer population
+			afterHeader = r.Header.Get("Remote-User")
+			afterTrailer = r.Trailer.Get("Remote-User")
+			_, trailerKeyPresent = r.Trailer["Remote-User"]
+			w.WriteHeader(http.StatusOK)
+		}),
+	))
+	defer srv.Close()
+
+	conn, err := net.Dial("tcp", srv.Listener.Addr().String())
+	if err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	defer func() { _ = conn.Close() }()
+
+	// No Trailer header names Remote-User: the trailer section arrives
+	// unannounced, after the terminating zero-length chunk.
+	raw := "POST / HTTP/1.1\r\n" +
+		"Host: example.test\r\n" +
+		"Transfer-Encoding: chunked\r\n" +
+		"\r\n" +
+		"4\r\nbody\r\n" +
+		"0\r\n" +
+		"Remote-User: attacker\r\n" +
+		"\r\n"
+	if _, err := conn.Write([]byte(raw)); err != nil {
+		t.Fatalf("write request: %v", err)
+	}
+
+	// Reading the response is what guarantees the handler has run.
+	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
+	if err != nil {
+		t.Fatalf("ReadResponse: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if afterHeader != "" {
+		t.Errorf("r.Header[Remote-User] = %q, want empty", afterHeader)
+	}
+	if afterTrailer != "" {
+		t.Errorf("r.Trailer[Remote-User] = %q, want removed: an unannounced trailer must not carry an identity header past the strip", afterTrailer)
+	}
+	if trailerKeyPresent {
+		t.Error("r.Trailer still carries the Remote-User key, want it deleted once the trailer section arrived")
+	}
+}
+
+// TestStripWrapExemptedHeaderSurvivesConnectionListing: the one header
+// a configured front is exempt from group 1 on survives group 3 too.
+// Without the carve-out an attacker could name that header in its own
+// Connection header and delete the front's identity assertion, turning
+// a request a trusted peer authenticated into one the shell reads as
+// anonymous.
+func TestStripWrapExemptedHeaderSurvivesConnectionListing(t *testing.T) {
+	exemption := NewFrontExemption("X-Front-Identity", []string{"203.0.113.10"})
+	strip := NewStrip("X-Front-Identity", "", TrustedProxyConfig{}, exemption)
+
+	t.Run("matching peer: Connection cannot delete the exempted header", func(t *testing.T) {
+		r := httptest.NewRequest("GET", "/", nil)
+		r.RemoteAddr = "203.0.113.10:1111"
+		r.Header.Set("X-Front-Identity", "front-asserted-user")
+		r.Header.Set("Connection", "X-Front-Identity")
+
+		var got recorder
+		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+		if v := got.header.Get("X-Front-Identity"); v != "front-asserted-user" {
+			t.Errorf("X-Front-Identity = %q, want %q: the exemption must outrank a client-supplied Connection listing", v, "front-asserted-user")
+		}
+	})
+
+	t.Run("non-matching peer: nothing is exempt from either group", func(t *testing.T) {
+		r := httptest.NewRequest("GET", "/", nil)
+		r.RemoteAddr = "192.0.2.5:1111"
+		r.Header.Set("X-Front-Identity", "attacker")
+		r.Header.Set("Connection", "X-Front-Identity")
+
+		var got recorder
+		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+		if v := got.header.Get("X-Front-Identity"); v != "" {
+			t.Errorf("X-Front-Identity = %q, want removed: the peer does not match the front's configuration", v)
+		}
+	})
 }

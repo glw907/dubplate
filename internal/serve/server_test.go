@@ -20,7 +20,7 @@ import (
 // The read timeout is also checked against a literal 30 seconds, R-V's
 // own value, independent of the constant it is wired from.
 func TestNewHTTPServerTimeouts(t *testing.T) {
-	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), defaultWriteTimeout)
 
 	if srv.ReadHeaderTimeout != readHeaderTimeout {
 		t.Errorf("ReadHeaderTimeout = %v, want the readHeaderTimeout constant %v", srv.ReadHeaderTimeout, readHeaderTimeout)
@@ -31,8 +31,15 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 	if srv.ReadTimeout != readTimeout {
 		t.Errorf("ReadTimeout = %v, want the readTimeout constant %v", srv.ReadTimeout, readTimeout)
 	}
-	if srv.WriteTimeout != defaultWriteTimeout {
-		t.Errorf("WriteTimeout = %v, want the defaultWriteTimeout constant %v", srv.WriteTimeout, defaultWriteTimeout)
+	if srv.WriteTimeout != 30*time.Second {
+		t.Errorf("WriteTimeout = %v, want the 30s defaultWriteTimeout Run passes", srv.WriteTimeout)
+	}
+	// A second construction with a different write timeout proves the
+	// field is wired from the parameter rather than from a constant
+	// read inside newHTTPServer, which the row above alone could not
+	// tell apart.
+	if short := newHTTPServer(http.NotFoundHandler(), 5*time.Millisecond); short.WriteTimeout != 5*time.Millisecond {
+		t.Errorf("WriteTimeout = %v for a 5ms argument, want the argument to reach the field", short.WriteTimeout)
 	}
 	if srv.IdleTimeout != idleTimeout {
 		t.Errorf("IdleTimeout = %v, want the idleTimeout constant %v", srv.IdleTimeout, idleTimeout)
@@ -44,22 +51,24 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 
 // --- the write-deadline extension mechanism (spec:975-981) -----------
 
-// TestWriteDeadlineExtension proves the default write timeout newHTTPServer
-// wires is real, and that http.ResponseController.SetWriteDeadline, exposed
-// to the fallthrough handler by newHTTPServer's ordinary construction, lets
-// a handler survive past it. It shrinks defaultWriteTimeout for the
-// duration of the test and restores it after, so both rows exercise
-// newHTTPServer's actual wiring path (proving a dropped WriteTimeout field
-// would let the no-extension row succeed instead of fail) at a duration the
-// gate can run in milliseconds instead of thirty seconds.
+// TestWriteDeadlineExtension proves the write timeout newHTTPServer
+// wires is real, and that http.ResponseController.SetWriteDeadline,
+// exposed to the fallthrough handler by newHTTPServer's ordinary
+// construction, lets a handler survive past it. It passes a short
+// write timeout through the constructor, so both rows exercise
+// newHTTPServer's actual wiring path (proving a dropped WriteTimeout
+// field would let the no-extension row succeed instead of fail) at a
+// duration the gate can run in a second rather than thirty.
+//
+// This is a timing test. The margins are wide by a large multiple
+// rather than tight, so a loaded machine's scheduling delay cannot
+// carry either row across its own threshold: the handler sleeps five
+// times the timeout it must exceed, and the extension it sets is
+// twenty times that timeout and four times the sleep.
 func TestWriteDeadlineExtension(t *testing.T) {
 	const testWriteTimeout = 100 * time.Millisecond
-	const sleepPastTimeout = 250 * time.Millisecond
-	const extendedDeadline = 500 * time.Millisecond
-
-	original := defaultWriteTimeout
-	defaultWriteTimeout = testWriteTimeout
-	t.Cleanup(func() { defaultWriteTimeout = original })
+	const sleepPastTimeout = 500 * time.Millisecond
+	const extendedDeadline = 2 * time.Second
 
 	tests := []struct {
 		name    string
@@ -91,7 +100,7 @@ func TestWriteDeadlineExtension(t *testing.T) {
 			})
 
 			srv := httptest.NewUnstartedServer(handler)
-			srv.Config = newHTTPServer(handler)
+			srv.Config = newHTTPServer(handler, testWriteTimeout)
 			srv.Start()
 			defer srv.Close()
 
@@ -162,8 +171,17 @@ func TestListenBindsExactAddresses(t *testing.T) {
 				if err != nil {
 					t.Fatalf("listeners[%d].Addr() = %q, want a host:port pair: %v", i, addr.String(), err)
 				}
-				if ip := net.ParseIP(host); ip == nil || ip.IsUnspecified() {
-					t.Fatalf("listeners[%d] bound host %q, want exactly the requested address, never the all-interfaces wildcard", i, host)
+				// The bound host must equal the address asked for, not
+				// merely be some address that is not the wildcard: a
+				// listener bound to a different loopback address than
+				// the one configured would pass a wildcard-only check
+				// while accepting traffic nobody asked it to.
+				bound := net.ParseIP(host)
+				if bound == nil {
+					t.Fatalf("listeners[%d] bound host %q, want an IP address", i, host)
+				}
+				if want := net.ParseIP(tt.addrs[i]); !bound.Equal(want) {
+					t.Fatalf("listeners[%d] bound host %q, want exactly the requested %q", i, host, tt.addrs[i])
 				}
 			}
 		})
@@ -303,7 +321,7 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 	addr := listeners[0].Addr().String()
 
 	runErr := make(chan error, 1)
-	go func() { runErr <- serveUntilDone(ctx, newHTTPServer(handler), listeners) }()
+	go func() { runErr <- serveUntilDone(ctx, newHTTPServer(handler, defaultWriteTimeout), listeners) }()
 
 	respErr := make(chan error, 1)
 	go func() {
@@ -332,4 +350,48 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 	if err := <-runErr; err != nil {
 		t.Fatalf("serveUntilDone returned %v, want nil", err)
 	}
+}
+
+// TestServeUntilDoneShutsDownWhenOneServeFails: one listener's Serve
+// returning an error must not leave the rest of the set accepting.
+// serveUntilDone shuts the server down on that path too, so every
+// address it bound is free the moment it returns; returning the error
+// without a shutdown would leave a half-dead server holding its
+// addresses for the life of the process.
+//
+// The failure is induced by closing one listener before serveUntilDone
+// runs: net/http's Serve returns net.ErrClosed for it, which is not
+// http.ErrServerClosed and so reaches the error path.
+func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+
+	listeners, err := Listen(context.Background(), []string{"127.0.0.1", "127.0.0.2"}, 0)
+	if err != nil {
+		t.Fatalf("Listen: %v", err)
+	}
+	survivor := listeners[1].Addr().String()
+	if err := listeners[0].Close(); err != nil {
+		t.Fatalf("close the listener whose Serve must fail: %v", err)
+	}
+
+	// Not an already-canceled context: the return must come from the
+	// failing Serve, never from ctx.Done racing it.
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	err = serveUntilDone(ctx, newHTTPServer(handler, defaultWriteTimeout), listeners)
+	if err == nil {
+		t.Fatal("serveUntilDone returned nil, want the failing listener's error")
+	}
+	if !errors.Is(err, net.ErrClosed) {
+		t.Fatalf("serveUntilDone error = %v, want it to wrap net.ErrClosed", err)
+	}
+
+	// If the surviving listener were still accepting, rebinding its
+	// address here would fail with EADDRINUSE.
+	rebound, err := net.Listen("tcp", survivor)
+	if err != nil {
+		t.Fatalf("%s still bound after the failure path, want the shutdown to have released it: %v", survivor, err)
+	}
+	_ = rebound.Close()
 }

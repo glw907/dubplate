@@ -54,37 +54,39 @@ const (
 	// (5d's concern, not this package's) is the real backstop, so this
 	// only needs to be generous, not exact.
 	shutdownGrace = 25 * time.Second
-)
 
-// defaultWriteTimeout protects every ordinary response, the ones that
-// never call the extension mechanism below. It must not become rung
-// 12's problem: an SSE stream or an audio response can legitimately run
-// past 30 seconds, and a single fixed write timeout would kill both,
-// which is the mistake the salvage server made
-// (_salvage/internal/serve/serve.go:601, applied at :632). The
-// mechanism that saves the streaming case is
-// http.ResponseController.SetWriteDeadline: a handler wired at the
-// shell's fallthrough slot can extend or clear its own deadline before
-// this default expires, while every handler that never calls it stays
-// bound by this default.
-//
-// A var rather than a const of the same shape as the block above: the
-// deadline-extension tests in server_test.go temporarily shrink it to
-// exercise newHTTPServer's real wiring path at a duration the gate can
-// run in milliseconds instead of thirty seconds, and restore it after.
-// Production code never assigns to it outside newHTTPServer's default.
-var defaultWriteTimeout = 30 * time.Second
+	// defaultWriteTimeout protects every ordinary response, the ones
+	// that never call the extension mechanism below. It must not become
+	// rung 12's problem: an SSE stream or an audio response can
+	// legitimately run past 30 seconds, and a single fixed write
+	// timeout would kill both, which is the mistake the salvage server
+	// made (_salvage/internal/serve/serve.go:601, applied at :632). The
+	// mechanism that saves the streaming case is
+	// http.ResponseController.SetWriteDeadline: a handler wired at the
+	// shell's fallthrough slot can extend or clear its own deadline
+	// before this default expires, while every handler that never calls
+	// it stays bound by this default.
+	defaultWriteTimeout = 30 * time.Second
+)
 
 // newHTTPServer builds the http.Server C6 constructs over handler,
 // carrying all four named timeouts above and the explicit
 // MaxHeaderBytes. It sets no Addr and opens no listener: Run pairs it
 // with the listener set Listen opens.
-func newHTTPServer(handler http.Handler) *http.Server {
+//
+// writeTimeout is a parameter rather than a read of
+// defaultWriteTimeout, and [Run] is the one production caller that
+// supplies it, from that constant. The deadline-extension test needs a
+// write timeout it can exhaust in milliseconds, and passing one in is
+// what lets every timeout stay a constant: a package-level var a test
+// assigns to is shared mutable state between tests that may run in any
+// order.
+func newHTTPServer(handler http.Handler, writeTimeout time.Duration) *http.Server {
 	return &http.Server{
 		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
-		WriteTimeout:      defaultWriteTimeout,
+		WriteTimeout:      writeTimeout,
 		IdleTimeout:       idleTimeout,
 		MaxHeaderBytes:    maxHeaderBytes,
 	}
@@ -151,7 +153,7 @@ func Run(ctx context.Context, handler http.Handler, addrs []string, port int) er
 	if err != nil {
 		return err
 	}
-	return serveUntilDone(ctx, newHTTPServer(handler), listeners)
+	return serveUntilDone(ctx, newHTTPServer(handler, defaultWriteTimeout), listeners)
 }
 
 // serveUntilDone runs srv across every listener until ctx is done, then
@@ -175,18 +177,28 @@ func serveUntilDone(ctx context.Context, srv *http.Server, listeners []net.Liste
 		}(l)
 	}
 
+	var serveErr error
 	select {
 	case <-ctx.Done():
-	case err := <-errCh:
-		if err != nil {
-			return fmt.Errorf("serve: %w", err)
-		}
+	case serveErr = <-errCh:
 	}
 
+	// The shutdown runs on the failure path too, never only on the
+	// ctx.Done one. One listener's Serve failing leaves every other
+	// listener in the set still accepting, and returning here without
+	// shutting down would leave a half-dead server bound to its
+	// addresses for as long as the process lived. Shutdown closes the
+	// listeners it is still serving, and net/http's own Serve closes
+	// the failed one as it returns, so the whole set is released.
 	shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownGrace)
 	defer cancel()
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		return fmt.Errorf("serve: shutdown: %w", err)
+	shutdownErr := srv.Shutdown(shutdownCtx)
+
+	if serveErr != nil {
+		return fmt.Errorf("serve: %w", serveErr)
+	}
+	if shutdownErr != nil {
+		return fmt.Errorf("serve: shutdown: %w", shutdownErr)
 	}
 	return nil
 }
