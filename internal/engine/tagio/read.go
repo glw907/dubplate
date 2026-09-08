@@ -15,12 +15,11 @@ import (
 // caller branching on either (C14) branches on the same error
 // whether it parsed the container itself or read its tags.
 func Read(path string) (TagSet, error) {
-	format, err := Sniff(path)
+	entry, err := resolveEntry(path)
 	if err != nil {
 		return TagSet{}, err
 	}
-	entry, ok := registry[format]
-	if !ok || entry.read == nil {
+	if entry.read == nil {
 		return TagSet{}, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
 	}
 	return entry.read(path)

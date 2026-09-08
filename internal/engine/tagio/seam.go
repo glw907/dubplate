@@ -103,3 +103,20 @@ func Sniff(path string) (Format, error) {
 	}
 	return 0, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
 }
+
+// resolveEntry sniffs path and returns its seam registry row. It
+// answers [ErrUnsupportedContainer] both when Sniff does not
+// recognize path and when the sniffed format's registry row exists
+// but is empty, the shape a test registers to prove Read and Write
+// refuse a func-less row rather than panic on it.
+func resolveEntry(path string) (formatEntry, error) {
+	format, err := Sniff(path)
+	if err != nil {
+		return formatEntry{}, err
+	}
+	entry, ok := registry[format]
+	if !ok {
+		return formatEntry{}, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
+	}
+	return entry, nil
+}

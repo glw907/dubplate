@@ -37,12 +37,11 @@ const developmentVendorMarker = "development"
 // been emptied of its FLAC row, hands back [ErrUnsupportedContainer]
 // unchanged and never opens path for writing.
 func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
-	format, err := Sniff(path)
+	entry, err := resolveEntry(path)
 	if err != nil {
 		return err
 	}
-	entry, ok := registry[format]
-	if !ok || entry.write == nil {
+	if entry.write == nil {
 		return fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
 	}
 	return entry.write(path, ts, pictures, mode)
