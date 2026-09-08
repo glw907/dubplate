@@ -130,11 +130,17 @@ one with `command -v || skip`. Never commit red.
   `check.sh`, `vale-comments.sh`), shellcheck clean, no behavior tests
   of its own. The box-side import/backup shell layer is fully retired
   (Go rewrite, 2026-08-31); never add subcommand logic here.
-- **Web** (`web/`): Svelte 5 runes, standalone (NO SvelteKit), DaisyUI 5,
-  Vite to static assets embedded via `go:embed`. Invoke `svelte-conventions`
-  and `ts-conventions` before writing components or TS. `tus-js-client`
-  pinned 4.3.x. Node is workstation build-time only; nothing Node ships to
-  the box.
+- **Web** (`web/`): SvelteKit in static mode (Geoff, 2026-09-07;
+  supersedes the standalone rule): Svelte 5 runes, DaisyUI 5,
+  `adapter-static` with client-side rendering only, built to static
+  assets embedded via `go:embed` and served by the Go binary, the only
+  server. Server-only SvelteKit files (`+page.server.*`, `+server.*`,
+  `hooks.server.*`, form actions) are forbidden and the gate checks that
+  none exists. Clean, idiomatic SvelteKit is the bar, as in the cairn
+  family. Invoke `svelte-conventions` and `ts-conventions` before writing
+  components or TS. `tus-js-client` pinned 4.3.x. Node is workstation
+  build-time only; nothing Node ships to the box. Rung 5's login page is
+  the first page built under this rule.
 - **systemd / cloud-init**: invoke the `vps-conventions` skill BEFORE
   touching `systemd/`, `cloud-init/`, or deploy/provision scripts. Units
   are code — hardened (`NoNewPrivileges`,

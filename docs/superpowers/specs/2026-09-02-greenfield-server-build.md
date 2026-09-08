@@ -1,6 +1,23 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2.1, ratified 2026-09-02. Revision 1 was drafted
+Status: revision 2.1, ratified 2026-09-02, with one erratum.
+
+**Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
+`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
+passages below are superseded and stand only as history. (1) Ladder
+entry 7's theming no longer matches any streamer: the "system MATCH"
+axis targets dubplate's own design only, the matching themes for
+Navidrome's and Jellyfin's factory defaults are not authored, and the
+estate config is `match dubplate, palette gruvbox`; the palette axis and
+the theming-is-data principle are unchanged. (2) Ladder entry 12 is
+trimmed to the minimum that makes Navidrome usable behind dubplate's
+login: the driver seam, SSO, roster sync, and the proxy-hygiene ingress;
+its Navidrome theming note is dropped. The seam stays universal because
+2.0's built-in streamer arrives as one more driver. Also (3): the web
+stack rule moves to SvelteKit in static mode (CLAUDE.md, Stack rules),
+adopted before rung 5's plan is authored.
+
+Revision 1 was drafted
 from the ratified rulings
 (`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`),
 read by Geoff, and then put through two adversarial reviews
