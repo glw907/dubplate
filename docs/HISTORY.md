@@ -882,10 +882,10 @@ rules, not against anything 8b added.
 1. **Fork B stays open and owed to Geoff**, unchanged by this pass: a
    FLAC-only 1.0 with the MP3 pass immediately after cutover, applied
    provisionally by the conductor per the plan's header.
-2. **The family non-FLAC question** (`docs/HISTORY.md`'s rung 8a
+2. **The group non-FLAC question** (`docs/HISTORY.md`'s rung 8a
    entry) stays carried and is not decided here: this pass builds one
    container's picture layer and the seam that would hold a second,
-   and neither answers whether a family member's non-FLAC library gets
+   and neither answers whether a member's non-FLAC library gets
    a rung 8-shaped pass.
 3. **The gitleaks worktree-scan cost** is a `check.sh` follow-on: Task
    0 found gitleaks from the main tree now also scans lane 2's
@@ -1380,7 +1380,7 @@ never the package's backing slice.
 3. **Fork B stays open and owed to Geoff**, unchanged by this pass: a
    FLAC-only 1.0 with the MP3 pass immediately after cutover, applied
    provisionally by the conductor per the plan's header.
-4. **The family non-FLAC question** (whether a family member's non-FLAC
+4. **The group non-FLAC question** (whether a member's non-FLAC
    library gets a rung 8-shaped pass or stays out of scope) is
    unresolved and carried, not decided here.
 
@@ -1646,7 +1646,7 @@ the scratch registry's accessor → the scratch test fails while the
 landed `doctor_test.go:127-129` count assertion still passes, both
 outcomes reported, the pair showing the new test covers ground the old
 one does not. 2, remove one family's block from doctor entirely → the
-landed count assertion fails, naming the family by its count
+landed count assertion fails, naming the group by its count
 difference. 3, point the classification test at a file assigning no
 `DUBPLATE_*` names → the zero-names guard fires. 4, point it at a
 nonexistent path → fails at the open, proving a moved template is fatal
@@ -5383,7 +5383,7 @@ Control-plane pass, no box changes. Findings and what landed:
   `onetimepin` identity provider (`e33c7c2d-facd-446c-96de-8215f64cde76`,
   `auto_redirect_to_identity: true` since it's the only allowed IdP), with an
   allow policy for `geoff-login@907.life` (policy
-  `92425260-87f6-4a3a-b66e-d71bb8d9d6a8`). Family emails join this policy at
+  `92425260-87f6-4a3a-b66e-d71bb8d9d6a8`). Group emails join this policy at
   Task 8 per plan. **Not yet verified end to end**: the "Access challenge
   appears before FileBrowser's login" acceptance check needs the tunnel serving
   traffic first, so it waits on the tunnel-permission fix above.
@@ -5469,7 +5469,7 @@ needed), then `scripts/provision.sh` created firewall `musicbox-fw` (tcp/22 only
 address families), volume `musicbox-data` (50GB, `hil`), and server `musicbox` (CPX21,
 `alma-10`, `hil`). Server IPv4 `5.78.148.42`, IPv6 `2a01:4ff:1f0:97c6::1`. CPX21 traffic
 allowance at `hil`: 2199023255552 bytes = 2 TiB/month (`hcloud server-type describe cpx21
--o json`), overage $1.20/TB — generous for a family Navidrome, no need to default clients
+-o json`), overage $1.20/TB — generous for a group Navidrome, no need to default clients
 to transcoded streams.
 
 A fix round closed three blocking findings from a forced-root-password blocker, and the

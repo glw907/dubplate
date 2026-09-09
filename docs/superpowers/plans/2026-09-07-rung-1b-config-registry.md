@@ -2138,7 +2138,7 @@ because they are different problems.
   still passes, and the task states that it was preserved rather than
   rewritten.
 - Adding a declaration to a scratch registry inside the test adds exactly
-  one doctor line, in the family's own block. **This is the task's new
+  one doctor line, in the group's own block. **This is the task's new
   work.**
 - The classification test passes against every template present in
   `env/`, including any greenfield template carrying `DUBPLATE_SHADOW_*`

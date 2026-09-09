@@ -1451,7 +1451,7 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
      beets-written library file is first read at rung 9. Inherited from
      8a's gap 6 rather than newly declared.
   4. **The invalid-UTF-8 value change is graded on a synthetic
-     fixture** (R6), not on a file any family member uploaded.
+     fixture** (R6), not on a file any member uploaded.
   5. **The end-to-end length join's length term is vacuous**, if Task 1
      left every fixture on the zero-sample seed. `reconcile.go:242` joins
      on title and length, R3's seed declares zero total samples, and
@@ -1498,7 +1498,7 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
   as discharged or carried, hooks 13, 14 and 3 recorded with the pass
   that landed each, the deviation note handed to rung 15 as a statement
   rather than a file to interpret, fork B recorded as ruled, and the one
-  carry that leaves the rung open (the family non-FLAC question).
+  carry that leaves the rung open (the group non-FLAC question).
 - **What rung 9 inherits**, in one section it can read without reading
   the whole entry: `tagio`'s exported surface as it now stands, the
   `io.ReaderAt` call now rung 9's, the combined-read question R1 either

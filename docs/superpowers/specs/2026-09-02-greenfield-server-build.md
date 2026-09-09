@@ -81,7 +81,7 @@ and the launch shape. Section "What this spec supersedes" lists the
 exact deltas, and on any conflict between this spec's requirements
 and the login spec's design, this spec wins.
 
-The family system is not live. The box runs Navidrome, cloudflared,
+The group's system is not live. The box runs Navidrome, cloudflared,
 and the four guardian timers protecting the seeded library, and it
 stays that way until the new server launches complete.
 
@@ -115,7 +115,7 @@ server. The launch gate has four parts, and all four hold at once:
 There is no partial launch and no beets fallback inside the new
 server. If the matcher cannot clear the bar, the honest outcome is
 that the launch waits: the interim estate keeps serving Geoff's own
-listening, and the family stays offline. That is why the evidence
+listening, and the group stays offline. That is why the evidence
 track runs first: the matcher is the initiative's existential risk,
 and every spine rung built after a failed matcher would be inventory,
 not product.
@@ -828,7 +828,7 @@ are marked [E].
     re-imports post-swap sessions from the session records, per the
     organizer's rollback shape. One attended gate: Geoff verifies
     login, upload, and player on his devices in a single sitting. On
-    his yes, the family launch.
+    his yes, the group launch.
 17. **Launch close-out** (S, after the deprecation window). The
     interim estate's remnants and `_salvage/` retire, the beets
     deprecation window closes, ROADMAP and the organizer spec
@@ -872,7 +872,7 @@ Against the organizer spec, which otherwise governs:
 - Staged adoption through the `internal/beets` subprocess seam is
   superseded. The greenfield server never embeds beets; the fallback
   for a failed matcher is the interim estate continuing to serve
-  playback while the family launch waits.
+  playback while the group launch waits.
 - The `beet` passthrough and its retirement condition are moot on the
   new server. The repair verbs are launch-bar surface.
 - The shadow window is superseded per ruling 1.

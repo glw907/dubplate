@@ -573,7 +573,7 @@ becoming `extra_items`, carrying the album's own `mb_albumid` per Task
 2's fencing rule; one deliberately large (10 to 14 track) case whose
 titles and lengths are all substantially wrong yet still assigns
 correctly, proving the solver's optimum survives large per-pair costs;
-and the family's remaining ordering and assignment edges per the
+and the group's remaining ordering and assignment edges per the
 inventory's family 1 row, to reach 8.
 
 **Deliverable count: 8 cases.** Gate plus `make derive` green; commit.
@@ -712,7 +712,7 @@ beets fetches every search hit with its own full release lookup, so
 this case needs at least one further hand-authored release document
 beyond the wrong-ID release and the search document itself. The
 inventory's compression lever applies across this task: a case may
-carry several of these components at once, as long as the family's
+carry several of these components at once, as long as the group's
 contract stays legible from the case id and the README row.
 
 **Deliverable count: 7 cases.** Gate plus `make derive` green; commit.
@@ -777,7 +777,7 @@ boundary family, a single-candidate `low`, and an explicit `max_rec`
 downgrade distinct from family 2's (family 15, 5 cases). beets ships
 no unit test for `_recommendation` or `_summary_judgment` at all, so
 this family is written from the source and the config defaults rather
-than ported, and it is the family most likely to trip the proximity
+than ported, and it is the group most likely to trip the proximity
 flag by design.
 
 **Deliverable count: 7 cases.** Gate plus `make derive` green; commit.

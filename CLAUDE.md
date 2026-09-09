@@ -15,7 +15,7 @@ per `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
 pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees are frozen under
 `_salvage/` (git tag `pre-greenfield`) as SALVAGE TIER: read-only
 adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte
-bars), never imported, and retired at launch. The family system is not
+bars), never imported, and retired at launch. The group's system is not
 live; the box runs only Navidrome + guardian timers until the new server
 launches complete (Go matcher included). Two standing bars, from memory:
 exemplary Go (`idiomatic-beautiful-go`) and render-and-read every

@@ -5,7 +5,7 @@
 > library for a shared music server. Sequencing ruling (Geoff, 2026-09-02,
 > supersedes 2026-09-01): the greenfield dubplate-server build is the one
 > active initiative; it launches complete (Go matcher included), TUI and
-> local binary follow, `packaging` after that. The family system is not
+> local binary follow, `packaging` after that. The group's system is not
 > live until launch.
 
 ## Active
@@ -104,11 +104,11 @@ and may therefore reorder against 2.0. Everything else stays a reject
 whose message names the supported set and suggests a lossless
 conversion to FLAC where one exists. Rung 7's reject copy is written to
 that message shape now, whichever step has landed. Open input: whether
-the family has ever wanted to upload a non-FLAC file, which decides
+anyone in the group has ever wanted to upload a non-FLAC file, which decides
 whether the MP3 pass moves ahead of the cutover.
 
 ### Production cleanup and polish `prod-polish`
-Largely superseded by the greenfield ruling (2026-09-02): family accounts
+Largely superseded by the greenfield ruling (2026-09-02): group accounts
 and live-use intake move to the new server's launch; what survives is the
 debris cleanup (stale failed units, doc drift) and the owed rewrite
 post-mortem, foldable into the greenfield build's early passes. Intake for
@@ -146,7 +146,7 @@ Wails head waits beyond that.
 ### Open-source the pair `oss-pair`
 Publish the uploader and the pings Worker as documentation-linked siblings —
 a validated-intake drop target and a dead-man's-switch monitor, proven here
-first. Preconditions: months of family use, the uploader's auth/validator
+first. Preconditions: months of group use, the uploader's auth/validator
 seams, and a clear-eyed maintainership decision. First deliverable,
 independent of any code release: the validated-intake pattern write-up (what
 each layer catches that the others cannot; 907.life is a natural home) —

@@ -1,4 +1,4 @@
-# Family members of the dubplate library. Drives the Access allow-list,
+# Members of the dubplate library's group. Drives the Access allow-list,
 # Navidrome accounts, and the quality-gate notification map. Names and
 # emails are config, not secrets; passwords never live here.
 #

@@ -60,7 +60,7 @@ maintainer agree.
   ping URL provider, with the pings Worker as one such provider.
 - **Ease of setup by a stranger is a primary product goal of the estate**
   (Geoff, 2026-08-31), not a someday ambition. The audience: somebody wanting
-  a hosted family music system, assembling it from ingredients they bring —
+  a hosted group music system, assembling it from ingredients they bring —
   Navidrome, beets, this binary, their own Cloudflare account and domain, and
   a VPS from any provider. dubplate is the recipe and conductor for those
   ingredients; cloud-init is the provider-portable provisioning substrate

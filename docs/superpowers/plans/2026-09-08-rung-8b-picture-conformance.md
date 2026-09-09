@@ -1970,10 +1970,10 @@ Model: `sonnet`. Depends on Tasks 0 through 6.
   capture-path work is written against 8a's rules.
 - **The carries this pass does not decide**, so the close does not have
   to rediscover them. Forward carry 3, fork B, stays open and owed to
-  Geoff. **Forward carry 4, the family non-FLAC question**
+  Geoff. **Forward carry 4, the group non-FLAC question**
   (`docs/HISTORY.md:375-377`), stays carried and is not 8b's: this pass
   builds one container's picture layer and the seam that would hold a
-  second, and neither answers whether a family member's non-FLAC library
+  second, and neither answers whether a member's non-FLAC library
   gets a rung 8-shaped pass.
 - The deviation summary rung 15 reads: `deviations.go`'s rows as they
   stand after Task 2, named, so the launch gate reads a statement rather

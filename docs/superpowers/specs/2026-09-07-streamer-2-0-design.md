@@ -44,7 +44,7 @@ rung 8's tag I/O license path (F1), and the web framework (M11).
 ## Purpose
 
 dubplate-server 2.0 subsumes Navidrome. After it, the estate is one binary a stranger can set up: intake, tagging, the
-catalog, and the streaming server that the family's apps connect to. The primary driver is that single integrated system
+catalog, and the streaming server that the group's apps connect to. The primary driver is that single integrated system
 (Geoff, 2026-09-07). Owning the listening experience and the single source of truth follow from it rather than
 motivating it.
 
@@ -61,7 +61,7 @@ new evidence.
 2.0 launches with the OpenSubsonic API and no first-party player. The API is what makes phones, cars, and desktop apps
 work, and it is a specified contract the harness can test the way rung 3 tested the matcher. A web player follows on the
 2.1 list, built on the same API, so the browser is one more client rather than a privileged one. Rejected: web player
-first (the family listens in apps), both at launch (largest scope with no proportional gain), the Jellyfin API instead
+first (the group listens in apps), both at launch (largest scope with no proportional gain), the Jellyfin API instead
 of or beside OpenSubsonic (its Subsonic bridges JellySonic and jellysub are archived and last targeted Jellyfin 10.8,
 and one strong beta client does not outweigh the maintained Subsonic client field; comparison finding 6, evidence dated
 2026-09-07).
@@ -116,7 +116,7 @@ match an oracle and still violate the schema, and only this tier catches that. T
 library from Navidrome and from gonic and diffs dubplate's responses against them, with gonic authoritative for
 `getIndexes`, `getMusicDirectory`, and `getMusicFolders` because Navidrome synthesizes its folder tree from ID3 rather
 than from real paths. The oracle image digest is pinned, the ledger records the oracle version per adjudication, and a
-version bump is a deliberate pass that re-runs the ledger. The roster tier walks each slice in the family's apps.
+version bump is a deliberate pass that re-runs the ledger. The roster tier walks each slice in the group's apps.
 Rejected: the roster alone (a client hides most of the API), the spec alone (silent where clients depend on de facto
 behavior), a Navidrome-only oracle (it bakes in one server's choices, including two surfaces where it cannot grade
 dubplate at all).
@@ -308,14 +308,14 @@ flow is magic link, then session, then the device page under the owned prefix. T
 ### Digital audio players
 
 Device sync is a local-binary job, not a server feature. Every capability a sync needs is present on a workstation and
-absent on the VPS, which reaches the family through Cloudflare. 2.0 grows no device verb and no MTP. The largest real
+absent on the VPS, which reaches the group through Cloudflare. 2.0 grows no device verb and no MTP. The largest real
 DAP class is a phone, which the clients' own offline caches already serve. The server's contribution is `download`,
-specified above. A DAP export profile in the local binary is on the 2.1 list, gated on a real device in the family.
+specified above. A DAP export profile in the local binary is on the 2.1 list, gated on a real device in the group.
 
 ### Cutover and operations
 
 The streamer is one more driver behind rung 12's seam, selected by one configuration value. Its first weeks run as a
-shadow: Navidrome stays the family's server, 2.0 serves the same library on a second hostname, the harness runs on a
+shadow: Navidrome stays the group's server, 2.0 serves the same library on a second hostname, the harness runs on a
 timer against the live box, and the roster walks it. The flip is a configuration change and a deploy in one owner
 sitting. Navidrome's container stays defined but stopped for a named period and is removed at a dated close-out. Starred
 lists and playlists built in Navidrome are imported once through an export the harness reads; differences are reported,
@@ -432,7 +432,7 @@ santhosh-tekuri/jsonschema) are architecture 2.0 chose against or already covers
 Scrobbling (ListenBrainz, Last.fm); ratings; artist images; lyrics beyond the launch stub; transcode pre-warming per
 profile; the first-party web player; metrics; an edit-distance search rerank built on `matcher.StringDist`; acoustic
 fingerprinting for untagged uploads; a DAP export profile in the local binary (path template, sanitizer, transcode rule,
-art writer, playlist writer), gated on a real device in the family; jukebox mode, if ever.
+art writer, playlist writer), gated on a real device in the group; jukebox mode, if ever.
 
 ## Rulings on the review round
 
@@ -456,8 +456,8 @@ The three items the reviews routed to the owner were ruled by Geoff on 2026-09-0
 These do not block the study rung.
 
 - The client roster's exact membership. The live candidates are Symfonium, Feishin, Supersonic, Substreamer, and Tempus;
-  which the family installs decides the roster, answered at the harness rung. Symfonium is proprietary and paid, so the
-  family must own a copy.
+  which the group installs decides the roster, answered at the harness rung. Symfonium is proprietary and paid, so the
+  group must own a copy.
 - Whether folder browsing ships at launch at all. It doubles the browse surface and the id space, modern clients use
   ID3, and only gonic can grade it. The study rung brings the evidence.
 - The app-password key's exact name in the age store. The identity slice mints it.

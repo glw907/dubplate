@@ -163,7 +163,7 @@ serve is the estate's first internet-facing unit: its systemd hardening is
 written explicitly in the plan (not by reference), reviewed by
 web-auth-security-reviewer alongside the JWT surface. Visual gates per the
 design bar: Navidrome reference screenshots, fresh-context visual
-verification, Geoff's before/after before family exposure.
+verification, Geoff's before/after before group exposure.
 
 ## Pipeline changes this pass owns
 
@@ -209,7 +209,7 @@ not redundant. Rulings for the pass:
 ## Out of scope
 
 Browsing or managing inbox files; the review flow's admin side; playback; a
-group activity feed (revisit after the family has lived with the page).
+group activity feed (revisit after the group has lived with the page).
 
 ## Sequencing
 

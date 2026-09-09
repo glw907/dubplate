@@ -24,7 +24,7 @@
 - [ ] #6 Verify and close the carried SELinux one-time check on the state
   dir at first deploy (carried from bring-up 2026-08-31; likely moot on the
   running box, needs a stated verdict) #infra #project:prod-polish
-- [ ] #7 Create the Navidrome family accounts (owed; per-contributor intake
+- [ ] #7 Create the Navidrome group accounts (owed; per-contributor intake
   is the uploader's job, but listeners still need logins) #onboarding
   #project:prod-polish
 - [ ] #8 tus-js-client 5.0 watch item: 5.0.0-pre2 exists under the `next`

@@ -1,6 +1,6 @@
 Hi {first name},
 
-Thanks for adding to the family music library! One upload couldn't go in automatically:
+Thanks for adding to the group's music library! One upload couldn't go in automatically:
 
 {album or file name}
 {one reason line per file, from the mapping below}

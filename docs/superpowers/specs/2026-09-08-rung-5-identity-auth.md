@@ -45,7 +45,7 @@ carries no calendar schedule and no launch date; rung 5's login and
 consumption pages are SvelteKit static pages served by the Go binary (0c
 R1.6); the `web/` gate leg rejoins the repo gate at rung 5; and the
 string threshold kind is rung 1b's work, landed. Six questions changed
-what an adopter or a family member sees, configures, or is asked for,
+what an adopter or a member sees, configures, or is asked for,
 and Geoff ruled all six on 2026-09-08; the fork section carries each
 ruling beside the recommendation it accepted or reversed. Every further
 ruling this spec raises is now ruled as this revision applied it, and
@@ -192,7 +192,7 @@ roster. The web never grants the admin flag to a first login, so the
 only path to the first admin is the CLI verb.
 
 What it changes for an adopter: after the one CLI bootstrap, adding a
-family member is a form, and no restart follows. Rung 6 later moves the
+member is a form, and no restart follows. Rung 6 later moves the
 store behind the same interface without touching a call site, which is
 the same promise the recommendation made. R37 answers who places the
 file on a fresh deployment, and fork 1 changes that answer: the service
@@ -218,7 +218,7 @@ Recommendation: a 15-minute link, a 90-day rolling session under a
 180-day absolute cap, five link requests per hour per address, twenty
 link requests per hour per client address, thirty consumption attempts
 per hour per client address, and a global ceiling of sixty outbound link
-mails per hour. What it changes for a family member: how often they sign
+mails per hour. What it changes for a member: how often they sign
 in again, and how quickly a mistyped address stops getting mail. Every
 one is a threshold with a default, so an adopter changes it in the
 environment file. Revision 1 carried the first, second, third, and fifth
@@ -313,7 +313,7 @@ error naming the path. This supersedes the salvage loader, which returns
 an empty roster and a nil error for a missing file
 (`_salvage/internal/config/contributors.go:33-39`). A fail-open roster
 lets a deployment start and refuse every login as unknown, which reads
-to a family member as a broken login rather than a broken configuration.
+to a member as a broken login rather than a broken configuration.
 Fork 1's write path does not soften the rule. The store re-reads the
 file it just wrote, and a write whose re-read fails to parse is an error
 the caller sees rather than a roster the running server has already
@@ -1834,7 +1834,7 @@ non-browser token acquisition builds on rung 5's session vocabulary.
 
 **Rung 16** mints the three secrets, runs the ingress flip before
 enabling the streamer's externalized auth, and deletes the estate's
-Access application from the family path.
+Access application from the group path.
 
 ---
 
@@ -1911,7 +1911,7 @@ revocation with an epoch file at a fraction of the machinery.
 The reviewers grade against this section, and a finding that contradicts
 it is a finding against the spec rather than against an implementation.
 
-**What is protected.** Access to the family's uploader and, under SSO,
+**What is protected.** Access to the group's uploader and, under SSO,
 to the streamer's web player. The roster's addresses, and now its
 contents: fork 1 makes the roster a thing an attacker would want to
 write, not only to read. The two HMAC secrets. The SMTP credential.
@@ -1921,8 +1921,8 @@ the internet, since the login surface is public by construction. A mail
 gateway that follows links. A person on a shared device. A misconfigured
 or hostile proxy in front of serve. A signed-in member without the admin
 flag, reaching for the roster, is in scope, which fork 1 changed:
-revision 2 put a family member acting outside their own account out of
-scope at family scale, and that stops being honest once one member can
+revision 2 put a member acting outside their own account out of
+scope at group scale, and that stops being honest once one member can
 grant another access. The rest of that exclusion stands, because rung 5
 has exactly one privileged action and nothing else a member could
 usefully reach for.

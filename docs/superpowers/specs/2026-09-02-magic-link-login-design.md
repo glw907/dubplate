@@ -9,20 +9,20 @@ wire identity, enumeration behavior, and the build order among
 them). Read it for intent and topology, never as requirements.
 
 Original status: brainstormed and ratified in session 2026-09-02
-(Geoff + Claude). Blocks the family launch: Pass B's uploader is deployed but
-the URL goes to no family member until this ships. Supersedes
-Cloudflare Access on the family path. Files three amendments against
+(Geoff + Claude). Blocks the group launch: Pass B's uploader is deployed but
+the URL goes to no member until this ships. Supersedes
+Cloudflare Access on the group path. Files three amendments against
 the organizer spec (2026-09-01-dubplate-organizer-design.md), listed
 at the end.
 
 ## What this builds
 
-One branded email login for the whole music estate. A family member
+One branded email login for the whole music estate. A member
 enters their email on a login page served by `dubplate serve`, clicks
 the magic link that arrives, and holds a session that opens both the
 uploader and the streamer's web player. Native phone apps and public
 share links keep working unchanged. Cloudflare Access retires from the
-family path.
+group path.
 
 ## Universality constraint (Geoff, 2026-09-02)
 
@@ -90,14 +90,14 @@ keeps its own login page and loses only SSO.
   SMTP. If it does not match, the page says so kindly and points at
   the configured admin contact, the same register as the uploader's
   roster-absent page. That is a deliberate kindness-over-enumeration
-  choice, recorded here: the roster is a handful of family addresses,
+  choice, recorded here: the roster is a handful of member addresses,
   and a mistyped email deserves an answer, not silence. The rate
   limits below bound what enumeration could probe.
 - The magic link is an HMAC-signed token (`DUBPLATE_MAGIC_LINK_SECRET`)
   carrying the email, an expiry (default 15 minutes), and a nonce.
   Consumption is one-time: serve keeps a small consumed-nonce set with
   TTL, which survives within a process lifetime; a restart forgiving a
-  replay inside the 15-minute window is an accepted family-scale
+  replay inside the 15-minute window is an accepted group-scale
   tradeoff, recorded here.
 - Consuming the link sets the session cookie and redirects to the
   originally requested path (validated as same-origin relative, never
@@ -109,7 +109,7 @@ Stateless, HMAC-signed cookie (`DUBPLATE_SESSION_SECRET`): email,
 issue time, expiry. Default lifetime 90 days, rolling (refreshed on
 use past the halfway mark). `Secure`, `HttpOnly`, `SameSite=Lax`.
 Revocation is secret rotation, which signs out everyone; per-user
-revocation is deliberately out of scope at family scale and recorded
+revocation is deliberately out of scope at group scale and recorded
 as a future organizer concern (the decision-queue rung's session
 vocabulary can revisit it).
 
@@ -117,7 +117,7 @@ The uploader's existing identity plumbing consumes the session the
 same way it consumed the Access JWT: the verify-identity seam yields a
 verified email, and everything downstream (ownership checks, ledger
 attribution, roster lookup) is unchanged. `internal/access` retires
-from the family path; the seam interface stays so any forward-auth
+from the group path; the seam interface stays so any forward-auth
 front (Access included) can layer back in front for adopters who want
 edge hardening.
 
@@ -135,7 +135,7 @@ already spent; the runbook documents that ordering for fresh adopters.
 Phone apps need streamer credentials (reverse-proxy auth cannot cover
 them; Navidrome ignores Subsonic credentials only when the header is
 present, and the proxy never injects on `/rest/*`). Self-serve: the
-streamer's user editing stays enabled and family members set their app
+streamer's user editing stays enabled and members set their app
 password in the player's own settings; help copy points there.
 
 ## Security requirements

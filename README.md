@@ -1,6 +1,6 @@
 # dubplate
 
-dubplate is the repo for the family music pipeline: family members upload purchases to a
+dubplate is the repo for the group music pipeline: members upload purchases to a
 web inbox, headless beets imports them into a canonical library, Navidrome streams the
 result at `music.907.life`, and rclone backs the library and state up to Cloudflare R2.
 Everything runs on one Hetzner CPX21 server, provisioned from this repo and restorable

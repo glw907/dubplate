@@ -17,7 +17,7 @@ adjudication stream is live, read through `dubplate-server shadow
 report`, never the bare binary as root. Streamer 2.0 (ROADMAP
 `streamer-2-0`) binds rungs 5-9 and 12. The box (5.78.148.42) is
 production, runs Navidrome and the guardian and shadow timers; the
-family system is not live.
+group system is not live.
 
 ## Next action
 
@@ -62,7 +62,7 @@ so nothing resumes from it.
 
 - Sixty-three declared coverage gaps (rung 3's twenty-one, rung 4a's
   nine, rung 4b's four, rung 1b's two, rung 8a's seven, rung 8b's
-  nine, rung 5a's eleven), none blocking. Fork B is ruled (Geoff, 2026-09-08: FLAC-only 1.0, the format ladder at 1.1, ROADMAP `formats-1-1`); the family non-FLAC question is unresolved, carried.
+  nine, rung 5a's eleven), none blocking. Fork B is ruled (Geoff, 2026-09-08: FLAC-only 1.0, the format ladder at 1.1, ROADMAP `formats-1-1`); the group non-FLAC question is unresolved, carried.
 - Four-knob wall registration unblocked; `AdminEmail`'s contact row,
   five 3b leftovers, `profile_hashes` (m1), the response-status
   extension (2b/2c), `Case.Extra`, `slices.Clone` (rung 9).
