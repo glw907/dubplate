@@ -90,6 +90,23 @@ pre-warming per profile, the web player, metrics, an edit-distance
 search rerank.
 
 
+### dubplate-server 1.1: the format ladder `formats-1-1`
+Ruled by Geoff, 2026-09-08 (rung 8 spec, owner ruling 5, closing fork
+B): 1.0 ships FLAC-only, and the other formats target a 1.1 release,
+sequenced after launch and ahead of `streamer-2-0`. The ladder, each
+step its own pass in the shape of rung 8 (a per-container writer behind
+the seam, a golden container, a corpus stratum derived through beets,
+and a conformance run against the ledger): MP3 (ID3v2.4, the recorded
+version) with Ogg Vorbis and Opus riding the same pass; then M4A (AAC
+and ALAC, one container and one iTunes-atom tag model); then WAV and
+AIFF by transcode to FLAC at intake, which waits on the ffmpeg seam
+and may therefore reorder against 2.0. Everything else stays a reject
+whose message names the supported set and suggests a lossless
+conversion to FLAC where one exists. Rung 7's reject copy is written to
+that message shape now, whichever step has landed. Open input: whether
+the family has ever wanted to upload a non-FLAC file, which decides
+whether the MP3 pass moves ahead of the cutover.
+
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): family accounts
 and live-use intake move to the new server's launch; what survives is the

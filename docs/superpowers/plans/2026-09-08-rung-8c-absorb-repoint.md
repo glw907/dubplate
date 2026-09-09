@@ -199,10 +199,12 @@ golden, or adds a `tagio` refusal.
 
 ## Owner touchpoints: none expected
 
-8c raises no attended question by design. Fork B is Geoff's and stays
-owed at the next sitting (`docs/HISTORY.md:881-885`); it asks whether
-1.0 ships FLAC-only, and 8c's surface is identical under either answer,
-because this pass registers no format and removes one duplicate reader.
+8c raises no attended question by design. Fork B was Geoff's and is
+ruled (2026-09-08, the spec's owner ruling 5): 1.0 ships FLAC-only and
+the other formats target 1.1. 8c's surface is identical under either
+answer, because this pass registers no format and removes one duplicate
+reader; the close applies the F1 erratum as ruled rather than
+provisionally.
 Rung 8 declares no configuration key (ruling 13, `spec:337`), so no
 template gains a name and no default reaches an adopter through this
 pass.
@@ -1495,8 +1497,8 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
   the four owner rulings and the fourteen conductor rulings each named
   as discharged or carried, hooks 13, 14 and 3 recorded with the pass
   that landed each, the deviation note handed to rung 15 as a statement
-  rather than a file to interpret, and the two carries that leave the
-  rung open (fork B, and the family non-FLAC question).
+  rather than a file to interpret, fork B recorded as ruled, and the one
+  carry that leaves the rung open (the family non-FLAC question).
 - **What rung 9 inherits**, in one section it can read without reading
   the whole entry: `tagio`'s exported surface as it now stands, the
   `io.ReaderAt` call now rung 9's, the combined-read question R1 either
