@@ -21,15 +21,42 @@ family system is not live.
 
 ## Next action
 
-Lane-1 (main tree): IDLE. Pass 8b closed at `ce0ac2e`; pass 8c's plan
-(absorb the shadow's reader into `tagio`) is next, just-in-time from
-8b's handoff. Lane-2 (worktree `lane-2-5a`): IDLE, torn down at 5a's
-merge. Rung 5 continues with **pass 5b (the auth core and the mail
-seam)**, plan owed just-in-time from 5a's handoff (`internal/identity`,
-`internal/auth`, `internal/notify` born; the roster store; the origin
-check reading 5a's kept `Origin`/`Sec-Fetch-Site`; `keys.go`'s
-remaining reserved-class retirement). No lane active; next session
-picks one before dispatch.
+Session closed 2026-09-08 evening on Geoff's wind-down (weekly budget
+routed to cairn); resume at the weekend. Both next plans are drafted,
+reviewed, folded to revision 2, and committed at `5377d9f`, unruled:
+
+- `docs/superpowers/plans/2026-09-08-rung-5b-auth-core.md` (pass
+  **5b-i**: identity, config contract, token, session, state records;
+  Task 0 plus ten; 5.0M ceiling, 4.0M flag). The drafter took the
+  spec's fifteen-task split, so **5b-ii** (roster, limiters, notify,
+  origin check, verify seam, handlers; provisional 4.5M) follows.
+  Review record `research/2026-09-08-rung-5b-plan-review.md`: 28
+  findings folded, none rejected, nine conductor-owed folds marked
+  inline, each with the fold editor's recommendation (rule all nine as
+  applied). Runs in lane 2 (worktree `.claude/worktrees/lane-2-5b`).
+- `docs/superpowers/plans/2026-09-08-rung-8c-absorb-repoint.md` (Task 0
+  plus four; 2.1M ceiling against the spec's 1M, 1.68M flag). Review
+  `research/2026-09-08-rung-8c-plan-review.md`: 13 folded, none
+  rejected, three conductor-owed folds (R1 as a stated departure from
+  R12's rung 9 assignment; the `Parse` read path; R4's composed
+  denominator). Runs in lane 1 (main tree).
+
+**Resume prompt:** rule the twelve conductor-owed folds (mark each at
+its site, commit the plans as revision 2.1); write the rung 5 spec's
+contested-surface rows and 8c's `internal/engine/shadow` amendment into
+`specs/2026-09-03-parallel-build-approach.md`'s ownership table; run
+each plan's Task 0 (fresh context, `opus`); then launch pass-execute
+for 8c in the main tree and 5b-i in the worktree, guards armed
+(`~/.claude/docs/unattended-work-guards.md`). The prep workflow was
+`wf_0663b27f-52a` (seven agents, 1.99M); its cache is session-bound,
+so nothing resumes from it.
+
+## Lane registry
+
+| Lane | Tree | State |
+|---|---|---|
+| 1 | main tree | IDLE (8c planned, not launched) |
+| 2 | `.claude/worktrees/lane-2-5b` (not yet created) | IDLE (5b-i planned, not launched) |
 
 ## Open items (carried)
 
@@ -57,4 +84,4 @@ picks one before dispatch.
 | unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
 | lap (matcher tie mirroring, 3d) | PyPI `lap` | `0.5.13` |
 
-Spend to date: about 59.6M through pass 5a's close (55.7M plus 3.9M).
+Spend to date: about 61.6M through the 5b-i and 8c plan prep (59.6M plus 1.99M).
