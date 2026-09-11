@@ -140,6 +140,10 @@ WebKitGTK), runnable embedded (engine in-process, no server) or as a
 client of a hosted estate over the versioned API. Sequencing is firm:
 the bubbletea TUI local organizer builds first after the server; the
 Wails head waits beyond that.
+Configuration brief for the TUI (profiles, the machine-settings file,
+the attach overlap report and its three verbs) and for every settings
+surface: `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
+(2026-09-11).
 
 ## Someday
 

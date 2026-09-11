@@ -389,6 +389,11 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     written once or never; retrofitting means re-tagging the library.
 14. An ID3 version ruling, rung 8. Record whether the library writes ID3v2.3 or v2.4, so the question is not answered by
     reading files later.
+15. Configuration homes, rung 6 and rung 14. The store carries a server settings table, a per-member preferences table,
+    and an `owner` attribute beside `writer` on the collection row; the rung 14 admin API exposes settings and
+    collections so the web admin page and the TUI share one surface. Hook 6's capability report also declares a
+    driver's shape constraints (subtree collections, art filenames read, tags read). Design:
+    `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
 
 ## Prior art
 
