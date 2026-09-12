@@ -2,7 +2,6 @@ package shadow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/glw907/dubplate/internal/engine/tagio"
 )
 
 const (
@@ -78,20 +79,20 @@ func (tr shadowTree) openStore(t *testing.T) *Store {
 	return s
 }
 
-// albumTracks is one album's ordered Vorbis tag lists. Every track
-// carries the same release id, which is the item consensus tag.Album's
-// early return reads (tag.go:96-118), so a fixture album costs exactly
-// one recorded request.
-func albumTracks(albumID, album string, titles ...string) [][]string {
-	tracks := make([][]string, len(titles))
+// albumTracks is one album's ordered tag sets. Every track carries the
+// same release id, which is the item consensus tag.Album's early
+// return reads (tag.go:96-118), so a fixture album costs exactly one
+// recorded request.
+func albumTracks(albumID, album string, titles ...string) []tagio.TagSet {
+	tracks := make([]tagio.TagSet, len(titles))
 	for i, title := range titles {
-		tracks[i] = []string{
-			"ALBUMARTIST=Cabinet",
-			"ARTIST=Cabinet",
-			"ALBUM=" + album,
-			"TITLE=" + title,
-			fmt.Sprintf("TRACKNUMBER=%d", i+1),
-			"MUSICBRAINZ_ALBUMID=" + albumID,
+		tracks[i] = tagio.TagSet{
+			Albumartist: new("Cabinet"),
+			Artist:      new("Cabinet"),
+			Album:       new(album),
+			Title:       new(title),
+			Track:       new(i + 1),
+			MBAlbumid:   new(albumID),
 		}
 	}
 	return tracks
@@ -104,13 +105,9 @@ func writeLibraryFile(t *testing.T, dir, name, albumID, title string) string {
 	t.Helper()
 
 	path := filepath.Join(dir, name)
-	data := buildFLAC(t, []string{"ALBUM=Windrose", "TITLE=" + title, "MUSICBRAINZ_ALBUMID=" + albumID}, 44100, 44100)
-	if err := os.WriteFile(path, data, 0o644); err != nil {
-		t.Fatalf("write library file: %v", err)
-	}
-	if err := os.Chtimes(path, fixedModTime, fixedModTime); err != nil {
-		t.Fatalf("chtimes library file: %v", err)
-	}
+	writeFixtureTrack(t, path, tagio.TagSet{
+		Album: new("Windrose"), Title: new(title), MBAlbumid: new(albumID),
+	}, 0o644)
 	return path
 }
 

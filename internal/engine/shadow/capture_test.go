@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/glw907/dubplate/internal/engine/tagio"
 )
 
 // passNow is the pass clock every capture test shares, never a live
@@ -18,11 +20,11 @@ var passNow = time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
 var fixedModTime = time.Date(2026, 8, 15, 9, 0, 0, 0, time.UTC)
 
 // writeAlbum writes one inbox album at dir/uploader/basename, one FLAC
-// track per entry in tracks, each built from an ordered Vorbis tag
-// list. Every written file's modification time is pinned to
-// fixedModTime, so two temp trees written at two wall-clock instants
-// still yield the same capture digest.
-func writeAlbum(t *testing.T, dir, uploader, basename string, tracks [][]string) {
+// track per entry in tracks, each written through writeFixtureTrack.
+// Every written file's modification time is pinned to fixedModTime, so
+// two temp trees written at two wall-clock instants still yield the
+// same capture digest.
+func writeAlbum(t *testing.T, dir, uploader, basename string, tracks []tagio.TagSet) {
 	t.Helper()
 
 	albumDir := filepath.Join(dir, uploader, basename)
@@ -30,15 +32,9 @@ func writeAlbum(t *testing.T, dir, uploader, basename string, tracks [][]string)
 		t.Fatalf("mkdir album dir: %v", err)
 	}
 
-	for i, tags := range tracks {
-		data := buildFLAC(t, tags, 44100, 44100)
+	for i, ts := range tracks {
 		path := filepath.Join(albumDir, fmt.Sprintf("%02d.flac", i+1))
-		if err := os.WriteFile(path, data, 0o644); err != nil {
-			t.Fatalf("write track %d: %v", i+1, err)
-		}
-		if err := os.Chtimes(path, fixedModTime, fixedModTime); err != nil {
-			t.Fatalf("chtimes track %d: %v", i+1, err)
-		}
+		writeFixtureTrack(t, path, ts, 0o644)
 	}
 }
 
@@ -57,10 +53,10 @@ func corrupt(t *testing.T, path string) {
 	}
 }
 
-func windroseTracks() [][]string {
-	return [][]string{
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=One", "TRACKNUMBER=1"},
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=Two", "TRACKNUMBER=2"},
+func windroseTracks() []tagio.TagSet {
+	return []tagio.TagSet{
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("One"), Track: new(1)},
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("Two"), Track: new(2)},
 	}
 }
 
@@ -89,11 +85,11 @@ func TestCaptureReadsOneAlbumPerDirectory(t *testing.T) {
 
 func TestCaptureExcludesAMultiAlbumDirectory(t *testing.T) {
 	dir := t.TempDir()
-	writeAlbum(t, dir, "ada", "contributor-zip", [][]string{
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=One", "TRACKNUMBER=1"},
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=Two", "TRACKNUMBER=2"},
-		{"ALBUMARTIST=Thicket", "ALBUM=Understory", "TITLE=One", "TRACKNUMBER=1"},
-		{"ALBUMARTIST=Thicket", "ALBUM=Understory", "TITLE=Two", "TRACKNUMBER=2"},
+	writeAlbum(t, dir, "ada", "contributor-zip", []tagio.TagSet{
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("One"), Track: new(1)},
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("Two"), Track: new(2)},
+		{Albumartist: new("Thicket"), Album: new("Understory"), Title: new("One"), Track: new(1)},
+		{Albumartist: new("Thicket"), Album: new("Understory"), Title: new("Two"), Track: new(2)},
 	})
 
 	got, err := capture(dir, func(string) bool { return false }, passNow)
@@ -116,11 +112,11 @@ func TestCaptureExcludesAMultiAlbumDirectory(t *testing.T) {
 // one group (conductor ruling C1, spec:444).
 func TestCaptureExcludesAFlatArtistOnlyMultiAlbumDirectory(t *testing.T) {
 	dir := t.TempDir()
-	writeAlbum(t, dir, "ada", "flat-extract", [][]string{
-		{"ARTIST=Cabinet", "ALBUM=Various Artists", "TITLE=One", "TRACKNUMBER=1"},
-		{"ARTIST=Cabinet", "ALBUM=Various Artists", "TITLE=Two", "TRACKNUMBER=2"},
-		{"ARTIST=Thicket", "ALBUM=Various Artists", "TITLE=One", "TRACKNUMBER=1"},
-		{"ARTIST=Thicket", "ALBUM=Various Artists", "TITLE=Two", "TRACKNUMBER=2"},
+	writeAlbum(t, dir, "ada", "flat-extract", []tagio.TagSet{
+		{Artist: new("Cabinet"), Album: new("Various Artists"), Title: new("One"), Track: new(1)},
+		{Artist: new("Cabinet"), Album: new("Various Artists"), Title: new("Two"), Track: new(2)},
+		{Artist: new("Thicket"), Album: new("Various Artists"), Title: new("One"), Track: new(1)},
+		{Artist: new("Thicket"), Album: new("Various Artists"), Title: new("Two"), Track: new(2)},
 	})
 
 	got, err := capture(dir, func(string) bool { return false }, passNow)
@@ -170,14 +166,10 @@ func TestCaptureDoesNotDescendIntoANestedDirectory(t *testing.T) {
 	if err := os.MkdirAll(nested, 0o755); err != nil {
 		t.Fatalf("mkdir nested dir: %v", err)
 	}
-	data := buildFLAC(t, []string{"ALBUMARTIST=Thicket", "ALBUM=Understory", "TITLE=One", "TRACKNUMBER=1"}, 44100, 44100)
 	nestedTrack := filepath.Join(nested, "01.flac")
-	if err := os.WriteFile(nestedTrack, data, 0o644); err != nil {
-		t.Fatalf("write nested track: %v", err)
-	}
-	if err := os.Chtimes(nestedTrack, fixedModTime, fixedModTime); err != nil {
-		t.Fatalf("chtimes nested track: %v", err)
-	}
+	writeFixtureTrack(t, nestedTrack, tagio.TagSet{
+		Albumartist: new("Thicket"), Album: new("Understory"), Title: new("One"), Track: new(1),
+	}, 0o644)
 
 	got, err := capture(dir, func(string) bool { return false }, passNow)
 	if err != nil {
@@ -193,10 +185,10 @@ func TestCaptureDoesNotDescendIntoANestedDirectory(t *testing.T) {
 
 func TestCaptureDiscardsAPartialRead(t *testing.T) {
 	dir := t.TempDir()
-	writeAlbum(t, dir, "ada", "half-gone", [][]string{
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=One", "TRACKNUMBER=1"},
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=Two", "TRACKNUMBER=2"},
-		{"ALBUMARTIST=Cabinet", "ALBUM=Windrose", "TITLE=Three", "TRACKNUMBER=3"},
+	writeAlbum(t, dir, "ada", "half-gone", []tagio.TagSet{
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("One"), Track: new(1)},
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("Two"), Track: new(2)},
+		{Albumartist: new("Cabinet"), Album: new("Windrose"), Title: new("Three"), Track: new(3)},
 	})
 	// Replace one track's bytes with a truncated container, which is
 	// what a file renamed out from under the walk looks like to

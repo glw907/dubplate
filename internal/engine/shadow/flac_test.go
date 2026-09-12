@@ -234,22 +234,6 @@ func TestReadFLACLengthFromStreaminfo(t *testing.T) {
 	}
 }
 
-// committedTemplateFLAC is the 42 bytes of
-// internal/harness/oracle/testdata/template.flac, embedded here as a Go
-// byte literal rather than read from that path: it is harness territory
-// and stays unread by the engine (rung 4 spec, the FLAC reader's
-// fixture section). Its provenance is that directory's
-// gen_template_flac.py, which builds it through mutagen's own
-// StreamInfo.write as mono, 44100 Hz, 16-bit, zero samples.
-var committedTemplateFLAC = []byte{
-	'f', 'L', 'a', 'C',
-	0x80, 0x00, 0x00, 0x22, // the last block, type 0, 34 bytes of payload
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x0a, 0xc4, 0x40, 0xf0, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-}
-
 // TestReadFLACParsesTheCommittedTemplateBytes and
 // TestBuildFLACEmitsTheStreaminfoLayoutByteForByte are the two
 // assertions that make the container format checkable at all. Every

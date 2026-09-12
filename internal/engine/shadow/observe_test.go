@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/musicbrainz"
+	"github.com/glw907/dubplate/internal/engine/tagio"
 )
 
 // The release ids the thirteen-row fixture's WS/2 traffic touches. Each
@@ -108,9 +109,9 @@ func buildInbox(t *testing.T, tr shadowTree) {
 	// 06: excluded multi-album directory. Two tracks group to two
 	// distinct (artist, album) keys, so capture excludes the whole
 	// directory before it ever becomes an observation.
-	writeAlbum(t, tr.observe, "ada", "06-feldspar", [][]string{
-		{"ALBUMARTIST=Granite", "ARTIST=Granite", "ALBUM=Feldspar A", "TITLE=Six A", "TRACKNUMBER=1"},
-		{"ALBUMARTIST=Marble", "ARTIST=Marble", "ALBUM=Feldspar B", "TITLE=Six B", "TRACKNUMBER=1"},
+	writeAlbum(t, tr.observe, "ada", "06-feldspar", []tagio.TagSet{
+		{Albumartist: new("Granite"), Artist: new("Granite"), Album: new("Feldspar A"), Title: new("Six A"), Track: new(1)},
+		{Albumartist: new("Marble"), Artist: new("Marble"), Album: new("Feldspar B"), Title: new("Six B"), Track: new(1)},
 	})
 
 	// 07: excluded gate-rejected, on its own uploader "bo".
