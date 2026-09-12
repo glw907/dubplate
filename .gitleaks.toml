@@ -1,8 +1,6 @@
 title = "dubplate gitleaks config"
 
-# Extends gitleaks' built-in rule set rather than replacing it; the
-# allowlist below only narrows what --no-git walks, it never loosens a
-# rule.
+# Keep gitleaks' built-in rules rather than replacing them.
 [extend]
 useDefault = true
 
@@ -11,7 +9,8 @@ useDefault = true
 # greenfield build's parallel lanes: their tracked files are already
 # scanned in their own tree, and walking a second copy from the main
 # tree's --no-git leg roughly doubled its wall time in the 2026-09-08
-# two-lane run for zero additional coverage.
+# two-lane run for zero additional coverage. This narrows what the
+# scan walks; it loosens no rule.
 paths = [
   '''.claude/worktrees/.*''',
 ]

@@ -14,15 +14,15 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# A repo-level gate lock: only one check.sh runs per tree at a time.
-# `make tidy-check` runs `go mod tidy` before `git diff --exit-code`,
-# and the first half mutates go.mod and go.sum, so two concurrent gate
-# runs in one tree race on those files. The lock file lives under the
-# tree's own git-dir (`git rev-parse --git-dir`), which resolves to
-# .git for the main tree and to .git/worktrees/<name> for a worktree,
-# so each tree serializes against itself without serializing against
-# any other tree. flock blocks rather than failing: a second run waits
-# for the first to finish instead of erroring out.
+# A gate lock: only one check.sh runs per tree at a time. `make
+# tidy-check` runs `go mod tidy` before `git diff --exit-code`, and
+# that first half mutates go.mod and go.sum, so two concurrent gate
+# runs in one tree race on those files. The lock lives under the tree's
+# own git-dir, which is .git for the main tree and .git/worktrees/<name>
+# for a worktree, so a tree serializes against itself and against no
+# other tree. The non-blocking attempt comes first only so the waiting
+# line prints once, under contention; the second flock then blocks
+# until the holder finishes.
 lock_file="$(git rev-parse --git-dir)/check.sh.lock"
 exec 9>"$lock_file"
 if ! flock -n 9; then
@@ -123,13 +123,8 @@ echo "== gitleaks (secret scan) =="
 # tree's DUBPLATE_* names used to pair that way in a test fixture,
 # and it is renamed rather than suppressed, so no .gitleaksignore
 # entry remains.
-# .gitleaks.toml extends the built-in rule set (`[extend] useDefault =
-# true`) and adds one allowlist entry for .claude/worktrees/: those are
-# throwaway git worktrees for the greenfield build's parallel lanes,
-# already scanned in their own tree, and walking a second copy from
-# here roughly doubled this leg's wall time in the 2026-09-08
-# two-lane run for zero additional coverage. The allowlist narrows
-# what --no-git walks; it never loosens a rule.
+# The repo's .gitleaks.toml keeps the built-in rules and allowlists
+# one path, .claude/worktrees/; its own comments carry the reasoning.
 if ! gitleaks detect --no-git -s . --redact; then
   status=1
 fi
