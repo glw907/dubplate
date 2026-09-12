@@ -14,6 +14,15 @@ linters:
   settings:
     errcheck:
       check-type-assertions: true
+    unused:
+      # An exported struct field nothing reads is dead weight, and the
+      # default treats every exported field as used. The identifier-level
+      # half of the same rule, an exported func, type or const under
+      # internal/ with no consumer outside its own file and its tests,
+      # cannot be expressed here: unused's exported-is-used setting is
+      # gone in the pinned golangci-lint 2.x, which rejects the key
+      # outright, so scripts/check.sh carries that leg instead.
+      exported-fields-are-used: false
 
 formatters:
   enable:
