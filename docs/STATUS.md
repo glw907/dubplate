@@ -10,13 +10,19 @@ Rungs 1b, 3, 4, 8, and rung 5's 5a and **5b-i** (the auth core,
 
 ## Next action
 
-1. **Rule 5b-ii's seven conductor-owed folds** (plan header,
-   `plans/2026-09-12-rung-5b-ii-auth-handlers.md`, revision 2 at
-   `f36b10c`; the ceiling question first), run its Task 0 at `opus`,
-   then launch it in the main tree in four segments. The 5b-i security
-   read landed (`research/2026-09-12-rung-5b-i-security-review.md`: one
-   blocker, five majors; Tasks 1 and 2 fold them). Then **5c**, and the
-   owed box read.
+1. **Launch 5b-ii** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md`
+   (revision 2.1; all seven folds ruled as applied, 7.5M ceiling, flag
+   6.0M, five segments): Task 0 at `opus` with no gate (the conductor's
+   one `cairn-run-gate` call is the baseline), then `pass-execute` per
+   segment in the main tree under the new process rules
+   (`research/2026-09-12-process-improvement-plan.md`: scoped gate per
+   task via `check.sh --scope-changed`, `--reduced` on comment-only
+   rounds, `--merge` at close, one `go-architecture-reader` per touched
+   package at the merge, the simplifier brief pasted verbatim). The 5b-i
+   security read's three constraints ride Tasks 1 and 2. Then **5c**.
+2. The infra round: plan it in `~/.dotfiles` once Geoff answers the
+   three scope questions (whole workstation layer; plan home and
+   executor; the global CLAUDE.md 950-token budget breach).
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md`
 (revision 2.1, `49a03b4`, rulings first in section 16) and
@@ -45,6 +51,13 @@ ratify-or-reverse table is in the overnight plan.
   coverage gaps (rungs 3, 4a, 4b, 1b, 8a, 8b, 5a, 8c, 5b-i's six), none
   blocking. Fork B ruled FLAC-only for 1.0 (ROADMAP `formats-1-1`); the
   group non-FLAC question is carried.
+- Staged gate legs (warn today): 313 process citations in shipped Go
+  comments (a comment-cleanup task flips `CHECK_CITATIONS=fail`); 134
+  exported-unused symbols, mostly packages whose consuming rung is later,
+  so the rule narrows (exempt `internal/harness/**`, exempt a package until
+  its consumer lands) before `CHECK_EXPORTED_UNUSED=fail`. The Go read's
+  ten findings (`research/2026-09-12-go-idiom-architecture-read.md`) and
+  the `make close-evidence` target are owed to that cleanup task.
 - Leftovers: four-knob wall registration; `AdminEmail`'s contact row;
   five 3b items; `profile_hashes`; response-status extension; `Case.Extra`;
   `slices.Clone` (rung 9); the corrupted untracked 2026-09-04 evidence
