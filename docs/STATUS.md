@@ -2,20 +2,22 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, and rung 5's 5a and **5b-i** (the auth core, `internal/auth` and `internal/identity`) are
-closed; 5b-i merged at `1d4ed29`. R4's exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed
-before rung 15. The overnight window (`plans/2026-09-12-overnight-window.md`) closed 8c and 5b-i at 9.1M of
-10M.
+Rungs 1b, 3, 4, 8, and rung 5's 5a and **5b-i** (the auth core) are closed; 5b-i merged at `1d4ed29`. R4's
+exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before rung 15. The overnight window
+(`plans/2026-09-12-overnight-window.md`) closed 8c and 5b-i at 9.1M of 10M.
 
 ## Next action
 
 1. **Launch 5b-ii** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md` (revision 2.1; all seven folds ruled
-   as applied, 7.5M ceiling, flag 6.0M, five segments): Task 0 at `opus` with no gate (the conductor's one
-   `cairn-run-gate` call is the baseline), then `pass-execute` per segment under the new process rules
-   (`research/2026-09-12-process-improvement-plan.md`; landed changes recorded in HISTORY's 5b-i entry). The
-   5b-i security read's three constraints ride Tasks 1 and 2. Then **5c**.
-2. The infra round: plan it in `~/.dotfiles` once Geoff answers the three scope questions (whole workstation
-   layer; plan home and executor; the global CLAUDE.md 950-token budget breach).
+   as applied, 7.5M ceiling, flag 6.0M, five segments) under the process rules in
+   `research/2026-09-12-process-improvement-plan.md`. **Task 0 already ran** at HEAD `f75b0d9`: no blockers,
+   two notes, two pre-dispatch rulings (`research/handoffs/2026-09-12-5b-ii-task0-staleness.md`), baseline
+   gate green in 75s. Valid while HEAD's Go tree is unchanged; then `pass-execute` per segment. Then **5c**.
+2. **In progress (2026-09-12, Geoff's redirect): the Claude infra round**, planned in `~/.dotfiles`. Scope ruled
+   from a cross-project survey (`~/.dotfiles/docs/superpowers/research/2026-09-12-claude-infra-round-survey.md`);
+   plan at `~/.dotfiles/docs/superpowers/plans/2026-09-12-claude-infra-round.md`. It touches dubplate in two
+   files only: `.claude/agents/dubplate-implementer.md` (the gate runner's exit-75 reattach wording) and the
+   retirement of `.claude/agents/go-architecture-reader.md` to the workstation agents.
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
 section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `07f4e01`).
@@ -25,7 +27,7 @@ section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `0
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED. Awaiting the conductor's next dispatch |
-| 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29`; worktree to be removed by the conductor |
+| 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29` |
 
 ## Open items (carried)
 
