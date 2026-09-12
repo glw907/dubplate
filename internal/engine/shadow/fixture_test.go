@@ -103,3 +103,34 @@ func spliceDuplicateVorbisComment(t *testing.T, path string) []byte {
 	out = append(out, raw[start+length:]...)
 	return out
 }
+
+// spliceInvalidUTF8TitleByte reads path (a track writeFixtureTrack
+// already wrote with Title "before_after") and returns its bytes with
+// that ASCII underscore replaced by the single byte 0x80, an
+// ill-formed UTF-8 continuation byte with no leading byte before it
+// (R6): tagio.Write only ever accepts values already valid UTF-8
+// (ruling 10, rules_test.go's TestRulesInvalidUTF8ReadBack), so this
+// package's only way to put an invalid sequence in front of
+// tagio.Read is a length-preserving byte splice of a writer-built
+// fixture, the same shape spliceDuplicateVorbisComment uses above. No
+// length field moves: one byte is replaced by one byte.
+func spliceInvalidUTF8TitleByte(t *testing.T, path string) []byte {
+	t.Helper()
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read fixture to splice: %v", err)
+	}
+
+	marker := []byte("before_after")
+	idx := bytes.Index(raw, marker)
+	if idx < 0 {
+		t.Fatalf("splice: title marker not found in %s", path)
+	}
+	underscore := idx + len("before")
+
+	out := make([]byte, len(raw))
+	copy(out, raw)
+	out[underscore] = 0x80
+	return out
+}

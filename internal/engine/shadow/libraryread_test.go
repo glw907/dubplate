@@ -113,6 +113,40 @@ func TestReadFLACLengthFromStreaminfo(t *testing.T) {
 	}
 }
 
+// TestReadFLACProjectsInvalidUTF8AsReplacementChar grades R6's carried
+// value change on the shadow side: a VORBIS_COMMENT value with an
+// ill-formed UTF-8 byte projects U+FFFD, not the raw byte. The
+// fixture is a length-preserving byte splice of a writer-built track
+// (spliceInvalidUTF8TitleByte, fixture_test.go), because tagio.Write
+// only ever accepts values already valid UTF-8 (ruling 10) and this
+// package has no other way to put an invalid sequence in front of a
+// reader. readFLAC reads through the same exported tagio.Tags
+// projection tagio's own TestRulesInvalidUTF8ReadBack
+// (internal/engine/tagio/rules_test.go) covers directly; this row
+// proves only that shadow's readFLAC carries that same value change
+// through, not a second copy of tagio's rule.
+func TestReadFLACProjectsInvalidUTF8AsReplacementChar(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "track.flac")
+	writeFixtureTrack(t, path, tagio.TagSet{Title: new("before_after")})
+
+	spliced := spliceInvalidUTF8TitleByte(t, path)
+	if err := os.WriteFile(path, spliced, 0o644); err != nil {
+		t.Fatalf("write spliced fixture: %v", err)
+	}
+	if err := os.Chtimes(path, fixedModTime, fixedModTime); err != nil {
+		t.Fatalf("chtimes spliced fixture: %v", err)
+	}
+
+	got, err := readFLAC(path)
+	if err != nil {
+		t.Fatalf("readFLAC: %v", err)
+	}
+	want := "before�after"
+	if got.Title != want {
+		t.Errorf("Title = %q, want %q", got.Title, want)
+	}
+}
+
 // TestReadFLACRefusesAMalformedContainer grades the capture half of
 // the landed reader's refusal behavior: readFLAC returns an error and
 // the zero ItemFields for a container tagio.Parse refuses. The
