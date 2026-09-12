@@ -307,13 +307,18 @@ func TestCollisionGate_KindStringEmptyDefault(t *testing.T) {
 }
 
 // TestCollisionGate_IdentitySourceCarveOut proves R16's carve-out in
-// the other direction, O5 class 6: the identity-source status row must
-// not be claimed as a key. If the prefix rule wrongly reached it, this
-// test reports "identity source" registered as a key.
+// the other direction, O5 class 6: a status row (Pending set, not a
+// DUBPLATE_-prefixed key) must not be claimed as a key. It registers
+// its own fixture status row rather than reading the production table,
+// because rung 5 retired the last pending row NewRegistry ever seeded
+// (keys.go's "identity source" row); reading the production table here
+// after that retirement would pass without ever exercising the
+// carve-out AddWallRow's switch statement provides.
 func TestCollisionGate_IdentitySourceCarveOut(t *testing.T) {
 	r := NewRegistry()
-	if family, ok := r.claims["identity source"]; ok {
-		t.Fatalf("identity source registered as a key (family %q); the prefix rule must not reach the status row", family)
+	r.AddWallRow(WallRow{Name: "test status row", Pending: "pending (fixture)"})
+	if family, ok := r.claims["test status row"]; ok {
+		t.Fatalf("status row registered as a key (family %q); the prefix rule must not reach a status row", family)
 	}
 }
 

@@ -72,6 +72,21 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 	return cmd.ExecuteContext(ctx)
 }
 
+// newProductionRegistry builds the registry the binary runs against:
+// rung 1's own seed, plus every rung's own registration call, in
+// landing order. newRootCmd and the test suite's own productionRegistry
+// helper (serve_test.go) both call it, so the production registration
+// order is written once rather than restated by hand in two places
+// (merge carry 2).
+func newProductionRegistry() *config.Registry {
+	reg := config.NewRegistry()
+	registerShadowIntegration(reg)
+	registerShadowThresholds(reg)
+	registerServeConfig(reg)
+	registerAuthConfig(reg)
+	return reg
+}
+
 // newRootCmd builds the production registry once, visibly, and passes
 // it to every subcommand that enforces against it: registration order
 // stays readable here rather than hidden behind an init function, the
@@ -80,10 +95,7 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 //
 // ruled, conductor 2026-09-07, R1
 func newRootCmd() *cobra.Command {
-	reg := config.NewRegistry()
-	registerShadowIntegration(reg)
-	registerShadowThresholds(reg)
-	registerServeConfig(reg)
+	reg := newProductionRegistry()
 
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",

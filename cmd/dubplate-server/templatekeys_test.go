@@ -92,9 +92,14 @@ func TestTemplateKeysCoverEveryOwnedNowRow(t *testing.T) {
 // when reg declares it nowhere. It reads the registry's exported
 // accessors rather than internal/config's own unexported lookups,
 // which this package cannot reach.
+//
+// An owned wall row still carrying Pending is not yet owned, so it
+// does not classify as "owned wall" here, on [config.ownedNow]'s own
+// precedent: a rung's Pending row is reserved space on the wall, not a
+// name [config.Load] requires or a template needs to carry yet.
 func classifyKey(reg *config.Registry, name string) string {
 	for _, row := range reg.OwnedWall() {
-		if row.Name == name {
+		if row.Name == name && row.Pending == "" {
 			return "owned wall"
 		}
 	}
@@ -116,7 +121,39 @@ func classifyKey(reg *config.Registry, name string) string {
 			return "threshold"
 		}
 	}
+	for _, src := range reg.IdentitySources() {
+		if name == src.Selector || slices.Contains(src.Required, name) || slices.Contains(src.Optional, name) {
+			return "identity source"
+		}
+	}
 	return ""
+}
+
+// TestClassifyKey_PendingRowNotOwned proves classifyKey's Pending
+// carve-out above: a hypothetical Pending row classifies as nothing,
+// never "owned wall". No production registry carries a Pending row
+// after this task (rung 5 retired the last one, keys.go's "identity
+// source" row), so this runs against a scratch fixture rather than the
+// production table.
+func TestClassifyKey_PendingRowNotOwned(t *testing.T) {
+	reg := config.NewRegistry()
+	reg.AddWallRow(config.WallRow{Name: "scratch pending row", Pending: "pending (fixture)"})
+
+	if got := classifyKey(reg, "scratch pending row"); got != "" {
+		t.Errorf("classifyKey(pending row) = %q, want empty", got)
+	}
+}
+
+// TestClassifyKey_SMTPHostMovedToIdentitySource proves the transition
+// rung 5 makes: DUBPLATE_SMTP_HOST classified as the "auth and
+// identity" reserved class before this pass, and now classifies as the
+// magic-link identity source's own required key
+// (cmd/dubplate-server/auth.go), since that class retired in the same
+// commit that declared the source (internal/config/keys.go).
+func TestClassifyKey_SMTPHostMovedToIdentitySource(t *testing.T) {
+	if got := classifyKey(productionRegistry(), "DUBPLATE_SMTP_HOST"); got != "identity source" {
+		t.Errorf(`classifyKey("DUBPLATE_SMTP_HOST") = %q, want "identity source"`, got)
+	}
 }
 
 // templateKeys parses the template at path for every DUBPLATE_* name

@@ -13,15 +13,15 @@ type WallRow struct {
 	Pending string
 }
 
-// ownedWall is the wall's required-now rows, plus the identity-source
-// row, present in the table from rung 1 though its requirement does
-// not land until rung 5 (spec, "The config wall, derived").
+// ownedWall is the wall's required-now rows (spec, "The config wall,
+// derived"). Rung 5's own owned-now row, DUBPLATE_IDENTITY_SOURCE, is
+// registered from cmd/dubplate-server/auth.go rather than here, on the
+// rung 1b registry contract: this package names no rung-specific key.
 var ownedWall = []WallRow{
 	{Name: "DUBPLATE_LIBRARY_ROOT"},
 	{Name: "DUBPLATE_STATE_DIR"},
 	{Name: "DUBPLATE_SITE_NAME"},
 	{Name: "DUBPLATE_ADMIN_EMAIL"},
-	{Name: "identity source", Pending: "pending (arrives at rung 5)"},
 }
 
 // OwnedWall returns the owned wall's rows in table order.
@@ -57,20 +57,6 @@ type ReservedClass struct {
 // absent from every class here and from [supersededKeys] classifies as
 // unknown.
 var reservedClasses = []ReservedClass{
-	{
-		Name: "auth and identity",
-		Rung: 5,
-		Keys: []string{
-			"DUBPLATE_MAGIC_LINK_SECRET",
-			"DUBPLATE_SESSION_SECRET",
-			"DUBPLATE_PUBLIC_URL",
-			"DUBPLATE_SMTP_HOST",
-			"DUBPLATE_SMTP_PORT",
-			"DUBPLATE_SMTP_USER",
-			"DUBPLATE_SMTP_PASSWORD",
-			"DUBPLATE_SMTP_FROM",
-		},
-	},
 	{
 		Name: "backup targets",
 		Rung: 6,
@@ -156,14 +142,14 @@ func reservedClassOf(reg *Registry, name string) (ReservedClass, bool) {
 var supersededKeys = map[string]string{
 	"DUBPLATE_LIBRARY_DIR":     "renamed to DUBPLATE_LIBRARY_ROOT",
 	"DUBPLATE_SERVE_SITE_NAME": "renamed to DUBPLATE_SITE_NAME",
-	"DUBPLATE_ACCESS_TEAM_DOMAIN": "moved to the forward-auth front's own config, " +
-		"arriving at rung 5",
-	"DUBPLATE_ACCESS_AUD": "moved to the forward-auth front's own config, " +
-		"arriving at rung 5",
+	"DUBPLATE_ACCESS_TEAM_DOMAIN": "moved to the forward-auth front's own config; " +
+		"the seam admits one, and its configuration arrives with the rung that builds it",
+	"DUBPLATE_ACCESS_AUD": "moved to the forward-auth front's own config; " +
+		"the seam admits one, and its configuration arrives with the rung that builds it",
 	"DUBPLATE_PUBLIC_NAVIDROME_URL": "moved to the streamer driver's own config, " +
 		"arriving at rung 12",
-	"DUBPLATE_CONTRIBUTORS_FILE": "retired: the roster loads from the store " +
-		"(rung 6), not a config-supplied file",
+	"DUBPLATE_CONTRIBUTORS_FILE": "renamed to DUBPLATE_ROSTER_FILE, the magic-link " +
+		"identity source's own roster location key (rung 5)",
 	"DUBPLATE_REJECT_EMAIL_TEMPLATE": "retired: reject copy is a code contract in " +
 		"internal/reject (rung 7), not a config-supplied template",
 	"DUBPLATE_BEETS_CONFIG": "retired: the greenfield server never embeds beets",

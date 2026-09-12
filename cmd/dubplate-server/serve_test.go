@@ -15,13 +15,11 @@ import (
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
 // this file's own tests exercise the same collision and derivation
-// surface the binary does, on registry.go:24-31's own precedent.
+// surface the binary does, on registry.go:24-31's own precedent. It
+// calls newRootCmd's own shared constructor (main.go) rather than
+// restating its register calls, so the two can never drift apart.
 func productionRegistry() *config.Registry {
-	reg := config.NewRegistry()
-	registerShadowIntegration(reg)
-	registerShadowThresholds(reg)
-	registerServeConfig(reg)
-	return reg
+	return newProductionRegistry()
 }
 
 func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T) {
@@ -149,12 +147,12 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 		},
 		{
 			name:    "invalid prefix",
-			environ: append(baseEnviron(), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
+			environ: append(authEnviron(), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
 			wantErr: serve.ErrInvalidPrefix,
 		},
 		{
 			name:    "unparseable bind list",
-			environ: append(baseEnviron(), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
+			environ: append(authEnviron(), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
 			wantErr: serve.ErrInvalidBindAddr,
 		},
 	}
@@ -214,7 +212,7 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 			t.Setenv(name, "")
 		}
 	}
-	for _, kv := range baseEnviron() {
+	for _, kv := range authEnviron() {
 		name, value, _ := strings.Cut(kv, "=")
 		t.Setenv(name, value)
 	}

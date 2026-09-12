@@ -7,14 +7,10 @@
 // [Load] enforces the classification rather than merely reading values:
 //
 //  1. Owned, required now: DUBPLATE_LIBRARY_ROOT, DUBPLATE_STATE_DIR,
-//     DUBPLATE_SITE_NAME, and DUBPLATE_ADMIN_EMAIL. A fifth wall row,
-//     the active identity source, is owned from rung 1 but has no
-//     env key of its own yet: magic-link is the shipped default
-//     source, and its discriminator plus required-when-selected
-//     block (the two secrets, DUBPLATE_PUBLIC_URL, and an SMTP
-//     transport) arrive at rung 5, when login is server purview.
-//     Until then this row reports pending, never satisfied and never
-//     an error.
+//     DUBPLATE_SITE_NAME, DUBPLATE_ADMIN_EMAIL, and, from rung 5,
+//     DUBPLATE_IDENTITY_SOURCE, the selector naming which declared
+//     identity source is active (cmd/dubplate-server/auth.go
+//     registers it as an owned wall row alongside the source itself).
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class and rung, never "unknown". The

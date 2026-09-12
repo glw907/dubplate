@@ -2,24 +2,6 @@ package config
 
 import "testing"
 
-func TestOwnedWall_IdentitySourceRow(t *testing.T) {
-	rows := OwnedWall()
-
-	var found *WallRow
-	for i, row := range rows {
-		if row.Name == "identity source" {
-			found = &rows[i]
-			break
-		}
-	}
-	if found == nil {
-		t.Fatal("OwnedWall() has no identity source row")
-	}
-	if found.Pending != "pending (arrives at rung 5)" {
-		t.Errorf("identity source row Pending = %q, want %q", found.Pending, "pending (arrives at rung 5)")
-	}
-}
-
 func TestOwnedWall_RequiredNowRows(t *testing.T) {
 	want := map[string]bool{
 		"DUBPLATE_LIBRARY_ROOT": true,
@@ -64,6 +46,14 @@ func TestOwnedWall_ReturnsCopy(t *testing.T) {
 // high-entropy neighbor. The same discipline applies to any
 // declaration file that writes a key literal beside a field named Key.
 
+// DUBPLATE_SMTP_HOST no longer has a row here: rung 5 retired the "auth
+// and identity" reserved class it belonged to and declared it instead
+// as the magic-link identity source's own required key
+// (cmd/dubplate-server/auth.go). internal/config's own NewRegistry
+// never sees that declaration (the rung 1b registry contract), so its
+// classification as "identity source" is proved against the production
+// registry instead, in cmd/dubplate-server/templatekeys_test.go's
+// TestClassifyKey_SMTPHostMovedToIdentitySource.
 func TestReservedClassOf(t *testing.T) {
 	tests := []struct {
 		input     string
@@ -72,7 +62,6 @@ func TestReservedClassOf(t *testing.T) {
 		wantFound bool
 	}{
 		{input: "DUBPLATE_R2_BUCKET", wantClass: "backup targets", wantRung: 6, wantFound: true},
-		{input: "DUBPLATE_SMTP_HOST", wantClass: "auth and identity", wantRung: 5, wantFound: true},
 		{input: "DUBPLATE_NAVIDROME_URL", wantClass: "streamer", wantRung: 12, wantFound: true},
 		{input: "DUBPLATE_UPLOADS_DIR", wantClass: "intake", wantRung: 7, wantFound: true},
 		{input: "DUBPLATE_PING_IMPORT_URL", wantClass: "monitoring", wantRung: 9, wantFound: true},

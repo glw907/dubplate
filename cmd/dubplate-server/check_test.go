@@ -20,6 +20,29 @@ func baseEnviron() []string {
 	}
 }
 
+// authEnviron returns baseEnviron plus a full, satisfied magic-link
+// identity source: the selector and the source's nine required keys,
+// on fixture values visibly synthetic rather than shaped like a real
+// secret, so gitleaks' generic-secret rule (a key-like name beside a
+// high-entropy neighbor) never fires against a test file. A test
+// against productionRegistry (serve_test.go) that expects config.Load
+// to succeed needs this, rather than baseEnviron alone, because rung 5
+// registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (auth.go).
+func authEnviron() []string {
+	return append(baseEnviron(),
+		"DUBPLATE_IDENTITY_SOURCE=magic-link",
+		"DUBPLATE_ROSTER_FILE=/var/lib/dubplate/roster.json",
+		"DUBPLATE_MAGIC_LINK_SECRET=fixture magic link secret, not a real key",
+		"DUBPLATE_SESSION_SECRET=fixture session secret, not a real key",
+		"DUBPLATE_PUBLIC_URL=https://dubplate.example.test",
+		"DUBPLATE_SMTP_HOST=smtp.example.test",
+		"DUBPLATE_SMTP_PORT=587",
+		"DUBPLATE_SMTP_USER=dubplate",
+		"DUBPLATE_SMTP_PASSWORD=fixture smtp password, not a real key",
+		"DUBPLATE_SMTP_FROM=dubplate@example.test",
+	)
+}
+
 // dropKey returns a copy of environ with any entry named name removed.
 func dropKey(environ []string, name string) []string {
 	out := make([]string, 0, len(environ))

@@ -345,9 +345,21 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), want)
 	}
 
-	wantIdentity := fmt.Sprintf("%-32s %s\n", "identity source", "pending (arrives at rung 5)")
-	if !strings.Contains(stdout.String(), wantIdentity) {
-		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantIdentity)
+	// The pending "identity source" row this spot check used to pin
+	// retired with rung 5 (keys.go's ownedWall no longer carries it);
+	// its owned-now replacement, the selector row, is the second
+	// literal now. config.NewRegistry() alone declares no identity
+	// source, so this half runs against the production registry and a
+	// fully satisfied environment instead.
+	var authStdout, authStderr bytes.Buffer
+	authCmd := newDoctorCmd(authEnviron(), productionRegistry(), &authStdout, &authStderr)
+	if err := authCmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+
+	wantIdentity := fmt.Sprintf("%-32s %s\n", "DUBPLATE_IDENTITY_SOURCE", "ok")
+	if !strings.Contains(authStdout.String(), wantIdentity) {
+		t.Errorf("stdout = %q, want it to contain %q", authStdout.String(), wantIdentity)
 	}
 
 	// Resolution R15: reserved classes print in table order, not rung
