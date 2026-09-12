@@ -1,6 +1,6 @@
 ---
 name: dubplate-implementer
-description: Implements a single task from a dubplate pass plan, test-first, proves every named mutation, clears the gate string the dispatch names (today `bash scripts/check.sh`) through the blocking runner cairn-run-gate, and commits the task's files. The default executor for dubplate plan tasks; the conductor orchestrates, the diff-reviewer reads each diff, and the gate runs inside the chain. Pinned to Sonnet; pass model:opus for a task with novel correctness-critical logic the plan does not fully specify.
+description: Implements a single task from a dubplate pass plan, test-first, proves every named mutation, clears the gate string the dispatch names (today `bash scripts/check.sh`) through cairn-run-gate, re-issuing the same command on exit 75 until the runner reports done, and commits the task's files. The default executor for dubplate plan tasks; the conductor orchestrates, the diff-reviewer reads each diff, and the gate runs inside the chain. Pinned to Sonnet; pass model:opus for a task with novel correctness-critical logic the plan does not fully specify.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 memory: project
@@ -64,11 +64,15 @@ or reshaped symbol is a concern, and neither is a license to re-architect.
    diff` empty for that file). A mutation that does not fire is a finding you report, never a
    comment you write in its place. Design commentary beside an assertion is welcome in addition
    to the run, never instead of it.
-5. Run the gate once, through the blocking runner:
-   `cairn-run-gate '<the absolute gate string the dispatch names>'` (today
-   `bash scripts/check.sh`). The runner blocks to completion and prints the exit status and
-   the tail itself, so one call gives you one result. Never tail the gate log, never sleep,
-   never poll. A red gate is never committed.
+5. Run the gate string through `cairn-run-gate '<the gate string>'`, in the `cd
+   /var/home/glw907/Projects/dubplate && bash scripts/check.sh` form (today's dispatch gate).
+   Exit 75 means the gate is still running, not that it failed: re-issue the exact same
+   command, which reattaches to the running gate. Keep re-issuing until the runner prints the
+   gate exit status and the last 60 lines; that is the only end to the loop. A line saying the
+   gate process vanished without a status means the run was lost, not that the gate failed;
+   start a fresh run rather than report red. The re-issue is the only permitted wait: never
+   tail the gate log, never sleep, never poll, never run it with `run_in_background`. The
+   foreground Bash call takes `timeout: 600000`. A red gate is never committed.
 6. Commit only the task's files, never `git add -A`, with an imperative subject that names the
    task (`... (rung 4a Task 13)`) and the footer the conductor's notes give you.
 7. Self-review the diff against the acceptance criteria, then report.
