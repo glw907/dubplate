@@ -2,7 +2,9 @@
 
 Revision 2.1, 2026-09-12. Author: a research lane dispatched by the conductor; revision 2
 folded a three-lens adversarial review, and revision 2.1 folds two inputs that arrived after
-it. Status: proposal, unruled except Item 16, which Geoff ruled on 2026-09-12.
+it. Status: ruled in part on 2026-09-12. Item 16 and all six owner-owed decisions are ruled,
+and section 5's tiers A, B and C are applied; tier D is deferred to its own repo task before
+5b-ii. The rest stands as a proposal.
 
 **What changed in revision 2.1.** Two inputs, neither of which existed when revision 2 was
 written. First, fresh cairn numbers from the run after its runner change, relayed by Geoff
@@ -23,8 +25,9 @@ adapted; none was rejected. The merged review, finding by finding with its dispo
 1's arithmetic derivations did not follow from the figures they cited and are re-derived
 below, so most expected-effect ranges in section 3 have changed.
 
-**Owner-owed decisions.** Six folds applied a reviewer's recommendation to a question Geoff
-owns. Each is marked at its site as **Owner-owed** and listed here.
+**The six owner-owed decisions, all ruled.** Six folds applied a reviewer's recommendation to
+a question Geoff owns. Geoff ruled all six on 2026-09-12, each as applied, and each is marked
+at its site as **Ruled, Geoff 2026-09-12: as applied.** They are listed here.
 
 1. Item 1: stand up a CI job that runs the full gate on every push, so cairn's
    blast-radius precondition transfers intact, or accept the boundary-only recovery cadence?
@@ -269,8 +272,9 @@ recover it. The merge ritual's in-tree gate therefore gains one `gitleaks detect
 branch's commit range, without `--no-git`, before the work leaves the branch. That is an
 addition, and it is the only place in this document where a leg joins a gate.
 
-**Owner-owed:** the merge ritual's in-tree gate gains a branch-history `gitleaks` scan, a
-new leg in the repo `CLAUDE.md` "Gate" section, applied as added.
+**Ruled, Geoff 2026-09-12: as applied.** The merge ritual's in-tree gate gains a
+branch-history `gitleaks` scan, a new leg in the repo `CLAUDE.md` "Gate" section, applied as
+added.
 
 The same conditional applies to three ops legs that cannot change verdict on a task that
 touched none of their inputs: `docker compose config` (`check.sh:137-144`),
@@ -316,10 +320,10 @@ recovered at a boundary that may sit several committed tasks later, which is why
 git-derived scope and the branch-history scan above are the conditions under which this
 item is safe at all rather than refinements of it.
 
-**Owner-owed:** stand up a CI job that runs the full gate on every push, so cairn's
-precondition transfers intact, or accept the boundary-only recovery cadence? Applied as the
-boundary-only cadence, with the git-derived scope and the branch-history scan as its
-compensation.
+**Ruled, Geoff 2026-09-12: as applied.** Stand up a CI job that runs the full gate on every
+push, so cairn's precondition transfers intact, or accept the boundary-only recovery cadence?
+Applied as the boundary-only cadence, with the git-derived scope and the branch-history scan
+as its compensation.
 
 **Expected token effect.** Near zero, and not separately measurable. Gate wall carries no
 token line in the measurement.
@@ -508,10 +512,10 @@ field added here is optional. Second, the reduced-gate line cannot be copied acr
 of those three commands. The reduced string arrives as the runner argument instead, so a
 consumer that passes none is unaffected.
 
-**Owner-owed:** `~/.claude/workflows/pass-execute.js` and `~/.claude/agents/diff-reviewer.md`
-are shared workstation assets cairn also runs. Applied as optional fields and an opt-in
-argument only, with a one-task dubplate smoke test before any cairn pass runs on the edited
-runner.
+**Ruled, Geoff 2026-09-12: as applied.** `~/.claude/workflows/pass-execute.js` and
+`~/.claude/agents/diff-reviewer.md` are shared workstation assets cairn also runs. Applied as
+optional fields and an opt-in argument only, with a one-task dubplate smoke test before any
+cairn pass runs on the edited runner.
 
 **Evidence.** The mechanism exists and is proven in the chains runner
 (`~/.claude/workflows/pass-execute-chains.js:45, :90-92, :103`) and in the reviewer
@@ -581,9 +585,9 @@ committed draft would leave the pass's ledger text inside one agent's turn until
 returned. The fold agent commits its draft, then folds: the artifact survives and the text
 is still written once.
 
-**Owner-owed:** the close's authorship moves from a drafting implementer plus a folding
-agent to one fold agent. Applied with one independent `diff-reviewer` read over the fold's
-diff and the committed draft kept.
+**Ruled, Geoff 2026-09-12: as applied.** The close's authorship moves from a drafting
+implementer plus a folding agent to one fold agent. Applied with one independent
+`diff-reviewer` read over the fold's diff and the committed draft kept.
 
 **Evidence.** Close-and-ledger work was 441,317, or 18.3% of the window
 (`measure:96, :191`), and a docs-only close task cost 22 percent more than the average
@@ -866,9 +870,9 @@ or after the diff exists" is a mechanism question and not a contract, domain or 
 one. If the staleness lens is judged load-bearing on its own, the cap rises to four rather
 than mechanics being dropped.
 
-**Owner-owed:** the default three-lens set. Applied as contract-and-criteria,
-mechanics-and-feasibility, and domain-risk, with staleness moved into the drafter's
-pre-flight.
+**Ruled, Geoff 2026-09-12: as applied.** The default three-lens set. Applied as
+contract-and-criteria, mechanics-and-feasibility, and domain-risk, with staleness moved into
+the drafter's pre-flight.
 
 **Where it is encoded.** The repo `CLAUDE.md` build-process section, which currently
 states the lane and conducting loop but not a prep shape. The plan template's header,
@@ -1261,10 +1265,10 @@ gates passing, is a defect no test catches and no reviewer would have read. The 
 for every hand-resolved ledger conflict, where the workstation `CLAUDE.md`'s merge rules
 ("STATUS takes main's, HISTORY keeps both") describe resolutions nothing verifies.
 
-**Owner-owed:** the merge ritual's cross-lane review trigger, a sentence in the repo
-`CLAUDE.md` build process and in `2026-09-03-parallel-build-approach.md` section 3's step
-5. Applied as a disjunction that adds the shared-package case and keeps the
-non-fast-forward case.
+**Ruled, Geoff 2026-09-12: as applied.** The merge ritual's cross-lane review trigger, a
+sentence in the repo `CLAUDE.md` build process and in
+`2026-09-03-parallel-build-approach.md` section 3's step 5. Applied as a disjunction that
+adds the shared-package case and keeps the non-fast-forward case.
 
 **Evidence.** The current trigger is stated as the rebase shape: one `diff-reviewer` on the
 merged result "whenever the rebase was not a fast-forward" (repo `CLAUDE.md`, build

@@ -1,6 +1,13 @@
 # Rung 5, Pass 5b-ii (The Roster, the Limiters, the Mail Seam, and the Auth Handlers) Implementation Plan
 
-Status: **revision 2, 2026-09-12.** Drafted just in time from pass
+Status: **revision 2.1, 2026-09-12.** Revision 2.1 applies the process
+improvement plan's tier C to this plan
+(`docs/superpowers/research/2026-09-12-process-improvement-plan.md`): the
+four per-segment `code-simplifier` rounds become two, one at the segment C
+boundary and one at D2, each round's review chunked one `diff-reviewer`
+per package (Item 8's half-step), and the segment table records that its
+five segments satisfy Item 16's ruled three-to-four-task sizing on green
+commits. Nothing else changed. Drafted just in time from pass
 5b-i's own handoff (`docs/HISTORY.md:496-530`), against the rung 5
 identity-and-auth spec at revision 2.1
 (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`), whose
@@ -1823,8 +1830,7 @@ threshold validations, the From validation, the extended resolver).
 
 ---
 
-> **Conductor boundary, end of segment A.** `code-simplifier` over Tasks
-> 1 through 3. STATUS. **Confirm the five reproductions were observed
+> **Conductor boundary, end of segment A.** STATUS. **Confirm the five reproductions were observed
 > failing before their fixes**, which is the one thing no later task can
 > recover. Re-derive nothing yet; the ceiling re-derivation is segment
 > B's.
@@ -2264,8 +2270,7 @@ the tests with the dependency addition).
 
 ---
 
-> **Conductor boundary, end of segment B.** `code-simplifier` over Tasks
-> 4 through 6. STATUS. **Re-derive the ceiling from Tasks 4 and 5's
+> **Conductor boundary, end of segment B.** STATUS. **Re-derive the ceiling from Tasks 4 and 5's
 > actual reports**, which is the measurement this plan predicted rather
 > than measured. If the re-derivation projects past 8.0M, name the cut at the
 > Task 8 / Task 9 boundary.
@@ -2540,7 +2545,7 @@ method and its contract).
 ---
 
 > **Conductor boundary, end of segment C.** `code-simplifier` over Tasks
-> 7 and 8. STATUS. **This is the last boundary before the handlers**, so
+> 1 through 8, its review chunked one `diff-reviewer` per package. STATUS. **This is the last boundary before the handlers**, so
 > confirm that Task 1's `Insert` signature, Task 4's resolution point,
 > Task 6's seam, Task 7's limiters, and Task 8's placement are all
 > accepted before segment D1 dispatches: Task 10 consumes every one of
@@ -3176,12 +3181,17 @@ Stated here because they are not tasks and no implementer performs them.
 
 1. **Commit the security review** before Task 1 dispatches. It is
    untracked at drafting time and this plan cites it as a primary input.
-2. **`code-simplifier` over each segment's accepted Go**, dispatched at
-   each of the four segment boundaries. Subagents cannot dispatch agents,
-   so this is the conductor's dispatch every time. 5b-i ran three batched
-   per-segment rounds rather than one per task and **recorded the
-   deviation**; this plan schedules the batched form deliberately and the
-   close records it as scheduled rather than as a deviation.
+2. **`code-simplifier` twice, not once per segment.** One round at the
+   segment C boundary over Tasks 1 through 8's accepted Go, and one at D2
+   over Tasks 9 through 12's. Subagents cannot dispatch agents, so both
+   are the conductor's dispatch. **Each round's review is chunked by
+   package territory, one `diff-reviewer` dispatch per package**, so
+   tokens per reviewed line hold where they are today as the round's diff
+   grows. 5b-i ran three batched per-segment rounds rather than one per
+   task and **recorded the deviation**; this plan schedules the two-round
+   form deliberately, per the process improvement plan's Item 8 half-step
+   (`docs/superpowers/research/2026-09-12-process-improvement-plan.md`),
+   and the close records it as scheduled rather than as a deviation.
 3. **One fresh-context `web-auth-security-reviewer` over this pass's
    surface and Tasks 1 and 2's corrections** (R-5b16, R-5b18), dispatched
    after Task 12's gate and before the merge ritual. **Its input is the
@@ -3217,7 +3227,7 @@ Stated here because they are not tasks and no implementer performs them.
 
 Workflow mode per the standing grant: the pass-execute chain
 (`~/.claude/workflows/pass-execute.js`) per task, **strictly sequential**,
-**dispatched in four segments**. Every task runs `dubplate-implementer`,
+**dispatched in five segments**. Every task runs `dubplate-implementer`,
 then `diff-reviewer` (`claude-opus-5`), then the gate, with one
 re-dispatch on `fix` and a second `fix` as the conductor's decision.
 **The runaway guard is armed at launch. Subagents never dispatch
@@ -3233,13 +3243,22 @@ second `fix` is the conductor's decision needs a place to be taken, and
 without the split Tasks 11 and 12 would already be implemented, reviewed,
 gated and committed against a handler set the conductor had not accepted.
 
+**The segments satisfy Item 16's ruled sizing** (Geoff, 2026-09-12: three
+to four tasks, every boundary on a commit the gate has already proved
+green). A and B carry three tasks each. C, D1 and D2 carry two, each under
+one of the rule's three named overrides: C ends at the seam where Task 9's
+and Task 10's Files are disjoint from Tasks 7 and 8's, D1 ends immediately
+before the pass's most expensive `fix` decision, and D2 is the pass's
+remainder. Every boundary falls on a task's own green committed gate, so
+each is a resume point.
+
 | Segment | Tasks | The boundary's own work |
 | --- | --- | --- |
-| **A** | 1, 2, 3 | Simplifier. STATUS. Confirm the five reproductions were observed failing before their fixes, which no later task can recover. |
-| **B** | 4, 5, 6 | Simplifier. STATUS. **Re-derive the ceiling from Tasks 4 and 5's actuals**, the measurement this plan predicts rather than measures. Name the Task 8 / Task 9 cut if it projects past 8.0M. |
-| **C** | 7, 8 | Simplifier. STATUS. Confirm every dependency Task 10 consumes is accepted, because Task 10 consumes eight tasks and a `fix` there is the pass's most expensive. |
+| **A** | 1, 2, 3 | STATUS. Confirm the five reproductions were observed failing before their fixes, which no later task can recover. |
+| **B** | 4, 5, 6 | STATUS. **Re-derive the ceiling from Tasks 4 and 5's actuals**, the measurement this plan predicts rather than measures. Name the Task 8 / Task 9 cut if it projects past 8.0M. |
+| **C** | 7, 8 | Simplifier over Tasks 1 through 8, its review chunked per package. STATUS. Confirm every dependency Task 10 consumes is accepted, because Task 10 consumes eight tasks and a `fix` there is the pass's most expensive. |
 | **D1** | 9, 10 | **Accept Task 10 or rule its second `fix`.** STATUS. Nothing is re-run to reach this boundary, and it is the only place that decision can land before Tasks 11 and 12 build on the handlers. |
-| **D2** | 11, 12 | Simplifier. The security read. The merge ritual. The ledger fold. |
+| **D2** | 11, 12 | Simplifier over Tasks 9 through 12, its review chunked per package. The security read. The merge ritual. The ledger fold. |
 
 **Models.** `sonnet` by default. **Four named upshifts to `opus`**, all
 unconditional, because a `pass-execute` launch fixes each task's model in
