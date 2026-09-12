@@ -2,67 +2,47 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, and rung 5's 5a and **5b-i** (the auth core,
-`internal/auth` and `internal/identity`) are closed; 5b-i merged at
-`1d4ed29`. R4's exclusion denominator is UNREAD (box unreachable at
-03:14 AKDT), owed before rung 15. The overnight window
-(`plans/2026-09-12-overnight-window.md`) closed 8c and 5b-i at 9.1M of 10M.
+Rungs 1b, 3, 4, 8, and rung 5's 5a and **5b-i** (the auth core, `internal/auth` and `internal/identity`) are
+closed; 5b-i merged at `1d4ed29`. R4's exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed
+before rung 15. The overnight window (`plans/2026-09-12-overnight-window.md`) closed 8c and 5b-i at 9.1M of
+10M.
 
 ## Next action
 
-1. **Launch 5b-ii** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md`
-   (revision 2.1; all seven folds ruled as applied, 7.5M ceiling, flag
-   6.0M, five segments): Task 0 at `opus` with no gate (the conductor's
-   one `cairn-run-gate` call is the baseline), then `pass-execute` per
-   segment in the main tree under the new process rules
-   (`research/2026-09-12-process-improvement-plan.md`: scoped gate per
-   task via `check.sh --scope-changed`, `--reduced` on comment-only
-   rounds, `--merge` at close, one `go-architecture-reader` per touched
-   package at the merge, the simplifier brief pasted verbatim). The 5b-i
-   security read's three constraints ride Tasks 1 and 2. Then **5c**.
-2. The infra round: plan it in `~/.dotfiles` once Geoff answers the
-   three scope questions (whole workstation layer; plan home and
-   executor; the global CLAUDE.md 950-token budget breach).
+1. **Launch 5b-ii** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md` (revision 2.1; all seven folds ruled
+   as applied, 7.5M ceiling, flag 6.0M, five segments): Task 0 at `opus` with no gate (the conductor's one
+   `cairn-run-gate` call is the baseline), then `pass-execute` per segment under the new process rules
+   (`research/2026-09-12-process-improvement-plan.md`; landed changes recorded in HISTORY's 5b-i entry). The
+   5b-i security read's three constraints ride Tasks 1 and 2. Then **5c**.
+2. The infra round: plan it in `~/.dotfiles` once Geoff answers the three scope questions (whole workstation
+   layer; plan home and executor; the global CLAUDE.md 950-token budget breach).
 
-Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md`
-(revision 2.1, `49a03b4`, rulings first in section 16) and
-`specs/2026-09-11-configuration-homes-design.md` (revision 3,
-`07f4e01`). Grant reading, flagged: the twelve conductor-owed folds were
-ruled by recommendation on "then start" (2026-09-12 00:44); the
-ratify-or-reverse table is in the overnight plan.
+Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
+section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `07f4e01`).
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED. Awaiting the conductor's next dispatch |
-| 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29` (runs `wf_61f3cf53-665`, `wf_769302f4-cef`, `wf_be7f90c5-281`); worktree to be removed by the conductor |
+| 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29`; worktree to be removed by the conductor |
 
 ## Open items (carried)
 
-- **No deploy until 5d**: the env template selects `magic-link` without
-  its nine required keys, so a render would refuse every server verb,
-  shadow included (merged-range review, 2026-09-12). `newProductionRegistry`
-  in `main.go` is the one registration line, a contested surface for the
-  next two-lane run.
-- The configuration homes spec (revision 3) routes tasks into rungs 6,
-  7, 9, 12, 14, 16 and the 2.0 list; the rung 5 spec's eighteen errata
-  land with 5b-ii's plan prep (HISTORY). Seventy-three declared
-  coverage gaps (rungs 3, 4a, 4b, 1b, 8a, 8b, 5a, 8c, 5b-i's six), none
-  blocking. Fork B ruled FLAC-only for 1.0 (ROADMAP `formats-1-1`); the
-  group non-FLAC question is carried.
-- Staged gate legs (warn today): 313 process citations in shipped Go
-  comments (a comment-cleanup task flips `CHECK_CITATIONS=fail`); 134
-  exported-unused symbols, mostly packages whose consuming rung is later,
-  so the rule narrows (exempt `internal/harness/**`, exempt a package until
-  its consumer lands) before `CHECK_EXPORTED_UNUSED=fail`. The Go read's
-  ten findings (`research/2026-09-12-go-idiom-architecture-read.md`) and
-  the `make close-evidence` target are owed to that cleanup task.
-- Leftovers: four-knob wall registration; `AdminEmail`'s contact row;
-  five 3b items; `profile_hashes`; response-status extension; `Case.Extra`;
-  `slices.Clone` (rung 9); the corrupted untracked 2026-09-04 evidence
-  doc; two review albums on the box; `FILEBROWSER_ADMIN_PASSWORD`;
-  stale failed units; `DUBPLATE_SITE_NAME` re-mint.
+- **No deploy until 5d**: the env template selects `magic-link` without its nine required keys, so a render
+  would refuse every server verb, shadow included (merged-range review, 2026-09-12). `newProductionRegistry`
+  in `main.go` is the one registration line, a contested surface for the next two-lane run.
+- The configuration homes spec (revision 3) routes tasks into rungs 6, 7, 9, 12, 14, 16 and the 2.0 list;
+  the rung 5 spec's eighteen errata land with 5b-ii's plan prep (HISTORY). Seventy-three declared coverage
+  gaps (rungs 3, 4a, 4b, 1b, 8a, 8b, 5a, 8c, 5b-i's six), none blocking. Fork B ruled FLAC-only for 1.0
+  (ROADMAP `formats-1-1`); the group non-FLAC question is carried.
+- Staged gate legs (warn today): 313 process citations in shipped Go comments (a comment-cleanup task flips
+  `CHECK_CITATIONS=fail`); 134 exported-unused symbols (before `CHECK_EXPORTED_UNUSED=fail`; detail in
+  HISTORY's 5b-i process-changes note).
+- Leftovers: four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
+  response-status extension; `Case.Extra`; `slices.Clone` (rung 9); the corrupted untracked 2026-09-04
+  evidence doc; two review albums on the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed units;
+  `DUBPLATE_SITE_NAME` re-mint.
 
 ## Pinned versions (looked up 2026-08-30)
 
@@ -76,3 +56,4 @@ ratify-or-reverse table is in the overnight plan.
 | lap (matcher tie mirroring, 3d) | PyPI `lap` | `0.5.13` |
 
 Spend: about 61.6M plus the window's 9.1M; 5b-i's overage sits on R23.
+

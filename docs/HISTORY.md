@@ -4,6 +4,53 @@ Per-pass ledger, newest first.
 
 ## Rung 5, pass 5b-i (the auth core: config contract, token, session, state records): closed 2026-09-12, lane 2
 
+### Process changes applied 2026-09-12
+
+The process improvement plan (`research/2026-09-12-process-improvement-plan.md`,
+revision 2.1) closed with six owner-owed decisions, all ruled by Geoff on
+2026-09-12 as applied: the merge ritual's cadence stays boundary-only rather
+than a full-gate CI job on every push; the in-tree merge gate gains a
+branch-history `gitleaks` leg; `pass-execute.js` and `diff-reviewer.md` stay
+shared workstation assets, gaining optional fields and an opt-in argument
+rather than a dubplate fork; the close's authorship moves to one fold agent
+with an independent `diff-reviewer` read over its diff; the plan-prep
+fan-out takes the contract-and-criteria, mechanics-and-feasibility, and
+domain-risk three-lens default; and the merge ritual's cross-lane review
+fires on a disjunction adding the shared-package case to the existing
+non-fast-forward case.
+
+The fresh-context Go idiom and architecture read
+(`research/2026-09-12-go-idiom-architecture-read.md`, `979db72`) graded the
+greenfield tree "sound with nits": correct, well tested, and mechanically
+clean, architecturally sound wherever a real consumer exists, with three
+recurring defects (a large speculative exported surface, doc comments citing
+the plan process rather than the code, and near-duplicate bodies written by
+different tasks) all traced to one cause, that the unit of review is a
+task's diff rather than a whole package. It argued for three process
+changes, all ruled and landed: a per-rung whole-package architecture read
+run with no plan in context (the `go-architecture-reader` agent, `1c5c76d`);
+a "no consumer, no export" gate leg (the exported-unused check below); and a
+gate leg against process citations in shipped comments paired with a
+mechanical simplifier brief (the citation check below and
+`.claude/instructions/simplifier-brief.md`, `1c5c76d`).
+
+The gate forms landed at `2a81a0c`: `--scope-changed`, `--reduced`, and
+`--merge`, with both staged legs scoped by a git-derived change set rather
+than an argument. The architecture reader, the simplifier brief, the
+`close-evidence` tool, and three ruled `CLAUDE.md` sentences landed at
+`1c5c76d`. The two staged legs (313 process-citation lines, mostly
+`ruled, conductor` and `Resolution R` trailers; 134 exported-unused symbols,
+mostly packages whose consuming rung is later, so the rule exempts
+`internal/harness/**` and exempts any other package until its consumer
+lands) warn today; the Go read's ten findings and the `make close-evidence`
+target are owed to the comment-cleanup task that flips them to fail.
+`~/.dotfiles`'s `pass-execute.js` gained the same optional fields and
+opt-in argument at `d2c4831`, the shared-asset half of owner-owed decision 3.
+
+Recorded reading: the twelve conductor-owed folds were ruled by
+recommendation on "then start" (2026-09-12 00:44); the ratify-or-reverse
+table is in `plans/2026-09-12-overnight-window.md`.
+
 Executed against
 `docs/superpowers/plans/2026-09-08-rung-5b-auth-core.md` (revision 2.1)
 in the worktree at `.claude/worktrees/lane-2-5b`, branch `lane-2-5b`
