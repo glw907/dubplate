@@ -19,19 +19,15 @@ func TestRegisterAuthConfig_SelectorIsOwnedNow(t *testing.T) {
 	reg := config.NewRegistry()
 	registerAuthConfig(reg)
 
-	var found *config.WallRow
-	for _, row := range reg.OwnedWall() {
-		if row.Name == "DUBPLATE_IDENTITY_SOURCE" {
-			row := row
-			found = &row
-			break
-		}
-	}
-	if found == nil {
+	rows := reg.OwnedWall()
+	i := slices.IndexFunc(rows, func(row config.WallRow) bool {
+		return row.Name == "DUBPLATE_IDENTITY_SOURCE"
+	})
+	if i < 0 {
 		t.Fatal("OwnedWall() has no DUBPLATE_IDENTITY_SOURCE row")
 	}
-	if found.Pending != "" {
-		t.Errorf("DUBPLATE_IDENTITY_SOURCE.Pending = %q, want empty", found.Pending)
+	if rows[i].Pending != "" {
+		t.Errorf("DUBPLATE_IDENTITY_SOURCE.Pending = %q, want empty", rows[i].Pending)
 	}
 }
 
@@ -88,10 +84,10 @@ func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
 func TestRegisterAuthConfig_RetiresAuthAndIdentityReservedClass(t *testing.T) {
 	reg := productionRegistry()
 
-	for _, class := range reg.ReservedClasses() {
-		if class.Name == "auth and identity" {
-			t.Error(`ReservedClasses() still carries the "auth and identity" class, want it retired`)
-		}
+	if slices.ContainsFunc(reg.ReservedClasses(), func(class config.ReservedClass) bool {
+		return class.Name == "auth and identity"
+	}) {
+		t.Error(`ReservedClasses() still carries the "auth and identity" class, want it retired`)
 	}
 }
 

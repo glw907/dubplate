@@ -1,6 +1,6 @@
 // Package identity holds the verified identity a login proves and the
 // channel it arrived on. It imports no other internal package and no
-// third-party package: [internal/ops] carries a verified identity at
+// third-party package: internal/ops carries a verified identity at
 // rung 6 without pulling in the server package that verified it, and
 // the address normalizer here is the one place every other package
 // keys, logs, or rate-limits a login address the same way. Nothing in

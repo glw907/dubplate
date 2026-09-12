@@ -62,7 +62,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			}
 
 			for _, src := range reg.IdentitySources() {
-				if err := printRow(stdout, src.Name, identitySourceStatus(src, environ, statuses)); err != nil {
+				if err := printRow(stdout, src.Name, identitySourceStatus(environ, src, statuses)); err != nil {
 					return err
 				}
 			}
@@ -164,7 +164,7 @@ func thresholdStatus(environ []string, t config.Threshold) string {
 // active otherwise. It names no value, because a source's required set
 // carries secrets and doctor's table is read on a terminal
 // (Resolution R-5b6).
-func identitySourceStatus(src config.IdentitySource, environ []string, statuses map[string]string) string {
+func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
 	}
