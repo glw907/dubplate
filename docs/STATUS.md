@@ -10,11 +10,13 @@ Rungs 1b, 3, 4, 8, and rung 5's 5a and **5b-i** (the auth core,
 
 ## Next action
 
-1. **The rung 5 security read for 5b-i** (R-5b16): the fresh-context
-   `web-auth-security-reviewer` cut from the window, owed before 5b-ii.
-2. **5b-ii's plan**, just in time after it (roster, limiters, notify,
-   origin check, verify seam, handlers), ceiling re-derived from 5b-i's
-   5.5M against R23's live 15.75M. Then **5c**, and the owed box read.
+1. **Rule 5b-ii's seven conductor-owed folds** (plan header,
+   `plans/2026-09-12-rung-5b-ii-auth-handlers.md`, revision 2 at
+   `f36b10c`; the ceiling question first), run its Task 0 at `opus`,
+   then launch it in the main tree in four segments. The 5b-i security
+   read landed (`research/2026-09-12-rung-5b-i-security-review.md`: one
+   blocker, five majors; Tasks 1 and 2 fold them). Then **5c**, and the
+   owed box read.
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md`
 (revision 2.1, `49a03b4`, rulings first in section 16) and
