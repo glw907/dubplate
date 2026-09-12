@@ -1,5 +1,9 @@
 # Rung 8, Pass 8c (Absorb and Repoint) Implementation Plan
 
+Status: **revision 2.1, 2026-09-12: the conductor-owed folds are ruled;
+see the ratify-or-reverse table in
+`plans/2026-09-12-overnight-window.md`.**
+
 **Revision 2, 2026-09-08.** Revision 1 went through a fresh-context
 adversarial review, one lens covering absorption correctness and plan
 integrity, folded here. The record is
@@ -18,10 +22,11 @@ rather than eighteen; A1 forbids container knowledge in `shadow` and Task
 3 then splices a block there with no method named. Seven minors, the
 largest of which pre-authorizes Task 2 to grade three parser refusals no
 test reaches today. **Three folds are conductor-owed and are marked
-inline where they sit**: R1's departure ruling, which half of the 8b
-handoff R1 answers, and R4 item 2's composed denominator. R2 stays
-conductor-owed as revision 1 wrote it, so the conductor rules R1 and R2
-before Task 2 dispatches and R4's item 2 at its own box step. **The
+inline where they sit**: R1's departure ruling, including which half of
+the 8b handoff R1 answers; **R2's seven reader-test destinations**; and
+R4 item 2's composed denominator. R2 is conductor-owed as revision 1
+wrote it, so the conductor rules R1 and R2 before Task 2 dispatches and
+R4's item 2 at its own box step. **The
 task count does not change: Task 0 plus four.** The ceiling holds at 2.1M
 with its 80% flag at 1.68M, and the expected total moves from 1.87M to
 1.92M for the rows the fold adds inside Tasks 1 and 2. Ten citation
@@ -107,7 +112,7 @@ that could break it rather than a hope at the close.
 > the pass-end gate (`spec:1356-1364`). **This pass runs in LANE 1, the
 > main tree.** Whether a lane 2 worktree is live alongside it is not
 > assumed either way: at drafting there is none, `git worktree list`
-> reports the main tree alone, and `docs/STATUS.md:24-32` records both
+> reports the main tree alone, and `docs/STATUS.md:59-64` records both
 > lanes idle with pass 5b owed. **Task 0 item 1's registry read settles
 > it before the first dispatch.** No task in this pass runs from a
 > worktree, and no task reads or writes anything in lane 2's territory
@@ -163,13 +168,13 @@ Read these before Task 1, in this order.
    table (`spec:1065-1080`): hooks 13 and 14 are recorded, hook 3 landed
    at 8b, and 8c lands none. Every task below states its position anyway.
 7. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s
-   ownership table** (`:175-207`), whose `internal/engine/shadow` row
+   ownership table** (`:175-220`), whose `internal/engine/shadow` row
    (`:199`) says no lane but rung 4 writes that package. Rung 8's own
    contested-surfaces table amends it (`spec:1197`), and **the conductor
    writes the amendment before this lane launches**, per lane-launch
    checklist item 2.
 8. **`CLAUDE.md`** in full, and `docs/STATUS.md`'s lane registry
-   (`docs/STATUS.md:22-33`).
+   (`docs/STATUS.md:59-64`).
 9. **`~/.claude/skills/go-conventions/SKILL.md` before any Go.** This
    pass writes no Python, no shell, no systemd unit and no deploy path,
    so `python-conventions` and `vps-conventions` are both out of scope
@@ -454,13 +459,13 @@ checklist item 2.
 **A lane 2 may or may not run alongside this pass, and either way its
 territory is disjoint.** At drafting there is no lane 2 worktree: `git
 worktree list` reports the main tree alone, `.claude/worktrees` is empty,
-and `docs/STATUS.md:24-32` records lane-1 idle with 8c's plan next and
+and `docs/STATUS.md:59-64` records lane-1 idle with 8c's plan next and
 lane-2 idle with `lane-2-5a` torn down at 5a's merge and pass 5b owed.
 Whichever session launches lane 2 next, its territory is pass 5b's from
 the rung 5 identity and auth spec: `internal/identity`, `internal/auth`,
 `internal/notify`, `internal/serve`, `web/`, and
 `internal/config/keys.go`'s remaining reserved-class retirement
-(`docs/STATUS.md:26-32`). **Nothing 8c writes is anything 5b writes**,
+(`docs/STATUS.md:33-41`). **Nothing 8c writes is anything 5b writes**,
 and nothing 8c reads is anything 5b writes. **Task 0 item 1 settles
 whether a lane 2 is live rather than either half being assumed**, and
 reports any file under `internal/engine/shadow` or
@@ -558,6 +563,12 @@ so a reversal is a named edit rather than a rediscovery.
 **Conductor-owed. Ruled before Task 2 dispatches. What the conductor is
 ruling is a departure from a decision 8b closed, and this resolution says
 so rather than claiming an inherited option.**
+**Ruled, conductor 2026-09-12:** **As applied**, stated to break
+`8c:611`'s inverted use of "fold": the shadow consumes `Parse` and
+`tagio.Tags`, taking the 8b handoff's **second half**; `tagio` gains one
+exported symbol; one parse per file; 8b's coverage gap 4 retires; **Task
+2 stays `sonnet`**. Deviation 5 is ruled with this and needs no separate
+mark (`8c:1601-1602`).
 
 **Applied.** `internal/engine/tagio` exports its projection over an
 already-parsed container, `Tags(c Container) TagSet`, which is
@@ -626,6 +637,12 @@ header paragraph's second sentence change.
 
 **Conductor-owed. Ruled before Task 2 dispatches, because it departs
 from the spec's own words.**
+**Ruled, conductor 2026-09-12:** As applied: two of the five spec-named
+tests stay in `shadow` because their subject is `matcher.ItemFields` and
+ruling 3 forbids `tagio` naming that type; the seven-row destination
+table stands. The alternative costs a projection with eighteen rows and
+no test. **8c's execution model makes this a precondition of Task 2's
+dispatch**, which the list at `8c:20-22` omitted.
 
 **Applied.** The spec says five reader tests move to `tagio`
 (`spec:995-998`). Two of the five cannot: their subject is the
@@ -699,10 +716,15 @@ The honest answer has three parts, and Task 3 produces all three.
    `ObservedSkipped` plus the `Unreconciled` counts**, read by the
    **conductor** through `dubplate-server shadow report` under the
    quiet-box check, never the bare binary as root
-   (`docs/STATUS.md:15-17`). The conductor names in the close which rows
+   (`docs/STATUS.md:14-16`). The conductor names in the close which rows
    it actually summed and what the sum does and does not count, and a
    better composition found while reading the report replaces this one
    rather than being forced into it. No implementer task ssh's.
+   **Ruled, conductor 2026-09-12:** As applied by the fold editor at
+   that site: `ObservedApplied` + `ObservedSkipped` + the `Unreconciled`
+   counts, read by the conductor through `dubplate-server shadow
+   report`. The site's own escape hatch stands: a better composition
+   found while reading the report replaces it.
 3. **The count itself**, stated with its bound: **it is not derivable
    from the stored records**, because a stored capture carries file
    names, sizes, modification times and projected `ItemFields`
@@ -816,7 +838,7 @@ The checklist is the spec's own (`spec:1230-1277`), adapted to 8c.
 1. **Is the lane registry consistent with where this pass intends to
    run, is the primary tree free, and has no other lane written
    `internal/engine/shadow` or `internal/engine/tagio`?**
-   `docs/STATUS.md:22-33` is the live-executor check, never `pgrep -f
+   `docs/STATUS.md:59-64` is the live-executor check, never `pgrep -f
    Projects/dubplate`, which matches every lane once a worktree exists.
    *(Expected at drafting: lane-1 main tree IDLE with pass 8c's plan as
    its next action; lane-2 IDLE, worktree `lane-2-5a` torn down, pass 5b
@@ -905,7 +927,7 @@ The checklist is the spec's own (`spec:1230-1277`), adapted to 8c.
     every one that does not. Stale pointers are this build's named
     dominant defect class, so this item is a report and never a fix.
 15. **Is the box quiet, on the record rather than by ssh?** Read
-    `docs/STATUS.md:15-20` and confirm what is deployed and that no task
+    `docs/STATUS.md:14-20` and confirm what is deployed and that no task
     in this plan deploys. **Do not ssh.** The one box reading in this
     pass is the conductor's, in Task 3.
 
@@ -1370,7 +1392,7 @@ it in a divergence.
 **The conductor's read-only evidence step, which is not this task's.**
 R4's denominator is read by the conductor, after this task is accepted:
 one quiet-box check, then `dubplate-server shadow report` read-only,
-never the bare binary as root (`docs/STATUS.md:15-17`). **The report
+never the bare binary as root (`docs/STATUS.md:14-16`). **The report
 prints no captured-album total**, so the conductor composes the
 denominator from the rows R4 item 2 names and records which rows it summed
 (conductor-owed). **No implementer task ssh's, and no task writes to the
@@ -1412,11 +1434,23 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
 `code-simplifier` round.
 
 **Files:**
-- Modify: `docs/STATUS.md`, `docs/HISTORY.md`, `ROADMAP.md` (drafted for
-  the conductor's batch commit; **the implementer never commits a
-  ledger**)
+- Draft, in the main tree:
+  `docs/superpowers/research/handoffs/draft-STATUS-8c.md` and
+  `docs/superpowers/research/handoffs/draft-HISTORY-8c.md`, the second
+  carrying this pass's `ROADMAP.md` text (the ledger text as drafts;
+  **the implementer never edits or commits a ledger**)
 - Draft, handed to the conductor in the task return: the spec
   corrections, the deviation summary, and the rung 8 close statement
+
+**Ruled, conductor 2026-09-12 (M11,
+`plans/2026-09-12-overnight-window.md`):** The ledger text is written as
+drafts at `docs/superpowers/research/handoffs/draft-STATUS-8c.md` and
+`docs/superpowers/research/handoffs/draft-HISTORY-8c.md` in the main
+tree, the second carrying this pass's `ROADMAP.md` text, never to
+`docs/STATUS.md`, `docs/HISTORY.md` or `ROADMAP.md` themselves. The
+conductor folds the drafts into the real ledgers at the merge and
+commits them path-limited. The drafts are committed artifacts, so they
+survive a restart and a fresh session can read them.
 
 **Outcomes:**
 
@@ -1463,7 +1497,7 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
      non-zero-sample seed variant**, and the close records which happened.
   6. Anything execution adds.
   **The count is stated and joined to the running total of sixty-three**
-  (`docs/STATUS.md:36-38`), so rung 15 does not re-count. A gap that
+  (`docs/STATUS.md:80-82`), so rung 15 does not re-count. A gap that
   restates an already-counted 8a or 8b gap is named as a restatement
   rather than counted again, on 8b's own precedent
   (`docs/HISTORY.md:812-819`).
@@ -1592,6 +1626,12 @@ in its header rather than as a departure.
    decision that was assigned to it, and the gain is that 8b's coverage
    gap 4 retires now rather than at rung 9. It is **conductor-owed**, and
    its fold adds no symbol at the cost of a duplicate parse per track.
+   **Ruled, conductor 2026-09-12:** **As applied**, stated to break
+   `8c:611`'s inverted use of "fold": the shadow consumes `Parse` and
+   `tagio.Tags`, taking the 8b handoff's **second half**; `tagio` gains
+   one exported symbol; one parse per file; 8b's coverage gap 4 retires;
+   **Task 2 stays `sonnet`**. Deviation 5 is ruled with this and needs
+   no separate mark (`8c:1601-1602`).
 5. **The shadow's read path consumes `Parse` and never the seam
    registry**, under R1 as applied, so the 8b handoff's registry-consumer
    sentence (`docs/HISTORY.md:861-864`) is answered by its own second half

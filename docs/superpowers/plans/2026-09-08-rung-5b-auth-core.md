@@ -1,5 +1,9 @@
 # Rung 5, Pass 5b-i (The Auth Core: the Config Contract, the Token, the Session, and the State Records) Implementation Plan
 
+Status: **revision 2.1, 2026-09-12: the conductor-owed folds are ruled;
+see the ratify-or-reverse table in
+`plans/2026-09-12-overnight-window.md`.**
+
 **Revision 1, 2026-09-08.** Drafted just in time from pass 5a's own
 handoff (`docs/HISTORY.md:379-408`), against the rung 5 identity-and-auth
 spec at revision 2.1
@@ -155,6 +159,9 @@ Read these before Task 1, in this order.
    first and against R-5b16's own reading for the second; the
    Inheritance section dispositions R33 and R-5b16 corrects R24
    (**conductor-owed**, review M-g).
+   **Ruled, conductor 2026-09-12:** As applied: the token carries no
+   destination field at 5b-i and the rule travels to 5b-ii and 5c as a
+   constraint.
 2. **`docs/HISTORY.md`'s "Rung 5, pass 5a" entry (`:5-543`)**, and inside
    it, at minimum: "The exported surface" (`:175-188`), "The declared
    coverage gaps" (`:323-378`), "The 5a to 5b handoff" (`:379-408`),
@@ -334,6 +341,9 @@ with the task that carries it.
   the consumption POST (`spec:690-692`). **Task 5 holds the token half**,
   and the rule travels to 5b-ii and 5c as a constraint on the token
   format rather than as new work.
+  **Ruled, conductor 2026-09-12:** As applied: the token carries no
+  destination field at 5b-i and the rule travels to 5b-ii and 5c as a
+  constraint.
 - **The 30-second read timeout and the `http.MaxBytesReader`
   alternative** (R-V, `HISTORY:391-392`). Carried verbatim into the 5b-ii
   handoff, because `spec:1590`'s auth request body cap is 5b-ii's and the
@@ -522,6 +532,9 @@ price and the spec already schedules their re-derivation from actuals.
 **This is a conductor-owed ruling**, and the honest statement behind it
 is that R23 priced undivided 5b's seventeen items at what 5a spent on
 eight.
+**Ruled, conductor 2026-09-12:** As applied: record the overage rather
+than funding it from another pass. Arithmetic verified by the review:
+4.25 + 5.0 + 4.5 + 4.5 + 3.0 = 21.25M against a live 15.75M.
 
 **Checkpoint: STATUS after every four tasks**, so after Task 3, after
 Task 7, and at the close. Every task reports its own spend, its mutation
@@ -553,6 +566,11 @@ no task.
   "Lane registry" block before the first dispatch or reads Next action as
   the registry. **Conductor-owed**, and either answer keeps the rule that
   `pgrep -f Projects/dubplate` is never the check.
+  **Ruled, conductor 2026-09-12:** **Moot; do not rule.**
+  `docs/STATUS.md:59` already carries a `## Lane registry` heading and
+  table, landed at `0f0748f` after this plan was written. The mark is
+  struck as resolved by the tree, and Task 0 item 1's stale "Expected"
+  premise is fixed with it.
 - **Package territory, stated as a wall.** This pass writes
   **`internal/identity`** (born this pass, including its tests),
   **`internal/auth`** (born this pass, its token, session, and store files
@@ -742,6 +760,8 @@ than unknown, which is the wall's sixth classification. `Config` carries
 the active source's name and an accessor for its resolved values, on
 `Config.IntegrationValue`'s own precedent (`config.go:66-118`). **Task 2**
 (`spec:1538-1546`, R5 at `spec:340-353`, R29 at `spec:623-636`).
+**Ruled, conductor 2026-09-12:** As applied: the source's validation
+hook receives `os.Environ()` alongside the resolved values.
 
 ### A3. Rung 5's names are declared in rung 5's own file, and both retirements land in the same commit
 
@@ -785,6 +805,10 @@ lets an unauthenticated caller fill the nonce directory.
 hostname derives from `DUBPLATE_PUBLIC_URL` and never from a request
 header. **Task 5** (`spec:1014-1034`, R32 at `spec:661-679`, security
 review finding 7).
+**Ruled, conductor 2026-09-12:** As applied: base64url each field before
+joining. Raw joining breaks every address whose local part carries a
+dot, with every ordinary test green. A correctness bug, not a taste
+call.
 
 ### A5. A session cannot outlive its absolute cap, and rolling refresh cannot extend it
 
@@ -834,6 +858,11 @@ older than the resolved retention (**conductor-owed**, review M-d),
 because a crash between the create and the write leaves a zero-length
 record whose token may still verify. **Tasks 4 and 8** (R11 at
 `spec:421-444`, R31 at `spec:650-660`, `spec:1664-1668`).
+**Ruled, conductor 2026-09-12:** As applied: the record stores
+consumed-at plus the resolved retention, not the token's own expiry.
+**Ruled, conductor 2026-09-12:** As applied: retain an unparseable nonce
+record until its mtime passes retention. Deleting on sight would make
+that token consumable again for the rest of its expiry.
 
 ### A8. The revocation seam exposes a read as well as a notification
 
@@ -853,6 +882,9 @@ The anchor is what refresh never moves, so no ordering rule between the
 check and the refresh is load-bearing. The address key is recorded as rung 6's
 re-key obligation rather than left to be discovered. **Task 9** (R4 at
 `spec:333-339`, R11, R35 at `spec:706-715`, `S20:245-246`).
+**Ruled, conductor 2026-09-12:** As applied: the epoch compares against
+the session's **anchor**, and a token whose mint time predates the epoch
+is also refused. The alternative is a silent revocation bypass.
 
 ---
 
@@ -1151,16 +1183,17 @@ three are blockers: a "no" stops the launch.**
 1. **Is the lane registry consistent with where this pass intends to run,
    and is the target tree free?** `docs/STATUS.md`'s lane registry is the
    live-executor check, **never `pgrep -f Projects/dubplate`, which
-   matches every lane once a worktree exists**. *(Expected at drafting,
-   read from `docs/STATUS.md`'s Next action section, which is where lane
-   state lives today: lane-1 IDLE with pass 8c's plan as its next action
-   in the main tree; lane-2 IDLE, the `lane-2-5a` worktree torn down at
-   5a's merge, about to take this pass at
-   `.claude/worktrees/lane-2-5b`; `git worktree list` showing one tree at
-   master.)* **Report any live executor in the
-   target worktree, any uncommitted change under `internal/config`,
-   `cmd/dubplate-server`, or `internal/serve`, and confirm the worktree is
-   at master's HEAD.**
+   matches every lane once a worktree exists**. *(Expected, read from
+   `docs/STATUS.md`'s `## Lane registry` table (`docs/STATUS.md:59-64`),
+   which is where lane state lives: lane-1 in the main tree carrying pass
+   8c; lane-2 carrying this pass in the worktree
+   `.claude/worktrees/lane-2-5b`. **That worktree exists when this task
+   runs**, created on branch `lane-2-5b` from master before the dispatch,
+   so `git worktree list` reports two trees: the main tree at master and
+   `.claude/worktrees/lane-2-5b` at `lane-2-5b`.)* **Report any live
+   executor in the target worktree, any uncommitted change under
+   `internal/config`, `cmd/dubplate-server`, or `internal/serve`, and
+   confirm the worktree is at master's HEAD.**
 2. **Has any other lane written `internal/serve` since 5a's merge?**
    `PA:80` forbids it until rung 5 closes. *(Expected: no commit touching
    it since `307001b`.)* **Report the commit list.**
@@ -1518,6 +1551,8 @@ against a fixture source the config package's own tests declare.
   (`registry.go:119-124`) panics across families. R31's floor is the
   validation that needs it, and it is one of this pass's own exit-gate
   assertions.
+  **Ruled, conductor 2026-09-12:** As applied: the source's validation
+  hook receives `os.Environ()` alongside the resolved values.
 - **The hook's errors join the rest**, so a deployment with a short secret
   and a missing SMTP host learns both at once.
 - **`rejectNamespace` gains a sixth classification**: a name belonging to
@@ -1657,6 +1692,16 @@ for the first time anywhere, for a pending wall row.
   its environments), `cmd/dubplate-server/templatekeys_test.go`
   (`classifyKey`)
 - Modify: `env/dubplate-server.env.template` (one literal row)
+
+**Ruled, conductor 2026-09-12 (M17):** Task 3 genuinely edits
+`internal/config/keys.go`: two deletions and three supersession-message
+rewrites (`5b:1643-1647`). The rung 1b rule and CLAUDE.md both say
+"never by editing `internal/config/keys.go`", and they mean **no lane
+declares keys there**. Rung 5's twelve names are declared in
+`cmd/dubplate-server/auth.go` (R-5b2), which is the rung-5 file the
+registry rule requires; Task 3's `keys.go` edits are **retirements** of
+a reserved class and a pending wall row plus message rewrites, which is
+the rung 1b contract's removal half. **The task is not deferred.**
 
 **Interfaces:**
 - Consumes: Task 2's source declaration entry point.
@@ -1834,6 +1879,10 @@ Model: `sonnet`. Depends on Tasks 0, 2, and 3.
   whose parsed address reports loopback, and the task cites the W3C
   definition by URL and read date. The close drafts the correction to
   R38 (`spec:758-767`).
+  **Ruled, conductor 2026-09-12:** As applied: the HTTPS carve-out covers
+  hostname `localhost` **or** a parsed loopback address. The narrow
+  reading refuses a loopback-IP adopter for a reason that does not apply,
+  against the universality bar.
 - **Every refusal joins the rest of `Load`'s errors**, so `check` and
   `doctor` report a short secret and a bad URL together.
 - **No error text carries a secret value.** A short secret is reported by
@@ -1939,6 +1988,10 @@ an attacker who knows the format.
   joining fields with `.`, breaks every address whose local part carries a
   dot, which is the majority of real addresses; the MAC then fails and the
   person cannot log in, with every ordinary test green.
+  **Ruled, conductor 2026-09-12:** As applied: base64url each field before
+  joining. Raw joining breaks every address whose local part carries a
+  dot, with every ordinary test green. A correctness bug, not a taste
+  call.
 - **The token carries no destination field** (R33, `spec:690-692`), and
   the version label exists so a later field can be added without changing
   the meaning of an existing one. Rung 12 introduces a destination if it
@@ -2345,6 +2398,8 @@ Model: **`opus`**. Depends on Tasks 0, 5, and 7.
   other reading the record dies exactly when its token dies,
   `DUBPLATE_NONCE_RETENTION` has no runtime consumer at all, and R31
   guards a mechanism the design does not have.
+  **Ruled, conductor 2026-09-12:** As applied: the record stores
+  consumed-at plus the resolved retention, not the token's own expiry.
 - The sweep runs at open and is offered as a method for a caller to run on
   an interval. **The interval driver is 5b-ii's** (R-5b14).
 - **A sweep that meets a malformed record retains it and reports the
@@ -2357,6 +2412,9 @@ Model: **`opus`**. Depends on Tasks 0, 5, and 7.
   single-use property must be assumed rather than discarded. The mtime is
   the one filesystem timestamp this store reads, and the doc comment says
   why.
+  **Ruled, conductor 2026-09-12:** As applied: retain an unparseable nonce
+  record until its mtime passes retention. Deleting on sight would make
+  that token consumable again for the rest of its expiry.
 
 **Acceptance criteria a diff-reviewer verifies from the diff:**
 
@@ -2472,6 +2530,9 @@ The pass's headline 2.0 hook, and the record that makes offboarding real.
   and the refresh is load-bearing. Without the token check, an
   outstanding link survives an offboarding for the full link expiry and
   mints a session the epoch check then honors (`spec:637-648`).
+  **Ruled, conductor 2026-09-12:** As applied: the epoch compares against
+  the session's **anchor**, and a token whose mint time predates the epoch
+  is also refused. The alternative is a silent revocation bypass.
 - **The address is normalized through Task 1's function** before it is
   digested, so the key the epoch is stored under and the key a session
   carries cannot diverge.
@@ -2559,10 +2620,20 @@ Gate green; commit.
 Model: `sonnet`. Depends on Tasks 0 through 9.
 
 **Files:**
-- Modify: `docs/STATUS.md`, `docs/HISTORY.md` (drafted for the
-  conductor's batch commit; **the implementer never commits a ledger**)
+- Draft: `docs/superpowers/research/handoffs/draft-STATUS-5b-i.md` and
+  `docs/superpowers/research/handoffs/draft-HISTORY-5b-i.md` (the ledger
+  text as drafts; **the implementer never edits or commits a ledger**)
 - Draft, handed to the conductor in the task return: the spec
   corrections, the coverage-gap list, and the 5b-ii handoff
+
+**Ruled, conductor 2026-09-12 (M11,
+`plans/2026-09-12-overnight-window.md`):** The ledger text is written as
+drafts at `docs/superpowers/research/handoffs/draft-STATUS-5b-i.md` and
+`docs/superpowers/research/handoffs/draft-HISTORY-5b-i.md`, never to
+`docs/STATUS.md` or `docs/HISTORY.md` themselves. The conductor folds
+the drafts into the real ledgers at the merge and commits them
+path-limited. The drafts are committed artifacts, so they survive a
+restart and a fresh session can read them.
 
 **Outcomes:**
 
@@ -2758,6 +2829,9 @@ Stated here because they are not tasks and no implementer performs them.
    malformed-record retention rule, the R33/R-V/R24 routing, the
    reservation figure, R38's loopback widening, and the lane registry's
    home in `docs/STATUS.md`).
+   **Ruled, conductor 2026-09-12:** As applied: record the overage
+   rather than funding it from another pass. Arithmetic verified by the
+   review: 4.25 + 5.0 + 4.5 + 4.5 + 3.0 = 21.25M against a live 15.75M.
 6. **Re-derive 5b-ii's ceiling from 5b-i's actual report** before 5b-ii's
    plan is drafted, and record the rung total against R23's reservation.
 
