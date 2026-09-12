@@ -85,20 +85,23 @@ func (c Channel) Valid() bool {
 	}
 }
 
-// Identity is a verified login. Address is the normalized address a
-// member authenticated with; Principal is what names that member to a
-// downstream consumer and is kept separate from Address so rung 6 can
-// substitute a durable surrogate id there without touching a call
-// site that reads either field. Source names the identity source that
-// asserted the identity, and Channel is how it arrived. The zero
-// value is not a valid Identity; call [Identity.Valid] before
-// trusting one.
+// Identity is a verified login. The zero value is not a valid
+// Identity; call [Identity.Valid] before trusting one.
 type Identity struct {
-	Address     string
-	Principal   string
+	// Address is the login address, normalized by [NormalizeAddress].
+	Address string
+	// Principal is what names this member to a downstream consumer,
+	// kept separate from Address so rung 6 can substitute a durable
+	// surrogate id here without touching a call site that reads
+	// either field.
+	Principal string
+	// DisplayName is the member's human-readable name.
 	DisplayName string
-	Source      string
-	Channel     Channel
+	// Source names the identity source that asserted this identity,
+	// for example "magic-link".
+	Source string
+	// Channel is how this identity was asserted.
+	Channel Channel
 }
 
 // Valid reports whether id carries a normalized address, a
