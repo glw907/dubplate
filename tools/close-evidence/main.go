@@ -170,11 +170,7 @@ func parsePackageTimes(output string) []packageTime {
 }
 
 func commitSubjects(ctx context.Context, repo, revRange string) ([]string, error) {
-	out, err := git(ctx, repo, "log", "--format=%h %s", revRange)
-	if err != nil {
-		return nil, err
-	}
-	return lines(out), nil
+	return gitLines(ctx, repo, "log", "--format=%h %s", revRange)
 }
 
 func filterSubjects(subjects []string) []string {
@@ -188,11 +184,7 @@ func filterSubjects(subjects []string) []string {
 }
 
 func changedPaths(ctx context.Context, repo, revRange, path string) ([]string, error) {
-	out, err := git(ctx, repo, "diff", "--name-only", revRange, "--", path)
-	if err != nil {
-		return nil, err
-	}
-	return lines(out), nil
+	return gitLines(ctx, repo, "diff", "--name-only", revRange, "--", path)
 }
 
 func touched(paths []string) string {
@@ -210,6 +202,15 @@ func git(ctx context.Context, repo string, args ...string) (string, error) {
 		return "", fmt.Errorf("git %s: %w", strings.Join(args, " "), err)
 	}
 	return string(out), nil
+}
+
+// gitLines runs git and returns the non-empty lines of its output.
+func gitLines(ctx context.Context, repo string, args ...string) ([]string, error) {
+	out, err := git(ctx, repo, args...)
+	if err != nil {
+		return nil, err
+	}
+	return lines(out), nil
 }
 
 func lines(s string) []string {
