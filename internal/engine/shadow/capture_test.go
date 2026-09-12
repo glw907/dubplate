@@ -210,6 +210,62 @@ func TestCaptureDiscardsAPartialRead(t *testing.T) {
 	}
 }
 
+// TestCaptureDiscardsATrackWithADoubledVorbisCommentBlock proves the
+// tightening ruling 9's absorption owes the box (spec:310-317,
+// spec:1012-1033): a container the landed reader accepted and tagio
+// refuses is a partial read, discarded whole with no capture stored
+// and no exclusion row written, which is the same rule
+// TestCaptureDiscardsAPartialRead proves for a truncated file rather
+// than a new one. The witness track carries two VORBIS_COMMENT
+// blocks, a shape the writer never produces and readFLAC's landed
+// predecessor read happily, taking the first value per key (the
+// deleted flac.go, Task 2's 3a299ac).
+func TestCaptureDiscardsATrackWithADoubledVorbisCommentBlock(t *testing.T) {
+	dir := t.TempDir()
+	writeAlbum(t, dir, "ada", "doubled-vorbis-comment", windroseTracks())
+
+	track := filepath.Join(dir, "ada", "doubled-vorbis-comment", "01.flac")
+	spliced := spliceDuplicateVorbisComment(t, track)
+	if err := os.WriteFile(track, spliced, 0o644); err != nil {
+		t.Fatalf("write spliced fixture: %v", err)
+	}
+	if err := os.Chtimes(track, fixedModTime, fixedModTime); err != nil {
+		t.Fatalf("chtimes spliced fixture: %v", err)
+	}
+
+	got, err := capture(dir, func(string) bool { return false }, passNow)
+	if err != nil {
+		t.Fatalf("capture: %v", err)
+	}
+	if len(got.Captures) != 0 {
+		t.Fatalf("captures = %d, want 0; a partial read is never stored, never scored, never counted", len(got.Captures))
+	}
+	if len(got.Excluded) != 0 {
+		t.Errorf("excluded = %+v, want none; a partial read is discarded, not excluded", got.Excluded)
+	}
+	if len(got.PartialReads) != 1 || got.PartialReads[0] != "ada/doubled-vorbis-comment" {
+		t.Errorf("partial reads = %v, want [ada/doubled-vorbis-comment]", got.PartialReads)
+	}
+}
+
+// TestCaptureAcceptsTheAlbumTheSplicedFixtureIsBuiltFrom proves the
+// spliced fixture above is a witness to the doubled-VORBIS_COMMENT
+// shape rather than simply a broken file: the same album, unspliced,
+// captures normally. Without this row the discard test above would
+// pass for any fixture readFLAC dislikes.
+func TestCaptureAcceptsTheAlbumTheSplicedFixtureIsBuiltFrom(t *testing.T) {
+	dir := t.TempDir()
+	writeAlbum(t, dir, "ada", "doubled-vorbis-comment", windroseTracks())
+
+	got, err := capture(dir, func(string) bool { return false }, passNow)
+	if err != nil {
+		t.Fatalf("capture: %v", err)
+	}
+	if len(got.Captures) != 1 {
+		t.Fatalf("captures = %d, want 1; the unspliced album is the splice's witness, not a broken fixture", len(got.Captures))
+	}
+}
+
 // TestCaptureTreatsAnUnreadableAlbumDirectoryAsAPartialRead proves the
 // race the doc comment names: review.Move renames the album directory
 // itself, so the walk can list a basename and then take ENOENT (or, as

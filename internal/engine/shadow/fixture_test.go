@@ -1,6 +1,7 @@
 package shadow
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
@@ -49,4 +50,56 @@ func writeFixtureTrack(t *testing.T, path string, ts tagio.TagSet) {
 	if err := os.Chtimes(path, fixedModTime, fixedModTime); err != nil {
 		t.Fatalf("chtimes fixture: %v", err)
 	}
+}
+
+// spliceDuplicateVorbisComment reads path (a track writeFixtureTrack
+// already wrote) and returns its bytes with a second, byte-for-byte
+// copy of the VORBIS_COMMENT block inserted immediately after the
+// first: ruling 9's "more than one VORBIS_COMMENT block" refusal
+// (spec:310-317), a shape tagio.Write never produces on its own and
+// this package's only way to put one in front of tagio.Parse (Task 3,
+// R3). It emits only containers the writer refuses to produce.
+//
+// It borrows no block-type constant, no header encoder and no
+// binary-encoding standard-library import (A1): the VORBIS_COMMENT
+// block is the one whose payload opens with the vendor string
+// tagio.Parse already decoded onto Container.VorbisComment.Vendor
+// (the payload's first field is that string behind a length prefix,
+// write.go:217-231), and its byte range is four (the block header)
+// plus the running sum of each preceding block's own four-plus-Length
+// span, read off Container.Blocks. The duplicate is that range copied
+// whole, header included, never a block this package builds itself.
+func spliceDuplicateVorbisComment(t *testing.T, path string) []byte {
+	t.Helper()
+
+	c, err := tagio.Parse(path)
+	if err != nil {
+		t.Fatalf("parse fixture to splice: %v", err)
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read fixture to splice: %v", err)
+	}
+
+	vendor := []byte(c.VorbisComment.Vendor)
+	offset := len("fLaC")
+	start, length := -1, 0
+	for _, b := range c.Blocks {
+		if len(b.Payload) >= 4+len(vendor) && bytes.Equal(b.Payload[4:4+len(vendor)], vendor) {
+			start = offset
+			length = 4 + b.Length
+			break
+		}
+		offset += 4 + b.Length
+	}
+	if start < 0 {
+		t.Fatalf("splice: no VORBIS_COMMENT block found in %s", path)
+	}
+
+	block := raw[start : start+length]
+	out := make([]byte, 0, len(raw)+length)
+	out = append(out, raw[:start+length]...)
+	out = append(out, block...)
+	out = append(out, raw[start+length:]...)
+	return out
 }
