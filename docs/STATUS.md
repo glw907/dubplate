@@ -60,6 +60,18 @@ so nothing resumes from it.
 
 ## Open items (carried)
 
+- Configuration homes spec (revision 3, 2026-09-12) routes tasks the
+  just-in-time plans must carry: rung 6 (settings/overrides/preferences
+  tables, collection-row attributes, device credentials, quota counters,
+  move journal), rungs 7 and 9 (template grammar and root-confined
+  writes, audio key by decode plus file hash, break-link rule, intake
+  caps, same-device check), rung 12 (capability report extensions and
+  three pinned-build verifications), rung 14 (two mounts, admin
+  endpoints incl. seize and removal, re-auth on sensitive settings),
+  rung 16 (single-link migration, restore-size runbook line), and the
+  2.0 projector conformance list. Full list: the spec's "What this spec
+  routes elsewhere". Build spec, organizer spec, 2.0 spec, ROADMAP, and
+  the methodology study carry dated errata.
 - Sixty-three declared coverage gaps (rung 3's twenty-one, rung 4a's
   nine, rung 4b's four, rung 1b's two, rung 8a's seven, rung 8b's
   nine, rung 5a's eleven), none blocking. Fork B is ruled (Geoff, 2026-09-08: FLAC-only 1.0, the format ladder at 1.1, ROADMAP `formats-1-1`); the group non-FLAC question is unresolved, carried.

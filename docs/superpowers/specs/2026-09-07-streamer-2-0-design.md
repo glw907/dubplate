@@ -1,6 +1,6 @@
 # dubplate-server 2.0: the built-in streamer
 
-Status: **Ratified 2026-09-07.** Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
+Status: **Ratified 2026-09-07.** Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
 Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`, sequenced after the
 greenfield ladder's launch (rung 17).
 
@@ -305,6 +305,10 @@ embedded through `go:embed` and served by the Go binary, with Node at build time
 flow is magic link, then session, then the device page under the owned prefix. The framework question, standalone Svelte
 5 as the repo rule stands or SvelteKit in static mode, is open ruling 3 and is not decided here.
 
+Revision 2.2 (Geoff, 2026-09-12): the web app also carries an admin settings surface (settings, per-member overrides,
+collection management) over the rung 14 admin API, the same calls the TUI's admin section makes. The configuration homes
+spec names the homes; this spec owns the page.
+
 ### Digital audio players
 
 Device sync is a local-binary job, not a server feature. Every capability a sync needs is present on a workstation and
@@ -357,7 +361,12 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
 (CLAUDE.md, "Build for 2.0").
 
 1. Content hash on the catalog row, rung 6 schema, computed at rung 7's gate on the uploaded bytes. The cache key, the
-   alternate key, and the drift check all read it.
+   alternate key, and the drift check all read it. Amended 2026-09-12 (configuration homes spec): the row carries two
+   keys. The audio key is the decoded-audio MD5, computed by decode at the gate and never read from the header, and it
+   identifies the same audio across collections, drives the overlap report and duplicate refusal, and survives a
+   retag. The file hash is computed streaming over the file bytes at the same gate; it changes on retag and drives the
+   drift check, the transcode-cache key, and backup change detection. Album sameness is the ordered set of track audio
+   keys with the track count, never a per-track match. The formats rung decides the audio key per later format.
 2. Folded sort key on the catalog row, rung 6 schema, computed at rung 9's tagging. The projector and the search index
    agree on folding without re-deriving it. The key prefers the sort tags of hook 13.
 3. Art blob recorded at admit, rung 6 schema and rung 9 admission. The admitted cover is stored content-addressed with
@@ -389,10 +398,14 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     written once or never; retrofitting means re-tagging the library.
 14. An ID3 version ruling, rung 8. Record whether the library writes ID3v2.3 or v2.4, so the question is not answered by
     reading files later.
-15. Configuration homes, rung 6 and rung 14. The store carries a server settings table, a per-member preferences table,
-    and an `owner` attribute beside `writer` on the collection row; the rung 14 admin API exposes settings and
-    collections so the web admin page and the TUI share one surface. Hook 6's capability report also declares a
-    driver's shape constraints (subtree collections, art filenames read, tags read). Design:
+15. Configuration homes, rung 6 and rung 14. The store carries a settings table (source, apply mode, sensitive flag,
+    audit table), per-member overrides and preferences tables, a device-credential table, two quota counters, a
+    move-intent journal, and on the collection row `owner` (non-null surrogate id), `visibility`, a server-allocated
+    disjoint `root_path`, a writer epoch, a mirror generation, a last-mirror time, and a duplicate-collapse flag beside
+    `writer`, with share rows reserved beside visibility and foreign keys enabled in the DSN. The rung 14 admin API
+    exposes settings and collections on two mounts (cookie and bearer) so the web app and the TUI share one surface.
+    Hook 6's capability report also declares a driver's shape constraints (subtree collections, art filenames read,
+    tags read) and per-user folder access; private is unsettable without it. Design:
     `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
 
 ## Prior art

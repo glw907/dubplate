@@ -173,7 +173,8 @@ constructors.
 its own state directory, nothing else; web, tusd, JWT, tunnel, and
 Access are absent from its dependency graph. The bare command launches
 the bubbletea TUI: browse the library, import with interactive
-ask-resolution, triage duplicates, run hygiene tools. Scriptable
+ask-resolution, triage duplicates, run hygiene tools, and (Geoff,
+2026-09-11, erratum) play, as one more Subsonic client of the streamer. Scriptable
 subcommands: `import` (with an unattended mode that quarantines asks
 instead of prompting), `publish`, `backup`, `restore`, `doctor`,
 `check`, `version`. With a remote target configured, the same TUI
@@ -214,6 +215,10 @@ that claim explicitly. Bulk migration between rungs remains backup and
 restore; publish is the per-album path. A server-to-local read-only
 mirror is out of scope and would design its own schema if it were ever
 scheduled, so this spec adds no column for it. True two-way sync is out.
+(Erratum 2026-09-12: the read-only server-to-local copy is scheduled
+with the TUI as the checkout verb, and the laptop-to-server publish of a
+whole collection is the mirror verb, one writer per collection; the
+columns land at rung 6. Two-way sync stays out. Source: `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.)
 
 ## Shared code: the ops seam
 

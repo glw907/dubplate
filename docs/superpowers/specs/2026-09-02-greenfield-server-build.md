@@ -1,6 +1,6 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2.1, ratified 2026-09-02, with two errata.
+Status: revision 2.1, ratified 2026-09-02, with three errata.
 
 **Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
 `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
@@ -24,6 +24,22 @@ longer a complete, closed table rung 1 alone derives. The classification
 stays the contract, but the wall is now registry contents each rung
 declares in its own file; rung 1b's own contract-change paragraph
 follows this erratum block.
+
+**Erratum 2026-09-12 (Geoff, from the configuration homes brainstorm;
+`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`).** Three
+passages below are superseded and stand only as history. (1) In the
+config-wall section, the tunables ("every tunable is a threshold with a
+sane default": match thresholds, lifetimes, link expiry, rate limits,
+intake limits, tag and layout defaults) move from the env wall to a
+settings table in the rung 6 store, editable live through the rung 14
+admin API. The wall keeps the owned required keys, every secret, and
+every integration class whole. A tunable present in the env seeds its
+row at boot under a recorded source, and an env value that disagrees
+with an admin-set row fails the load loudly. (2) Rung 1b's registry
+contract gains two pieces of metadata per key, its home (wall or store)
+and its apply mode (immediately, next operation, restart). (3) The
+out-of-scope entry for the web admin page is superseded: the 2.0 web
+surface gains an admin settings surface (2.0 spec, revision 2.2).
 
 **The config wall is registry contents, not a closed table.** After
 rung 1b, `internal/config.Load` takes the registry it enforces against

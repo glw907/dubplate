@@ -120,6 +120,18 @@ unit, or a probe row stops and reports.**
 
 ## Primary inputs
 
+**Added 2026-09-12, from the configuration homes spec's threat model
+(`docs/superpowers/research/2026-09-11-configuration-homes-review-threat-model.md`,
+section b, rung 5).** Two items for the conductor to fold into 5b-i or
+5b-ii at dispatch, neither changing 5b-i's contract as written: (1) the
+revocation seam's read (A8) is the one a later device-credential store
+subscribes to, so the seam's read must not assume its only reader is the
+session store; (2) a last-admin lockout guard, atomic against concurrent
+self-demotion, belongs wherever the admin flag is first mutable. The
+removal checklist test (epoch bump, app passwords, device credentials,
+writer-epoch freeze, in-flight push abort, collection reassignment,
+streamer deprovision) files at rung 14, not here.
+
 Read these before Task 1, in this order.
 
 1. **`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`,

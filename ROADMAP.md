@@ -51,8 +51,10 @@ Folded from the organizer spec's "Roadmap revisions this spec carries"
   ship criterion; the survey backing it is
   `docs/superpowers/research/2026-08-31-beets-plugin-usage.md`.
 - The API carries no client assumptions by requirement.
-- Sync between rungs is publish-only; mirror and two-way sync are out
-  of scope.
+- Sync between rungs is publish-only; two-way sync is out of scope.
+  (2026-09-12: the laptop-to-server mirror of a whole collection, one
+  writer per collection, and the read-only checkout are in, scheduled
+  with the TUI; configuration homes spec.)
 - Publish (per-album, through intake) and backup/restore (bulk and
   admin) are separate paths; migration between rungs is not
   backup/restore-only.
@@ -140,10 +142,11 @@ WebKitGTK), runnable embedded (engine in-process, no server) or as a
 client of a hosted estate over the versioned API. Sequencing is firm:
 the bubbletea TUI local organizer builds first after the server; the
 Wails head waits beyond that.
-Configuration brief for the TUI (profiles, the machine-settings file,
-the attach overlap report and its three verbs) and for every settings
-surface: `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
-(2026-09-11).
+Configuration brief for the TUI (connection profiles, the machine
+settings and credential files, the attach overlap report and its four
+verbs) and for every settings surface:
+`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
+(revision 3, 2026-09-12).
 
 ## Someday
 
