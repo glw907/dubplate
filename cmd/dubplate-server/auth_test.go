@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/glw907/dubplate/internal/config"
 )
@@ -137,5 +138,248 @@ func TestRegisterAuthConfig_MagicLinkKeyWithoutSelectorNamesSelector(t *testing.
 	}
 	if strings.Contains(err.Error(), "unknown configuration key") {
 		t.Errorf("Load() error = %q, want no unknown-key error", err.Error())
+	}
+}
+
+// fixtureSecretAtFloor and fixtureSecretBelowFloor are built rather
+// than hand-counted, so the byte-boundary the test asserts against is
+// exactly secretLengthFloor and one below it: strings.Repeat's low
+// entropy keeps gitleaks quiet (Global Constraints), and no literal
+// here is shaped like a real key.
+var (
+	fixtureSecretAtFloor    = strings.Repeat("ab", secretLengthFloor/2)
+	fixtureSecretBelowFloor = fixtureSecretAtFloor[:len(fixtureSecretAtFloor)-1] // secret-guard-allow: derived fixture, not a real key
+
+	// fixtureSecretMultiByte is exactly secretLengthFloor bytes but
+	// eight runes: proof that the floor counts bytes, never runes.
+	fixtureSecretMultiByte = "\U0001F512\U0001F511\U0001F3AF\U0001F3B5\U0001F3B6\U0001F3BC\U0001F3B9\U0001F3A7"
+)
+
+// TestRegisterAuthConfig_ThresholdDefaults proves the four thresholds
+// registerAuthConfig declares carry R-5b10's literal keys, kinds, and
+// defaults, asserted against the fixed literals rather than by reading
+// the declaration back (R-5b10).
+func TestRegisterAuthConfig_ThresholdDefaults(t *testing.T) {
+	tests := []struct {
+		name    string
+		key     string
+		kind    config.ThresholdKind
+		wantDef string
+	}{
+		{"magic link expiry", "DUBPLATE_MAGIC_LINK_EXPIRY", config.KindDuration, "15m"},
+		{"session lifetime", "DUBPLATE_SESSION_LIFETIME", config.KindDuration, "2160h"},
+		{"session absolute cap", "DUBPLATE_SESSION_ABSOLUTE_CAP", config.KindDuration, "4320h"},
+		{"nonce retention", "DUBPLATE_NONCE_RETENTION", config.KindDuration, "24h"},
+	}
+
+	reg := config.NewRegistry()
+	registerAuthConfig(reg)
+	thresholds := reg.Thresholds()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := slices.IndexFunc(thresholds, func(th config.Threshold) bool { return th.Key == tt.key })
+			if i < 0 {
+				t.Fatalf("Thresholds() has no %s", tt.key)
+			}
+			th := thresholds[i]
+			if th.Kind != tt.kind {
+				t.Errorf("Kind = %v, want %v", th.Kind, tt.kind)
+			}
+			if th.Default != tt.wantDef {
+				t.Errorf("Default = %q, want %q", th.Default, tt.wantDef)
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_SecretLengthFloor proves the byte-length
+// floor on every one of the four secret keys, including both
+// rotation-overlap keys and a multi-byte fixture proving the count is
+// of bytes rather than runes (R-5b8).
+func TestValidateMagicLinkSource_SecretLengthFloor(t *testing.T) {
+	tests := []struct {
+		name    string
+		key     string
+		value   string
+		wantErr bool
+	}{
+		{"magic link secret at floor", "DUBPLATE_MAGIC_LINK_SECRET", fixtureSecretAtFloor, false},
+		{"magic link secret below floor", "DUBPLATE_MAGIC_LINK_SECRET", fixtureSecretBelowFloor, true},
+		{"session secret at floor", "DUBPLATE_SESSION_SECRET", fixtureSecretAtFloor, false},
+		{"session secret below floor", "DUBPLATE_SESSION_SECRET", fixtureSecretBelowFloor, true},
+		{"magic link secret previous at floor", "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS", fixtureSecretAtFloor, false},
+		{"magic link secret previous below floor", "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS", fixtureSecretBelowFloor, true},
+		{"session secret previous at floor", "DUBPLATE_SESSION_SECRET_PREVIOUS", fixtureSecretAtFloor, false},
+		{"session secret previous below floor", "DUBPLATE_SESSION_SECRET_PREVIOUS", fixtureSecretBelowFloor, true},
+		{"multi-byte secret at the byte floor", "DUBPLATE_MAGIC_LINK_SECRET", fixtureSecretMultiByte, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			values := map[string]string{tt.key: tt.value}
+			err := validateMagicLinkSource(values, authEnviron())
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !strings.Contains(err.Error(), tt.key) {
+				t.Errorf("error = %q, want it to name %s", err.Error(), tt.key)
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_PublicURL proves the URL check's three
+// conditions: it parses, it carries a non-empty host, and its scheme
+// is https unless its host is loopback, covering the whole loopback
+// set rather than the literal name localhost alone (review m6, m7,
+// ruled conductor 2026-09-12).
+func TestValidateMagicLinkSource_PublicURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		url     string
+		wantErr bool
+	}{
+		{"https non-loopback", "https://example.test", false},
+		{"http non-loopback", "http://example.test", true},
+		{"http localhost", "http://localhost:8080", false},
+		{"http loopback IPv4", "http://127.0.0.1:8080", false},
+		{"http private IPv4, not loopback", "http://192.168.1.10:8080", true},
+		{"bare hostname, empty host", "example.test", true},
+		{"https scheme, empty host", "https:///path", true},
+		{"unparseable", "://bad", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			values := map[string]string{"DUBPLATE_PUBLIC_URL": tt.url}
+			err := validateMagicLinkSource(values, authEnviron())
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !strings.Contains(err.Error(), "DUBPLATE_PUBLIC_URL") {
+				t.Errorf("error = %q, want it to name DUBPLATE_PUBLIC_URL", err.Error())
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_NonceRetention proves R31's floor is
+// inclusive: a retention equal to the link expiry passes and one below
+// it fails, both read from the environment snapshot as thresholds
+// rather than source keys.
+func TestValidateMagicLinkSource_NonceRetention(t *testing.T) {
+	tests := []struct {
+		name      string
+		expiry    string
+		retention string
+		wantErr   bool
+	}{
+		{"retention equal to expiry", "15m", "15m", false},
+		{"retention one minute below expiry", "15m", "14m", true},
+		{"retention well above expiry", "15m", "24h", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(baseEnviron(),
+				"DUBPLATE_MAGIC_LINK_EXPIRY="+tt.expiry,
+				"DUBPLATE_NONCE_RETENTION="+tt.retention,
+			)
+			err := validateMagicLinkSource(nil, environ)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				for _, key := range []string{"DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"} {
+					if !strings.Contains(err.Error(), key) {
+						t.Errorf("error = %q, want it to name %s", err.Error(), key)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_NoSecretInErrors proves that a joined
+// refusal covering both secret keys never carries either fixture
+// secret's value: the hook names keys and floors, never content or an
+// exact length that would narrow a guess.
+func TestValidateMagicLinkSource_NoSecretInErrors(t *testing.T) {
+	values := map[string]string{
+		"DUBPLATE_MAGIC_LINK_SECRET": fixtureSecretBelowFloor,
+		"DUBPLATE_SESSION_SECRET":    fixtureSecretBelowFloor,
+		"DUBPLATE_PUBLIC_URL":        "http://example.test",
+	}
+
+	err := validateMagicLinkSource(values, authEnviron())
+	if err == nil {
+		t.Fatal("validateMagicLinkSource() error = nil, want a joined refusal")
+	}
+	text := err.Error()
+	for _, secret := range []string{fixtureSecretBelowFloor, fixtureSecretAtFloor} {
+		if strings.Contains(text, secret) {
+			t.Errorf("error text %q contains fixture secret %q", text, secret)
+		}
+	}
+}
+
+// TestConfigLoad_MagicLinkValidationJoinsOtherErrors proves the hook
+// runs inside config.Load and joins its refusal with Load's own: an
+// unset DUBPLATE_LIBRARY_ROOT and a too-short magic-link secret both
+// name themselves in one returned error.
+func TestConfigLoad_MagicLinkValidationJoinsOtherErrors(t *testing.T) {
+	environ := dropKey(authEnviron(), "DUBPLATE_LIBRARY_ROOT")
+	environ = append(dropKey(environ, "DUBPLATE_MAGIC_LINK_SECRET"),
+		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor)
+
+	_, err := config.Load(environ, productionRegistry())
+	if err == nil {
+		t.Fatal("Load() error = nil, want a joined refusal")
+	}
+	for _, want := range []string{"DUBPLATE_LIBRARY_ROOT", "DUBPLATE_MAGIC_LINK_SECRET"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("Load() error = %q, want it to name %s", err.Error(), want)
+		}
+	}
+}
+
+// TestResolveAuthConfig proves the resolver reads the four thresholds'
+// defaults when unset and an adopter's override when set, on
+// resolveServeConfig's own precedent.
+func TestResolveAuthConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		environ []string
+		want    [4]time.Duration
+	}{
+		{
+			name:    "defaults",
+			environ: baseEnviron(),
+			want:    [4]time.Duration{15 * time.Minute, 2160 * time.Hour, 4320 * time.Hour, 24 * time.Hour},
+		},
+		{
+			name: "overrides",
+			environ: append(baseEnviron(),
+				"DUBPLATE_MAGIC_LINK_EXPIRY=10m",
+				"DUBPLATE_SESSION_LIFETIME=1h",
+				"DUBPLATE_SESSION_ABSOLUTE_CAP=2h",
+				"DUBPLATE_NONCE_RETENTION=1h",
+			),
+			want: [4]time.Duration{10 * time.Minute, time.Hour, 2 * time.Hour, time.Hour},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			expiry, lifetime, cap_, retention, err := resolveAuthConfig(tt.environ)
+			if err != nil {
+				t.Fatalf("resolveAuthConfig() error = %v", err)
+			}
+			got := [4]time.Duration{expiry, lifetime, cap_, retention}
+			if got != tt.want {
+				t.Errorf("resolveAuthConfig() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
