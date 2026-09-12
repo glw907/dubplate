@@ -13,11 +13,11 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    `research/2026-09-12-process-improvement-plan.md`. **Task 0 already ran** at HEAD `f75b0d9`: no blockers,
    two notes, two pre-dispatch rulings (`research/handoffs/2026-09-12-5b-ii-task0-staleness.md`), baseline
    gate green in 75s. Valid while HEAD's Go tree is unchanged; then `pass-execute` per segment. Then **5c**.
-2. **In progress (2026-09-12, Geoff's redirect): the Claude infra round**, planned in `~/.dotfiles`. Scope ruled
-   from a cross-project survey (`~/.dotfiles/docs/superpowers/research/2026-09-12-claude-infra-round-survey.md`);
-   plan at `~/.dotfiles/docs/superpowers/plans/2026-09-12-claude-infra-round.md`. It touches dubplate in two
-   files only: `.claude/agents/dubplate-implementer.md` (the gate runner's exit-75 reattach wording) and the
-   retirement of `.claude/agents/go-architecture-reader.md` to the workstation agents.
+2. **The Claude infra round (2026-09-12) is closed except its task 9** (the `pass-execute.js` edit, deferred
+   while a cairn workflow was live; owed in `~/.dotfiles/docs/STATUS.md`). It changed dubplate in two commits:
+   `a30d32e` (dubplate-implementer's gate step now states the exit-75 reattach protocol) and `f3a55da`
+   (`go-architecture-reader` moved to `~/.claude/agents/`, reached by name as before). Neither invalidates
+   the Task 0 evidence. Launch 5b-ii in a fresh session on the new infra.
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
 section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `07f4e01`).
