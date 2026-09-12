@@ -14,11 +14,10 @@
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class and rung, never "unknown". The
-//     classes are auth and identity (rung 5), backup targets
-//     (rung 6), intake (rung 7), pipeline (rung 9), monitoring
-//     (rung 9), decision and review queues (rung 13), and the
-//     streamer (rung 12). See [ReservedClasses] for the exact
-//     membership.
+//     classes are backup targets (rung 6), intake (rung 7), pipeline
+//     (rung 9), monitoring (rung 9), decision and review queues
+//     (rung 13), and the streamer (rung 12). See [ReservedClasses]
+//     for the exact membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
 //     required at Load once the flag is set, and its Optional rows
@@ -29,9 +28,9 @@
 //     class (rung 4's shadow class, for example).
 //  4. Superseded: a pre-pivot name with no meaning here. Load errors
 //     naming the replacement, or, for a capability the greenfield
-//     server drops outright (the estate's beets and contributor-file
-//     config, the Cloudflare Tunnel credential compose.yaml reads
-//     directly), naming that it retired with no successor.
+//     server drops outright (the estate's beets config, the
+//     Cloudflare Tunnel credential compose.yaml reads directly),
+//     naming that it retired with no successor.
 //  5. Declared by an identity source: the selector naming the active
 //     source, or a key one of the registry's identity sources
 //     requires or accepts. The selected source's required keys are

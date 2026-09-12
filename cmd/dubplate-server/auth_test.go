@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -89,5 +92,54 @@ func TestRegisterAuthConfig_RetiresAuthAndIdentityReservedClass(t *testing.T) {
 		if class.Name == "auth and identity" {
 			t.Error(`ReservedClasses() still carries the "auth and identity" class, want it retired`)
 		}
+	}
+}
+
+// TestDoctorCmd_UnsetSelectorExitsNonzero proves doctor's exit gate on
+// the production registry, rather than only on a scratch one: with
+// DUBPLATE_IDENTITY_SOURCE unset, Execute returns a non-nil error and
+// stdout carries the selector's own "missing" row.
+func TestDoctorCmd_UnsetSelectorExitsNonzero(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(baseEnviron(), productionRegistry(), &stdout, &stderr)
+	cmd.SetOut(&stdout)
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() error = nil, want error")
+	}
+
+	wantPrefix := fmt.Sprintf("%-32s %s", "DUBPLATE_IDENTITY_SOURCE", "missing")
+	found := false
+	for line := range strings.SplitSeq(stdout.String(), "\n") {
+		if strings.HasPrefix(line, wantPrefix) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("stdout = %q, want a line with prefix %q", stdout.String(), wantPrefix)
+	}
+}
+
+// TestRegisterAuthConfig_MagicLinkKeyWithoutSelectorNamesSelector
+// proves the declared-name discipline against the production
+// registry: setting a magic-link source key while the selector is
+// unset is a load error naming DUBPLATE_IDENTITY_SOURCE, never an
+// "unknown configuration key" error, because rung 5's real names must
+// be declared as a source's Required/Optional rows rather than as
+// plain wall or threshold entries.
+func TestRegisterAuthConfig_MagicLinkKeyWithoutSelectorNamesSelector(t *testing.T) {
+	environ := append(baseEnviron(),
+		"DUBPLATE_MAGIC_LINK_SECRET=fixture magic link secret, not a real key")
+
+	_, err := config.Load(environ, productionRegistry())
+	if err == nil {
+		t.Fatal("Load() error = nil, want error naming DUBPLATE_IDENTITY_SOURCE")
+	}
+	if !strings.Contains(err.Error(), "DUBPLATE_IDENTITY_SOURCE") {
+		t.Errorf("Load() error = %q, want it to name DUBPLATE_IDENTITY_SOURCE", err.Error())
+	}
+	if strings.Contains(err.Error(), "unknown configuration key") {
+		t.Errorf("Load() error = %q, want no unknown-key error", err.Error())
 	}
 }
