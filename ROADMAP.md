@@ -32,8 +32,10 @@ the remote-TUI half of its rung 11 move past launch, unscheduled on the
 new ladder. Rung 1 (foundation) through rung 8 (tag I/O: the writer
 core and reader, PICTURE and the conformance instrument, and the
 shadow's absorption and repoint) are landed, alongside rung 4 (the
-shadow), rung 1b, rung 3, and rung 5's pass 5a. Next: rung 5's pass 5b
-(identity, auth, config contract, session, roster, notify).
+shadow), rung 1b, rung 3, and rung 5's passes 5a and 5b-i (identity,
+auth, config contract, session, and the two state records). Next: rung
+5's pass 5b-ii (roster, limiters, notify, origin check, verify seam,
+handlers).
 
 Folded from the organizer spec's "Roadmap revisions this spec carries"
 (2026-09-01-dubplate-organizer-design.md):
