@@ -200,6 +200,10 @@ func isLoopbackHost(host string) bool {
 // returns the values the auth core takes as plain construction
 // arguments, on [resolveServeConfig]'s own precedent
 // (serve.go:81-106): internal/auth never reads the environment itself.
+//
+// The results are named where resolveServeConfig's are not, because
+// four results of one type say nothing about which duration is which.
+// No return here is naked; the names are documentation godoc carries.
 func resolveAuthConfig(environ []string) (magicLinkExpiry, sessionLifetime, sessionAbsoluteCap, nonceRetention time.Duration, err error) {
 	magicLinkExpiry, err = config.ParseDuration(environ, magicLinkExpiryThreshold)
 	if err != nil {

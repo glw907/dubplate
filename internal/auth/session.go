@@ -1,13 +1,10 @@
 package auth
 
 import (
-	"crypto/subtle"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
@@ -172,7 +169,7 @@ func VerifySession(current, previous []byte, value string, now time.Time, absolu
 	if err != nil {
 		return Session{}, err
 	}
-	if !sessionMACMatches(current, fields, mac) && !sessionMACMatches(previous, fields, mac) {
+	if !macMatches(current, sessionPurpose, fields, mac) && !macMatches(previous, sessionPurpose, fields, mac) {
 		return Session{}, ErrSessionMAC
 	}
 	if !now.Before(s.AnchoredAt.Add(absoluteCap)) {
@@ -185,13 +182,7 @@ func VerifySession(current, previous []byte, value string, now time.Time, absolu
 }
 
 func encodeSession(secret []byte, s Session) string {
-	fields := sessionFields(s)
-	parts := make([]string, 0, len(fields)+1)
-	for _, field := range fields {
-		parts = append(parts, base64.RawURLEncoding.EncodeToString(field))
-	}
-	parts = append(parts, base64.RawURLEncoding.EncodeToString(sign(secret, sessionPurpose, fields...)))
-	return strings.Join(parts, fieldSeparator)
+	return encodeSigned(secret, sessionPurpose, sessionFields(s))
 }
 
 // sessionFields is the cookie's field order, shared by the wire
@@ -212,19 +203,10 @@ func sessionFields(s Session) [][]byte {
 // can verify the MAC over exactly the bytes that arrived, rather than
 // over a re-serialization that could differ from them.
 func parseSession(value string) (Session, [][]byte, []byte, error) {
-	parts := strings.Split(value, fieldSeparator)
-	if len(parts) != sessionFieldCount+1 {
-		return Session{}, nil, nil, fmt.Errorf("%w: field count", ErrSessionMalformed)
+	fields, mac, err := splitSigned(value, sessionFieldCount, ErrSessionMalformed)
+	if err != nil {
+		return Session{}, nil, nil, err
 	}
-	decoded := make([][]byte, 0, len(parts))
-	for _, part := range parts {
-		raw, err := base64.RawURLEncoding.DecodeString(part)
-		if err != nil {
-			return Session{}, nil, nil, fmt.Errorf("%w: field encoding", ErrSessionMalformed)
-		}
-		decoded = append(decoded, raw)
-	}
-	fields, mac := decoded[:sessionFieldCount], decoded[sessionFieldCount]
 
 	if string(fields[0]) != sessionVersion {
 		return Session{}, nil, nil, fmt.Errorf("%w: version label", ErrSessionMalformed)
@@ -248,15 +230,4 @@ func parseSession(value string) (Session, [][]byte, []byte, error) {
 		AnchoredAt: time.Unix(anchored, 0).UTC(),
 		ExpiresAt:  time.Unix(expires, 0).UTC(),
 	}, fields, mac, nil
-}
-
-// sessionMACMatches reports whether mac is the session MAC of fields
-// under secret. An empty secret matches nothing, which is how an
-// unconfigured rotation overlap is absent rather than permissive. The
-// comparison is constant-time for the reason linkMACMatches states.
-func sessionMACMatches(secret []byte, fields [][]byte, mac []byte) bool {
-	if len(secret) == 0 {
-		return false
-	}
-	return subtle.ConstantTimeCompare(sign(secret, sessionPurpose, fields...), mac) == 1
 }

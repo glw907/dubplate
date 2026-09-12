@@ -147,13 +147,18 @@ func TestRegisterAuthConfig_MagicLinkKeyWithoutSelectorNamesSelector(t *testing.
 // entropy keeps gitleaks quiet (Global Constraints), and no literal
 // here is shaped like a real key.
 var (
-	fixtureSecretAtFloor    = strings.Repeat("ab", secretLengthFloor/2)
-	fixtureSecretBelowFloor = fixtureSecretAtFloor[:len(fixtureSecretAtFloor)-1] // secret-guard-allow: derived fixture, not a real key
+	fixtureSecretAtFloor    = filler(secretLengthFloor)
+	fixtureSecretBelowFloor = filler(secretLengthFloor - 1)
 
 	// fixtureSecretMultiByte is exactly secretLengthFloor bytes but
 	// eight runes: proof that the floor counts bytes, never runes.
 	fixtureSecretMultiByte = "\U0001F512\U0001F511\U0001F3AF\U0001F3B5\U0001F3B6\U0001F3BC\U0001F3B9\U0001F3A7"
 )
+
+// filler returns n bytes of repeated low-entropy filler.
+func filler(n int) string {
+	return strings.Repeat("ab", n/2+1)[:n]
+}
 
 // TestRegisterAuthConfig_ThresholdDefaults proves the four thresholds
 // registerAuthConfig declares carry R-5b10's literal keys, kinds, and

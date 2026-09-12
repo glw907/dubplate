@@ -145,7 +145,7 @@ func VerifyLink(current, previous []byte, value string, now time.Time) (LinkToke
 	if err != nil {
 		return LinkToken{}, err
 	}
-	if !linkMACMatches(current, fields, mac) && !linkMACMatches(previous, fields, mac) {
+	if !macMatches(current, linkPurpose, fields, mac) && !macMatches(previous, linkPurpose, fields, mac) {
 		return LinkToken{}, ErrLinkMAC
 	}
 	if !now.Before(tok.ExpiresAt) {
@@ -169,13 +169,7 @@ func LinkURL(publicOrigin, token string) (string, error) {
 }
 
 func encodeLink(secret []byte, tok LinkToken) string {
-	fields := linkFields(tok)
-	parts := make([]string, 0, len(fields)+1)
-	for _, field := range fields {
-		parts = append(parts, base64.RawURLEncoding.EncodeToString(field))
-	}
-	parts = append(parts, base64.RawURLEncoding.EncodeToString(sign(secret, linkPurpose, fields...)))
-	return strings.Join(parts, fieldSeparator)
+	return encodeSigned(secret, linkPurpose, linkFields(tok))
 }
 
 // linkFields is the token's field order, shared by the wire encoding
@@ -196,19 +190,10 @@ func linkFields(tok LinkToken) [][]byte {
 // verify the MAC over exactly the bytes that arrived, rather than over
 // a re-serialization that could differ from them.
 func parseLink(value string) (LinkToken, [][]byte, []byte, error) {
-	parts := strings.Split(value, fieldSeparator)
-	if len(parts) != linkFieldCount+1 {
-		return LinkToken{}, nil, nil, fmt.Errorf("%w: field count", ErrLinkMalformed)
+	fields, mac, err := splitSigned(value, linkFieldCount, ErrLinkMalformed)
+	if err != nil {
+		return LinkToken{}, nil, nil, err
 	}
-	decoded := make([][]byte, 0, len(parts))
-	for _, part := range parts {
-		raw, err := base64.RawURLEncoding.DecodeString(part)
-		if err != nil {
-			return LinkToken{}, nil, nil, fmt.Errorf("%w: field encoding", ErrLinkMalformed)
-		}
-		decoded = append(decoded, raw)
-	}
-	fields, mac := decoded[:linkFieldCount], decoded[linkFieldCount]
 
 	if string(fields[0]) != linkVersion {
 		return LinkToken{}, nil, nil, fmt.Errorf("%w: version label", ErrLinkMalformed)
@@ -234,9 +219,47 @@ func parseLink(value string) (LinkToken, [][]byte, []byte, error) {
 	return tok, fields, mac, nil
 }
 
-// linkMACMatches reports whether mac is the link MAC of fields under
-// secret. An empty secret matches nothing, which is how an unconfigured
-// rotation overlap is absent rather than permissive.
+// Both credentials are the same shape on the wire, a run of
+// base64url-encoded fields joined by fieldSeparator with the MAC last,
+// and differ only in their field list and their domain-separation
+// label. The three functions below carry that shape for both, so the
+// encoder, the decoder, and the comparison can never drift apart
+// between the two.
+
+// encodeSigned renders fields and the MAC computed over them under
+// purpose.
+func encodeSigned(secret []byte, purpose string, fields [][]byte) string {
+	parts := make([]string, 0, len(fields)+1)
+	for _, field := range fields {
+		parts = append(parts, base64.RawURLEncoding.EncodeToString(field))
+	}
+	parts = append(parts, base64.RawURLEncoding.EncodeToString(sign(secret, purpose, fields...)))
+	return strings.Join(parts, fieldSeparator)
+}
+
+// splitSigned decodes value into count MAC-covered fields and the MAC
+// that follows them, authenticating none of them. malformed is the
+// caller's sentinel, so a refusal names the credential that was
+// malformed rather than a shared one.
+func splitSigned(value string, count int, malformed error) ([][]byte, []byte, error) {
+	parts := strings.Split(value, fieldSeparator)
+	if len(parts) != count+1 {
+		return nil, nil, fmt.Errorf("%w: field count", malformed)
+	}
+	decoded := make([][]byte, 0, len(parts))
+	for _, part := range parts {
+		raw, err := base64.RawURLEncoding.DecodeString(part)
+		if err != nil {
+			return nil, nil, fmt.Errorf("%w: field encoding", malformed)
+		}
+		decoded = append(decoded, raw)
+	}
+	return decoded[:count], decoded[count], nil
+}
+
+// macMatches reports whether mac is the MAC of fields under secret and
+// purpose. An empty secret matches nothing, which is how an
+// unconfigured rotation overlap is absent rather than permissive.
 //
 // The comparison is crypto/subtle.ConstantTimeCompare rather than
 // bytes.Equal because bytes.Equal returns at the first differing byte:
@@ -244,11 +267,11 @@ func parseLink(value string) (LinkToken, [][]byte, []byte, error) {
 // forged prefix matched, which turns forgery into a byte-at-a-time
 // search. No test in this suite can observe the difference; the call
 // itself is the guarantee.
-func linkMACMatches(secret []byte, fields [][]byte, mac []byte) bool {
+func macMatches(secret []byte, purpose string, fields [][]byte, mac []byte) bool {
 	if len(secret) == 0 {
 		return false
 	}
-	return subtle.ConstantTimeCompare(sign(secret, linkPurpose, fields...), mac) == 1
+	return subtle.ConstantTimeCompare(sign(secret, purpose, fields...), mac) == 1
 }
 
 // sign returns the HMAC-SHA256 of purpose and fields under secret.
