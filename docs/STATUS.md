@@ -60,8 +60,8 @@ so nothing resumes from it.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | LAUNCHING (8c, segment 1A; overnight window 2026-09-12, `plans/2026-09-12-overnight-window.md`) |
-| 2 | `.claude/worktrees/lane-2-5b` (branch `lane-2-5b`, created from `7ba3cc1`) | LAUNCHING (5b-i, segment 2A; same window) |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | RUNNING 8c segment 1A (run `wf_c808ec5e-1ba`): Task 1 accepted `9be7e43`; Task 2 `3a299ac`+`6de7d55` escalated on R6 (ruled: byte-splice fixture row, fix dispatch at the 1A boundary); Task 3 in flight. Window plan: `plans/2026-09-12-overnight-window.md` |
+| 2 | `.claude/worktrees/lane-2-5b` (branch `lane-2-5b`, created from `7ba3cc1`) | RUNNING 5b-i: segment 2A closed at `eddeadd` (Tasks 1-3 accepted, one fix round on Task 3, run `wf_61f3cf53-665`, 0.79M); simplifier round then segment 2B (Tasks 4-7) |
 
 Grant reading, flagged (overnight plan, G1): the twelve conductor-owed
 folds were ruled by recommendation on "then start" (Geoff, 2026-09-12
