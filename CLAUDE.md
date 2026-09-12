@@ -37,7 +37,9 @@ license-compatible library already does well. An adoption is judged on
 license, code quality against the house bar, maintenance (release
 cadence, open-issue age, bus factor), and adoption (importers, who
 depends on it), with the evidence recorded in the plan, never on
-familiarity alone.
+familiarity alone. **Refined (Geoff, 2026-09-12):** a 2.0 forward hook is
+named in the rung plan and built by the rung that first consumes it,
+and nothing is exported ahead of a caller.
 
 ## Ledgers
 
@@ -119,7 +121,11 @@ leg (the env template, the shadow unit, and `deploy.sh` name the same
 state directory).
 The `web/` leg rejoins at rung 7, when `web/` is rebuilt against the
 greenfield server. A check either gates or does not exist; never guard
-one with `command -v || skip`. Never commit red.
+one with `command -v || skip`. Never commit red. The process-citation leg
+(no rung, task, resolution, or plan-line citation in shipped Go comments)
+and the exported-unused leg (an exported `internal/` symbol whose only
+references are its own file and `_test.go` files) are staged: they warn
+today and gate at the comment-cleanup task.
 
 ## Stack rules (mandatory skills by area)
 
@@ -174,6 +180,11 @@ one with `command -v || skip`. Never commit red.
 `cloudflare-workers-reviewer` only in the pings repo. Uploader UI work
 additionally gates on the visual-fidelity chain (Navidrome reference
 screenshots, fresh-context `visual-verifier`, Geoff's before/after).
+At each pass's merge the conductor dispatches one `go-architecture-reader`
+per touched Go package, with no plan in context; it grades the package,
+which is the unit the per-task `diff-reviewer` cannot see. Every
+`code-simplifier` dispatch pastes `.claude/instructions/simplifier-brief.md`
+verbatim; the four decidable patterns it names replace a clarity brief.
 
 ## Facts agents get wrong
 
