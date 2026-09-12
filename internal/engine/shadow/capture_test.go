@@ -34,7 +34,7 @@ func writeAlbum(t *testing.T, dir, uploader, basename string, tracks []tagio.Tag
 
 	for i, ts := range tracks {
 		path := filepath.Join(albumDir, fmt.Sprintf("%02d.flac", i+1))
-		writeFixtureTrack(t, path, ts, 0o644)
+		writeFixtureTrack(t, path, ts)
 	}
 }
 
@@ -169,7 +169,7 @@ func TestCaptureDoesNotDescendIntoANestedDirectory(t *testing.T) {
 	nestedTrack := filepath.Join(nested, "01.flac")
 	writeFixtureTrack(t, nestedTrack, tagio.TagSet{
 		Albumartist: new("Thicket"), Album: new("Understory"), Title: new("One"), Track: new(1),
-	}, 0o644)
+	})
 
 	got, err := capture(dir, func(string) bool { return false }, passNow)
 	if err != nil {

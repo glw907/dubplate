@@ -9,7 +9,7 @@ import "github.com/glw907/dubplate/internal/engine/matcher"
 // The names are spelled here because matcher's own field-name constants
 // are unexported (info.go:156-176). Two decoders over one field bag
 // drift silently (info.go:148-150), so the round-trip test in
-// flac_test.go is what keeps these nineteen names in step with that
+// itembag_test.go is what keeps these nineteen names in step with that
 // table rather than a comment asking a reader to check.
 func itemBag(fields matcher.ItemFields) map[string]any {
 	return map[string]any{

@@ -107,7 +107,7 @@ func writeLibraryFile(t *testing.T, dir, name, albumID, title string) string {
 	path := filepath.Join(dir, name)
 	writeFixtureTrack(t, path, tagio.TagSet{
 		Album: new("Windrose"), Title: new(title), MBAlbumid: new(albumID),
-	}, 0o644)
+	})
 	return path
 }
 

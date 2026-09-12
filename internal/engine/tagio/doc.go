@@ -27,4 +27,14 @@
 // contract narrow; rung 9, the pipeline that first needs both, is the
 // caller that may fold the two calls into one if the cost is ever
 // worth removing.
+//
+// Tags is Read's tag projection exported over an already-parsed
+// Container, for a caller that wants a file's tags alongside a
+// Container field Read does not return, such as StreamInfo. Its first
+// caller is rung 4's shadow reader, which parses a file once for its
+// length and its tags rather than parsing it twice through Read and
+// Parse both (R1); that fold retires rung 8's own declared coverage
+// gap 4. Tags performs no I/O and adds no bypass of the seam
+// registry: Parse's own bypass (ruling, seam_test.go) is what a
+// caller of Tags still goes through.
 package tagio

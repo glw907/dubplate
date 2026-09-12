@@ -205,6 +205,7 @@ func TestProjectLastStyleRule(t *testing.T) {
 		{"barcode empty reads absent", []string{"BARCODE="}, TagSet{}},
 		{"barcode value reads back", []string{"BARCODE=0123456789012"}, TagSet{Barcode: new("0123456789012")}},
 		{"barcode empty falls through to its last read-only style", []string{"BARCODE=", "UPN=9"}, TagSet{Barcode: new("9")}},
+		{"barcode walks past two absent middle styles to a truthy one", []string{"EAN=E-1", "UPN=U-1"}, TagSet{Barcode: new("E-1")}},
 
 		{"comments empty in every style keeps the last style's empty value", []string{"DESCRIPTION=", "COMMENT="}, TagSet{Comments: new("")}},
 		{"comments empty in the first style alone reads absent", []string{"DESCRIPTION="}, TagSet{}},

@@ -183,6 +183,41 @@ func TestParseRefusals(t *testing.T) {
 			wantErr: ErrMalformedContainer,
 		},
 		{
+			name: "first block is not STREAMINFO",
+			data: func() []byte {
+				blocks := wellFormedBlocks()
+				blocks[0], blocks[1] = blocks[1], blocks[0]
+				return buildContainer(blocks, nil)
+			},
+			wantErr: ErrMalformedContainer,
+		},
+		{
+			name: "a second STREAMINFO block",
+			data: func() []byte {
+				blocks := wellFormedBlocks()
+				dup := testBlock{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 1000)}
+				blocks = append(blocks[:1], append([]testBlock{dup}, blocks[1:]...)...)
+				return buildContainer(blocks, nil)
+			},
+			wantErr: ErrMalformedContainer,
+		},
+		{
+			name: "no STREAMINFO block at all",
+			data: func() []byte {
+				return []byte(flacSignature)
+			},
+			wantErr: ErrMalformedContainer,
+		},
+		{
+			name: "comment carries no '='",
+			data: func() []byte {
+				blocks := wellFormedBlocks()
+				blocks[1].Payload = vorbisCommentPayload("tagio test", []string{"NOEQUALSIGN"})
+				return buildContainer(blocks, nil)
+			},
+			wantErr: ErrMalformedContainer,
+		},
+		{
 			name: "signature is not fLaC",
 			data: func() []byte {
 				data := buildContainer(wellFormedBlocks(), nil)
