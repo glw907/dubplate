@@ -163,7 +163,11 @@ func (e *EpochStore) notify(address string, epoch time.Time) {
 //
 // ruled, conductor 2026-09-12, A8 fold 1
 func (e *EpochStore) CheckSession(s Session) error {
-	epoch, ok, err := e.readNormalized(s.Address)
+	normalized, err := identity.NormalizeAddress(s.Address)
+	if err != nil {
+		return fmt.Errorf("check session epoch: %w", err)
+	}
+	epoch, ok, err := e.readNormalized(normalized)
 	if err != nil {
 		return err
 	}
@@ -187,7 +191,11 @@ func (e *EpochStore) CheckSession(s Session) error {
 //
 // ruled, conductor 2026-09-12, A8 fold 1
 func (e *EpochStore) CheckLink(tok LinkToken) error {
-	epoch, ok, err := e.readNormalized(tok.Address)
+	normalized, err := identity.NormalizeAddress(tok.Address)
+	if err != nil {
+		return fmt.Errorf("check link epoch: %w", err)
+	}
+	epoch, ok, err := e.readNormalized(normalized)
 	if err != nil {
 		return err
 	}

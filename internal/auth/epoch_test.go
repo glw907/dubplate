@@ -165,21 +165,34 @@ func TestCheckLink(t *testing.T) {
 	}
 }
 
-// TestCheckSessionNormalizesAddress proves the epoch check keys on the
-// normalized address rather than the wire value: a session whose
-// address differs only in case from the bumped address is still
-// refused. A raw-address key would silently fail to revoke it
-// (spec:2370-2376, risk 4).
+// TestCheckSessionNormalizesAddress proves the epoch check normalizes
+// its own key rather than trusting the credential's wire value: a
+// session is still refused whichever side of the bump/check pair
+// carries the mixed-case address. A check that keyed on the raw
+// address, either bumping normalized and checking mixed-case or the
+// reverse, would silently fail to revoke it (spec:2370-2376, risk 4).
 func TestCheckSessionNormalizesAddress(t *testing.T) {
-	stateDir := t.TempDir()
-	store := newEpochStore(t, stateDir)
-	if err := store.Bump("Member@Example.com", epochClock); err != nil {
-		t.Fatalf("Bump: %v", err)
+	tests := []struct {
+		name        string
+		bumpAddress string
+		sessAddress string
+	}{
+		{"bump mixed-case, check normalized", "Member@Example.com", "member@example.com"},
+		{"bump normalized, check mixed-case", "member@example.com", "Member@Example.com"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			store := newEpochStore(t, stateDir)
+			if err := store.Bump(tt.bumpAddress, epochClock); err != nil {
+				t.Fatalf("Bump: %v", err)
+			}
 
-	s := Session{Address: "member@example.com", AnchoredAt: epochClock.Add(-time.Minute)}
-	if err := store.CheckSession(s); !errors.Is(err, ErrSessionRevoked) {
-		t.Fatalf("CheckSession = %v, want ErrSessionRevoked", err)
+			s := Session{Address: tt.sessAddress, AnchoredAt: epochClock.Add(-time.Minute)}
+			if err := store.CheckSession(s); !errors.Is(err, ErrSessionRevoked) {
+				t.Fatalf("CheckSession = %v, want ErrSessionRevoked", err)
+			}
+		})
 	}
 }
 
