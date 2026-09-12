@@ -35,6 +35,12 @@ func readFLAC(path string) (matcher.ItemFields, error) {
 // [matcher.ProjectItemFields]'s own typed-default rule: an absent
 // tagio member takes its Go zero value.
 //
+// The projection itself stays in shadow rather than moving into tagio
+// with the rest of the container knowledge: its output type is
+// matcher.ItemFields, and ruling 3 (plan
+// docs/superpowers/plans/2026-09-08-rung-8c-absorb-repoint.md:364,
+// :641-643) forbids tagio naming that type.
+//
 // DataSource has no row: a grep of pinned mediafile for data_source
 // returns nothing, since beets keeps it as a database flexible
 // attribute rather than in the file, so an inbox file always projects
@@ -42,24 +48,24 @@ func readFLAC(path string) (matcher.ItemFields, error) {
 // models (info.go:115-123).
 func projectItemFields(ts tagio.TagSet, info tagio.StreamInfo) matcher.ItemFields {
 	return matcher.ItemFields{
-		Title:         stringVal(ts.Title),
-		Artist:        stringVal(ts.Artist),
-		Album:         stringVal(ts.Album),
-		AlbumArtist:   stringVal(ts.Albumartist),
-		Track:         intVal(ts.Track),
-		Disc:          intVal(ts.Disc),
-		DiscTotal:     intVal(ts.Disctotal),
-		Comp:          boolVal(ts.Comp),
-		Label:         stringVal(ts.Label),
-		CatalogNum:    stringVal(ts.Catalognum),
-		Barcode:       stringVal(ts.Barcode),
-		Country:       stringVal(ts.Country),
-		Media:         stringVal(ts.Media),
-		AlbumDisambig: stringVal(ts.Albumdisambig),
-		MBTrackID:     stringVal(ts.MBTrackid),
-		MBAlbumID:     stringVal(ts.MBAlbumid),
-		Year:          intVal(ts.Year),
-		Length:        trackLength(info),
+		Title:         stringVal(ts.Title),         // mediafile:392
+		Artist:        stringVal(ts.Artist),        // mediafile:398
+		Album:         stringVal(ts.Album),         // mediafile:410
+		AlbumArtist:   stringVal(ts.Albumartist),   // mediafile:542-544
+		Track:         intVal(ts.Track),            // mediafile:463-464
+		Disc:          intVal(ts.Disc),             // mediafile:480-481
+		DiscTotal:     intVal(ts.Disctotal),        // mediafile:488-490
+		Comp:          boolVal(ts.Comp),            // mediafile:535
+		Label:         stringVal(ts.Label),         // mediafile:574-575
+		CatalogNum:    stringVal(ts.Catalognum),    // mediafile:604-606
+		Barcode:       stringVal(ts.Barcode),       // mediafile:616-620
+		Country:       stringVal(ts.Country),       // mediafile:659
+		Media:         stringVal(ts.Media),         // mediafile:673
+		AlbumDisambig: stringVal(ts.Albumdisambig), // mediafile:680
+		MBTrackID:     stringVal(ts.MBTrackid),     // mediafile:764
+		MBAlbumID:     stringVal(ts.MBAlbumid),     // mediafile:782
+		Year:          intVal(ts.Year),             // mediafile:685-693
+		Length:        trackLength(info),           // mediafile:892-895
 	}
 }
 
