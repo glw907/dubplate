@@ -388,19 +388,19 @@ erratum, in the shape the 8a-close and 8b-close errata used. See the
 diff for the exact inserted text; summarized here:
 
 1. **The five-tests sentence** (spec's pass-split table's 8c row,
-   `spec:1225`) is corrected to R2's seven-row destination table,
+   `spec:1226`) is corrected to R2's seven-row destination table,
    naming why two of the five stay in `shadow` (their subject is
    `matcher.ItemFields`, and ruling 3 forbids `tagio` naming that
    type).
 2. **The reference-count sentence** ("What the absorption costs,"
-   `spec:1035`) is corrected: the paragraph named six references
+   `spec:1036`) is corrected: the paragraph named six references
    (three call sites, two prose mentions, the reader's own doc
    comment). Under R7 two of the three call sites and both prose
    mentions need no edit, because `readFLAC` keeps its name.
    **`itembag.go:11-13` is a seventh reference the spec never named**,
    and it is the one this pass actually edits (its pointer at the
    deleted `flac_test.go` repointed to `itembag_test.go`).
-3. **The ceiling table's 8c line** (`spec:1271`, "Propose 4M for 8a, 3M
+3. **The ceiling table's 8c line** (`spec:1272`, "Propose 4M for 8a, 3M
    for 8b, and 1M for 8c," and the 8b-close erratum's restatement at
    `spec:85`) is corrected from 1M to this plan's 2.1M, re-derived from
    8b's actual under the spec's own re-derivation clause. Rung 8's
@@ -408,7 +408,7 @@ diff for the exact inserted text; summarized here:
    4.5M (8a) plus 3.25M (8b) plus 2.1M (8c). 8c's actual spend is
    stated in this entry's own spend section.
 4. **The read-path strictness section** ("The read path's strictness
-   is a deliberate change, and 8c owns it," `spec:1069`) is corrected
+   is a deliberate change, and 8c owns it," `spec:1070`) is corrected
    against Task 3's enumeration: the spec's own prose named the
    tightening only in general terms ("a real inbox FLAC with two
    VORBIS_COMMENT blocks or an out-of-order STREAMINFO"); the landed
