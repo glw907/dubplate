@@ -3,8 +3,8 @@
 Written by Task 4 of
 `docs/superpowers/plans/2026-09-08-rung-8c-absorb-repoint.md`. The
 implementer never edits `docs/HISTORY.md`; the conductor prepends this
-entry (newest-first) and folds the ROADMAP text from
-`draft-STATUS-8c.md`.
+entry (newest-first). This draft also carries the proposed
+`ROADMAP.md` text, below.
 
 ---
 
@@ -387,26 +387,28 @@ Applied directly to
 erratum, in the shape the 8a-close and 8b-close errata used. See the
 diff for the exact inserted text; summarized here:
 
-1. **The five-tests sentence** (spec's pass-split table, 8a-close/8b-
-   close resolved offset: line ~1011) is corrected to R2's
-   seven-row destination table, naming why two of the five stay in
-   `shadow` (their subject is `matcher.ItemFields`, and ruling 3
-   forbids `tagio` naming that type).
-2. **The reference-count sentence** (line ~994) is corrected: the
-   paragraph named six references (three call sites, two prose
-   mentions, the reader's own doc comment). Under R7 two of the three
-   call sites and both prose mentions need no edit, because `readFLAC`
-   keeps its name. **`itembag.go:11-13` is a seventh reference the
-   spec never named**, and it is the one this pass actually edits (its
-   pointer at the deleted `flac_test.go` repointed to `itembag_test.go`).
-3. **The ceiling table's 8c line** (line ~1230, and the 8b-close
-   erratum's restatement at line 85) is corrected from 1M to this
-   plan's 2.1M, re-derived from 8b's actual under the spec's own
-   re-derivation clause. Rung 8's ceilings now stand at **9.85M**
-   against the spec's 8M reservation: 4.5M (8a) plus 3.25M (8b) plus
-   2.1M (8c). 8c's actual spend is stated in this entry's own spend
-   section.
-4. **The read-path strictness section** (line ~1028-1049) is corrected
+1. **The five-tests sentence** (spec's pass-split table's 8c row,
+   `spec:1225`) is corrected to R2's seven-row destination table,
+   naming why two of the five stay in `shadow` (their subject is
+   `matcher.ItemFields`, and ruling 3 forbids `tagio` naming that
+   type).
+2. **The reference-count sentence** ("What the absorption costs,"
+   `spec:1035`) is corrected: the paragraph named six references
+   (three call sites, two prose mentions, the reader's own doc
+   comment). Under R7 two of the three call sites and both prose
+   mentions need no edit, because `readFLAC` keeps its name.
+   **`itembag.go:11-13` is a seventh reference the spec never named**,
+   and it is the one this pass actually edits (its pointer at the
+   deleted `flac_test.go` repointed to `itembag_test.go`).
+3. **The ceiling table's 8c line** (`spec:1271`, "Propose 4M for 8a, 3M
+   for 8b, and 1M for 8c," and the 8b-close erratum's restatement at
+   `spec:85`) is corrected from 1M to this plan's 2.1M, re-derived from
+   8b's actual under the spec's own re-derivation clause. Rung 8's
+   ceilings now stand at **9.85M** against the spec's 8M reservation:
+   4.5M (8a) plus 3.25M (8b) plus 2.1M (8c). 8c's actual spend is
+   stated in this entry's own spend section.
+4. **The read-path strictness section** ("The read path's strictness
+   is a deliberate change, and 8c owns it," `spec:1069`) is corrected
    against Task 3's enumeration: the spec's own prose named the
    tightening only in general terms ("a real inbox FLAC with two
    VORBIS_COMMENT blocks or an out-of-order STREAMINFO"); the landed
@@ -428,18 +430,47 @@ repoint), `internal/engine/tagio` born and now the sole holder of FLAC
 container knowledge in the repo, `internal/engine/shadow` repointed to
 it with the tightening asserted rather than discovered.
 
-**The four owner rulings**: owner ruling 2 (the wazero-taglib spike
-retired, F1 superseded) — discharged at 8a's close. Owner ruling 5
-(fork B, the format ladder) — discharged: Geoff ruled 2026-09-08,
-FLAC-only 1.0, format ladder at 1.1 (`ROADMAP:formats-1-1`). Two more
-owner rulings this rung carried from its own spec's ratification are
-recorded in that spec's own errata section and are not re-litigated
-here.
+**The five owner rulings** (`spec:209-247`): ruling 1 (FLAC only at
+rung 8, the per-format seam shaped for later passes) — discharged at
+8a's close, the seam ruling 14 describes landed there. Ruling 2 (the
+wazero-taglib spike retired, F1 superseded) — discharged at 8a's
+close. Ruling 3 (the writer writes and strips the PICTURE front cover
+at launch) — discharged at 8b's close. Ruling 4 (ID3v2.4 recorded as
+the future MP3 version, no ID3 written at rung 8) — carried;
+rung 8 writes no ID3, so nothing exercises the ruling yet, and it
+stays recorded for whichever pass lands MP3 writing. Ruling 5 (fork B,
+the format ladder) — discharged: Geoff ruled 2026-09-08, FLAC-only
+1.0, format ladder at 1.1 (`ROADMAP:formats-1-1`).
 
-**The fourteen conductor rulings**: this pass alone carried three
-(R1, R2, R4 item 2, all ruled 2026-09-12, above); the rest belong to
-8a and 8b's own close entries and are not restated here, each
-discharged or carried per that entry's own resolutions section.
+**The fourteen conductor rulings** (`spec:303-400`), one status each:
+1 (the sixteen ledger-silent keys and every corpus-unreachable case) —
+discharged at 8a's close. 2 (an applied-field disagreement routes into
+`corpus/analysis/adjudications.json`) — discharged at 8a's close.
+3 (`tagio` does not depend on `matcher`) — discharged this pass: the
+eighteen-row `ItemFields` projection stays in `shadow`, and the same
+ruling is the stated reason Task 2's projection test does not move to
+`tagio`. 4 (`buildFLAC` does not survive) — discharged this pass:
+deleted with `flac.go` in Task 2. 5 (full rewrite only at launch, one
+PADDING block per write) — discharged at 8a's close. 6 (8 KiB PADDING
+reservation) — discharged at 8a's close. 7 (unknown blocks preserved
+unconditionally) — discharged at 8a's close. 8 (the frame region is
+the content hash's extent) — carried; no rung 8 task computes a
+content hash, so the ruling stays a forward hook for rung 6/rung 7.
+9 (the writer refuses a container it did not fully understand) —
+discharged at 8a's close for the writer, and discharged again this
+pass for the reader: Task 3 asserts `shadow`'s capture applies the
+same refusal set. 10 (field names and values follow RFC 9639 plus
+beets; invalid UTF-8 replaced with U+FFFD on read) — discharged at 8a's
+close, and this pass's R6 fix (`spliceInvalidUTF8TitleByte`,
+`TestReadFLACProjectsInvalidUTF8AsReplacementChar`) carries the same
+rule through `shadow`'s own projection test. 11 (`internal/atomicfile`
+grows a streaming write in pass 8a) — discharged at 8a's close.
+12 (the streaming write fsyncs the containing directory) — discharged
+at 8a's close. 13 (rung 8 declares no configuration key) — discharged
+at 8a's close; this pass declares none either. 14 (the seam is a
+registry keyed by container, one entry, no interface) — discharged at
+8a's close; this pass's R1 keeps `shadow`'s read path off that
+registry by deliberate choice, not by reopening the ruling.
 
 **Hooks 13, 14, and 3**: hooks 13 and 14 landed at 8a (the writer core
 and the 69-key value model, per 8a's own close entry). Hook 3 landed
@@ -532,3 +563,29 @@ rather than a new writer bypass. R4's denominator is unread, not
 zero-valued: a later pass reading `docs/STATUS.md`'s carried-gap count
 should not treat "zero known exclusions" as "zero exclusions
 happened."
+
+### ROADMAP.md text
+
+`ROADMAP.md` carries no per-rung ledger of its own; the greenfield
+section's only rung-specific sentence is the original, long-stale
+"Rung 1 ... landed 2026-09-02. Next: rung 2's plan (corpus and
+harness)" (line 33), never updated since rung 1 closed. Rung 8's
+closure does not, by itself, justify rewriting that whole sentence's
+history — `docs/STATUS.md` and `docs/HISTORY.md` are where per-rung
+state actually lives — but the acceptance criterion asks for rung 8's
+entry to read as closed and the next rung's entry to read as the
+queue's next item, so the smallest correction that satisfies it:
+
+> Rung 1 (foundation) through rung 8 (tag I/O: the writer core and
+> reader, PICTURE and the conformance instrument, and the shadow's
+> absorption and repoint) are landed, alongside rung 4 (the shadow),
+> rung 1b, rung 3, and rung 5's pass 5a. Next: rung 5's pass 5b
+> (identity, auth, config contract, session, roster, notify).
+
+**Decision the plan did not cover**: `ROADMAP.md`'s rung-tracking
+granularity does not match a "one entry per rung" structure, so this
+draft proposes replacing the single stale sentence rather than
+inventing a new per-rung entry format. The conductor may prefer to
+leave `ROADMAP.md`'s coarse-grained sentence alone entirely and let
+`docs/STATUS.md`/`docs/HISTORY.md` carry rung-level state, in which
+case this section is skippable.

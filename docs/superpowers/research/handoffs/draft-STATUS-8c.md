@@ -36,33 +36,6 @@ whatever it displaces to `docs/HISTORY.md`.
   STREAMINFO off one `tagio.Parse`, and it inherits the `io.ReaderAt`
   gap (R5) as its own decision, not one rung 8 deferred silently.
 
-## ROADMAP.md text (per the LEDGER OVERRIDE, folded here rather than
-## edited directly)
-
-ROADMAP.md carries no per-rung ledger of its own; the greenfield
-section's only rung-specific sentence is the original, long-stale
-"Rung 1 ... landed 2026-09-02. Next: rung 2's plan (corpus and
-harness)" (line 33), never updated since rung 1 closed. Rung 8's
-closure does not, by itself, justify rewriting that whole sentence's
-history — `docs/STATUS.md` and `docs/HISTORY.md` are where per-rung
-state actually lives — but the acceptance criterion asks for rung 8's
-entry to read as closed and the next rung's entry to read as the
-queue's next item, so the smallest correction that satisfies it:
-
-> Rung 1 (foundation) through rung 8 (tag I/O: the writer core and
-> reader, PICTURE and the conformance instrument, and the shadow's
-> absorption and repoint) are landed, alongside rung 4 (the shadow),
-> rung 1b, rung 3, and rung 5's pass 5a. Next: rung 5's pass 5b
-> (identity, auth, config contract, session, roster, notify).
-
-**Decision the plan did not cover**: ROADMAP.md's rung-tracking
-granularity does not match a "one entry per rung" structure, so this
-draft proposes replacing the single stale sentence rather than
-inventing a new per-rung entry format. The conductor may prefer to
-leave ROADMAP's coarse-grained sentence alone entirely and let
-STATUS/HISTORY carry rung-level state, in which case this section is
-skippable.
-
 ## Budget line for STATUS's spend-to-date sentence
 
 8c's own spend, from this run's journal
