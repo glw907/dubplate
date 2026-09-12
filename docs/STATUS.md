@@ -46,7 +46,7 @@ folds were ruled by recommendation on "then start" (Geoff, 2026-09-12
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED. 8c landed on master (runs `wf_c808ec5e-1ba` then `wf_5d503f3a-ebd`); rung 8 closed in full. Awaiting the conductor's next dispatch |
-| 2 | `.claude/worktrees/lane-2-5b` (branch `lane-2-5b`, created from `7ba3cc1`) | RUNNING 5b-i: segment 2A closed at `eddeadd` (Tasks 1-3 accepted, one fix round on Task 3, run `wf_61f3cf53-665`, 0.79M); simplifier round then segment 2B (Tasks 4-7), run `wf_769302f4-cef` |
+| 2 | `.claude/worktrees/lane-2-5b` (branch `lane-2-5b`, created from `7ba3cc1`) | RUNNING 5b-i: segments 2A (`wf_61f3cf53-665`, Tasks 1-3, closed `eddeadd`+`52b6a20`) and 2B (`wf_769302f4-cef`, Tasks 4-7 all accepted, closed `ad6cb0c`) done; simplifier round then segment 2C (Tasks 8-10), then the merge ritual |
 
 ## Open items (carried)
 
