@@ -21,8 +21,13 @@ group system is not live.
 
 ## Next action
 
-Session closed 2026-09-08 evening on Geoff's wind-down (weekly budget
-routed to cairn); resume at the weekend. Both next plans are drafted,
+Session 2026-09-11/12 was a design sitting, not a lane: the
+configuration homes spec landed at revision 3 (`07f4e01`,
+`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`),
+ratified in conversation and awaiting Geoff's read of the file; its
+routed tasks are in the carried list below and its errata are in the
+ratified docs. No code moved. The lane plan is unchanged: both next
+plans are drafted,
 reviewed, folded to revision 2, and committed at `5377d9f`, unruled:
 
 - `docs/superpowers/plans/2026-09-08-rung-5b-auth-core.md` (pass

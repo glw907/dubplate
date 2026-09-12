@@ -2,6 +2,27 @@
 
 Per-pass ledger, newest first.
 
+## Configuration homes spec: design sitting, 2026-09-11 to 2026-09-12
+
+Not a pass. One brainstorm sitting with Geoff produced
+`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
+(revision 1 at `5e4feef`, revision 3 at `07f4e01`), settling the four
+homes (env wall, store settings, member preferences, machine file),
+collections carrying writer, owner, and visibility, and the four attach
+verbs. Five fresh-context `claude-opus-5` reviews shaped revisions 2
+and 3 (records under `research/2026-09-11-configuration-homes-review-*`),
+and Geoff ruled eight points, all dated in the spec. What a later pass
+would be wrong to rediscover: the layout template is a filesystem-write
+primitive and must be a closed grammar yielding path components; a
+mirror push is untrusted input the server recomputes; identity is an
+audio key computed by decode (encoders zero the header MD5) with a
+separate file hash for drift; hardlink sharing needs the break-link
+rule because beets writes in place; and settings read by other systemd
+units cannot live in the store. Two register-review passes caught
+invented external facts and cross-section contradictions, which is why
+that pass stays on specs once per revision (memory
+`spec-prose-review-rule`).
+
 ## Rung 5, pass 5a (the serve shell and ingress): closed 2026-09-08, lane 2
 
 Executed against
