@@ -29,9 +29,11 @@ shadow record, layout parity. Old code is salvage tier, frozen at the
 `pre-greenfield` tag under `_salvage/`. Server before TUI is a hard
 boundary: the organizer spec's rung 10 (two-binary split, local TUI) and
 the remote-TUI half of its rung 11 move past launch, unscheduled on the
-new ladder. Rung 1 (foundation: the repo pivot, the config core,
-`check`/`doctor` scaffolds) landed 2026-09-02. Next: rung 2's plan
-(corpus and harness).
+new ladder. Rung 1 (foundation) through rung 8 (tag I/O: the writer
+core and reader, PICTURE and the conformance instrument, and the
+shadow's absorption and repoint) are landed, alongside rung 4 (the
+shadow), rung 1b, rung 3, and rung 5's pass 5a. Next: rung 5's pass 5b
+(identity, auth, config contract, session, roster, notify).
 
 Folded from the organizer spec's "Roadmap revisions this spec carries"
 (2026-09-01-dubplate-organizer-design.md):
