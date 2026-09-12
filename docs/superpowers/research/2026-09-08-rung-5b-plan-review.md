@@ -73,7 +73,7 @@ invocation (`scripts/check.sh:110`, `gitleaks detect --no-git -s .
 rule needs both halves, and either half alone is enough to stay clean.
 `const testSecret = "dubplate-test-magic-link-secret-not-a-real-key-0123456789"`
 reports "no leaks found", because the value's entropy does not clear the
-threshold. `const linkSecret = "0123456789abcdef0123456789abcdef0123456789abcdef"`
+threshold. `const linkSecret = "<48 hex digits>"` (the literal is not reproduced here because quoting it trips the gate)
 fires generic-api-key. `const goldenVector = "<180-char base64>"` is
 clean and the same literal named `goldenToken` fires at entropy 5.17;
 `wantEncoded`, `nonceDigest` and `goldenSessionCookie` are clean, while
@@ -551,7 +551,7 @@ named `goldenVector`, `wantEncoded`, `nonceDigest` or
 `goldenSessionCookie` reports "no leaks found". A low-entropy value stays
 clean under any name: `const testSecret =
 "dubplate-test-magic-link-secret-not-a-real-key-0123456789"` is clean,
-while `const linkSecret = "0123456789abcdef0123456789abcdef..."` fires.
+while `const linkSecret = "<48 hex digits>"` fires.
 `check.sh:104-109` records the mechanism and the precedent in the gate
 itself: "The generic-api-key rule fires only when a key-like field name
 sits on the same line as a value whose entropy clears its threshold ...
