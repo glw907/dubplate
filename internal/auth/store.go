@@ -50,13 +50,20 @@ type Store struct {
 // Open creates the leaf and both record subdirectories under stateDir
 // if they do not already exist, and returns a Store rooted there.
 func Open(stateDir string) (*Store, error) {
-	root := StoreDir(stateDir)
+	s := &Store{root: StoreDir(stateDir)}
 	for _, sub := range []string{nonceSubdir, epochSubdir} {
-		if err := os.MkdirAll(filepath.Join(root, sub), dirPerm); err != nil {
+		if err := os.MkdirAll(s.subdir(sub), dirPerm); err != nil {
 			return nil, fmt.Errorf("open auth store: create %s: %w", sub, err)
 		}
 	}
-	return &Store{root: root}, nil
+	return s, nil
+}
+
+// subdir returns the path of one of the store's record subdirectories.
+// It is the one place the leaf and a subdirectory become a directory
+// path, so no caller reaches for the root field to build one.
+func (s *Store) subdir(sub string) string {
+	return filepath.Join(s.root, sub)
 }
 
 // NoncePath and EpochPath return the record path for id inside the

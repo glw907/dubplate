@@ -124,6 +124,10 @@ func TestFailedMACNeverReachesNonceStore(t *testing.T) {
 	if !errors.Is(err, ErrLinkMAC) {
 		t.Fatalf("VerifyLink error = %v, want ErrLinkMAC", err)
 	}
+	// This branch never runs: the Fatalf above has already ended the
+	// test on the only error VerifyLink can return here. It stands as
+	// the compiled statement of the order, so a change to either
+	// signature breaks this test rather than the prose.
 	if err == nil {
 		if err := nonces.Insert(tok.Nonce, nonceClock); err != nil {
 			t.Fatalf("Insert: %v", err)

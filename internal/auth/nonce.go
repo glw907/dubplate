@@ -80,7 +80,7 @@ type NonceSweep struct {
 func OpenNonceStore(store *Store, retention time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
 		store:     store,
-		dir:       filepath.Join(store.root, nonceSubdir),
+		dir:       store.subdir(nonceSubdir),
 		retention: retention,
 	}
 	sweep, err := s.Sweep(now)
@@ -165,6 +165,14 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 				continue
 			}
 		case err != nil:
+			// The collected error wraps an *fs.PathError
+			// naming the record file. That name is the
+			// SHA-256 digest of the nonce, never the nonce,
+			// so a sweep failure is loggable without
+			// carrying a credential. The refusal path, which
+			// runs on a live authentication attempt, holds
+			// the stricter rule and names no value at all
+			// (TestNonceErrorsCarryNoNonceValue).
 			errs = append(errs, err)
 			continue
 		case !now.After(expiresAt):
