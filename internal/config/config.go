@@ -3,7 +3,7 @@
 // loudly at [Load], never silently borrowing a value from someone else's
 // deployment.
 //
-// Every DUBPLATE_* name falls into exactly one of five classes, and
+// Every DUBPLATE_* name falls into exactly one of six classes, and
 // [Load] enforces the classification rather than merely reading values:
 //
 //  1. Owned, required now: DUBPLATE_LIBRARY_ROOT, DUBPLATE_STATE_DIR,
@@ -36,23 +36,40 @@
 //     server drops outright (the estate's beets and contributor-file
 //     config, the Cloudflare Tunnel credential compose.yaml reads
 //     directly), naming that it retired with no successor.
-//  5. Unknown: any other DUBPLATE_* name. This is the compat
+//  5. Declared by an identity source: the selector naming the active
+//     source, or a key one of the registry's identity sources
+//     requires or accepts. The selected source's required keys are
+//     required at [Load] and its optional keys are read when set,
+//     while an unselected source's keys are accepted and never read,
+//     so an adopter can keep a second source's configuration in place
+//     and switch between them by one value. See
+//     [Registry.IdentitySources] for the exact membership; the owning
+//     package registers its own source.
+//  6. Unknown: any other DUBPLATE_* name. This is the compat
 //     discipline evolution lesson U5 draws from beets 2.4.0's silent
 //     plugin-list regression: an unrecognized key refuses the start
 //     rather than degrading it.
 //
+// A behavior tunable a rung registers as a [Threshold] is the one
+// declared name outside those six: rejectNamespace accepts it because
+// the rung that uses it declared it, and it resolves at its point of
+// use rather than at Load. [thresholdOf]'s "fifth classification"
+// counts the lookups rejectNamespace consults, not the classes
+// numbered here.
+//
 // Every declaration above -- the owned wall, the reserved classes, the
-// adopter-optional integrations, the superseded names, plus the
-// behavior tunables a rung registers as it lands -- lives in one
-// [Registry] a caller assembles and passes to [Load]. [NewRegistry]
-// returns a registry already seeded with rung 1's own rows; rung 1
-// registers no threshold.
+// adopter-optional integrations, the identity sources, the superseded
+// names, plus the behavior tunables a rung registers as it lands --
+// lives in one [Registry] a caller assembles and passes to [Load].
+// [NewRegistry] returns a registry already seeded with rung 1's own
+// rows; rung 1 registers no threshold and no identity source.
 package config
 
 import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -64,8 +81,11 @@ import (
 var ErrMissing = errors.New("required setting unset")
 
 // Config is the resolved configuration of one dubplate-server process.
-// Rung 1 carries the owned wall only; the identity-source selector
-// joins its fields at its own rung. An enabled integration class's
+// Rung 1 carries the owned wall only; the active identity source joins
+// its fields as IdentitySource once a rung declares one, and that
+// source's own resolved values are reachable by key through
+// [Config.IdentitySourceValue] rather than a named field per source.
+// An enabled integration class's
 // resolved Required values are reachable by class name through
 // [Config.IntegrationEnabled] and [Config.IntegrationValue] rather than
 // a named field per class, so a second integration class needs no
@@ -80,10 +100,21 @@ type Config struct {
 	// every caller to do it.
 	AdminEmail string
 
+	// IdentitySource is the Name of the identity source the selector
+	// selected. It is empty when the registry declares no source, and
+	// when the selector names none of the declared ones, which Load
+	// reports as an error rather than resolving.
+	IdentitySource string
+
 	// integrations holds every integration class's resolved state,
 	// keyed by class Name. It is populated for every class Load reads
 	// off reg, whether or not its flag resolved true.
 	integrations map[string]integrationResolution
+
+	// sourceValues holds the active identity source's resolved
+	// Required and Optional values by key, with no entry for a key
+	// that resolved unset.
+	sourceValues map[string]string
 }
 
 // integrationResolution is one integration class's resolved state:
@@ -112,6 +143,17 @@ func (c *Config) IntegrationValue(className, key string) string {
 	return c.integrations[className].Required[key]
 }
 
+// IdentitySourceValue returns the resolved value of key, one of the
+// active identity source's Required or Optional rows, as Load resolved
+// it. It returns the empty string for an unset key, for a key the
+// active source does not declare, and for a Config whose registry
+// declared no source. Keying by name rather than adding a field per
+// source is [Config.IntegrationValue]'s own precedent: a second source
+// needs no second field.
+func (c *Config) IdentitySourceValue(key string) string {
+	return c.sourceValues[key]
+}
+
 // wall indexes one environment snapshot and accumulates load errors. It
 // is the single choke point this package reads the environment through:
 // get owns the duplicate-key (last wins), empty-equals-unset, and
@@ -120,6 +162,11 @@ func (c *Config) IntegrationValue(className, key string) string {
 type wall struct {
 	env  map[string]string
 	errs []error
+	// missing records the names require has already flagged, so a name
+	// required twice is reported once. The identity selector is the
+	// case: it is an owned wall row and the source family's selector
+	// both, and an adopter who left it unset should read one line.
+	missing map[string]bool
 }
 
 // newWall indexes environ (os.Environ() form) into a wall, later
@@ -133,7 +180,7 @@ func newWall(environ []string) *wall {
 		}
 		env[name] = value
 	}
-	return &wall{env: env}
+	return &wall{env: env, missing: make(map[string]bool)}
 }
 
 // get returns name's value, treating an empty value as unset.
@@ -149,7 +196,8 @@ func (w *wall) get(name string) (string, bool) {
 // when it is unset.
 func (w *wall) require(name string) string {
 	v, ok := w.get(name)
-	if !ok {
+	if !ok && !w.missing[name] {
+		w.missing[name] = true
 		w.errs = append(w.errs, fmt.Errorf("%s: %w", name, ErrMissing))
 	}
 	return v
@@ -227,6 +275,13 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			w.errs = append(w.errs, fmt.Errorf("%s: %s", name, msg))
 			continue
 		}
+		if identitySourceKey(reg, name) {
+			// A declared source's key is declared whether or not its
+			// source is the selected one, so an adopter who keeps a
+			// second source's configuration in place is not told it is
+			// unknown.
+			continue
+		}
 		if thresholdOf(reg, name) {
 			// A registered threshold is a declared name whose own
 			// Parse* call resolves and validates it at the point of
@@ -238,11 +293,59 @@ func (w *wall) rejectNamespace(reg *Registry) {
 	}
 }
 
+// resolveIdentitySource requires the selector the declared sources
+// share, resolves the selected source's keys, and runs that source's
+// validation hook, recording every failure on w. It returns the
+// selected source's name and its resolved values, both zero when the
+// selector is unset or names no declared source.
+func (w *wall) resolveIdentitySource(sources []IdentitySource, environ []string) (string, map[string]string) {
+	selector := sources[0].Selector
+	name := w.require(selector)
+	if name == "" {
+		return "", nil
+	}
+
+	i := slices.IndexFunc(sources, func(s IdentitySource) bool { return s.Name == name })
+	if i < 0 {
+		declared := make([]string, len(sources))
+		for j, s := range sources {
+			declared[j] = s.Name
+		}
+		w.errs = append(w.errs, fmt.Errorf("%s: unknown identity source %q, want one of %s", selector, name, strings.Join(declared, ", ")))
+		return "", nil
+	}
+
+	src := sources[i]
+	values := make(map[string]string, len(src.Required)+len(src.Optional))
+	for _, key := range src.Required {
+		if v := w.require(key); v != "" {
+			values[key] = v
+		}
+	}
+	for _, key := range src.Optional {
+		if v, ok := w.get(key); ok {
+			values[key] = v
+		}
+	}
+	if src.Validate != nil {
+		if err := src.Validate(values, environ); err != nil {
+			w.errs = append(w.errs, err)
+		}
+	}
+	return src.Name, values
+}
+
 // Load resolves [Config] from environ (os.Environ() form), enforced
 // against reg. It reads only DUBPLATE_-prefixed keys and returns an
 // error naming every problem at once, rather than stopping at the
-// first one: every unset owned row, every reserved or superseded key
-// set before its rung, and every unrecognized DUBPLATE_* key.
+// first one: every unset owned row, every unsatisfied row of the
+// selected identity source, every reserved or superseded key set
+// before its rung, and every unrecognized DUBPLATE_* key.
+//
+// What Load requires comes from reg, never from a name written here: a
+// rung that registers an owned-now wall row or an identity source from
+// its own file gets the requirement from the registration
+// (Resolution R-5b4).
 //
 // ruled, conductor 2026-09-07, R1
 func Load(environ []string, reg *Registry) (*Config, error) {
@@ -254,6 +357,17 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 		SiteName:     w.require("DUBPLATE_SITE_NAME"),
 		AdminEmail:   w.requireEmail("DUBPLATE_ADMIN_EMAIL"),
 		integrations: make(map[string]integrationResolution, len(reg.integrationClasses)),
+	}
+
+	// The four rows above are rung 1's own and resolve into named
+	// fields; every owned-now row any rung registered is required
+	// here, whatever package declared it. require reports a name once
+	// however many times it is called for, so the four do not report
+	// twice.
+	for _, row := range reg.ownedWall {
+		if row.Pending == "" {
+			w.require(row.Name)
+		}
 	}
 
 	// Every enabled class's Required keys resolve here, generically, by
@@ -276,6 +390,12 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 			}
 		}
 		cfg.integrations[class.Name] = resolution
+	}
+
+	// With no source declared nothing here runs, which is what leaves
+	// the selector unrequired for a registry that declares none.
+	if len(reg.identitySources) > 0 {
+		cfg.IdentitySource, cfg.sourceValues = w.resolveIdentitySource(reg.identitySources, environ)
 	}
 
 	w.rejectNamespace(reg)

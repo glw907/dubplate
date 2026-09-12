@@ -145,7 +145,9 @@ func TestDoctorCmd(t *testing.T) {
 // in turn, on scratch DUBPLATE_TEST_SCRATCH_* names, proving each
 // addition costs exactly one doctor line, printed in that family's own
 // block: one per owned wall row, one per reserved class regardless of
-// its key count, one per integration class, one per threshold.
+// its key count, one per integration class, one per threshold, and one
+// per declared identity source regardless of how many keys that source
+// requires.
 //
 // ruled, conductor 2026-09-07, R10
 func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
@@ -156,10 +158,11 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	reservedCount := len(reg.ReservedClasses())
 	integrationCount := len(reg.IntegrationClasses())
 	thresholdCount := len(reg.Thresholds())
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount
+	sourceCount := len(reg.IdentitySources())
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount
 	if len(lines) != wantTotal {
-		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d)",
-			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount)
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d)",
+			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
 	}
 
 	// Owned wall: one line per declared row.
@@ -221,6 +224,96 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 	if got, wantPrefix := lines[ownedCount+reservedCount+integrationCount+thresholdCount-1], "DUBPLATE_TEST_SCRATCH_THRESH"; !strings.HasPrefix(got, wantPrefix) {
 		t.Errorf("threshold block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
+	}
+
+	// Identity sources: one line per declared source, whatever its key
+	// count. Without this block the family passes the two assertions
+	// above vacuously, because a fresh registry declares no source.
+	reg.AddIdentitySource(config.IdentitySource{
+		Name:     "scratch source",
+		Selector: "DUBPLATE_TEST_SCRATCH_SELECTOR",
+		Required: []string{"DUBPLATE_TEST_SCRATCH_SOURCE_A", "DUBPLATE_TEST_SCRATCH_SOURCE_B"},
+	})
+	lines = doctorLines(t, reg)
+	sourceCount++
+	wantTotal++
+	if len(lines) != wantTotal {
+		t.Fatalf("adding one identity source of two keys: doctor printed %d lines, want %d (one line per source, not per key)", len(lines), wantTotal)
+	}
+	if got, wantPrefix := lines[ownedCount+reservedCount+integrationCount+thresholdCount+sourceCount-1], "scratch source"; !strings.HasPrefix(got, wantPrefix) {
+		t.Errorf("identity source block's last line = %q, want it to start with %q (own family's block)", got, wantPrefix)
+	}
+}
+
+// TestDoctorCmd_IdentitySourceRows proves the per-source row's three
+// states and its silence about values: the selected source reports
+// active when its required rows resolve and unsatisfied when one does
+// not, every other declared source reports inactive, and no row
+// carries a resolved value, because a source's required set carries
+// secrets (Resolution R-5b6).
+func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
+	const (
+		selector  = "DUBPLATE_TEST_SCRATCH_SELECTOR"
+		requiredA = "DUBPLATE_TEST_SCRATCH_A_REQUIRED"
+		requiredB = "DUBPLATE_TEST_SCRATCH_B_REQUIRED"
+		valueA    = "scratch-fixture-value"
+	)
+
+	registry := func() *config.Registry {
+		reg := config.NewRegistry()
+		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []string{requiredA}})
+		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []string{requiredB}})
+		reg.AddWallRow(config.WallRow{Name: selector})
+		return reg
+	}
+
+	tests := []struct {
+		name      string
+		extra     []string
+		wantLines []string
+	}{
+		{
+			name:  "the selected source with every required row set is active",
+			extra: []string{selector + "=scratch-a", requiredA + "=" + valueA},
+			wantLines: []string{
+				fmt.Sprintf("%-32s %s", "scratch-a", "active"),
+				fmt.Sprintf("%-32s %s", "scratch-b", "inactive"),
+			},
+		},
+		{
+			name:  "the selected source with a required row missing is unsatisfied",
+			extra: []string{selector + "=scratch-a"},
+			wantLines: []string{
+				fmt.Sprintf("%-32s %s", "scratch-a", "unsatisfied"),
+				fmt.Sprintf("%-32s %s", "scratch-b", "inactive"),
+			},
+		},
+		{
+			name:  "no source is selected: every source is inactive",
+			extra: []string{selector + "=neither"},
+			wantLines: []string{
+				fmt.Sprintf("%-32s %s", "scratch-a", "inactive"),
+				fmt.Sprintf("%-32s %s", "scratch-b", "inactive"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(append(baseEnviron(), tt.extra...), registry(), &stdout, &stderr)
+			_ = cmd.Execute()
+
+			out := stdout.String()
+			for _, want := range tt.wantLines {
+				if !strings.Contains(out, want+"\n") {
+					t.Errorf("stdout = %q, want it to contain the line %q", out, want)
+				}
+			}
+			if strings.Contains(out, valueA) {
+				t.Errorf("stdout = %q, want no resolved value: a source's required set carries secrets", out)
+			}
+		})
 	}
 }
 

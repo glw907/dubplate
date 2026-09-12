@@ -36,6 +36,7 @@ type Registry struct {
 	reservedClasses    []ReservedClass
 	integrationClasses []IntegrationClass
 	thresholds         []Threshold
+	identitySources    []IdentitySource
 	superseded         map[string]string
 
 	// claims tracks every key claimed so far to the name of the
@@ -78,14 +79,15 @@ func NewRegistry() *Registry {
 	return r
 }
 
-// familyOwnedWall through familySuperseded name the five declaration
+// familyOwnedWall through familySuperseded name the six declaration
 // families a key can belong to, for the collision panic's message.
 const (
-	familyOwnedWall   = "owned wall"
-	familyReserved    = "reserved classes"
-	familyIntegration = "integration classes"
-	familyThresholds  = "thresholds"
-	familySuperseded  = "superseded names"
+	familyOwnedWall      = "owned wall"
+	familyReserved       = "reserved classes"
+	familyIntegration    = "integration classes"
+	familyThresholds     = "thresholds"
+	familyIdentitySource = "identity sources"
+	familySuperseded     = "superseded names"
 )
 
 // panicDuplicate panics reporting that key, already declared in
@@ -329,6 +331,121 @@ func validateThresholdDefault(t Threshold) {
 // Thresholds returns the registered thresholds in declaration order.
 func (r *Registry) Thresholds() []Threshold {
 	return slices.Clone(r.thresholds)
+}
+
+// IdentitySource is one way a deployment establishes who a request
+// comes from. A deployment runs exactly one, named by the value of
+// Selector, which is why the family selects over declarations rather
+// than gating each on a boolean flag the way [IntegrationClass] does
+// (Resolution R-5b5). The rung that builds a source declares it from
+// its own file, so this package names no source and no key of one.
+//
+// Required and Optional differ in what [Load] does with them, not in
+// what the wall accepts: Load requires every Required key once the
+// source is selected and reads every Optional key that is set, while
+// an unselected source's keys are accepted and never read, so an
+// adopter can keep a second source's configuration in place and switch
+// between them by one value.
+type IdentitySource struct {
+	// Name is the value Selector carries to select this source, and
+	// the name doctor prints for its row.
+	Name string
+	// Selector is the environment key whose value names the active
+	// source. Every declared source names the same one. It is not
+	// claimed as this family's key: the rung declaring the first
+	// source registers it as an owned wall row, which is what makes
+	// Load require it.
+	Selector string
+	Required []string
+	Optional []string
+	// Validate reports what this source makes of its own
+	// configuration: values carries its resolved Required and Optional
+	// values by key, absent for any that resolved unset, and environ
+	// is the same os.Environ() snapshot Load read. The snapshot is
+	// what lets a hook validate a registered [Threshold], which
+	// resolves at its point of use and never through Load.
+	//
+	// Load runs the hook whenever the source is selected, including
+	// when a required key is unset, so a value rule and a missing row
+	// are reported together rather than one pass at a time; a hook
+	// therefore checks a value only when values carries it. Its error
+	// joins Load's others. A nil Validate is a source with no value
+	// rules of its own.
+	//
+	// ruled, conductor 2026-09-12, B2
+	Validate func(values map[string]string, environ []string) error
+}
+
+// Selected reports whether environ selects s, by comparing s.Name
+// against the value of s.Selector. It is doctor's own derivation, on
+// [IntegrationClass.Enabled]'s precedent.
+func (s IdentitySource) Selected(environ []string) bool {
+	v, _ := newWall(environ).get(s.Selector)
+	return v == s.Name
+}
+
+// AddIdentitySource registers src as one of the identity sources a
+// deployment selects between. Its Required and Optional keys claim
+// across families, so a source key colliding with an owned-wall,
+// reserved, integration, or superseded name is refused here rather
+// than misclassifying at load. Two sources may share a key, since two
+// ways of establishing identity can legitimately need one value, and
+// [Registry.claim] permits a repeat claim from the same family.
+//
+// A second source declared on a different Selector panics: a
+// deployment selects one source through one key, and two selectors
+// would leave Load with no single value to read.
+func (r *Registry) AddIdentitySource(src IdentitySource) {
+	if src.Name == "" {
+		panic("identity source declared with an empty Name")
+	}
+	requirePrefix(familyIdentitySource, src.Selector)
+	for _, existing := range r.identitySources {
+		if existing.Name == src.Name {
+			panic(fmt.Sprintf("%s: identity source already declared", src.Name))
+		}
+		if existing.Selector != src.Selector {
+			panic(fmt.Sprintf("%s: identity source declared on selector %s, but %s selects on %s", src.Name, src.Selector, existing.Name, existing.Selector))
+		}
+	}
+
+	keys := append(slices.Clone(src.Required), src.Optional...)
+	if slices.Contains(keys, src.Selector) {
+		panic(fmt.Sprintf("%s: identity source's Selector %s also appears in its own key set", src.Name, src.Selector))
+	}
+	for _, key := range keys {
+		requirePrefix(familyIdentitySource, key)
+	}
+	for i, key := range keys {
+		if slices.Contains(keys[:i], key) {
+			panicDuplicate(key, familyIdentitySource, familyIdentitySource)
+		}
+	}
+	for _, key := range keys {
+		r.claim(familyIdentitySource, key)
+	}
+	r.identitySources = append(r.identitySources, src)
+}
+
+// IdentitySources returns the declared identity sources in
+// declaration order.
+func (r *Registry) IdentitySources() []IdentitySource {
+	return slices.Clone(r.identitySources)
+}
+
+// identitySourceKey reports whether name is declared by an identity
+// source in reg: the selector every source shares, or any source's
+// Required or Optional key. The selector answers here as well as on
+// the owned wall, because a registry can declare a source before any
+// rung registers the selector as a wall row, and the wall must not
+// call the selector unknown in the meantime.
+func identitySourceKey(reg *Registry, name string) bool {
+	for _, src := range reg.identitySources {
+		if name == src.Selector || slices.Contains(src.Required, name) || slices.Contains(src.Optional, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // AddSuperseded registers name as a pre-pivot key with no meaning in

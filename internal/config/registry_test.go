@@ -46,12 +46,16 @@ func TestNewRegistry_CarriesRung1Declarations(t *testing.T) {
 	if got := r.Thresholds(); len(got) != 0 {
 		t.Errorf("Thresholds() = %+v, want empty: rung 1 registers none", got)
 	}
+	if got := r.IdentitySources(); len(got) != 0 {
+		t.Errorf("IdentitySources() = %+v, want empty: rung 1 declares none", got)
+	}
 }
 
 func TestRegistry_AccessorsReturnCopy(t *testing.T) {
 	r := NewRegistry()
 	r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG"})
 	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_THRESH", Default: "1"})
+	r.AddIdentitySource(IdentitySource{Name: "test", Selector: "DUBPLATE_TEST_SELECTOR"})
 
 	t.Run("OwnedWall", func(t *testing.T) {
 		got := r.OwnedWall()
@@ -79,6 +83,13 @@ func TestRegistry_AccessorsReturnCopy(t *testing.T) {
 		got[0].Key = "mutated"
 		if r.thresholds[0].Key == "mutated" {
 			t.Fatal("Thresholds() leaked the backing array")
+		}
+	})
+	t.Run("IdentitySources", func(t *testing.T) {
+		got := r.IdentitySources()
+		got[0].Name = "mutated"
+		if r.identitySources[0].Name == "mutated" {
+			t.Fatal("IdentitySources() leaked the backing array")
 		}
 	})
 	t.Run("Superseded", func(t *testing.T) {
@@ -387,4 +398,106 @@ func TestNewRegistry_Independent(t *testing.T) {
 		}()
 		r4.AddWallRow(shared)
 	}()
+}
+
+// TestCollisionGate_IdentitySource fires the registration gate for the
+// identity-source family: every check that makes a mis-declared source
+// a loud programmer error at registration rather than a wrong answer
+// at load.
+func TestCollisionGate_IdentitySource(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func(r *Registry)
+		want string
+	}{
+		{
+			name: "duplicate source name",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{Name: "dup", Selector: "DUBPLATE_TEST_SELECTOR"})
+				r.AddIdentitySource(IdentitySource{Name: "dup", Selector: "DUBPLATE_TEST_SELECTOR"})
+			},
+			want: "dup: identity source already declared",
+		},
+		{
+			name: "a second selector",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{Name: "first", Selector: "DUBPLATE_TEST_SELECTOR"})
+				r.AddIdentitySource(IdentitySource{Name: "second", Selector: "DUBPLATE_TEST_OTHER_SELECTOR"})
+			},
+			want: "DUBPLATE_TEST_OTHER_SELECTOR",
+		},
+		{
+			name: "empty name",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{Selector: "DUBPLATE_TEST_SELECTOR"})
+			},
+			want: "identity source declared with an empty Name",
+		},
+		{
+			name: "selector without the prefix",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{Name: "test", Selector: "BAD_NO_PREFIX"})
+			},
+			want: "BAD_NO_PREFIX: declared in " + familyIdentitySource + " without the DUBPLATE_ prefix",
+		},
+		{
+			name: "key without the prefix",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{Name: "test", Selector: "DUBPLATE_TEST_SELECTOR", Required: []string{"BAD_NO_PREFIX"}})
+			},
+			want: "BAD_NO_PREFIX: declared in " + familyIdentitySource + " without the DUBPLATE_ prefix",
+		},
+		{
+			name: "the selector in the source's own key set",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{Name: "test", Selector: "DUBPLATE_TEST_SELECTOR", Optional: []string{"DUBPLATE_TEST_SELECTOR"}})
+			},
+			want: "identity source's Selector DUBPLATE_TEST_SELECTOR also appears in its own key set",
+		},
+		{
+			name: "a key repeated across Required and Optional",
+			fn: func(r *Registry) {
+				r.AddIdentitySource(IdentitySource{
+					Name:     "test",
+					Selector: "DUBPLATE_TEST_SELECTOR",
+					Required: []string{"DUBPLATE_TEST_DUP"},
+					Optional: []string{"DUBPLATE_TEST_DUP"},
+				})
+			},
+			want: "DUBPLATE_TEST_DUP",
+		},
+		{
+			name: "a key another family already claimed",
+			fn: func(r *Registry) {
+				r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_CROSS"}})
+				r.AddIdentitySource(IdentitySource{Name: "test", Selector: "DUBPLATE_TEST_SELECTOR", Required: []string{"DUBPLATE_TEST_CROSS"}})
+			},
+			want: "DUBPLATE_TEST_CROSS: already declared in " + familyReserved + ", cannot also declare in " + familyIdentitySource,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg := panicMessage(t, func() { tt.fn(NewRegistry()) })
+			if !strings.Contains(msg, tt.want) {
+				t.Errorf("panic message %q, want it to contain %q", msg, tt.want)
+			}
+		})
+	}
+}
+
+// TestIdentitySource_SharedKeyAcrossSources proves the one overlap the
+// family allows on purpose: two sources may require the same key,
+// because two ways of establishing identity can legitimately need one
+// value (a deployment's public URL, say). Registry.claim permits a
+// repeat claim from the same family, and this is the case that relies
+// on it.
+func TestIdentitySource_SharedKeyAcrossSources(t *testing.T) {
+	r := NewRegistry()
+	defer func() {
+		if rec := recover(); rec != nil {
+			t.Fatalf("two sources sharing one required key panicked: %v", rec)
+		}
+	}()
+	r.AddIdentitySource(IdentitySource{Name: "first", Selector: "DUBPLATE_TEST_SELECTOR", Required: []string{"DUBPLATE_TEST_SHARED_KEY"}})
+	r.AddIdentitySource(IdentitySource{Name: "second", Selector: "DUBPLATE_TEST_SELECTOR", Required: []string{"DUBPLATE_TEST_SHARED_KEY"}})
 }

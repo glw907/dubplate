@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 )
 
 // baseEnviron returns a minimal environ with every owned-now key set
@@ -213,10 +216,29 @@ func classificationRegistry() *Registry {
 		Default: "1",
 		Doc:     "an integer",
 	})
+	reg.AddIdentitySource(IdentitySource{
+		Name:     "classification source",
+		Selector: "DUBPLATE_CLASSIFY_SELECTOR",
+		Required: []string{"DUBPLATE_CLASSIFY_SOURCE_KEY"},
+	})
 	return reg
 }
 
-// TestClassificationFamilies proves the five classification helpers
+// classificationEnviron satisfies every row classificationRegistry
+// requires: the base wall, its own owned-now row, and the selector
+// with the declared source's required key. Load requires every
+// owned-now row a registry carries and the selector of any declared
+// source, so a test that wants Load to succeed against this registry
+// has to satisfy both.
+func classificationEnviron() []string {
+	return append(baseEnviron(),
+		"DUBPLATE_CLASSIFY_OWNED=/srv/classify",
+		"DUBPLATE_CLASSIFY_SELECTOR=classification source",
+		"DUBPLATE_CLASSIFY_SOURCE_KEY=classify-value",
+	)
+}
+
+// TestClassificationFamilies proves the six classification helpers
 // rejectNamespace consults each answer for their own family's names
 // and for no other's, and that a name declared in none of them
 // classifies as unknown.
@@ -236,6 +258,7 @@ func TestClassificationFamilies(t *testing.T) {
 		superseded  = "superseded"
 		integration = "integration"
 		threshold   = "threshold"
+		source      = "source"
 		unknown     = "unknown"
 	)
 
@@ -252,6 +275,8 @@ func TestClassificationFamilies(t *testing.T) {
 		{name: "integration required key", key: "DUBPLATE_CLASSIFY_REQUIRED", want: integration},
 		{name: "integration optional key", key: "DUBPLATE_CLASSIFY_OPTIONAL", want: integration},
 		{name: "registered threshold", key: "DUBPLATE_CLASSIFY_THRESHOLD", want: threshold},
+		{name: "identity source selector", key: "DUBPLATE_CLASSIFY_SELECTOR", want: source},
+		{name: "identity source required key", key: "DUBPLATE_CLASSIFY_SOURCE_KEY", want: source},
 		{name: "declared nowhere", key: "DUBPLATE_CLASSIFY_ABSENT", want: unknown},
 	}
 
@@ -259,7 +284,7 @@ func TestClassificationFamilies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Each helper is asserted on its own, so a row states one
-			// true answer and five false ones rather than echoing
+			// true answer and six false ones rather than echoing
 			// rejectNamespace's own branch order back at itself.
 			_, isReserved := reservedClassOf(reg, tt.key)
 			_, isSuperseded := supersessionOf(reg, tt.key)
@@ -271,6 +296,7 @@ func TestClassificationFamilies(t *testing.T) {
 				superseded:  isSuperseded,
 				integration: isIntegration,
 				threshold:   thresholdOf(reg, tt.key),
+				source:      identitySourceKey(reg, tt.key),
 			}
 			for family, reported := range got {
 				if reported != (family == tt.want) {
@@ -303,11 +329,11 @@ func wallRowPending(reg *Registry, key string) bool {
 func TestLoad_RegisteredThresholdIsNotUnknown(t *testing.T) {
 	reg := classificationRegistry()
 
-	if _, err := Load(append(baseEnviron(), "DUBPLATE_CLASSIFY_THRESHOLD=7"), reg); err != nil {
+	if _, err := Load(append(classificationEnviron(), "DUBPLATE_CLASSIFY_THRESHOLD=7"), reg); err != nil {
 		t.Errorf("Load() error = %v, want nil for a registered threshold", err)
 	}
 
-	_, err := Load(append(baseEnviron(), "DUBPLATE_CLASSIFY_THRESHOLDX=7"), reg)
+	_, err := Load(append(classificationEnviron(), "DUBPLATE_CLASSIFY_THRESHOLDX=7"), reg)
 	if err == nil {
 		t.Fatal("Load() error = nil for an undeclared key, want an unknown-key error")
 	}
@@ -474,6 +500,281 @@ func TestLoadIntegrationEnabledIndependentOfResolvedKeys(t *testing.T) {
 			}
 			if got := cfg.IntegrationEnabled(fixtureNoRequiredClass.Name); got != tt.wantEnabled {
 				t.Errorf("IntegrationEnabled = %v, want %v", got, tt.wantEnabled)
+			}
+		})
+	}
+}
+
+// The fixture identity source below is this package's own: every name
+// is a DUBPLATE_TEST_SCRATCH_* scratch name, on
+// TestDoctorCmd_LineCountFollowsRegistry's precedent, so the config
+// core's own tests carry no rung's key.
+const (
+	scratchSelector   = "DUBPLATE_TEST_SCRATCH_SOURCE"
+	scratchRequiredA  = "DUBPLATE_TEST_SCRATCH_A_REQUIRED"
+	scratchOptionalA  = "DUBPLATE_TEST_SCRATCH_A_OPTIONAL"
+	scratchRequiredB  = "DUBPLATE_TEST_SCRATCH_B_REQUIRED"
+	scratchSourceA    = "scratch-a"
+	scratchSourceB    = "scratch-b"
+	scratchRefuseWord = "refuse"
+)
+
+// scratchWindow is a threshold the fixture hook reads back out of the
+// environment snapshot. It stands in for R31's real pair: a threshold
+// resolves at its point of use and Load never reads one, so a hook
+// handed the resolved source values alone could not see it.
+var scratchWindow = Threshold{
+	Key:     "DUBPLATE_TEST_SCRATCH_WINDOW",
+	Kind:    KindDuration,
+	Default: "1h",
+	Doc:     "a duration",
+}
+
+// scratchValidate is the fixture source's validation hook: it refuses
+// one literal value of its required key, and it refuses a window
+// shorter than an hour, which it can only learn from the environment
+// snapshot.
+func scratchValidate(values map[string]string, environ []string) error {
+	var errs []error
+	if values[scratchRequiredA] == scratchRefuseWord {
+		errs = append(errs, fmt.Errorf("%s: value refused by the source", scratchRequiredA))
+	}
+	window, err := ParseDuration(environ, scratchWindow)
+	if err != nil {
+		errs = append(errs, err)
+	} else if window < time.Hour {
+		errs = append(errs, fmt.Errorf("%s: below the one-hour floor", scratchWindow.Key))
+	}
+	return errors.Join(errs...)
+}
+
+// scratchSourceRegistry returns a registry declaring two fixture
+// identity sources on one selector, plus the threshold the first
+// source's hook reads.
+func scratchSourceRegistry() *Registry {
+	reg := NewRegistry()
+	reg.AddThreshold(scratchWindow)
+	reg.AddIdentitySource(IdentitySource{
+		Name:     scratchSourceA,
+		Selector: scratchSelector,
+		Required: []string{scratchRequiredA},
+		Optional: []string{scratchOptionalA},
+		Validate: scratchValidate,
+	})
+	reg.AddIdentitySource(IdentitySource{
+		Name:     scratchSourceB,
+		Selector: scratchSelector,
+		Required: []string{scratchRequiredB},
+	})
+	return reg
+}
+
+// TestLoad_RequiresEveryRegisteredOwnedNowRow proves the requirement
+// mechanism (R-5b4): a wall row a rung registers from its own file is
+// required by the registration itself, and a row carrying Pending is
+// neither required nor read. Rung 1's four rows are unaffected because
+// they are the rows NewRegistry seeds; the rows here are this test's
+// own.
+func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
+	const (
+		scratchOwned   = "DUBPLATE_TEST_SCRATCH_OWNED"
+		scratchPending = "DUBPLATE_TEST_SCRATCH_PENDING"
+	)
+
+	registry := func() *Registry {
+		reg := NewRegistry()
+		reg.AddWallRow(WallRow{Name: scratchOwned})
+		reg.AddWallRow(WallRow{Name: scratchPending, Pending: "pending (arrives later)"})
+		return reg
+	}
+
+	tests := []struct {
+		name     string
+		extra    []string
+		wantErr  []string
+		wantOnce string
+	}{
+		{
+			name:     "a registered owned-now row unset is required, named once",
+			wantErr:  []string{scratchOwned, "required setting unset"},
+			wantOnce: scratchOwned,
+		},
+		{
+			name:  "a registered owned-now row set loads clean, with the pending row unset",
+			extra: []string{scratchOwned + "=/srv/scratch"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := Load(append(slices.Clone(baseEnviron()), tt.extra...), registry())
+
+			if len(tt.wantErr) == 0 {
+				if err != nil {
+					t.Fatalf("Load() error = %v, want nil", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatalf("Load() error = nil, want one naming %v", tt.wantErr)
+			}
+			for _, want := range tt.wantErr {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("Load() error = %q, want it to contain %q", err.Error(), want)
+				}
+			}
+			if n := strings.Count(err.Error(), tt.wantOnce); n != 1 {
+				t.Errorf("Load() error names %s %d times, want exactly 1: %v", tt.wantOnce, n, err)
+			}
+		})
+	}
+}
+
+// TestLoad_IdentitySource proves the per-source declaration family
+// end to end against fixture sources: the selector is unrequired with
+// none declared and required with one, a value naming no declared
+// source is refused by name, the selected source's required keys are
+// required and its optional keys are read, an unselected source's keys
+// are declared rather than unknown, and the validation hook's errors
+// join the rest.
+func TestLoad_IdentitySource(t *testing.T) {
+	selected := []string{scratchSelector + "=" + scratchSourceA, scratchRequiredA + "=a-value"}
+
+	tests := []struct {
+		name       string
+		registry   func() *Registry
+		drop       string // one base row to unset, for a row proving the hook's errors join
+		extra      []string
+		wantErr    []string
+		wantNotErr []string
+		check      func(t *testing.T, cfg *Config)
+	}{
+		{
+			name:     "no source declared: the selector is not required",
+			registry: NewRegistry,
+			check: func(t *testing.T, cfg *Config) {
+				if cfg.IdentitySource != "" {
+					t.Errorf("IdentitySource = %q, want empty with no source declared", cfg.IdentitySource)
+				}
+			},
+		},
+		{
+			name:     "one source declared: the selector is required",
+			registry: scratchSourceRegistry,
+			wantErr:  []string{scratchSelector, "required setting unset"},
+		},
+		{
+			name:     "a selector naming no declared source lists the declared names",
+			registry: scratchSourceRegistry,
+			extra:    []string{scratchSelector + "=nope"},
+			wantErr:  []string{`unknown identity source "nope"`, "scratch-a, scratch-b"},
+		},
+		{
+			name:     "the selected source's required key is required",
+			registry: scratchSourceRegistry,
+			extra:    []string{scratchSelector + "=" + scratchSourceA},
+			wantErr:  []string{scratchRequiredA, "required setting unset"},
+		},
+		{
+			name:     "an optional key unset loads clean",
+			registry: scratchSourceRegistry,
+			extra:    selected,
+			check: func(t *testing.T, cfg *Config) {
+				if cfg.IdentitySource != scratchSourceA {
+					t.Errorf("IdentitySource = %q, want %q", cfg.IdentitySource, scratchSourceA)
+				}
+				if got := cfg.IdentitySourceValue(scratchRequiredA); got != "a-value" {
+					t.Errorf("IdentitySourceValue(%s) = %q, want %q", scratchRequiredA, got, "a-value")
+				}
+				if got := cfg.IdentitySourceValue(scratchOptionalA); got != "" {
+					t.Errorf("IdentitySourceValue(%s) = %q, want empty when unset", scratchOptionalA, got)
+				}
+			},
+		},
+		{
+			name:     "an optional key set is readable from Config",
+			registry: scratchSourceRegistry,
+			extra:    append(slices.Clone(selected), scratchOptionalA+"=opt-value"),
+			check: func(t *testing.T, cfg *Config) {
+				if got := cfg.IdentitySourceValue(scratchOptionalA); got != "opt-value" {
+					t.Errorf("IdentitySourceValue(%s) = %q, want %q", scratchOptionalA, got, "opt-value")
+				}
+			},
+		},
+		{
+			name:     "an unselected source's key is declared, never required and never unknown",
+			registry: scratchSourceRegistry,
+			extra:    append(slices.Clone(selected), scratchRequiredB+"=b-value"),
+			check: func(t *testing.T, cfg *Config) {
+				if got := cfg.IdentitySourceValue(scratchRequiredB); got != "" {
+					t.Errorf("IdentitySourceValue(%s) = %q, want empty: the source is not selected", scratchRequiredB, got)
+				}
+			},
+		},
+		{
+			name:       "a source key set with the selector unset is declared, not unknown",
+			registry:   scratchSourceRegistry,
+			extra:      []string{scratchRequiredA + "=a-value"},
+			wantErr:    []string{scratchSelector},
+			wantNotErr: []string{"unknown configuration key"},
+		},
+		{
+			name:     "the hook refuses a resolved value, joined with every other failure",
+			registry: scratchSourceRegistry,
+			drop:     "DUBPLATE_SITE_NAME",
+			extra:    []string{scratchSelector + "=" + scratchSourceA, scratchRequiredA + "=" + scratchRefuseWord},
+			wantErr:  []string{"value refused by the source", "DUBPLATE_SITE_NAME"},
+		},
+		{
+			name:     "the hook refuses a registered threshold's value it reads from the snapshot",
+			registry: scratchSourceRegistry,
+			drop:     "DUBPLATE_SITE_NAME",
+			extra: []string{scratchSelector + "=" + scratchSourceA, scratchRequiredA + "=a-value",
+				scratchWindow.Key + "=1m"},
+			wantErr: []string{scratchWindow.Key + ": below the one-hour floor", "DUBPLATE_SITE_NAME"},
+		},
+		{
+			name:     "an unselected source's hook never runs",
+			registry: scratchSourceRegistry,
+			extra: []string{scratchSelector + "=" + scratchSourceB, scratchRequiredB + "=b-value",
+				scratchWindow.Key + "=1m"},
+			check: func(t *testing.T, cfg *Config) {
+				if cfg.IdentitySource != scratchSourceB {
+					t.Errorf("IdentitySource = %q, want %q", cfg.IdentitySource, scratchSourceB)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			base := baseEnviron()
+			if tt.drop != "" {
+				base = dropKey(base, tt.drop)
+			}
+			cfg, err := Load(append(base, tt.extra...), tt.registry())
+
+			if len(tt.wantErr) == 0 {
+				if err != nil {
+					t.Fatalf("Load() error = %v, want nil", err)
+				}
+				if tt.check != nil {
+					tt.check(t, cfg)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatalf("Load() error = nil, want one naming %v", tt.wantErr)
+			}
+			for _, want := range tt.wantErr {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("Load() error = %q, want it to contain %q", err.Error(), want)
+				}
+			}
+			for _, unwanted := range tt.wantNotErr {
+				if strings.Contains(err.Error(), unwanted) {
+					t.Errorf("Load() error = %q, want it not to contain %q", err.Error(), unwanted)
+				}
 			}
 		})
 	}

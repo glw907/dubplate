@@ -13,8 +13,9 @@ import (
 )
 
 // newDoctorCmd builds the doctor subcommand: it reports the config
-// wall's owned rows, reserved classes, integration classes, and
-// registered thresholds, one line each in "%-32s %s" form, deriving
+// wall's owned rows, reserved classes, integration classes,
+// registered thresholds, and declared identity sources, one line each
+// in "%-32s %s" form and one block per family in that order, deriving
 // every row from reg so no rung hard-codes a count. That table is the
 // command's human output; on an unsatisfied wall RunE returns a single
 // short error, leaving main as the sole stderr writer. Exit status
@@ -56,6 +57,12 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 
 			for _, th := range reg.Thresholds() {
 				if err := printRow(stdout, th.Key, thresholdStatus(environ, th)); err != nil {
+					return err
+				}
+			}
+
+			for _, src := range reg.IdentitySources() {
+				if err := printRow(stdout, src.Name, identitySourceStatus(src, environ, statuses)); err != nil {
 					return err
 				}
 			}
@@ -149,6 +156,24 @@ func thresholdStatus(environ []string, t config.Threshold) string {
 	default:
 		return "invalid: registered with an unnamed threshold kind, a registration bug"
 	}
+}
+
+// identitySourceStatus reports how src stands against environ:
+// inactive when the selector names another source, unsatisfied when it
+// is the selected one and [config.Load] flagged a row it requires, and
+// active otherwise. It names no value, because a source's required set
+// carries secrets and doctor's table is read on a terminal
+// (Resolution R-5b6).
+func identitySourceStatus(src config.IdentitySource, environ []string, statuses map[string]string) string {
+	if !src.Selected(environ) {
+		return "inactive"
+	}
+	for _, key := range src.Required {
+		if statuses[key] != "" {
+			return "unsatisfied"
+		}
+	}
+	return "active"
 }
 
 // splitKeyReason splits err's message on its first "key: reason"
