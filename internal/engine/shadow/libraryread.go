@@ -48,24 +48,24 @@ func readFLAC(path string) (matcher.ItemFields, error) {
 // models (info.go:115-123).
 func projectItemFields(ts tagio.TagSet, info tagio.StreamInfo) matcher.ItemFields {
 	return matcher.ItemFields{
-		Title:         stringVal(ts.Title),         // mediafile:392
-		Artist:        stringVal(ts.Artist),        // mediafile:398
-		Album:         stringVal(ts.Album),         // mediafile:410
-		AlbumArtist:   stringVal(ts.Albumartist),   // mediafile:542-544
-		Track:         intVal(ts.Track),            // mediafile:463-464
-		Disc:          intVal(ts.Disc),             // mediafile:480-481
-		DiscTotal:     intVal(ts.Disctotal),        // mediafile:488-490
-		Comp:          boolVal(ts.Comp),            // mediafile:535
-		Label:         stringVal(ts.Label),         // mediafile:574-575
-		CatalogNum:    stringVal(ts.Catalognum),    // mediafile:604-606
-		Barcode:       stringVal(ts.Barcode),       // mediafile:616-620
-		Country:       stringVal(ts.Country),       // mediafile:659
-		Media:         stringVal(ts.Media),         // mediafile:673
-		AlbumDisambig: stringVal(ts.Albumdisambig), // mediafile:680
-		MBTrackID:     stringVal(ts.MBTrackid),     // mediafile:764
-		MBAlbumID:     stringVal(ts.MBAlbumid),     // mediafile:782
-		Year:          intVal(ts.Year),             // mediafile:685-693
-		Length:        trackLength(info),           // mediafile:892-895
+		Title:         deref(ts.Title),         // mediafile:392
+		Artist:        deref(ts.Artist),        // mediafile:398
+		Album:         deref(ts.Album),         // mediafile:410
+		AlbumArtist:   deref(ts.Albumartist),   // mediafile:542-544
+		Track:         deref(ts.Track),         // mediafile:463-464
+		Disc:          deref(ts.Disc),          // mediafile:480-481
+		DiscTotal:     deref(ts.Disctotal),     // mediafile:488-490
+		Comp:          deref(ts.Comp),          // mediafile:535
+		Label:         deref(ts.Label),         // mediafile:574-575
+		CatalogNum:    deref(ts.Catalognum),    // mediafile:604-606
+		Barcode:       deref(ts.Barcode),       // mediafile:616-620
+		Country:       deref(ts.Country),       // mediafile:659
+		Media:         deref(ts.Media),         // mediafile:673
+		AlbumDisambig: deref(ts.Albumdisambig), // mediafile:680
+		MBTrackID:     deref(ts.MBTrackid),     // mediafile:764
+		MBAlbumID:     deref(ts.MBAlbumid),     // mediafile:782
+		Year:          deref(ts.Year),          // mediafile:685-693
+		Length:        trackLength(info),       // mediafile:892-895
 	}
 }
 
@@ -78,29 +78,13 @@ func trackLength(info tagio.StreamInfo) float64 {
 	return float64(info.TotalSamples) / float64(info.SampleRate)
 }
 
-// stringVal reads a TagSet *string member as ProjectItemFields' own
-// typed-default rule does: an absent member is the empty string.
-func stringVal(s *string) string {
-	if s == nil {
-		return ""
+// deref reads a TagSet pointer member as ProjectItemFields' own
+// typed-default rule does: an absent member takes its Go zero value,
+// the empty string, zero or false as the field's type decides.
+func deref[T any](p *T) T {
+	if p == nil {
+		var zero T
+		return zero
 	}
-	return *s
-}
-
-// intVal reads a TagSet *int member as ProjectItemFields' own
-// typed-default rule does: an absent member is zero.
-func intVal(n *int) int {
-	if n == nil {
-		return 0
-	}
-	return *n
-}
-
-// boolVal reads a TagSet *bool member as ProjectItemFields' own
-// typed-default rule does: an absent member is false.
-func boolVal(b *bool) bool {
-	if b == nil {
-		return false
-	}
-	return *b
+	return *p
 }

@@ -3,29 +3,44 @@ package shadow
 import (
 	"bytes"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/tagio"
 )
 
-// committedTemplateFLACOneSecond is
-// internal/harness/oracle/testdata/template.flac's 42 bytes with its
-// STREAMINFO pack's total-samples field spliced from 0 to 44100 (one
-// second at the template's own 44100 Hz sample rate): the pack's last
-// two bytes change from 0x00, 0x00 to 0x00, 0xac, 0x44's low bytes,
-// everything else byte-for-byte identical to the template mutagen's
-// own StreamInfo.write produced (mono, 44100 Hz, 16-bit). It is a byte
-// edit of the committed template rather than a container built fresh
-// (Task 1, R3), and it is the seed every writer-built fixture in this
-// package starts from, so a content join comparing two fixtures'
-// Length never compares zero to zero vacuously.
-var committedTemplateFLACOneSecond = []byte{
+// committedTemplateFLAC is internal/harness/oracle/testdata/template.flac
+// byte for byte: the 42 bytes mutagen's own StreamInfo.write produced
+// (mono, 44100 Hz, 16-bit, zero total samples), a STREAMINFO block and
+// nothing else. It is spelled here rather than read back from that
+// path so this package's fixtures carry no relative dependency on
+// another package's testdata directory.
+var committedTemplateFLAC = []byte{
 	'f', 'L', 'a', 'C',
 	0x80, 0x00, 0x00, 0x22, // the last block, type 0, 34 bytes of payload
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x0a, 0xc4, 0x40, 0xf0, 0x00, 0x00, 0xac, 0x44,
+	0x0a, 0xc4, 0x40, 0xf0, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+}
+
+// committedTemplateFLACOneSecond is committedTemplateFLAC with its
+// STREAMINFO total-samples field spliced from 0 to 44100, one second at
+// the template's own 44100 Hz sample rate. It is a byte edit of the
+// committed template rather than a container built fresh (Task 1, R3),
+// and it is the seed every writer-built fixture in this package starts
+// from, so a content join comparing two fixtures' Length never compares
+// zero to zero vacuously.
+var committedTemplateFLACOneSecond = oneSecondSeed()
+
+func oneSecondSeed() []byte {
+	seed := slices.Clone(committedTemplateFLAC)
+	// The 36-bit total-samples field ends where the 16-byte MD5
+	// signature that closes the STREAMINFO payload begins, and 44100
+	// fits in the field's low two bytes.
+	md5 := len(seed) - 16
+	seed[md5-2], seed[md5-1] = 0xac, 0x44
+	return seed
 }
 
 // writeFixtureTrack writes ts to path through the repo's own writer

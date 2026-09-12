@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -196,8 +197,7 @@ func TestParseRefusals(t *testing.T) {
 			data: func() []byte {
 				blocks := wellFormedBlocks()
 				dup := testBlock{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 1000)}
-				blocks = append(blocks[:1], append([]testBlock{dup}, blocks[1:]...)...)
-				return buildContainer(blocks, nil)
+				return buildContainer(slices.Insert(blocks, 1, dup), nil)
 			},
 			wantErr: ErrMalformedContainer,
 		},
