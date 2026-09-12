@@ -60,8 +60,12 @@ so nothing resumes from it.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree | IDLE (8c planned, not launched) |
-| 2 | `.claude/worktrees/lane-2-5b` (not yet created) | IDLE (5b-i planned, not launched) |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | LAUNCHING (8c, segment 1A; overnight window 2026-09-12, `plans/2026-09-12-overnight-window.md`) |
+| 2 | `.claude/worktrees/lane-2-5b` (branch `lane-2-5b`, created from `7ba3cc1`) | LAUNCHING (5b-i, segment 2A; same window) |
+
+Grant reading, flagged (overnight plan, G1): the twelve conductor-owed
+folds were ruled by recommendation on "then start" (Geoff, 2026-09-12
+00:44); the ratify-or-reverse table is in the overnight plan.
 
 ## Open items (carried)
 
