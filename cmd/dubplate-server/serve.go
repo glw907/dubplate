@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
@@ -110,10 +111,9 @@ func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
 // three thresholds through resolveServeConfig, builds the rung 5a
 // shell with no registered subtree and no fallthrough (no driver
 // exists yet, so every request outside the owned prefix answers 404),
-// and runs it until cmd's context is done. No auth exists at this
-// rung, so the strip and the shell are built from empty construction
-// values: an empty identity header, no session-cookie name, no trusted
-// proxies, and no front exemption.
+// and runs it until cmd's context is done. The shell is built by
+// newServeShell, which carries the one construction value that exists
+// at this rung: the session cookie's name.
 //
 // Load runs before anything else and before any listener opens: a
 // server whose wall is unsatisfied must refuse at startup, in the same
@@ -133,12 +133,29 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			strip := serve.NewStrip("", "", serve.TrustedProxyConfig{}, serve.FrontExemption{})
-			shell := serve.NewShell(prefix, strip, nil)
+			shell := newServeShell(prefix)
 			return serve.Run(cmd.Context(), shell.Logger(), shell.Handler(), addrs, port)
 		},
 	}
 	cmd.SetOut(stdout)
 	cmd.SetErr(stderr)
 	return cmd
+}
+
+// newServeShell builds the shell the serve verb runs, owning prefix.
+// The strip carries auth.SessionCookieName, so the shell removes the
+// server's own session cookie from any request it hands the
+// fallthrough: no request leaving this server's owned surface carries
+// the credential that authenticates it. Rung 5a's coverage gap 4 was
+// exactly this name being the empty string, which removes nothing.
+//
+// The remaining construction values stay empty because nothing supplies
+// them yet: no driver exists to name an identity header, no trusted
+// proxy is configured, and no front exemption is in force.
+//
+// The shell is built here rather than inline in RunE so the verb's own
+// wiring is what a test exercises, rather than a restatement of it.
+func newServeShell(prefix serve.Prefix) *serve.Shell {
+	strip := serve.NewStrip("", auth.SessionCookieName, serve.TrustedProxyConfig{}, serve.FrontExemption{})
+	return serve.NewShell(prefix, strip, nil)
 }

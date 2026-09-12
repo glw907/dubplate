@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"slices"
 	"strings"
@@ -253,5 +255,48 @@ func TestDoctorCmd_CarriesServeThresholdsAndNoServeReservedRow(t *testing.T) {
 		if strings.HasPrefix(line, "serve ") || strings.HasPrefix(line, "serve\t") {
 			t.Errorf("doctor output still carries a serve reserved-class row: %q", line)
 		}
+	}
+}
+
+// TestNewServeShell_RemovesTheSessionCookieAtTheFallthrough closes 5a's
+// declared coverage gap 4. The shell rung 5a shipped was constructed
+// with an empty cookie name, which removes nothing, so the removal was
+// proved for an arbitrary name and never for the one the server
+// actually sets. This row runs the shell the serve verb constructs,
+// with the cookie name written out rather than read from the constant
+// under test, and asserts the property behaviourally: the session
+// cookie is gone at the fallthrough and every other cookie arrives
+// intact, so a request leaving the owned surface carries no credential
+// that authenticates against this server.
+func TestNewServeShell_RemovesTheSessionCookieAtTheFallthrough(t *testing.T) {
+	prefix, _, _, err := resolveServeConfig(nil)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+
+	var got http.Header
+	shell := newServeShell(prefix)
+	shell.SetFallthrough(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		got = r.Header.Clone()
+	}))
+
+	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
+	r.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: "a-session-value"})
+	r.AddCookie(&http.Cookie{Name: "navidrome_session", Value: "another-value"})
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+	if got == nil {
+		t.Fatal("the fallthrough handler was never invoked")
+	}
+	arrived := &http.Request{Header: got}
+	if c, err := arrived.Cookie("__Host-dubplate_session"); err == nil {
+		t.Errorf("fallthrough request carries %q = %q, want it removed", c.Name, c.Value)
+	}
+	c, err := arrived.Cookie("navidrome_session")
+	if err != nil {
+		t.Fatalf("fallthrough request carries no %q cookie: %v", "navidrome_session", err)
+	}
+	if c.Value != "another-value" {
+		t.Errorf("cookie %q = %q, want %q", c.Name, c.Value, "another-value")
 	}
 }
