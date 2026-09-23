@@ -4,7 +4,7 @@
 //
 // # Composition order
 //
-// [Shell.Handler] composes four steps, in this order, each wrapping the
+// [Shell.Handler] composes five steps, in this order, each wrapping the
 // next. The order is a property of the chain, never a feature of the
 // mux: no step is registered as a route, and no test in this package
 // proves the order by reading the chain's construction.
@@ -13,16 +13,22 @@
 //     route is reachable with an identity header, a forwarded-address
 //     header, or a Connection-listed header still attached.
 //  2. Path normalization ([Normalize]). It refuses six shapes, each
-//     with a status and no partial routing, before prefix routing runs
+//     with a status and no partial routing, before any later step runs
 //     at all.
-//  3. Prefix routing ([Prefix.Route]). The one owned prefix is matched
+//  3. The echo method refusal (refuseEchoMethods). TRACE and TRACK are
+//     refused here with a 405, before the origin check can claim them
+//     with a 403.
+//  4. The origin check (originCheck). It judges only a path
+//     normalization has admitted, and covers every registered subtree
+//     and the fallthrough alike, so no mount can forget to install it.
+//  5. Prefix routing ([Prefix.Route]). The one owned prefix is matched
 //     segment-aware, on case-sensitive bytes, never by a plain string
-//     trim.
-//  4. The fallthrough. Empty at rung 5, which is what makes rung 5 safe
-//     to ship without a driver. Rung 12's reverse proxy occupies this
-//     point, and no other: by the one-owned-prefix rule the streamer
-//     owns everything outside it, so the driver is the root mux's
-//     fallthrough rather than a subtree mounted under the prefix.
+//     trim. The fallthrough it dispatches to is empty at rung 5, which
+//     is what makes rung 5 safe to ship without a driver. Rung 12's
+//     reverse proxy occupies this point, and no other: by the
+//     one-owned-prefix rule the streamer owns everything outside it,
+//     so the driver is the root mux's fallthrough rather than a
+//     subtree mounted under the prefix.
 //
 // # The extension point
 //

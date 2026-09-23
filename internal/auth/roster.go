@@ -199,7 +199,7 @@ func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 	var errs []error
 
 	for i, rec := range records {
-		member, err := validateMemberFields(rec)
+		member, err := rec.validate()
 		if err != nil {
 			errs = append(errs, fmt.Errorf("member %d: %w", i, err))
 			continue
@@ -225,14 +225,14 @@ func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 	return members, byAddress, nil
 }
 
-// validateMemberFields validates the fields of one record that do not
-// depend on the rest of the roster: the address parses and
-// normalizes, no field carries a control character, and every field
-// is bounded. It is the field-level half of B9's list; the duplicate
-// checks that need the rest of the roster stay in validateRoster's
-// loop and in AddMember's locked re-check, since only those two
-// callers know what "the rest of the roster" currently is.
-func validateMemberFields(rec memberRecord) (Member, error) {
+// validate validates the fields of one record that do not depend on
+// the rest of the roster: the address parses and normalizes, no field
+// carries a control character, and every field is bounded. It is the
+// field-level half of B9's list; the duplicate checks that need the
+// rest of the roster stay in validateRoster's loop and in AddMember's
+// locked re-check, since only those two callers know what "the rest of
+// the roster" currently is.
+func (rec memberRecord) validate() (Member, error) {
 	normalized, err := normalizeMemberAddress(rec.Address)
 	if err != nil {
 		return Member{}, errors.New("address does not parse as a login address")
@@ -330,7 +330,7 @@ func (r *Roster) AddMember(candidate Member, actor string, channel identity.Chan
 		return fmt.Errorf("%w: channel %s", ErrRosterAdminChannelForbidden, channel)
 	}
 
-	member, err := validateMemberFields(memberRecord(candidate))
+	member, err := memberRecord(candidate).validate()
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
 	}
