@@ -179,8 +179,9 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 			// context the request's end does not cancel. The mail
 			// transport bounds every dial and command with its own
 			// deadline, which is what bounds the goroutine.
+			ctx := context.WithoutCancel(r.Context())
 			go func() {
-				if err := h.sendLink(context.WithoutCancel(r.Context()), now, member.Address); err != nil {
+				if err := h.sendLink(ctx, now, member.Address); err != nil {
 					h.logSendFailure(log, err)
 				}
 			}()
