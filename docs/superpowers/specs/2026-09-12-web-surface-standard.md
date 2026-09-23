@@ -1,6 +1,6 @@
 # dubplate web surface standard
 
-Status: revision 2.1, 2026-09-12, awaiting Geoff's read. Companion to the
+Status: revision 2.1, 2026-09-12. **Ratified by Geoff, 2026-09-23**: section 16's five items as written. Companion to the
 design-language standard
 (`docs/superpowers/specs/2026-09-07-design-language-standard.md`, DL
 below). DL fixes the theme-variable contract, the two-axis composition,
@@ -1821,6 +1821,11 @@ is bound by every clause here, which is why W4.1 binds every surface
 rather than an enumerated set.
 
 ## 16. Rulings Geoff reads first
+
+**Ruled, Geoff, 2026-09-23.** Item 1's wording is approved as written ("plain, warm, and a
+little playful", with "Nothing cut yet" and "Pressed and filed" as the worked examples).
+Items 2 through 5 are approved as written. Section 19's errata stay owed in the documents
+they name.
 
 1. W1.2's register line, W1.3's three personality homes with their worked
    examples, and the rule that a personality choice outranks a harvested
