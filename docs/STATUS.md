@@ -19,7 +19,14 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    lockout guard, atomic against concurrent self-demotion (configuration homes routes it to rung 5; no rung 5
    spec or plan carries it yet).
    Carried to 5d: the spec's "doctor exits 0" acceptance row (`spec:2332`) must run after the bootstrap
-   verb. Segment C (Tasks 7-8) next, then its simplifier round. Then D1, D2, then **5c**.
+   verb. **Segment C closed** (Tasks 7-8 accepted first time; simplifier `105ad50`, its comment fix `95e7607`).
+   **Segment D1 closed at `644dfba`**: Task 9 accepted after one comment round, **Task 10 accepted first
+   time** (all twelve named mutations fired; test-first not kept, recorded). Pass spend about 5.6M of 7.5M.
+   Carried to 5c from Task 10: the session-refresh call site (the seam's same-origin condition plus Task 2's
+   clamped `RefreshSession`; no 5b-ii handler verifies a session) and the magic-link mail copy (a minimal
+   placeholder today). **D2 reordered (conductor, 2026-09-23):** Task 11, then the simplifier over Tasks
+   9-11, then the pass-end `web-auth-security-reviewer`, then Task 12's close, so the close records the
+   security read and any fix it forces. Then the merge ritual (one lane, so gate, merge, gate).
 2. **Critical path (conductor, 2026-09-23):** the web surface standard is ratified (Geoff, 2026-09-23, `94d8af3`), so 5c's plan
    is unblocked; configuration homes revision 3 is ratified too
    (2026-09-23; per-collection layout parity, conditional on a rung 12 Navidrome check) (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
@@ -33,7 +40,7 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment C (Tasks 7-8); segment B closed at `dfa7155` |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment D2 (Task 11, then the close); D1 closed at `644dfba` |
 | 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29`; reopens on rung 6 once its spec is ruled and its plan approved |
 | doc | main tree, `specs/2026-09-23-rung-6-ops-seam-store.md` only | ACTIVE. Rung 6 spec draft (Opus); the conductor commits it, then runs the adversarial review (Geoff, 2026-09-23): four fresh-context Opus lenses in parallel (contract and criteria, mechanics and feasibility, data integrity and migration risk, consistency against the ratified specs), one fold, one verification read, then `prose-voice-reviewer`; only then Geoff's rulings sitting |
 
