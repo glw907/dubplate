@@ -18,7 +18,12 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    grant with its caller. Carried to 5c: rename `ErrRosterAdminChannelForbidden` when the CLI grant lands.
    Carried to 5d: the spec's "doctor exits 0" acceptance row (`spec:2332`) must run after the bootstrap
    verb. Segment C (Tasks 7-8) next, then its simplifier round. Then D1, D2, then **5c**.
-2. The Claude infra round's task 9 (the `pass-execute.js` edit) is still owed in `~/.dotfiles/docs/STATUS.md`.
+2. **Critical path (conductor, 2026-09-23):** Geoff's reads of the web surface standard (gates 5c's plan)
+   and configuration homes revision 3 (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
+   ruled. Rung 5 through 5d stays first, because the no-deploy carry blocks every box change.
+3. Owed in `~/.dotfiles` (held: that tree had another session's uncommitted edits on 2026-09-23): the infra
+   round's task 9, and a `pass-execute.js` stop-on-escalate option so a segment never builds on an
+   unaccepted task (5b-ii's Task 5 was committed over Task 4's open escalation).
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
 section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `07f4e01`).
@@ -28,7 +33,8 @@ section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `0
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment C (Tasks 7-8); segment B closed at `dfa7155` |
-| 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29` |
+| 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29`; reopens on rung 6 once its spec is ruled and its plan approved |
+| doc | main tree, `specs/2026-09-23-rung-6-ops-seam-store.md` only | ACTIVE. Rung 6 spec draft (Opus); the conductor commits it |
 
 ## Open items (carried)
 
