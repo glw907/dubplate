@@ -27,6 +27,13 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    placeholder today). **D2 reordered (conductor, 2026-09-23):** Task 11, then the simplifier over Tasks
    9-11, then the pass-end `web-auth-security-reviewer`, then Task 12's close, so the close records the
    security read and any fix it forces. Then the merge ritual (one lane, so gate, merge, gate).
+   **Task 11 accepted first time (`c2613ba`); simplifier `08befea`. Pass-end security read at `46e37d1`
+   (`research/2026-09-23-rung-5b-ii-security-review.md`): no blocker, five majors, fourteen minors; 5b-i's
+   fixes hold except M4 (partial) and m10 (ASCII only).** Majors: cross-process roster writes lose and
+   resurrect members; mailed links land outside the owned prefix (token to the fallthrough); a refused
+   client's flood evicts a victim's per-address bucket; IPv6 per-client keys at /128; no trusted-proxy
+   setting behind the tunnel (a 5d deploy gate). Spend about 6.3M, past the 6.0M flag: **the combined
+   question to Geoff is open** (fold majors 1-4 here over the ceiling, or as 5c's security-fold Task 1).
 2. **Critical path (conductor, 2026-09-23):** the web surface standard is ratified (Geoff, 2026-09-23, `94d8af3`), so 5c's plan
    is unblocked; configuration homes revision 3 is ratified too
    (2026-09-23; per-collection layout parity, conditional on a rung 12 Navidrome check) (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
