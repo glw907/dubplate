@@ -446,6 +446,48 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 	}
 }
 
+// TestDoctorCmd_SelectedSourcePrintsOneLine proves doctor prints
+// exactly one line for the selected identity source even when two of
+// its Required keys fail at once: the existing selected-source tests
+// use strings.Contains against the magic-link row, so they pass just
+// as well against a doctor that printed one extra line per failing
+// key rather than one line per source (review finding,
+// doctor_test.go:433). Both DUBPLATE_MAGIC_LINK_SECRET and
+// DUBPLATE_SESSION_SECRET are magic-link's own Required keys
+// (auth.go), so this reuses the exact simultaneous-failure fixture
+// TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
+// rowStatuses keeps as two separate entries.
+func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
+	environ := append(authEnviron(),
+		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
+		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
+	)
+	reg := productionRegistry()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: both secrets are below the floor")
+	}
+
+	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
+
+	matches := 0
+	for _, line := range lines {
+		if strings.HasPrefix(line, "magic-link") {
+			matches++
+		}
+	}
+	if matches != 1 {
+		t.Errorf("stdout has %d line(s) starting with %q, want exactly 1: one line per source, not per key", matches, "magic-link")
+	}
+
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources())
+	if len(lines) != wantTotal {
+		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
+	}
+}
+
 // doctorLines runs newDoctorCmd against reg with a satisfied base
 // environ and returns its stdout split into lines. It ignores
 // Execute's own error: a scratch owned row this test never sets a
