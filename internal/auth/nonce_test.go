@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"context"
 	"errors"
+	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -396,7 +399,7 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 
 // TestOpenSweeps proves the sweep at open is real: a store opened over
 // a root holding an expired record prunes it before the caller's first
-// insert, with no interval driver in this package.
+// insert, with [RunSweep]'s own interval driver never called.
 func TestOpenSweeps(t *testing.T) {
 	stateDir := t.TempDir()
 	first := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
@@ -470,6 +473,93 @@ func TestConcurrentInsertAdmitsOne(t *testing.T) {
 			t.Fatalf("round %d: %d of %d concurrent inserts succeeded, want exactly 1", round, admitted, writers)
 		}
 	}
+}
+
+// TestRunSweepRunsOnTickWithoutWaitingSweepInterval proves the driver
+// calls sweep on receipt of a tick rather than on a real-time schedule:
+// the test drives tick directly and never waits SweepInterval (one
+// hour, the production ticker's period) out.
+func TestRunSweepRunsOnTickWithoutWaitingSweepInterval(t *testing.T) {
+	if SweepInterval != time.Hour {
+		t.Fatalf("SweepInterval = %v, want 1h", SweepInterval)
+	}
+
+	calls := make(chan struct{}, 1)
+	sweep := func(time.Time) (NonceSweep, error) {
+		calls <- struct{}{}
+		return NonceSweep{Removed: 1}, nil
+	}
+	tick := make(chan time.Time, 1)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	go RunSweep(ctx, sweep, func() time.Time { return nonceClock }, tick, discardLogger())
+
+	tick <- nonceClock
+	select {
+	case <-calls:
+	case <-time.After(5 * time.Second):
+		t.Fatal("RunSweep did not call sweep after a tick")
+	}
+}
+
+// TestRunSweepStopsWithContext is the leak assertion: canceling ctx
+// stops the driver's goroutine, proved by a channel the goroutine
+// itself closes on return rather than by inspecting RunSweep's source.
+func TestRunSweepStopsWithContext(t *testing.T) {
+	sweep := func(time.Time) (NonceSweep, error) { return NonceSweep{}, nil }
+	tick := make(chan time.Time)
+	ctx, cancel := context.WithCancel(t.Context())
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		RunSweep(ctx, sweep, func() time.Time { return nonceClock }, tick, discardLogger())
+	}()
+
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("RunSweep left its goroutine running after ctx was canceled")
+	}
+}
+
+// TestRunSweepLogsAFailureAndContinues proves a failed sweep never
+// stops the driver: a second tick after a failing sweep still reaches
+// sweep, since a sweep's own error is never fatal after startup.
+func TestRunSweepLogsAFailureAndContinues(t *testing.T) {
+	calls := make(chan struct{}, 2)
+	first := true
+	sweep := func(time.Time) (NonceSweep, error) {
+		calls <- struct{}{}
+		if first {
+			first = false
+			return NonceSweep{}, errors.New("boom")
+		}
+		return NonceSweep{}, nil
+	}
+	tick := make(chan time.Time, 2)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	go RunSweep(ctx, sweep, func() time.Time { return nonceClock }, tick, discardLogger())
+
+	tick <- nonceClock
+	tick <- nonceClock
+	for range 2 {
+		select {
+		case <-calls:
+		case <-time.After(5 * time.Second):
+			t.Fatal("RunSweep stopped calling sweep after the first call failed")
+		}
+	}
+}
+
+// discardLogger returns a logger RunSweep's tests can pass without
+// asserting on its output.
+func discardLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
 // TestNonceErrorsCarryNoNonceValue holds the package's own rule on the

@@ -1,12 +1,46 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"io"
+	"log/slog"
+	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
+)
+
+// The magic-link identity source's key names this file reads through
+// [config.Config.IdentitySourceValue]; auth.go declares them as the
+// source's Required and Optional rows. None of these constants carries
+// a secret value; each names the environment variable a real deployment
+// carries one under.
+const (
+	rosterFileKey              = "DUBPLATE_ROSTER_FILE"
+	magicLinkSecretKey         = "DUBPLATE_MAGIC_LINK_SECRET"          // secret-guard-allow
+	magicLinkSecretPreviousKey = "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS" // secret-guard-allow
+	sessionSecretKey           = "DUBPLATE_SESSION_SECRET"             // secret-guard-allow
+	sessionSecretPreviousKey   = "DUBPLATE_SESSION_SECRET_PREVIOUS"    // secret-guard-allow
+	publicURLKey               = "DUBPLATE_PUBLIC_URL"
+	smtpHostKey                = "DUBPLATE_SMTP_HOST"
+	smtpPortKey                = "DUBPLATE_SMTP_PORT"
+	smtpUserKey                = "DUBPLATE_SMTP_USER"
+	smtpPasswordKey            = "DUBPLATE_SMTP_PASSWORD" // secret-guard-allow
+	smtpFromKey                = "DUBPLATE_SMTP_FROM"
+)
+
+// The three subtree names the auth handlers mount under the owned
+// prefix.
+const (
+	requestLinkRouteName = "request-link"
+	consumeLinkRouteName = "consume-link"
+	signOutRouteName     = "sign-out"
 )
 
 // serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
@@ -108,17 +142,14 @@ func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
 
 // newServeCmd builds the serve verb: it validates the owned
 // configuration wall through [config.Load] against reg, resolves the
-// three thresholds through resolveServeConfig, builds the rung 5a
-// shell with no registered subtree and no fallthrough (no driver
-// exists yet, so every request outside the owned prefix answers 404),
-// and runs it until cmd's context is done. The shell is built by
-// newServeShell, which carries the one construction value that exists
-// at this rung: the session cookie's name.
-//
-// Load runs before anything else and before any listener opens: a
-// server whose wall is unsatisfied must refuse at startup, in the same
-// words doctor reports, rather than accept connections and fail at the
-// first request that needs a missing value.
+// three serve thresholds and rung 5's ten auth thresholds, builds the
+// shell and mounts the auth handlers through newServeShell, and runs it
+// until cmd's context is done. Every resolution and every store or
+// roster open in newServeShell happens before serve.Run opens a
+// listener, so a server whose wall or whose auth dependencies are
+// unsatisfied refuses at startup, in the same words doctor reports,
+// rather than accepting connections and failing at the first request
+// that needs a missing value.
 func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "serve",
@@ -126,14 +157,22 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if _, err := config.Load(environ, reg); err != nil {
+			cfg, err := config.Load(environ, reg)
+			if err != nil {
 				return err
 			}
 			prefix, addrs, port, err := resolveServeConfig(environ)
 			if err != nil {
 				return err
 			}
-			shell := newServeShell(prefix)
+			authCfg, err := resolveAuthConfig(environ)
+			if err != nil {
+				return err
+			}
+			shell, _, err := newServeShell(cmd.Context(), prefix, cfg, authCfg)
+			if err != nil {
+				return err
+			}
 			return serve.Run(cmd.Context(), shell.Logger(), shell.Handler(), addrs, port)
 		},
 	}
@@ -142,20 +181,145 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 	return cmd
 }
 
-// newServeShell builds the shell the serve verb runs, owning prefix.
+// newServeShell builds the shell the serve verb runs, owning prefix,
+// opens the auth store, the nonce and epoch stores, and the roster,
+// builds the rate limiter, the mailer, and the magic-link identity
+// seam, constructs the auth handlers, and mounts them under the owned
+// prefix. It returns before any listener opens, so a caller refuses a
+// missing roster file, an unopenable store, or an unparseable mail
+// port without ever accepting a connection.
+//
+// It registers no bearer bypass: rung 5 has no bearer-authenticated
+// path, so every mount stays behind the origin check's cookie-carrying
+// protection.
+//
+// It starts the nonce sweep's interval driver bound to ctx and returns
+// the channel the driver's goroutine closes on return, so a caller
+// (this file's own test) can prove the driver stops when ctx is
+// canceled instead of inspecting RunSweep's own source. Production
+// discards the channel; nothing in this pass reads it.
+//
 // The strip carries auth.SessionCookieName, so the shell removes the
 // server's own session cookie from any request it hands the
 // fallthrough: no request leaving this server's owned surface carries
 // the credential that authenticates it. Rung 5a's coverage gap 4 was
 // exactly this name being the empty string, which removes nothing.
 //
-// The remaining construction values stay empty because nothing supplies
-// them yet: no driver exists to name an identity header, no trusted
-// proxy is configured, and no front exemption is in force.
-//
-// The shell is built here rather than inline in RunE so the verb's own
-// wiring is what a test exercises, rather than a restatement of it.
-func newServeShell(prefix serve.Prefix) *serve.Shell {
-	strip := serve.NewStrip("", auth.SessionCookieName, serve.TrustedProxyConfig{}, serve.FrontExemption{})
-	return serve.NewShell(prefix, strip, nil)
+// No trusted proxy is configured yet and no front exemption is in
+// force, so proxyConfig's zero value governs both the strip and every
+// handler's ClientIP: PeerAddress is the client address until a later
+// rung configures otherwise.
+func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config, authCfg authConfig) (*serve.Shell, <-chan struct{}, error) {
+	var proxyConfig serve.TrustedProxyConfig
+	strip := serve.NewStrip("", auth.SessionCookieName, proxyConfig, serve.FrontExemption{})
+	shell := serve.NewShell(prefix, strip, nil)
+
+	store, err := auth.Open(cfg.StateDir)
+	if err != nil {
+		return nil, nil, err
+	}
+	nonces, _, err := auth.OpenNonceStore(store, authCfg.nonceRetention, time.Now())
+	if err != nil {
+		return nil, nil, err
+	}
+	epoch := auth.OpenEpochStore(store)
+
+	roster, err := auth.OpenRoster(cfg.IdentitySourceValue(rosterFileKey))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	limiter := auth.NewLimiter(auth.Limits{
+		LinkRequestsPerAddress:       authCfg.linkRequestsPerAddress,
+		LinkRequestsPerClient:        authCfg.linkRequestsPerClient,
+		ConsumptionAttemptsPerClient: authCfg.consumptionAttemptsPerClient,
+		LinkMailCeiling:              authCfg.linkMailCeiling,
+	})
+
+	mailer, err := newMailer(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// No handler here consumes the seam; a later page and its unit are
+	// its first readers, so it is built and held only to prove it
+	// constructs against this rung's resolved values.
+	_ = auth.NewMagicLinkSeam(roster, epoch,
+		[]byte(cfg.IdentitySourceValue(sessionSecretKey)),
+		[]byte(cfg.IdentitySourceValue(sessionSecretPreviousKey)),
+		authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
+
+	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
+	handlers := auth.NewHandlers(auth.HandlersConfig{
+		Roster:             roster,
+		Nonces:             nonces,
+		Epoch:              epoch,
+		Limiter:            limiter,
+		Send:               mailer.Send,
+		ClientIP:           clientIP,
+		Now:                time.Now,
+		Logger:             shell.Logger(),
+		LinkSecret:         []byte(cfg.IdentitySourceValue(magicLinkSecretKey)),
+		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(magicLinkSecretPreviousKey)),
+		SessionSecret:      []byte(cfg.IdentitySourceValue(sessionSecretKey)),
+		LinkExpiry:         authCfg.magicLinkExpiry,
+		SessionLifetime:    authCfg.sessionLifetime,
+		PublicOrigin:       cfg.IdentitySourceValue(publicURLKey),
+		BodyCap:            int64(authCfg.authRequestBodyCap),
+		GenericAnswer:      authCfg.unknownAddressAnswer == "generic",
+	})
+
+	// The auth handlers apply no method check of their own; mounting
+	// each behind methodOnly is what fixes the one method it accepts.
+	shell.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
+	shell.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
+	shell.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
+
+	done := startNonceSweep(ctx, nonces, shell.Logger())
+	return shell, done, nil
+}
+
+// methodOnly wraps h, answering 405 with an Allow header naming method
+// to any request whose method is not method.
+func methodOnly(method string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != method {
+			w.Header().Set("Allow", method)
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// newMailer resolves the magic-link source's five SMTP keys into a
+// [notify.Mailer]. The port is the one value among them this file
+// converts rather than passes through: an unparseable port refuses
+// before the verb ever listens, naming the key.
+func newMailer(cfg *config.Config) (*notify.Mailer, error) {
+	port, err := strconv.Atoi(cfg.IdentitySourceValue(smtpPortKey))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", smtpPortKey, err)
+	}
+	return notify.New(notify.Config{
+		Host:     cfg.IdentitySourceValue(smtpHostKey),
+		Port:     port,
+		User:     cfg.IdentitySourceValue(smtpUserKey),
+		Password: cfg.IdentitySourceValue(smtpPasswordKey),
+		From:     cfg.IdentitySourceValue(smtpFromKey),
+	}), nil
+}
+
+// startNonceSweep starts the nonce sweep's interval driver as a
+// goroutine bound to ctx, ticking every [auth.SweepInterval], and
+// returns a channel the goroutine closes once it returns.
+func startNonceSweep(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) <-chan struct{} {
+	ticker := time.NewTicker(auth.SweepInterval)
+	done := make(chan struct{})
+	go func() {
+		defer ticker.Stop()
+		defer close(done)
+		auth.RunSweep(ctx, nonces.Sweep, time.Now, ticker.C, logger)
+	}()
+	return done
 }

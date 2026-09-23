@@ -4,16 +4,69 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 )
+
+// discardTestLogger returns a logger this file's tests can pass
+// without asserting on its output.
+func discardTestLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(io.Discard, nil))
+}
+
+// serveAuthEnviron returns authEnviron with DUBPLATE_STATE_DIR pointed
+// at a fresh t.TempDir(): authEnviron's own fixed path is not one a
+// test process may create the auth leaf's directories under.
+func serveAuthEnviron(t *testing.T) []string {
+	t.Helper()
+	return replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+}
+
+// replaceKey returns a copy of environ with name's entry replaced by
+// value, appending it when environ carries no entry for name.
+func replaceKey(environ []string, name, value string) []string {
+	return append(dropKey(environ, name), name+"="+value)
+}
+
+// buildServeShell resolves environ through the production registry and
+// [newServeShell]'s own three inputs, so a test exercises the verb's
+// real construction path rather than a restatement of it.
+func buildServeShell(t *testing.T, environ []string) (*serve.Shell, <-chan struct{}, error) {
+	t.Helper()
+	return buildServeShellWithContext(t, t.Context(), environ)
+}
+
+// buildServeShellWithContext is [buildServeShell] with the caller's own
+// context, for a test that must control when the sweep driver's context
+// is canceled rather than relying on t.Context()'s own lifetime.
+func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []string) (*serve.Shell, <-chan struct{}, error) {
+	t.Helper()
+	cfg, err := config.Load(environ, productionRegistry())
+	if err != nil {
+		t.Fatalf("config.Load: %v", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig: %v", err)
+	}
+	authCfg, err := resolveAuthConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveAuthConfig: %v", err)
+	}
+	return newServeShell(ctx, prefix, cfg, authCfg)
+}
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
 // this file's own tests exercise the same collision and derivation
@@ -269,13 +322,12 @@ func TestDoctorCmd_CarriesServeThresholdsAndNoServeReservedRow(t *testing.T) {
 // intact, so a request leaving the owned surface carries no credential
 // that authenticates against this server.
 func TestNewServeShell_RemovesTheSessionCookieAtTheFallthrough(t *testing.T) {
-	prefix, _, _, err := resolveServeConfig(nil)
+	shell, _, err := buildServeShell(t, serveAuthEnviron(t))
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
 
 	var got http.Header
-	shell := newServeShell(prefix)
 	shell.SetFallthrough(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		got = r.Header.Clone()
 	}))
@@ -298,5 +350,145 @@ func TestNewServeShell_RemovesTheSessionCookieAtTheFallthrough(t *testing.T) {
 	}
 	if c.Value != "another-value" {
 		t.Errorf("cookie %q = %q, want %q", c.Name, c.Value, "another-value")
+	}
+}
+
+// authRoutePOST issues a same-origin POST against target with body,
+// the one shape [methodOnly] and the origin check both admit.
+func authRoutePOST(handler http.Handler, target, body string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodPost, target, strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	return rec
+}
+
+// TestNewServeShell_MountsTheThreeAuthRoutes proves the verb's own
+// construction registers request-link, consume-link, and sign-out
+// under the owned prefix, and that an unregistered path under the same
+// prefix still terminates at 404 rather than falling through.
+func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
+	environ := serveAuthEnviron(t)
+	shell, _, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	handler := shell.Handler()
+
+	for _, tt := range []struct {
+		name    string
+		path    string
+		body    string
+		notWant int
+	}{
+		{"request-link", requestLinkRouteName, "address=member@example.com", http.StatusNotFound},
+		{"consume-link", consumeLinkRouteName, "token=not-a-real-token", http.StatusNotFound},
+		{"sign-out", signOutRouteName, "", http.StatusNotFound},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := authRoutePOST(handler, prefix.String()+"/"+tt.path, tt.body)
+			if rec.Code == tt.notWant {
+				t.Errorf("status = %d, want anything but %d: the route is not mounted", rec.Code, tt.notWant)
+			}
+		})
+	}
+
+	rec := authRoutePOST(handler, prefix.String()+"/no-such-route", "")
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("unregistered owned path status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+}
+
+// TestNewServeShell_MissingRosterRefusesBeforeConstruction proves that
+// a missing roster file refuses the shell's own construction, naming
+// the path, rather than building a shell that would answer requests
+// with no roster behind it.
+func TestNewServeShell_MissingRosterRefusesBeforeConstruction(t *testing.T) {
+	missingPath := filepath.Join(t.TempDir(), "no-such-roster.json")
+	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_ROSTER_FILE", missingPath)
+
+	_, _, err := buildServeShell(t, environ)
+	if !errors.Is(err, auth.ErrRosterMissing) {
+		t.Fatalf("buildServeShell() error = %v, want it to wrap auth.ErrRosterMissing", err)
+	}
+	if !strings.Contains(err.Error(), missingPath) {
+		t.Errorf("error %q does not name the missing roster path %q", err, missingPath)
+	}
+}
+
+// TestNewServeShell_StateChangingFallthroughRequestIsDenied proves no
+// bypass pattern is registered: a cookie-carrying POST outside the
+// owned prefix, carrying neither Sec-Fetch-Site nor Origin, is refused
+// by the origin check rather than reaching the fallthrough.
+func TestNewServeShell_StateChangingFallthroughRequestIsDenied(t *testing.T) {
+	shell, _, err := buildServeShell(t, serveAuthEnviron(t))
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	reached := false
+	shell.SetFallthrough(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { reached = true }))
+
+	req := httptest.NewRequest(http.MethodPost, "/outside", nil)
+	req.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: "a-session-value"})
+	rec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusForbidden)
+	}
+	if reached {
+		t.Error("the fallthrough handler was reached; a bypass pattern must not exempt it")
+	}
+}
+
+// TestStartNonceSweep_RunsAndStopsWithContext is the sweep driver's
+// leak assertion at the verb's own wiring: canceling ctx stops the
+// goroutine [startNonceSweep] started, proved by the channel that
+// goroutine closes on return rather than by inspecting its source.
+func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
+	stateDir := t.TempDir()
+	store, err := auth.Open(stateDir)
+	if err != nil {
+		t.Fatalf("auth.Open: %v", err)
+	}
+	nonces, _, err := auth.OpenNonceStore(store, time.Hour, time.Now())
+	if err != nil {
+		t.Fatalf("auth.OpenNonceStore: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	done := startNonceSweep(ctx, nonces, discardTestLogger())
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("startNonceSweep left its goroutine running after ctx was canceled")
+	}
+}
+
+// TestNewServeShell_SweepDriverStopsWithTheGivenContext is the leak
+// assertion against newServeShell's own wiring, not against
+// [startNonceSweep] called directly: it proves the driver goroutine
+// newServeShell starts is bound to the ctx argument it was passed,
+// rather than to a context of its own, by canceling that argument and
+// waiting on the channel newServeShell returns.
+func TestNewServeShell_SweepDriverStopsWithTheGivenContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	_, done, err := buildServeShellWithContext(t, ctx, serveAuthEnviron(t))
+	if err != nil {
+		t.Fatalf("buildServeShellWithContext() error = %v, want nil", err)
+	}
+
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the sweep driver did not stop after the passed context was canceled")
 	}
 }

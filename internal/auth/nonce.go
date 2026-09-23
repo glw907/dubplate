@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -89,6 +91,38 @@ func OpenNonceStore(store *Store, retention time.Duration, now time.Time) (*Nonc
 		return nil, sweep, err
 	}
 	return s, sweep, nil
+}
+
+// SweepInterval is the period the serve verb drives Sweep on after
+// startup. An hour keeps the store's filesystem cost, one directory
+// listing plus a stat per malformed record, far below anything a
+// group's own traffic would notice, without adding a second
+// configurable interval to a store whose replay guarantee never
+// depends on how promptly a swept record disappears.
+const SweepInterval = time.Hour
+
+// RunSweep calls sweep, a NonceStore's own Sweep method in production,
+// once for every value received on tick, passing now() as the sweep's
+// instant, until ctx is done. The caller owns tick's ticker, which is
+// what lets a test drive one sweep without waiting SweepInterval out.
+//
+// A sweep's own error is logged and never returned: after startup, a
+// record's presence, not its readability, is what blocks a replay, so
+// one failed sweep must not stop the ones after it.
+func RunSweep(ctx context.Context, sweep func(now time.Time) (NonceSweep, error), now func() time.Time, tick <-chan time.Time, logger *slog.Logger) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick:
+			result, err := sweep(now())
+			if err != nil {
+				logger.Error("nonce sweep failed", "reason", err.Error())
+				continue
+			}
+			logger.Info("nonce sweep completed", "removed", result.Removed, "malformed", result.Malformed)
+		}
+	}
 }
 
 // Insert records nonce as consumed at now and reports ErrNonceReplayed
