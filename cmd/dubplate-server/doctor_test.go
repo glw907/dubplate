@@ -52,6 +52,13 @@ func TestDoctorCmd(t *testing.T) {
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
+			// The same statuses map doctor's own RunE built from the
+			// same Load call, so the threshold expectation below
+			// reflects a relational refusal exactly as the row under
+			// test would.
+			_, loadErr := config.Load(tt.environ, reg)
+			statuses := rowStatuses(loadErr)
+
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("Execute() error = nil, want error")
@@ -115,7 +122,7 @@ func TestDoctorCmd(t *testing.T) {
 			}
 
 			for _, th := range reg.Thresholds() {
-				want := thresholdStatus(tt.environ, th)
+				want := thresholdStatus(tt.environ, statuses, th)
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before threshold row %s", th.Key)
 				}
@@ -314,6 +321,92 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 				t.Errorf("stdout = %q, want no resolved value: a source's required set carries secrets", out)
 			}
 		})
+	}
+}
+
+// TestDoctorCmd_NoRunReportsAllGreenOnLoadError is the M4 gate test
+// (D5's own load-bearing acceptance criterion): with the magic-link
+// source selected and every other row satisfied, and only
+// DUBPLATE_NONCE_RETENTION below the link expiry, doctor's exit status
+// is 1 and at least one printed row names a failure. The property is
+// asserted generally, not against one row's literal text, so it also
+// covers whatever other row a future rung's own hook fails against.
+func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
+	environ := append(authEnviron(),
+		"DUBPLATE_MAGIC_LINK_EXPIRY=45m",
+		"DUBPLATE_NONCE_RETENTION=30m",
+	)
+	reg := productionRegistry()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: the retention is below the link expiry")
+	}
+
+	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
+	failing := 0
+	for _, line := range lines {
+		if strings.Contains(line, "invalid:") || strings.Contains(line, "missing") || strings.Contains(line, "unsatisfied") {
+			failing++
+		}
+	}
+	if failing == 0 {
+		t.Errorf("stdout = %q, want at least one row naming a failure: doctor must never print an all-satisfied table while Load refuses", stdout.String())
+	}
+}
+
+// TestDoctorCmd_RowStatusesSurviveSimultaneousFailures proves the
+// review M4 flatten fix directly: two of the identity source's own
+// Required keys failing at once must each surface as their own row
+// status, not one entry naming the first and swallowing the second's
+// reason inside a stray newline.
+func TestDoctorCmd_RowStatusesSurviveSimultaneousFailures(t *testing.T) {
+	environ := append(authEnviron(),
+		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
+		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
+	)
+
+	_, loadErr := config.Load(environ, productionRegistry())
+	if loadErr == nil {
+		t.Fatal("Load() error = nil, want a refusal: both secrets are below the floor")
+	}
+	statuses := rowStatuses(loadErr)
+
+	for _, key := range []string{"DUBPLATE_MAGIC_LINK_SECRET", "DUBPLATE_SESSION_SECRET"} {
+		got, ok := statuses[key]
+		if !ok {
+			t.Errorf("statuses[%s] missing, want an entry naming its own failure", key)
+			continue
+		}
+		if !strings.HasPrefix(got, "invalid: too short") {
+			t.Errorf("statuses[%s] = %q, want it to start with %q", key, got, "invalid: too short")
+		}
+		if strings.Contains(got, "\n") {
+			t.Errorf("statuses[%s] = %q, carries another row's line inside its own reason", key, got)
+		}
+	}
+}
+
+// TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied proves the
+// review M4 Optional-consultation fix: a short rotation-overlap secret
+// is one of magic-link's Optional keys, and with every Required key
+// satisfied it is the only thing wrong, yet the source's own row must
+// still read unsatisfied rather than active.
+func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
+	environ := append(authEnviron(), "DUBPLATE_SESSION_SECRET_PREVIOUS="+fixtureSecretBelowFloor)
+	reg := productionRegistry()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: the previous secret is below the floor")
+	}
+
+	want := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied")
+	if !strings.Contains(stdout.String(), want) {
+		t.Errorf("stdout = %q, want a line with prefix %q", stdout.String(), want)
 	}
 }
 

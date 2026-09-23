@@ -94,6 +94,12 @@ func OpenEpochStore(store *Store) *EpochStore {
 // misses the notification entirely, because it was not yet registered
 // or was not running, still finds the bump on its next read, which is
 // the property a publish-only event cannot offer.
+//
+// Each subscriber runs under a recover and a deadline (review m14): a
+// panicking subscriber cannot propagate into the revocation that called
+// it, and a blocking one cannot stall Bump past subscriberDeadline. The
+// write is already durable by the time any subscriber runs, which is
+// the order that makes both safe.
 func (e *EpochStore) Bump(address string, now time.Time) error {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
@@ -105,9 +111,30 @@ func (e *EpochStore) Bump(address string, now time.Time) error {
 		return fmt.Errorf("bump epoch: %w", err)
 	}
 	for _, fn := range subscribers {
-		fn(normalized, epoch)
+		notifySubscriber(fn, normalized, epoch)
 	}
 	return nil
+}
+
+// subscriberDeadline bounds how long Bump waits on one subscriber
+// before moving on to the next. A subscriber that has not returned by
+// then keeps running in its own goroutine; Bump does not wait for it.
+const subscriberDeadline = 5 * time.Second
+
+// notifySubscriber calls fn with address and epoch, recovering a panic
+// and giving up after subscriberDeadline rather than waiting on fn
+// forever (review m14).
+func notifySubscriber(fn func(address string, epoch time.Time), address string, epoch time.Time) {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		defer func() { _ = recover() }()
+		fn(address, epoch)
+	}()
+	select {
+	case <-done:
+	case <-time.After(subscriberDeadline):
+	}
 }
 
 // advance writes epoch as normalized's epoch when it is later than the
@@ -128,7 +155,7 @@ func (e *EpochStore) advance(normalized string, epoch time.Time) ([]func(address
 	if ok && epoch.Equal(stored) {
 		return nil, nil
 	}
-	path, err := e.store.EpochPath(RecordID(normalized))
+	path, err := e.store.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +181,7 @@ func (e *EpochStore) Read(address string) (epoch time.Time, ok bool, err error) 
 }
 
 func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) {
-	path, err := e.store.EpochPath(RecordID(normalized))
+	path, err := e.store.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
 		return time.Time{}, false, fmt.Errorf("read epoch: %w", err)
 	}

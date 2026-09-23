@@ -111,11 +111,13 @@ func MintSession(secret []byte, address string, now time.Time, lifetime time.Dur
 }
 
 // RefreshSession re-signs s with its issue time moved to now and its
-// expiry moved to now plus lifetime. The anchor is carried across
-// untouched: a session refreshed any number of times is still refused
-// once its anchor plus the absolute cap has passed, and moving the
-// anchor here would remove that cap without any other change being
-// visible.
+// expiry moved to the earlier of now plus lifetime and the session's
+// own anchor plus absoluteCap, so the cookie a browser is handed never
+// carries an expiry [VerifySession] will refuse anyway (review m2). The
+// anchor is carried across untouched: a session refreshed any number
+// of times is still refused once its anchor plus the absolute cap has
+// passed, and moving the anchor here would remove that cap without any
+// other change being visible.
 //
 // Callers refresh on same-origin requests only. A cross-origin
 // subresource load counts as traffic to the browser but not to the
@@ -127,28 +129,65 @@ func MintSession(secret []byte, address string, now time.Time, lifetime time.Dur
 //
 // s is a verified session, so there is nothing left to refuse and no
 // error to return.
-func RefreshSession(secret []byte, s Session, now time.Time, lifetime time.Duration) (string, Session) {
+func RefreshSession(secret []byte, s Session, now time.Time, lifetime, absoluteCap time.Duration) (string, Session) {
 	s.IssuedAt = now.UTC().Truncate(time.Second)
-	s.ExpiresAt = s.IssuedAt.Add(lifetime)
+	expiresAt := s.IssuedAt.Add(lifetime)
+	if capAt := s.AnchoredAt.Add(absoluteCap); expiresAt.After(capAt) {
+		expiresAt = capAt
+	}
+	s.ExpiresAt = expiresAt
 	return encodeSession(secret, s), s
 }
 
 // SessionCookie builds the cookie carrying value, expiring at
-// expiresAt. Every attribute follows from the __Host- prefix
-// [SessionCookieName] carries: Secure and Path=/ are required for the
-// browser to store it at all, and Domain must stay empty, which is also
-// what confines the cookie to the exact origin that set it. SameSite is
-// Lax so a magic link followed from a mail client arrives with the
-// session attached.
+// expiresAt as measured from now. Every attribute follows from the
+// __Host- prefix [SessionCookieName] carries: Secure and Path=/ are
+// required for the browser to store it at all, and Domain must stay
+// empty, which is also what confines the cookie to the exact origin
+// that set it. SameSite is Lax so a magic link followed from a mail
+// client arrives with the session attached.
 //
-// Expires is a hint to the browser about when to drop the cookie; the
-// value's own signed expiry is what the server enforces.
-func SessionCookie(value string, expiresAt time.Time) *http.Cookie {
+// Both Expires and MaxAge carry the same instant (review m1): Expires
+// is evaluated against the browser's own clock, so a client clock that
+// drifts from the server's would otherwise keep or drop the cookie at
+// the wrong moment, and MaxAge is the primary control OWASP's Session
+// Management cheat sheet recommends
+// (https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#cookie-duration,
+// read 2026-09-12) precisely because it does not depend on the
+// client's clock at all. Either way, the value's own signed expiry is
+// what the server enforces.
+func SessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
 	return &http.Cookie{
 		Name:     SessionCookieName,
 		Value:    value,
 		Path:     "/",
 		Expires:  expiresAt,
+		MaxAge:   int(expiresAt.Sub(now).Seconds()),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+}
+
+// ClearSessionCookie returns a cookie that instructs the browser to
+// stop storing the session cookie, carrying the same Path, Secure,
+// HttpOnly, SameSite, and absent Domain the __Host- prefix requires, so
+// the browser recognizes it as the same cookie to delete (review m9).
+// MaxAge is negative, which every browser treats as "delete
+// immediately"; Expires carries a moment far in the past for a client
+// that honors only the older attribute.
+//
+// These sessions are stateless: clearing the cookie does not
+// invalidate the signed value it carried, so a session captured before
+// this runs keeps verifying until its own expiry or an epoch bump
+// revokes it. A caller's sign-out copy must not claim more than that.
+func ClearSessionCookie() *http.Cookie {
+	return &http.Cookie{
+		Name:     SessionCookieName,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0).UTC(),
+		MaxAge:   -1,
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,

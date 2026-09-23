@@ -120,7 +120,7 @@ func TestCheckSessionRefreshedAfterBumpStillRefused(t *testing.T) {
 		t.Fatalf("Bump: %v", err)
 	}
 
-	_, refreshed := RefreshSession([]byte("session-secret"), session, epochClock.Add(time.Minute), time.Hour)
+	_, refreshed := RefreshSession([]byte("session-secret"), session, epochClock.Add(time.Minute), time.Hour, 24*time.Hour)
 
 	if err := store.CheckSession(refreshed); !errors.Is(err, ErrSessionRevoked) {
 		t.Fatalf("CheckSession after refresh = %v, want ErrSessionRevoked", err)
@@ -304,6 +304,36 @@ func TestSubscribeNotifiesOnBump(t *testing.T) {
 	}
 	if !gotEpoch.Equal(epochClock.Truncate(time.Second)) {
 		t.Errorf("subscriber epoch = %v, want %v", gotEpoch, epochClock.Truncate(time.Second))
+	}
+}
+
+// TestBumpRecoversFromPanickingSubscriber proves the review m14 fix: a
+// subscriber that panics does not take Bump down, and the record it
+// wrote before running any subscriber is still on disk.
+func TestBumpRecoversFromPanickingSubscriber(t *testing.T) {
+	stateDir := t.TempDir()
+	store := newEpochStore(t, stateDir)
+
+	calledAfter := false
+	store.Subscribe(func(string, time.Time) { panic("subscriber exploded") })
+	store.Subscribe(func(string, time.Time) { calledAfter = true })
+
+	if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
+		t.Fatalf("Bump: %v, want nil: a panicking subscriber must not fail the bump", err)
+	}
+	if !calledAfter {
+		t.Error("the subscriber registered after the panicking one was never called")
+	}
+
+	got, ok, err := store.Read(epochFixtureAddress)
+	if err != nil {
+		t.Fatalf("Read: %v", err)
+	}
+	if !ok {
+		t.Fatal("Read: ok = false, want true: the record must still be on disk")
+	}
+	if !got.Equal(epochClock.Truncate(time.Second)) {
+		t.Errorf("Read = %v, want %v", got, epochClock.Truncate(time.Second))
 	}
 }
 

@@ -67,6 +67,26 @@ var magicLinkSource = config.IdentitySource{
 // bytes passes with room to spare.
 const secretLengthFloor = 32
 
+// durationFloor is the positive floor every one of rung 5's four
+// duration thresholds shares: zero or a negative duration cannot mean
+// "never" or "immediately" here, and config.ParseDuration accepts
+// both, so this floor is the only refusal of them (review m5).
+const durationFloor = time.Second
+
+// magicLinkExpiryCeiling bounds how long a mailed link can stay
+// redeemable. The threat model's mail-scanner residual is bounded by
+// "single use, a 15-minute default expiry"; an hour is generous
+// headroom above the default without admitting a link that survives a
+// whole day in a mail provider's link-scanner cache or a browser's
+// history (review m5).
+const magicLinkExpiryCeiling = time.Hour
+
+// sessionAbsoluteCapCeiling bounds how long a session can survive
+// however many times it is refreshed. Two years is generous headroom
+// above the 4320h (180-day) default without admitting a cap that is, in
+// every practical sense, permanent (review m5).
+const sessionAbsoluteCapCeiling = 2 * 365 * 24 * time.Hour
+
 // magicLinkExpiryThreshold, sessionLifetimeThreshold,
 // sessionAbsoluteCapThreshold, and nonceRetentionThreshold are rung
 // 5b-i's four thresholds (R-5b10). The first three carry product fork
@@ -116,11 +136,12 @@ func registerAuthConfig(reg *config.Registry) {
 
 // validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
-// URL's shape, and the nonce-retention-vs-expiry relation (R31),
-// joining every failure it finds so [config.Load] reports a short
-// secret and a bad URL together. Every returned error names the
-// offending key and never the value or the length of a secret, so a
-// refusal narrows no guess about what the value was.
+// URL's shape, the four duration thresholds' bounds (review m5), and
+// the nonce-retention-vs-expiry relation (R31), joining every failure
+// it finds so [config.Load] reports a short secret and a bad URL
+// together. Every returned error names the offending key and never the
+// value or the length of a secret, so a refusal narrows no guess about
+// what the value was.
 func validateMagicLinkSource(values map[string]string, environ []string) error {
 	var errs []error
 
@@ -141,27 +162,50 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		}
 	}
 
-	expiry, expiryErr := config.ParseDuration(environ, magicLinkExpiryThreshold)
-	retention, retentionErr := config.ParseDuration(environ, nonceRetentionThreshold)
-	switch {
-	case expiryErr != nil:
-		errs = append(errs, expiryErr)
-	case retentionErr != nil:
-		errs = append(errs, retentionErr)
-	case retention < expiry:
+	var expiry, retention time.Duration
+	var expiryErr, retentionErr error
+	errs, expiry, expiryErr = checkDurationBounds(errs, environ, magicLinkExpiryThreshold, magicLinkExpiryCeiling)
+	errs, _, _ = checkDurationBounds(errs, environ, sessionLifetimeThreshold, 0)
+	errs, _, _ = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, sessionAbsoluteCapCeiling)
+	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, 0)
+
+	if expiryErr == nil && retentionErr == nil && retention < expiry {
 		errs = append(errs, fmt.Errorf("%s: %s is below %s's %s", nonceRetentionThreshold.Key, retention, magicLinkExpiryThreshold.Key, expiry))
 	}
 
 	return errors.Join(errs...)
 }
 
-// validatePublicURL checks value against the three conditions a
-// configured public origin must meet (review m7): it parses; it
-// carries a non-empty host, because net/url accepts a bare hostname
-// with a nil error and an empty Host, and a URL with no host builds a
-// path-only link that defeats security review finding 7; and its
-// scheme is https unless its host is loopback, the carve-out the W3C
-// Secure Contexts definition of a potentially trustworthy origin
+// checkDurationBounds parses th against environ and appends a bound
+// refusal to errs when the value is below durationFloor or, when
+// ceiling is positive, above it. It returns the parsed value alongside
+// errs and the parse error, so a caller that needs the value for a
+// further relational check (the retention-vs-expiry comparison) does
+// not parse it a second time.
+func checkDurationBounds(errs []error, environ []string, th config.Threshold, ceiling time.Duration) ([]error, time.Duration, error) {
+	d, err := config.ParseDuration(environ, th)
+	if err != nil {
+		return append(errs, err), 0, err
+	}
+	if d < durationFloor {
+		errs = append(errs, fmt.Errorf("%s: %s is below the floor of %s", th.Key, d, durationFloor))
+	}
+	if ceiling > 0 && d > ceiling {
+		errs = append(errs, fmt.Errorf("%s: %s is above the ceiling of %s", th.Key, d, ceiling))
+	}
+	return errs, d, nil
+}
+
+// validatePublicURL checks value against the conditions a configured
+// public origin must meet (review m7): it parses; it carries no
+// userinfo, no query string, and no fragment, because any of the three
+// would ride into every link [LinkURL] builds and make an
+// attacker-chosen string part of its visible prefix or suffix (review
+// m4); it carries a non-empty host, because net/url accepts a bare
+// hostname with a nil error and an empty Host, and a URL with no host
+// builds a path-only link that defeats security review finding 7; and
+// its scheme is https unless its host is loopback, the carve-out the
+// W3C Secure Contexts definition of a potentially trustworthy origin
 // extends to the whole loopback set
 // (https://w3c.github.io/webappsec-secure-contexts/#is-origin-trustworthy,
 // read 2026-09-12), not the name localhost alone (review m6, ruled,
@@ -172,6 +216,15 @@ func validatePublicURL(value string) error {
 	u, err := url.Parse(value)
 	if err != nil {
 		return fmt.Errorf("DUBPLATE_PUBLIC_URL: invalid URL %q: %w", value, err)
+	}
+	if u.User != nil {
+		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q carries userinfo, which would become an attacker-chosen prefix of every mailed link", value)
+	}
+	if u.RawQuery != "" {
+		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q carries a query string", value)
+	}
+	if u.Fragment != "" {
+		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q carries a fragment", value)
 	}
 	host := u.Hostname()
 	if host == "" {

@@ -253,6 +253,10 @@ func TestValidateMagicLinkSource_PublicURL(t *testing.T) {
 		{"bare hostname, empty host", "example.test", true},
 		{"https scheme, empty host", "https:///path", true},
 		{"unparseable", "://bad", true},
+		{"userinfo", "https://evil.example@dubplate.example", true},
+		{"query string", "https://dubplate.example?x=1", true},
+		{"fragment", "https://dubplate.example#frag", true},
+		{"clean https origin", "https://dubplate.example", false},
 	}
 
 	for _, tt := range tests {
@@ -301,6 +305,71 @@ func TestValidateMagicLinkSource_NonceRetention(t *testing.T) {
 						t.Errorf("error = %q, want it to name %s", err.Error(), key)
 					}
 				}
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_DurationBounds proves the review m5 fix:
+// each of the four thresholds refuses at and one past its floor, and
+// the two that carry a ceiling (the link expiry and the session
+// absolute cap) refuse at and one past it too. Every literal below is
+// written out rather than derived from durationFloor,
+// magicLinkExpiryCeiling, or sessionAbsoluteCapCeiling, so the test
+// cannot pass by echoing the code under test.
+func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
+	// bound overrides one threshold key in a base environ that
+	// otherwise satisfies every other threshold and relation, so a
+	// row's own refusal is the only one that can fire.
+	bound := func(key, value string) []string {
+		environ := append(baseEnviron(),
+			"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
+			"DUBPLATE_SESSION_LIFETIME=2160h",
+			"DUBPLATE_SESSION_ABSOLUTE_CAP=4320h",
+			"DUBPLATE_NONCE_RETENTION=24h",
+		)
+		return append(dropKey(environ, key), key+"="+value)
+	}
+
+	tests := []struct {
+		name    string
+		environ []string
+		wantErr bool
+	}{
+		// A positive floor of one second on all four (review m5): zero
+		// or a negative duration cannot mean "never" or "immediately"
+		// here.
+		{"link expiry at the one-second floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1s"), false},
+		{"link expiry one below the floor (zero)", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "0s"), true},
+		{"session lifetime at the one-second floor", bound("DUBPLATE_SESSION_LIFETIME", "1s"), false},
+		{"session lifetime one below the floor (zero)", bound("DUBPLATE_SESSION_LIFETIME", "0s"), true},
+		{"session absolute cap at the one-second floor", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "1s"), false},
+		{"session absolute cap one below the floor (zero)", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "0s"), true},
+		// The retention row's own floor is asserted with the link
+		// expiry also lowered to one second, so R31's separate
+		// retention-vs-expiry relation cannot fire alongside it.
+		{"nonce retention at the one-second floor", append(bound("DUBPLATE_NONCE_RETENTION", "1s"), "DUBPLATE_MAGIC_LINK_EXPIRY=1s"), false},
+		{"nonce retention one below the floor (zero)", bound("DUBPLATE_NONCE_RETENTION", "0s"), true},
+
+		// A ceiling of one hour on the link expiry (review m5): the
+		// threat model bounds the mail-scanner residual at "a
+		// 15-minute default expiry", and an hour is the generous
+		// headroom the fix admits above it.
+		{"link expiry at the one-hour ceiling", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1h"), false},
+		{"link expiry one second past the ceiling", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1h0m1s"), true},
+
+		// A ceiling of two years on the session absolute cap (review
+		// m5): generous headroom above the 4320h default without
+		// admitting a cap that is, in practice, permanent.
+		{"session absolute cap at the two-year ceiling", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "17520h"), false},
+		{"session absolute cap one hour past the ceiling", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "17521h"), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateMagicLinkSource(nil, tt.environ)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

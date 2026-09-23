@@ -53,9 +53,10 @@ func TestSessionCookieName(t *testing.T) {
 // than something the server can relax later.
 func TestSessionCookieAttributes(t *testing.T) {
 	const wireSample = "ZHVicGxhdGUtc2Vzc2lvbi0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc3MjYwMDc2Nw.MTc3MjYwMDc2Nw.MTc3NTE5Mjc2Nw.gTOGtfHaf6_k8TXPiRrX2vk5pWlAUyg0K65h2uOLpMw"
+	now := sessionBirth
 	expires := sessionBirth.Add(sessionLifetimeFixture)
 
-	c := SessionCookie(wireSample, expires)
+	c := SessionCookie(wireSample, now, expires)
 
 	if c.Name != "__Host-dubplate_session" {
 		t.Errorf("Name = %q, want %q", c.Name, "__Host-dubplate_session")
@@ -80,6 +81,63 @@ func TestSessionCookieAttributes(t *testing.T) {
 	}
 	if !c.Expires.Equal(expires) {
 		t.Errorf("Expires = %v, want %v", c.Expires, expires)
+	}
+	if want := int(sessionLifetimeFixture.Seconds()); c.MaxAge != want {
+		t.Errorf("MaxAge = %d, want %d", c.MaxAge, want)
+	}
+}
+
+// TestSessionCookieRenderedHeader asserts the exact Set-Cookie header
+// SessionCookie produces, Max-Age included, against a written-out
+// expectation rather than by reading the struct's fields back (review
+// m1, D5 acceptance).
+func TestSessionCookieRenderedHeader(t *testing.T) {
+	const wireSample = "ZHVicGxhdGUtc2Vzc2lvbi0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc3MjYwMDc2Nw.MTc3MjYwMDc2Nw.MTc3NTE5Mjc2Nw.gTOGtfHaf6_k8TXPiRrX2vk5pWlAUyg0K65h2uOLpMw"
+	now := sessionBirth
+	expires := sessionBirth.Add(sessionLifetimeFixture)
+
+	got := SessionCookie(wireSample, now, expires).String()
+	want := "__Host-dubplate_session=" + wireSample +
+		"; Path=/; Expires=" + expires.Format(http.TimeFormat) +
+		"; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
+	if got != want {
+		t.Errorf("Cookie.String() = %q, want %q", got, want)
+	}
+}
+
+// TestClearSessionCookie proves the clearing cookie carries the same
+// identity-bearing attributes a __Host- cookie needs to be recognized
+// as the one to delete, with MaxAge negative and an empty value
+// (review m9).
+func TestClearSessionCookie(t *testing.T) {
+	c := ClearSessionCookie()
+
+	if c.Name != SessionCookieName {
+		t.Errorf("Name = %q, want %q", c.Name, SessionCookieName)
+	}
+	if c.Value != "" {
+		t.Errorf("Value = %q, want empty", c.Value)
+	}
+	if c.Path != "/" {
+		t.Errorf("Path = %q, want %q", c.Path, "/")
+	}
+	if c.Domain != "" {
+		t.Errorf("Domain = %q, want it empty", c.Domain)
+	}
+	if !c.Secure {
+		t.Error("Secure = false, want true")
+	}
+	if !c.HttpOnly {
+		t.Error("HttpOnly = false, want true")
+	}
+	if c.SameSite != http.SameSiteLaxMode {
+		t.Errorf("SameSite = %v, want %v", c.SameSite, http.SameSiteLaxMode)
+	}
+	if c.MaxAge >= 0 {
+		t.Errorf("MaxAge = %d, want negative", c.MaxAge)
+	}
+	if !c.Expires.Before(sessionBirth) {
+		t.Errorf("Expires = %v, want a moment before every fixture instant", c.Expires)
 	}
 }
 
@@ -254,7 +312,7 @@ func TestRefreshHoldsTheAnchor(t *testing.T) {
 		if err != nil {
 			t.Fatalf("refresh %d: VerifySession error = %v, want nil", i, err)
 		}
-		value, session = RefreshSession([]byte(currentFixture), session, at, sessionLifetimeFixture)
+		value, session = RefreshSession([]byte(currentFixture), session, at, sessionLifetimeFixture, sessionCapFixture)
 
 		if !session.AnchoredAt.Equal(wantAnchor) {
 			t.Fatalf("refresh %d: AnchoredAt = %v, want %v", i, session.AnchoredAt, wantAnchor)
@@ -266,7 +324,14 @@ func TestRefreshHoldsTheAnchor(t *testing.T) {
 		if !session.IssuedAt.Equal(at) {
 			t.Errorf("refresh %d: IssuedAt = %v, want %v", i, session.IssuedAt, at)
 		}
-		if want := at.Add(sessionLifetimeFixture); !session.ExpiresAt.Equal(want) {
+		// The last two rounds' unclamped expiry would land past the
+		// cap, so the clamp this task adds (review m2) is what this
+		// want value must reflect too.
+		want := at.Add(sessionLifetimeFixture)
+		if capAt := wantAnchor.Add(sessionCapFixture); want.After(capAt) {
+			want = capAt
+		}
+		if !session.ExpiresAt.Equal(want) {
 			t.Errorf("refresh %d: ExpiresAt = %v, want %v", i, session.ExpiresAt, want)
 		}
 		if !session.IssuedAt.After(session.AnchoredAt) {
@@ -276,21 +341,21 @@ func TestRefreshHoldsTheAnchor(t *testing.T) {
 }
 
 // TestRefreshedSessionRefusedAtTheAbsoluteCap is the row that proves
-// the cap is real: the value's own expiry is a month in the future, and
-// the anchor plus the cap has passed, so the cap sentinel is what a
-// caller sees. A cap checked against the issue time would admit this
-// session forever.
+// the cap is real: a refresh close enough to the cap has its expiry
+// clamped to the cap itself (review m2), and VerifySession refuses once
+// the anchor plus the cap has passed. A cap checked against the issue
+// time would admit this session forever.
 func TestRefreshedSessionRefusedAtTheAbsoluteCap(t *testing.T) {
 	_, session, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture)
 	if err != nil {
 		t.Fatalf("MintSession error = %v, want nil", err)
 	}
 	refreshedAt := sessionBirth.Add(175 * 24 * time.Hour)
-	value, session := RefreshSession([]byte(currentFixture), session, refreshedAt, sessionLifetimeFixture)
+	value, session := RefreshSession([]byte(currentFixture), session, refreshedAt, sessionLifetimeFixture, sessionCapFixture)
 
 	atCap := sessionBirth.Add(sessionCapFixture)
-	if !session.ExpiresAt.After(atCap) {
-		t.Fatalf("fixture expiry %v is not past the cap %v; the row cannot tell the two checks apart", session.ExpiresAt, atCap)
+	if !session.ExpiresAt.Equal(atCap) {
+		t.Fatalf("refreshed ExpiresAt = %v, want it clamped to the cap %v", session.ExpiresAt, atCap)
 	}
 
 	for _, now := range []time.Time{atCap, atCap.Add(24 * time.Hour)} {
@@ -308,6 +373,31 @@ func TestRefreshedSessionRefusedAtTheAbsoluteCap(t *testing.T) {
 	// other way.
 	if _, err := VerifySession([]byte(currentFixture), nil, value, atCap.Add(-time.Second), sessionCapFixture); err != nil {
 		t.Errorf("VerifySession one second before the cap error = %v, want nil", err)
+	}
+}
+
+// TestRefreshClampsAtTheExactBoundary is the D5 acceptance literal: a
+// session anchored at T with a thirty-hour cap and a twenty-four-hour
+// lifetime, refreshed at T+23h, lands its expiry at exactly T+30h
+// rather than the T+47h an unclamped refresh would carry (review m2).
+func TestRefreshClampsAtTheExactBoundary(t *testing.T) {
+	const (
+		lifetime = 24 * time.Hour
+		cap      = 30 * time.Hour
+	)
+	anchor := time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
+
+	_, session, err := MintSession([]byte(currentFixture), "alice@example.test", anchor, lifetime)
+	if err != nil {
+		t.Fatalf("MintSession error = %v, want nil", err)
+	}
+
+	refreshedAt := anchor.Add(23 * time.Hour)
+	_, refreshed := RefreshSession([]byte(currentFixture), session, refreshedAt, lifetime, cap)
+
+	want := anchor.Add(cap)
+	if !refreshed.ExpiresAt.Equal(want) {
+		t.Errorf("ExpiresAt = %v, want %v (anchor %v + cap %v)", refreshed.ExpiresAt, want, anchor, cap)
 	}
 }
 

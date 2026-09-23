@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/glw907/dubplate/internal/atomicfile"
 )
 
 // leafDirName is the one directory under the state directory the auth
@@ -18,7 +16,9 @@ import (
 const leafDirName = "auth"
 
 // nonceSubdir and epochSubdir are the two record subdirectories Open
-// creates beneath the leaf (R-5b11).
+// creates beneath the leaf (R-5b11). They double as [RecordID]'s
+// domain-separation labels, so the one pair of names serves both
+// purposes rather than a second constant apiece.
 const (
 	nonceSubdir = "nonce"
 	epochSubdir = "epoch"
@@ -49,12 +49,26 @@ type Store struct {
 
 // Open creates the leaf and both record subdirectories under stateDir
 // if they do not already exist, and returns a Store rooted there.
+//
+// It refuses to start when the leaf itself already has a mode wider
+// than dirPerm: os.MkdirAll is a no-op on an existing directory
+// whatever its mode, so a leaf created once at a wider mode, by a
+// hand-run command or an earlier deploy, would otherwise stay wide
+// forever. Record names are digests, but a listable directory is still
+// a listing of how many links are outstanding (review m3).
 func Open(stateDir string) (*Store, error) {
 	s := &Store{root: StoreDir(stateDir)}
 	for _, sub := range []string{nonceSubdir, epochSubdir} {
 		if err := os.MkdirAll(s.subdir(sub), dirPerm); err != nil {
 			return nil, fmt.Errorf("open auth store: create %s: %w", sub, err)
 		}
+	}
+	info, err := os.Stat(s.root)
+	if err != nil {
+		return nil, fmt.Errorf("open auth store: stat leaf: %w", err)
+	}
+	if mode := info.Mode().Perm(); mode&^dirPerm != 0 {
+		return nil, fmt.Errorf("open auth store: leaf %s has mode %o, want at most %o", s.root, mode, dirPerm)
 	}
 	return s, nil
 }
@@ -80,31 +94,22 @@ func (s *Store) EpochPath(id string) (string, error) {
 
 func (s *Store) recordPath(sub, id string) (string, error) {
 	if !validID(id) {
-		return "", fmt.Errorf("record path: invalid id %q", id)
+		return "", fmt.Errorf("record path: invalid id: length %d, %s", len(id), idRefusalReason(id))
 	}
 	return filepath.Join(s.root, sub, id), nil
 }
 
-// Write writes data to path atomically at filePerm, through
-// atomicfile.WriteFile. It is the one write path a record whose
-// overwrite discipline atomicfile.WriteFile's rename-over-target covers
-// can use; a record needing first-writer-wins semantics, such as the
-// nonce store's, opens through NoncePath and O_CREATE|O_EXCL directly
-// instead, because a rename would silently overwrite it.
-func (s *Store) Write(path string, data []byte) error {
-	if err := atomicfile.WriteFile(path, data, filePerm); err != nil {
-		return fmt.Errorf("write record: %w", err)
-	}
-	return nil
-}
-
-// RecordID derives a record's filename from value: the hex of value's
-// full SHA-256 digest, untruncated (R-5b12). One derivation serves both
-// the nonce store and the epoch store, so rung 6's re-key onto a
-// surrogate id is a change to this one function rather than a rename of
-// every record (R34).
-func RecordID(value string) string {
-	sum := sha256.Sum256([]byte(value))
+// RecordID derives a record's filename from kind and value: the hex of
+// the SHA-256 digest of the two together, untruncated (R-5b12). kind
+// domain-separates the digest the same way macInput already
+// length-prefixes a MAC's own purpose label, so the nonce store and
+// the epoch store keying two different values can never collide even
+// if a future caller placed both kinds of record in one directory
+// (review m12). Callers pass [nonceSubdir] or [epochSubdir] as kind.
+func RecordID(kind, value string) string {
+	buf := appendField(nil, []byte(kind))
+	buf = appendField(buf, []byte(value))
+	sum := sha256.Sum256(buf)
 	return hex.EncodeToString(sum[:])
 }
 
@@ -118,4 +123,24 @@ func validID(id string) bool {
 		return false
 	}
 	return !strings.ContainsAny(id, `/\`)
+}
+
+// idRefusalReason names why validID refused id, without ever printing
+// id itself: every current caller passes a RecordID digest, but a
+// future caller that skipped it could pass a raw credential, and this
+// package's doc promises no error here ever carries one (review m7,
+// internal/auth/doc.go).
+func idRefusalReason(id string) string {
+	switch {
+	case id == "":
+		return "empty"
+	case id == ".":
+		return "the current-directory name"
+	case id == "..":
+		return "the parent-directory name"
+	case strings.ContainsAny(id, `/\`):
+		return "contains a path separator"
+	default:
+		return "not a valid single path segment"
+	}
 }

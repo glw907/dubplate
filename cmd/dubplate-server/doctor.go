@@ -56,7 +56,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			}
 
 			for _, th := range reg.Thresholds() {
-				if err := printRow(stdout, th.Key, thresholdStatus(environ, th)); err != nil {
+				if err := printRow(stdout, th.Key, thresholdStatus(environ, statuses, th)); err != nil {
 					return err
 				}
 			}
@@ -87,59 +87,95 @@ func printRow(w io.Writer, key, status string) error {
 // per-key status text: "missing" for a row [config.ErrMissing] flags,
 // or "invalid: " plus the row's own reason for anything else. A key
 // with no entry is unmentioned in err and therefore satisfied.
+//
+// It flattens nested joins to any depth (review M4): an identity
+// source's own Validate hook joins its own failures into one error
+// before [config.Load] joins that alongside every other row's, so a
+// hook that names two bad keys at once must not collapse into one
+// entry naming the first key and swallowing the second. flattenErrors
+// does the recursion; a leaf whose own message still carries an
+// embedded newline, which no hook in this codebase produces but a
+// future one could by joining strings without errors.Join, is split
+// per line as a second, cheaper net.
 func rowStatuses(err error) map[string]string {
 	statuses := make(map[string]string)
 	if err == nil {
 		return statuses
 	}
 
-	joined, ok := err.(interface{ Unwrap() []error })
-	if !ok {
-		return statuses
-	}
-	for _, sub := range joined.Unwrap() {
-		key, reason := splitKeyReason(sub)
-		if key == "" {
-			continue
+	for _, leaf := range flattenErrors(err) {
+		missing := errors.Is(leaf, config.ErrMissing)
+		for line := range strings.SplitSeq(leaf.Error(), "\n") {
+			key, reason, ok := strings.Cut(line, ": ")
+			if !ok || key == "" {
+				continue
+			}
+			if missing {
+				statuses[key] = "missing"
+				continue
+			}
+			statuses[key] = "invalid: " + reason
 		}
-		if errors.Is(sub, config.ErrMissing) {
-			statuses[key] = "missing"
-			continue
-		}
-		statuses[key] = "invalid: " + reason
 	}
 	return statuses
 }
 
+// flattenErrors returns every leaf of err's error tree: err itself when
+// it does not implement Unwrap() []error, or the flattened leaves of
+// every error it wraps when it does. [errors.Join] returns exactly that
+// interface, so this recursion is the whole of what unwraps its own
+// nested calls (review M4).
+func flattenErrors(err error) []error {
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		return []error{err}
+	}
+	var leaves []error
+	for _, sub := range joined.Unwrap() {
+		leaves = append(leaves, flattenErrors(sub)...)
+	}
+	return leaves
+}
+
 // thresholdStatus resolves t's effective value against environ,
 // reporting a parse failure the same way an owned row reports one:
-// "invalid: " plus the reason. The switch names every registered kind
+// "invalid: " plus the reason. It consults statuses first (review
+// M4): a threshold's own Parse* call only ever sees that threshold's
+// own value, so a relational refusal a hook raises against it, such as
+// R31's retention-vs-expiry comparison, is invisible to Parse* and
+// must be read from the flattened [rowStatuses] map instead, the same
+// way an owned wall row already is.
+//
+// Absent such an entry, the switch names every registered kind
 // explicitly; its default arm never fires against a threshold the
 // registry accepted, because [config.Registry.AddThreshold] refuses an
 // unnamed kind at registration, but it reports the registration bug in
 // its own words rather than falling through to ParseInt, which would
 // misreport a mis-declared threshold as an environment problem
 // (inventory surprise 11).
-func thresholdStatus(environ []string, t config.Threshold) string {
+func thresholdStatus(environ []string, statuses map[string]string, t config.Threshold) string {
+	if status, ok := statuses[t.Key]; ok {
+		return status
+	}
 	switch t.Kind {
 	case config.KindInt:
 		v, err := config.ParseInt(environ, t)
 		if err != nil {
-			_, reason := splitKeyReason(err)
+			reason := splitKeyReason(err)
 			return "invalid: " + reason
 		}
 		return strconv.Itoa(v)
 	case config.KindDuration:
 		d, err := config.ParseDuration(environ, t)
 		if err != nil {
-			_, reason := splitKeyReason(err)
+			reason := splitKeyReason(err)
 			return "invalid: " + reason
 		}
 		return d.String()
 	case config.KindFloat:
 		f, err := config.ParseFloat(environ, t)
 		if err != nil {
-			_, reason := splitKeyReason(err)
+			reason := splitKeyReason(err)
 			return "invalid: " + reason
 		}
 		// 'g' with precision -1 prints the shortest decimal that
@@ -149,7 +185,7 @@ func thresholdStatus(environ []string, t config.Threshold) string {
 	case config.KindString:
 		v, err := config.ParseString(environ, t)
 		if err != nil {
-			_, reason := splitKeyReason(err)
+			reason := splitKeyReason(err)
 			return "invalid: " + reason
 		}
 		return v
@@ -160,10 +196,14 @@ func thresholdStatus(environ []string, t config.Threshold) string {
 
 // identitySourceStatus reports how src stands against environ:
 // inactive when the selector names another source, unsatisfied when it
-// is the selected one and [config.Load] flagged a row it requires, and
-// active otherwise. It names no value, because a source's required set
-// carries secrets and doctor's table is read on a terminal
-// (Resolution R-5b6).
+// is the selected one and [config.Load] flagged one of its Required or
+// Optional rows, and active otherwise. Optional is consulted alongside
+// Required (review M4): a short rotation-overlap secret is one of the
+// source's Optional keys, and until this consultation it never
+// reflected in this row, however plainly the operator's own terminal
+// showed the secret's key rejected by name elsewhere. It names no
+// value, because a source's required set carries secrets and doctor's
+// table is read on a terminal (Resolution R-5b6).
 func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
@@ -173,17 +213,21 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 			return "unsatisfied"
 		}
 	}
+	for _, key := range src.Optional {
+		if statuses[key] != "" {
+			return "unsatisfied"
+		}
+	}
 	return "active"
 }
 
-// splitKeyReason splits err's message on its first "key: reason"
-// separator, the shape every [config] load and parse error uses. A
-// message with no such separator returns an empty key and the whole
-// message as reason.
-func splitKeyReason(err error) (key, reason string) {
-	key, reason, ok := strings.Cut(err.Error(), ": ")
+// splitKeyReason strips err's leading "key: " prefix, the shape every
+// [config] load and parse error uses, and returns the reason that
+// follows it. A message with no such separator is returned whole.
+func splitKeyReason(err error) (reason string) {
+	_, reason, ok := strings.Cut(err.Error(), ": ")
 	if !ok {
-		return "", err.Error()
+		return err.Error()
 	}
-	return key, reason
+	return reason
 }

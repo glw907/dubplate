@@ -66,8 +66,9 @@ type NonceStore struct {
 }
 
 // A NonceSweep reports one sweep's counts. Malformed counts the records
-// the sweep could not parse and therefore retained, which is a crash
-// signal worth logging rather than a routine outcome.
+// the sweep could not parse or could not even read and therefore
+// retained, which is a crash or a permissions signal worth logging
+// rather than a routine outcome (review m8).
 type NonceSweep struct {
 	Removed   int
 	Malformed int
@@ -101,7 +102,7 @@ func OpenNonceStore(store *Store, retention time.Duration, now time.Time) (*Nonc
 // a longer-lived link is outstanding, or a clock that steps forward,
 // can lengthen a record's life and never shorten it below the token's.
 func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) error {
-	path, err := s.store.NoncePath(RecordID(string(nonce[:])))
+	path, err := s.store.NoncePath(RecordID(nonceSubdir, string(nonce[:])))
 	if err != nil {
 		return err
 	}
@@ -134,14 +135,21 @@ func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) e
 // returns what it did. A record at exactly its expiry is retained, so
 // the boundary belongs to the record.
 //
-// A record the sweep cannot parse is retained and counted, not deleted.
-// The insert creates the record before writing it, so a crash in
+// A record the sweep cannot parse or cannot read is retained and
+// counted, not deleted and not reported as a failure: a record's
+// presence, not its readability, is what blocks a replay, so one bad
+// mode or one bad inode must not take the login surface down (review
+// m8). The insert creates the record before writing it, so a crash in
 // between leaves a zero-length file whose token may still verify, and
 // deleting it on sight would make that token consumable a second time
 // for the rest of its expiry. Such a record is removed once its mtime
 // has passed the store's retention, which is the one filesystem
 // timestamp this store reads and is read only because the record's own
 // expiry is unavailable.
+//
+// The one failure Sweep still fails closed on is the directory listing
+// itself: an unreadable store directory is a deployment defect this
+// store cannot route around, unlike a single unreadable record.
 //
 // ruled, conductor 2026-09-12, A7 fold 5
 func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
@@ -169,15 +177,13 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 				continue
 			}
 		case err != nil:
-			// The collected error wraps an *fs.PathError
-			// naming the record file. That name is the
-			// SHA-256 digest of the nonce, never the nonce,
-			// so a sweep failure is loggable without
-			// carrying a credential. The refusal path, which
-			// runs on a live authentication attempt, holds
-			// the stricter rule and names no value at all
-			// (TestNonceErrorsCarryNoNonceValue).
-			errs = append(errs, err)
+			// A record this sweep cannot even read, most often
+			// a bad mode or a bad inode. Retained and counted
+			// alongside a record it can read but not parse,
+			// rather than joined into a returned error: a
+			// single bad record must not stop OpenNonceStore
+			// from starting the login surface at all.
+			sweep.Malformed++
 			continue
 		case !now.After(expiresAt):
 			continue

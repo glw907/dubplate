@@ -53,7 +53,7 @@ func nonceDirEntries(t *testing.T, stateDir string) []os.DirEntry {
 
 func recordPathFor(t *testing.T, stateDir string, nonce [NonceLength]byte) string {
 	t.Helper()
-	return filepath.Join(StoreDir(stateDir), nonceSubdir, RecordID(string(nonce[:])))
+	return filepath.Join(StoreDir(stateDir), nonceSubdir, RecordID(nonceSubdir, string(nonce[:])))
 }
 
 // TestInsertRefusesReplay is the create-exclusive insert's behavioural
@@ -301,6 +301,56 @@ func TestSweepRetainsMalformedRecord(t *testing.T) {
 	}
 }
 
+// TestSweepRetainsUnreadableRecord proves the review m8 fix: a record
+// this process cannot even read is retained and counted alongside a
+// malformed one, and neither the sweep nor OpenNonceStore reports an
+// error for it. A record's presence, not its readability, is what
+// blocks a replay, so one bad mode must not take the login surface
+// down.
+func TestSweepRetainsUnreadableRecord(t *testing.T) {
+	stateDir := t.TempDir()
+	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
+	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+		t.Fatalf("Insert: %v", err)
+	}
+
+	unreadable := recordPathFor(t, stateDir, secondSample)
+	if err := os.WriteFile(unreadable, []byte("irrelevant"), 0o600); err != nil {
+		t.Fatalf("write unreadable record: %v", err)
+	}
+	if err := os.Chmod(unreadable, 0o000); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(unreadable, 0o600) })
+
+	sweep, err := nonces.Sweep(nonceClock.Add(fixtureRetention + time.Second))
+	if err != nil {
+		t.Fatalf("Sweep: %v, want nil: an unreadable record must not fail the sweep", err)
+	}
+	if sweep.Removed != 1 {
+		t.Errorf("Removed = %d, want 1 (the parseable, expired record)", sweep.Removed)
+	}
+	if sweep.Malformed != 1 {
+		t.Errorf("Malformed = %d, want 1 (the unreadable record)", sweep.Malformed)
+	}
+	if _, err := os.Stat(unreadable); err != nil {
+		t.Errorf("unreadable record was not retained: %v", err)
+	}
+
+	// OpenNonceStore runs a sweep at open, so the same store carrying
+	// the same unreadable record must still start.
+	if err := os.Chmod(unreadable, 0o000); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+	store, err := Open(stateDir)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	if _, _, err := OpenNonceStore(store, fixtureRetention, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
+		t.Errorf("OpenNonceStore: %v, want nil: a single unreadable record must not stop startup", err)
+	}
+}
+
 // TestSweepRetainsCrashTruncatedRecord is the crash case the insert
 // leaves behind: the record was created and the process died before its
 // bytes were written. Deleting a zero-length record on sight would make
@@ -438,7 +488,7 @@ func TestNonceErrorsCarryNoNonceValue(t *testing.T) {
 
 	for _, value := range []string{
 		string(consumedSample[:]),
-		RecordID(string(consumedSample[:])),
+		RecordID(nonceSubdir, string(consumedSample[:])),
 	} {
 		if strings.Contains(err.Error(), value) {
 			t.Errorf("replay error echoes a value it must never carry (%d bytes)", len(value))
