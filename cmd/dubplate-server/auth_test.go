@@ -160,10 +160,20 @@ func filler(n int) string {
 	return strings.Repeat("ab", n/2+1)[:n]
 }
 
-// TestRegisterAuthConfig_ThresholdDefaults proves the four thresholds
-// registerAuthConfig declares carry R-5b10's literal keys, kinds, and
+// TestRegisterAuthConfig_ThresholdDefaults proves all ten thresholds
+// registerAuthConfig declares carry their literal keys, kinds, and
 // defaults, asserted against the fixed literals rather than by reading
-// the declaration back (R-5b10).
+// the declaration back. The four durations trace to R-5b10; the four
+// rates and the unknown-address answer trace to fork 3's ruled
+// defaults (spec:216-229) and R25/fork 4 respectively; the auth
+// request body cap traces to the stated reason on its own declaration
+// (auth.go, authRequestBodyCapFloor/Ceiling's doc comment): 4KiB
+// comfortably fits the login form's mailed-address field. Each row
+// runs against both a fresh registry and productionRegistry(), on
+// TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass's own
+// precedent (serve_test.go), so a threshold that reaches the binary's
+// own registry only through a path registerAuthConfig alone does not
+// exercise is still caught.
 func TestRegisterAuthConfig_ThresholdDefaults(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -183,24 +193,29 @@ func TestRegisterAuthConfig_ThresholdDefaults(t *testing.T) {
 		{"unknown address answer", "DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind"},
 	}
 
-	reg := config.NewRegistry()
-	registerAuthConfig(reg)
-	thresholds := reg.Thresholds()
+	registries := map[string]*config.Registry{
+		"fresh":      config.NewRegistry(),
+		"production": productionRegistry(),
+	}
+	registerAuthConfig(registries["fresh"])
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			i := slices.IndexFunc(thresholds, func(th config.Threshold) bool { return th.Key == tt.key })
-			if i < 0 {
-				t.Fatalf("Thresholds() has no %s", tt.key)
-			}
-			th := thresholds[i]
-			if th.Kind != tt.kind {
-				t.Errorf("Kind = %v, want %v", th.Kind, tt.kind)
-			}
-			if th.Default != tt.wantDef {
-				t.Errorf("Default = %q, want %q", th.Default, tt.wantDef)
-			}
-		})
+	for regName, reg := range registries {
+		thresholds := reg.Thresholds()
+		for _, tt := range tests {
+			t.Run(regName+"/"+tt.name, func(t *testing.T) {
+				i := slices.IndexFunc(thresholds, func(th config.Threshold) bool { return th.Key == tt.key })
+				if i < 0 {
+					t.Fatalf("Thresholds() has no %s", tt.key)
+				}
+				th := thresholds[i]
+				if th.Kind != tt.kind {
+					t.Errorf("Kind = %v, want %v", th.Kind, tt.kind)
+				}
+				if th.Default != tt.wantDef {
+					t.Errorf("Default = %q, want %q", th.Default, tt.wantDef)
+				}
+			})
+		}
 	}
 }
 

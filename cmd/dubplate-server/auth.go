@@ -122,9 +122,9 @@ var (
 )
 
 // rateFloor is the positive floor every one of fork 3's four rate
-// thresholds and the auth request body cap share: zero is ambiguous
-// between "unlimited" and "blocked outright", so an operator who wants
-// either extreme states an explicit large or small number instead.
+// thresholds shares: zero is ambiguous between "unlimited" and "blocked
+// outright", so an operator who wants either extreme states an explicit
+// large or small number instead.
 const rateFloor = 1
 
 // linkRequestsPerAddressCeiling, linkRequestsPerClientCeiling,
@@ -147,7 +147,10 @@ const (
 // field name; the ceiling, 64KiB, is generous headroom that still
 // keeps security constraint 3's amplification bound (M5) meaningful,
 // because a cap large enough to admit an arbitrary upload defeats the
-// reason the cap exists.
+// reason the cap exists. The default, 4096 bytes, is stated as a
+// literal: the login form the auth handlers accept carries only a
+// mailed-address field, and 4KiB comfortably fits that field plus any
+// form-encoding overhead with room to spare.
 const (
 	authRequestBodyCapFloor   = 512
 	authRequestBodyCapCeiling = 65536
@@ -391,11 +394,11 @@ func isLoopbackHost(host string) bool {
 
 // authConfig is resolveAuthConfig's return type: rung 5's ten
 // thresholds, resolved and typed, the auth core takes as plain
-// construction arguments. It replaces resolveAuthConfig's original
-// four positional time.Duration returns once a fifth and sixth
-// duration made positional returns unreadable; a struct field's name
-// says which threshold it came from at every call site, where a
-// positional return said so only in the signature.
+// construction arguments. It replaces a positional return once ten
+// values of mixed type, durations, ints, and a string, made a
+// positional return unreadable; a struct field's name says which
+// threshold it came from at every call site, where a positional return
+// said so only in the signature.
 type authConfig struct {
 	magicLinkExpiry    time.Duration
 	sessionLifetime    time.Duration
