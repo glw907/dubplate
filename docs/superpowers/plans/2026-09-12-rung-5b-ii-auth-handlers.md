@@ -54,6 +54,20 @@ the conductor ratifies or reverses in one edit:
    per-key rows for the selected source? Applied as dropping the per-key
    rows. (Task 2.)
 
+> **Launch rulings (conductor, 2026-09-23, Opus 5.5 session).** Task 0 ran at
+> `f75b0d9` (`research/handoffs/2026-09-12-5b-ii-task0-staleness.md`); the Go
+> tree is unchanged at `dfda0ff`, so its evidence stands. (a) Every `opus`
+> upshift in this plan dispatches as `claude-opus-5-5`, and the pinned
+> reviewers already run it. (b) Task 0 item 5: Task 3 replaces
+> `resolveAuthConfig`'s positional duration returns with one unexported
+> struct, because Task 11 is its caller and a six-duration return is not
+> idiomatic Go. (c) Task 0 item 18: every 5b-i `HISTORY:` pointer in this
+> plan sits 47 lines low at HEAD; resolve each by its subsection heading,
+> and the close re-keys them. (d) Task 0 item 11: Task 3 proves its six
+> declarations against `productionRegistry()`, and Task 2's one-row-per-source
+> proof uses a selected source. (e) The seven conductor-owed folds are
+> ratified as applied.
+
 **This plan is the second half of the split `spec:2163-2172`
 pre-authorized and pass 5b-i took.** 5b-i landed the identity leaf, the
 config contract, the token, the session, and the two state records, and
@@ -3228,7 +3242,7 @@ Stated here because they are not tasks and no implementer performs them.
 Workflow mode per the standing grant: the pass-execute chain
 (`~/.claude/workflows/pass-execute.js`) per task, **strictly sequential**,
 **dispatched in five segments**. Every task runs `dubplate-implementer`,
-then `diff-reviewer` (`claude-opus-5`), then the gate, with one
+then `diff-reviewer` (`claude-opus-5-5`), then the gate, with one
 re-dispatch on `fix` and a second `fix` as the conductor's decision.
 **The runaway guard is armed at launch. Subagents never dispatch
 agents.**

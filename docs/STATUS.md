@@ -8,16 +8,11 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
 
 ## Next action
 
-1. **Launch 5b-ii** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md` (revision 2.1; all seven folds ruled
-   as applied, 7.5M ceiling, flag 6.0M, five segments) under the process rules in
-   `research/2026-09-12-process-improvement-plan.md`. **Task 0 already ran** at HEAD `f75b0d9`: no blockers,
-   two notes, two pre-dispatch rulings (`research/handoffs/2026-09-12-5b-ii-task0-staleness.md`), baseline
-   gate green in 75s. Valid while HEAD's Go tree is unchanged; then `pass-execute` per segment. Then **5c**.
-2. **The Claude infra round (2026-09-12) is closed except its task 9** (the `pass-execute.js` edit, deferred
-   while a cairn workflow was live; owed in `~/.dotfiles/docs/STATUS.md`). It changed dubplate in two commits:
-   `a30d32e` (dubplate-implementer's gate step now states the exit-75 reattach protocol) and `f3a55da`
-   (`go-architecture-reader` moved to `~/.claude/agents/`, reached by name as before). Neither invalidates
-   the Task 0 evidence. Launch 5b-ii in a fresh session on the new infra.
+1. **5b-ii is executing** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md` (revision 2.1, 7.5M ceiling,
+   flag 6.0M), segment A (Tasks 1-3) first. Launch rulings sit in the plan header (2026-09-23): upshifts
+   dispatch as `claude-opus-5-5`, `resolveAuthConfig` returns a struct, the seven folds ratified. Task 0's
+   evidence at `f75b0d9` holds because the Go tree is unchanged. Then segments B, C, D1, D2, then **5c**.
+2. The Claude infra round's task 9 (the `pass-execute.js` edit) is still owed in `~/.dotfiles/docs/STATUS.md`.
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
 section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `07f4e01`).
@@ -26,7 +21,7 @@ section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `0
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED. Awaiting the conductor's next dispatch |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment A (Tasks 1-3) launched 2026-09-23 from an Opus 5.5 conductor session |
 | 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29` |
 
 ## Open items (carried)
