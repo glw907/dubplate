@@ -315,3 +315,93 @@ No pass exceeds ten tasks. The ceilings total 27.5M against the draft's 17M.
   The spec refers to them rather than restating them, because this fold did not re-read those lines.
 - `internal/auth/seam.go` was staged but uncommitted in lane 1 during this fold, so rung 5
   citations may move. The 6d staleness pre-task re-reads them.
+
+---
+
+## Revision 2.1
+
+A fresh verification read of revision 2 (`research/2026-09-23-rung-6-spec-fold-verification.md`,
+committed at `7c1b46b`) found 1 blocker, 12 majors, and 15 minors. It confirmed that the first fold
+was real and that every original blocker was fixed at its root. This section gives each of its 28
+findings one disposition. The findings are cited as **V1** through **V28**. Revision 2.1 is 1,259
+lines, 1.62 times revision 1. It grows past the earlier 1.4 times target because the verification's
+fixes add criteria, quoted mechanisms, and two tables: the import states and the lock procedure.
+Where this section contradicts an earlier section of this record, this section governs. That
+covers the IN1 partial refusal, "How the ceilings were derived," and the "Unresolved" list.
+
+### Counts
+
+| Disposition | Findings |
+| --- | --- |
+| Folded | 28 |
+| Owner fork | 0 |
+| Refused | 0 |
+
+No verification finding became a new owner fork. V2, V3, V5, V9, and V19 changed the evidence or the
+wording of rulings 1, 3, 7, 8, 9, and 10. They did not add a ruling.
+
+### Dispositions
+
+| ID | Disposition | Where in revision 2.1 |
+| --- | --- | --- |
+| V1 | Folded | The catalog skeleton (users, collections, albums, tracks) moves to 6a, so 6b-i's guard and 6b-ii's reconciliation read tables that exist. CH's routed tables stay at 6c. Ruling 2's reason is corrected: the skeleton's first readers are the guard and the reconciliation, and CH's routed tables reference only users and collections. The guard fraction is a 6b-i constant that 6c re-homes. With zero catalog tracks, rclone runs with `--max-delete 0` (quoted from rclone's manual). 6b-i criteria 12-13 and 6a criterion 11 cover it. The task counts are re-derived. |
+| V2 | Folded | Identity in the store, "The epoch": every bump after 6d writes both the address key and the `UserID` key. Ruling 9's "no" branch now states why it is safe. 6d criterion 7 adds the re-added-under-a-new-id case. |
+| V3 | Folded | The pre-deploy `check` is gone. `member import --dry-run --roster PATH` reports every refusal at once and writes nothing. Because an import refusal leaves `serve` running, the check no longer has to precede the deploy. Ruling 8 and 6d criterion 2 are rewritten against it. |
+| V4 | Folded | The privileged-field table's admin-flag row adds "the import verb, from the roster file's `admin` field, once." Ruling 1 and the import table refuse a file and table with no admin. 6d criteria 1 and 6 cover it. |
+| V5 | Folded | Ruling 1 now states the real sequence: the deploy, then `--dry-run`, then the import, with the login outage from the restart until the import commits. The import holds the lock shared, like every `member` verb, so `serve` keeps running. The dead end is closed by merging: a matching existing row is the same member, and a differing collision refuses naming both. 6d criterion 3 covers it. This replaces the IN1 partial refusal, whose reason the verification showed unsound. |
+| V6 | Folded | "Migrations" quotes `flock(2)`'s conversion paragraph verbatim. It replaces the downgrade with a four-step procedure in which `serve` never holds a connection across a conversion and re-reads the version after each one. 6a criterion 13 grants a second process the exclusive lock during the conversion. |
+| V7 | Folded | Every citation of `systemd/dubplate-serve.service` is gone. The contested row names 5d's greenfield unit and records that the incumbent file is frozen (R5S:1708-1713). The timeout sentence is replaced: systemd.service(5) is quoted on `Type=simple` and `TimeoutStartSec=`. The real exposure, a backup holding the lock for hours, is stated. The bound is the new wall threshold `DUBPLATE_STORE_MIGRATION_WAIT`, and `deploy.sh` names the holder before restarting. 6d criteria 11 and 14 cover it. |
+| V8 | Folded | `serve.go` wiring is a named 6d deliverable and task, with its own contested row. No pass before 6d makes `serve` open the store, so a 5d deploy from a master carrying 6a through 6c is safe ("does not build," "Process and review"). "Package territory" states that exported surface follows its first caller: the open at 6a (`doctor`, `check`), the write method at 6b-i (`ops/local`), the serve mode and seed rule at 6d (`serve`). |
+| V9 | Folded | Rulings 7 and 10 name keys and the rules for local deletion, for the backup-off cap, and for remote pruning. The undefined "detection window" clause is removed. 6b-i gains a pruning task and criteria 15-16. The five constants are re-homed at 6c (criterion 14). |
+| V10 | Folded | The inspect mode quotes wal.html section 5 verbatim. Its invariant is now "the database file's bytes and mode never change; `-wal` and `-shm` may appear, owned by the leaf owner." 6a criterion 14 and 6c criterion 15 are rewritten to match. |
+| V11 | Folded | Three test seams are declared, each with its justification. The runner's source becomes an `fs.FS` parameter, which is dependency injection. Restore gets a step hook run in a re-executed test binary, so each crash is a real process death. The false "one seam" claim is gone. 6a embeds three migrations, which reconciles criterion 9, and criteria 8 and 10 name their injected migrations. |
+| V12 | Folded | Restore step 3 opens the current store on a raw connection that skips the version check and accepts a newer store, which is the rollback path. Step 7 reconciles only when the versions match; otherwise it leaves a `reconcile-pending` intent that serve mode completes. 6b-ii criteria 10-11 cover it. The IN9 partial refusal now holds, because step 3 accepts a newer current store. |
+| V13 | Folded | Layout: every writing open checks the intent first, and staging cleanup never removes a file an intent names. 6b-ii criterion 8 covers the crash between steps 4 and 5. |
+| V14 | Folded | The maintenance connection's DSN is stated, and the lang_vacuum sync quote names it. 6a criterion 4 includes that connection. |
+| V15 | Folded | Recovery removes a dead owner's lease file. The kind lock is `leases/kind-<kind>`. 6b-i criterion 4 covers it. |
+| V16 | Folded | Invariant 6 applies to entity tables. It names its exempt list (`settings`, the ledger, the generation row, the group quota total). The inert alternate-key exemption is reworded into the hook table. |
+| V17 | Folded | The `visibility` CHECK admits both of CH's values, group and private, and rung 14's API refuses private (CH:205-207, re-read). 6c criterion 4 covers it. |
+| V18 | Folded | Erratum 10 widens to R4, R18, R35, R5S:1687-1690, and R5S:1809-1811, and states R35's notification key. Erratum 12 adds goose's rationale. Erratum 14 is new and gives rungs 12 and 16 their carried items. |
+| V19 | Folded | Ruling 3 is narrowed to the shadow pair. The rest is stated as CH's rule applied. |
+| V20 | Folded | Rulings 10 through 14 each carry a "What it changes" line. Ruling 12's rotation clause is rewritten as the verification proposed. |
+| V21 | Folded | 6b-i criteria 17, 19, and 21 cover the retention constant, the supersession messages (now verbatim in the criterion), and `doctor`'s WAL, free-space, and snapshot rows. The job records table is proved through criteria 3-6 and 17. |
+| V22 | Folded | Layout: an absent leaf reports absent with no uid check, and `deploy.sh` runs store-opening verbs through `runuser`. The obligation is in the 5d unit's contested row and 6d criterion 14. |
+| V23 | Folded | "Package territory" states 6d's one new edge, `internal/auth` to `store`. Auth thresholds reach `internal/auth` as accessor functions injected by `cmd`. |
+| V24 | Folded | Ruling 5 derives `<NAME>` from the remote name before the colon, uppercased. It quotes rclone's manual on uppercase naming and the required `_TYPE` variable. `doctor` checks `RCLONE_CONFIG_<NAME>_TYPE` (6b-i criterion 21), and ruling 14 reads the crypt type from it. |
+| V25 | Folded | The backup job: 6b-i's close routes the `rclone` prerequisite to CLAUDE.md's Gate section. |
+| V26 | Folded | The rate is 0.55M per task, from STATUS's "about 5.6M of 7.5M" after 5b-ii Task 10. The pass table is re-priced. |
+| V27 | Folded | 6d's re-homing is split into the bounds move and the `authConfig` rewire. `serve.go` wiring (V8) adds a third task, so 6d has 9 tasks. |
+| V28 | Folded | The import states are a table of eight states, seven refusals and one success. 6d criterion 2 proves each refusal. |
+
+### Re-derived passes
+
+| Pass | Tasks, one per deliverable | Ceiling | Flag |
+| --- | --- | --- | --- |
+| 6a (8) | driver adoption tests; open modes, leaf, lock, uid, filesystem; connections and the write method; the runner, ledger, snapshot, and serve-mode procedure; the maintenance connection and rebuild; the invariant test with fixtures; the job-records and skeleton migrations; the `doctor` and `check` callers | 6.1M | 4.9M |
+| 6b-i (9) | ops types, codes, privileges, and the catalog; leases, recovery, and cancel; the `ops/local` runner; the snapshot job; the rclone transport, guards, and layout; local deletion and remote pruning; the class, constants, and supersessions; the `backup` verb with SIGINT and exit codes; `doctor`'s backup rows | 6.6M | 5.3M |
+| 6b-ii (5) | the projection and authorizer; the contract suite; the restore swap, intent, and step hook; library restore, reconciliation, and `reconcile-pending`; the `restore` verb interface and cross-version cases | 4.7M | 3.8M |
+| 6c (7) | the CH routed tables; the registry metadata; the accessor and generation; the seed rule; audit writes; `doctor` and `check` rendering; re-homing the five constants | 6.1M | 4.9M |
+| 6d (9) | the import verb with merge and `--dry-run`; the users-backed roster with the guard in a transaction; `Identity.UserID`; the dual-key epoch with bumps to both keys; the bounds move into the registry; the `authConfig` rewire; `serve` opening the store; per-class proofs and `sensitive`; deployment files | 7.3M | 5.8M |
+
+The total is 30.8M, up from revision 2's 27.5M. The difference comes from the 0.55M rate, 6d's
+split task, `serve` wiring, and 6b-i's pruning task. Each rate is 0.85M for plan preparation, plus
+0.2M for the staleness pre-task, plus tasks at 0.55M each, plus 0.6M for the close. 6b-ii adds 0.3M
+for its targeted review, 6c adds 10% for a config-contract change, and 6d adds 0.7M for security
+review inside the chain. No pass exceeds ten tasks.
+
+### Mechanisms quoted this round
+
+Revision 2.1 quotes each mechanism it touches from the local man pages or from sqlite.org. The
+quotes are `flock(2)` on conversion, systemd.service(5) on `Type=simple` and `TimeoutStartSec=`,
+sqlite.org/wal.html section 5 on read-only opens, and rclone's manual on `--max-delete` and on
+naming `RCLONE_CONFIG_<NAME>_*`.
+
+### Unresolved after revision 2.1
+
+- rclone's documentation does not say whether a file moved into `--backup-dir` counts against
+  `--max-delete`. 6b-i criterion 13 settles it against the real binary.
+- 5d's serve unit has not landed, so its file name and `Type=` are unknown. 6d's staleness pre-task
+  reads both, and the migration-wait rule holds whatever `Type=` 5d chooses.
+- The `backup` verb's exit-code numbers are still left to 6b-i's plan.
+- The length is 1,259 lines against the earlier target of about 1.4 times revision 1. Cutting more
+  would drop criteria or quotes that the verification asked for.
