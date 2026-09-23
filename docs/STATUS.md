@@ -42,7 +42,7 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment D2 (Task 11, then the close); D1 closed at `644dfba` |
 | 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29`; reopens on rung 6 once its spec is ruled and its plan approved |
-| doc | main tree, `specs/2026-09-23-rung-6-ops-seam-store.md` only | ACTIVE. Rung 6 spec draft (Opus); the conductor commits it, then runs the adversarial review (Geoff, 2026-09-23): four fresh-context Opus lenses in parallel (contract and criteria, mechanics and feasibility, data integrity and migration risk, consistency against the ratified specs), one fold, one verification read, then `prose-voice-reviewer`; only then Geoff's rulings sitting |
+| doc | main tree | CLOSED. Rung 6 spec revision 2.2 committed after four lenses, two folds, a verification read, and a prose review; awaiting Geoff's fourteen rulings (all recommended yes), five passes, about 28M |
 
 ## Open items (carried)
 
