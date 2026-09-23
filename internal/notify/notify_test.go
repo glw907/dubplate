@@ -108,6 +108,11 @@ type delivery struct {
 type testServer struct {
 	upgradeTLS *tls.Config
 
+	// rejectRCPT, when set, answers every RCPT TO with a permanent 550
+	// rather than accepting it, so TestSend_RCPTRejected can exercise
+	// the send-failure path without reaching a real network.
+	rejectRCPT bool
+
 	mu         sync.Mutex
 	deliveries []delivery
 }
@@ -190,6 +195,10 @@ func (s *testServer) handleConn(conn net.Conn) {
 			from = extractAddr(line)
 			writeLine("250 2.1.0 OK")
 		case strings.HasPrefix(upper, "RCPT TO:"):
+			if s.rejectRCPT {
+				writeLine("550 5.1.1 mailbox unavailable")
+				continue
+			}
 			to = append(to, extractAddr(line))
 			writeLine("250 2.1.5 OK")
 		case upper == "DATA":
@@ -304,8 +313,15 @@ func assertParity(t *testing.T, d delivery, cfg Config, to, wantSubject, wantBod
 		t.Error("Message-Id header missing")
 	}
 
-	// RFC 2047: a non-ASCII subject must travel as an encoded word, not
-	// raw UTF-8.
+	// RFC 2047 section 4.2: a non-ASCII subject must travel as a
+	// Q-encoded word, not raw UTF-8. This literal was derived by hand,
+	// not by calling the encoder under test: each octet of "Sigur Rós"
+	// outside the token charset is replaced by "=" plus its hex value,
+	// and each space becomes "_".
+	const wantEncodedSubject = "=?UTF-8?q?Sigur_R=C3=B3s:_upload_rejected?="
+	if got := msg.Header.Get("Subject"); got != wantEncodedSubject {
+		t.Errorf("Subject header = %q, want %q (RFC 2047 section 4.2 Q-encoded word)", got, wantEncodedSubject)
+	}
 	subject, err := (&mime.WordDecoder{}).DecodeHeader(msg.Header.Get("Subject"))
 	if err != nil {
 		t.Fatalf("decode Subject header %q: %v", msg.Header.Get("Subject"), err)
@@ -317,11 +333,22 @@ func assertParity(t *testing.T, d delivery, cfg Config, to, wantSubject, wantBod
 		t.Error("Subject header sent as raw UTF-8, want RFC 2047 encoded-word form")
 	}
 
-	// RFC 2045 section 6.7: quoted-printable transfer encoding.
+	// RFC 2045 section 6.7: quoted-printable transfer encoding. This
+	// literal was derived by hand: each non-ASCII octet of "Björk" is
+	// replaced by "=" plus its hex value, and the trailing CRLFs are
+	// preserved literally since quoted-printable passes CRLF through.
+	const wantEncodedBody = "Bj=C3=B6rk's album was rejected.\r\nReason: door & window.\r\n"
 	if got := msg.Header.Get("Content-Transfer-Encoding"); got != "quoted-printable" {
 		t.Errorf("Content-Transfer-Encoding = %q, want quoted-printable", got)
 	}
-	bodyBytes, err := io.ReadAll(quotedprintable.NewReader(msg.Body))
+	rawBody, err := io.ReadAll(msg.Body)
+	if err != nil {
+		t.Fatalf("read raw body: %v", err)
+	}
+	if string(rawBody) != wantEncodedBody {
+		t.Errorf("raw body = %q, want %q (RFC 2045 section 6.7 quoted-printable)", rawBody, wantEncodedBody)
+	}
+	bodyBytes, err := io.ReadAll(quotedprintable.NewReader(bytes.NewReader(rawBody)))
 	if err != nil {
 		t.Fatalf("decode quoted-printable body: %v", err)
 	}
@@ -348,7 +375,7 @@ func TestSend_ImplicitTLS465(t *testing.T) {
 	addr := startTestServer(t, srv, true)
 	host, port := splitHostPort(t, addr)
 
-	cfg := Config{Host: host, Port: port, User: "geoff-login@907.life", Password: "s3cret-app-password", From: "dubplate@example.com"}
+	cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
 	mailer := New(cfg)
 	mailer.tlsConfig = clientTLSConfig
 	mailer.forceImplicitTLS = true // stand-in for real port 465; see field doc.
@@ -370,7 +397,7 @@ func TestSend_StartTLS587(t *testing.T) {
 	addr := startTestServer(t, srv, false)
 	host, port := splitHostPort(t, addr)
 
-	cfg := Config{Host: host, Port: port, User: "geoff-login@907.life", Password: "s3cret-app-password", From: "dubplate@example.com"}
+	cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
 	mailer := New(cfg)
 	mailer.tlsConfig = clientTLSConfig
 	// forceImplicitTLS left false: cfg.Port is not 465, so Send takes the
@@ -407,6 +434,9 @@ func TestSend_StartTLSNotOffered(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "does not support STARTTLS") {
 		t.Errorf("Send() error = %q, want it to mention the server not supporting STARTTLS", err)
+	}
+	if !errors.Is(err, ErrSend) {
+		t.Errorf("Send() error = %v, want errors.Is(err, ErrSend)", err)
 	}
 }
 
@@ -466,6 +496,51 @@ func TestSend_HeaderInjectionGuard(t *testing.T) {
 				t.Fatalf("Send() error = %v, want ErrHeaderInjection", err)
 			}
 		})
+	}
+}
+
+// TestSend_InvalidRecipientOmitsAddress proves an unparseable recipient
+// fails with ErrInvalidRecipient and that the address itself never
+// appears in the error text, unlike go-mail's own parse error which
+// quotes it.
+func TestSend_InvalidRecipientOmitsAddress(t *testing.T) {
+	mailer := New(Config{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: "dubplate@example.com"})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	const badRecipient = "not-an-address"
+	err := mailer.Send(ctx, badRecipient, "subject", "body")
+	if !errors.Is(err, ErrInvalidRecipient) {
+		t.Fatalf("Send() error = %v, want errors.Is(err, ErrInvalidRecipient)", err)
+	}
+	if strings.Contains(err.Error(), badRecipient) {
+		t.Errorf("Send() error = %q, must not contain the recipient literal %q", err, badRecipient)
+	}
+}
+
+// TestSend_RCPTRejected proves a mid-transaction SMTP rejection wraps
+// ErrSend and that the rejected recipient never appears in the error
+// text, unlike go-mail's own *SendError.Error, which appends "affected
+// recipient(s): <address>".
+func TestSend_RCPTRejected(t *testing.T) {
+	srv := &testServer{upgradeTLS: serverTLSConfig, rejectRCPT: true}
+	addr := startTestServer(t, srv, false)
+	host, port := splitHostPort(t, addr)
+
+	mailer := New(Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer.tlsConfig = clientTLSConfig
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	const recipient = "contributor@example.com"
+	err := mailer.Send(ctx, recipient, "subject", "body")
+	if !errors.Is(err, ErrSend) {
+		t.Fatalf("Send() error = %v, want errors.Is(err, ErrSend)", err)
+	}
+	if strings.Contains(err.Error(), recipient) {
+		t.Errorf("Send() error = %q, must not contain the recipient literal %q", err, recipient)
 	}
 }
 

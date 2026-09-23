@@ -1,6 +1,6 @@
 // Package notify sends dubplate's contributor-facing mail over SMTP. It
 // is a general send seam, born general rather than as a magic-link
-// mailer: rung 7's reject copy and rung 9's notifications are its other
+// mailer: the upload reject copy and run notifications are its other
 // callers, and it carries a subject and a body as data so it never
 // duplicates internal/reject's wording.
 package notify
@@ -26,6 +26,22 @@ const implicitTLSPort = 465
 // carried a CR or LF, either of which could inject an additional header
 // into the composed message.
 var ErrHeaderInjection = errors.New("notify: header value contains CR or LF")
+
+// ErrInvalidFrom reports that the configured From address does not
+// parse as an RFC 5322 mailbox. The error text never repeats the
+// address: go-mail's own parse error quotes it verbatim.
+var ErrInvalidFrom = errors.New("notify: invalid from address")
+
+// ErrInvalidRecipient reports that the recipient address does not parse
+// as an RFC 5322 mailbox. The error text never repeats the address, for
+// the same reason as ErrInvalidFrom.
+var ErrInvalidRecipient = errors.New("notify: invalid recipient address")
+
+// ErrSend reports that the SMTP transaction failed after a successful
+// dial. The error text carries the host, port, and go-mail's failure
+// reason and code, but never the recipient list: go-mail's own
+// *SendError.Error appends "affected recipient(s): <address>".
+var ErrSend = errors.New("notify: send failed")
 
 // Config names the five SMTP values a Mailer needs. The caller resolves
 // them; Send reads no environment variable of its own.
@@ -86,10 +102,10 @@ func (m *Mailer) Send(ctx context.Context, to, subject, body string) error {
 
 	msg := mail.NewMsg()
 	if err := msg.From(m.cfg.From); err != nil {
-		return fmt.Errorf("set from %s: %w", m.cfg.From, err)
+		return ErrInvalidFrom
 	}
 	if err := msg.To(to); err != nil {
-		return fmt.Errorf("set to %s: %w", to, err)
+		return ErrInvalidRecipient
 	}
 	msg.Subject(subject)
 	msg.SetBodyString(mail.TypeTextPlain, body)
@@ -117,12 +133,14 @@ func (m *Mailer) Send(ctx context.Context, to, subject, body string) error {
 	}
 
 	if err := client.DialAndSendWithContext(ctx, msg); err != nil {
-		return fmt.Errorf("send via %s:%d: %w", m.cfg.Host, m.cfg.Port, err)
+		if sendErr, ok := errors.AsType[*mail.SendError](err); ok {
+			return fmt.Errorf("%w: %s:%d: %s (code %d)", ErrSend, m.cfg.Host, m.cfg.Port, sendErr.Reason, sendErr.ErrorCode())
+		}
+		return fmt.Errorf("%w: %s:%d: %v", ErrSend, m.cfg.Host, m.cfg.Port, err)
 	}
 
-	// The success record names no recipient: Global Constraints reserve
-	// an address-carrying record to the roster audit log, and logging one
-	// here would be a second, uncontrolled copy of the same fact.
+	// Only the roster audit record names an address, so a second copy
+	// here would be an uncontrolled duplicate of that fact.
 	slog.Info("notify sent", "host", m.cfg.Host, "port", m.cfg.Port)
 	return nil
 }
