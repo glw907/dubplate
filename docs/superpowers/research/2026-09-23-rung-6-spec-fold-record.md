@@ -405,3 +405,179 @@ naming `RCLONE_CONFIG_<NAME>_*`.
 - The `backup` verb's exit-code numbers are still left to 6b-i's plan.
 - The length is 1,259 lines against the earlier target of about 1.4 times revision 1. Cutting more
   would drop criteria or quotes that the verification asked for.
+
+---
+
+## Revision 2.2
+
+The prose review of revision 2.1 (`research/2026-09-23-rung-6-spec-prose-review.md`, committed at
+`7597052`) raised 34 findings, cited here as **P1** through **P34**. It confirmed that every quote it
+checked matches its source. Its defects were omissions from quoted passages that change the design,
+one wrong failure cause, one wrong golang-migrate reason, a double-counted prep term in the
+ceilings, and fourteen seams between sections. Revision 2.2 is 1,171 lines, down from 1,259 and 1.51
+times revision 1. It sits above the 1,100-line target: the prose review's move list and the tighter
+rulings removed about 150 lines, but P10 through P23 and P31 added criteria, quotes, and two tables
+(restore flags, verb locks). Where this section contradicts an earlier one, this section governs.
+
+### Counts
+
+| Disposition | Findings |
+| --- | --- |
+| Folded | 34 |
+| Owner fork | 0 |
+| Refused | 0 |
+
+### Dispositions
+
+| ID | Disposition | Where in revision 2.2 |
+| --- | --- | --- |
+| P1 | Folded | Connections, the read-pool bullet: the write fails with a read-only error; the busy-handler fact explains why the pool needs `query_only`, with the mechanics review's measurement cited. |
+| P2 | Folded | The backup job quotes rclone's full `--backup-dir` sentence, server-side move or copy included (confirmed against the local `rclone(1)`). `doctor` reports a backend without it (6b-i criterion 21), and "Not verified" lists the per-backend feature table. Ruling 10 no longer names `sftp` or `webdav`. |
+| P3 | Folded | The backup job's credentials paragraph quotes the character-set sentence (confirmed against `rclone(1)`). `doctor` refuses an invalid remote name (6b-i criterion 21). |
+| P4 | Folded | Prior art, golang-migrate row: the reason is the modernc v1.18.1 pairing and its own version table. mattn is no longer named. |
+| P5 | Folded | Band and ceilings: the chain rate is derived as (5.6 − 0.85 − 0.2) / 10 ≈ 0.46M. The prep range 0.83M-1.07M across 5a, 8a, 8b, 1b, and 4b is cited, with 1.07M used for 6c. The arithmetic is below. |
+| P6 | Folded | Migrations: the `flock(2)` quote now runs to the end of its sentence. |
+| P7 | Folded | Migrations: "only" is gone; the text quotes `Type=simple` and states that no start timeout bounds the wait. |
+| P8 | Folded | File modes, the `query_only` refusal, the busy-handler behavior, "foreign key mismatch", and the TEXT-in-BLOB storage now cite the mechanics review's measurements. The `VACUUM` transaction refusal is quoted from lang_vacuum.html. `data_version` is quoted from pragma.html. Navidrome's auto-create is quoted from its external-authentication documentation, the quote the mechanics review recorded. The header promise now reads "quoted, backed by a recorded measurement, or listed." |
+| P9 | Folded | Connections: the wal.html section 6 quote now includes the `journal_size_limit` clause. |
+| P10 | Folded, option (a) | Three open modes: the write mode never creates a store, and an absent store refuses with "start serve first". Only serve mode creates or migrates. 6a criterion 13 and 6d criterion 11 cover it. Option (b) was not strictly safer, because it adds a second exclusive-lock path. |
+| P11 | Folded | "Does not build", the last bullet: the production-open statement is rewritten as the review proposed. |
+| P12 | Folded | The backup guards: `--max-delete 0` is conditional on the unverified count, with the fallback abort. 6b-i criterion 13 covers both. |
+| P13 | Folded | Migrations, the rollback paragraph, and ruling 7's "What it changes": the rollback uses the local copy while it survives, then `restore --older` of a pre-upgrade remote snapshot. |
+| P14 | Folded | Job pruning moves to each job start in `ops/local`, after `serve`'s seed. The migration runner's local-snapshot cap takes its value from the caller, as the stored row or the registry default. The seed rule states this ordering, and "Package territory" says the store never reads a setting. |
+| P15 | Folded | Credentials paragraph: the immediate-backend quote. `doctor` checks that a `crypt` remote's wrapped remote is defined (6b-i criterion 21). Ruling 5 names both remotes in its body. |
+| P16 | Folded | The rulings intro separates ruling 2 from the thirteen adopter-facing rulings. |
+| P17 | Folded | The five constants carry **[CH]** where 6c re-homes them. The CH index section is removed per the length list; the marks carry the index. |
+| P18 | Folded | The hook list binds invariant 3 to the job-records table first. |
+| P19 | Folded | Process and review: 6c joins lane 2 only if 5c and 5d leave `internal/config` untouched. |
+| P20 | Folded | The restore verb's flag table includes `--discard-current`; 6b-ii criterion 9 covers it. |
+| P21 | Folded | The index criterion moves to 6a (criterion 12), with its table. |
+| P22 | Folded | The import table adds "two entries with one handle", making nine states and eight refusals; 6d criterion 2 now says eight. |
+| P23 | Folded | "The resolution point": from 6d the page and verb require `streamer_username` and refuse a duplicate; 6d criterion 6 covers it. |
+| P24 | Folded | Ruling 1 is reduced to a question, recommendation, reason, and what it changes. The mechanics move to "The import". The window sentence now names the CLI verb. |
+| P25 | Folded | Ruling 2 asks only about the hook columns. The skeleton and routed-table timing move to "The schema rung 6 lands" as a technical decision. "The owner's explicit exception" is gone. |
+| P26 | Folded | Ruling 5 says rclone's template rows arrive at rung 16 and the runbook sets them by hand until then. |
+| P27 | Folded | Ruling 7 uses the review's plain question. |
+| P28 | Folded | U3, U4, R18, R35, and #604 are defined at first use; "the reviews' scenarios" is cut. R4 appears only in the errata, as a citation label. |
+| P29 | Folded | Ruling 13's alternative "refuses to start `serve`". |
+| P30 | Folded | 6b-ii criterion 13 names "the swapped-in database file". |
+| P31 | Folded | The test seams are a bulleted list, the verb locks a table, and the opening brief is split into three paragraphs. |
+| P32 | Folded | "Identity in the store" uses H3 headings. |
+| P33 | Folded | The review narrative is gone from the rulings intro, rulings 1 and 7, the guards paragraph, and the epoch paragraph. |
+| P34 | Folded | The seed handoff's contrast frame is rewritten as the review proposed. The invariant 6 alternate-key clause and the hook row's clause are reworded. |
+
+### Sections moved out of the spec
+
+Per the prose review's "Length that does no work" list, these sections now live here.
+
+**Status provenance.** Revision 1 at `12a6941`; four reviews at `e97d761` (113 findings); revision
+2 at `80ab7ff`; the verification at `7c1b46b` (28 findings); revision 2.1 at `9155c8b`; the prose
+review at `7597052` (34 findings); revision 2.2 in the working tree.
+
+**What depends on the configuration homes spec.** Each **[CH]** mark exists because of CH's routes.
+The marks cover rulings 1 and 13, the routed tables and root allocation, the settings home, the
+registry metadata, and the seed table, pass 6c and 6d's re-homing half, hooks 8 and 15, the
+contested rows for `internal/settings` and the registry files, and the five 6b-i constants re-homed
+as store-homed keys. The foreign-key DSN rule does not depend on CH: CH requires it (CH:524-526),
+and hook 9 and the schema's references require it independently.
+
+**Behaviors a task relies on (the verification ledger).**
+
+| Behavior | Source |
+| --- | --- |
+| modernc's shorthand keys, validation, and the `_pragma` exception | `sqlite.go:305-391` at v1.59.0 |
+| the busy handler on a deferred upgrade | measured by the mechanics review (`SQLITE_BUSY` in 0s); c3ref/busy_handler.html's worked case is the rollback journal |
+| foreign keys not toggling inside a transaction | sqlite.org/pragma.html |
+| `user_version` and DDL rolling back; no bound pragma parameter | measured by the mechanics review |
+| `VACUUM INTO`'s consistency, sync condition, empty-target rule, and transaction refusal | sqlite.org/lang_vacuum.html |
+| `VACUUM INTO` refused on `query_only` | measured by the mechanics review |
+| `synchronous=NORMAL` losing a commit | sqlite.org/pragma.html |
+| `data_version` per connection | sqlite.org/pragma.html |
+| WAL on one host; read-only opens; truncation and `journal_size_limit` | sqlite.org/wal.html sections 1, 5, and 6 |
+| the hot-journal rule; replacing an open file | howtocorrupt.html sections 1.2, 1.4, and 2.5 |
+| statement-level undo | lang_transaction.html section 3 |
+| TEXT stored in a non-`STRICT` `BLOB` column; FK to a non-unique parent | measured by the mechanics review |
+| file modes 0644 under umask 0022; `-wal` and `-shm` inheriting the mode | measured by the mechanics review |
+| `flock` conversion | `flock(2)` |
+| `Type=simple`, `TimeoutStartSec=` | systemd.service(5) |
+| `--backup-dir`, `--max-delete`, `RCLONE_CONFIG_<NAME>_*` naming, the character set, the immediate backend | `rclone(1)` v1.74.3 |
+| Navidrome's auto-create of an unknown proxy user | navidrome.org external-authentication documentation |
+
+**Every state a check can meet.** Each row points to the table or flow that carries it in the spec.
+
+| Check | Where the states are |
+| --- | --- |
+| inspect, write, and serve modes | "Three open modes" and the serve-mode procedure in "Migrations" |
+| job recovery | the recovery table in "The job model" |
+| backup | the guard list and remote-layout paragraph in "The backup job" |
+| restore | the flag table and eight-step flow in "The restore verb" |
+| seed rule | the eleven-row table in "The seed rule" |
+| roster import | the nine-row table in "The import" |
+| epoch read | "The epoch" (address key only, `UserID` key only, both with either later, neither) |
+
+**The risk model** (the 6b-ii targeted reviewer's brief).
+
+| Failure | Guarded by |
+| --- | --- |
+| data loss by restore | the exclusive lock, the one-file swap after a truncating checkpoint, the intent record checked before staging cleanup, a crash injected at each step |
+| data loss by backup | the missing-root guard, the store-aware count guard, `--max-delete` (0 or the fallback abort with an empty catalog), ruling 10's retention floor |
+| a migration under a live older process, or a restore in a lock conversion | serve-only creation and migration under the exclusive lock, no connection held across a conversion, the version check in every write transaction |
+| a bad migration | per-migration transactions, the ledger, per-version snapshots, the newer-store refusal, the foreign-key check, populated fixtures |
+| foreign keys silently off; lost durability | the DSN, the maintenance connection that never returns to a pool, the readback proof; `synchronous=FULL` |
+| disk full | free-space checks, `journal_size_limit`, the truncating checkpoint, the named error, local snapshot deletion, `doctor`'s rows |
+| a live job marked interrupted; settings flap | per-process leases taken before insert; serve-only seeding in one transaction |
+| revocation lost at 6d; a root-owned store file | the permanent dual-key read, bumps to both keys, forward-only writes; the uid check |
+
+**Ceiling arithmetic.** The chain rate is 0.46M per task. STATUS records about 5.6M spent after 5b-ii
+Task 10, and HISTORY's pass spends include plan preparation and Task 0, so (5.6 − 0.85 − 0.2) / 10 ≈
+0.46M. Revision 2.1's 0.55M rate plus a separate prep term counted prep twice. The prep range is
+0.83M-1.07M (5a, 8a, 8b, 1b, 4b at HISTORY:1735, 2220, 2627, 2961, 3136); 0.95M is used, and 1.07M
+for 6c.
+
+| Pass | Arithmetic | Ceiling | Flag |
+| --- | --- | --- | --- |
+| 6a (8) | 0.95 + 0.2 + 8 × 0.46 + 0.6 = 5.43 | 5.5M | 4.4M |
+| 6b-i (9) | 0.95 + 0.2 + 9 × 0.46 + 0.6 = 5.89 | 5.9M | 4.7M |
+| 6b-ii (5) | 0.95 + 0.2 + 5 × 0.46 + 0.6 + 0.3 review = 4.35 | 4.4M | 3.5M |
+| 6c (7) | (1.07 + 0.2 + 7 × 0.46 + 0.6) × 1.1 = 5.60 | 5.6M | 4.5M |
+| 6d (9) | 0.95 + 0.2 + 9 × 0.46 + 0.6 + 0.7 security = 6.59 | 6.6M | 5.3M |
+
+The total is 28.0M. The task lists are unchanged from revision 2.1, except that the `users` index
+criterion moved from 6c to 6a with its table; both passes keep their task counts.
+
+**The systemd rationale.** Under `Type=simple` a unit counts as started at fork, so no start timeout
+bounds `serve`'s wait inside its main process. `TimeoutStartSec=` fails a service that "does not
+signal start-up completion within the configured time" (systemd.service(5)); it also bounds
+`ExecStartPre=` commands and is disabled by default for `Type=oneshot`. The bound is therefore
+`DUBPLATE_STORE_MIGRATION_WAIT` inside `serve`. 5d's unit type is re-read at 6d's staleness
+pre-task.
+
+**Contested surfaces.** The conductor writes these rows into PA's ownership table (PA:173) before lane 2 launches.
+
+
+| Surface | Owner | Consumers |
+| --- | --- | --- |
+| `internal/engine/store` and its migration set (new) | rung 6's 6a owns the runner, ledger, and invariant test; every later rung appends migrations with fixtures | a rebase onto another lane's migration renumbers the rebasing lane's files, and merge ritual step 5 runs |
+| `internal/ops`, `internal/ops/local`, `internal/backup` (new) | rung 6's 6b-i | rungs 7, 9, 13, 14 add operations; rung 12 adds the streamer database to the backup set; rung 16 schedules backup |
+| `internal/ops/opshttp` (new) | rung 6's 6b-ii, unexported | rung 14 exports and mounts it |
+| `internal/settings` (new) **[CH]** | rung 6's 6c | every rung that declares a store-homed key; rung 14 |
+| `internal/config/registry.go`, `thresholds.go` **[CH]** | rung 1b's contract; 6c adds the four metadata items and the correlated-rule list additively | rung 5's lane does not edit these files while 6c runs; if it must, 6c waits |
+| `internal/config/keys.go` | 6b-i removes the "backup targets" reserved class in the commit that declares its replacement, registering the retired names through `AddSuperseded`; 6d supersedes `DUBPLATE_ROSTER_FILE` | every later rung, by the same rule |
+| `cmd/dubplate-server/main.go` (`newProductionRegistry`, `AddCommand`) | 6a registers the busy timeout and the migration wait; 6b-i the class, its constants, and `backup`; 6b-ii `restore`; 6d `member import`; rung 5's 5c adds the `member` group in the same block | a textual conflict keeps both lines in landing order, and merge ritual step 5 runs |
+| `cmd/dubplate-server/doctor.go`, `check.go` | 6a the store row and the inspect report; 6b-i the backup rows; 6c the settings rendering and read-only seed evaluation | rungs 5, 9, 13 add rows the same way |
+| `cmd/dubplate-server/serve.go` | rung 5 through 5d; 6d then adds the store open, recovery, and the seed rule before the listener | rungs 7, 12, 14 |
+| `go.mod`, `go.sum` | every lane adds its own requirements | a rebase conflict is resolved by `go mod tidy`, and merge ritual step 5 runs |
+| The state directory layout | rung 4; 6a adds the `store` leaf | rung 16 converges |
+| `internal/auth` roster and epoch, `cmd/dubplate-server/auth.go`, `internal/identity` | rung 5; 6d after 5d merges, with no concurrent auth-writing lane | rungs 7, 12, 14 |
+| 5d's greenfield serve unit (a distinct file from the frozen `systemd/dubplate-serve.service`, R5S:1708-1713), `scripts/deploy.sh`, the state-dir leg in `scripts/check.sh`, `env/dubplate-server.env.template` | 6d after 5d merges; `deploy.sh`'s store-opening verbs run through `runuser -u <owner>` | rung 16 converges |
+
+### Unresolved after revision 2.2
+
+- rclone's documentation does not say whether a move into `--backup-dir` counts against
+  `--max-delete`. 6b-i criterion 13 settles it, and the spec carries the fallback abort for the
+  other answer.
+- The spec does not name which rclone backends support server-side move or copy. `doctor` reports
+  it per remote, and the 6b-i plan quotes rclone's feature table.
+- 5d's serve unit name and `Type=`, and the `backup` exit-code numbers, are unchanged from revision
+  2.1.
+- The length is 1,171 lines against a target of about 1,100.
