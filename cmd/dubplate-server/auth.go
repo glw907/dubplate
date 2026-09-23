@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/mail"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -119,12 +121,89 @@ var (
 	}
 )
 
-// registerAuthConfig adds rung 5's twelve names and four thresholds to
+// rateFloor is the positive floor every one of fork 3's four rate
+// thresholds and the auth request body cap share: zero is ambiguous
+// between "unlimited" and "blocked outright", so an operator who wants
+// either extreme states an explicit large or small number instead.
+const rateFloor = 1
+
+// linkRequestsPerAddressCeiling, linkRequestsPerClientCeiling,
+// consumptionAttemptsPerClientCeiling, and linkMailCeilingCeiling bound
+// how far an adopter can raise fork 3's four rates above their default.
+// Each is ten times its threshold's own default, generous headroom for
+// a group larger than the estate's own without admitting a rate that
+// defeats R28's own reasoning: a per-address or per-client limiter set
+// high enough stops bounding anything an enumerator does.
+const (
+	linkRequestsPerAddressCeiling       = 50
+	linkRequestsPerClientCeiling        = 200
+	consumptionAttemptsPerClientCeiling = 300
+	linkMailCeilingCeiling              = 600
+)
+
+// authRequestBodyCapFloor and authRequestBodyCapCeiling bound
+// DUBPLATE_AUTH_REQUEST_BODY_CAP. The floor, 512 bytes, comfortably
+// fits an RFC 5321 address (254 bytes at most) plus its form-encoded
+// field name; the ceiling, 64KiB, is generous headroom that still
+// keeps security constraint 3's amplification bound (M5) meaningful,
+// because a cap large enough to admit an arbitrary upload defeats the
+// reason the cap exists.
+const (
+	authRequestBodyCapFloor   = 512
+	authRequestBodyCapCeiling = 65536
+)
+
+// Fork 3's four remaining rate thresholds (R28), the auth request body
+// cap security constraint 3 requires (spec:1590), and the unknown-
+// address answer fork 4 rules (R25, R-5b22) are rung 5's own remaining
+// six thresholds: spec:1587-1593 lists ten, and 5b-i landed the other
+// four above.
+var (
+	linkRequestsPerAddressThreshold = config.Threshold{
+		Key:     "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR",
+		Kind:    config.KindInt,
+		Default: "5",
+		Doc:     "a positive integer, for example 5",
+	}
+	linkRequestsPerClientThreshold = config.Threshold{
+		Key:     "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR",
+		Kind:    config.KindInt,
+		Default: "20",
+		Doc:     "a positive integer, for example 20",
+	}
+	consumptionAttemptsPerClientThreshold = config.Threshold{
+		Key:     "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR",
+		Kind:    config.KindInt,
+		Default: "30",
+		Doc:     "a positive integer, for example 30",
+	}
+	linkMailCeilingThreshold = config.Threshold{
+		Key:     "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR",
+		Kind:    config.KindInt,
+		Default: "60",
+		Doc:     "a positive integer, for example 60",
+	}
+	authRequestBodyCapThreshold = config.Threshold{
+		Key:     "DUBPLATE_AUTH_REQUEST_BODY_CAP",
+		Kind:    config.KindInt,
+		Default: "4096",
+		Doc:     "a positive integer of bytes, for example 4096",
+	}
+	unknownAddressAnswerThreshold = config.Threshold{
+		Key:     "DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
+		Kind:    config.KindString,
+		Default: "kind",
+		Doc:     "one of kind or generic",
+	}
+)
+
+// registerAuthConfig adds rung 5's twelve names and ten thresholds to
 // reg: the selector as an owned wall row, magic-link as a declared
-// identity source, and the four thresholds R-5b10 rules. It is a plain
-// function on registerServeConfig's own precedent (serve.go), called
-// once from the binary's shared registry constructor
-// (newProductionRegistry, main.go).
+// identity source, R-5b10's first four thresholds, and the six
+// remaining thresholds spec:1587-1593 lists. It is a plain function on
+// registerServeConfig's own precedent (serve.go), called once from the
+// binary's shared registry constructor (newProductionRegistry,
+// main.go).
 func registerAuthConfig(reg *config.Registry) {
 	reg.AddWallRow(identitySourceSelectorRow)
 	reg.AddIdentitySource(magicLinkSource)
@@ -132,16 +211,23 @@ func registerAuthConfig(reg *config.Registry) {
 	reg.AddThreshold(sessionLifetimeThreshold)
 	reg.AddThreshold(sessionAbsoluteCapThreshold)
 	reg.AddThreshold(nonceRetentionThreshold)
+	reg.AddThreshold(linkRequestsPerAddressThreshold)
+	reg.AddThreshold(linkRequestsPerClientThreshold)
+	reg.AddThreshold(consumptionAttemptsPerClientThreshold)
+	reg.AddThreshold(linkMailCeilingThreshold)
+	reg.AddThreshold(authRequestBodyCapThreshold)
+	reg.AddThreshold(unknownAddressAnswerThreshold)
 }
 
 // validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
-// URL's shape, the four duration thresholds' bounds (review m5), and
-// the nonce-retention-vs-expiry relation (R31), joining every failure
-// it finds so [config.Load] reports a short secret and a bad URL
-// together. Every returned error names the offending key and never the
-// value or the length of a secret, so a refusal narrows no guess about
-// what the value was.
+// URL's shape, the ten thresholds' bounds (review m5, R28, security
+// constraint 3), the nonce-retention-vs-expiry relation (R31), the
+// unknown-address answer's accepted set (R25), and DUBPLATE_SMTP_FROM
+// (spec:1289), joining every failure it finds so [config.Load] reports
+// a short secret and a bad URL together. Every returned error names the
+// offending key and never the value or the length of a secret, so a
+// refusal narrows no guess about what the value was.
 func validateMagicLinkSource(values map[string]string, environ []string) error {
 	var errs []error
 
@@ -162,6 +248,12 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		}
 	}
 
+	if v, ok := values["DUBPLATE_SMTP_FROM"]; ok {
+		if err := validateSMTPFrom(v); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
 	var expiry, retention time.Duration
 	var expiryErr, retentionErr error
 	errs, expiry, expiryErr = checkDurationBounds(errs, environ, magicLinkExpiryThreshold, magicLinkExpiryCeiling)
@@ -173,7 +265,55 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		errs = append(errs, fmt.Errorf("%s: %s is below %s's %s", nonceRetentionThreshold.Key, retention, magicLinkExpiryThreshold.Key, expiry))
 	}
 
+	errs = checkIntBounds(errs, environ, linkRequestsPerAddressThreshold, rateFloor, linkRequestsPerAddressCeiling)
+	errs = checkIntBounds(errs, environ, linkRequestsPerClientThreshold, rateFloor, linkRequestsPerClientCeiling)
+	errs = checkIntBounds(errs, environ, consumptionAttemptsPerClientThreshold, rateFloor, consumptionAttemptsPerClientCeiling)
+	errs = checkIntBounds(errs, environ, linkMailCeilingThreshold, rateFloor, linkMailCeilingCeiling)
+	errs = checkIntBounds(errs, environ, authRequestBodyCapThreshold, authRequestBodyCapFloor, authRequestBodyCapCeiling)
+
+	if answer, err := config.ParseString(environ, unknownAddressAnswerThreshold); err != nil {
+		errs = append(errs, err)
+	} else if answer != "kind" && answer != "generic" {
+		errs = append(errs, fmt.Errorf("%s: %q is not one of kind, generic", unknownAddressAnswerThreshold.Key, answer))
+	}
+
 	return errors.Join(errs...)
+}
+
+// validateSMTPFrom checks value the way [config.Load] checks
+// DUBPLATE_ADMIN_EMAIL (config.go's requireEmail): it parses as a
+// single RFC 5322 address, and it carries no carriage return and no
+// line feed, so a value that would ride into a mail header cannot
+// inject one (spec:1289). The check runs at load rather than at send,
+// because R9 turns every failed send into a failed login, and a typo
+// caught only at send time would otherwise pass doctor and start
+// clean. The returned error never repeats value.
+func validateSMTPFrom(value string) error {
+	if strings.ContainsAny(value, "\r\n") {
+		return errors.New("DUBPLATE_SMTP_FROM: invalid email address")
+	}
+	if _, err := mail.ParseAddress(value); err != nil {
+		return errors.New("DUBPLATE_SMTP_FROM: invalid email address")
+	}
+	return nil
+}
+
+// checkIntBounds is [checkDurationBounds]'s integer counterpart, minus
+// the parsed value: none of the six thresholds it checks feeds a
+// further relational check the way the nonce-retention-vs-expiry pair
+// does, so this returns only the extended errs.
+func checkIntBounds(errs []error, environ []string, th config.Threshold, floor, ceiling int) []error {
+	n, err := config.ParseInt(environ, th)
+	if err != nil {
+		return append(errs, err)
+	}
+	if n < floor {
+		errs = append(errs, fmt.Errorf("%s: %d is below the floor of %d", th.Key, n, floor))
+	}
+	if n > ceiling {
+		errs = append(errs, fmt.Errorf("%s: %d is above the ceiling of %d", th.Key, n, ceiling))
+	}
+	return errs
 }
 
 // checkDurationBounds parses th against environ and appends a bound
@@ -249,30 +389,75 @@ func isLoopbackHost(host string) bool {
 	return false
 }
 
-// resolveAuthConfig reads the four thresholds against environ and
-// returns the values the auth core takes as plain construction
-// arguments, on [resolveServeConfig]'s own precedent
+// authConfig is resolveAuthConfig's return type: rung 5's ten
+// thresholds, resolved and typed, the auth core takes as plain
+// construction arguments. It replaces resolveAuthConfig's original
+// four positional time.Duration returns once a fifth and sixth
+// duration made positional returns unreadable; a struct field's name
+// says which threshold it came from at every call site, where a
+// positional return said so only in the signature.
+type authConfig struct {
+	magicLinkExpiry    time.Duration
+	sessionLifetime    time.Duration
+	sessionAbsoluteCap time.Duration
+	nonceRetention     time.Duration
+
+	linkRequestsPerAddress       int
+	linkRequestsPerClient        int
+	consumptionAttemptsPerClient int
+	linkMailCeiling              int
+
+	authRequestBodyCap int
+
+	unknownAddressAnswer string
+}
+
+// resolveAuthConfig reads rung 5's ten thresholds against environ and
+// returns an [authConfig], on [resolveServeConfig]'s own precedent
 // (serve.go:81-106): internal/auth never reads the environment itself.
-//
-// The results are named where resolveServeConfig's are not, because
-// four results of one type say nothing about which duration is which.
-// No return here is naked; the names are documentation godoc carries.
-func resolveAuthConfig(environ []string) (magicLinkExpiry, sessionLifetime, sessionAbsoluteCap, nonceRetention time.Duration, err error) {
-	magicLinkExpiry, err = config.ParseDuration(environ, magicLinkExpiryThreshold)
+func resolveAuthConfig(environ []string) (authConfig, error) {
+	var cfg authConfig
+	var err error
+
+	cfg.magicLinkExpiry, err = config.ParseDuration(environ, magicLinkExpiryThreshold)
 	if err != nil {
-		return 0, 0, 0, 0, err
+		return authConfig{}, err
 	}
-	sessionLifetime, err = config.ParseDuration(environ, sessionLifetimeThreshold)
+	cfg.sessionLifetime, err = config.ParseDuration(environ, sessionLifetimeThreshold)
 	if err != nil {
-		return 0, 0, 0, 0, err
+		return authConfig{}, err
 	}
-	sessionAbsoluteCap, err = config.ParseDuration(environ, sessionAbsoluteCapThreshold)
+	cfg.sessionAbsoluteCap, err = config.ParseDuration(environ, sessionAbsoluteCapThreshold)
 	if err != nil {
-		return 0, 0, 0, 0, err
+		return authConfig{}, err
 	}
-	nonceRetention, err = config.ParseDuration(environ, nonceRetentionThreshold)
+	cfg.nonceRetention, err = config.ParseDuration(environ, nonceRetentionThreshold)
 	if err != nil {
-		return 0, 0, 0, 0, err
+		return authConfig{}, err
 	}
-	return magicLinkExpiry, sessionLifetime, sessionAbsoluteCap, nonceRetention, nil
+	cfg.linkRequestsPerAddress, err = config.ParseInt(environ, linkRequestsPerAddressThreshold)
+	if err != nil {
+		return authConfig{}, err
+	}
+	cfg.linkRequestsPerClient, err = config.ParseInt(environ, linkRequestsPerClientThreshold)
+	if err != nil {
+		return authConfig{}, err
+	}
+	cfg.consumptionAttemptsPerClient, err = config.ParseInt(environ, consumptionAttemptsPerClientThreshold)
+	if err != nil {
+		return authConfig{}, err
+	}
+	cfg.linkMailCeiling, err = config.ParseInt(environ, linkMailCeilingThreshold)
+	if err != nil {
+		return authConfig{}, err
+	}
+	cfg.authRequestBodyCap, err = config.ParseInt(environ, authRequestBodyCapThreshold)
+	if err != nil {
+		return authConfig{}, err
+	}
+	cfg.unknownAddressAnswer, err = config.ParseString(environ, unknownAddressAnswerThreshold)
+	if err != nil {
+		return authConfig{}, err
+	}
+	return cfg, nil
 }

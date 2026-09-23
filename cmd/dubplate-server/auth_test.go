@@ -175,6 +175,12 @@ func TestRegisterAuthConfig_ThresholdDefaults(t *testing.T) {
 		{"session lifetime", "DUBPLATE_SESSION_LIFETIME", config.KindDuration, "2160h"},
 		{"session absolute cap", "DUBPLATE_SESSION_ABSOLUTE_CAP", config.KindDuration, "4320h"},
 		{"nonce retention", "DUBPLATE_NONCE_RETENTION", config.KindDuration, "24h"},
+		{"link requests per address", "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", config.KindInt, "5"},
+		{"link requests per client", "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", config.KindInt, "20"},
+		{"consumption attempts per client", "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", config.KindInt, "30"},
+		{"link mail ceiling", "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", config.KindInt, "60"},
+		{"auth request body cap", "DUBPLATE_AUTH_REQUEST_BODY_CAP", config.KindInt, "4096"},
+		{"unknown address answer", "DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind"},
 	}
 
 	reg := config.NewRegistry()
@@ -375,6 +381,140 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 	}
 }
 
+// TestValidateMagicLinkSource_RateAndCapBounds proves the fix rung
+// 5b-ii Task 3 adds: fork 3's four remaining rates and the auth
+// request body cap each refuse at and one past their floor, and each
+// refuse at and one past their ceiling. Every literal is written out
+// rather than derived from rateFloor or a *Ceiling constant, so the
+// test cannot pass by echoing the code under test.
+func TestValidateMagicLinkSource_RateAndCapBounds(t *testing.T) {
+	// intBound overrides one threshold key in a base environ that
+	// otherwise satisfies every other threshold and relation.
+	intBound := func(key string, value int) []string {
+		environ := append(baseEnviron(),
+			"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR=5",
+			"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR=20",
+			"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR=30",
+			"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR=60",
+			"DUBPLATE_AUTH_REQUEST_BODY_CAP=4096",
+		)
+		return append(dropKey(environ, key), fmt.Sprintf("%s=%d", key, value))
+	}
+
+	tests := []struct {
+		name    string
+		environ []string
+		wantErr bool
+	}{
+		{"link requests per address at the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 1), false},
+		{"link requests per address one below the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 0), true},
+		{"link requests per address at the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 50), false},
+		{"link requests per address one past the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 51), true},
+
+		{"link requests per client at the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 1), false},
+		{"link requests per client one below the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 0), true},
+		{"link requests per client at the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 200), false},
+		{"link requests per client one past the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 201), true},
+
+		{"consumption attempts per client at the floor", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 1), false},
+		{"consumption attempts per client one below the floor", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 0), true},
+		{"consumption attempts per client at the ceiling", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 300), false},
+		{"consumption attempts per client one past the ceiling", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 301), true},
+
+		{"link mail ceiling at the floor", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 1), false},
+		{"link mail ceiling one below the floor", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 0), true},
+		{"link mail ceiling at its own ceiling", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 600), false},
+		{"link mail ceiling one past its own ceiling", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 601), true},
+
+		{"auth request body cap at the floor", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 512), false},
+		{"auth request body cap one below the floor", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 511), true},
+		{"auth request body cap at the ceiling", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 65536), false},
+		{"auth request body cap one past the ceiling", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 65537), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateMagicLinkSource(nil, tt.environ)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_UnknownAddressAnswer proves R-5b22's
+// accepted set: kind and generic pass, and every other value refuses
+// with an error naming both accepted values, written out rather than
+// read back from unknownAddressAnswerThreshold.
+func TestValidateMagicLinkSource_UnknownAddressAnswer(t *testing.T) {
+	tests := []struct {
+		name    string
+		answer  string
+		wantErr bool
+	}{
+		{"kind", "kind", false},
+		{"generic", "generic", false},
+		{"unrecognized", "silent", true},
+		{"empty falls to the default", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := dropKey(baseEnviron(), "DUBPLATE_UNKNOWN_ADDRESS_ANSWER")
+			if tt.answer != "" {
+				environ = append(environ, "DUBPLATE_UNKNOWN_ADDRESS_ANSWER="+tt.answer)
+			}
+			err := validateMagicLinkSource(nil, environ)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				for _, want := range []string{"kind", "generic"} {
+					if !strings.Contains(err.Error(), want) {
+						t.Errorf("error = %q, want it to name %s", err.Error(), want)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_SMTPFrom proves DUBPLATE_SMTP_FROM's
+// load-time check (spec:1289): a value net/mail.ParseAddress refuses,
+// a value carrying CR, and a value carrying LF are each refused, a
+// well-formed value passes, and no refusal message carries the value.
+func TestValidateMagicLinkSource_SMTPFrom(t *testing.T) {
+	tests := []struct {
+		name    string
+		from    string
+		wantErr bool
+	}{
+		{"well-formed address", "dubplate@example.test", false},
+		{"unparseable", "not-an-address", true},
+		{"two addresses", "a@example.test, b@example.test", true},
+		{"carries CR", "dubplate@example.test\rBcc: x@example.test", true},
+		{"carries LF", "dubplate@example.test\nBcc: x@example.test", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			values := map[string]string{"DUBPLATE_SMTP_FROM": tt.from}
+			err := validateMagicLinkSource(values, authEnviron())
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				if !strings.Contains(err.Error(), "DUBPLATE_SMTP_FROM") {
+					t.Errorf("error = %q, want it to name DUBPLATE_SMTP_FROM", err.Error())
+				}
+				if strings.Contains(err.Error(), tt.from) {
+					t.Errorf("error text %q contains the refused value %q", err.Error(), tt.from)
+				}
+			}
+		})
+	}
+}
+
 // TestValidateMagicLinkSource_NoSecretInErrors proves that a joined
 // refusal covering both secret keys never carries either fixture
 // secret's value: the hook names keys and floors, never content or an
@@ -418,19 +558,34 @@ func TestConfigLoad_MagicLinkValidationJoinsOtherErrors(t *testing.T) {
 	}
 }
 
-// TestResolveAuthConfig proves the resolver reads the four thresholds'
+// TestResolveAuthConfig proves the resolver reads all ten thresholds'
 // defaults when unset and an adopter's override when set, on
-// resolveServeConfig's own precedent.
+// resolveServeConfig's own precedent. want is built field by field
+// rather than by re-deriving [authConfig] from the registry, so a
+// resolver that reads the wrong threshold into the wrong field is
+// caught by a mismatch against a value this test owns (named mutation
+// 4: a swapped field reads a rate as a cap).
 func TestResolveAuthConfig(t *testing.T) {
 	tests := []struct {
 		name    string
 		environ []string
-		want    [4]time.Duration
+		want    authConfig
 	}{
 		{
 			name:    "defaults",
 			environ: baseEnviron(),
-			want:    [4]time.Duration{15 * time.Minute, 2160 * time.Hour, 4320 * time.Hour, 24 * time.Hour},
+			want: authConfig{
+				magicLinkExpiry:              15 * time.Minute,
+				sessionLifetime:              2160 * time.Hour,
+				sessionAbsoluteCap:           4320 * time.Hour,
+				nonceRetention:               24 * time.Hour,
+				linkRequestsPerAddress:       5,
+				linkRequestsPerClient:        20,
+				consumptionAttemptsPerClient: 30,
+				linkMailCeiling:              60,
+				authRequestBodyCap:           4096,
+				unknownAddressAnswer:         "kind",
+			},
 		},
 		{
 			name: "overrides",
@@ -439,20 +594,36 @@ func TestResolveAuthConfig(t *testing.T) {
 				"DUBPLATE_SESSION_LIFETIME=1h",
 				"DUBPLATE_SESSION_ABSOLUTE_CAP=2h",
 				"DUBPLATE_NONCE_RETENTION=1h",
+				"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR=7",
+				"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR=22",
+				"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR=33",
+				"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR=66",
+				"DUBPLATE_AUTH_REQUEST_BODY_CAP=8192",
+				"DUBPLATE_UNKNOWN_ADDRESS_ANSWER=generic",
 			),
-			want: [4]time.Duration{10 * time.Minute, time.Hour, 2 * time.Hour, time.Hour},
+			want: authConfig{
+				magicLinkExpiry:              10 * time.Minute,
+				sessionLifetime:              time.Hour,
+				sessionAbsoluteCap:           2 * time.Hour,
+				nonceRetention:               time.Hour,
+				linkRequestsPerAddress:       7,
+				linkRequestsPerClient:        22,
+				consumptionAttemptsPerClient: 33,
+				linkMailCeiling:              66,
+				authRequestBodyCap:           8192,
+				unknownAddressAnswer:         "generic",
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			expiry, lifetime, cap_, retention, err := resolveAuthConfig(tt.environ)
+			got, err := resolveAuthConfig(tt.environ)
 			if err != nil {
 				t.Fatalf("resolveAuthConfig() error = %v", err)
 			}
-			got := [4]time.Duration{expiry, lifetime, cap_, retention}
 			if got != tt.want {
-				t.Errorf("resolveAuthConfig() = %v, want %v", got, tt.want)
+				t.Errorf("resolveAuthConfig() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}
