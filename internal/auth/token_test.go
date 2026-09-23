@@ -312,6 +312,73 @@ func TestMintLink(t *testing.T) {
 	}
 }
 
+// TestMintLinkRefusesAnUnrevocableAddress proves no link is minted for
+// an address revocation could not key on. net/mail unquotes a quoted local part, so an address
+// like "a b"@example.com normalizes to a value net/mail refuses on the
+// next parse, and every later step that re-normalizes it, revocation
+// included, would fail with an error rather than a verdict. The link
+// is refused at mint, before any credential names the address.
+func TestMintLinkRefusesAnUnrevocableAddress(t *testing.T) {
+	for _, address := range []string{
+		`"a b"@example.com`,
+		`"a,b"@example.com`,
+	} {
+		t.Run(address, func(t *testing.T) {
+			_, _, err := MintLink([]byte(currentFixture), address, fixtureMint, fixtureExpiry)
+			if !errors.Is(err, identity.ErrInvalidAddress) {
+				t.Fatalf("MintLink(%q) error = %v, want identity.ErrInvalidAddress", address, err)
+			}
+		})
+	}
+}
+
+// TestLinkHasOneEncoding proves one link has one verifying string. A
+// base64url field whose byte length is not a multiple of three leaves
+// unused bits in its final character, and a lax decoder ignores them,
+// so several strings decode to the same MAC and all verify. The MAC
+// field is 32 bytes, which leaves two such bits in the final
+// character, so a lax decoder verifies three of the 63 substitutions
+// there. encoding/base64 skips CR and LF even in strict mode, so the
+// rows that insert one fail unless the parser refuses them itself.
+func TestLinkHasOneEncoding(t *testing.T) {
+	value, _, err := MintLink([]byte(currentFixture), "alice@example.test", fixtureMint, fixtureExpiry)
+	if err != nil {
+		t.Fatalf("MintLink: %v", err)
+	}
+	for _, variant := range encodingVariants(value) {
+		if _, err := VerifyLink([]byte(currentFixture), nil, variant, fixtureMint); err == nil {
+			t.Errorf("VerifyLink(%q) verified a non-canonical encoding, want a refusal", variant)
+		}
+	}
+}
+
+// TestSeparatorFloodAllocatesLittle proves the parser's cost does not
+// grow with the separators an unauthenticated value carries. A value made only of separators fails the field-count
+// check whether or not the split is bounded, with the same sentinel, so
+// the refusal cannot tell the two forms apart and the row measures what
+// they spend instead. The measurement is bytes rather than allocations:
+// an unbounded split makes one slice however many elements it holds, so
+// its allocation count is flat while its bytes grow by a 16-byte string
+// header per separator.
+//
+// The ceiling is the flood's own length, one byte per input byte. An
+// unbounded split spends sixteen per byte, 16 MiB here, and a bounded
+// one a few hundred bytes whatever the input, so the ceiling sits a
+// factor of sixteen below the one and thousands above the other.
+func TestSeparatorFloodAllocatesLittle(t *testing.T) {
+	flood := strings.Repeat(fieldSeparator, 1<<20)
+	ceiling := int64(len(flood))
+
+	result := testing.Benchmark(func(b *testing.B) {
+		for b.Loop() {
+			_, _ = VerifyLink([]byte(currentFixture), nil, flood, fixtureMint)
+		}
+	})
+	if got := result.AllocedBytesPerOp(); got >= ceiling {
+		t.Errorf("VerifyLink of %d separators allocates %d bytes per call, want under %d", len(flood), got, ceiling)
+	}
+}
+
 // TestLinkURL holds security review finding 7: the link is built from
 // the configured public origin and from nothing a request carries, so
 // the URL changes when, and only when, the configuration does.
@@ -417,6 +484,27 @@ func flipFieldBit(t *testing.T, value string, i int) string {
 	raw[0] ^= 0x01
 	fields[i] = base64.RawURLEncoding.EncodeToString(raw)
 	return strings.Join(fields, ".")
+}
+
+// encodingVariants returns strings that differ from value and that a
+// lax decoder reads as the same fields: value with its final character
+// replaced by each other character of the base64url alphabet, 63
+// strings in all, and value with a CR or an LF inserted into its first
+// field or appended to its MAC, which even a strict base64 decoder
+// skips.
+func encodingVariants(value string) []string {
+	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	head, last := value[:len(value)-1], value[len(value)-1:]
+	var variants []string
+	for _, c := range alphabet {
+		if string(c) != last {
+			variants = append(variants, head+string(c))
+		}
+	}
+	for _, newline := range []string{"\r", "\n"} {
+		variants = append(variants, value[:1]+newline+value[1:], value+newline)
+	}
+	return variants
 }
 
 func replaceField(value string, i int, raw []byte) string {

@@ -226,14 +226,24 @@ func parseLink(value string) (LinkToken, [][]byte, []byte, error) {
 // encoder, the decoder, and the comparison can never drift apart
 // between the two.
 
+// fieldEncoding is unpadded base64url that refuses non-zero trailing
+// bits in a field's final character. A lax decoder ignores those bits,
+// so a field whose byte length is not a multiple of three has several
+// encodings that decode alike, and every one of them would verify.
+// Refusing them is the canonical encoding RFC 4648 section 3.5
+// describes (read 2026-09-23). A strict decoder still skips CR and LF,
+// so splitSigned refuses those itself, and between the two each
+// credential has exactly one string.
+var fieldEncoding = base64.RawURLEncoding.Strict()
+
 // encodeSigned renders fields and the MAC computed over them under
 // purpose.
 func encodeSigned(secret []byte, purpose string, fields [][]byte) string {
 	parts := make([]string, 0, len(fields)+1)
 	for _, field := range fields {
-		parts = append(parts, base64.RawURLEncoding.EncodeToString(field))
+		parts = append(parts, fieldEncoding.EncodeToString(field))
 	}
-	parts = append(parts, base64.RawURLEncoding.EncodeToString(sign(secret, purpose, fields...)))
+	parts = append(parts, fieldEncoding.EncodeToString(sign(secret, purpose, fields...)))
 	return strings.Join(parts, fieldSeparator)
 }
 
@@ -241,14 +251,22 @@ func encodeSigned(secret []byte, purpose string, fields [][]byte) string {
 // that follows them, authenticating none of them. malformed is the
 // caller's sentinel, so a refusal names the credential that was
 // malformed rather than a shared one.
+//
+// The split stops after count+2 parts, one more than a well-formed
+// value holds, so the field-count check stays exact while a value of
+// nothing but separators costs a fixed handful of substrings rather
+// than one per byte.
 func splitSigned(value string, count int, malformed error) ([][]byte, []byte, error) {
-	parts := strings.Split(value, fieldSeparator)
+	if strings.ContainsAny(value, "\r\n") {
+		return nil, nil, fmt.Errorf("%w: field encoding", malformed)
+	}
+	parts := strings.SplitN(value, fieldSeparator, count+2)
 	if len(parts) != count+1 {
 		return nil, nil, fmt.Errorf("%w: field count", malformed)
 	}
 	decoded := make([][]byte, 0, len(parts))
 	for _, part := range parts {
-		raw, err := base64.RawURLEncoding.DecodeString(part)
+		raw, err := fieldEncoding.DecodeString(part)
 		if err != nil {
 			return nil, nil, fmt.Errorf("%w: field encoding", malformed)
 		}

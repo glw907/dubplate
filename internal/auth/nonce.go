@@ -25,7 +25,7 @@ const nonceRecordVersion = "dubplate-nonce-1"
 
 // nonceRecordFieldCount is how many whitespace-separated fields a
 // record carries: the version label, the consumed-at second, and the
-// retention the record was written under.
+// seconds after it at which the record may be swept.
 const nonceRecordFieldCount = 3
 
 // errNonceRecordUnparseable is the sweep's internal signal that a
@@ -55,13 +55,13 @@ type NonceStore struct {
 	// path function; every record path below still does.
 	dir string
 
-	// retention is the resolved DUBPLATE_NONCE_RETENTION. Each
-	// record carries the value in force when it was written, and the
-	// sweep prunes on the carried value rather than on this one, so
-	// lowering the threshold cannot shorten the life of a record
-	// already on disk. This copy is what a new record carries and
-	// what answers for a record whose own carried value cannot be
-	// read.
+	// retention is the resolved DUBPLATE_NONCE_RETENTION, the
+	// shortest life a new record is written with. Each record
+	// carries its own life, and the sweep prunes on the carried
+	// value rather than on this one, so lowering the threshold
+	// cannot shorten the life of a record already on disk. This
+	// copy also answers for a record whose own carried value cannot
+	// be read.
 	retention time.Duration
 }
 
@@ -91,17 +91,16 @@ func OpenNonceStore(store *Store, retention time.Duration, now time.Time) (*Nonc
 }
 
 // Insert records nonce as consumed at now and reports ErrNonceReplayed
-// when a record for it already exists. The caller inserts only after
-// the token carrying the nonce has verified, so an unauthenticated
-// value can never fill the store.
+// when a record for it already exists. expiresAt is the expiry of the
+// token that bore the nonce. The caller inserts only after that token
+// has verified, so an unauthenticated value can never fill the store.
 //
-// The record carries now and the store's retention rather than the
-// token's own expiry, because retention is what the sweep prunes on and
-// R31 holds it at or above the link expiry: a record therefore outlives
-// every token that could bear its nonce.
-//
-// ruled, conductor 2026-09-12, A7 fold 4
-func (s *NonceStore) Insert(nonce [NonceLength]byte, now time.Time) error {
+// The record may be swept at the later of now plus the store's
+// retention and expiresAt, so it outlives the token that bore its
+// nonce whatever retention is configured: a retention shortened while
+// a longer-lived link is outstanding, or a clock that steps forward,
+// can lengthen a record's life and never shorten it below the token's.
+func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) error {
 	path, err := s.store.NoncePath(RecordID(string(nonce[:])))
 	if err != nil {
 		return err
@@ -114,7 +113,12 @@ func (s *NonceStore) Insert(nonce [NonceLength]byte, now time.Time) error {
 		}
 		return fmt.Errorf("create consumed nonce record: %w", err)
 	}
-	if err := writeAndSync(f, nonceRecord(now, s.retention)); err != nil {
+	consumedAt := now.UTC().Truncate(time.Second)
+	sweepableAt := consumedAt.Add(s.retention)
+	if expiresAt.After(sweepableAt) {
+		sweepableAt = expiresAt
+	}
+	if err := writeAndSync(f, nonceRecord(consumedAt, sweepableAt)); err != nil {
 		return err
 	}
 
@@ -212,17 +216,20 @@ func (s *NonceStore) recordExpiry(path string) (time.Time, error) {
 
 // nonceRecord renders a record at second granularity, which is the
 // resolution a retention measured in hours needs and the resolution
-// every other timestamp this package writes already uses.
-func nonceRecord(now time.Time, retention time.Duration) []byte {
+// every other timestamp this package writes already uses. The record
+// carries how long after consumedAt it may be swept, rounded up to a
+// whole second so the rounding can only lengthen its life.
+func nonceRecord(consumedAt, sweepableAt time.Time) []byte {
+	life := sweepableAt.Sub(consumedAt)
 	return fmt.Appendf(nil, "%s %d %d\n",
 		nonceRecordVersion,
-		now.UTC().Unix(),
-		int64(retention/time.Second),
+		consumedAt.Unix(),
+		int64((life+time.Second-1)/time.Second),
 	)
 }
 
 // parseNonceRecord returns the record's consumed-at plus its carried
-// retention, which is the moment the sweep may remove it.
+// life, which is the moment the sweep may remove it.
 func parseNonceRecord(data []byte) (time.Time, error) {
 	fields := strings.Fields(string(data))
 	if len(fields) != nonceRecordFieldCount || fields[0] != nonceRecordVersion {

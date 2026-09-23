@@ -6,7 +6,22 @@ import (
 	"testing"
 )
 
-func TestNormalizeAddress(t *testing.T) {
+// normalizeCase is one row of the normalizer's corpus. reason, when
+// set on a refusal row, is text the refusal must carry, which is how a
+// row names the check that refused it when a second check would also
+// refuse the same input.
+type normalizeCase struct {
+	name    string
+	input   string
+	want    string
+	wantErr bool
+	reason  string
+}
+
+// normalizeCorpus is the corpus both normalizer tests run: every row is
+// checked for its own outcome and, where accepted, for the fixed point.
+func normalizeCorpus(t *testing.T) []normalizeCase {
+	t.Helper()
 	// The boundary fixtures pad the local part with "é" (a 2-byte,
 	// 1-rune UTF-8 character) so a byte-length cap and a rune-count
 	// cap disagree: 121 of them plus "@example.com" (12 ASCII bytes)
@@ -23,12 +38,7 @@ func TestNormalizeAddress(t *testing.T) {
 		t.Fatalf("fixture overCap is %d bytes, want exactly MaxAddressLength+1 (%d)", len(overCap), MaxAddressLength+1)
 	}
 
-	tests := []struct {
-		name    string
-		input   string
-		want    string
-		wantErr bool
-	}{
+	return []normalizeCase{
 		{
 			name:  "case difference collapses to one value",
 			input: "Alice@Example.COM",
@@ -54,9 +64,41 @@ func TestNormalizeAddress(t *testing.T) {
 			input:   "not-an-address",
 			wantErr: true,
 		},
+		{
+			name:  "quoted local part that is already an atom",
+			input: `"First.Last"@Example.com`,
+			want:  "first.last@example.com",
+		},
+		{
+			// net/mail unquotes the local part, and the
+			// unquoted value carries a space.
+			name:    "quoted local part carrying a space",
+			input:   `"a b"@example.com`,
+			wantErr: true,
+			reason:  "control character or space",
+		},
+		{
+			// The same unquoting with no space or control byte
+			// in the result, so only the re-parse refuses it.
+			name:    "quoted local part carrying a comma",
+			input:   `"a,b"@example.com`,
+			wantErr: true,
+			reason:  "does not parse to itself",
+		},
+		{
+			// net/mail's re-parse refuses this input too, as it
+			// refuses every control byte and space, so the
+			// reason is what shows the byte check refused it.
+			name:    "quoted local part carrying a TAB",
+			input:   "\"a\tb\"@example.com",
+			wantErr: true,
+			reason:  "control character or space",
+		},
 	}
+}
 
-	for _, tt := range tests {
+func TestNormalizeAddress(t *testing.T) {
+	for _, tt := range normalizeCorpus(t) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NormalizeAddress(tt.input)
 			if tt.wantErr {
@@ -66,6 +108,9 @@ func TestNormalizeAddress(t *testing.T) {
 				if !errors.Is(err, ErrInvalidAddress) {
 					t.Errorf("NormalizeAddress(%q) error = %v, want wrapping ErrInvalidAddress", tt.input, err)
 				}
+				if !strings.Contains(err.Error(), tt.reason) {
+					t.Errorf("NormalizeAddress(%q) error = %v, want it to name %q", tt.input, err, tt.reason)
+				}
 				return
 			}
 			if err != nil {
@@ -73,6 +118,34 @@ func TestNormalizeAddress(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("NormalizeAddress(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestNormalizeAddressIsAFixedPoint holds the property the package doc
+// states: normalizing a normalized address returns it unchanged, so a
+// value that crosses a boundary normalized is keyed the same way on
+// the far side. It runs every row of the corpus: a refusal row passes
+// by being refused, so a normalizer that began accepting the quoted
+// rows would fail here on the second normalization as well as in
+// TestNormalizeAddress.
+func TestNormalizeAddressIsAFixedPoint(t *testing.T) {
+	for _, tt := range normalizeCorpus(t) {
+		t.Run(tt.name, func(t *testing.T) {
+			once, err := NormalizeAddress(tt.input)
+			if err != nil {
+				if !tt.wantErr {
+					t.Fatalf("NormalizeAddress(%q): %v", tt.input, err)
+				}
+				return
+			}
+			twice, err := NormalizeAddress(once)
+			if err != nil {
+				t.Fatalf("NormalizeAddress(%q) = %q, which it then refuses: %v", tt.input, once, err)
+			}
+			if twice != once {
+				t.Errorf("NormalizeAddress(%q) = %q, and again = %q", tt.input, once, twice)
 			}
 		})
 	}

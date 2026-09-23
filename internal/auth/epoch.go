@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -27,6 +28,12 @@ var (
 	// address's revocation epoch.
 	ErrLinkRevoked = errors.New("auth: magic link revoked")
 )
+
+// ErrEpochBackward reports a bump whose time is earlier than the epoch
+// already stored for its address. The stored epoch is left in place,
+// so the revocation it records still holds; the sentinel lets a caller
+// tell that outcome from a bump that failed to write.
+var ErrEpochBackward = errors.New("auth: revocation epoch would move backward")
 
 // epochRecordVersion labels the record's field layout. A later field
 // lands under a new label rather than changing what an existing field
@@ -59,6 +66,8 @@ const epochRecordFieldCount = 2
 type EpochStore struct {
 	store *Store
 
+	// mu serializes each bump's read of the stored epoch with its
+	// write, and guards subscribers.
 	mu          sync.Mutex
 	subscribers []func(address string, epoch time.Time)
 }
@@ -72,6 +81,14 @@ func OpenEpochStore(store *Store) *EpochStore {
 // before now: it writes now as address's new epoch and notifies every
 // subscriber registered at the time of the call.
 //
+// The stored epoch only moves forward. A bump earlier than it writes
+// nothing, notifies no one, and returns [ErrEpochBackward], so a
+// backward clock step cannot reinstate a credential an earlier bump
+// revoked. A bump at the stored epoch's own second has nothing to move
+// and returns nil without a notification. The read of the stored epoch
+// and the write of the new one happen under one lock, so of two
+// concurrent bumps the later time is the one left stored.
+//
 // The write happens before the notification, so a subscriber that
 // receives one is guaranteed to find it on a read; a subscriber that
 // misses the notification entirely, because it was not yet registered
@@ -82,19 +99,46 @@ func (e *EpochStore) Bump(address string, now time.Time) error {
 	if err != nil {
 		return fmt.Errorf("bump epoch: %w", err)
 	}
-	path, err := e.store.EpochPath(RecordID(normalized))
+	epoch := now.UTC().Truncate(time.Second)
+	subscribers, err := e.advance(normalized, epoch)
 	if err != nil {
 		return fmt.Errorf("bump epoch: %w", err)
 	}
-	epoch := now.UTC().Truncate(time.Second)
+	for _, fn := range subscribers {
+		fn(normalized, epoch)
+	}
+	return nil
+}
+
+// advance writes epoch as normalized's epoch when it is later than the
+// stored one, and returns the subscribers to notify of the move. It
+// returns no subscribers when the stored epoch already equals epoch,
+// and [ErrEpochBackward] when the stored epoch is later.
+func (e *EpochStore) advance(normalized string, epoch time.Time) ([]func(address string, epoch time.Time), error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	stored, ok, err := e.readNormalized(normalized)
+	if err != nil {
+		return nil, err
+	}
+	if ok && epoch.Before(stored) {
+		return nil, ErrEpochBackward
+	}
+	if ok && epoch.Equal(stored) {
+		return nil, nil
+	}
+	path, err := e.store.EpochPath(RecordID(normalized))
+	if err != nil {
+		return nil, err
+	}
 	if err := atomicfile.WriteStream(path, filePerm, func(w io.Writer) error {
 		_, err := w.Write(epochRecord(epoch))
 		return err
 	}); err != nil {
-		return fmt.Errorf("bump epoch: %w", err)
+		return nil, err
 	}
-	e.notify(normalized, epoch)
-	return nil
+	return slices.Clone(e.subscribers), nil
 }
 
 // Read returns address's current revocation epoch. ok is false when
@@ -137,17 +181,6 @@ func (e *EpochStore) Subscribe(fn func(address string, epoch time.Time)) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.subscribers = append(e.subscribers, fn)
-}
-
-func (e *EpochStore) notify(address string, epoch time.Time) {
-	e.mu.Lock()
-	subscribers := make([]func(address string, epoch time.Time), len(e.subscribers))
-	copy(subscribers, e.subscribers)
-	e.mu.Unlock()
-
-	for _, fn := range subscribers {
-		fn(address, epoch)
-	}
 }
 
 // CheckSession refuses s when its anchor predates or equals its

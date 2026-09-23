@@ -348,6 +348,20 @@ func TestSessionAndLinkCannotCross(t *testing.T) {
 	}
 }
 
+// TestSessionHasOneEncoding is TestLinkHasOneEncoding for the cookie,
+// which shares the link's decoder: one session, one string.
+func TestSessionHasOneEncoding(t *testing.T) {
+	value, _, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+	for _, variant := range encodingVariants(value) {
+		if _, err := VerifySession([]byte(currentFixture), nil, variant, sessionBirth, sessionCapFixture); err == nil {
+			t.Errorf("VerifySession(%q) verified a non-canonical encoding, want a refusal", variant)
+		}
+	}
+}
+
 func TestMintSession(t *testing.T) {
 	now := time.Date(2026, 3, 4, 5, 6, 7, 890_000_000, time.UTC)
 

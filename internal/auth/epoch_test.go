@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 )
@@ -193,6 +195,85 @@ func TestCheckSessionNormalizesAddress(t *testing.T) {
 				t.Fatalf("CheckSession = %v, want ErrSessionRevoked", err)
 			}
 		})
+	}
+}
+
+// TestBackwardBumpKeepsTheRevocation proves the epoch never moves
+// backward. A bump carrying an earlier time than the stored epoch,
+// which is what a backward clock step between two bumps produces, must
+// not reinstate the session the first bump revoked, and reports the
+// refusal rather than a success.
+func TestBackwardBumpKeepsTheRevocation(t *testing.T) {
+	stateDir := t.TempDir()
+	store := newEpochStore(t, stateDir)
+
+	_, session, err := MintSession([]byte("session-secret"), epochFixtureAddress, epochClock, time.Hour)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+	if err := store.Bump(epochFixtureAddress, epochClock.Add(time.Minute)); err != nil {
+		t.Fatalf("Bump forward: %v", err)
+	}
+	if err := store.CheckSession(session); !errors.Is(err, ErrSessionRevoked) {
+		t.Fatalf("CheckSession after the forward bump = %v, want ErrSessionRevoked", err)
+	}
+
+	notified := 0
+	store.Subscribe(func(string, time.Time) { notified++ })
+	if err := store.Bump(epochFixtureAddress, epochClock.Add(-time.Hour)); !errors.Is(err, ErrEpochBackward) {
+		t.Errorf("Bump backward = %v, want ErrEpochBackward", err)
+	}
+	if notified != 0 {
+		t.Errorf("subscriber notified %d times by a bump that moved nothing, want 0", notified)
+	}
+
+	if err := store.CheckSession(session); !errors.Is(err, ErrSessionRevoked) {
+		t.Errorf("CheckSession after the backward bump = %v, want ErrSessionRevoked", err)
+	}
+	got, _, err := store.Read(epochFixtureAddress)
+	if err != nil {
+		t.Fatalf("Read: %v", err)
+	}
+	if want := epochClock.Add(time.Minute); !got.Equal(want) {
+		t.Errorf("Read after the backward bump = %v, want %v", got, want)
+	}
+}
+
+// TestConcurrentBumpsKeepTheLater is what separates a read-modify-write
+// held under one lock from a read taken outside it: the sequential row
+// above passes either way, because the window between the read and the
+// write is reachable only from a second writer. Each round races an
+// earlier and a later bump for a fresh address, and across the rounds
+// an unlocked read lets the earlier one land last somewhere.
+func TestConcurrentBumpsKeepTheLater(t *testing.T) {
+	const rounds = 64
+	stateDir := t.TempDir()
+	store := newEpochStore(t, stateDir)
+	earlier, later := epochClock, epochClock.Add(time.Hour)
+
+	for round := range rounds {
+		address := "member" + strconv.Itoa(round) + "@example.com"
+		start := make(chan struct{})
+		var wg sync.WaitGroup
+		for _, at := range []time.Time{earlier, later} {
+			wg.Go(func() {
+				<-start
+				// The earlier bump returns ErrEpochBackward
+				// when it lands second; the stored value
+				// below is the assertion.
+				_ = store.Bump(address, at)
+			})
+		}
+		close(start)
+		wg.Wait()
+
+		got, ok, err := store.Read(address)
+		if err != nil || !ok {
+			t.Fatalf("round %d: Read = %v, %v, %v", round, got, ok, err)
+		}
+		if !got.Equal(later) {
+			t.Fatalf("round %d: stored epoch = %v, want the later bump %v", round, got, later)
+		}
 	}
 }
 

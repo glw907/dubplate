@@ -22,8 +22,9 @@ import (
 const MaxAddressLength = 254
 
 // ErrInvalidAddress reports that a value is not a normalizable login
-// address, either because [net/mail] cannot parse it as a single RFC
-// 5322 address or because it exceeds [MaxAddressLength].
+// address: [net/mail] cannot parse it as a single RFC 5322 address, it
+// exceeds [MaxAddressLength], or its normalized form is not itself an
+// address [NormalizeAddress] would return unchanged.
 var ErrInvalidAddress = errors.New("identity: invalid address")
 
 // NormalizeAddress parses value as a single RFC 5322 address and
@@ -31,10 +32,31 @@ var ErrInvalidAddress = errors.New("identity: invalid address")
 // logs, or rate-limits on a login address normalizes it here first,
 // so the address inside a token's MAC and the address in a lookup
 // never diverge.
+//
+// The result is a fixed point: normalizing it again returns it
+// unchanged. [net/mail] unquotes a quoted local part, so
+// "a,b"@example.com parses to a,b@example.com, which it then refuses;
+// such an address is refused here, before any credential can name it,
+// rather than accepted once and refused by every later step. The
+// result also carries no control character, no DEL, and no space.
 func NormalizeAddress(value string) (string, error) {
 	if len(value) > MaxAddressLength {
 		return "", fmt.Errorf("%w: exceeds %d bytes", ErrInvalidAddress, MaxAddressLength)
 	}
+	normalized, err := parseLower(value)
+	if err != nil {
+		return "", err
+	}
+	if strings.ContainsFunc(normalized, func(r rune) bool { return r <= ' ' || r == 0x7F }) {
+		return "", fmt.Errorf("%w: carries a control character or space", ErrInvalidAddress)
+	}
+	if again, err := parseLower(normalized); err != nil || again != normalized {
+		return "", fmt.Errorf("%w: normalized form does not parse to itself", ErrInvalidAddress)
+	}
+	return normalized, nil
+}
+
+func parseLower(value string) (string, error) {
 	addr, err := mail.ParseAddress(value)
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", ErrInvalidAddress, err)

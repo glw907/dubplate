@@ -17,6 +17,11 @@ var (
 	nonceClock     = time.Date(2026, 3, 4, 5, 6, 7, 0, time.UTC)
 	consumedSample = [NonceLength]byte{1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 121, 98, 219}
 	secondSample   = [NonceLength]byte{2, 2, 4, 6, 10, 16, 26, 42, 68, 110, 178, 32, 210, 242, 196, 182}
+
+	// sampleExpiry stands for the expiry of the token that bore a
+	// sample nonce. It is shorter than fixtureRetention, so every row
+	// that inserts a sample reads the retention as the record's life.
+	sampleExpiry = nonceClock.Add(fixtureExpiry)
 )
 
 // fixtureRetention is longer than fixtureExpiry, which is the relation
@@ -60,7 +65,7 @@ func TestInsertRefusesReplay(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
 
-	if err := nonces.Insert(consumedSample, nonceClock); err != nil {
+	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("first Insert: %v", err)
 	}
 	path := recordPathFor(t, stateDir, consumedSample)
@@ -69,7 +74,7 @@ func TestInsertRefusesReplay(t *testing.T) {
 		t.Fatalf("read record: %v", err)
 	}
 
-	err = nonces.Insert(consumedSample, nonceClock.Add(time.Minute))
+	err = nonces.Insert(consumedSample, nonceClock.Add(time.Minute), sampleExpiry)
 	if !errors.Is(err, ErrNonceReplayed) {
 		t.Fatalf("second Insert error = %v, want ErrNonceReplayed", err)
 	}
@@ -91,12 +96,12 @@ func TestInsertRefusesReplayAcrossRestart(t *testing.T) {
 	stateDir := t.TempDir()
 
 	first := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := first.Insert(consumedSample, nonceClock); err != nil {
+	if err := first.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert before restart: %v", err)
 	}
 
 	restarted := newNonceStore(t, stateDir, fixtureRetention, nonceClock.Add(time.Minute))
-	err := restarted.Insert(consumedSample, nonceClock.Add(time.Minute))
+	err := restarted.Insert(consumedSample, nonceClock.Add(time.Minute), sampleExpiry)
 	if !errors.Is(err, ErrNonceReplayed) {
 		t.Fatalf("Insert after restart error = %v, want ErrNonceReplayed", err)
 	}
@@ -129,7 +134,7 @@ func TestFailedMACNeverReachesNonceStore(t *testing.T) {
 	// the compiled statement of the order, so a change to either
 	// signature breaks this test rather than the prose.
 	if err == nil {
-		if err := nonces.Insert(tok.Nonce, nonceClock); err != nil {
+		if err := nonces.Insert(tok.Nonce, nonceClock, tok.ExpiresAt); err != nil {
 			t.Fatalf("Insert: %v", err)
 		}
 	}
@@ -158,7 +163,7 @@ func TestSweepPrunesOnCarriedExpiry(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-			if err := nonces.Insert(consumedSample, nonceClock); err != nil {
+			if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 				t.Fatalf("Insert: %v", err)
 			}
 
@@ -181,14 +186,14 @@ func TestSweepPrunesOnCarriedExpiry(t *testing.T) {
 	}
 }
 
-// TestRecordCarriesRetentionNotTokenExpiry is the row that separates
-// the two readings of what a record carries. The link expires fifteen
-// minutes after it is minted; the record is still there a day later,
-// because the record carries the retention and not the token's expiry.
-func TestRecordCarriesRetentionNotTokenExpiry(t *testing.T) {
+// TestRecordCarriesTheLongerRetention is TestRecordOutlivesItsToken's
+// other side. The token expires fifteen minutes after its mint; the
+// record is still there a day later, because a record lives for the
+// longer of the retention and the token's expiry.
+func TestRecordCarriesTheLongerRetention(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock); err != nil {
+	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
@@ -211,16 +216,15 @@ func TestRecordCarriesRetentionNotTokenExpiry(t *testing.T) {
 	}
 }
 
-// TestRetentionBelowExpiryWouldSweepLiveNonce is R31's floor, shown
-// from the hazard side: with a retention shorter than the link expiry,
-// a consumed nonce is swept while a token bearing it still verifies,
-// and the replay the store exists to refuse would succeed. The row
-// asserts the hazard rather than the guard, because the guard is Task
-// 4's: validateMagicLinkSource (cmd/dubplate-server/auth.go) refuses
-// DUBPLATE_NONCE_RETENTION below DUBPLATE_MAGIC_LINK_EXPIRY at load, so
-// this configuration cannot exist in a running server.
-func TestRetentionBelowExpiryWouldSweepLiveNonce(t *testing.T) {
-	const shortRetention = 5 * time.Minute
+// TestRecordOutlivesItsToken proves a record lives at least as long as
+// the token that bore its nonce. The store's retention is one second, far below the link's expiry, as
+// it would be after an operator shortened the retention while a link
+// minted under a longer one was still outstanding. A sweep past the
+// retention must leave the record in place, because the token bearing
+// its nonce still verifies, and the replay the store exists to refuse
+// must still be refused.
+func TestRecordOutlivesItsToken(t *testing.T) {
+	const shortRetention = time.Second
 	if shortRetention >= fixtureExpiry {
 		t.Fatalf("fixture retention %v is not below the link expiry %v", shortRetention, fixtureExpiry)
 	}
@@ -233,25 +237,37 @@ func TestRetentionBelowExpiryWouldSweepLiveNonce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("MintLink: %v", err)
 	}
-	if err := nonces.Insert(tok.Nonce, nonceClock); err != nil {
-		t.Fatalf("Insert: %v", err)
+	if err := nonces.Insert(tok.Nonce, nonceClock, tok.ExpiresAt); err != nil {
+		t.Fatalf("first Insert: %v", err)
+	}
+	if err := nonces.Insert(tok.Nonce, nonceClock, tok.ExpiresAt); !errors.Is(err, ErrNonceReplayed) {
+		t.Fatalf("second Insert = %v, want ErrNonceReplayed", err)
 	}
 
-	// Between the retention and the expiry: the token still
-	// verifies, so the record must still be there, and it is not.
-	sweepAt := nonceClock.Add(shortRetention + time.Minute)
+	sweepAt := nonceClock.Add(2 * shortRetention)
 	sweep, err := nonces.Sweep(sweepAt)
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
-	if sweep.Removed != 1 {
-		t.Fatalf("Removed = %d, want 1", sweep.Removed)
+	if sweep.Removed != 0 {
+		t.Errorf("Removed = %d at %v past the mint, want 0 while the token is live", sweep.Removed, sweepAt.Sub(nonceClock))
 	}
 	if _, err := VerifyLink(current, nil, value, sweepAt); err != nil {
 		t.Fatalf("VerifyLink at %v: %v, want a live token", sweepAt, err)
 	}
-	if err := nonces.Insert(tok.Nonce, sweepAt); err != nil {
-		t.Fatalf("replay Insert after the sweep: %v, want it to succeed, which is the hazard R31's floor removes", err)
+	if err := nonces.Insert(tok.Nonce, sweepAt, tok.ExpiresAt); !errors.Is(err, ErrNonceReplayed) {
+		t.Fatalf("replay Insert after the sweep = %v, want ErrNonceReplayed", err)
+	}
+
+	// Past the token's expiry the record is collectable, so the
+	// survival above is the token's expiry holding rather than a
+	// sweep that never removes anything.
+	sweep, err = nonces.Sweep(tok.ExpiresAt.Add(time.Second))
+	if err != nil {
+		t.Fatalf("Sweep past the token's expiry: %v", err)
+	}
+	if sweep.Removed != 1 {
+		t.Errorf("Removed past the token's expiry = %d, want 1", sweep.Removed)
 	}
 }
 
@@ -261,7 +277,7 @@ func TestRetentionBelowExpiryWouldSweepLiveNonce(t *testing.T) {
 func TestSweepRetainsMalformedRecord(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock); err != nil {
+	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
@@ -306,7 +322,7 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 	if sweep.Removed != 0 || sweep.Malformed != 1 {
 		t.Errorf("sweep = %+v, want {Removed:0 Malformed:1}", sweep)
 	}
-	if err := nonces.Insert(consumedSample, nonceClock); !errors.Is(err, ErrNonceReplayed) {
+	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); !errors.Is(err, ErrNonceReplayed) {
 		t.Errorf("Insert after the sweep = %v, want ErrNonceReplayed", err)
 	}
 
@@ -334,7 +350,7 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 func TestOpenSweeps(t *testing.T) {
 	stateDir := t.TempDir()
 	first := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := first.Insert(consumedSample, nonceClock); err != nil {
+	if err := first.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
@@ -384,7 +400,7 @@ func TestConcurrentInsertAdmitsOne(t *testing.T) {
 		for i := range writers {
 			wg.Go(func() {
 				<-start
-				results[i] = nonces.Insert(nonce, nonceClock)
+				results[i] = nonces.Insert(nonce, nonceClock, sampleExpiry)
 			})
 		}
 		close(start)
@@ -412,10 +428,10 @@ func TestConcurrentInsertAdmitsOne(t *testing.T) {
 func TestNonceErrorsCarryNoNonceValue(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock); err != nil {
+	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
-	err := nonces.Insert(consumedSample, nonceClock)
+	err := nonces.Insert(consumedSample, nonceClock, sampleExpiry)
 	if err == nil {
 		t.Fatal("second Insert returned nil")
 	}
