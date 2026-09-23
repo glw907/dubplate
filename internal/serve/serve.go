@@ -143,12 +143,13 @@ func (s *Shell) SetFallthrough(h http.Handler) {
 	s.fallthroughSet = true
 }
 
-// Handler composes C1's four steps, in this order, each wrapping the
-// next, and returns the root http.Handler: the ingress strip, path
-// normalization, prefix routing, and the fallthrough. doc.go states the
-// order and the extension point's contract; this method builds it. The
-// order is a property of this composition, never a mux feature: no
-// step here is registered as a route.
+// Handler composes five steps, in this order, each wrapping the next,
+// and returns the root http.Handler: the ingress strip, path
+// normalization, the echo-method refusal, the origin check, and prefix
+// routing with its fallthrough. doc.go states the order and the
+// extension point's contract; this method builds it. The order is a
+// property of this composition, never a mux feature: no step here is
+// registered as a route.
 //
 // The origin check sits between normalization and prefix routing, so
 // it judges only a path normalization has admitted and covers every
