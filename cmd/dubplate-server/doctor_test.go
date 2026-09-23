@@ -335,7 +335,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 // asserted generally, not against one row's literal text, so it also
 // covers whatever other row a future rung's own hook fails against.
 func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
-	environ := append(authEnviron(),
+	environ := append(authEnviron(t),
 		"DUBPLATE_MAGIC_LINK_EXPIRY=45m",
 		"DUBPLATE_NONCE_RETENTION=30m",
 	)
@@ -401,7 +401,7 @@ func TestRowStatuses_FlattensNestedJoin(t *testing.T) {
 // status, not one entry naming the first and swallowing the second's
 // reason inside a stray newline.
 func TestDoctorCmd_RowStatusesSurviveSimultaneousFailures(t *testing.T) {
-	environ := append(authEnviron(),
+	environ := append(authEnviron(t),
 		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
 		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
 	)
@@ -433,7 +433,7 @@ func TestDoctorCmd_RowStatusesSurviveSimultaneousFailures(t *testing.T) {
 // satisfied it is the only thing wrong, yet the source's own row must
 // still read unsatisfied rather than active.
 func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
-	environ := append(authEnviron(), "DUBPLATE_SESSION_SECRET_PREVIOUS="+fixtureSecretBelowFloor)
+	environ := append(authEnviron(t), "DUBPLATE_SESSION_SECRET_PREVIOUS="+fixtureSecretBelowFloor)
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
@@ -460,7 +460,7 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 // TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
 // rowStatuses keeps as two separate entries.
 func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
-	environ := append(authEnviron(),
+	environ := append(authEnviron(t),
 		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
 		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
 	)
@@ -490,40 +490,56 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_RosterRow proves the R3 roster row (Task 4's
-// conductor-owed fold): a roster whose file has not been created yet
-// (R37's pre-bootstrap state) reports no extra row and no failure,
-// while a roster carrying a duplicate streamer_username renders the
-// refusal and takes doctor's own exit status nonzero alongside it.
-// Named mutation 8 (drop the doctor roster row) makes the second case
-// report a clean table for a roster that refuses to load.
+// TestDoctorCmd_RosterRow proves the R3 roster row: a valid roster
+// reports no extra row and no failure, while a missing roster, a
+// roster carrying a duplicate streamer_username, and a roster carrying
+// two bad records each render one roster row and take doctor's own exit
+// status nonzero alongside it. A missing roster fails because R2 makes
+// it a startup refusal. Named mutation 8 (drop the doctor roster row)
+// makes every failing case report a clean table for a roster that
+// refuses to load; the two-record case pins the one-row rule against
+// an errors.Join newline leaking into the table.
 func TestDoctorCmd_RosterRow(t *testing.T) {
 	const fixtureAddressA = "roster-row-a@example.test"
 	const fixtureAddressB = "roster-row-b@example.test"
+	const fixtureAddressC = "roster-row-c@example.test"
 	const fixturePrincipal = "roster-row-principal"
 
 	tests := []struct {
 		name          string
 		rosterContent string // empty means the roster file is never created
-		wantErr       bool
-		wantRosterRow bool
+		wantStatus    string // the roster row's status prefix; empty means no roster row
 	}{
 		{
-			name:          "roster not yet bootstrapped",
-			rosterContent: "",
-			wantErr:       false,
-			wantRosterRow: false,
+			name:          "a valid roster",
+			rosterContent: `{"schema_version":1,"members":[]}`,
+			wantStatus:    "",
 		},
 		{
-			name: "roster with a duplicate streamer_username",
+			name:          "a roster not yet bootstrapped",
+			rosterContent: "",
+			wantStatus:    "missing",
+		},
+		{
+			name: "a roster with a duplicate streamer_username",
 			rosterContent: fmt.Sprintf(
 				`{"schema_version":1,"members":[`+
 					`{"address":%q,"display_name":"A","streamer_username":%q},`+
 					`{"address":%q,"display_name":"B","streamer_username":%q}`+
 					`]}`,
 				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal),
-			wantErr:       true,
-			wantRosterRow: true,
+			wantStatus: "invalid: ",
+		},
+		{
+			name: "a roster with two bad records",
+			rosterContent: fmt.Sprintf(
+				`{"schema_version":1,"members":[`+
+					`{"address":%q,"display_name":"A","streamer_username":%q},`+
+					`{"address":%q,"display_name":"B","streamer_username":%q},`+
+					`{"address":%q,"display_name":"C","streamer_username":%q}`+
+					`]}`,
+				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal, fixtureAddressC, fixturePrincipal),
+			wantStatus: "invalid: ",
 		},
 	}
 
@@ -536,41 +552,53 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 				}
 			}
 
-			environ := append(dropKey(authEnviron(), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
+			environ := append(dropKey(authEnviron(t), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
 			reg := productionRegistry()
 
 			var stdout, stderr bytes.Buffer
 			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
 			err := cmd.Execute()
 
-			if tt.wantErr && err == nil {
+			wantFailure := tt.wantStatus != ""
+			if wantFailure && err == nil {
 				t.Fatal("Execute() error = nil, want a refusal")
 			}
-			if !tt.wantErr && err != nil {
+			if !wantFailure && err != nil {
 				t.Fatalf("Execute() error = %v, want nil", err)
 			}
 
 			out := stdout.String()
-			hasRosterRow := strings.Contains(out, "\nroster ") || strings.HasPrefix(out, "roster ")
-			if hasRosterRow != tt.wantRosterRow {
-				t.Errorf("stdout has a roster row = %v, want %v; stdout = %q", hasRosterRow, tt.wantRosterRow, out)
-			}
-
-			if tt.wantRosterRow {
-				if strings.Contains(out, fixtureAddressA) || strings.Contains(out, fixtureAddressB) {
-					t.Errorf("stdout = %q, want it to contain neither fixture address", out)
-				}
-				if strings.Contains(out, fixturePrincipal) {
-					t.Errorf("stdout = %q, want it to not contain the fixture principal", out)
+			lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+			var rosterRows []string
+			for _, line := range lines {
+				if strings.HasPrefix(line, "roster ") {
+					rosterRows = append(rosterRows, line)
 				}
 			}
-
-			if tt.wantErr {
-				wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 1
-				lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
-				if len(lines) != wantTotal {
-					t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row)", len(lines), wantTotal)
+			if !wantFailure {
+				if len(rosterRows) != 0 {
+					t.Errorf("stdout has roster row(s) %q, want none", rosterRows)
 				}
+				return
+			}
+
+			if len(rosterRows) != 1 {
+				t.Fatalf("stdout has %d roster row(s), want exactly 1; stdout = %q", len(rosterRows), out)
+			}
+			wantPrefix := fmt.Sprintf("%-32s %s", "roster", tt.wantStatus)
+			if !strings.HasPrefix(rosterRows[0], wantPrefix) {
+				t.Errorf("roster row = %q, want prefix %q", rosterRows[0], wantPrefix)
+			}
+
+			for _, value := range []string{fixtureAddressA, fixtureAddressB, fixtureAddressC, fixturePrincipal} {
+				if strings.Contains(out, value) {
+					t.Errorf("stdout = %q, want it to not contain fixture value %q", out, value)
+				}
+			}
+
+			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 1
+			if len(lines) != wantTotal {
+				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row); stdout = %q", len(lines), wantTotal, out)
 			}
 		})
 	}
@@ -611,7 +639,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	// source, so this half runs against the production registry and a
 	// fully satisfied environment instead.
 	var authStdout, authStderr bytes.Buffer
-	authCmd := newDoctorCmd(authEnviron(), productionRegistry(), &authStdout, &authStderr)
+	authCmd := newDoctorCmd(authEnviron(t), productionRegistry(), &authStdout, &authStderr)
 	if err := authCmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}

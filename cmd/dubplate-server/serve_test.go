@@ -149,12 +149,12 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 		},
 		{
 			name:    "invalid prefix",
-			environ: append(authEnviron(), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
+			environ: append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
 			wantErr: serve.ErrInvalidPrefix,
 		},
 		{
 			name:    "unparseable bind list",
-			environ: append(authEnviron(), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
+			environ: append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
 			wantErr: serve.ErrInvalidBindAddr,
 		},
 	}
@@ -214,7 +214,7 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 			t.Setenv(name, "")
 		}
 	}
-	for _, kv := range authEnviron() {
+	for _, kv := range authEnviron(t) {
 		name, value, _ := strings.Cut(kv, "=")
 		t.Setenv(name, value)
 	}

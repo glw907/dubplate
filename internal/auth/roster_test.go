@@ -135,6 +135,11 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "a C1 control character (CSI) in a display name",
+			members: `[{"address":"a@example.com","display_name":"A\u009bB"}]`,
+			wantErr: true,
+		},
+		{
 			name:    "a control character in an address",
 			members: `[{"address":"a\u0007b@example.com","display_name":"A"}]`,
 			wantErr: true,
@@ -205,6 +210,30 @@ func TestOpenRoster_NoFixtureAddressInError(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), fixtureAddress) {
 		t.Errorf("OpenRoster() error = %q, want it to not contain the fixture address", err.Error())
+	}
+}
+
+// TestRoster_LookupErrorNamesNoAddress proves a Lookup refusal for an
+// input net/mail cannot parse carries neither address in it: net/mail
+// quotes the unparsed remainder of a two-address list, so wrapping its
+// error would echo the second address back to the caller.
+func TestRoster_LookupErrorNamesNoAddress(t *testing.T) {
+	const first = "lookup-first@example.com"
+	const second = "lookup-second@example.com"
+	path := writeRosterFile(t, `{"schema_version":1,"members":[]}`)
+	roster, err := OpenRoster(path)
+	if err != nil {
+		t.Fatalf("OpenRoster: %v", err)
+	}
+
+	_, err = roster.Lookup(first + ", " + second)
+	if !errors.Is(err, ErrMemberNotFound) {
+		t.Fatalf("Lookup() error = %v, want it to wrap ErrMemberNotFound", err)
+	}
+	for _, addr := range []string{first, second} {
+		if strings.Contains(err.Error(), addr) {
+			t.Errorf("Lookup() error = %q, want it to not contain %q", err.Error(), addr)
+		}
 	}
 }
 
@@ -330,6 +359,8 @@ func TestContainsControl(t *testing.T) {
 		{name: "bell character", input: "a\u0007b", want: true},
 		{name: "DEL", input: "a\u007fb", want: true},
 		{name: "newline", input: "a\nb", want: true},
+		{name: "C1 CSI", input: "a\u009bb", want: true},
+		{name: "non-control non-ASCII", input: "Zoë", want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -364,9 +395,12 @@ func TestCreateRoster_PropagatesStatError(t *testing.T) {
 // TestAddMember_ByteIdentityOnFailure proves that a write refused for
 // any reason leaves the file byte-identical: the validation failures
 // caught before the lock, the collision re-check caught with the lock
-// held, and the admin-channel refusal are each a different code path,
-// so each gets its own row. Named mutation 1 (write before validating)
-// fails every row here.
+// held, and the admin refusal are each a different code path, so each
+// gets its own row. The admin refusal gets one row per channel, since
+// no channel, a service token included, may set the flag. Named
+// mutation 1 (write before validating) fails every row here; named
+// mutation 6 (accept the admin flag on any assertion channel) fails
+// each admin row.
 func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	const seedJSON = `{"schema_version":1,"members":[{"address":"seed@example.com","display_name":"Seed","streamer_username":"seed"}]}`
@@ -405,6 +439,12 @@ func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 			name:      "the admin flag on a header channel",
 			candidate: Member{Address: "new@example.com", DisplayName: "A", Admin: true},
 			channel:   identity.ChannelHeader,
+			wantErr:   ErrRosterAdminChannelForbidden,
+		},
+		{
+			name:      "the admin flag on a service-token channel",
+			candidate: Member{Address: "new@example.com", DisplayName: "A", Admin: true},
+			channel:   identity.ChannelServiceToken,
 			wantErr:   ErrRosterAdminChannelForbidden,
 		},
 	}
@@ -529,35 +569,6 @@ func TestAddMember_AuditRecord(t *testing.T) {
 		if !allowed[key] {
 			t.Errorf("audit record carries unexpected key %q (value %v)", key, value)
 		}
-	}
-}
-
-// TestAddMember_AdminFlagAllowedOnServiceTokenChannel proves the
-// admin-channel refusal's positive case: identity.ChannelServiceToken,
-// the value this package treats as the command-line bootstrap actor,
-// may set the admin flag. Named mutation 6 (accept the admin flag on
-// any assertion channel) would make TestAddMember_ByteIdentityOnFailure's
-// cookie and header rows pass with the flag set, which those rows
-// already catch; this test proves the allowed channel still works.
-func TestAddMember_AdminFlagAllowedOnServiceTokenChannel(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(path)
-	if err != nil {
-		t.Fatalf("CreateRoster: %v", err)
-	}
-
-	candidate := Member{Address: "admin@example.com", DisplayName: "Admin", Admin: true}
-	if err := roster.AddMember(candidate, "root", identity.ChannelServiceToken, "127.0.0.1", logger); err != nil {
-		t.Fatalf("AddMember(service-token, admin) error = %v, want nil", err)
-	}
-
-	got, err := roster.Lookup("admin@example.com")
-	if err != nil {
-		t.Fatalf("Lookup: %v", err)
-	}
-	if !got.Admin {
-		t.Error("Lookup().Admin = false, want true")
 	}
 }
 

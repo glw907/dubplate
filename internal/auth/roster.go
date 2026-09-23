@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"unicode"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/identity"
@@ -70,13 +71,10 @@ var (
 	ErrMemberNotFound = errors.New("auth: member not found")
 
 	// ErrRosterAdminChannelForbidden reports that AddMember refused to
-	// set the admin flag because the caller's channel was not
-	// identity.ChannelServiceToken, the value this package treats as
-	// the command-line bootstrap actor. No web-facing handler ever
-	// asserts an identity on that channel, so a write path that
-	// accepted the flag from a cookie or a header channel would be one
-	// handler bug away from granting an operator role to a first
-	// login.
+	// set the admin flag. Every identity.Channel is a network assertion,
+	// a service token included, and the spec makes the command-line
+	// verb the only path to an admin, so AddMember refuses the flag on
+	// all of them. The admin grant arrives together with that verb.
 	ErrRosterAdminChannelForbidden = errors.New("auth: admin flag refused on this channel")
 )
 
@@ -261,10 +259,11 @@ func validateMemberFields(rec memberRecord) (Member, error) {
 	}, nil
 }
 
-// containsControl reports whether s carries an ASCII control character
-// or DEL.
+// containsControl reports whether s carries a C0 or C1 control
+// character or DEL. C1 matters as much as C0: U+009B is a
+// single-character CSI that a terminal honors like ESC [.
 func containsControl(s string) bool {
-	return strings.ContainsFunc(s, func(r rune) bool { return r < 0x20 || r == 0x7f })
+	return strings.ContainsFunc(s, unicode.IsControl)
 }
 
 // isASCIIPrintable reports whether every byte of s is an ASCII
@@ -285,9 +284,12 @@ func isASCIIPrintable(s string) bool {
 // happening before any keying, logging, or rate-limit lookup
 // (spec:1161-1163).
 func (r *Roster) Lookup(address string) (Member, error) {
+	// The parse error is dropped rather than wrapped: net/mail quotes
+	// the unparsed remainder of its input, which would carry an address
+	// into an error this package promises never names one.
 	normalized, err := normalizeMemberAddress(address)
 	if err != nil {
-		return Member{}, fmt.Errorf("%w: %v", ErrMemberNotFound, err)
+		return Member{}, fmt.Errorf("%w: address does not parse", ErrMemberNotFound)
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -316,18 +318,15 @@ func (r *Roster) List() []Member {
 //
 // Every check runs before atomicfile.WriteStream is called, so a
 // candidate that fails validation, fails the collision re-check, or
-// sets Admin on the wrong channel changes no byte on disk.
+// sets Admin changes no byte on disk.
 //
-// candidate.Admin may be true only when channel is
-// identity.ChannelServiceToken: this package treats that value as the
-// command-line bootstrap actor, since a service token is presented
-// directly rather than asserted through a browser or a reverse proxy.
-// No handler in this pass ever asserts an identity on that channel, so
-// AddMember refuses the flag on every other channel with
-// ErrRosterAdminChannelForbidden rather than trust a caller's own
-// gate to keep a web request from minting the first admin.
+// AddMember refuses candidate.Admin on every channel with
+// ErrRosterAdminChannelForbidden. Each channel is an identity asserted
+// over the network, a service token as much as a cookie or a header,
+// and the command-line verb is the only path to an admin. That verb
+// brings the admin grant with it; until then no caller can mint one.
 func (r *Roster) AddMember(candidate Member, actor string, channel identity.Channel, clientIP string, logger *slog.Logger) error {
-	if candidate.Admin && channel != identity.ChannelServiceToken {
+	if candidate.Admin {
 		return fmt.Errorf("%w: channel %s", ErrRosterAdminChannelForbidden, channel)
 	}
 

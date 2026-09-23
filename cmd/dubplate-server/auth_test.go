@@ -244,7 +244,7 @@ func TestValidateMagicLinkSource_SecretLengthFloor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			values := map[string]string{tt.key: tt.value}
-			err := validateMagicLinkSource(values, authEnviron())
+			err := validateMagicLinkSource(values, authEnviron(t))
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -283,7 +283,7 @@ func TestValidateMagicLinkSource_PublicURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			values := map[string]string{"DUBPLATE_PUBLIC_URL": tt.url}
-			err := validateMagicLinkSource(values, authEnviron())
+			err := validateMagicLinkSource(values, authEnviron(t))
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -514,7 +514,7 @@ func TestValidateMagicLinkSource_SMTPFrom(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			values := map[string]string{"DUBPLATE_SMTP_FROM": tt.from}
-			err := validateMagicLinkSource(values, authEnviron())
+			err := validateMagicLinkSource(values, authEnviron(t))
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -541,7 +541,7 @@ func TestValidateMagicLinkSource_NoSecretInErrors(t *testing.T) {
 		"DUBPLATE_PUBLIC_URL":        "http://example.test",
 	}
 
-	err := validateMagicLinkSource(values, authEnviron())
+	err := validateMagicLinkSource(values, authEnviron(t))
 	if err == nil {
 		t.Fatal("validateMagicLinkSource() error = nil, want a joined refusal")
 	}
@@ -558,7 +558,7 @@ func TestValidateMagicLinkSource_NoSecretInErrors(t *testing.T) {
 // unset DUBPLATE_LIBRARY_ROOT and a too-short magic-link secret both
 // name themselves in one returned error.
 func TestConfigLoad_MagicLinkValidationJoinsOtherErrors(t *testing.T) {
-	environ := dropKey(authEnviron(), "DUBPLATE_LIBRARY_ROOT")
+	environ := dropKey(authEnviron(t), "DUBPLATE_LIBRARY_ROOT")
 	environ = append(dropKey(environ, "DUBPLATE_MAGIC_LINK_SECRET"),
 		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor)
 

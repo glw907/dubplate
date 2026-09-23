@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -28,10 +30,18 @@ func baseEnviron() []string {
 // against productionRegistry (serve_test.go) that expects config.Load
 // to succeed needs this, rather than baseEnviron alone, because rung 5
 // registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (auth.go).
-func authEnviron() []string {
+// DUBPLATE_ROSTER_FILE names a valid, empty roster written into
+// t.TempDir(), because doctor opens that file and reports a missing
+// one as a failure.
+func authEnviron(t *testing.T) []string {
+	t.Helper()
+	rosterPath := filepath.Join(t.TempDir(), "roster.json")
+	if err := os.WriteFile(rosterPath, []byte(`{"schema_version":1,"members":[]}`), 0o600); err != nil {
+		t.Fatalf("write fixture roster: %v", err)
+	}
 	return append(baseEnviron(),
 		"DUBPLATE_IDENTITY_SOURCE=magic-link",
-		"DUBPLATE_ROSTER_FILE=/var/lib/dubplate/roster.json",
+		"DUBPLATE_ROSTER_FILE="+rosterPath,
 		"DUBPLATE_MAGIC_LINK_SECRET=fixture magic link secret, not a real key",
 		"DUBPLATE_SESSION_SECRET=fixture session secret, not a real key",
 		"DUBPLATE_PUBLIC_URL=https://dubplate.example.test",

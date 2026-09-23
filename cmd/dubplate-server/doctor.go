@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -71,25 +72,26 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// The roster row runs R3's principal-collision check in
 			// doctor as well as at startup and at write time: it calls
 			// the same [auth.OpenRoster] the magic-link source loads
-			// through, so a duplicate address, a duplicate
-			// streamer_username, or an unparseable record is reported
-			// here too. [auth.ErrRosterMissing] is not reported here:
-			// R37's own runbook orders a fresh install as deploy, then
-			// doctor, then the CLI bootstrap that creates the file, so
-			// "no roster yet" is doctor's expected pre-bootstrap state
-			// rather than a broken configuration. A registry with no
-			// roster-backed identity source, or a roster that has not
-			// been created yet, prints no extra row, so R10's
-			// line-count arithmetic stays keyed to reg alone whenever
-			// there is nothing new to report. It names no value
-			// (Resolution R-5b6): [auth.OpenRoster]'s own errors
-			// already carry only a record's position and the path,
-			// never its address or principal.
+			// through, so a missing file, a duplicate address, a
+			// duplicate streamer_username, or an unparseable record is
+			// reported here too. A missing file is a failure like any
+			// other, since R2 makes it a startup refusal: the spec's
+			// runbook order is install, render the environment, run the
+			// bootstrap verb that creates the roster, then start the
+			// unit, so doctor run before the verb correctly reports the
+			// deployment as not yet startable. The row prints only while
+			// a selected identity source requires DUBPLATE_ROSTER_FILE
+			// and the roster fails to open, so R10's line-count
+			// arithmetic stays keyed to reg alone whenever there is
+			// nothing to report. It names no value (Resolution R-5b6):
+			// [auth.OpenRoster]'s own errors carry only a record's
+			// position and the path, never its address or principal, and
+			// a multi-record refusal is folded onto the one line.
 			rosterFailed := false
-			if path, ok := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE"); ok {
-				if _, err := auth.OpenRoster(path); err != nil && !errors.Is(err, auth.ErrRosterMissing) {
+			if path, ok := selectedRosterPath(environ, reg); ok {
+				if _, err := auth.OpenRoster(path); err != nil {
 					rosterFailed = true
-					if err := printRow(stdout, "roster", "invalid: "+err.Error()); err != nil {
+					if err := printRow(stdout, "roster", rosterStatus(err)); err != nil {
 						return err
 					}
 				}
@@ -103,6 +105,32 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 	}
 	cmd.SetErr(stderr)
 	return cmd
+}
+
+// selectedRosterPath returns DUBPLATE_ROSTER_FILE's value when a
+// source reg declares is selected in environ and requires that key.
+// It reports false when no roster-backed source is selected or the key
+// is unset; the source's own row already reports the unset key.
+func selectedRosterPath(environ []string, reg *config.Registry) (string, bool) {
+	const rosterKey = "DUBPLATE_ROSTER_FILE"
+	for _, src := range reg.IdentitySources() {
+		if src.Selected(environ) && slices.Contains(src.Required, rosterKey) {
+			return lookupEnviron(environ, rosterKey)
+		}
+	}
+	return "", false
+}
+
+// rosterStatus renders an [auth.OpenRoster] refusal as one doctor
+// status: "missing" for an absent file, the wall's own word for an
+// unset row, and otherwise "invalid: " plus the error with every
+// newline an [errors.Join] of several bad records carries folded to
+// "; ", so the refusal stays a single row.
+func rosterStatus(err error) string {
+	if errors.Is(err, auth.ErrRosterMissing) {
+		return "missing"
+	}
+	return "invalid: " + strings.ReplaceAll(err.Error(), "\n", "; ")
 }
 
 // printRow writes one doctor line in the pinned "%-32s %s" form.
