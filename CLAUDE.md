@@ -203,9 +203,10 @@ verbatim; the four decidable patterns it names replace a clarity brief.
   (RuntimeDirectory, deleted at unit stop). The Go layer uses NO runtime
   directory at all: the scan URL builds inline and the roster loads into
   memory (the retired shell layer's temp-file pattern died with it).
-- The beets database is the only import success record: the tag log records
-  skips only, and beets renames every file. Never infer success from the
-  filesystem.
+- On the interim estate (retired at rung 16), the beets database is the only
+  import success record: the tag log records skips only, and beets renames
+  every file. Never infer success from the filesystem. The greenfield
+  server's store is its own record.
 - The album is the verdict unit: one failing track rejects the batch. Never
   admit a partial album.
 - Reject wording is contract (`internal/reject` / `friendly_reason`): the
@@ -213,9 +214,14 @@ verbatim; the four decidable patterns it names replace a clarity brief.
 - `env/dubplate.env.template` is a secrets MANIFEST rendered by deploy.sh
   from the age store — inline values in it are not defaults and adding a
   name there requires minting it (`secret-set.sh`, registry).
-- Collections route via a beets flexible attribute with query-prefixed path
-  formats; the default collection keeps the unprefixed layout. No second
-  beets database, ever.
+- On the interim estate, collections route via a beets flexible attribute
+  with query-prefixed path formats, the default collection unprefixed, and
+  there is no second beets database. The greenfield server does not inherit
+  this: a collection is a store row whose root the server allocates from its
+  id, with no two roots nested, per
+  `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`. Rung 16
+  relocates the migrated collections once, conditional on rung 12's
+  Navidrome check.
 - Config keys are declared through the registry in each rung's own file,
   never by editing `internal/config/keys.go` (rung 1b).
 
