@@ -1,7 +1,7 @@
 # Configuration homes: where each setting lives
 
-Design spec. Revision 3, 2026-09-12. Status: ratified in conversation, awaiting Geoff's read
-of this file.
+Design spec. Revision 3, 2026-09-12. Status: **ratified, Geoff read the file 2026-09-23**, with
+two errata of that date (the founding library's hand-over, and per-collection layout parity).
 
 Revision 1 is dated 2026-09-11, revisions 2 and 3 fold five adversarial reviews
 (competitors and demand; collection interactions; technical design; threat model;
@@ -659,7 +659,12 @@ bar on a stolen session and does nothing against a live-compromised admin browse
   re-authentication gate and outbound-URL validation on sensitive settings; the audit on
   every write; member removal as the checklist above; version negotiation on connect.
 - Rung 16 migration: land the library as a single-link tree, and state the restore-size
-  expectation in the runbook.
+  expectation in the runbook. Erratum 2026-09-23 (Geoff): it also relocates each migrated
+  collection under its allocated root in one move, and the build spec's launch bar item 4
+  proves layout parity per collection. Conditional on the rung 12 check below.
+- Rung 12, added 2026-09-23: verify that the pinned Navidrome build keeps per-user stars and
+  playlists across a file move. A failure returns the relocation to Geoff through rung 10's
+  plan before rung 16.
 - Rung 5's plan: the revocation seam's read is the one a device-credential store subscribes
   to; a last-admin lockout guard, atomic against concurrent self-demotion.
 - The 2.0 projector: one `visibleCollections(member)` predicate joined in a single accessor

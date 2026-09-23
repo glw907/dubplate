@@ -128,6 +128,18 @@ server. The launch gate has four parts, and all four hold at once:
    10) and is first evaluated there, ahead of the cutover, not inside
    it.
 
+   > Erratum, 2026-09-23 (Geoff): parity is proven per collection, on
+   > each collection's paths below its root. The configuration homes
+   > spec allocates every collection's root from its id and forbids
+   > nested roots, while the live library nests prefixed collections
+   > under the default one, so rung 16 relocates each migrated
+   > collection under its allocated root in one move. This is
+   > conditional on rung 12 verifying that the pinned Navidrome build
+   > keeps per-user stars and playlists across a move (tag-derived
+   > persistent ids). If it does not, rung 10's plan returns the
+   > question to Geoff before rung 16, with grandfathered roots as the
+   > alternative.
+
 There is no partial launch and no beets fallback inside the new
 server. If the matcher cannot clear the bar, the honest outcome is
 that the launch waits: the interim estate keeps serving Geoff's own

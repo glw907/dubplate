@@ -21,13 +21,13 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    Carried to 5d: the spec's "doctor exits 0" acceptance row (`spec:2332`) must run after the bootstrap
    verb. Segment C (Tasks 7-8) next, then its simplifier round. Then D1, D2, then **5c**.
 2. **Critical path (conductor, 2026-09-23):** the web surface standard is ratified (Geoff, 2026-09-23, `94d8af3`), so 5c's plan
-   is unblocked; configuration homes revision 3 still awaits Geoff's read (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
+   is unblocked; configuration homes revision 3 is ratified too
+   (2026-09-23; per-collection layout parity, conditional on a rung 12 Navidrome check) (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
    ruled. Rung 5 through 5d stays first, because the no-deploy carry blocks every box change.
 3. Owed in `~/.dotfiles` (held: that tree had another session's uncommitted edits on 2026-09-23): the infra
    round's task 9, and a `pass-execute.js` stop-on-escalate option so a segment never builds on an
    unaccepted task (5b-ii's Task 5 was committed over Task 4's open escalation).
 
-Awaiting Geoff's read: `specs/2026-09-11-configuration-homes-design.md` (revision 3, `07f4e01`).
 
 ## Lane registry
 
