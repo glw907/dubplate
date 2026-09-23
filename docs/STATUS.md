@@ -12,8 +12,12 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    flag 6.0M). **Segment A closed at `aae338c`** (Tasks 1-3 accepted, about 1.7M): all five reproductions
    (B1, M1, M2, M3, M5) observed failing first; Task 1's extra CR/LF refusal in `splitSigned` is ruled kept
    (`Strict()` still ignores CR and LF); Task 2's second `fix` was ruled as one narrow round, the
-   selected-source one-row test, accepted. Segment B (Tasks 4-6) next, then re-derive the ceiling from
-   Tasks 4 and 5. Launch rulings sit in the plan header (2026-09-23). Then C, D1, D2, then **5c**.
+   selected-source one-row test, accepted. **Segment B closed at `dfa7155`** (about 1.6M; pass total about
+   3.3M, projected about 7M, under the 8.0M cut line, so no split). Rulings: `doctor` reports a missing
+   roster as "missing"; `AddMember` refuses the admin flag on every channel, and 5c adds the CLI admin
+   grant with its caller. Carried to 5c: rename `ErrRosterAdminChannelForbidden` when the CLI grant lands.
+   Carried to 5d: the spec's "doctor exits 0" acceptance row (`spec:2332`) must run after the bootstrap
+   verb. Segment C (Tasks 7-8) next, then its simplifier round. Then D1, D2, then **5c**.
 2. The Claude infra round's task 9 (the `pass-execute.js` edit) is still owed in `~/.dotfiles/docs/STATUS.md`.
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
@@ -23,7 +27,7 @@ section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `0
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment B (Tasks 4-6); segment A closed at `aae338c` |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment C (Tasks 7-8); segment B closed at `dfa7155` |
 | 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29` |
 
 ## Open items (carried)
