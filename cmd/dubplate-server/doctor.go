@@ -196,14 +196,19 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 
 // identitySourceStatus reports how src stands against environ:
 // inactive when the selector names another source, unsatisfied when it
-// is the selected one and [config.Load] flagged one of its Required or
-// Optional rows, and active otherwise. Optional is consulted alongside
-// Required (review M4): a short rotation-overlap secret is one of the
-// source's Optional keys, and until this consultation it never
-// reflected in this row, however plainly the operator's own terminal
-// showed the secret's key rejected by name elsewhere. It names no
-// value, because a source's required set carries secrets and doctor's
-// table is read on a terminal (Resolution R-5b6).
+// is the selected one and either [config.Load] flagged one of its
+// Required or Optional rows or src's own Validate hook refuses the
+// values those rows resolve to, and active otherwise. Optional is
+// consulted alongside Required (review M4): a short rotation-overlap
+// secret is one of the source's Optional keys, and until this
+// consultation it never reflected in this row, however plainly the
+// operator's own terminal showed the secret's key rejected by name
+// elsewhere. Validate is rerun directly (review M4) because a
+// relational refusal, such as R31's retention-vs-expiry comparison, is
+// keyed against a threshold's own name rather than one of src's
+// Required or Optional keys, so the per-key sweep above cannot see it.
+// It names no value, because a source's required set carries secrets
+// and doctor's table is read on a terminal (Resolution R-5b6).
 func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
@@ -218,7 +223,47 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 			return "unsatisfied"
 		}
 	}
+	if src.Validate != nil {
+		if err := src.Validate(identitySourceValues(environ, src), environ); err != nil {
+			return "unsatisfied"
+		}
+	}
 	return "active"
+}
+
+// identitySourceValues resolves src's Required and Optional keys from
+// environ, the same construction [config]'s own resolveIdentitySource
+// uses against its wall: an unset or empty value is omitted from the
+// map rather than recorded as an empty string.
+func identitySourceValues(environ []string, src config.IdentitySource) map[string]string {
+	values := make(map[string]string, len(src.Required)+len(src.Optional))
+	for _, key := range src.Required {
+		if v, ok := lookupEnviron(environ, key); ok {
+			values[key] = v
+		}
+	}
+	for _, key := range src.Optional {
+		if v, ok := lookupEnviron(environ, key); ok {
+			values[key] = v
+		}
+	}
+	return values
+}
+
+// lookupEnviron returns name's value out of environ (os.Environ()
+// form), a later entry winning over an earlier one for the same name,
+// and treats an empty value as unset, [config]'s own wall.get rule.
+func lookupEnviron(environ []string, name string) (string, bool) {
+	value, ok := "", false
+	for _, kv := range environ {
+		if key, v, found := strings.Cut(kv, "="); found && key == name {
+			value, ok = v, true
+		}
+	}
+	if !ok || value == "" {
+		return "", false
+	}
+	return value, true
 }
 
 // splitKeyReason strips err's leading "key: " prefix, the shape every

@@ -31,10 +31,12 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 		}
 	}
 
-	// A record file this package writes through atomicfile.WriteFile
-	// (the entry point [NonceStore] and [EpochStore] use) is 0600,
-	// exercised through that path rather than a permission the test
-	// states by hand.
+	// This test writes a record through atomicfile.WriteFile at
+	// filePerm to prove the permission a record file gets, rather than
+	// stating 0600 by hand. Neither store calls WriteFile itself:
+	// NonceStore writes through os.OpenFile with O_CREATE|O_EXCL
+	// (nonce.go), and EpochStore writes through atomicfile.WriteStream
+	// (epoch.go).
 	path, err := store.NoncePath(RecordID(nonceSubdir, "fixed-vector"))
 	if err != nil {
 		t.Fatalf("NoncePath: %v", err)

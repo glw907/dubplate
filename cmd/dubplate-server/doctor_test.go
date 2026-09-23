@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -354,6 +355,41 @@ func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
 	}
 	if failing == 0 {
 		t.Errorf("stdout = %q, want at least one row naming a failure: doctor must never print an all-satisfied table while Load refuses", stdout.String())
+	}
+
+	// The source row itself must report the failure, not just some
+	// threshold row (review M4): DUBPLATE_NONCE_RETENTION is a
+	// threshold key, not one of magic-link's Required or Optional
+	// names, so a doctor that only swept those two lists would print
+	// this row "active" while the source's own Validate hook is the
+	// refusal Load returned.
+	want := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied")
+	if !strings.Contains(stdout.String(), want) {
+		t.Errorf("stdout = %q, want a line with prefix %q", stdout.String(), want)
+	}
+}
+
+// TestRowStatuses_FlattensNestedJoin proves the review M4 flatten fix
+// against a synthetic tree rowStatuses's own package tests never
+// otherwise reach: an outer errors.Join wrapping a single inner
+// errors.Join, mixing a config.ErrMissing leaf with an ordinary
+// invalid leaf. errors.Is walks the whole tree regardless of nesting
+// depth, so a rowStatuses that unwraps only one level classifies the
+// entire inner join as "missing" and B_KEY's own "invalid: bad" reason
+// never surfaces (mutation 1).
+func TestRowStatuses_FlattensNestedJoin(t *testing.T) {
+	err := errors.Join(errors.Join(
+		fmt.Errorf("A_KEY: %w", config.ErrMissing),
+		errors.New("B_KEY: bad"),
+	))
+
+	statuses := rowStatuses(err)
+
+	if got := statuses["A_KEY"]; got != "missing" {
+		t.Errorf(`statuses["A_KEY"] = %q, want "missing"`, got)
+	}
+	if got := statuses["B_KEY"]; got != "invalid: bad" {
+		t.Errorf(`statuses["B_KEY"] = %q, want "invalid: bad"`, got)
 	}
 }
 
