@@ -621,8 +621,10 @@ func TestRefusalRecordOnlyForTheShellsOwnRefusals(t *testing.T) {
 			http.Error(w, "bad form", http.StatusBadRequest)
 		}))
 
+		req := httptest.NewRequest(http.MethodPost, testPrefix+"/echo", nil)
+		req.Header.Set("Sec-Fetch-Site", "same-origin")
 		rec := httptest.NewRecorder()
-		shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, testPrefix+"/echo", nil))
+		shell.Handler().ServeHTTP(rec, req)
 
 		if rec.Code != http.StatusBadRequest {
 			t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadRequest)
@@ -968,5 +970,145 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 				t.Errorf("record status = %#v, want %d", records[0]["status"], tt.wantStatus)
 			}
 		})
+	}
+}
+
+// TestOriginCheckCoversSubtreeAndFallthrough runs the origin check
+// through the composed root handler rather than the wrapper alone, so
+// what it proves is placement: a registered subtree and the empty
+// fallthrough both refuse a cookie-carrying POST that carries neither
+// Sec-Fetch-Site nor Origin, without any mount installing the check
+// itself. Each same-origin row is the control that the refusal came
+// from the check rather than from the destination.
+func TestOriginCheckCoversSubtreeAndFallthrough(t *testing.T) {
+	tests := []struct {
+		name        string
+		target      string
+		sameOrigin  bool
+		want        int
+		wantReached bool
+	}{
+		{
+			name:   "registered subtree, POST carrying neither header, is refused",
+			target: testPrefix + "/echo",
+			want:   http.StatusForbidden,
+		},
+		{
+			name:        "registered subtree, same-origin POST, reaches the subtree",
+			target:      testPrefix + "/echo",
+			sameOrigin:  true,
+			want:        http.StatusOK,
+			wantReached: true,
+		},
+		{
+			// The fallthrough is empty and answers 404 on its own, so
+			// a 403 here can only be the check's.
+			name:   "empty fallthrough, POST carrying neither header, is refused",
+			target: "/outside",
+			want:   http.StatusForbidden,
+		},
+		{
+			name:       "empty fallthrough, same-origin POST, reaches the 404",
+			target:     "/outside",
+			sameOrigin: true,
+			want:       http.StatusNotFound,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			shell := newTestShell(t, testSessionCookie)
+			var owned callRecorder
+			shell.Register("echo", recordingHandlerWithStatus(http.StatusOK, &owned))
+
+			req := httptest.NewRequest(http.MethodPost, tt.target, nil)
+			req.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "a-session-value"})
+			if tt.sameOrigin {
+				req.Header.Set("Sec-Fetch-Site", "same-origin")
+			}
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, req)
+
+			if rec.Code != tt.want {
+				t.Errorf("status = %d, want %d", rec.Code, tt.want)
+			}
+			if owned.called != tt.wantReached {
+				t.Errorf("subtree reached = %t, want %t", owned.called, tt.wantReached)
+			}
+		})
+	}
+}
+
+// TestOriginCheckRunsAfterNormalize proves the check's position below
+// normalization by behavior. The check's deny handler is replaced with
+// one that records its call, and every request here is a POST carrying
+// neither Sec-Fetch-Site nor Origin, which the check refuses whenever
+// it sees one. A path with a ".." segment must be refused by
+// normalization with no call recorded; the clean path is the control
+// that the recorder does fire when the check runs.
+func TestOriginCheckRunsAfterNormalize(t *testing.T) {
+	tests := []struct {
+		name       string
+		target     string
+		want       int
+		wantDenied bool
+	}{
+		{
+			name:   "a dot-dot path is refused before the check sees it",
+			target: testPrefix + "/echo/../secret",
+			want:   http.StatusBadRequest,
+		},
+		{
+			name:       "a clean path reaches the check",
+			target:     testPrefix + "/echo",
+			want:       http.StatusForbidden,
+			wantDenied: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			shell := newTestShell(t, "")
+			shell.Register("echo", http.NotFoundHandler())
+			var denied bool
+			shell.origin.deny = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				denied = true
+				w.WriteHeader(http.StatusForbidden)
+			})
+
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, tt.target, nil))
+
+			if rec.Code != tt.want {
+				t.Errorf("status = %d, want %d", rec.Code, tt.want)
+			}
+			if denied != tt.wantDenied {
+				t.Errorf("origin check denied = %t, want %t", denied, tt.wantDenied)
+			}
+		})
+	}
+}
+
+// TestOriginRefusalEmitsTheRefusalRecord: the check's refusal is the
+// shell's own, so it writes the one structured record the shell keeps
+// for every ingress refusal, and names the path it refused.
+func TestOriginRefusalEmitsTheRefusalRecord(t *testing.T) {
+	prefix, err := NewPrefix(testPrefix)
+	if err != nil {
+		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+	}
+	log := &capturingHandler{}
+	shell := NewShell(prefix, NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}), slog.New(log))
+
+	rec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/outside", nil))
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)
+	}
+	records := log.snapshot()
+	if len(records) != 1 {
+		t.Fatalf("got %d log record(s), want 1: %v", len(records), records)
+	}
+	if got := records[0]["path"]; got != "/outside" {
+		t.Errorf("record path = %v, want %q", got, "/outside")
 	}
 }

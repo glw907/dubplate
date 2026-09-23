@@ -23,6 +23,7 @@ import (
 type Shell struct {
 	prefix   Prefix
 	strip    Strip
+	origin   *originCheck
 	logger   *slog.Logger
 	mux      *http.ServeMux
 	subtrees map[string]struct{}
@@ -49,6 +50,7 @@ func NewShell(prefix Prefix, strip Strip, logger *slog.Logger) *Shell {
 	return &Shell{
 		prefix:   prefix,
 		strip:    strip,
+		origin:   newOriginCheck(),
 		logger:   logger,
 		mux:      http.NewServeMux(),
 		subtrees: make(map[string]struct{}),
@@ -147,6 +149,12 @@ func (s *Shell) SetFallthrough(h http.Handler) {
 // order and the extension point's contract; this method builds it. The
 // order is a property of this composition, never a mux feature: no
 // step here is registered as a route.
+//
+// The origin check sits between normalization and prefix routing, so
+// it judges only a path normalization has admitted and covers every
+// registered subtree and the fallthrough alike. It runs after the echo
+// method refusal, so TRACE and TRACK keep their 405 rather than taking
+// the check's 403.
 func (s *Shell) Handler() http.Handler {
 	s.handlerBuilt = true
 
@@ -156,7 +164,8 @@ func (s *Shell) Handler() http.Handler {
 	}
 
 	routed := s.prefix.Route(s.terminated(), s.stripSessionCookie(fallthroughHandler))
-	guarded := refuseEchoMethods(routed)
+	protected := s.origin.wrap(routed)
+	guarded := refuseEchoMethods(protected)
 	normalized := Normalize(guarded)
 	stripped := s.strip.Wrap(normalized)
 	return s.logRefusal(stripped)
