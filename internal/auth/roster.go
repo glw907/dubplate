@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/identity"
@@ -65,6 +68,16 @@ var (
 	// ErrMemberNotFound reports that Lookup's address matched no member
 	// once normalized.
 	ErrMemberNotFound = errors.New("auth: member not found")
+
+	// ErrRosterAdminChannelForbidden reports that AddMember refused to
+	// set the admin flag because the caller's channel was not
+	// identity.ChannelServiceToken, the value this package treats as
+	// the command-line bootstrap actor. No web-facing handler ever
+	// asserts an identity on that channel, so a write path that
+	// accepted the flag from a cookie or a header channel would be one
+	// handler bug away from granting an operator role to a first
+	// login.
+	ErrRosterAdminChannelForbidden = errors.New("auth: admin flag refused on this channel")
 )
 
 // Member is one roster entry (R1): a login address, a display name, an
@@ -104,6 +117,7 @@ type memberRecord struct {
 // outside this file knows the format is JSON, which is what makes
 // rung 6's substitution a change of one constructor.
 type Roster struct {
+	mu        sync.Mutex
 	path      string
 	members   []Member
 	byAddress map[string]int
@@ -187,51 +201,64 @@ func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 	var errs []error
 
 	for i, rec := range records {
-		normalized, err := normalizeMemberAddress(rec.Address)
+		member, err := validateMemberFields(rec)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("member %d: address does not parse as a login address", i))
+			errs = append(errs, fmt.Errorf("member %d: %w", i, err))
 			continue
 		}
-		if _, dup := byAddress[normalized]; dup {
+		if _, dup := byAddress[member.Address]; dup {
 			errs = append(errs, fmt.Errorf("member %d: duplicate address", i))
 			continue
 		}
-		if containsControl(rec.DisplayName) {
-			errs = append(errs, fmt.Errorf("member %d: display name carries a control character", i))
-			continue
-		}
-		if len(rec.DisplayName) > maxDisplayNameLength {
-			errs = append(errs, fmt.Errorf("member %d: display name exceeds %d bytes", i, maxDisplayNameLength))
-			continue
-		}
-		if rec.StreamerUsername != "" {
-			if !isASCIIPrintable(rec.StreamerUsername) {
-				errs = append(errs, fmt.Errorf("member %d: streamer_username is not ASCII-printable", i))
-				continue
-			}
-			if len(rec.StreamerUsername) > maxStreamerUsernameLength {
-				errs = append(errs, fmt.Errorf("member %d: streamer_username exceeds %d bytes", i, maxStreamerUsernameLength))
-				continue
-			}
-			if _, dup := seenStreamer[rec.StreamerUsername]; dup {
+		if member.StreamerUsername != "" {
+			if _, dup := seenStreamer[member.StreamerUsername]; dup {
 				errs = append(errs, fmt.Errorf("member %d: duplicate streamer_username", i))
 				continue
 			}
-			seenStreamer[rec.StreamerUsername] = i
+			seenStreamer[member.StreamerUsername] = i
 		}
 
-		byAddress[normalized] = len(members)
-		members = append(members, Member{
-			Address:          normalized,
-			DisplayName:      rec.DisplayName,
-			StreamerUsername: rec.StreamerUsername,
-			Admin:            rec.Admin,
-		})
+		byAddress[member.Address] = len(members)
+		members = append(members, member)
 	}
 	if len(errs) > 0 {
 		return nil, nil, errors.Join(errs...)
 	}
 	return members, byAddress, nil
+}
+
+// validateMemberFields validates the fields of one record that do not
+// depend on the rest of the roster: the address parses and
+// normalizes, no field carries a control character, and every field
+// is bounded. It is the field-level half of B9's list; the duplicate
+// checks that need the rest of the roster stay in validateRoster's
+// loop and in AddMember's locked re-check, since only those two
+// callers know what "the rest of the roster" currently is.
+func validateMemberFields(rec memberRecord) (Member, error) {
+	normalized, err := normalizeMemberAddress(rec.Address)
+	if err != nil {
+		return Member{}, errors.New("address does not parse as a login address")
+	}
+	if containsControl(rec.DisplayName) {
+		return Member{}, errors.New("display name carries a control character")
+	}
+	if len(rec.DisplayName) > maxDisplayNameLength {
+		return Member{}, fmt.Errorf("display name exceeds %d bytes", maxDisplayNameLength)
+	}
+	if rec.StreamerUsername != "" {
+		if !isASCIIPrintable(rec.StreamerUsername) {
+			return Member{}, errors.New("streamer_username is not ASCII-printable")
+		}
+		if len(rec.StreamerUsername) > maxStreamerUsernameLength {
+			return Member{}, fmt.Errorf("streamer_username exceeds %d bytes", maxStreamerUsernameLength)
+		}
+	}
+	return Member{
+		Address:          normalized,
+		DisplayName:      rec.DisplayName,
+		StreamerUsername: rec.StreamerUsername,
+		Admin:            rec.Admin,
+	}, nil
 }
 
 // containsControl reports whether s carries an ASCII control character
@@ -262,6 +289,8 @@ func (r *Roster) Lookup(address string) (Member, error) {
 	if err != nil {
 		return Member{}, fmt.Errorf("%w: %v", ErrMemberNotFound, err)
 	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	idx, ok := r.byAddress[normalized]
 	if !ok {
 		return Member{}, ErrMemberNotFound
@@ -271,7 +300,86 @@ func (r *Roster) Lookup(address string) (Member, error) {
 
 // List returns a copy of every member on the roster, in file order.
 func (r *Roster) List() []Member {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	out := make([]Member, len(r.members))
 	copy(out, r.members)
 	return out
+}
+
+// AddMember validates candidate against B9's list, takes the store's
+// lock, re-checks candidate's address and streamer_username against
+// the roster as currently loaded, writes the whole roster atomically
+// through atomicfile.WriteStream, re-reads the written file, and logs
+// one audit record naming actor, channel, candidate.Address,
+// candidate.Admin, and clientIP. It is the roster's only write path.
+//
+// Every check runs before atomicfile.WriteStream is called, so a
+// candidate that fails validation, fails the collision re-check, or
+// sets Admin on the wrong channel changes no byte on disk.
+//
+// candidate.Admin may be true only when channel is
+// identity.ChannelServiceToken: this package treats that value as the
+// command-line bootstrap actor, since a service token is presented
+// directly rather than asserted through a browser or a reverse proxy.
+// No handler in this pass ever asserts an identity on that channel, so
+// AddMember refuses the flag on every other channel with
+// ErrRosterAdminChannelForbidden rather than trust a caller's own
+// gate to keep a web request from minting the first admin.
+func (r *Roster) AddMember(candidate Member, actor string, channel identity.Channel, clientIP string, logger *slog.Logger) error {
+	if candidate.Admin && channel != identity.ChannelServiceToken {
+		return fmt.Errorf("%w: channel %s", ErrRosterAdminChannelForbidden, channel)
+	}
+
+	member, err := validateMemberFields(memberRecord(candidate))
+	if err != nil {
+		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, dup := r.byAddress[member.Address]; dup {
+		return fmt.Errorf("%w: %s: duplicate address", ErrRosterRecordInvalid, r.path)
+	}
+	if member.StreamerUsername != "" {
+		for _, existing := range r.members {
+			if existing.StreamerUsername == member.StreamerUsername {
+				return fmt.Errorf("%w: %s: duplicate streamer_username", ErrRosterRecordInvalid, r.path)
+			}
+		}
+	}
+
+	records := make([]memberRecord, 0, len(r.members)+1)
+	for _, m := range r.members {
+		records = append(records, memberRecord(m))
+	}
+	records = append(records, memberRecord(member))
+	file := rosterFile{SchemaVersion: rosterSchemaVersion, Members: records}
+
+	if err := atomicfile.WriteStream(r.path, 0o600, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(file)
+	}); err != nil {
+		return fmt.Errorf("auth: write roster %s: %w", r.path, err)
+	}
+
+	data, err := os.ReadFile(r.path)
+	if err != nil {
+		return fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, r.path, err)
+	}
+	fresh, err := parseRoster(r.path, data)
+	if err != nil {
+		return err
+	}
+	r.members = fresh.members
+	r.byAddress = fresh.byAddress
+
+	logger.Info("roster member added",
+		"actor", actor,
+		"channel", channel.String(),
+		"address", member.Address,
+		"admin", member.Admin,
+		"client_ip", clientIP,
+	)
+	return nil
 }
