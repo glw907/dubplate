@@ -20,11 +20,6 @@ const magicLinkSource = "magic-link"
 // MagicLinkSeam is this rung's reference implementation; a forward-auth
 // front is an alternate that reads a proxy-set header instead of a
 // cookie and implements the same interface.
-//
-// Every method reports nil for a permitted request and a non-nil error
-// for a refused one. The specific error names the check that failed for
-// a caller's own log line; the refusal itself never depends on which
-// one it is.
 type Seam interface {
 	// VerifyIdentity verifies the credential r carries and returns the
 	// identity it asserts. now is the instant every time comparison
@@ -32,6 +27,11 @@ type Seam interface {
 	// caller's own header inspection determined it, since deriving it
 	// here would require this package to know which headers a shell
 	// trusts.
+	//
+	// A nil error means the request is permitted; any non-nil error
+	// means it is refused. The specific sentinel names the check that
+	// failed for a caller's own log line; the refusal itself never
+	// depends on which one it is.
 	VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error)
 
 	// Read returns address's current revocation epoch, exposed as the
@@ -49,7 +49,10 @@ type VerifiedIdentity struct {
 	Identity identity.Identity
 
 	// Admin is read from the roster record at the seam, never from
-	// anything the request carries.
+	// anything the request carries. An admin verb rejects an identity
+	// whose Channel is ChannelCookie; the one exception is the
+	// add-member handler, which accepts a cookie-derived identity whose
+	// roster record carries this flag.
 	Admin bool
 
 	// Session is the session backing Identity, refreshed when the
