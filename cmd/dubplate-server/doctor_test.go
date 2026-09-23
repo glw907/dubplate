@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -485,6 +487,92 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
+	}
+}
+
+// TestDoctorCmd_RosterRow proves the R3 roster row (Task 4's
+// conductor-owed fold): a roster whose file has not been created yet
+// (R37's pre-bootstrap state) reports no extra row and no failure,
+// while a roster carrying a duplicate streamer_username renders the
+// refusal and takes doctor's own exit status nonzero alongside it.
+// Named mutation 8 (drop the doctor roster row) makes the second case
+// report a clean table for a roster that refuses to load.
+func TestDoctorCmd_RosterRow(t *testing.T) {
+	const fixtureAddressA = "roster-row-a@example.test"
+	const fixtureAddressB = "roster-row-b@example.test"
+	const fixturePrincipal = "roster-row-principal"
+
+	tests := []struct {
+		name          string
+		rosterContent string // empty means the roster file is never created
+		wantErr       bool
+		wantRosterRow bool
+	}{
+		{
+			name:          "roster not yet bootstrapped",
+			rosterContent: "",
+			wantErr:       false,
+			wantRosterRow: false,
+		},
+		{
+			name: "roster with a duplicate streamer_username",
+			rosterContent: fmt.Sprintf(
+				`{"schema_version":1,"members":[`+
+					`{"address":%q,"display_name":"A","streamer_username":%q},`+
+					`{"address":%q,"display_name":"B","streamer_username":%q}`+
+					`]}`,
+				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal),
+			wantErr:       true,
+			wantRosterRow: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rosterPath := filepath.Join(t.TempDir(), "roster.json")
+			if tt.rosterContent != "" {
+				if err := os.WriteFile(rosterPath, []byte(tt.rosterContent), 0o600); err != nil {
+					t.Fatalf("write fixture roster: %v", err)
+				}
+			}
+
+			environ := append(dropKey(authEnviron(), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
+			reg := productionRegistry()
+
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			err := cmd.Execute()
+
+			if tt.wantErr && err == nil {
+				t.Fatal("Execute() error = nil, want a refusal")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("Execute() error = %v, want nil", err)
+			}
+
+			out := stdout.String()
+			hasRosterRow := strings.Contains(out, "\nroster ") || strings.HasPrefix(out, "roster ")
+			if hasRosterRow != tt.wantRosterRow {
+				t.Errorf("stdout has a roster row = %v, want %v; stdout = %q", hasRosterRow, tt.wantRosterRow, out)
+			}
+
+			if tt.wantRosterRow {
+				if strings.Contains(out, fixtureAddressA) || strings.Contains(out, fixtureAddressB) {
+					t.Errorf("stdout = %q, want it to contain neither fixture address", out)
+				}
+				if strings.Contains(out, fixturePrincipal) {
+					t.Errorf("stdout = %q, want it to not contain the fixture principal", out)
+				}
+			}
+
+			if tt.wantErr {
+				wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 1
+				lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+				if len(lines) != wantTotal {
+					t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row)", len(lines), wantTotal)
+				}
+			}
+		})
 	}
 }
 

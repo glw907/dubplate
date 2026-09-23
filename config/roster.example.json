@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "members": [
+    {
+      "address": "admin@example.test",
+      "display_name": "Example Admin",
+      "streamer_username": "example-admin",
+      "admin": true
+    },
+    {
+      "address": "member@example.test",
+      "display_name": "Example Member",
+      "admin": false
+    }
+  ]
+}

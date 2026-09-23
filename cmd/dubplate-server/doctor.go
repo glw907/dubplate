@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +68,34 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			if loadErr != nil {
+			// The roster row runs R3's principal-collision check in
+			// doctor as well as at startup and at write time: it calls
+			// the same [auth.OpenRoster] the magic-link source loads
+			// through, so a duplicate address, a duplicate
+			// streamer_username, or an unparseable record is reported
+			// here too. [auth.ErrRosterMissing] is not reported here:
+			// R37's own runbook orders a fresh install as deploy, then
+			// doctor, then the CLI bootstrap that creates the file, so
+			// "no roster yet" is doctor's expected pre-bootstrap state
+			// rather than a broken configuration. A registry with no
+			// roster-backed identity source, or a roster that has not
+			// been created yet, prints no extra row, so R10's
+			// line-count arithmetic stays keyed to reg alone whenever
+			// there is nothing new to report. It names no value
+			// (Resolution R-5b6): [auth.OpenRoster]'s own errors
+			// already carry only a record's position and the path,
+			// never its address or principal.
+			rosterFailed := false
+			if path, ok := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE"); ok {
+				if _, err := auth.OpenRoster(path); err != nil && !errors.Is(err, auth.ErrRosterMissing) {
+					rosterFailed = true
+					if err := printRow(stdout, "roster", "invalid: "+err.Error()); err != nil {
+						return err
+					}
+				}
+			}
+
+			if loadErr != nil || rosterFailed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil
