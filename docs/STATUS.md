@@ -9,9 +9,11 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
 ## Next action
 
 1. **5b-ii is executing** from `plans/2026-09-12-rung-5b-ii-auth-handlers.md` (revision 2.1, 7.5M ceiling,
-   flag 6.0M), segment A (Tasks 1-3) first. Launch rulings sit in the plan header (2026-09-23): upshifts
-   dispatch as `claude-opus-5-5`, `resolveAuthConfig` returns a struct, the seven folds ratified. Task 0's
-   evidence at `f75b0d9` holds because the Go tree is unchanged. Then segments B, C, D1, D2, then **5c**.
+   flag 6.0M). **Segment A closed at `aae338c`** (Tasks 1-3 accepted, about 1.7M): all five reproductions
+   (B1, M1, M2, M3, M5) observed failing first; Task 1's extra CR/LF refusal in `splitSigned` is ruled kept
+   (`Strict()` still ignores CR and LF); Task 2's second `fix` was ruled as one narrow round, the
+   selected-source one-row test, accepted. Segment B (Tasks 4-6) next, then re-derive the ceiling from
+   Tasks 4 and 5. Launch rulings sit in the plan header (2026-09-23). Then C, D1, D2, then **5c**.
 2. The Claude infra round's task 9 (the `pass-execute.js` edit) is still owed in `~/.dotfiles/docs/STATUS.md`.
 
 Awaiting Geoff's read: `specs/2026-09-12-web-surface-standard.md` (revision 2.1, `49a03b4`, rulings first in
@@ -21,7 +23,7 @@ section 16) and `specs/2026-09-11-configuration-homes-design.md` (revision 3, `0
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment A (Tasks 1-3) launched 2026-09-23 from an Opus 5.5 conductor session |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment B (Tasks 4-6); segment A closed at `aae338c` |
 | 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29` |
 
 ## Open items (carried)
