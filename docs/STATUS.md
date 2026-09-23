@@ -15,7 +15,9 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    selected-source one-row test, accepted. **Segment B closed at `dfa7155`** (about 1.6M; pass total about
    3.3M, projected about 7M, under the 8.0M cut line, so no split). Rulings: `doctor` reports a missing
    roster as "missing"; `AddMember` refuses the admin flag on every channel, and 5c adds the CLI admin
-   grant with its caller. Carried to 5c: rename `ErrRosterAdminChannelForbidden` when the CLI grant lands.
+   grant with its caller. Carried to 5c: rename `ErrRosterAdminChannelForbidden` when the CLI grant lands, and the last-admin
+   lockout guard, atomic against concurrent self-demotion (configuration homes routes it to rung 5; no rung 5
+   spec or plan carries it yet).
    Carried to 5d: the spec's "doctor exits 0" acceptance row (`spec:2332`) must run after the bootstrap
    verb. Segment C (Tasks 7-8) next, then its simplifier round. Then D1, D2, then **5c**.
 2. **Critical path (conductor, 2026-09-23):** the web surface standard is ratified (Geoff, 2026-09-23, `94d8af3`), so 5c's plan
