@@ -597,6 +597,10 @@ confirmation.
   that template, which already travels with the collection. No collection ever sits outside
   a live template. The laptop's copy becomes a checkout. This is the migration path for the
   founding library at launch.
+
+  > Erratum, 2026-09-23 (Geoff): for the founding library, rung 16's migration tooling
+  > performs the hand-over at launch, landing the library as a single-link tree. The TUI verb
+  > arrives with the TUI, after launch.
 - **Check out.** Take a read-only offline copy of a server collection, as defined above.
 
 A second laptop of the same member, holding an overlapping local library, cannot write the
