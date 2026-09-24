@@ -11,6 +11,13 @@ useDefault = true
 # tree's --no-git leg roughly doubled its wall time in the 2026-09-08
 # two-lane run for zero additional coverage. This narrows what the
 # scan walks; it loosens no rule.
+#
+# .superpowers/ holds a local brainstorm companion's session state
+# (server-info, server.log), which carries a local session key that
+# gitleaks flags as generic-api-key. It is untracked tool state, never
+# repo content, and the same reasoning as the worktrees entry above
+# applies: narrow what the scan walks, loosen no rule.
 paths = [
   '''.claude/worktrees/.*''',
+  '''.superpowers/.*''',
 ]

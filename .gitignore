@@ -30,3 +30,6 @@ __pycache__/
 /_salvage/web/node_modules
 /_salvage/web/dist/*
 !/_salvage/web/dist/placeholder.txt
+
+# Local brainstorm companion session state; never repo content.
+/.superpowers/
