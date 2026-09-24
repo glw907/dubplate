@@ -39,9 +39,10 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    is unblocked; configuration homes revision 3 is ratified too
    (2026-09-23; per-collection layout parity, conditional on a rung 12 Navidrome check) (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
    ruled. Rung 5 through 5d stays first, because the no-deploy carry blocks every box change.
-3. Owed in `~/.dotfiles` (held: that tree had another session's uncommitted edits on 2026-09-23): the infra
-   round's task 9, and a `pass-execute.js` stop-on-escalate option so a segment never builds on an
-   unaccepted task (5b-ii's Task 5 was committed over Task 4's open escalation).
+3. **`~/.dotfiles` landed (`ce70b5f`):** the infra round's task 9 (`pass-execute.js` gate wording,
+   `commonNotes`, segment docs, invocation by name) and the `stopOnEscalate` option, so a sequential
+   run stops after any task whose final status is not accepted rather than committing a later task
+   over an open escalation (5b-ii's Task 5 was committed over Task 4's open escalation).
 
 
 ## Lane registry
