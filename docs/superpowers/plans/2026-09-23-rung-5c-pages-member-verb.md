@@ -1,6 +1,12 @@
-# Rung 5, Pass 5c-i (The Security Fold, the `member` Verb, the CLI Admin Grant, and the Admin Roster API) Implementation Plan
+# Rung 5, Pass 5c-i (The Security Fold, the CLI Admin Grant, and the `member` Verb) Implementation Plan
 
-Status: **revision 2, 2026-09-23.** Revision 2 folds three fresh-context
+Status: **revision 2.1, 2026-09-23.** Revision 2.1 folds the verification
+read (`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-verification.md`,
+zero blockers, three majors, nine minors; the fold record's "Revision 2.1"
+section disposes each). Its largest change is structural: the cut at the
+Task 7 / Task 8 boundary is now the default, so 5c-i is Task 0 plus Tasks
+1 through 7 and the close, and the admin gate, the roster API, and their
+serve wiring open 5c-ii. Revision 2 folds three fresh-context
 lens reviews (contract, mechanics, risk:
 `docs/superpowers/research/2026-09-23-rung-5c-plan-review-{contract,mechanics,risk}.md`),
 zero blockers, twelve majors, and thirty-two minors, every one disposed in
@@ -33,9 +39,8 @@ reasons are in "The split" below.
 
 Six yes-or-no questions. Each carries a recommendation, and the plan is
 written to the recommended answer, so a "yes" changes nothing and a "no"
-names the edit. Ruling 6 gates the launch, Rulings 2 and 3 must land
-before Task 2 dispatches, Ruling 1 before Task 3, and Ruling 5 before
-Task 8.
+names the edit. Ruling 6 gates the launch; Rulings 2, 3, and 4 gate Task
+2; Ruling 1 gates Task 3; and Ruling 5 gates Task 6.
 
 1. **Should the per-address sign-in limit count only addresses on the
    roster, while the two per-client limits keep evicting the
@@ -54,22 +59,22 @@ Task 8.
    review's fix as written on all three maps, and records the group
    lockout as a residual.
 
-2. **Should `streamer_username` be a letter or digit followed by
-   letters, digits, `.`, `_`, or `-`, checked on the write path only,
-   after one read-only look at the estate's Navidrome usernames confirms
-   they fit?** Recommendation: yes. The username names a member's
-   existing streamer account, and this plan cannot see what the estate's
-   accounts hold. Yes builds one conductor-run, read-only query of the
-   box's Navidrome usernames before Task 2, since the box is production.
-   If they fit, the rule lands on the `member` verb and the roster API,
-   while the loader keeps today's ASCII-printable check, so the only
-   existing file that stops loading is one naming two members whose
-   usernames differ only in case. If one does not fit, the set widens to
-   admit it before Task 2 runs. `_` stays allowed, and whether Navidrome matches
-   usernames with SQL `LIKE`, where `_` is a wildcard, goes to rung 12 to
-   verify. No builds the drafted set, `[A-Za-z0-9._-]` with no
-   first-character rule, at load and on write, with no check of the
-   estate.
+2. **May the conductor run one read-only query of the box's Navidrome
+   usernames before Task 2?** Recommendation: yes. A `streamer_username`
+   names a member's existing streamer account, so a shape rule that
+   refuses an existing account name would stop that member being added.
+   The write-path shape is `[A-Za-z0-9][A-Za-z0-9._-]*` (R-5c6), and
+   Navidrome v0.63.2 matches usernames by case-insensitive equality, not
+   by SQL `LIKE` (its `FindByUsername` builds `user.user_name = ? COLLATE
+   NOCASE`, `persistence/user_repository.go`, read 2026-09-23), so the one
+   open fact is whether the estate's names fit that shape. Yes builds
+   one command on the production box, `sudo sqlite3 -readonly
+   /srv/music/state/navidrome/navidrome.db "SELECT user_name FROM user;"`,
+   which writes nothing; if a name does not fit, the shape widens to admit
+   it before Task 2. No applies the same shape without the check, and
+   records the unverified fit as a residual: a member whose existing
+   account name falls outside the shape cannot be added until the shape
+   widens.
 
 3. **Should display names allow the zero-width joiner and non-joiner
    (U+200D and U+200C), while addresses keep refusing them?**
@@ -100,26 +105,32 @@ Task 8.
    be refused. Yes builds a form of address, display name, and streamer
    username, a list that still marks who is an admin, a roster API that
    refuses any request carrying an admin field, and an erratum on
-   `spec:1417`. No builds the checkbox and reverses part of fork 1: a
-   signed-in admin could grant admin from the browser, which the store's
-   write path, 5b-ii's close contract, and the rung 6 spec all refuse
-   today, so each would change with it.
+   `spec:1417`. No builds the checkbox and reverses part of fork 1, so a
+   signed-in admin can grant admin from the browser: before Task 6
+   dispatches, the plan re-writes Task 6 (the store admits the flag on the
+   cookie channel for a verified admin actor), 5c-ii's roster API task
+   (the admin field passes through), exit gate 7, threat-model claim 1,
+   and the privileged-fields table's admin row, and the rung 6 spec's
+   "except 5c's CLI grant" takes an erratum.
 
 6. **Do you accept rung 5's budget reservation moving from 15.75M to
-   about 36M, with 5c at about 17.5M across its two passes?** The web
+   about 37M, with 5c at about 18M across its two passes?** The web
    surface standard's section 15, which you ratified, says 5c's "4.5M
    ceiling is unchanged". Recommendation: yes. The rung's four original
    ceilings were priced at a planning rate the passes have since run at
-   about three times, and 5b-i and 5b-ii already account for 12M. Yes
-   builds this plan's 7.5M ceiling for 5c-i and a 10.0M provisional for
-   5c-ii, re-derived from 5c-i's actual, with the difference recorded
-   against the reservation. No means naming a cut. The cheapest is
-   5c-ii's scope, for example moving the add-member page to rung 7, which
-   this plan does not propose.
+   about three times, and 5b-i and 5b-ii already account for 11.9M. Yes
+   builds 5c-i at a 6.5M execution ceiling against a 4.72M projection,
+   plus its planning spend, and 5c-ii at about 10.3M provisional,
+   re-derived from 5c-i's actual, with the difference recorded against
+   the reservation. No moves the add-member surface to rung 7: 5c-ii
+   drops the roster API, its serve wiring, and the add-member page, about
+   2.3M; exit gates 1, 2, 3, and 5 of the spec's 5c row move with them;
+   fork 1's "rung 5 builds it" takes an erratum; and the rung stands near
+   35M.
 
 ---
 
-**Seven folds are conductor-owed**, each marked at its own site as
+**Eight folds are conductor-owed**, each marked at its own site as
 `**Conductor-owed fold:**` with the question and the applied answer, so
 the conductor ratifies or reverses each in one edit. Revision 1's folds
 3, 4, 8, and 9 became Rulings 4, 2, 5, and 1, and keep their numbers here
@@ -127,7 +138,9 @@ so cross-references hold.
 
 1. **The split.** Cut 5c into 5c-i (this plan) and 5c-ii (the outline at
    the end), or run one pass of about twenty tasks? Applied as the
-   split. ("The split.")
+   split, with the cut at the Task 7 / Task 8 boundary by default
+   (revision 2.1, conductor ruling), so every 5c-i export has its
+   production caller inside 5c-i. ("The split.")
 2. **Geoff's "security-fold Task 1".** Realized as Tasks 1 through 5,
    every one landing before any caller builds on the roster, the link
    URL, or the limiters, or as one task? Applied as five tasks. (R-5c2.)
@@ -147,24 +160,29 @@ so cross-references hold.
    (R-5c10.)
 8. Moved to Ruling 5.
 9. Moved to Ruling 1.
-10. **The ceiling.** Applied as 7.5M for 5c-i with the flag at 6.0M, and
-    10.0M provisional for 5c-ii, both subject to Ruling 6. ("Token
-    ceiling.")
+10. **The ceiling.** Applied as a 6.5M execution ceiling for 5c-i with
+    the flag at 5.2M, a task's worth above the 4.72M projection, planning
+    counted as spent at launch; and about 10.3M provisional for 5c-ii.
+    Both subject to Ruling 6. ("Token ceiling.")
 11. **Review minor 6** (the kind answer's post-ceiling membership
     signal), routed to 5c by the 5b-ii close draft though absent from
     Geoff's list. Applied as refusing the review's code fix and carrying
     its runbook sentence to 5d. (R-5c18.)
+12. **The unused channels.** Drop `ChannelHeader` and
+    `ChannelServiceToken`, which no production code asserts, so the type
+    holds one assertion channel and one audit channel? Applied as the
+    drop; each returns with the source that asserts it. (R-5c7, Task 6.)
 
 **What this pass is.** Tasks 1 through 5 fold the security majors and
 minors Geoff routed here, so every later caller builds on corrected code.
-Task 6 lands the CLI admin grant, renames the channel sentinel, and adds
-the last-admin guard. Task 7 builds the `dubplate-server member` verb
-group, `add` and `list`. Task 8 builds the admin gate and the roster API
-the add-member page will call. Task 9 wires the gate and the API into the
-serve verb and proves the exit gate end to end through the real shell.
-Task 10 is the close. The pass is Go only.
+Task 6 lands the CLI admin grant, drops the two unused channels, renames
+the grant sentinel, and makes the bootstrap one validated write under the
+last-admin guard. Task 7 builds the `dubplate-server member` verb group,
+`add` and `list`, the production caller of everything Task 6 exports.
+Task 8 is the close. The pass is Go only.
 
-**What this pass is not.** No `web/` tree, no page, no theme, no font, no
+**What this pass is not.** No admin gate, no roster API, and no serve
+wiring for them: those open 5c-ii. No `web/` tree, no page, no theme, no font, no
 embed path, no served header set, no CSP, no HSTS, no gate leg, no
 server-file check, no Node requirement, and no rejoin-sentence
 correction: those are 5c-ii's. No systemd unit, no `deploy.sh` edit, no
@@ -174,7 +192,7 @@ deploy of any kind.** A task that believes it needs any of these stops
 and reports.
 
 > **For agentic workers:** workflow mode per CLAUDE.md's "Build process",
-> the pass-execute chain per task, sequential, dispatched in the four
+> the pass-execute chain per task, sequential, dispatched in the three
 > segments "Execution model" names. The implementer is
 > `dubplate-implementer`. The conductor consumes structured reports and
 > never reads a diff, a test log, or a gate transcript inline. Subagents
@@ -204,33 +222,38 @@ session-refresh call site and the roster API the page needs (two tasks),
 and the mail copy (folded into a fold task). With Task 0 and two closes,
 that is about twenty-one tasks.
 
-**The cut point: all Go-side auth work in 5c-i, the `web/` tree in
-5c-ii.** Three reasons:
+**The cut point: the security fold, the CLI admin grant, and the
+`member` verb in 5c-i; the admin gate, the roster API, their serve
+wiring, and the `web/` tree in 5c-ii.** Revision 2 cut between all
+Go-side work and the `web/` tree and named a fallback cut inside 5c-i.
+The verification read showed the fallback would have broken R-5c20
+(exports with test-only callers) and that a 0.1M ceiling margin made a
+mid-pass owner question near-certain, so revision 2.1 takes the cut at
+the Task 7 / Task 8 boundary by default. Three reasons:
 
 - **Geoff's ruling orders it.** The security fold is "fixed before any
   page builds on the roster, the link URL, or the limiters". A pass
   boundary makes that ordering structural: 5c-ii's plan is drafted
   against a tree where the fold has already merged and been reviewed.
-- **The risk changes at the cut.** 5c-i is cookie-authenticated privilege
-  and concurrency logic, the shape R24's second
-  `web-auth-security-reviewer` read exists for (`spec:577-586`). 5c-ii
-  is a new stack (SvelteKit static, DaisyUI 5, a Node build in the gate)
-  whose reviewers are `svelte-reviewer` and `daisyui-a11y-reviewer`.
-  Reviewing both in one pass would bury one surface under the other,
-  which is the argument the spec makes for its own 5a/5b cut
-  (`spec:2334-2339`).
-- **5c-i is complete and gradable on its own.** Unlike 5b-ii's rejected
-  cut, which would have shipped mechanisms with no caller, 5c-i ships
-  its own callers: the `member` verb and the roster API are real entry
-  points a security reviewer can attack end to end through the shell.
-  The page is the roster API's second client, not its first.
+- **Every 5c-i export has its production caller in 5c-i** (R-5c20). The
+  verb calls `CreateRoster`, the command-line grant through `AddMember`,
+  and `ErrRosterExists`, and passes `identity.ChannelCommandLine`. The
+  admin gate's two callers, the roster API and the add-member document
+  route, both land in 5c-ii, so the gate is born beside them.
+- **5c-i is complete and gradable on its own.** Its entry point is real:
+  the `member` verb writes and reads the roster across processes, which
+  a security reviewer can attack end to end. The cookie-authenticated
+  admin surface is reviewed in 5c-ii with the page that uses it, which
+  is where R24's "returns for the admin page" read belongs.
 
-**What moves out of 5c-i on purpose.** The SvelteKit server-file check
-moves to 5c-ii (R-5c16): with no `web/` tree it would pass on an empty
-iteration, which is a check that cannot fail. Review finding 18 (HSTS)
-joins 5c-ii's served header set, per Geoff's routing. The admin gate's
-document half (the add-member page's HTML route answering 404 to a
-non-admin) is 5c-ii's, built on the gate this pass exports.
+**What moves out of 5c-i on purpose.** Revision 2's Tasks 8 and 9 (the
+admin gate, the roster API, and their serve wiring) and the spec 5c row's
+exit-gate assertions 1, 2, 3, and 5 (the non-admin 404, the same-origin
+denial, the web write's audit record, and `member list` reading what the
+page wrote) head 5c-ii's outline, specified in full. The SvelteKit
+server-file check moves to 5c-ii (R-5c16): with no `web/` tree it would
+pass on an empty iteration. Review finding 18 (HSTS) joins 5c-ii's
+served header set, per Geoff's routing.
 
 ---
 
@@ -284,110 +307,123 @@ does not quote confirms it the same way and reports what it read.
 
 ## Goal
 
-Every surface a page will build on is corrected, and the two roster
-writers the spec names exist. After this pass, the roster survives two
+Every surface a page will build on is corrected, and the command-line
+writer the spec names exists. After this pass, the roster survives two
 writer processes and a hand edit. The loader refuses any file that is
 not the schema. A mailed link lands inside the owned prefix. No
 single refused client can reset a victim's bucket, and one IPv6 /64
 counts as one client. A fresh install gets its first admin from
-`dubplate-server member add --admin`, and no roster write can leave the
-group with no admin. A signed-in admin can list and add members through
-a JSON API that answers 404 to everyone else and refreshes the session
-it verifies.
+`dubplate-server member add --admin` in one validated write, and no
+roster write can leave the group with no admin.
 
 ---
 
 ## Owner touchpoints: the six rulings, and nothing else
 
-`spec:2646-2652` names rung 5's expected touchpoints, and none is 5c-i's.
-The fold round raised six questions that change a security posture, what
-an adopter sees, or the rung's budget, and they sit in one bundle at the
-top of this plan. Rulings 2 and 3 gate Task 2, Ruling 1 gates Task 3,
-Ruling 5 gates Task 8, and Ruling 6 gates the launch. Everything else is a
-conductor ruling.
+`spec:2646-2652` names rung 5's expected touchpoints, and none is
+5c-i's. The fold round raised six questions that change a security
+posture, what an adopter sees, or the rung's budget, and they sit in one
+bundle at the top of this plan. Ruling 6 gates the launch; Rulings 2, 3,
+and 4 gate Task 2; Ruling 1 gates Task 3; and Ruling 5 gates Task 6.
+Everything else is a conductor ruling.
 
 **What would become an owner touchpoint.** A secret minted (none this
 pass). A change to what the box runs (**nothing deploys**; the env
 template still selects `magic-link` without its nine required keys). The
-one read-only look at the box's Navidrome usernames Ruling 2 names is
-the conductor's, read-only, and writes nothing. A third module dependency
+one read-only query Ruling 2 asks leave to run is Geoff's to grant under
+CLAUDE.md's box rule, and it writes nothing. A third module dependency
 (R26 allows two, both taken; `encoding/json/v2` and `syscall` are
 stdlib). Any threshold default changing on a task's own judgment.
 
 ---
 
-## Token ceiling: 7.5M for 5c-i (re-derived from 5b-ii's whole-pass actual)
+## Token ceiling: 6.5M execution for 5c-i (re-derived from 5b-ii's recorded actual)
 
-> **Conductor-owed fold 10:** rule 7.5M for 5c-i with the flag at 6.0M,
-> and carry 10.0M as 5c-ii's provisional figure, both subject to Ruling 6?
-> Applied as stated.
+> **Conductor-owed fold 10:** rule a 6.5M execution ceiling for 5c-i
+> with the flag at 5.2M, planning counted as already spent at launch, and
+> carry about 10.3M as 5c-ii's provisional figure, both subject to Ruling
+> 6? Applied as stated.
 
 `spec:2395-2397` grants the re-derivation: "Each ceiling is re-derived
 from the previous pass's actual report before the next plan is drafted."
 The previous pass is 5b-ii.
 
-**The basis: 5b-ii's whole-pass figure, divided evenly.** 5b-ii spent
-about **6.5M** across Task 0, twelve tasks with their fix rounds, two
-simplifier rounds, the pass-end security read with its fold, and the
-close. Revision 1 split that figure into a 0.46M chain rate plus
-separate fixed lines. The mechanics lens showed the split undercounts,
-since 5b-ii's first two segments ran about 0.55M per task and revision 1
-counted the simplifier rounds twice. Dividing the whole figure by the
-twelve tasks it bought gives **0.54M per task, everything amortized**:
-Task 0, fix rounds, simplifiers, the security read and its fold, and the
-close. Plan preparation sits outside the 6.5M.
+**The basis: the figure 5b-ii's close records.** `docs/HISTORY.md`'s top
+entry, "Both budgets", records "about **6.4M against the 7.5M ceiling**".
+Revision 2 used 6.5M, which no report carries. The entry does not
+itemize the 6.4M, so this plan reads it by what the window contained:
+the pass launched on 2026-09-23 with Task 0 and ran through the close,
+the conductor's own turns, both simplifier rounds, and the pass-end
+security read with its fold. Its plan had been prepared in the
+2026-09-12 window, so plan preparation is outside it. Its four
+architecture reads were recorded after the close
+(`docs: record the four 5b-ii architecture reads`), so they are outside
+it too. Dividing 6.4M by the twelve tasks it bought gives **0.533M per
+task, the conductor's turns included**. Revision 2's separate 0.40M
+conductor line counted those turns twice, and is replaced here by the
+architecture reads alone.
+
+**Planning is counted as spent at launch.** Drafting this plan, its
+three lenses, the fold, the verification read, this second fold, and the
+prose review are already spent when Task 0 dispatches. The conductor
+records that actual against the rung and outside this ceiling, so the
+ceiling measures execution alone and the flag cannot fire on work done
+before the launch.
 
 **The arithmetic for 5c-i.**
 
-1. Ten tasks (Tasks 1 through 10, the close included, matching 5b-ii's
-   twelve) at 0.54M is **5.40M**.
-2. Four of the ten run at `opus` against four of twelve at 5b-ii: add
-   **0.10M**. The fold round added scope inside existing tasks (the
-   single-write bootstrap, the limiter's split charging API, the keyed
-   `doctor` errors, about twenty new table rows): add **0.20M**.
-3. Plan preparation, drafting plus three lenses plus this fold, at about
-   **1.30M**. The conductor holds the actual and replaces this line.
-4. The conductor's turns, the merge ritual, and three
-   `go-architecture-reader` dispatches at **0.40M**.
-5. The total is **7.40M**. **Rule 7.5M with the flag at 6.0M.**
+1. Eight tasks (Tasks 1 through 7 and the close, matching 5b-ii's
+   twelve, which included its close) at 0.533M is **4.27M**. Task 0 is
+   amortized in the rate, as it was at 5b-ii.
+2. Three of the eight run at `opus` against four of twelve at 5b-ii:
+   add **0.05M**. The two folds added scope inside existing tasks (the
+   validated single-write bootstrap, the limiter's split charging, the
+   keyed `doctor` errors, the channel drop, about twenty-five new table
+   rows): add **0.25M**.
+3. Three `go-architecture-reader` dispatches (`internal/auth`,
+   `internal/identity`, `cmd/dubplate-server`): **0.15M**, an estimate,
+   since 5b-ii's four reads carry no recorded figure.
+4. **The projection is 4.72M.**
 
-**The projection sits within 0.1M of the ceiling, so expect the cut.**
-Re-derive at the segment A boundary from Tasks 1 through 3's reports.
-**If the projection passes 7.5M**, the conductor takes the cut at the
-Task 6 / Task 7 boundary: the fold and the grant stay 5c-i, and the verb,
-the API, and the wiring open 5c-ii ahead of its `web/` tasks. Tasks 1
-through 6 ship fixes and a grant whose callers exist in tests, so nothing
-argues against the cut the way 5b-ii's rejected cut was argued against.
+**The flag sits a task's worth above the projection.** 5b-ii crossed its
+flag in its last segment, which produced its one execution sitting. A
+ceiling of **6.5M** puts the 80% flag at **5.2M**, 0.48M above the
+projection, about one task at the measured rate. The flag then marks a
+real overrun rather than firing on plan. Re-derive at the segment A
+boundary from Tasks 1 through 3's reports.
 
-**5c-ii's provisional ceiling: 10.0M, and it is an assumption, not a
-measurement.** No `web/` task has run in this repo. Assume **0.70M per
-task**: the 0.54M whole-pass rate plus about 30% for costs Go tasks do not
-pay, an `npm` install and a bundle build inside every gate once the leg
-exists, a render-and-read per page, and a new stack's first-time
-friction. Eleven tasks (ten plus the close) at 0.70M is 7.7M. Add 1.0M
-for plan preparation, 0.5M for the two web reviewers beyond the security
-read the rate already carries, 0.4M for the conductor, and 0.1M for the
-string deck's register gate: **9.7M, ruled provisionally at 10.0M** and
-re-derived from 5c-i's actual at this pass's close.
+**5c-ii's provisional figure: about 10.3M, an assumption, not a
+measurement.** 5c-ii now opens with revision 2's Tasks 8 and 9, two Go
+tasks at 0.533M (1.07M). Ten `web/` tasks at **0.69M** (the Go rate plus
+about 30% for an `npm` install and a bundle build inside every gate once
+the leg exists, a render-and-read per page, and a new stack's first-time
+friction) is 6.9M. The close at 0.53M, the two web reviewers beyond the
+security read the rate carries at 0.5M, the string deck's register gate
+at 0.1M, and the architecture reads at 0.15M bring execution to about
+**9.25M**; planning adds about **1.0M**. That is thirteen tasks plus Task
+0, past this build's twelve-task line, so 5c-ii's own plan should expect
+to propose its own split, which adds about 1.0M of planning.
 
 **Recorded against the rung reservation (Ruling 6).** R23 set rung 5 at
 14.5M and 5a's close moved the live baseline to **15.75M**
 (`spec:2042-2050`). Taking actuals for closed passes and ceilings for open
-ones: 3.9M (5a) plus 5.5M (5b-i) plus 6.5M (5b-ii) plus 7.5M (5c-i) plus
-10.0M (5c-ii) plus 3.0M (5d, a stale figure from the original planning
-rate) is **36.4M against 15.75M**. The **20.65M** difference is recorded
-against the reservation, not taken from another pass. The web surface
-standard's section 15 states 5c's "4.5M ceiling is unchanged by this
-standard"; the close owes that line an erratum. The conductor re-derives
-5d's figure at 5c-ii's close.
+ones: 3.9M (5a) plus 5.5M (5b-i) plus 6.4M (5b-ii) plus about 8.0M for
+5c-i (the 6.5M ceiling plus planning, estimated at 1.5M until the
+conductor supplies the actual) plus about 10.3M (5c-ii) plus 3.0M (5d, a
+stale figure from the original planning rate) is **about 37.1M against
+15.75M**. The difference, about 21.4M, is recorded against the
+reservation, not taken from another pass. The web surface standard's
+section 15 states 5c's "4.5M ceiling is unchanged by this standard"; the
+close owes that line an erratum. The conductor re-derives 5d's figure at
+5c-ii's close.
 
 **Checkpoint: STATUS at every segment boundary**, after Task 3, after
-Task 6, after Task 9, and at the close. Every task reports its spend,
-its mutation outcomes, and its measured gate wall time.
+Task 7, and at the close. Every task reports its spend, its mutation
+outcomes, and its measured gate wall time.
 
-**Deliverable count: thirty-six across Tasks 1 through 10, plus Task 0's
-report.** Tasks 1, 2, 4, 6, 7, and 8 carry four each; Tasks 3 and 9 carry
-three; Task 5 carries two; the close carries four. No task passes four.
+**Deliverable count: twenty-nine across Tasks 1 through 8, plus Task 0's
+report.** Tasks 1, 2, 4, 6, 7, and 8 carry four each; Task 3 carries
+three; Task 5 carries two. No task passes four.
 
 ---
 
@@ -401,9 +437,9 @@ three; Task 5 carries two; the close carries four. No task passes four.
   `--check`, and no task ssh's to the box.
 - **Package territory, stated as a wall.** This pass writes
   `internal/auth` (`roster.go`, `limit.go`, `handlers.go`, `token.go`,
-  `session.go`, `nonce.go` edited; `admin.go` born; their tests),
-  `internal/identity/identity.go` and its test (the normalizer's
-  character refusal and one new channel constant),
+  `session.go`, `nonce.go` edited, and `seam.go`'s one comment; their
+  tests), `internal/identity/identity.go` and its test (the normalizer's
+  character refusal and the channel set),
   `cmd/dubplate-server` (`auth.go`, `doctor.go`, `serve.go`, `main.go`
   edited; `member.go` born; their tests), and `config/roster.example.json`.
   **It writes nothing under `internal/config`**, which is rung 6 pass
@@ -411,7 +447,7 @@ three; Task 5 carries two; the close carries four. No task passes four.
   nothing under `internal/serve`, `internal/notify`, `internal/engine`,
   `internal/harness`, `internal/atomicfile`, `web/`, `systemd/`,
   `scripts/`, `env/`, `Makefile`, `CLAUDE.md`, `corpus/`, `tools/`, or
-  `_salvage/`, and no `docs/` file outside Task 10's conductor-owned
+  `_salvage/`, and no `docs/` file outside Task 8's conductor-owned
   drafts. A task that believes it needs one stops and reports.
 - **No new module dependency.** `go.mod` and `go.sum` stay byte-identical.
   `encoding/json/v2` ships in go1.27.1's standard library and builds with
@@ -449,12 +485,12 @@ three; Task 5 carries two; the close carries four. No task passes four.
 - **No token, secret, cookie value, or URL password reaches a log record
   or an error string.** The consumption route logs its path and never
   `RawQuery`.
-- **Addresses reach exactly two outputs.** The roster audit record names
+- **Addresses reach exactly two outputs in 5c-i.** The roster audit record names
   the actor and the address added, because `spec:1139-1143` requires it.
   `member list` prints the roster to its own stdout, because listing the
-  roster is the verb's purpose. The roster API's GET answer carries the
-  roster to a verified admin. No other log record and no error string
-  carries an address.
+  roster is the verb's purpose. (From 5c-ii, the roster API's GET answer
+  carries the roster to a verified admin.) No other log record and no
+  error string carries an address.
 - **Universality.** No estate hostname, path, email, or personal name
   anywhere. Every tunable is a threshold with a default.
 - **`go-conventions` before any Go**, at the exemplary-stdlib bar. `ctx`
@@ -479,12 +515,12 @@ every channel that may set it. These are this pass's.
 
 | Field | Channels that may set it | Channels that may not, and what refuses them |
 | --- | --- | --- |
-| A member's `admin` flag | `dubplate-server member add --admin`, which calls `CreateRoster` or `AddMember` with `identity.ChannelCommandLine` (Tasks 6, 7). An operator's hand edit of the roster file, read at the next reload (Task 1); it leaves no audit record, a recorded residual. Rung 6's import, later, once. | The roster API: it refuses any request carrying an `admin` key (Task 8), and the store refuses the flag on every channel but `ChannelCommandLine` (Task 6). The session cookie: the seam reads the flag from the roster record, never the request (5b-ii, found sound). No verifier can emit `ChannelCommandLine`, because `identity.Identity.Valid` refuses it (Task 6). Request-link and consume-link write no roster. |
+| A member's `admin` flag | `dubplate-server member add --admin`, which calls `CreateRoster` or `AddMember` with `identity.ChannelCommandLine` (Tasks 6, 7). An operator's hand edit of the roster file, read at the next reload (Task 1); it leaves no audit record, a recorded residual. Rung 6's import, later, once. | The roster API, from 5c-ii: it refuses any request carrying an `admin` key (5c-ii Task 1), and the store refuses the flag on every channel but `ChannelCommandLine` (Task 6). The session cookie: the seam reads the flag from the roster record, never the request (5b-ii, found sound). An identity carrying `ChannelCommandLine` fails `identity.Identity.Valid` (Task 6), which 5c-ii's gate requires. Request-link and consume-link write no roster. |
 | The authority to write the roster through the web | A cookie-channel actor whose record in the disk copy, re-read under the store's lock, holds the admin flag (Task 6). | A stale gate decision: `AddMember` re-checks the actor's admin flag under the lock, so a hand edit that demotes the actor between the gate and the write refuses the write. |
-| The audit record's actor | The gate's verified, normalized address for the API (Task 8), passed through an unexported context key. The operating-system user for the verb, looked up from the effective uid, falling back to `uid:<n>` (Task 7, `spec:1141-1143`). | Any request field. `$USER`. `AddMember` refuses an empty or malformed actor (Task 2). |
+| The audit record's actor | The gate's verified, normalized address for the API (5c-ii Task 1), passed through an unexported context key. The operating-system user for the verb, looked up from the effective uid, falling back to `uid:<n>` (Task 7, `spec:1141-1143`). | Any request field. `$USER`. `AddMember` refuses an empty or malformed actor (Task 2). |
 | The audit record's channel | The caller's constant: `ChannelCookie` from the API, `ChannelCommandLine` from the verb. | An invalid channel value: `AddMember` refuses `!channel.Valid()` (Task 2). |
-| `streamer_username` | The verb and the API, both through `AddMember` (Tasks 7, 8). A hand edit, validated at reload. **It becomes a privilege channel at rung 12**: the seam's `Principal` is the username when set (`internal/auth/seam.go`, `VerifyIdentity`), rung 12 injects the principal into the streamer's proxy header (`spec:1243-1245`), and the rung 6 spec quotes Navidrome creating an unknown proxied user. So whoever sets the username decides which streamer account a member becomes, and an admin could map a member onto the streamer's own admin account. | Nothing else writes the roster. The roster's own case-insensitive uniqueness cannot see the streamer's accounts. **Carried to rung 12 as a constraint**: a principal must not map a non-admin member onto a streamer admin account, or rung 12 verifies the mapping (Task 10 records it with the `LIKE` question). |
-| The session cookie's refreshed value | The admin gate, only after the admin check passes, and only for a request whose `Sec-Fetch-Site` is exactly `same-origin` (Task 8). | A cross-site or header-less request, and any refused request including a verified non-admin: the gate sets no cookie. |
+| `streamer_username` | The verb (Task 7) and, from 5c-ii, the API, both through `CreateRoster` or `AddMember`. A hand edit, validated at reload. **It becomes a privilege channel at rung 12**: the seam's `Principal` is the username when set (`internal/auth/seam.go`, `VerifyIdentity`), rung 12 injects the principal into the streamer's proxy header (`spec:1243-1245`), and the rung 6 spec quotes Navidrome creating an unknown proxied user. So whoever sets the username decides which streamer account a member becomes, and an admin could map a member onto the streamer's own admin account. | Nothing else writes the roster. The roster's own case-insensitive uniqueness cannot see the streamer's accounts. **Carried to rung 12 as a constraint**: a principal must not map a non-admin member onto a streamer admin account, or rung 12 verifies the mapping (Task 10 records it with the `LIKE` question). |
+| The session cookie's refreshed value | The admin gate, only after the admin check passes, and only for a request whose `Sec-Fetch-Site` is exactly `same-origin` (5c-ii Task 1). | A cross-site or header-less request, and any refused request including a verified non-admin: the gate sets no cookie. |
 ---
 
 ## Resolutions this plan takes rather than discovers
@@ -507,8 +543,8 @@ Stated under "The split". Conductor-owed fold 1.
 Thirteen findings across seven files are too many for one task under
 this plan's four-deliverable cap. The ruling's operative clause is
 ordering, "fixed before any page builds on the roster, the link URL, or
-the limiters", and Tasks 1 through 5 all land before the verb (Task 7),
-the API (Task 8), or 5c-ii exist. 5b-ii took the same reading of its own
+the limiters", and Tasks 1 through 5 all land before the verb (Task 7)
+or 5c-ii exist. 5b-ii took the same reading of its own
 fold (R-5b17, two tasks).
 
 ### R-5c3: the per-address limit charges only roster addresses (Ruling 1)
@@ -600,16 +636,22 @@ mechanics and risk lenses both showed: `os.ReadFile` followed by
 `os.Stat(path)` can cache a renamed-in file's stat against the old
 content, and every later check then matches, so a hand-removed member
 keeps resolving until the file next changes. That is finding 1 again.
-The fstat-first order leaves one race, a new stat over old content, and
-it only costs one extra reload.
+The fstat-first order leaves one race: an in-place write landing between
+the fstat and the read, which caches an old stat over new content. That
+direction is harmless, because the next check sees a changed stat and
+reloads once. The change check itself may stat the path; what must never
+happen is caching a path stat against content read through another
+descriptor.
 
 **A modification time too close to the read is not trusted.** An in-place
 hand edit that keeps the inode and the size inside one timestamp tick
 keeps the modification time too. So when the cached modification time is
 within one second of the moment the cache was filled, the cache is
-unverified and the next call re-reads regardless. This is git's
-racily-clean rule. The workstation measured nanosecond-distinct
-modification times; the box's filesystem is not measured.
+unverified and the next call re-reads regardless. The one-second window
+is this plan's own rule, sized to cover a coarse filesystem timestamp; it
+borrows the idea git's index uses for the same problem, and relies on no
+git text. The workstation measured nanosecond-distinct modification
+times; the box's filesystem is not measured.
 
 A reload that finds the file absent, unreadable, unparseable, or invalid
 returns that error. It does not keep serving the last good copy, because
@@ -625,7 +667,10 @@ and the log records the failure.
 
 > **Applied to Rulings 2 and 4's recommended answers.** A "no" on Ruling
 > 4 makes the field optional on the write path. A "no" on Ruling 2 applies
-> `[A-Za-z0-9._-]` at load and on write with no estate check.
+> the same write-path shape without the estate check and records the
+> unverified fit as a residual. The shape itself, the alphanumeric first
+> character, and write-only scope are the conductor's, on the lenses'
+> evidence, not part of Ruling 2.
 
 Rung 6 ruling 8 (Geoff, 2026-09-23) refuses an import entry with no
 `streamer_username`, and 6d criterion 6 has "the page and the verb
@@ -640,20 +685,27 @@ On the write path the shape is `[A-Za-z0-9][A-Za-z0-9._-]*`, up to the
 existing 64-byte bound. The alphanumeric first character refuses `.`,
 `..`, and a leading `-` at no cost to any plausible account name. Both
 cases are admitted, because lowercase-only would refuse an existing
-account that carries an uppercase letter. `_` stays allowed; whether
-Navidrome resolves a username with SQL `LIKE`, where `_` is a wildcard,
-is the reviewer's "recollection" and goes to rung 12 to verify. The
+account that carries an uppercase letter. `_` stays allowed. Review
+finding 15's worry, that Navidrome might resolve a username with SQL
+`LIKE`, where `_` is a wildcard, is settled by its source: Navidrome
+v0.63.2's `FindByUsername` builds `user.user_name = ? COLLATE NOCASE`,
+under the interface comment "FindByUsername must be case-insensitive"
+(`persistence/user_repository.go` and `model/user.go`, read 2026-09-23
+through the GitHub API at tag `v0.63.2`). That is case-insensitive
+equality with no wildcard, and it is exactly the collision
+`strings.EqualFold` uniqueness prevents. The
 loader keeps today's ASCII-printable check. **Uniqueness compares with
 `strings.EqualFold` everywhere**, at load, in `doctor`, and at write time
 under the lock, because a case collision is one principal shared by two
 people whatever path wrote it. So a file naming both `Alice` and `alice`
 stops loading, and that is the refusal R3 wants at startup.
 
-**Before Task 2 dispatches**, the conductor makes one read-only query of
-the estate's Navidrome usernames (Ruling 2) and confirms each fits the
-write-path shape. The box is production, so the query is read-only and
-writes nothing. A username that does not fit widens the shape before Task
-2 runs, and the widening is recorded in STATUS.
+**Before Task 2 dispatches**, with Ruling 2 answered yes, the conductor
+runs the one read-only query "The conductor's actions" item 1 names and
+confirms each estate username fits the write-path shape. A username that
+does not fit widens the shape before Task 2 runs, and the widening is
+recorded in STATUS. With Ruling 2 answered no, the shape applies
+unchecked and Task 8 records the unverified fit as a residual.
 
 ### R-5c7: the CLI admin grant is `identity.ChannelCommandLine`, and no verifier can emit it
 
@@ -668,11 +720,31 @@ be "the same record". So the command line becomes one more
 `command-line` and which `Channel.Valid` accepts, since the audit record
 and `AddMember`'s channel check need it. The store admits the admin flag
 on that channel alone. `ErrRosterAdminChannelForbidden` is renamed
-`ErrAdminGrantForbidden`, since after this change the refusal is about
-who may grant, not about channels in general.
+`errAdminGrantForbidden`, unexported, since after this change the
+refusal is about who may grant, and no caller outside `internal/auth`
+branches on it (R-5c20).
 
-**`identity.Identity.Valid` refuses `ChannelCommandLine`** (the risk
-lens's finding 8). `Identity.Valid` accepts any valid channel today
+> **Conductor-owed fold 12:** drop `ChannelHeader` and
+> `ChannelServiceToken`? Applied as the drop. Neither has a producer:
+> their only references are `roster_test.go` and the `String` and `Valid`
+> switches, and the 5b-ii architecture read recommends dropping them
+> until their sources land. Keeping them leaves four constants under a
+> type documented as "how a verified identity was asserted": one a
+> verifier emits, two nothing emits, and one that is not an assertion.
+> After the drop the type holds `ChannelCookie`, the one assertion
+> channel, and `ChannelCommandLine`, the audit channel, in a
+> `channelNames` table that `String` and `Valid` both read. A forward-auth
+> front or a service-token source adds its constant in the commit that
+> asserts it. `spec:1223` lists the three channels descriptively and takes
+> a one-line erratum ("constants land with the source that asserts
+> them").
+
+**An identity carrying `ChannelCommandLine` fails
+`identity.Identity.Valid`, which 5c-ii's admin gate requires** (the risk
+lens's finding 8, worded as the verification read asked: this protects
+the web edge only where a caller runs `Valid`, and today no production
+code does, so the gate's call and a mutation proving it travel with the
+gate to 5c-ii). `Identity.Valid` accepts any valid channel today
 (`internal/identity/identity.go`, `Identity.Valid`). If it accepted this
 one, a later verifier that builds an `Identity` from a header or a token,
 plus a handler that forwards the identity's channel into `AddMember`,
@@ -681,6 +753,13 @@ audit channel. It is never an assertion a verifier makes, so a verified
 identity carrying it is invalid by type. Task 6 rewrites the whole
 `Channel` doc comment, including its stale sentence "Admin-only verbs
 reject a cookie-channel identity", which the add-member gate contradicts.
+The same policy sentence in `internal/auth/seam.go`'s `VerifiedIdentity.Admin`
+comment ("An admin verb rejects an identity whose Channel is
+ChannelCookie; the one exception is the add-member handler") goes too:
+after this pass no admin verb takes an `Identity`, so the comment states
+only that the flag is read from the roster. `Identity.Valid`'s own
+comment promises "a normalized address" while the code checks only for a
+non-empty value; the comment is corrected to what the code checks.
 
 ### R-5c8: the last-admin guard is a write-path invariant with no exemption
 
@@ -700,9 +779,17 @@ empty roster through the same guarded function, which the guard would
 have refused; all three lenses caught it. `CreateRoster(ctx
 context.Context, path string, first Member, actor string, logger
 *slog.Logger) (*Roster, error)` now writes the first member in one create
-under the directory lock. It requires `first.Admin`, audits on
-`ChannelCommandLine`, re-checks the file's absence under the lock, and
-returns `ErrRosterExists` when the file is present. Its one caller is
+under the directory lock. **It routes through the same locked
+read-modify-write function as `AddMember`, in a mode where an absent file
+is the starting state**, so the first member and the actor pass exactly
+the write-path validation every later write passes: Task 2's address,
+display-name, and `streamer_username` rules, the required username
+(Ruling 4), and the command-line actor rule. It also requires
+`first.Admin`, audits on `ChannelCommandLine`, re-checks the file's
+absence under the lock, and returns `ErrRosterExists` when the file is
+present. The verification read found revision 2's create skipping that
+validation, so `member add --admin a@x --name A --streamer-username ""`
+would have written a bootstrap admin with no username. Its one caller is
 Task 7's verb. So the store never writes a roster without an admin, the
 guard has no exemption, and exit gate 11 is literally true.
 
@@ -758,10 +845,13 @@ returns an `errors.Join` of messages that each begin with a key
 prefix breaks silently the day a message is reworded. So Task 5 adds a
 small keyed error type in `cmd/dubplate-server` (a key and a reason; its
 `Error` renders `KEY: reason`), `validateMagicLinkSource` and
-`validatePublicURL` return it, and `doctor` collects keys with
-`errors.As` over the join. `go doc errors.As` states it finds "the first
-error in err's tree", and a joined error's tree includes every joined
-error. A relational refusal names both keys it compares, threshold keys
+`validatePublicURL` return it, and `doctor` collects every key by
+walking the join and calling `errors.As` on each member. One `errors.As`
+over the whole join would not do: `go doc errors.As` states it finds "the
+first error in err's tree", so a single call returns one key. The walk
+reads the join's members through its `Unwrap() []error` method: `go doc
+errors.Join` states "A non-nil error returned by Join implements the
+Unwrap() []error method." A relational refusal names both keys it compares, threshold keys
 included, because the relation is the source's. `internal/config` stays
 untouched (R-5c17). That keeps the line-count derivation 5b-ii's
 tests assert (`TestDoctorCmd_LineCountFollowsRegistry`, `cmd/dubplate-server/doctor_test.go`). If the
@@ -782,6 +872,9 @@ the comment above `linkRequestsPerAddressCeiling`). `DUBPLATE_SMTP_PORT`
 must parse to 1 through 65535.
 
 ### R-5c12: the admin gate answers 404 to everyone who is not a verified admin
+
+**Applies in 5c-ii Task 1**, which builds the gate; kept here so the
+reasoning travels with the tasks that moved.
 
 The gate verifies the session through the seam, then reads `Admin` from
 the verified identity (which the seam read from the roster). An absent
@@ -820,6 +913,9 @@ non-admin's 404, which an unregistered path never carries.
 
 ### R-5c13: the roster API takes a form, reads no admin field, and refuses one (Ruling 5)
 
+**Applies in 5c-ii Task 1.** In 5c-i, Ruling 5 governs Task 6's rule that
+only the command line sets the flag.
+
 > **Applied to Ruling 5's recommended answer.** A "no" adds an admin
 > field the API passes to the store, and reverses the store's channel
 > refusal, 5b-ii's close contract, and part of fork 1 with it.
@@ -831,7 +927,10 @@ A checkbox the server always refuses is a control that cannot work.
 (`internal/auth/handlers.go`, `readForm`), and the responses are JSON.
 The API reads its three fields from `r.PostForm` only, on 5b-ii's
 precedent that nothing is read from a query string. **An `admin` key
-present anywhere, in the body or the query string (`r.Form`), whatever
+present anywhere, in the body or the query string (`r.Form`, which
+`go doc net/http.Request` describes as "the parsed form data, including
+both the URL field's query parameters and the PATCH, POST, or PUT form
+data"), whatever
 its value, empty included, is refused** with its own outcome and no
 write. Refusing the query-string form too costs nothing and leaves no
 spelling of the field that reaches the store. The store's channel refusal stays as the second net.
@@ -869,9 +968,12 @@ the unit's environment file, readable by root, while the verb must run as
 the directory's owner. The natural workaround,
 `sudo -u music env $(cat ...) dubplate-server member add ...`, puts every
 secret into argv, where any local user reads it through
-`/proc/*/cmdline`. Task 10 carries a 5d runbook row naming an invocation
-that keeps secrets out of argv, for example `systemd-run --uid=music -p
-EnvironmentFile=...`. Narrowing the verb's load to the keys it reads is
+`/proc/*/cmdline`. Task 8 carries a 5d runbook row requiring an
+invocation that keeps secrets out of argv. A transient unit (`systemd-run`
+with the service's user and environment file) is the candidate, handed to
+5d as a claim to prove rather than a recipe: whether a transient unit
+accepts an environment-file property, and whether it needs flags to
+return the verb's output to the terminal, is unverified here. Narrowing the verb's load to the keys it reads is
 refused (fold record): the full load is what catches a misconfigured
 environment before the first admin is written.
 
@@ -914,16 +1016,16 @@ review's fix, a global request ceiling answering every request 429 once
 spent, is itself a cheaper group-wide lockout than the signal it closes.
 So the code fix is refused. The review's second half, "kind mode's
 enumeration bound is the per-client key alone", becomes a 5d runbook
-sentence, carried in Task 10's handoff.
+sentence, carried in Task 8's handoff.
 
 ### R-5c19: the lock waits carry named deadlines, and readers never wait behind a writer's lock wait
 
-Two constants bound the cross-process wait: **`rosterAPIWriteWait`, 5
-seconds**, in `internal/auth`, which the roster API applies to its own
-`context.WithTimeout` so the 503 `busy` row is reachable (the request's
-own context has no deadline shorter than the server's 30-second timeouts,
-`internal/serve/server.go`); and **`memberVerbWriteWait`, 30 seconds**, in
-`cmd/dubplate-server`, which the verb applies. A writer takes the
+Two constants bound the cross-process wait: **`memberVerbWriteWait`, 30
+seconds**, in `cmd/dubplate-server`, which the verb applies (Task 7); and
+**`rosterAPIWriteWait`, 5 seconds**, in `internal/auth`, which 5c-ii's
+roster API applies to its own `context.WithTimeout` so its 503 `busy` row
+is reachable (the request's own context has no deadline shorter than the
+server's 30-second timeouts, `internal/serve/server.go`). A writer takes the
 directory `flock` **before** it takes the in-process mutex that `Lookup`
 and `List` share, and holds the mutex only for the in-memory swap. So a
 writer waiting on another process never blocks a login or a gate check in
@@ -935,13 +1037,15 @@ itself, since each opens its own descriptor (quoted in Task 1).
 Geoff's 2026-09-12 refinement, applied at the root rather than per
 symbol (the contract lens's finding 9 named two). A new sentinel or
 helper is exported only when a caller outside its package branches on it
-or calls it. The roster API lives in `internal/auth`, so the per-refusal
-errors Task 2 adds, the no-admin error, the busy error, and the
-verified-identity context accessor are unexported; the verb prints an
-error's text and branches on none. Exported: `ErrAdminGrantForbidden` (a
-rename of an existing export), `CreateRoster`, `RequireAdmin` and
-`NewRosterAPI` (mounted from `cmd/dubplate-server`), and
-`identity.ChannelCommandLine` (the verb passes it).
+or calls it. So the per-refusal errors Task 2 adds, the no-admin and
+actor-not-admin errors, the busy error, and the renamed grant error
+(`errAdminGrantForbidden`) are unexported: their only branching reader,
+5c-ii's roster API, lives in `internal/auth`, and the verb prints an
+error's text and branches on none. Exported in 5c-i: `CreateRoster` and
+`identity.ChannelCommandLine`, both of which the verb calls or passes,
+and `ErrRosterExists`, which it branches on. `RequireAdmin` and
+`NewRosterAPI` are born exported in 5c-ii, where the document route and
+the serve wiring in `cmd/dubplate-server` call them.
 
 ---
 
@@ -950,19 +1054,17 @@ rename of an existing export), `CreateRoster`, `RequireAdmin` and
 The spec's threat model (`spec:1909-1980`) governs. The claims this pass
 must make true, each with the task that proves it:
 
-- **Only a request carrying a session for a member whose roster record
-  holds the admin flag can change the roster through the web** (Tasks 8,
-  9). The flag is read from the roster, never the request. No web path
-  sets it (Tasks 6, 8).
+- **No channel but the command line can set the admin flag, and the
+  store refuses a web write whose actor is not an admin in the disk
+  copy** (Task 6). The web write path itself, the gate and the roster API,
+  lands in 5c-ii and inherits both refusals.
 - **A roster change that fails validation leaves the file
   byte-identical, and every roster change that succeeds writes one audit
-  record naming the actor and the channel** (Tasks 1, 2, 8, 9), across
-  two writer processes (Task 1).
+  record naming the actor and the channel** (Tasks 1, 2, 6, 7), the
+  bootstrap included, across two writer processes (Task 1).
 - **A member removed by hand stops resolving at the running server's
   next request** (Task 1), which closes the gap in claim 8 that finding 1
   opened.
-- **A state-changing cookie-authenticated request without a same-origin
-  signal is refused** (Task 9, through the real shell).
 - **Neither a single address nor a single client can drive unbounded
   outbound mail, and one IPv6 /64 is one client** (Task 3).
 - **A token never reaches a log record or a process outside dubplate**
@@ -1010,9 +1112,11 @@ happy path exercises, each pinned by a test in the task that owns it.
 4. **A second `member add --admin` on an install that already has a
    roster.** Expected: the member is added and the file is never
    recreated. Pinned in Task 7.
-5. **A signed-in member without the admin flag probing the roster API**
-   with GET, POST, and a crafted `admin` field. Expected: 404 for all, no
-   byte on disk changes. Pinned in Tasks 8 and 9.
+5. **A `member add --admin` whose flags are present but empty**, for
+   example `--streamer-username ""`. Expected: refused by the write-path
+   validation with nothing created, the bootstrap included. Pinned in
+   Task 6. (The non-admin probe of the roster API moves with that API to
+   5c-ii.)
 
 ---
 
@@ -1076,7 +1180,8 @@ no longer exists is a blocker.
    no `GOEXPERIMENT`: report `go env GOEXPERIMENT` and whether a scratch
    test in `internal/auth` importing it compiles (and delete it).
 7. Report `newServeShell`'s current mounts and the three route-name
-   constants, the shape Task 9 extends.
+   constants, the shape 5c-ii Task 2 extends (this pass's Task 4 adds only
+   the prefix to the handler config).
 8. Report `doctor_test.go`'s line-count test by name and the rows it
    derives from, the property R-5c10 preserves.
 9. Report `newRootCmd`'s `AddCommand` block, which Task 7 extends.
@@ -1157,7 +1262,7 @@ because every later task reads or writes it.
   reasoning) and returns the busy error when `ctx` ends first. It never
   blocks without bound: `flock(2)` states "A call to flock() may block if
   an incompatible lock is held by another process", and a blocking call
-  cannot observe `ctx`. The deadlines themselves are Task 7's and Task 8's
+  cannot observe `ctx`. The deadlines themselves are Task 7's and 5c-ii Task 1's
   named constants (R-5c19).
 - **`CreateRoster` runs its existence check and its write under the same
   directory lock.** Today it stats and then writes, so two concurrent
@@ -1170,7 +1275,7 @@ because every later task reads or writes it.
   from that same descriptor, and caches that stat with that content**,
   the writer's post-write re-read included. A cache whose modification
   time is within one second of the moment it was filled is unverified,
-  and the next call re-reads (git's racily-clean rule).
+  and the next call re-reads (R-5c5's one-second rule).
 - **A reload that fails returns the failure** (absent, unreadable,
   unparseable, invalid), each wrapping the existing sentinel with the
   path. The request-link handler answers `failed` under the kind answer
@@ -1213,18 +1318,20 @@ because every later task reads or writes it.
   and the serve-side value stops resolving the removed member before its
   own add. **Fixture state:** both values opened before either write, so
   the serve-side value's memory copy is stale.
-- **The cache-hit row is observable.** Rewrite the file in place with the
-  same inode and the same size, then restore its modification time with
-  `os.Chtimes` to a moment more than one second before the cache was
-  filled, and assert the old answer persists. Only a served cache
-  explains that. A second row does the same with a restored modification
-  time inside the one-second window and asserts the new answer, which
-  proves the racily-clean rule.
+- **The cache-hit row is observable.** Age the file first: `os.Chtimes`
+  it to T0, more than one second in the past, before `OpenRoster`, so the
+  cache is verified from the start. Then rewrite it in place with the
+  same inode and the same size, restore its modification time to T0, and
+  assert the old answer persists. Only a served cache explains that. A
+  second row skips the aging, so the cache fills within one second of the
+  file's modification time, repeats the same in-place rewrite and
+  restore, and asserts the new answer, which proves the one-second rule.
 - **The stat-and-read order is a reviewer-verified criterion**, because
   no test can force the rename to land between a read and a stat. The
-  diff-reviewer confirms every read path opens, fstats that descriptor,
-  and reads that descriptor, and that no path calls `os.Stat(path)` or
-  `os.ReadFile` for a cached read.
+  diff-reviewer confirms the cached stat is always the fstat of the
+  descriptor that was read. The change check may stat the path; no path
+  reads through `os.ReadFile` or a second descriptor for content it
+  caches.
 - A concurrent pair of `CreateRoster` calls, run with `-race`, leaves
   exactly one file whose contents are the winner's, and exactly one
   `ErrRosterExists`.
@@ -1265,7 +1372,7 @@ because every later task reads or writes it.
    returns the admin contact.
 9. Stat the path after reading it with `os.ReadFile` → no test fires;
    report it as the reviewer-verified row and name the race it opens.
-10. Drop the racily-clean rule → the inside-the-window row serves the
+10. Drop the one-second rule → the inside-the-window row serves the
     old answer.
 11. Take the in-process mutex before the `flock` → the held-lock row's
     `Lookup` blocks until the writer's `ctx` ends.
@@ -1282,8 +1389,8 @@ stdlib `syscall.Flock` in place of `golang.org/x/sys/unix` (R26). Adopts
 experiment-gated behind `goexperiment.jsonv2`, which is on in go1.27's
 baseline (Global Constraints). The adoption is judged worth that
 stability class, since v1 cannot refuse the case-variant and duplicate
-keys finding 7 lists. Adopts git's racily-clean rule for the
-modification-time window. Declines a file watcher (`fsnotify`): a module
+keys finding 7 lists. The one-second modification-time window is this
+plan's own rule (R-5c5). Declines a file watcher (`fsnotify`): a module
 dependency R26 does not budget, and a stat per lookup is cheap at group
 scale, as the review itself notes.
 
@@ -1318,7 +1425,7 @@ plus the per-refusal errors the roster API maps to specific outcomes
   ErrRosterRecordInvalid)` still holds: one each for a duplicate address,
   a duplicate streamer username, an invalid member address, an invalid
   display name, an invalid streamer username, a missing streamer
-  username, and an invalid audit actor or channel. Task 8, in the same
+  username, and an invalid audit actor or channel. 5c-ii Task 1, in the same
   package, maps each to an outcome.
 
 **Outcomes:**
@@ -1578,6 +1685,8 @@ Review major 2 and minors 10 and 12, plus the magic-link mail copy
 - Modify: `cmd/dubplate-server/serve.go`, `cmd/dubplate-server/serve_test.go`
   (the prefix into `HandlersConfig`, the port bound in `newMailer`, and a
   shell-level routing test)
+- Modify: `cmd/dubplate-server/doctor_test.go` (the lifetime-above-cap
+  row proved through the existing doctor harness)
 
 **Interfaces:**
 - Consumes: `serve.Prefix`'s `String` and `Owns` (read only; this pass
@@ -1703,7 +1812,8 @@ Review minors 11 and 19.
   routes: the per-key statuses for a missing or invalid Required or
   Optional key, and a keyed error type (a key and a reason, unexported,
   in `cmd/dubplate-server`) that the `Validate` hook returns and `doctor`
-  collects with `errors.As` over the join. A relational refusal names
+  collects by walking the join and calling `errors.As` on each member
+  (R-5c10). A relational refusal names
   both keys it compares. The keyed type's `Error` still renders
   `KEY: reason`, so every verb's existing refusal text is unchanged.
   `TestDoctorCmd_LineCountFollowsRegistry` passes unmodified.
@@ -1746,57 +1856,72 @@ unreadable-record sweep).
 
 ---
 
-## Task 6: The CLI admin grant, the single-write bootstrap, and the last-admin guard
+## Task 6: The CLI admin grant, the channel set, the validated bootstrap, and the last-admin guard
 
-Model: **`opus`**. Depends on Tasks 1 and 2.
+Model: **`opus`**. Depends on Tasks 1 and 2, and on Ruling 5 (written to
+its recommended answer; a "no" re-plans this task first).
 
 **Files:**
 - Modify: `internal/identity/identity.go`, `internal/identity/identity_test.go`
-  (one channel constant, `Identity.Valid`'s refusal of it, the rewritten
-  `Channel` comment)
+  (the channel set, `Identity.Valid`'s refusal of the command-line
+  channel and its corrected comment, the rewritten `Channel` comment)
 - Modify: `internal/auth/roster.go`, `internal/auth/roster_test.go`
-- Modify: `internal/auth/seam_test.go` (the no-command-line-channel proof)
+- Modify: `internal/auth/seam.go` (the `VerifiedIdentity.Admin` comment
+  only) and `internal/auth/seam_test.go` (the no-command-line-channel
+  proof)
 - Modify: `cmd/dubplate-server/doctor.go`, `cmd/dubplate-server/doctor_test.go`
   (the no-admin roster row)
 
 **Interfaces:**
 - Produces: `identity.ChannelCommandLine`, `String` `command-line`,
   accepted by `Channel.Valid` and refused by `Identity.Valid`.
-  `auth.ErrAdminGrantForbidden`, replacing `ErrRosterAdminChannelForbidden`
-  at every reference in the module. `CreateRoster(ctx context.Context,
-  path string, first Member, actor string, logger *slog.Logger)
-  (*Roster, error)`, the single-write bootstrap (R-5c8). An unexported
-  no-admin error, wrapping `ErrRosterRecordInvalid` (R-5c20).
+  `identity.ChannelHeader` and `identity.ChannelServiceToken` removed
+  (fold 12). `errAdminGrantForbidden`, unexported, replacing
+  `ErrRosterAdminChannelForbidden` at every reference in the module.
+  `CreateRoster(ctx context.Context, path string, first Member, actor
+  string, logger *slog.Logger) (*Roster, error)`, the validated
+  single-write bootstrap (R-5c8). Two unexported errors, each wrapping
+  `ErrRosterRecordInvalid` (R-5c20): the no-admin error ("the roster must
+  name at least one admin") and a distinct actor-not-admin error ("the
+  actor is not an admin").
 
 **Outcomes:**
 
+- **The channel set holds two constants** (fold 12): `ChannelCookie` and
+  `ChannelCommandLine`, named through one `channelNames` table that
+  `String` and `Valid` both read. The roster tests that used
+  `ChannelHeader` or `ChannelServiceToken` move to `ChannelCookie`.
 - **`AddMember` admits `Admin: true` on `ChannelCommandLine` and refuses
-  it on every other channel** with `ErrAdminGrantForbidden` (R-5c7). The
+  it on `ChannelCookie`** with `errAdminGrantForbidden` (R-5c7). The
   refusal runs before any lock or write.
-- **`identity.Identity.Valid` refuses `ChannelCommandLine`**, so no
-  verifier can hand a network handler an identity carrying it (R-5c7).
-  **The whole `Channel` doc comment is rewritten**: the command line
-  asserts an operating-system user by process ownership, it is an audit
-  channel no verifier emits, and the stale sentence "Admin-only verbs
-  reject a cookie-channel identity" goes, since the add-member gate
-  accepts exactly a cookie-channel admin.
+- **`identity.Identity.Valid` refuses `ChannelCommandLine`** (R-5c7), and
+  its comment is corrected to what it checks (a non-empty address, not "a
+  normalized address"). **The whole `Channel` doc comment is rewritten**:
+  the command line asserts an operating-system user by process
+  ownership, it is an audit channel no verifier emits, and the stale
+  sentence "Admin-only verbs reject a cookie-channel identity" goes.
+  **`seam.go`'s `VerifiedIdentity.Admin` comment** drops its policy
+  sentence and states only that the flag is read from the roster.
 - **The seam never produces `ChannelCommandLine`**: a seam test asserts
   the channel of every verified identity is `ChannelCookie`.
-- **`CreateRoster` writes the first member in one create** under the
-  directory lock (R-5c8): it requires `first.Admin`, audits on
+- **`CreateRoster` writes the first member in one create, through the
+  locked read-modify-write function** with an absent file as its starting
+  state (R-5c8). So `first` and `actor` pass exactly the validation
+  `AddMember` runs (Task 2's address, display-name, and
+  `streamer_username` rules, the required username, and the command-line
+  actor rule), and then the create requires `first.Admin`, audits on
   `ChannelCommandLine` with `actor`, re-checks the file's absence under
   the lock, and returns `ErrRosterExists` when the file is present. It
   never writes an empty roster.
 - **Every roster the store writes names at least one admin** (R-5c8),
-  checked inside Task 1's locked read-modify-write function against the
-  disk copy, before the write, with no exemption. A violating write
+  checked inside that same function against the disk copy (or the empty
+  starting state), before the write, with no exemption. A violating write
   returns the no-admin error and changes no byte. No demote or remove
   method is added.
-- **On every channel but `ChannelCommandLine`, `AddMember` requires the
-  actor to hold the admin flag in the disk copy** it re-read under the
-  lock (R-5c8), and refuses otherwise with `ErrAdminGrantForbidden`'s
-  sibling refusal (the no-admin error's text names the rule, "the actor
-  is not an admin").
+- **On `ChannelCookie`, `AddMember` requires the actor to hold the admin
+  flag in the disk copy** it re-read under the lock (R-5c8), and refuses
+  otherwise with the actor-not-admin error. 5c-ii's roster API is the
+  first production caller of this branch; this task proves it in tests.
 - **`doctor`'s roster row fails for a roster that names no admin**,
   reading `no admin; run dubplate-server member add --admin`. `doctor`
   counts admins through `List` itself; it needs no exported error.
@@ -1805,56 +1930,62 @@ Model: **`opus`**. Depends on Tasks 1 and 2.
 
 | Write | Disk roster before | Candidate, channel, actor | Report |
 | --- | --- | --- | --- |
-| create | absent | admin, command-line | created at 0600 with one admin; one audit record |
+| create | absent | admin, command-line, valid | created at 0600 with one admin; one audit record |
 | create | absent | non-admin | the no-admin error; nothing created |
+| create | absent | admin with `streamer_username` absent or `""` | the missing-username error; nothing created |
+| create | absent | admin with `streamer_username` `.x` | the invalid-username error; nothing created |
+| create | absent | admin with a display name carrying U+202E | the invalid-display-name error; nothing created |
+| create | absent | admin, actor `""` | the invalid-actor error; nothing created |
 | create | present | any | `ErrRosterExists`; file unchanged |
 | add | members, none admin (hand edit) | non-admin, command-line | the no-admin error, file unchanged |
 | add | `{"schema_version":1,"members":[]}` (hand edit) | non-admin, command-line | the no-admin error, file unchanged |
 | add | members, none admin | admin, command-line | written |
-| add | one admin | admin, cookie, an admin actor | `ErrAdminGrantForbidden`, file unchanged |
+| add | one admin | admin, cookie, an admin actor | `errAdminGrantForbidden`, file unchanged |
 | add | one admin | non-admin, cookie, the admin as actor | written |
-| add | one admin | non-admin, cookie, a non-admin member as actor | refused ("the actor is not an admin"), file unchanged |
-| add | one admin, then a hand edit removes the admin flag from the actor before the lock | non-admin, cookie, that actor | refused, file unchanged (the check reads the disk copy) |
+| add | one admin | non-admin, cookie, a non-admin member as actor | the actor-not-admin error, file unchanged |
+| add | one admin, then a hand edit removes the admin flag from the actor before the lock | non-admin, cookie, that actor | the actor-not-admin error, file unchanged (the check reads the disk copy) |
 | add | one admin, then a hand edit removes the admin before the lock | non-admin, command-line | the no-admin error (the check reads the disk copy) |
 
 **Acceptance criteria:**
 
-- Every row above is a table case asserting the error and the file's
-  bytes before and after. **Fixture state for the two hand-edit-race
+- Every row above is a table case asserting the error by `errors.Is`
+  (in-package, on the unexported errors) and the file's bytes before and
+  after, or its absence. **Fixture state for the two hand-edit-race
   rows:** the `Roster` value opened while the admin existed, so only a
   disk re-read explains the refusal.
-- `grep -rn ErrRosterAdminChannelForbidden` over the module returns
-  nothing; `errors.Is(err, ErrAdminGrantForbidden)` holds for each
-  refused channel.
+- `grep -rn 'ErrRosterAdminChannelForbidden\|ChannelHeader\|ChannelServiceToken'`
+  over the module returns nothing.
 - `identity.Identity{..., Channel: identity.ChannelCommandLine}.Valid()`
-  is false with every other field valid; `ChannelCommandLine.Valid()` is
-  true.
+  is false with every other field valid; `ChannelCommandLine.Valid()` and
+  `ChannelCookie.Valid()` are true; `Channel(0).Valid()` and `Channel(3)`
+  are false.
 - An audit record for a command-line create or add carries
   `channel=command-line` and `client_ip=local`, and an
   operating-system-user actor passes Task 2's per-channel actor rule.
 - `doctor` against a hand-edited empty roster and against a hand-edited
   no-admin roster prints the roster row exactly once, failing with the
   recovery text, as any roster failure does, and
-  `TestDoctorCmd_LineCountFollowsRegistry` passes unmodified. (The row
-  prints only on a roster failure, so the count in that state rises by
-  one relative to a healthy roster, exactly as for any other roster
-  failure.)
+  `TestDoctorCmd_LineCountFollowsRegistry` passes unmodified.
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
 
-1. Admit the flag on `ChannelServiceToken` too → the refusal rows write.
-2. Let `CreateRoster` write an empty roster → the non-admin create row
+1. Admit the flag on `ChannelCookie` too → the cookie refusal row writes.
+2. Skip the candidate validation in `CreateRoster` → the four invalid
+   create rows each create a file.
+3. Let `CreateRoster` write an empty roster → the non-admin create row
    creates a file.
-3. Check the admin invariant against the memory copy → the no-admin
+4. Check the admin invariant against the memory copy → the no-admin
    hand-edit race row writes.
-4. Skip the actor's admin re-check under the lock → the demoted-actor
+5. Skip the actor's admin re-check under the lock → the demoted-actor
    race row writes.
-5. Check the invariant after the write → the byte-identity rows fail.
-6. Let `Identity.Valid` accept `ChannelCommandLine` → the validity row
+6. Return the no-admin error for a non-admin actor → the actor-not-admin
+   rows fail their `errors.Is` assertion.
+7. Check the invariant after the write → the byte-identity rows fail.
+8. Let `Identity.Valid` accept `ChannelCommandLine` → the validity row
    fails.
-7. Let the seam emit the command-line channel → the seam row fails.
-8. Drop the `doctor` no-admin branch → the empty-roster row passes.
+9. Let the seam emit the command-line channel → the seam row fails.
+10. Drop the `doctor` no-admin branch → the empty-roster row passes.
 
 **2.0 hook: extends hook 5's write half.** Rung 6's 6d runs this guard
 inside its write transaction (rung 6 spec `:816-818`) and criterion 6's
@@ -1862,13 +1993,15 @@ inside its write transaction (rung 6 spec `:816-818`) and criterion 6's
 invariant, plus the actor's re-check, under the demote path 6d or rung
 14 adds.
 
-**Prior art:** none; this is the spec's own invariant.
+**Prior art:** none; this is the spec's own invariant. The
+`channelNames` table form is the 5b-ii architecture read's.
 
 **Independent: no.**
 
-**Deliverable count: 4** (the channel with the grant and its validity
-refusal, the rename, the single-write bootstrap with the last-admin
-invariant and the actor re-check, the `doctor` row).
+**Deliverable count: 4** (the channel set with the grant and its
+validity refusal, the rename with the corrected comments, the validated
+single-write bootstrap with the last-admin invariant and the actor
+re-check, the `doctor` row).
 
 ---
 
@@ -1896,8 +2029,10 @@ Fork 1's first surface (`spec:122-124`, R37).
 - **`member add <address> --name <display name> --streamer-username
   <handle> [--admin]`** loads configuration (R-5c14). When the roster is
   absent, it calls `CreateRoster` with the member as the first entry,
-  which the store refuses unless `--admin` is set (R-5c8), so a non-admin
-  first add creates nothing. When the roster exists, it opens it and adds
+  which validates it like any write and refuses it unless `--admin` is
+  set (R-5c8), so an invalid or non-admin first add creates nothing.
+  Cobra's required-flag check proves presence only; an empty flag value
+  reaches the store and is refused there. When the roster exists, it opens it and adds
   through `AddMember` on `ChannelCommandLine`. **When `CreateRoster`
   returns `ErrRosterExists`** because a concurrent bootstrap won, the
   verb opens the winner's roster and adds through `AddMember` once. It
@@ -1940,11 +2075,12 @@ Fork 1's first surface (`spec:122-124`, R37).
 | `add` or `list` | exists, unparseable or invalid | the load error's line (path named, value never); exit nonzero |
 | `add` | the roster's directory absent | refused naming the directory (5d's pre-create owns it); nothing created |
 | `add` with a missing `--name` or `--streamer-username` | any | refused before any open |
+| `add --admin a@example.test --name A --streamer-username ""` | absent | the store's missing-username refusal; nothing created |
 | `add` as a uid other than the directory owner | any | refused naming both ids and the directory; nothing created |
 | `add` | the euid has no passwd entry | actor `uid:<n>` in the audit record |
 | `add` | roster lock held past `memberVerbWriteWait` | "roster busy", exit nonzero |
 | `list` | absent | the `ErrRosterMissing` line, exit nonzero |
-| `list` | written by the API (Task 9 proves this end to end) | every member, admin marked |
+| `list` | written by an earlier `add` | every member, admin marked (5c-ii Task 2 proves it for a roster the API wrote) |
 
 **Acceptance criteria:**
 
@@ -1985,8 +2121,8 @@ Fork 1's first surface (`spec:122-124`, R37).
    `ErrRosterExists`.
 2. Exit on `ErrRosterExists` instead of reopening → the race row holds
    one member.
-3. Pass `ChannelCookie` → the `--admin` rows fail with
-   `ErrAdminGrantForbidden`.
+3. Pass `ChannelCookie` → the `--admin` rows fail with the store's grant
+   refusal (asserted by its text, since the error is unexported).
 4. Drop the uid check → the uid row finds a roster created under `/tmp`
    and no refusal.
 5. Build the actor from `user.Current` → the no-passwd-entry row reads
@@ -2003,31 +2139,290 @@ through the CLI", which is this verb.
 the box's `CGO_ENABLED=0` build makes `Current` fall back to `$USER` and
 the real uid (`src/os/user/lookup_stubs.go`).
 
-**Independent: yes, of Task 8 by files** (`cmd/dubplate-server/member.go`
-and `main.go` against `internal/auth/admin.go`). Both follow Task 6.
+**Independent: no.** It follows Task 6.
 
 **Deliverable count: 4** (`add` with the create-or-open rule, the uid
 guard, `list`, the wiring).
 
 ---
 
-## Task 8: The admin gate and the roster API
+## Task 8: The pass close, and the 5c-i to 5c-ii handoff
 
-Model: **`opus`**. Depends on Tasks 2 and 6, and on Ruling 5 (written to
-its recommended answer).
+Model: `sonnet`. Depends on Tasks 0 through 7, the simplifier round,
+and the pass-end security read with its fold.
+
+**Files (drafts only; the conductor folds and commits):**
+- Create: `docs/superpowers/research/handoffs/draft-STATUS-5c-i.md`
+- Create: `docs/superpowers/research/handoffs/draft-HISTORY-5c-i.md`
+
+**Outcomes:**
+
+- **The HISTORY draft** carries what landed per task with commit ids,
+  the gate evidence (`go test ./...` wall time and package-scoped times
+  with `-count=1`), the resolutions R-5c1 through R-5c20 with where each
+  landed, the six rulings and the eight conductor-owed folds with their
+  outcomes, the security read's disposition table, the declared coverage
+  gaps, both budgets, and "what a later pass would be wrong to
+  rediscover". The gaps are at minimum: R-5c15's CLI audit record; a hand
+  edit leaves no audit record; a lockless hand edit inside a write's
+  window is overwritten; the per-address map's untracked admission past
+  capacity; the constraint carried to rung 12 that a principal must not
+  map a non-admin member onto a streamer admin account; the evidence
+  that Navidrome v0.63.2 matches usernames by case-insensitive equality
+  (`COLLATE NOCASE`, no `LIKE`), which retires revision 2's `LIKE`
+  carry; the absent promote path; and, if Ruling 2 was answered "no",
+  the unverified fit of the estate's usernames.
+- **The spec corrections owed**, drafted paste-ready for the conductor:
+  the write-path `streamer_username` requirement (Ruling 4) against R3,
+  R1's write path (`spec:291-292`), "The roster" (`spec:1106-1107`), and
+  `spec:1417`'s "an optional streamer username"; `spec:1417`'s admin
+  checkbox (Ruling 5); `spec:1223`'s three channels, which become two
+  (fold 12: "constants land with the source that asserts them"); the 5c row's split into 5c-i and 5c-ii with both
+  ceilings; R23's reservation against actuals (Ruling 6) and the web
+  surface standard section 15's "4.5M ceiling is unchanged" line; R24's
+  5c review shape across the split; review finding 11 against 5b-ii's
+  fold 7 (R-5c10); the public-URL path rule (R-5c9) against `spec:1033`'s
+  "Link hostnames derive from `DUBPLATE_PUBLIC_URL`"; review minor 6's
+  refusal (R-5c18) against the 5b-ii close's routing.
+- **The 5c-ii handoff**: the surface 5c-ii builds on (the roster's
+  write path with the command-line grant, the actor re-check, and the
+  per-refusal errors its roster API maps; `identity.ChannelCommandLine`
+  and `Identity.Valid`'s refusal of it, which 5c-ii's gate requires; the
+  request-link and consume-link routes and outcomes from 5b-ii; the
+  `login/link` route the mailed link points at, served by the one
+  handler registered at `login`), the kind answer's admin contact as
+  data, and every outline item below that this pass's results changed,
+  the two carried Go tasks first.
+- **The 5d handoff**: the runbook row naming how an operator runs
+  `member add` without putting secrets in argv (R-5c14), and the runbook
+  sentence "kind mode's enumeration bound is the per-client key alone"
+  (R-5c18).
+- **The STATUS draft** stays present tense and under 60 lines.
+
+**Acceptance criteria:** every count in the drafts was produced by a
+command the report pastes; every commit id resolves; the STATUS draft is
+at most 60 lines. No gate change, so `bash scripts/check.sh` green as a
+formality.
+
+**Deliverable count: 4** (the HISTORY draft, the spec corrections, the
+two handoffs, the STATUS draft).
+
+---
+
+## The exit gate
+
+`bash scripts/check.sh` green, plus every assertion below. The first is
+the spec's 5c-row assertion (`spec:2331`) that falls in 5c-i's half; its
+assertions 1, 2, 3, and 5 (the non-admin 404, the same-origin denial, the
+web write's audit record, and `member list` reading what the page wrote)
+move with the roster API to 5c-ii. The rest are the security fold's and
+this plan's.
+
+1. `member add --admin` against an absent roster creates it in one
+   validated write, and a second invocation adds to the existing file
+   rather than creating a second.
+2. Two independent roster values over one file, which `flock(2)` treats
+   as two processes (quoted in Task 1), lose no member and resurrect no
+   member removed by a hand edit between their writes, and the running
+   server stops resolving a hand-removed member at its next lookup
+   (finding 1).
+3. A mailed link's path is owned by the prefix and never reaches the
+   fallthrough (finding 2).
+4. A victim's spent per-address bucket survives a same-instant flood of
+   distinct addresses from distinct clients, and the flood leaves the
+   per-address map unchanged (finding 3, Ruling 1).
+5. One IPv6 /64 is one client (finding 4).
+6. Every loose roster variant finding 7 lists fails to load.
+7. No roster write can leave the roster with no admin, the bootstrap
+   included; the bootstrap's first member passes the same write-path
+   validation as every later member; and no channel but the command line
+   can set the admin flag.
+8. No refusal message or log record carries a URL password or a cookie
+   value, and 5b-ii's test that no consumption log record carries the
+   token (named by Task 0 item 13) still passes, re-run rather than
+   rebuilt.
+
+---
+
+## Contested surfaces
+
+The conductor writes these rows into the parallel-approach spec's
+ownership table before the lane launches.
+
+| Surface | Owner | 5c-i's position | Contention |
+| --- | --- | --- | --- |
+| `internal/auth` | rung 5 | Edited across Tasks 1-6; `seam.go`'s comment in Task 6 | Rung 6 edits it only at 6d, after 5d |
+| `internal/identity` | rung 5 | Two constants dropped, one added, `Identity.Valid`'s refusal of it, one refusal set | Rung 6's 6d adds `UserID`, after 5d |
+| `cmd/dubplate-server/doctor.go` | rung 1's skeleton, rung 5's rows | Tasks 5, 6 | **Rung 6 lanes 6a and 6b edit it** (rung 6 spec `:1109-1118`); a concurrent lane 2 means a non-fast-forward rebase and the merge ritual's `diff-reviewer` |
+| `cmd/dubplate-server/main.go` | rung 1 | Task 7's `AddCommand` line | **Rung 6 edits the registration block**; same rule |
+| `cmd/dubplate-server/serve.go` | rung 5 | Task 4 (the prefix into the handler config) | Rung 6 edits it at 6d only |
+| `cmd/dubplate-server/auth.go` | rung 5 | Tasks 4, 5 | Rung 6 edits the `Required` list at 6d only |
+| `internal/config` | rung 1b's contract | **Untouched** (R-5c17) | Rung 6's 6c runs in lane 2 on this condition |
+| `config/roster.example.json` | rung 5 | Task 2's one field | none |
+| `go.mod` | shared | **Untouched** | rung 6 adds its SQLite driver |
+| `docs/` ledgers | conductor | Task 8 drafts only | every lane |
+
+---
+
+## The conductor's actions
+
+Not tasks; no implementer performs them.
+
+1. **Before Task 0:** record the planning spend's actual against the
+   rung (it is outside the execution ceiling). **Before Task 1:** carry
+   the six rulings to Geoff if the plan approval did not answer them;
+   rule Task 0's blockers and the eight folds; write the lane registry
+   entry and the contested-surface rows; arm the runaway guard. **Before
+   Task 2**, with Ruling 2 answered yes: run the one read-only query
+   `sudo sqlite3 -readonly /srv/music/state/navidrome/navidrome.db
+   "SELECT user_name FROM user;"` over ssh (the database path is
+   `compose.yaml`'s `/srv/music/state/navidrome:/data` volume, and the
+   file name is Navidrome's default; the table and column are
+   `user.user_name` in Navidrome v0.63.2's migrations). `sqlite3 --help`
+   documents `-readonly` as "open the database read-only". Two things
+   are unverified and the conductor checks them first: that `sqlite3` is
+   installed on the box, and that a read-only open succeeds against the
+   live WAL-mode database while Navidrome holds it. If either fails, the
+   conductor records the failure and takes Ruling 2's "no" branch rather
+   than improvising a write-capable path. Record in STATUS whether every
+   username fits the write-path shape, and the names never enter a
+   committed file.
+2. **At segment A's boundary:** STATUS; re-derive the ceiling from Tasks
+   1-3; confirm every fold reproduction was observed failing first.
+3. **At segment B's boundary:** STATUS; one `code-simplifier` round over
+   Tasks 1-7's accepted Go, pasting `.claude/instructions/simplifier-brief.md`
+   verbatim, its review chunked one `diff-reviewer` per package; **the
+   register gate on Task 4's mail copy**, one `prose-voice-reviewer`
+   dispatch against the Microsoft editor standard, folded by a small
+   implementer dispatch if it returns findings; then **one fresh-context
+   `web-auth-security-reviewer`** over this pass's diff. Its input is
+   this plan's threat-model section, the spec's threat model, both prior
+   reviews' "Attacked and found sound" lists as the do-not-re-litigate
+   record, **the 5b-ii findings Tasks 1 through 5 fold (majors 1-4 and
+   minors 7, 8, 10, 11, 12, 13, 15, 17, 19) as a "verify fixed" list**,
+   and the diff. Point it explicitly at the limiter design Ruling 1 chose
+   and its corrected lockout arithmetic (R-5c3), the stat-and-read order
+   (R-5c5), the lock order, the validated single-write bootstrap, and
+   the actor's under-lock admin re-check. It does not receive the task
+   decomposition. Fold or refuse each finding with the reason recorded;
+   the record is 5c-ii's and 5d's do-not-re-litigate list. R24's read
+   over the admin surface happens in 5c-ii, with the gate, the API, and
+   the page.
+4. **The merge ritual** (one lane in the main tree: gate, merge, gate;
+   one `diff-reviewer` over the merged result only if a rebase was not a
+   fast-forward), then **one `go-architecture-reader` per touched Go
+   package** (`internal/auth`, `internal/identity`, `cmd/dubplate-server`),
+   no plan in context.
+5. **Re-derive 5c-ii's figure from this pass's actual** before 5c-ii's
+   plan is drafted, and record the rung total against R23.
+6. **Do not deploy.**
+
+---
+
+## Execution model
+
+Workflow mode: the pass-execute chain per task, **sequential**, in
+**three segments**. Every task runs `dubplate-implementer`, then
+`diff-reviewer` (`claude-opus-5-5`), then the gate, with one re-dispatch
+on `fix` and a second `fix` as the conductor's decision.
+
+| Segment | Tasks | The boundary's own work |
+| --- | --- | --- |
+| **A** | 1, 2, 3 | STATUS. Re-derive the ceiling. Confirm failing-first observations. |
+| **B** | 4, 5, 6, 7 | STATUS. Simplifier over Tasks 1-7. The mail copy's register gate. The security read and its fold. |
+| **C** | 8 | The close drafts, the merge ritual, the architecture reads, the ledger fold. |
+
+Segment A carries three tasks and segment B four, each boundary on a
+task's own green committed gate, so each is a resume point. C is the
+close.
+
+**Models.** `sonnet` by default. **Three upshifts to `opus`, all
+unconditional**, dispatched as `claude-opus-5-5`: Task 1 (a
+cross-process concurrency fix whose broken variants pass every
+single-process test), Task 3 (the limiter's eviction and keying, where a
+wrong map passes every functional test), and Task 6 (the privilege grant,
+the validated bootstrap, and the invariant). Task 0 runs at `opus` in
+fresh context.
+
+**Dependencies, stated exactly:**
+
+- Task 0 first; its blockers are ruled before Task 1.
+- Task 1 → Tasks 2, 3, 6 (the locked write function and the reload).
+- Task 1 → Task 3 also by file (`handlers.go`).
+- Task 2 → Task 6 (the per-refusal errors and the actor rule).
+- Task 3 → Task 4 (`handlers.go`).
+- Task 4 → Task 5 (`auth.go`'s refusal shapes).
+- Task 6 → Task 7 (the channel, the bootstrap, and the guard).
+- Tasks 0-7 → Task 8.
+- **Independent by files:** Tasks 2 and 3; Task 5's nonce half against
+  everything. They still run sequentially, because one tree runs one
+  executor and the module gate runs over `./...`. The marks let the
+  conductor reorder when a dependency stalls, never admit a second
+  executor.
+
+**Rulings gate tasks, not the launch** (apart from Ruling 6). Ruling 6
+gates the launch; Rulings 2, 3, and 4 gate Task 2; Ruling 1 gates Task 3;
+and Ruling 5 gates Task 6. The plan is written to each recommended
+answer, so a "yes" dispatches as written and a "no" edits the named rows
+first.
+
+**Where this pass splits again, if it must:** at the Task 5 / Task 6
+boundary, if segment A's re-derivation projects past the 6.5M ceiling.
+Tasks 6 and 7 then move together to the head of 5c-ii, so the grant and
+the bootstrap never ship without the verb that calls them (R-5c20). The
+projection sits 1.78M under the ceiling, so this is a stated fallback,
+not an expectation.
+
+**Budget:** 6.5M execution, flag 5.2M, planning recorded separately,
+STATUS at each boundary, spend scored at close against the ceiling and
+against zero attended interactions. The eight folds and twenty
+resolutions are ruled at dispatch together and do not count as an
+execution sitting; the six rulings are the plan-approval gate's, not an
+execution sitting.
+
+---
+
+## Pass 5c-ii: the `web/` tree, the pages, and the gate leg (scoped outline)
+
+**This is an outline, not a plan, except for its head.** 5c-ii's plan is
+authored just in time after 5c-i merges, against the tree 5c-i leaves,
+with its figure re-derived from 5c-i's actual. Its first two tasks moved
+here from 5c-i revision 2 with the default cut (R-5c1) and are specified
+in full, so 5c-ii's plan adopts them rather than re-deriving them. The
+rest fixes scope, order, and the open questions its plan must close.
+
+### The head of 5c-ii: the admin gate, the roster API, and their wiring
+
+These two tasks run first in 5c-ii, before any `web/` task, because the
+add-member page is the roster API's second client and the document
+route mounts the gate. Resolutions R-5c12, R-5c13, and R-5c19's
+`rosterAPIWriteWait` govern them.
+
+### 5c-ii Task 1: The admin gate and the roster API
+
+Model: **`opus`**. Depends on 5c-i's merge (its Tasks 2 and 6), and on
+Ruling 5 (written to its recommended answer).
 
 Fork 1's second surface, backend half. The page is 5c-ii's; this task
 builds the handler it calls and the gate its document route will reuse.
 
 **Files:**
 - Create: `internal/auth/admin.go`, `internal/auth/admin_test.go`
+- Modify: `internal/auth/handlers.go`, `internal/auth/handlers_test.go`
+  (lift `readForm` from a method on `*handlers`, which reads
+  `h.cfg.BodyCap`, into a package function taking the cap, so the 5b-ii
+  handlers and the roster API share one body path rather than a
+  duplicate the simplifier would undo)
 
 **Interfaces:**
 - Consumes: `Seam.VerifyIdentity`; `SessionCookie`; `(*Roster).List`,
-  `(*Roster).AddMember`; Task 2's errors; `identity.ChannelCookie`.
+  `(*Roster).AddMember`; 5c-i Task 2's and Task 6's unexported errors;
+  `identity.ChannelCookie`.
 - Produces: `auth.RequireAdmin(cfg AdminConfig, next http.Handler)
-  http.Handler`, the gate, whose callers are this task's API and 5c-ii's
-  document route. `auth.NewRosterAPI(cfg AdminConfig) http.Handler`,
+  http.Handler`, the gate, whose callers are this task's API and the
+  add-member document route (5c-ii's served-header task), which mounts it
+  from `cmd/dubplate-server`, so it is born exported with its
+  cross-package caller in the same pass (R-5c20). `auth.NewRosterAPI(cfg AdminConfig) http.Handler`,
   which returns **the gated composition only**: `RequireAdmin` wrapping
   an unexported handler that answers GET (list) and POST (add) and 405
   otherwise. No ungated roster handler is exported, so no wiring mistake
@@ -2057,7 +2452,7 @@ builds the handler it calls and the gate its document route will reuse.
   store failure answers 500 with an outcome, never a partial list.
 - **POST** takes a form-encoded body (R-5c13): cap at `BodyCap` before
   parsing (`http.MaxBytesReader`, then `ParseForm`, as the 5b-ii handlers'
-  `readForm` does); read `address`, `display_name`, and
+  `readForm` does, after the lift above); read `address`, `display_name`, and
   `streamer_username` from `r.PostForm` only; refuse when an `admin` key
   appears in `r.Form`, body or query string, with any value, empty
   included; then call `AddMember` under a context bounded by
@@ -2080,7 +2475,7 @@ builds the handler it calls and the gate its document route will reuse.
 | body over the cap | 413 | `too_large` |
 | body unparseable | 400 | `malformed` |
 | the lock wait outlived `rosterAPIWriteWait` | 503 | `busy` |
-| any other error, the actor's under-lock admin re-check included | 500 | `failed` |
+| any other error, the actor-not-admin refusal included | 500 | `failed` |
 
 The outcomes are specific because the caller is already trusted
 (`spec:1421-1424`); the copy a person reads is 5c-ii's string deck.
@@ -2133,6 +2528,11 @@ The outcomes are specific because the caller is already trusted
    through a reader that counts bytes read).
 8. Return the inner handler ungated from `NewRosterAPI` → a non-admin
    GET answers the list.
+9. Skip `Identity.Valid` in the gate → a test identity on
+   `ChannelCommandLine` with `Admin` true, injected through a stub `Seam`,
+   reaches the inner handler (the verification read's finding 6: this is
+   the one production call that makes 5c-i's `Identity.Valid` refusal
+   protect anything).
 
 **2.0 hook: neutral to the schema, and it makes 2.0's web admin surface
 cheap**: `RequireAdmin` is the gate every later admin page reuses.
@@ -2140,17 +2540,16 @@ cheap**: `RequireAdmin` is the gate every later admin page reuses.
 **Prior art:** none external. The gate reuses the seam 5b-ii built and
 the outcome shape and body handling its handlers use.
 
-**Independent: yes, of Task 7 by files.**
+**Independent: no.** It opens 5c-ii.
 
 **Deliverable count: 4** (the gate with its refresh after the admin
 check, the GET, the POST with its outcome table and deadline, the
 admin-key refusal).
 
----
+### 5c-ii Task 2: The serve wiring, and the exit gate end to end
 
-## Task 9: The serve wiring, and the exit gate end to end
-
-Model: `sonnet`. Depends on Tasks 4, 7, and 8.
+Model: `sonnet`. Depends on 5c-i's merge (its Tasks 4 and 7) and 5c-ii
+Task 1.
 
 **Files:**
 - Modify: `cmd/dubplate-server/serve.go`, `cmd/dubplate-server/serve_test.go`
@@ -2191,9 +2590,9 @@ Model: `sonnet`. Depends on Tasks 4, 7, and 8.
   side too: a `member add` through the verb is visible to a subsequent
   GET through the shell without a restart.
 - A link minted by the real request-link handler, followed through the
-  shell, reaches the owned `login` stub and not the fallthrough (Task
-  4's test, re-run through the wired verb's own construction if Task 4
-  built it against a hand-assembled shell).
+  shell, reaches the owned `login` stub and not the fallthrough (5c-i
+  Task 4's test, re-run through the wired verb's own construction if
+  Task 4 built it against a hand-assembled shell).
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
@@ -2216,238 +2615,24 @@ Model: `sonnet`. Depends on Tasks 4, 7, and 8.
 **Deliverable count: 3** (the mount, the path decision, the end-to-end
 exit-gate rows).
 
----
-
-## Task 10: The pass close, and the 5c-i to 5c-ii handoff
-
-Model: `sonnet`. Depends on Tasks 0 through 9, the simplifier rounds,
-and the pass-end security read with its fold.
-
-**Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-5c-i.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-5c-i.md`
-
-**Outcomes:**
-
-- **The HISTORY draft** carries what landed per task with commit ids,
-  the gate evidence (`go test ./...` wall time and package-scoped times
-  with `-count=1`), the resolutions R-5c1 through R-5c20 with where each
-  landed, the six rulings and the seven conductor-owed folds with their
-  outcomes, the security read's disposition table, the declared coverage
-  gaps, both budgets, and "what a later pass would be wrong to
-  rediscover". The gaps are at minimum: R-5c15's CLI audit record; a hand
-  edit leaves no audit record; a lockless hand edit inside a write's
-  window is overwritten; the per-address map's untracked admission past
-  capacity; the two constraints carried to rung 12 (whether Navidrome
-  matches usernames with SQL `LIKE`, and that a principal must not map a
-  non-admin member onto a streamer admin account); and the absent
-  promote path.
-- **The spec corrections owed**, drafted paste-ready for the conductor:
-  the write-path `streamer_username` requirement (Ruling 4) against R3,
-  R1's write path (`spec:291-292`), "The roster" (`spec:1106-1107`), and
-  `spec:1417`'s "an optional streamer username"; `spec:1417`'s admin
-  checkbox (Ruling 5); the 5c row's split into 5c-i and 5c-ii with both
-  ceilings; R23's reservation against actuals (Ruling 6) and the web
-  surface standard section 15's "4.5M ceiling is unchanged" line; R24's
-  5c review shape across the split; review finding 11 against 5b-ii's
-  fold 7 (R-5c10); the public-URL path rule (R-5c9) against `spec:1033`'s
-  "Link hostnames derive from `DUBPLATE_PUBLIC_URL`"; review minor 6's
-  refusal (R-5c18) against the 5b-ii close's routing.
-- **The 5c-ii handoff**: the exported surface 5c-ii calls
-  (`RequireAdmin`, whose refusal is the shell's `http.NotFound`; the
-  roster API at `<prefix>/roster` and its outcome values; the
-  request-link and consume-link routes and outcomes from 5b-ii; the
-  `login/link` route the mailed link points at, served by the one
-  handler registered at `login`), the kind answer's admin contact as
-  data, and every outline item below that this pass's results changed.
-- **The 5d handoff**: the runbook row naming how an operator runs
-  `member add` without putting secrets in argv (R-5c14), and the runbook
-  sentence "kind mode's enumeration bound is the per-client key alone"
-  (R-5c18).
-- **The STATUS draft** stays present tense and under 60 lines.
-
-**Acceptance criteria:** every count in the drafts was produced by a
-command the report pastes; every commit id resolves; the STATUS draft is
-at most 60 lines. No gate change, so `bash scripts/check.sh` green as a
-formality.
-
-**Deliverable count: 4** (the HISTORY draft, the spec corrections, the
-two handoffs, the STATUS draft).
-
----
-
-## The exit gate
-
-`bash scripts/check.sh` green, plus every assertion below. The first
-five are the spec's 5c-row assertions (`spec:2331`) that fall in 5c-i's
-half; the rest are the security fold's and this plan's.
+**The spec 5c row's exit-gate assertions that move with them**
+(`spec:2331`), each proved by 5c-ii Task 2 through the real shell:
 
 1. A non-admin session receives 404 from the add-member route (the
-   roster API) while an admin session receives the roster.
-2. An add-member POST without a same-origin signal is denied, through
-   the real shell.
+   roster API, and later the add-member document) while an admin session
+   receives the roster.
+2. An add-member POST without a same-origin signal is denied.
 3. An add-member POST that succeeds writes one audit record naming the
    actor and the channel, and one that fails validation writes none and
    leaves the file unchanged.
-4. `member add --admin` against an absent roster creates it, and a
-   second invocation adds to the existing file rather than creating a
-   second.
-5. `member list` reads what the roster API wrote.
-6. Two independent roster values over one file, which `flock(2)` treats
-   as two processes (quoted in Task 1), lose no member and resurrect no
-   member removed by a hand edit between their writes, and the running
-   server stops resolving a hand-removed member at its next lookup
-   (finding 1).
-7. A mailed link's path is owned by the prefix and never reaches the
-   fallthrough (finding 2).
-8. A victim's spent per-address bucket survives a same-instant flood of
-   distinct addresses from distinct clients, and the flood leaves the
-   per-address map unchanged (finding 3, Ruling 1).
-9. One IPv6 /64 is one client (finding 4).
-10. Every loose roster variant finding 7 lists fails to load.
-11. No roster write can leave the roster with no admin, the bootstrap
-    included, and no channel but the command line can set the admin flag.
-12. No refusal message or log record carries a URL password or a cookie
-    value, and 5b-ii's test that no consumption log record carries the
-    token (named by Task 0 item 13) still passes, re-run rather than
-    rebuilt.
+4. `member list` reads what the roster API wrote.
 
----
+**The review focus line that moves with them:** a signed-in member
+without the admin flag probing the roster API with GET, POST, and a
+crafted `admin` field. Expected: the terminator's 404 for all, and no
+byte on disk changes.
 
-## Contested surfaces
-
-The conductor writes these rows into the parallel-approach spec's
-ownership table before the lane launches.
-
-| Surface | Owner | 5c-i's position | Contention |
-| --- | --- | --- | --- |
-| `internal/auth` | rung 5 | Edited across Tasks 1-8; `admin.go` born | Rung 6 edits it only at 6d, after 5d |
-| `internal/identity` | rung 5 | One constant, `Identity.Valid`'s refusal of it, one refusal set | Rung 6's 6d adds `UserID`, after 5d |
-| `cmd/dubplate-server/doctor.go` | rung 1's skeleton, rung 5's rows | Tasks 5, 6 | **Rung 6 lanes 6a and 6b edit it** (rung 6 spec `:1109-1118`); a concurrent lane 2 means a non-fast-forward rebase and the merge ritual's `diff-reviewer` |
-| `cmd/dubplate-server/main.go` | rung 1 | Task 7's `AddCommand` line | **Rung 6 edits the registration block**; same rule |
-| `cmd/dubplate-server/serve.go` | rung 5 | Tasks 4, 9 | Rung 6 edits it at 6d only |
-| `cmd/dubplate-server/auth.go` | rung 5 | Tasks 4, 5 | Rung 6 edits the `Required` list at 6d only |
-| `internal/config` | rung 1b's contract | **Untouched** (R-5c17) | Rung 6's 6c runs in lane 2 on this condition |
-| `config/roster.example.json` | rung 5 | Task 2's one field | none |
-| `go.mod` | shared | **Untouched** | rung 6 adds its SQLite driver |
-| `docs/` ledgers | conductor | Task 10 drafts only | every lane |
-
----
-
-## The conductor's actions
-
-Not tasks; no implementer performs them.
-
-1. **Before Task 1:** carry the six rulings to Geoff if the plan
-   approval did not answer them; rule Task 0's blockers and the seven
-   folds; write the lane registry entry and the contested-surface rows;
-   arm the runaway guard. **Before Task 2:** make Ruling 2's one
-   read-only query of the box's Navidrome usernames (production: read
-   only, no write) and record in STATUS whether every username fits the
-   write-path shape.
-2. **At segment A's boundary:** STATUS; re-derive the ceiling from Tasks
-   1-3; confirm every fold reproduction was observed failing first.
-3. **At segment B's boundary:** STATUS; one `code-simplifier` round over
-   Tasks 1-6's accepted Go, pasting `.claude/instructions/simplifier-brief.md`
-   verbatim, its review chunked one `diff-reviewer` per package; **the
-   register gate on Task 4's mail copy**, one `prose-voice-reviewer`
-   dispatch against the Microsoft editor standard, folded by a small
-   implementer dispatch if it returns findings.
-4. **At segment C's boundary:** one `code-simplifier` round over Tasks
-   7-9, chunked the same way; then **one fresh-context
-   `web-auth-security-reviewer`** over this pass's diff (R24's 5c read,
-   the roster write path and the admin surface it exists for). Its input
-   is this plan's threat-model section, the spec's threat model, both
-   prior reviews' "Attacked and found sound" lists as the
-   do-not-re-litigate record, **the 5b-ii findings Tasks 1 through 5
-   fold (majors 1-4 and minors 7, 8, 10, 11, 12, 13, 15, 17, 19) as a
-   "verify fixed" list**, and the diff. Point it explicitly at the
-   limiter design Ruling 1 chose and its corrected lockout arithmetic
-   (R-5c3), the stat-and-read order (R-5c5), the gate's 404 against the
-   terminator, the lock order, and the actor's under-lock admin
-   re-check. It does not receive the task decomposition. Fold
-   or refuse each finding with the reason recorded; the record is 5c-ii's
-   and 5d's do-not-re-litigate list.
-5. **The merge ritual** (one lane in the main tree: gate, merge, gate;
-   one `diff-reviewer` over the merged result only if a rebase was not a
-   fast-forward), then **one `go-architecture-reader` per touched Go
-   package** (`internal/auth`, `internal/identity`, `cmd/dubplate-server`),
-   no plan in context.
-6. **Re-derive 5c-ii's ceiling from this pass's actual** before 5c-ii's
-   plan is drafted, and record the rung total against R23.
-7. **Do not deploy.**
-
----
-
-## Execution model
-
-Workflow mode: the pass-execute chain per task, **sequential**, in
-**four segments**. Every task runs `dubplate-implementer`, then
-`diff-reviewer` (`claude-opus-5-5`), then the gate, with one re-dispatch
-on `fix` and a second `fix` as the conductor's decision.
-
-| Segment | Tasks | The boundary's own work |
-| --- | --- | --- |
-| **A** | 1, 2, 3 | STATUS. Re-derive the ceiling. Confirm failing-first observations. |
-| **B** | 4, 5, 6 | STATUS. Simplifier over Tasks 1-6. The mail copy's register gate. |
-| **C** | 7, 8, 9 | STATUS. Simplifier over Tasks 7-9. The security read and its fold. |
-| **D** | 10 | The merge ritual, the architecture reads, the ledger fold. |
-
-Segments A through C carry three tasks each, every boundary on a task's
-own green committed gate, so each is a resume point. D is the close.
-
-**Models.** `sonnet` by default. **Four upshifts to `opus`, all
-unconditional**, dispatched as `claude-opus-5-5`: Task 1 (a
-cross-process concurrency fix whose broken variants pass every
-single-process test), Task 3 (the limiter's eviction and keying, where a
-wrong map passes every functional test), Task 6 (the privilege grant and
-its invariant), and Task 8 (a cookie-authenticated privilege surface).
-Task 0 runs at `opus` in fresh context.
-
-**Dependencies, stated exactly:**
-
-- Task 0 first; its blockers are ruled before Task 1.
-- Task 1 → Tasks 2, 3, 6, 8 (the locked write function and the reload).
-- Task 1 → Task 3 also by file (`handlers.go`).
-- Task 2 → Tasks 6, 8 (the per-refusal errors and the actor rule).
-- Task 3 → Task 4 (`handlers.go`).
-- Task 4 → Task 5 (`auth.go`'s refusal shapes), Task 9 (the prefixed
-  link).
-- Task 6 → Tasks 7, 8 (the channel and the guard).
-- Tasks 7, 8 → Task 9.
-- Tasks 0-9 → Task 10.
-- **Independent by files:** Tasks 2 and 3; Tasks 7 and 8; Task 5's nonce
-  half against everything. They still run sequentially, because one tree
-  runs one executor and the module gate runs over `./...`. The marks let
-  the conductor reorder when a dependency stalls, never admit a second
-  executor.
-
-**Rulings gate tasks, not the launch** (apart from Ruling 6). Rulings 2
-and 3 must be answered before Task 2, Ruling 1 before Task 3, and Ruling
-5 before Task 8. The plan is written to each recommended answer, so a
-"yes" dispatches as written and a "no" edits the named rows first.
-
-**Where this pass splits again, if it must:** at the Task 6 / Task 7
-boundary, if segment A's re-derivation projects past 7.5M, which the
-projection's 0.1M margin makes likely rather than remote. Tasks 7-9
-would open 5c-ii, ahead of the `web/` tasks. Nothing argues against
-this cut the way 5b-ii's rejected cut was argued against, because
-Tasks 1-6 are fixes and a grant whose callers already exist in tests.
-
-**Budget:** 7.5M, flag 6.0M, STATUS at each boundary, spend scored at
-close against the ceiling and against zero attended interactions. The
-seven folds and twenty resolutions are ruled at dispatch together and do
-not count as an execution sitting; the six rulings are the plan-approval
-gate's, not an execution sitting.
-
----
-
-## Pass 5c-ii: the `web/` tree, the pages, and the gate leg (scoped outline)
-
-**This is an outline, not a plan.** 5c-ii's plan is authored just in time
-after 5c-i merges, against the tree 5c-i leaves, with its ceiling
-re-derived from 5c-i's actual. What follows fixes scope, order, and the
-open questions its plan must close, so nothing here is rediscovered.
+### The rest of 5c-ii
 
 **Scope, from `spec:2331` less 5c-i's half.** `web/` born as a SvelteKit
 static app under CLAUDE.md's web rule (Svelte 5 runes, DaisyUI 5,
@@ -2484,34 +2669,39 @@ registered at `login` serves both the login page and `login/link`, and
 SvelteKit's `_app` directory needs its own subtree. The registration of
 `login` is proved through 5c-i's prefixed-link test.
 
-**Proposed task order (about ten tasks plus Task 0 and the close):**
+**Proposed task order (the two head tasks above, then about ten `web/`
+tasks, plus Task 0 and the close, thirteen in all).** Thirteen passes
+this build's twelve-task line, so 5c-ii's plan should propose its own
+split, most naturally after the served-header task (the Go-side and
+delivery work on one side, the three pages, the gate leg, and the
+render-and-read on the other). The `web/` tasks, numbered from 3:
 
-1. The scaffold, the composed theme data, and the theme binding.
-2. The fonts, their licenses, and the manifest.
-3. The embed path, the placeholder, and the R4.5 rewrite per
+3. The scaffold, the composed theme data, and the theme binding.
+4. The fonts, their licenses, and the manifest.
+5. The embed path, the placeholder, and the R4.5 rewrite per
    prerendered document, with R14's theme keys and their validation.
-4. The branding stylesheet and the operator CSS file.
-5. The served header set (CSP on documents; `nosniff`,
+6. The branding stylesheet and the operator CSS file.
+7. The served header set (CSP on documents; `nosniff`,
    `Referrer-Policy: no-referrer`, and HSTS on **every owned response**,
    the roster API's and the 5b-ii JSON handlers' included, not only
    documents); the cache rules (`no-cache` documents, `no-store` on the
    consumption route's document, immutable hashed assets); and the
-   add-member document route behind 5c-i's `RequireAdmin`, whose refusal
+   add-member document route behind 5c-ii Task 1's `RequireAdmin`, whose refusal
    must track the served 404 document once W3.7's 404 lands rather than
    `http.NotFound`'s plain text.
-6. The login page and the string deck, with the deck's register gate.
+8. The login page and the string deck, with the deck's register gate.
    The deck includes the sign-out copy, bounded by the 5b-ii handoff: a
    stateless session survives sign-out, so the copy never claims
    revocation.
-7. The consumption interstitial at `login/link` under the prefix
+9. The consumption interstitial at `login/link` under the prefix
    (R-5c9): reads the token from `window.location`, clears it from the
    address bar, and POSTs it in a form field.
-8. The add-member page: the roster list with its empty state and admin
+10. The add-member page: the roster list with its empty state and admin
    marker, the form of address, display name, and streamer username with
    no admin control (R-5c13), and specific copy per 5c-i outcome value.
-9. The gate leg: G1-G10, the server-file check, Node required, the
+11. The gate leg: G1-G10, the server-file check, Node required, the
    rejoin sentences.
-10. Render and read all three pages at W4.1's viewports before any
+12. Render and read all three pages at W4.1's viewports before any
     attended check (`see-it-before-geoff-tests-it`).
 
 **Open questions 5c-ii's plan must close with quoted evidence:**
@@ -2557,13 +2747,17 @@ SvelteKit's `_app` directory needs its own subtree. The registration of
 
 **Reviewers inside 5c-ii:** `svelte-reviewer` and
 `daisyui-a11y-reviewer` with the web surface standard as their lens
-(section 15), and a narrow `web-auth-security-reviewer` read over the
-header set, the CSP, the embed path, and the add-member document route's
-gate (R24's "returns for the admin page", page half). The AI-tells rule
+(section 15), and **R24's full `web-auth-security-reviewer` read** over
+the admin gate, the roster API, their wiring, the header set, the CSP,
+the embed path, and the add-member document route: the
+cookie-authenticated, privilege-granting write R24 exists for, reviewed
+with the page that uses it. Its inputs add 5c-i's security-read record
+as do-not-re-litigate. The AI-tells rule
 runs inside; the string deck's register gate is separate (`spec:1432-1436`).
 
 **2.0 hooks:** neutral except hook 5 through DL R4.2's per-member theme
 row, which W5.10's signed-out cookie does not change.
 
-**Provisional ceiling: 10.0M** ("Token ceiling" above, subject to
-Ruling 6), re-derived from 5c-i's actual.
+**Provisional figure: about 10.3M** (about 9.25M execution and 1.0M
+planning; "Token ceiling" above, subject to Ruling 6), re-derived from
+5c-i's actual, plus about 1.0M more planning if its plan splits.

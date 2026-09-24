@@ -191,3 +191,97 @@ erratum is owed there.
   this fold.
 - The box's filesystem timestamp granularity is unmeasured. The
   racily-clean rule covers both cases.
+
+---
+
+## Revision 2.1: the verification read folded (revision 2 to 2.1)
+
+Input: `docs/superpowers/research/2026-09-23-rung-5c-plan-fold-verification.md`
+(V1-V12: 0 blockers, 3 majors, 9 minors), read against revision 2 at
+`562b9b2`. The coordinator's direction for this round: fold the three
+majors, with the Task 7 / Task 8 cut as the default rather than a
+fallback (a conductor ruling), and fold the minors where cheap.
+
+### What was checked before acting
+
+- **5b-ii's recorded figure.** `docs/HISTORY.md`'s top entry, "Both
+  budgets", records "about **6.4M against the 7.5M ceiling**", not
+  revision 2's 6.5M. The entry does not itemize the figure. The window's
+  contents (Task 0 through the close, the conductor's turns, simplifiers,
+  the security read) are inside it. Plan preparation (the 2026-09-12
+  window) and the four architecture reads (recorded after the close) are
+  outside it. So revision 2's 0.40M conductor line double-counted the
+  conductor's turns, as V3 suspected.
+- **Navidrome's username match.** Navidrome v0.63.2's
+  `persistence/user_repository.go` builds `user.user_name = ? COLLATE
+  NOCASE` for `FindByUsername`, and `model/user.go` comments "FindByUsername
+  must be case-insensitive" (read 2026-09-23 through the GitHub API at tag
+  `v0.63.2`). That is case-insensitive equality with no `LIKE`, which
+  settles review finding 15's worry and retires revision 2's rung 12
+  `LIKE` carry. The `user.user_name` column is confirmed by the v0.63.2
+  migration `20200819111809_drop_email_unique_constraint.go`. The
+  database path comes from `compose.yaml`'s `/srv/music/state/navidrome:/data`
+  volume.
+- **`r.Form`.** `go doc net/http.Request` says Form "contains the parsed
+  form data, including both the URL field's query parameters and the
+  PATCH, POST, or PUT form data".
+- **`errors.Join`.** `go doc errors.Join` says "A non-nil error returned
+  by Join implements the Unwrap() []error method." That confirms V10's
+  point that collecting every key needs a walk, not one `errors.As`.
+- **`sqlite3 --help`** documents `-readonly` as "open the database
+  read-only".
+
+### Dispositions, one per finding
+
+| ID | Sev | Disposition | Where |
+| --- | --- | --- | --- |
+| V1 | major | Folded: `CreateRoster` routes through the locked read-modify-write function in an absent-file mode, so the first member and the actor pass the same write-path validation as every later write. Adds four invalid-create refusal rows, an actor row, mutation 2 ("skip the candidate validation in `CreateRoster`"), a verb row for `--streamer-username ""`, and exit gate 7's clause | R-5c8, Task 6, Task 7, review focus 5, exit gate 7 |
+| V2 | major | Folded (conductor ruling, as directed): the cut at the Task 7 / Task 8 boundary is the default. 5c-i is Task 0, Tasks 1-7, and the close (renumbered Task 8). Revision 2's Tasks 8 and 9 head 5c-ii's outline in full, with the spec row's exit-gate assertions 1, 2, 3, and 5. The in-pass fallback moves to the Task 5 / Task 6 boundary, so the grant and bootstrap never ship without the verb (R-5c20) | The split, fold 1, Execution model, 5c-ii outline head |
+| V3 | major | Folded: re-derived from the recorded 6.4M over twelve tasks (0.533M per task, conductor turns included). Planning is counted as spent at launch, outside the ceiling. The 0.40M conductor line is removed as a double count and replaced by 0.15M of architecture reads. Projection 4.72M; ceiling 6.5M; flag 5.2M, a task's worth above the projection. Re-segmented A (Tasks 1-3), B (Tasks 4-7), C (the close) | Token ceiling, fold 10, Execution model |
+| V4 | minor | Folded: `errAdminGrantForbidden` is unexported. `RequireAdmin` and `NewRosterAPI` move with revision 2's Task 8 to 5c-ii, where the document route and the serve wiring in `cmd/dubplate-server` are their cross-package callers | R-5c7, R-5c20, 5c-ii Task 1 |
+| V5 | minor | Folded (new conductor-owed fold 12): `ChannelHeader` and `ChannelServiceToken` dropped, with a `channelNames` table. Mutation 1 reworked onto `ChannelCookie`. `seam.go` is added to Task 6's Files for the `VerifiedIdentity.Admin` comment, and `Identity.Valid`'s comment is corrected. `spec:1223` erratum added | R-5c7, Task 6, Task 8 corrections |
+| V6 | minor | Folded: R-5c7 is reworded ("fails `Identity.Valid`, which 5c-ii's gate requires"); mutation 9 ("skip `Identity.Valid` in the gate") moves with the gate | R-5c7, 5c-ii Task 1 |
+| V7 | minor | Folded: the file is aged to T0 before `OpenRoster` and restored to T0; the residual race is renamed "an old stat over new content"; the reviewer criterion now permits the change check's path stat | R-5c5, Task 1 |
+| V8 | minor | Folded: one gating line at all three sites ("Ruling 6 gates the launch; Rulings 2, 3, and 4 gate Task 2; Ruling 1 gates Task 3; and Ruling 5 gates Task 6"); Task 6's header names Ruling 5 | Rulings intro, Owner touchpoints, Execution model, Task 6 |
+| V9 | minor | Folded. Ruling 2 is narrowed to "may the conductor run one read-only query", and its "no" applies the shape unchecked with a recorded residual. Ruling 5's "no" names the tasks, gate, and table rows it re-writes. Ruling 6's "no" now moves the add-member surface to rung 7, because V9's suggested "no" (the Task 7 / Task 8 cut) became the default | Rulings 2, 5, 6; R-5c6 |
+| V10 | minor | Folded. The racily-clean rule is restated as the plan's own one-second rule with no git citation. `systemd-run` is handed to 5d as a claim to prove. `r.Form` is quoted. The Navidrome query is given exactly: `sudo sqlite3 -readonly /srv/music/state/navidrome/navidrome.db "SELECT user_name FROM user;"`, with two named pre-checks and a fallback to Ruling 2's "no". Task 5 now walks the join, with `errors.Join` quoted | R-5c5, R-5c10, R-5c13, R-5c14, R-5c6, Task 5, conductor action 1 |
+| V11 | minor | Folded: 5c-ii Task 1's Files add `internal/auth/handlers.go` (the `readForm` lift); Task 4's Files add `cmd/dubplate-server/doctor_test.go` | 5c-ii Task 1, Task 4 |
+| V12 | minor | Folded: a distinct unexported actor-not-admin error, plus mutation 6 ("return the no-admin error for a non-admin actor") | Task 6 |
+
+### Counts and refusals
+
+There are 12 findings, all folded, with no owner forks and no refusals.
+Every finding held against the tree, the Go source, or the recorded
+figure, and each fix was a plan edit. Two proposals were taken in a
+different form than proposed, each with a one-line reason:
+
+- **V3's alternative of folding the cut into Ruling 6** was not taken,
+  because the coordinator ruled the cut the default.
+- **V4's option of keeping `RequireAdmin` unexported in 5c-i** is moot,
+  because the gate moved to 5c-ii with its callers.
+
+### Errata owed, added this round
+
+- **Rung 5 spec, `spec:1223`.** Its three assertion channels become two
+  constants ("constants land with the source that asserts them"),
+  fold 12.
+- **Rung 5 spec, the 5c row (`spec:2331`).** Its exit-gate assertions 1,
+  2, 3, and 5 move to 5c-ii with the roster API; the 5c-i/5c-ii split
+  erratum already listed carries this.
+- **The rung 12 carry list.** The `LIKE` question is closed on Navidrome's
+  source; the account-collision constraint stays.
+
+### Unresolved after revision 2.1
+
+- **The six rulings.** They await Geoff.
+- **Planning spend.** The actual spend for drafting, the three lenses,
+  the fold, the verification, this fold, and the prose review is the
+  conductor's to record. The rung arithmetic estimates it at 1.5M.
+- **The Navidrome query's two pre-checks.** Whether `sqlite3` is
+  installed on the box, and whether `-readonly` opens the live WAL-mode
+  database while Navidrome holds it, are both unverified. Either failure
+  takes Ruling 2's "no" branch.
+- **The architecture-read estimate.** The 0.15M line has no recorded
+  basis in 5b-ii.
+- **5c-ii's size.** It now carries thirteen tasks plus Task 0, past the
+  twelve-task line, so its own plan should propose a split.
