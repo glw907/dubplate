@@ -84,6 +84,7 @@ func newProductionRegistry() *config.Registry {
 	registerShadowThresholds(reg)
 	registerServeConfig(reg)
 	registerAuthConfig(reg)
+	registerStoreConfig(reg)
 	return reg
 }
 

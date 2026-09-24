@@ -29,7 +29,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 		Short:         "Report the configuration wall",
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(*cobra.Command, []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			_, loadErr := config.Load(environ, reg)
 			statuses := rowStatuses(loadErr)
 
@@ -100,7 +100,16 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			if loadErr != nil || rosterFailed {
+			// The store row runs the inspect mode after every other
+			// row, always printing exactly one line, absent included
+			// row: a store the doctor run cannot vouch for is as
+			// reportable as a missing config key.
+			storeStatus, storeFailed := storeRow(cmd.Context(), environ)
+			if err := printRow(stdout, "store", storeStatus); err != nil {
+				return err
+			}
+
+			if loadErr != nil || rosterFailed || storeFailed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil

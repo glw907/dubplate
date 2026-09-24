@@ -46,12 +46,18 @@ func TestDoctorCmd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// The store row doctor now always prints reads
+			// DUBPLATE_STATE_DIR from environ itself, so every case
+			// here points it at a fresh t.TempDir() rather than
+			// baseEnviron's literal host path.
+			environ := replaceKey(tt.environ, "DUBPLATE_STATE_DIR", t.TempDir())
+
 			reg := config.NewRegistry()
 			registerShadowIntegration(reg)
 			registerShadowThresholds(reg)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(tt.environ, reg, &stdout, &stderr)
+			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
@@ -59,7 +65,7 @@ func TestDoctorCmd(t *testing.T) {
 			// same Load call, so the threshold expectation below
 			// reflects a relational refusal exactly as the row under
 			// test would.
-			_, loadErr := config.Load(tt.environ, reg)
+			_, loadErr := config.Load(environ, reg)
 			statuses := rowStatuses(loadErr)
 
 			if tt.wantErr {
@@ -111,7 +117,7 @@ func TestDoctorCmd(t *testing.T) {
 
 			for _, class := range reg.IntegrationClasses() {
 				status := "disabled"
-				if enabled, err := class.Enabled(tt.environ); err == nil && enabled {
+				if enabled, err := class.Enabled(environ); err == nil && enabled {
 					status = "enabled"
 				}
 				wantLine := fmt.Sprintf("%-32s %s", class.Name, status)
@@ -125,7 +131,7 @@ func TestDoctorCmd(t *testing.T) {
 			}
 
 			for _, th := range reg.Thresholds() {
-				want := thresholdStatus(tt.environ, statuses, th)
+				want := thresholdStatus(environ, statuses, th)
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before threshold row %s", th.Key)
 				}
@@ -136,8 +142,20 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			// The store row prints unconditionally, for every state
+			// row: this reg declares no identity source, so no
+			// roster row follows the thresholds, and the store row is
+			// the table's last line.
+			if li >= len(lines) {
+				t.Fatalf("stdout ran out of lines before the store row")
+			}
+			if wantPrefix := fmt.Sprintf("%-32s", "store"); !strings.HasPrefix(lines[li], wantPrefix) {
+				t.Errorf("store row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+			}
+			li++
+
 			if li != len(lines) {
-				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold rows: %v", len(lines)-li, lines[li:])
+				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store rows: %v", len(lines)-li, lines[li:])
 			}
 		})
 	}
@@ -169,9 +187,11 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	integrationCount := len(reg.IntegrationClasses())
 	thresholdCount := len(reg.Thresholds())
 	sourceCount := len(reg.IdentitySources())
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount
+	// +1 is the store row: it prints unconditionally, for every state
+	// row, so it is not one of reg's own declared families.
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + 1
 	if len(lines) != wantTotal {
-		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d)",
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + 1 store)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
 	}
 
@@ -310,8 +330,11 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+			environ = append(environ, tt.extra...)
+
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(append(baseEnviron(), tt.extra...), registry(), &stdout, &stderr)
+			cmd := newDoctorCmd(environ, registry(), &stdout, &stderr)
 			_ = cmd.Execute()
 
 			out := stdout.String()
@@ -510,7 +533,10 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 		t.Errorf("stdout has %d line(s) starting with %q, want exactly 1: one line per source, not per key", matches, "magic-link")
 	}
 
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources())
+	// +1 is the store row: it prints unconditionally, for every state
+	// row, and doctorEnviron's roster names an admin, so no
+	// roster row adds a second.
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 1
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -778,18 +804,23 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 				}
 			}
 
-			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 1
+			// +1 for the roster row (this failing case), +1 for the
+			// store row, which always prints.
+			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2
 			if len(lines) != wantTotal {
-				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row); stdout = %q", len(lines), wantTotal, out)
+				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row plus one store row); stdout = %q", len(lines), wantTotal, out)
 			}
 		})
 	}
 }
 
 // doctorEnviron returns authEnviron with DUBPLATE_ROSTER_FILE naming a
-// roster of one admin, written into t.TempDir(). doctor fails a roster
-// that names no admin, so a test expecting the roster to pass needs one
-// that does rather than authEnviron's empty roster.
+// roster of one admin, written into t.TempDir(), and DUBPLATE_STATE_DIR
+// pointed at a fresh t.TempDir() of its own: doctor's store row now
+// inspects that directory, and authEnviron's own fixed path is not one
+// a test process may create the store leaf's directories under. doctor
+// fails a roster that names no admin, so a test expecting the roster
+// to pass needs one that does rather than authEnviron's empty roster.
 func doctorEnviron(t *testing.T) []string {
 	t.Helper()
 	rosterPath := filepath.Join(t.TempDir(), "roster.json")
@@ -797,7 +828,8 @@ func doctorEnviron(t *testing.T) []string {
 	if err := os.WriteFile(rosterPath, []byte(admin), 0o600); err != nil {
 		t.Fatalf("write fixture roster: %v", err)
 	}
-	return append(dropKey(authEnviron(t), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
+	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+	return append(dropKey(environ, "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
 }
 
 // doctorLines runs newDoctorCmd against reg with a satisfied base
@@ -807,8 +839,9 @@ func doctorEnviron(t *testing.T) []string {
 // the point of a line-count assertion.
 func doctorLines(t *testing.T, reg *config.Registry) []string {
 	t.Helper()
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(baseEnviron(), reg, &stdout, &stderr)
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
 	_ = cmd.Execute()
 	return strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
 }
@@ -817,8 +850,10 @@ func doctorLines(t *testing.T, reg *config.Registry) []string {
 // table-driven test above cannot go vacuous if OwnedWall ever returned
 // an empty table.
 func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(baseEnviron(), config.NewRegistry(), &stdout, &stderr)
+	cmd := newDoctorCmd(environ, config.NewRegistry(), &stdout, &stderr)
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -870,9 +905,10 @@ func TestDoctorCmd_ShadowRows(t *testing.T) {
 	reg := config.NewRegistry()
 	registerShadowIntegration(reg)
 	registerShadowThresholds(reg)
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(baseEnviron(), reg, &stdout, &stderr)
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -892,7 +928,7 @@ func TestDoctorCmd_ShadowRows(t *testing.T) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantDisabled)
 	}
 
-	enabledEnviron := append(baseEnviron(),
+	enabledEnviron := append(environ,
 		"DUBPLATE_SHADOW_ENABLED=true",
 		"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox",
 		"DUBPLATE_SHADOW_ORACLE_STATE_DIR=/var/lib/incumbent",
@@ -922,8 +958,10 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 		Doc:     "a float between 0 and 1",
 	})
 
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(baseEnviron(), reg, &stdout, &stderr)
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -931,5 +969,121 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 	wantLine := fmt.Sprintf("%-32s %s\n", "DUBPLATE_TEST_STRONG_REC_THRESH", "0.04")
 	if !strings.Contains(stdout.String(), wantLine) {
 		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantLine)
+	}
+}
+
+// TestDoctorCmd_StoreBusyTimeoutDefault proves the threshold row shows
+// 15s by default and the set value when set, in the same "%-32s %s"
+// form every duration threshold uses.
+func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
+	reg := config.NewRegistry()
+	registerStoreConfig(reg)
+
+	tests := []struct {
+		name  string
+		extra []string
+		want  string
+	}{
+		{name: "default", want: "15s"},
+		{name: "set", extra: []string{"DUBPLATE_STORE_BUSY_TIMEOUT=30s"}, want: "30s"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()), tt.extra...)
+
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			_ = cmd.Execute()
+
+			want := fmt.Sprintf("%-32s %s\n", "DUBPLATE_STORE_BUSY_TIMEOUT", tt.want)
+			if !strings.Contains(stdout.String(), want) {
+				t.Errorf("stdout = %q, want it to contain %q", stdout.String(), want)
+			}
+		})
+	}
+}
+
+// TestDoctorCmd_StoreBusyTimeoutOutOfRange proves the states table's
+// busy-timeout rows: 0s, -1s, 500us, and 1000h (3600000000ms, the risk
+// review's measured over-range value) each leave the store row reading
+// "not checked" and naming the key and the bound it crossed, while the
+// threshold row still shows the parsed value unchanged, and doctor
+// exits 1. 2147483647ms passes both rows.
+func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
+	reg := config.NewRegistry()
+	registerStoreConfig(reg)
+
+	tests := []struct {
+		name       string
+		value      string
+		wantErr    bool
+		wantBound  string
+		wantValStr string
+	}{
+		{name: "zero", value: "0s", wantErr: true, wantBound: "at least 1ms", wantValStr: "0s"},
+		{name: "negative", value: "-1s", wantErr: true, wantBound: "at least 1ms", wantValStr: "-1s"},
+		{name: "below one millisecond", value: "500us", wantErr: true, wantBound: "at least 1ms", wantValStr: "500µs"},
+		{name: "far above the ceiling", value: "1000h", wantErr: true, wantBound: "at most 2147483647ms", wantValStr: "1000h0m0s"},
+		{name: "at the ceiling", value: "2147483647ms", wantErr: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()),
+				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
+
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			err := cmd.Execute()
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Fatalf("Execute() error = %v, want nil", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatal("Execute() error = nil, want a refusal: the busy timeout is out of range")
+			}
+
+			out := stdout.String()
+			wantThreshold := fmt.Sprintf("%-32s %s\n", "DUBPLATE_STORE_BUSY_TIMEOUT", tt.wantValStr)
+			if !strings.Contains(out, wantThreshold) {
+				t.Errorf("stdout = %q, want it to contain %q (the threshold row shows the parsed value unchanged)", out, wantThreshold)
+			}
+
+			wantStore := fmt.Sprintf("%-32s not checked: DUBPLATE_STORE_BUSY_TIMEOUT must be %s\n", "store", tt.wantBound)
+			if !strings.Contains(out, wantStore) {
+				t.Errorf("stdout = %q, want it to contain %q", out, wantStore)
+			}
+		})
+	}
+}
+
+// TestDoctorCmd_AbsentStoreCreatesNothing proves a doctor run against
+// an absent store creates nothing under the state directory: the
+// directory listing is identical before and after.
+func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
+	stateDir := t.TempDir()
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
+	reg := config.NewRegistry()
+	registerStoreConfig(reg)
+
+	before, err := os.ReadDir(stateDir)
+	if err != nil {
+		t.Fatalf("ReadDir(%s) before: %v", stateDir, err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	_ = cmd.Execute()
+
+	after, err := os.ReadDir(stateDir)
+	if err != nil {
+		t.Fatalf("ReadDir(%s) after: %v", stateDir, err)
+	}
+	if len(before) != 0 || len(after) != 0 {
+		t.Fatalf("state directory listing before = %v, after = %v, want both empty", before, after)
 	}
 }

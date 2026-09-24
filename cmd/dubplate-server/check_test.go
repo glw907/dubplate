@@ -70,15 +70,19 @@ func dropKey(environ []string, name string) []string {
 
 func TestCheckCmd(t *testing.T) {
 	tests := []struct {
-		name    string
-		environ []string
-		wantOK  bool
-		errHas  []string
+		name         string
+		environ      []string
+		tempStateDir bool // replace DUBPLATE_STATE_DIR with t.TempDir(): a case whose store the run inspects must never read the host's own state directory.
+		wantOK       bool
+		wantStdout   string
+		errHas       []string
 	}{
 		{
-			name:    "full valid wall",
-			environ: baseEnviron(),
-			wantOK:  true,
+			name:         "full valid wall",
+			environ:      baseEnviron(),
+			tempStateDir: true,
+			wantOK:       true,
+			wantStdout:   "configuration: ok\nstore: absent\n",
 		},
 		{
 			name:    "missing STATE_DIR",
@@ -90,8 +94,13 @@ func TestCheckCmd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			environ := tt.environ
+			if tt.tempStateDir {
+				environ = replaceKey(environ, "DUBPLATE_STATE_DIR", t.TempDir())
+			}
+
 			var stdout, stderr bytes.Buffer
-			cmd := newCheckCmd(tt.environ, config.NewRegistry(), &stdout, &stderr)
+			cmd := newCheckCmd(environ, config.NewRegistry(), &stdout, &stderr)
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
@@ -99,8 +108,8 @@ func TestCheckCmd(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Execute() error = %v, want nil", err)
 				}
-				if got := stdout.String(); got != "configuration: ok\n" {
-					t.Errorf("stdout = %q, want %q", got, "configuration: ok\n")
+				if got := stdout.String(); got != tt.wantStdout {
+					t.Errorf("stdout = %q, want %q", got, tt.wantStdout)
 				}
 				if stderr.Len() != 0 {
 					t.Errorf("stderr = %q, want empty", stderr.String())
@@ -161,5 +170,93 @@ func TestCheckCmd_EmptyEnvironment(t *testing.T) {
 	}
 	if stderr.Len() != 0 {
 		t.Errorf("stderr = %q, want empty; check must not print its own error", stderr.String())
+	}
+}
+
+// TestCheckCmd_StoreRow proves the acceptance criterion: check against
+// an absent store prints "configuration: ok" then "store: absent" and
+// exits 0, and against a zero-byte database prints the not-a-store
+// line and exits nonzero. Fixture state: a full valid environment, so
+// only the store differs.
+func TestCheckCmd_StoreRow(t *testing.T) {
+	t.Run("absent store exits zero", func(t *testing.T) {
+		environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+
+		var stdout, stderr bytes.Buffer
+		cmd := newCheckCmd(environ, config.NewRegistry(), &stdout, &stderr)
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v, want nil", err)
+		}
+		want := "configuration: ok\nstore: absent\n"
+		if got := stdout.String(); got != want {
+			t.Errorf("stdout = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("zero-byte database exits nonzero", func(t *testing.T) {
+		stateDir := t.TempDir()
+		buildZeroByteStoreLeaf(t, stateDir)
+		environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
+
+		var stdout, stderr bytes.Buffer
+		cmd := newCheckCmd(environ, config.NewRegistry(), &stdout, &stderr)
+		err := cmd.Execute()
+		if err == nil {
+			t.Fatal("Execute() error = nil, want a refusal: the database is an unfinished create, not a store")
+		}
+
+		out := stdout.String()
+		if !strings.HasPrefix(out, "configuration: ok\n") {
+			t.Errorf("stdout = %q, want it to start with %q", out, "configuration: ok\n")
+		}
+		if !strings.Contains(out, "store: not a store: ") {
+			t.Errorf("stdout = %q, want a store row naming not a store", out)
+		}
+	})
+}
+
+// TestCheckCmd_BusyTimeoutBounds proves the busy timeout's range check runs
+// before the inspect mode: an out-of-range value fails naming the key,
+// and no store line prints.
+func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
+	tests := []struct {
+		name   string
+		value  string
+		wantOK bool
+	}{
+		{name: "zero", value: "0s"},
+		{name: "negative", value: "-1s"},
+		{name: "below one millisecond", value: "500us"},
+		{name: "far above the ceiling", value: "1000h"},
+		{name: "at the ceiling", value: "2147483647ms", wantOK: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()),
+				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
+			reg := config.NewRegistry()
+			registerStoreConfig(reg)
+
+			var stdout, stderr bytes.Buffer
+			cmd := newCheckCmd(environ, reg, &stdout, &stderr)
+			err := cmd.Execute()
+
+			if tt.wantOK {
+				if err != nil {
+					t.Fatalf("Execute() error = %v, want nil", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatal("Execute() error = nil, want a refusal: the busy timeout is out of range")
+			}
+			if !strings.Contains(err.Error(), "DUBPLATE_STORE_BUSY_TIMEOUT") {
+				t.Errorf("error = %q, want it to name DUBPLATE_STORE_BUSY_TIMEOUT", err.Error())
+			}
+			if strings.Contains(stdout.String(), "store:") {
+				t.Errorf("stdout = %q, want no store line: the bound check runs before the inspect mode", stdout.String())
+			}
+		})
 	}
 }
