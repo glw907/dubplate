@@ -43,7 +43,7 @@ func fullyMigratedStore(t *testing.T) (leaf, *handle) {
 	return l, h
 }
 
-// TestSchemaApplicationIDMarksEveryFixture is R-6a5: the store marker
+// TestSchemaApplicationIDMarksEveryFixture asserts the store marker
 // reads back from application_id over every migration's populated
 // fixture, not only an empty database.
 func TestSchemaApplicationIDMarksEveryFixture(t *testing.T) {
@@ -103,7 +103,7 @@ func TestSchemaJobFixtureSnapshotSurvivesUpgrade(t *testing.T) {
 	}
 }
 
-// TestSchemaPathChecks is R-6a9: collections.root_path and
+// TestSchemaPathChecks asserts collections.root_path and
 // tracks.rel_path each refuse an absolute path, a path with an empty,
 // ".", or ".." component, or a path carrying NUL, and accept a
 // well-formed relative path.

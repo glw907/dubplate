@@ -462,7 +462,7 @@ func TestSchemaSkeletonSatisfiesInvariants(t *testing.T) {
 	}
 }
 
-// TestSchemaMigrationsCarryPopulatedFixtures is R-6a15: every embedded
+// TestSchemaMigrationsCarryPopulatedFixtures asserts every embedded
 // migration ships a populated fixture under testdata/fixtures, named
 // after it. For each one, the test migrates to that version, applies
 // the fixture, migrates to the head, and checks invariants still hold;
