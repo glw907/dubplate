@@ -27,15 +27,12 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
    round each on 1 and 2); spend about 1.66M with Task 0. Re-derived: segment B about 2.2M, the
    simplifier round about 0.4M, segment C about 0.8M, so about 5.1M against the 5.44M flag and 6.8M
    ceiling. Segment B (Tasks 4-7) in flight; Task 0's notes 7 and 8 ride Task 7's brief.
-2. **5c-ii's plan, revision 2.2** (`plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
-   `a2f63bb`), reviewed by three lenses, verified, and prose-folded, awaits Geoff's seven rulings.
-   Lane 1 opens on it once approved.
-3. **Beets 2.14.1** is parked in `stash@{0}` (shim adaptation, venv pins, manifest, full derive:
-   209 cases change `config_hash` only, six `adv-ft-*` cases move strong/apply to medium/skip). It
-   needs its own small pass: retire the matcher's ft compat class (`BeetsSDPatterns`, four tests),
-   add six sanctioned empty search responses (a corpus edit the classifier refused an agent; Geoff
-   approves), re-freeze, ledgers, `BEETS_VERSION`. Filed with it: Go RE2's ASCII `\b` against
-   Python's Unicode `\b`, and 2.14's empty-query search skip for the musicbrainz port.
+2. **5c-ii is approved** (Geoff, 2026-09-24, all seven rulings yes): revision 2.2 at
+   `plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`, 9.4M ceiling, 5c-iii split off.
+   It opens in lane 1 once the beets adoption lands (one executor per tree).
+3. **Beets 2.14.1 adoption runs in lane 1** (Geoff, 2026-09-24: "do that in this pass"; the six
+   sanctioned empty-search corpus edits approved with it): shim adaptation from the parked stash,
+   the matcher's ft compat class retired, re-freeze, ledgers, `BEETS_VERSION`.
 4. The architecture cleanup pass joins the staged comment-cleanup task
    (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 

@@ -1,6 +1,6 @@
 # Rung 5, Pass 5c-ii (The Admin Gate, the Roster API, and the `web/` Tree Born Gated) Implementation Plan
 
-Status: **revision 2.2, 2026-09-24, prose folded, awaiting owner approval.**
+Status: **revision 2.2, 2026-09-24; approved by Geoff 2026-09-24 with all seven rulings yes.**
 Revision 1 (`3ebfe3c`) took three lens reviews (`140e3cd`:
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
 `-mechanics.md`, `-risk.md`); revision 2 (`74066b1`) folded them and
