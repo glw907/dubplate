@@ -1,6 +1,6 @@
 # Rung 5, Pass 5c-i (The Security Fold, the CLI Admin Grant, and the `member` Verb) Implementation Plan
 
-Status: **revision 2.1, 2026-09-23.** Revision 2.1 folds the verification
+Status: **revision 2.1, 2026-09-23, APPROVED by Geoff 2026-09-23: all six rulings yes.** Revision 2.1 folds the verification
 read (`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-verification.md`,
 zero blockers, three majors, nine minors; the fold record's "Revision 2.1"
 section disposes each). Its largest change is structural: the cut at the
@@ -37,6 +37,15 @@ reasons are in "The split" below.
 
 ## Rulings Geoff reads first
 
+> **Ruled, Geoff, 2026-09-23: yes to all six.** Ruling 2's read-only query ran
+> the same evening (`sqlite3 -readonly` on the box's `navidrome.db`,
+> `SELECT user_name FROM user`): the estate holds one account, and its name
+> is email-shaped, so it failed the drafted shape on `@`. Under ruling 2's yes
+> branch the conductor widened R-5c6's write-path shape to
+> `[A-Za-z0-9][A-Za-z0-9._@+-]*` before Task 2 (`+` admitted with `@`, since
+> email-shaped handles carry it). No case-insensitive duplicate exists. The
+> name itself is not recorded here.
+
 Six yes-or-no questions. Each carries a recommendation, and the plan is
 written to the recommended answer, so a "yes" changes nothing and a "no"
 names the edit. Ruling 6 gates the launch; Rulings 2, 3, and 4 gate Task
@@ -63,7 +72,7 @@ names the edit. Ruling 6 gates the launch; Rulings 2, 3, and 4 gate Task
    usernames before Task 2?** Recommendation: yes. A `streamer_username`
    names a member's existing streamer account, so a shape rule that
    refuses an existing account name would stop that member being added.
-   The write-path shape is `[A-Za-z0-9][A-Za-z0-9._-]*` (R-5c6), and
+   The write-path shape is `[A-Za-z0-9][A-Za-z0-9._@+-]*` (R-5c6), and
    Navidrome v0.63.2 matches usernames by case-insensitive equality, not
    by SQL `LIKE` (its `FindByUsername` builds `user.user_name = ? COLLATE
    NOCASE`, `persistence/user_repository.go`, read 2026-09-23), so the one
@@ -681,7 +690,7 @@ this pass still loads. The close owes three passages an erratum: R3,
 R1's write path (`spec:291-292`), and "The roster" (`spec:1106-1107`),
 plus `spec:1417`'s "an optional streamer username".
 
-On the write path the shape is `[A-Za-z0-9][A-Za-z0-9._-]*`, up to the
+On the write path the shape is `[A-Za-z0-9][A-Za-z0-9._@+-]*`, up to the
 existing 64-byte bound. The alphanumeric first character refuses `.`,
 `..`, and a leading `-` at no cost to any plausible account name. Both
 cases are admitted, because lowercase-only would refuse an existing
@@ -1444,7 +1453,7 @@ plus the per-refusal errors the roster API maps to specific outcomes
   refuses every name with a space in it, "Alice Example" included (the
   mechanics lens's finding 1).
 - **`streamer_username` on the write path matches
-  `[A-Za-z0-9][A-Za-z0-9._-]*`** within the existing 64-byte bound
+  `[A-Za-z0-9][A-Za-z0-9._@+-]*`** within the existing 64-byte bound
   (Ruling 2, R-5c6); the loader keeps today's ASCII-printable check.
   **Uniqueness compares with `strings.EqualFold`** at load, in `doctor`'s
   collision check, and at write time inside the lock.
