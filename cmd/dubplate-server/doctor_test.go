@@ -622,10 +622,11 @@ func TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce(t *testing.T) {
 // TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix proves
 // R-5c10's mechanism: doctor reads a Validate refusal's failing key from
 // [sourceKeyError]'s own field via errors.As, never by parsing the
-// rendered message's prefix. The fixture's reason begins with a
-// colon-bearing phrase that resembles a key; a doctor that parsed the
-// message text instead of the type would print that phrase, not the
-// real key, once the parse point moved past the real key's own colon.
+// rendered message's prefix. The fixture wraps [sourceKeyError] behind
+// an outer fmt.Errorf, so the leaf error's rendered text carries a
+// colon-bearing prefix before the real key's own colon: a doctor that
+// cut the message at its first or its last ": " would read that outer
+// prefix, not the real key.
 func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 	const (
 		selector = "DUBPLATE_TEST_SCRATCH_SELECTOR"
@@ -635,7 +636,7 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 		Name:     "scratch",
 		Selector: selector,
 		Validate: func(map[string]string, []string) error {
-			return &sourceKeyError{key: key, reason: "DUBPLATE_TEST_SCRATCH_OTHER: not a real key, part of the reason text"}
+			return fmt.Errorf("scratch refusal: %w", &sourceKeyError{key: key, reason: "not really used"})
 		},
 	}
 	environ := []string{selector + "=scratch"}
