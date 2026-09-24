@@ -188,21 +188,57 @@ func TestMemberAddCmd_MissingRequiredFlagsRefusedBeforeOpen(t *testing.T) {
 	}
 }
 
-func TestMemberAddCmd_InvalidRosterReportsLoadError(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	writeFixtureRoster(t, rosterPath, `not valid json`)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the roster load error")
+// TestMemberCmd_InvalidRosterReportsLoadError proves that both
+// subcommands answer a load failure the same way, because both open
+// the roster through auth.OpenRoster before doing anything else: a
+// file that fails to parse and one that parses but fails validation
+// (a duplicate address) each surface as a non-nil error naming
+// rosterPath, for "add" and for "list".
+func TestMemberCmd_InvalidRosterReportsLoadError(t *testing.T) {
+	tests := []struct {
+		name    string
+		fixture string
+	}{
+		{
+			name:    "unparseable JSON",
+			fixture: `not valid json`,
+		},
+		{
+			name: "duplicate address fails validation",
+			fixture: `{"schema_version":1,"members":[` +
+				`{"address":"a@example.test","display_name":"A","streamer_username":"a","admin":true},` +
+				`{"address":"a@example.test","display_name":"A2","streamer_username":"a2"}` +
+				`]}`,
+		},
 	}
-	if !strings.Contains(err.Error(), rosterPath) {
-		t.Errorf("error = %q, want it to name the roster path %q", err.Error(), rosterPath)
+	subcommands := []struct {
+		name string
+		args []string
+	}{
+		{name: "add", args: []string{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"}},
+		{name: "list", args: []string{"list"}},
+	}
+
+	for _, tt := range tests {
+		for _, sub := range subcommands {
+			t.Run(tt.name+"/"+sub.name, func(t *testing.T) {
+				environ := memberEnviron(t)
+				rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
+				writeFixtureRoster(t, rosterPath, tt.fixture)
+
+				var stdout, stderr bytes.Buffer
+				cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
+				cmd.SetArgs(sub.args)
+
+				err := cmd.Execute()
+				if err == nil {
+					t.Fatal("Execute() error = nil, want the roster load error")
+				}
+				if !strings.Contains(err.Error(), rosterPath) {
+					t.Errorf("error = %q, want it to name the roster path %q", err.Error(), rosterPath)
+				}
+			})
+		}
 	}
 }
 
@@ -429,6 +465,41 @@ func TestMemberListCmd_PrintsExactRosterTable(t *testing.T) {
 	// want is a literal, independent of printMemberList's own format
 	// string, so a regression in that format (a dropped column, a
 	// changed separator) is caught rather than echoed on both sides.
+	want := "ADDRESS\tDISPLAY NAME\tSTREAMER USERNAME\tADMIN\n" +
+		"a@example.test\tAlice\talice\tyes\n" +
+		"b@example.test\tBob\tbob\t\n"
+	if got := stdout.String(); got != want {
+		t.Errorf("stdout = %q, want %q", got, want)
+	}
+}
+
+// TestMemberListCmd_ReadsWhatAddWrote proves list reads the roster
+// add itself wrote, rather than only a hand-written fixture: it runs
+// "member add --admin" to create the roster, then a second, non-admin
+// "member add", both through newMemberCmd, and asserts list's exact
+// stdout against the two members that produced.
+func TestMemberListCmd_ReadsWhatAddWrote(t *testing.T) {
+	environ := memberEnviron(t)
+
+	addCmd := newMemberCmd(environ, productionRegistry(), &bytes.Buffer{}, &bytes.Buffer{})
+	addCmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--streamer-username", "alice", "a@example.test"})
+	if err := addCmd.Execute(); err != nil {
+		t.Fatalf("first add Execute() error = %v, want nil", err)
+	}
+
+	addCmd = newMemberCmd(environ, productionRegistry(), &bytes.Buffer{}, &bytes.Buffer{})
+	addCmd.SetArgs([]string{"add", "--name", "Bob", "--streamer-username", "bob", "b@example.test"})
+	if err := addCmd.Execute(); err != nil {
+		t.Fatalf("second add Execute() error = %v, want nil", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	listCmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
+	listCmd.SetArgs([]string{"list"})
+	if err := listCmd.Execute(); err != nil {
+		t.Fatalf("list Execute() error = %v, want nil", err)
+	}
+
 	want := "ADDRESS\tDISPLAY NAME\tSTREAMER USERNAME\tADMIN\n" +
 		"a@example.test\tAlice\talice\tyes\n" +
 		"b@example.test\tBob\tbob\t\n"
