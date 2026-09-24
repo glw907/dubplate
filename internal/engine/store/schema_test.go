@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"os"
 	"path/filepath"
 	"testing"
@@ -53,6 +54,52 @@ func TestSchemaApplicationIDMarksEveryFixture(t *testing.T) {
 	}
 	if marker != storeMarker {
 		t.Errorf("application_id = %#x, want the store marker %#x", marker, storeMarker)
+	}
+}
+
+// TestSchemaJobFixtureSnapshotSurvivesUpgrade is spec criterion 9's
+// embedded half: migrating the populated job-records fixture (version
+// 2) forward through the skeleton leaves pre-migrate-v2.db at
+// user_version 2, holding the fixture's three job rows.
+func TestSchemaJobFixtureSnapshotSurvivesUpgrade(t *testing.T) {
+	l, h := newMigrateStore(t)
+	ctx := context.Background()
+
+	if err := migrate(ctx, h, l, migrationSourceThrough(t, 2), defaultOpts()); err != nil {
+		t.Fatalf("migrate to version 2: %v", err)
+	}
+	fixture, err := os.ReadFile(filepath.Join("testdata", "fixtures", "0002_jobs.sql"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	if _, err := h.write.ExecContext(ctx, string(fixture)); err != nil {
+		t.Fatalf("apply fixture: %v", err)
+	}
+
+	if err := migrate(ctx, h, l, migrationSource(), defaultOpts()); err != nil {
+		t.Fatalf("migrate to head: %v", err)
+	}
+
+	snapPath := filepath.Join(l.snapshotsDir, preMigrateName(2))
+	db, err := sql.Open(sqliteDriverName, inspectDSN(snapPath, migrateBusy))
+	if err != nil {
+		t.Fatalf("open snapshot %s: %v", snapPath, err)
+	}
+	defer func() { _ = db.Close() }()
+
+	var version int
+	if err := db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		t.Fatalf("read user_version: %v", err)
+	}
+	if version != 2 {
+		t.Errorf("snapshot user_version = %d, want 2", version)
+	}
+	var jobs int
+	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM jobs").Scan(&jobs); err != nil {
+		t.Fatalf("count jobs: %v", err)
+	}
+	if jobs != 3 {
+		t.Errorf("snapshot holds %d job rows, want the fixture's 3", jobs)
 	}
 }
 
