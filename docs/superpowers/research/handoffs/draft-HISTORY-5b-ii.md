@@ -28,8 +28,15 @@ at 140.9s and `internal/harness` at 11.6s dominate; every other package
 under 2.2s). Package-scoped: `internal/auth` **2.1s**, `internal/identity`
 **0.006s**, `internal/notify` **0.027s**, `internal/serve` **1.1s**
 (all `-count=1`). `bash scripts/check.sh` ran green (exit 0) through
-`cairn-run-gate` at this close; the wrapper does not print a wall-clock
-total, so no number is claimed for it beyond "green".
+`cairn-run-gate` at this close; the wrapper printed no wall-clock total
+at the time, so this draft's first round left the claim as a bare
+"green" (the first thing 5b-i's reviewer escalated, and this round's
+own escalation). **Corrected**: re-running the same gate at this close's
+own commit with `time CAIRN_GATE_LANE=light cairn-run-gate 'bash
+scripts/check.sh'` measured **1m10.099s real** (`6m35.341s` user,
+`0m3.586s` sys) for a clean pass. This is a fresh measurement at this
+close's own commit, not a reconstruction of the historical merge's own
+wall time, which no artifact recorded.
 
 `.gitleaksignore` and `env/` are byte-identical across `1d4ed29..HEAD`
 (`git diff` empty for both). `go.mod` gained exactly the two dependencies
@@ -179,31 +186,205 @@ The segment-D simplifier (`08befea`) hoisted the generic-answer send's
 `context.WithoutCancel(r.Context())` call out of the goroutine closure
 into the caller, behavior-neutral.
 
+### The contract coverage, D1 through D13
+
+Each row names the clause's Go site (file and symbol) and the test that
+proves it. No D-clause in this pass has a stated no-test reason; every
+one has a running test. D5 and D11 carry a note on the limits of what
+their tests currently reach.
+
+| Clause | Go site | Proving test |
+| --- | --- | --- |
+| D1 (a consumed nonce's record outlives its token) | `internal/auth/nonce.go:138` `NonceStore.Insert` | `TestRecordOutlivesItsToken` (`internal/auth/nonce_test.go`) |
+| D2 (address normalization is a fixed point) | `internal/identity/identity.go:42` `NormalizeAddress` | `TestNormalizeAddressIsAFixedPoint` (`internal/identity/identity_test.go`); `TestMintLinkRefusesAnUnrevocableAddress` (`internal/auth/token_test.go`) |
+| D3 (the revocation epoch moves forward only) | `internal/auth/epoch.go:103` `EpochStore.Bump` | `TestBackwardBumpKeepsTheRevocation`, `TestConcurrentBumpsKeepTheLater` (`internal/auth/epoch_test.go`) |
+| D4 (one credential has exactly one verifying string) | `internal/auth/token.go:259` `splitSigned` | `TestLinkHasOneEncoding`, `TestSeparatorFloodAllocatesLittle` (`internal/auth/token_test.go`) |
+| D5 (`doctor` never prints all-green under a `Load` refusal) | `cmd/dubplate-server/doctor.go:156` `rowStatuses`, `:268` `identitySourceStatus` | `TestDoctorCmd_NoRunReportsAllGreenOnLoadError`, `TestRowStatuses_FlattensNestedJoin` (`cmd/dubplate-server/doctor_test.go`). **Reached only for the load-bearing property**: the security review's finding 11 shows no test yet proves the row *names the offending key* for a bad identity-source value, which M4's partial status and gap-list item are the stated reason for (routed to 5c). |
+| D6 (the roster fails closed, validates B9, one resolution point) | `internal/auth/roster.go:129` `OpenRoster`, `:147` `CreateRoster` | `TestOpenRoster_LoadRefusals`, `TestOpenRoster_ValidationRows`, `TestRoster_TwoEntryPoints`, `TestNormalizeMemberAddress_SingleResolutionPoint` (`internal/auth/roster_test.go`) |
+| D7 (a roster write is all-or-nothing, serialized, visible without a restart) | `internal/auth/roster.go:328` `Roster.AddMember` | `TestAddMember_ByteIdentityOnFailure`, `TestAddMember_ConcurrentDistinctMembersBothSurvive`, `TestAddMember_ConcurrentStreamerUsernameCollision`, `TestAddMember_WriteReReadAndMode`, `TestAddMember_AuditRecord` (`internal/auth/roster_test.go`) |
+| D8 (mail is a general seam with a header-injection guard) | `internal/notify/notify.go:89` `Mailer.Send` | `TestSend_HeaderInjectionGuard` (`internal/notify/notify_test.go`) |
+| D9 (no address or client drives unbounded mail; the map is bounded) | `internal/auth/limit.go` `keyedLimiter`, `Limiter.AllowLinkRequest`/`AllowConsumption`/`AllowLinkMail` | `TestKeyedLimiterBoundHoldsUnderFlood`, `TestKeySpacesDoNotShareBuckets` (`internal/auth/limit_test.go`) |
+| D10 (one origin rule covers every cookie-authenticated surface) | `internal/serve/origin.go:47` `originCheck`, `:71` `newOriginCheck` | `TestOriginCheck`, `TestOriginCheckBearerBypass` (`internal/serve/origin_test.go`) |
+| D11 (a verified identity carries its channel; admin is roster-sourced) | `internal/auth/seam.go:105` `MagicLinkSeam.VerifyIdentity` | `TestMagicLinkSeam_VerifyIdentity`, `TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh`, `TestMagicLinkSeam_VerifyIdentity_CrossOriginDoesNotRefresh` (`internal/auth/seam_test.go`). **Tests exist and pass**; what is missing is not test coverage but the mutation-run record for Task 9's four named mutations, lost when the fix round superseded the round-1 report (see the mutation table's Task 9 row below). |
+| D12 (the consumption order is fixed; no session mints before `Insert`) | `internal/auth/handlers.go:260` `handlers.consumeLink` | `TestConsumeLink_Refusals`, `TestConsumeLink_LimiterPrecedesMAC`, `TestOversizeBodyRefusedBeforeParse`, `TestLogsCarryNoCredential` (`internal/auth/handlers_test.go`) |
+| D13 (the sweep runs on a schedule the serve verb owns) | `internal/auth/nonce.go:102` `SweepInterval`, `:112` `RunSweep` | `TestRunSweepRunsOnTickWithoutWaitingSweepInterval` (`internal/auth/nonce_test.go`); `TestStartNonceSweep_RunsAndStopsWithContext`, `TestNewServeShell_SweepDriverStopsWithTheGivenContext` (`cmd/dubplate-server/serve_test.go`) |
+
+### The mutation table across Tasks 1 through 11
+
+Built from the five pass-execute workflow records
+(`wf_e12d88dd-d69.json` Tasks 1-3, `wf_fe30c4db-249.json` Tasks 4-6,
+`wf_f6babece-2e7.json` Tasks 7-8, `wf_cd9bc959-990.json` Tasks 9-10,
+`wf_7f3f9b8d-26c.json` Task 11), reading each task's `mutationLedger`
+from its accepted (or final-fix-round) implementer report. Every row's
+count matches its list.
+
+**Task 1 — 8 mutations, 8 fired.**
+
+| # | Mutation | Site | Fired | Proving test |
+| --- | --- | --- | --- | --- |
+| 1 | Write `now.Add(retention)` rather than the max | `internal/auth/nonce.go` `Insert` | yes | `TestRecordOutlivesItsToken` |
+| 2 | Drop the re-parse from the normalizer | `internal/identity/identity.go` `NormalizeAddress` | yes | `TestNormalizeAddress`/`TestNormalizeAddressIsAFixedPoint` quoted-comma subtests (2); `TestMintLinkRefusesAnUnrevocableAddress` (1) |
+| 3 | Drop the control-character filter | `internal/identity/identity.go` `NormalizeAddress` | yes | `TestNormalizeAddress` TAB and space subtests (2) |
+| 4 | Write `now` unconditionally in `Bump` (drop the backward/equal guards) | `internal/auth/epoch.go` `advance` | yes | `TestBackwardBumpKeepsTheRevocation`, `TestConcurrentBumpsKeepTheLater` |
+| 5 | Move `Bump`'s read outside the mutex | `internal/auth/epoch.go` `advance` | yes | `TestConcurrentBumpsKeepTheLater` (fails with and without `-race`, 30/30 runs; clean row passed 50/50 under `-race`) |
+| 6 | Decode with the non-strict decoder | `internal/auth/token.go` `fieldEncoding` | yes | `TestLinkHasOneEncoding`, `TestSessionHasOneEncoding` (3 substitutions each) |
+| 7 | Restore the unbounded `strings.Split` | `internal/auth/token.go` `splitSigned` | yes | `TestSeparatorFloodAllocatesLittle` (~16.8 MB against a 1 MiB ceiling) |
+| 8 (extra, not named in the plan) | Drop the CR/LF refusal | `internal/auth/token.go` `splitSigned` | yes | `TestLinkHasOneEncoding`, `TestSessionHasOneEncoding` (4 CR/LF variants each) |
+
+**Task 2 — 3 mutations, 2 fired, 1 unfired (reason recorded).**
+
+| # | Mutation | Site | Fired | Proving test / reason |
+| --- | --- | --- | --- | --- |
+| 1 | The fix round's own revert: drop the `Validate` rerun from `identitySourceStatus` | `cmd/dubplate-server/doctor.go` `identitySourceStatus` | yes | `TestDoctorCmd_NoRunReportsAllGreenOnLoadError`'s magic-link-row assertion fails |
+| 2 (named 1) | Unwrap one level instead of recursing | `cmd/dubplate-server/doctor.go` `flattenErrors` | yes | `TestRowStatuses_FlattensNestedJoin` (`B_KEY` row differs) |
+| 3 (named 2) | Drop the `Optional`-consultation loop, leaving the `Validate` rerun in place | `cmd/dubplate-server/doctor.go` `identitySourceStatus` | **no** | `TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied` still passes: the `Validate` rerun this dispatch added independently checks the one `Optional` key magic-link currently declares, so no test can currently distinguish the `Optional` branch from the `Validate` branch. The load-bearing property (no all-green row under a `Load` refusal) still holds through the other path. A future `Optional` key that `Validate` does not itself check would restore this mutation's bite. |
+
+**Task 3 — 2 mutations, 2 fired.**
+
+| # | Mutation | Site | Fired | Proving test |
+| --- | --- | --- | --- | --- |
+| 1 | Drop the `authRequestBodyCap` floor check | `cmd/dubplate-server/auth.go:313` `checkIntBounds` | yes | `TestValidateMagicLinkSource_RateAndCapBounds` (4 floor subtests) |
+| 2 | Widen the unknown-address accepted set to also accept `"silent"` | `cmd/dubplate-server/auth.go:279` `validateMagicLinkSource` | yes | `TestValidateMagicLinkSource_UnknownAddressAnswer`/`unrecognized` |
+
+**Task 4 — 8 mutations, 8 fired.**
+
+| # | Mutation | Site | Fired | Proving test |
+| --- | --- | --- | --- | --- |
+| 1 | Return an empty roster and nil error for a missing file | `internal/auth/roster.go` `OpenRoster` | yes | `TestOpenRoster_LoadRefusals`/`missing_file` |
+| 2 | Compare addresses without normalizing | `internal/auth/roster.go` `validateRoster` | yes | `TestOpenRoster_ValidationRows`/`a_duplicate_address_differing_only_in_case` |
+| 3 | Drop the `streamer_username` uniqueness check | `internal/auth/roster.go` `validateRoster` | yes | `TestOpenRoster_ValidationRows`/`a_duplicate_streamer_username` |
+| 4 | Compare the length bound against rune count rather than byte length | `internal/auth/roster.go` `validateRoster` | yes | `TestOpenRoster_ValidationRows`/`display_name_one_byte_over_the_length_cap` |
+| 5 | Add a second address-to-identity derivation | `internal/auth/roster.go` `Lookup` | yes | `TestNormalizeMemberAddress_SingleResolutionPoint` |
+| 6 | Let the write-open succeed against an existing file | `internal/auth/roster.go` `CreateRoster` | yes | `TestRoster_TwoEntryPoints` |
+| 7 | Let the read-open tolerate an absent file once the write-open exists | no distinct site (collapses onto mutation 1's edit) | yes | Same evidence as mutation 1; reported as a finding, since the design has no separate code path this mutation could target |
+| 8 | Drop the `doctor` roster row | `cmd/dubplate-server/doctor.go` `RunE` | yes | `TestDoctorCmd_RosterRow`/`roster_with_a_duplicate_streamer_username` |
+
+**Task 5 — 7 mutations, 6 fired, 1 unfired (reason recorded).**
+
+| # | Mutation | Site | Fired | Proving test / reason |
+| --- | --- | --- | --- | --- |
+| 1 | Write before validating | `AddMember` (dropped early returns) | yes | `TestAddMember_ByteIdentityOnFailure` (3 of 5 subtests) |
+| 2 | Take the lock after the re-check | `AddMember` (moved `r.mu.Lock()`) | yes | `TestAddMember_ConcurrentStreamerUsernameCollision`, `-race -count=20` |
+| 3 | Use `atomicfile.WriteFile` rather than `WriteStream` | `AddMember` | **no** | `go test -race ./internal/auth/...` stayed green; per the plan this is a review-caught defect (the durability doc comment stops matching the call), not a test-caught one, and no test was written to force it |
+| 4 | Skip the re-read | `AddMember` (dropped the post-write reparse) | yes | `TestAddMember_WriteReReadAndMode`, `TestAddMember_AdminFlagAllowedOnServiceTokenChannel`, `TestAddMember_ConcurrentDistinctMembersBothSurvive`, `TestAddMember_ConcurrentStreamerUsernameCollision` |
+| 5 | Drop the channel from the audit record | `AddMember` (logger call) | yes | `TestAddMember_AuditRecord` |
+| 6 | Accept the admin flag on any assertion channel | `AddMember` (guard forced `if false`) | yes | `TestAddMember_ByteIdentityOnFailure` (cookie- and header-channel admin rows) |
+| 7 | Let the read-open tolerate an absent file | `OpenRoster` | yes | `TestAddMember_WriteReReadAndMode` |
+
+**Task 6 — 4 mutations, 4 fired.**
+
+| # | Mutation | Site | Fired | Proving test |
+| --- | --- | --- | --- | --- |
+| 1 | Guard the recipient and not the subject | `internal/notify/notify.go` `Send` | yes | `TestSend_HeaderInjectionGuard`/subject CR and LF |
+| 2 | Guard only LF, not CR | `internal/notify/notify.go` `guardHeaderValue` | yes | `TestSend_HeaderInjectionGuard`/recipient CR, subject CR |
+| 3 | Guard after composing the message | `internal/notify/notify.go` `Send` (guard-vs-compose order) | yes | `TestSend_HeaderInjectionGuard`/recipient CR and LF |
+| 4 | Route port 465 through STARTTLS | `internal/notify/notify.go` `Send` (TLS branch selection) | yes | `TestSend_ImplicitTLS465` |
+
+**Task 7 — 6 mutations, 5 fired, 1 unfired (deferred to Task 10's own ledger).**
+
+| # | Mutation | Site | Fired | Proving test / reason |
+| --- | --- | --- | --- | --- |
+| M1 | Remove the map's bound | `internal/auth/limit.go` `keyedLimiter.allow` | yes | `TestKeyedLimiterBoundHoldsUnderFlood`, `TestKeyedLimiterEvictsLeastRecentlyUsed`, `TestKeyedLimiterConcurrent` |
+| M2 | Share one `keyedLimiter` across all three limiters | `internal/auth/limit.go` `NewLimiter` | yes | `TestKeySpacesDoNotShareBuckets` (both subtests); 3 more test functions, 5 subtests total |
+| M3 | Evict most-recently-used instead of least | `internal/auth/limit.go` `keyedLimiter.allow` | yes | `TestKeyedLimiterEvictsLeastRecentlyUsed`, `TestKeyedLimiterConcurrent` |
+| M4 | Key the per-client limiter on the wrong source | call site in Task 10 | **no (here)** | No test in this package can reach it: `Limiter` takes the client address as a string and derives none, so this is a call-site defect. The plan routes this mutation to Task 10, where it is proved (see Task 10 row 12). |
+| M5a | Only the address key gates | `internal/auth/limit.go` `AllowLinkRequest` | yes | `TestLinkRequestKeysTripIndependently`/`many_addresses_from_one_client`, `TestKeySpacesDoNotShareBuckets`/`link requests per client` |
+| M5b | Only the client key gates | `internal/auth/limit.go` `AllowLinkRequest` | yes | `TestLinkRequestKeysTripIndependently`/`one_address_from_many_clients`, `TestLinkRequestNormalizesAddress` |
+
+**Task 8 — 7 mutations, 6 fired, 1 unfired (reviewer-graded, no test can reach).**
+
+| # | Mutation | Site | Fired | Proving test / reason |
+| --- | --- | --- | --- | --- |
+| 1 | Drop the tightening; use the stdlib default | `internal/serve/origin.go` `allowed()` | yes | `TestOriginCheck`, `TestOriginCheckBearerBypass`, `TestOriginCheckCoversSubtreeAndFallthrough`, `TestOriginCheckRunsAfterNormalize`, `TestOriginRefusalEmitsTheRefusalRecord` (5 top-level, 6 subtests) |
+| 2 | Move the check inside the prefix's routed handler | `internal/serve/serve.go` `Handler()` | yes | `TestOriginCheckCoversSubtreeAndFallthrough`, `TestOriginRefusalEmitsTheRefusalRecord` |
+| 3 | Move the check outside `Normalize` | `internal/serve/serve.go` `Handler()` | yes | `TestOriginCheckRunsAfterNormalize`, `TestEchoMethodsRefusedBeforeRouting` (4 rows) |
+| 4 | Let a bypassed path read the session cookie | contract on `originCheck`'s doc comment | **no** | No test can reach it: no bearer-authenticated path exists yet at this rung. Graded by a reviewer against the doc comment, per the plan's own instruction. |
+| 5 | Consult the bypass set after the neither-header denial | `internal/serve/origin.go` `allowed()` | yes | `TestOriginCheckBearerBypass`/`bypassed path, POST carrying neither header, is allowed` |
+| 6 | Register through `AddInsecureBypassPattern` alone | `internal/serve/origin.go` `addBearerBypass()`/`allowed()` | yes | `TestOriginCheckBearerBypass`/same subtest |
+| 7 (extra, not named in the plan) | Drop the `AddInsecureBypassPattern` call | `internal/serve/origin.go` `addBearerBypass()` | yes | `TestOriginCheckBearerBypass`/`bypassed path, POST carrying a cross-origin Origin, is allowed` |
+
+**Task 9 — mutation count and outcomes not recoverable from the durable record.**
+
+The plan names 4 mutations for Task 9 (`plan:2644-2648`): reading the
+admin flag from the session value, skipping the per-request roster
+re-check, treating a non-sentinel error as "not refused", and
+refreshing unconditionally. The round-1 implementer report (commit
+`0cee9e8`) is the report that would carry this ledger, but the task's
+one fix round (`d679ecc`, doc comments only) produced the accepted
+report the workflow record retains, and that report carries no
+`mutationLedger` field (confirmed: the `diff-reviewer`'s own
+`review:9` non-blocking note independently states "this round's report
+has no mutation ledger"). The round-1 report's full JSON was not
+retained beyond a ~400-byte truncated preview in
+`wf_cd9bc959-990.json`, which cuts off before any mutation content.
+**This is a gap in the durable record, not a claim that the mutations
+were skipped**: `internal/auth/seam_test.go` (`TestMagicLinkSeam_VerifyIdentity`
+and its three siblings) exercises the same four properties the named
+mutations target, and Task 9 was accepted on its second round. No
+fired/unfired count is stated here because none can be reconstructed
+from what survives.
+
+**Task 10 — 12 mutations, 12 fired.**
+
+| # | Mutation | Site | Fired | Proving test |
+| --- | --- | --- | --- | --- |
+| 1 | Insert the nonce before verifying the MAC | `internal/auth/handlers.go` `consume` | yes | `TestConsumeLink_Refusals` (5 rows) |
+| 2 | Mint the session before `Insert` returns nil | `internal/auth/handlers.go` `consume`/`consumeLink` | yes | `TestConsumeLink_Refusals`/`replayed_link`, `TestConsumeLink_SignsIn`, `TestLogsCarryNoCredential` |
+| 3 | Resolve the roster after `Insert` | `internal/auth/handlers.go` `consume` | yes | `TestConsumeLink_Refusals`/`address_not_on_the_roster` |
+| 4 | Branch on sentinels alone (`CheckLink`) | `internal/auth/handlers.go` `consume` | yes | `TestConsumeLink_Refusals`/`epoch_unreadable` |
+| 5 | Parse before capping the body | `internal/auth/handlers.go` `readForm` | yes | `TestOversizeBodyRefusedBeforeParse` (3 rows) |
+| 6 | Return a distinguishable outcome per failure cause | `internal/auth/handlers.go` `consumeLink` | yes | `TestConsumeLink_Refusals` byte-identity check |
+| 7 | Key the per-client limiter on the submitted string (Task 7's M4, landed here) | `internal/auth/handlers.go` `requestLink` | yes | `TestRequestLink_ClientFloodSendsNoFurtherMail`, `TestRequestLink_ClientAddressIsTheShells`/`untrusted` |
+| 8 | Log `RawQuery` on the consumption route | `internal/auth/handlers.go` `consumeLink` logger | yes | `TestLogsCarryNoCredential` |
+| 9 | Move the consumption limiter after the MAC check | `internal/auth/handlers.go` `consumeLink` | yes | `TestConsumeLink_LimiterPrecedesMAC` |
+| 10 | Surface the send failure under `generic` (synchronous, 500 on failure) | `internal/auth/handlers.go` `requestLink` generic branch | yes | `TestRequestLink_GenericAnswersAlike`/`send_fails`, `TestRequestLink_GenericDoesNotWaitOnSend` |
+| 11 | Answer under `generic` only after the send completes | `internal/auth/handlers.go` `requestLink` generic branch | yes | `TestRequestLink_GenericDoesNotWaitOnSend` (5.00s deadline) |
+| 12a | Key on the forwarding header where no proxy is trusted | `internal/auth/handlers.go` `requestLink` | yes | `TestRequestLink_ClientAddressIsTheShells`/`untrusted_peer` |
+| 12b | Key on the peer address where a trusted proxy is configured | `internal/auth/handlers.go` `requestLink` | yes | `TestRequestLink_ClientAddressIsTheShells`/`trusted_proxy` |
+
+(12a/12b are one named mutation with two branches in the ledger; the
+plan's own count of twelve for this task counts them as one, matching
+"all twelve named mutations fired" above.)
+
+**Task 11 — 4 mutations, 3 fired, 1 structurally unreachable (reason recorded).**
+
+| # | Mutation | Site | Fired | Proving test / reason |
+| --- | --- | --- | --- | --- |
+| 1 | Mount the handlers outside the owned prefix | `cmd/dubplate-server/serve.go` `newServeShell` | yes | `TestNewServeShell_MountsTheThreeAuthRoutes`/`consume-link` |
+| 2 | Start the sweep driver without the verb's context | `cmd/dubplate-server/serve.go` `newServeShell` | yes | `TestNewServeShell_SweepDriverStopsWithTheGivenContext` (added specifically because the pre-existing `TestStartNonceSweep_RunsAndStopsWithContext` calls `startNonceSweep` directly and did not catch this on the first pass) |
+| 3 | Open the stores after listening | `cmd/dubplate-server/serve.go` `newServeShell` (`auth.OpenRoster` err check) | yes | `TestNewServeShell_MissingRosterRefusesBeforeConstruction` |
+| 4 | Register a bypass pattern for the fallthrough | n/a — no site in this task's Files | **no** | Structurally unreachable: `internal/serve.Shell` exposes no exported method to register a bearer bypass (`originCheck.addBearerBypass` is unexported on an unexported type), and this task's Files (`cmd/dubplate-server/serve.go`, `internal/auth/nonce.go`) hold no code path that could register one; `internal/serve/origin.go` is outside this task's Files. `TestNewServeShell_StateChangingFallthroughRequestIsDenied` proves the absence behaviorally, but the mutation cannot be introduced from this task's own surface. |
+
 ### The twelve resolutions (R-5b17 through R-5b28)
 
-Each carries its marker's site and what execution confirmed. **Only one
-site uses the plan's literal marker text** (`// ruled, conductor
-2026-09-12, R-5b2, R-5b3` at `cmd/dubplate-server/auth.go:41`, which is
-a 5b-i-era marker, not one of these twelve); the twelve below cite their
-resolution number in a plain parenthetical (`(R-5bN)`) rather than the
-"ruled, conductor" stamp the plan's own text at `:3372-3378` describes.
-**Corrected below**, since the grep the plan names does not recover
-them.
+**The plan's grep-recoverable-marker mechanism did not hold for this
+pass.** `plan:3372-3378` reads this table off `grep -rn 'ruled,
+conductor 2026-09-12, R-5b'`. That grep, and the looser
+`grep -rn 'R-5b1[7-9]\|R-5b2[0-8]'`, together find markers for **3 of
+the 12** resolutions: R-5b19 (`internal/auth/roster.go:19`, `:98`),
+R-5b20 (`internal/auth/roster.go:140`), and R-5b22
+(`cmd/dubplate-server/auth.go:161`, `cmd/dubplate-server/auth_test.go:460`).
+**The other 9 (R-5b17, R-5b18, R-5b21, R-5b23 through R-5b28) carry no
+marker anywhere in `cmd/` or `internal/`.** The table below states
+"no marker" on each of those nine rather than naming a site that does
+not carry one; the "Landed" column still names the file where the
+resolution's effect lives, since that is verifiable independent of any
+marker.
 
-| Resolution | Decided | Landed | Confirmed by execution |
-| --- | --- | --- | --- |
-| R-5b17 | 5b-i's security fold is Tasks 1-2, not a separate pass | Tasks 1-2 | Confirmed: B1/M1/M2/M3/M5 fixed before Task 3 dispatched |
-| R-5b18 | 5b-i's security read is discharged; this pass's own read covers both halves at close | pass-end review, `46e37d1` | Confirmed: the review's scope line covers `1d4ed29..HEAD`, both halves |
-| R-5b19 | roster file is `{"schema_version": 1, "members": [...]}`, not a bare array | `internal/auth/roster.go:19,98` | Landed as decided |
-| R-5b20 | the store creates the file, never the directory; pre-create is 5d's | `internal/auth/roster.go:140` (`CreateRoster`) | Landed as decided; `config/roster.example.json` created here rather than in 5d (recorded, spec correction below) |
-| R-5b21 | the audit record is a structured `slog` record; no audit file opens | `internal/auth/roster.go` (`AddMember`, Task 5) | Landed as decided |
-| R-5b22 | the unknown-address answer is `KindString`, default `kind`, values `kind`/`generic` | `cmd/dubplate-server/auth.go:197-280` | Landed as decided |
-| R-5b23 | the limiter map bound and sweep period are package constants, not thresholds | `internal/auth/limit.go`, `internal/auth/nonce.go` | Landed as decided |
-| R-5b24 | three limiters, three key spaces, not one shared map | `internal/auth/limit.go` (`keyedLimiter`, three instances) | Landed as decided; **the security review's finding 3 shows the per-address key space is still charged before the per-client check refuses, an ordering gap R-5b24 did not itself cover** |
-| R-5b25 | handlers are `http.Handler` values from one dependency struct, no package-level route registration | `internal/auth/handlers.go` | Landed as decided |
-| R-5b26 | no redirect-target validator; R33 travels as a constraint to rung 12 | disposed, no function added | Confirmed: Task 0 item 10 and this close both grep `internal/auth` and find none; the `b91bae1` erratum's contrary claim is corrected below |
-| R-5b27 | the origin check inserts between normalization and prefix routing | `internal/serve/serve.go:159-172` (`Handler`) | Confirmed by reading `Handler`'s wrap order: strip, Normalize, refuseEchoMethods, origin check, routed |
-| R-5b28 | the generic answer's ordering: `kind` governs R9, `generic` answers before the send | `internal/auth/handlers.go` (Task 10) | Confirmed by the security review: "the generic answer is identical in bytes and in measured timing" |
+| Resolution | Decided | Marker | Landed (effect) | Confirmed by execution |
+| --- | --- | --- | --- | --- |
+| R-5b17 | 5b-i's security fold is Tasks 1-2, not a separate pass | no marker | Tasks 1-2 | Confirmed: B1/M1/M2/M3/M5 fixed before Task 3 dispatched |
+| R-5b18 | 5b-i's security read is discharged; this pass's own read covers both halves at close | no marker | pass-end review, `46e37d1` | Confirmed: the review's scope line covers `1d4ed29..HEAD`, both halves |
+| R-5b19 | roster file is `{"schema_version": 1, "members": [...]}`, not a bare array | `internal/auth/roster.go:19`, `:98` | same file | Landed as decided |
+| R-5b20 | the store creates the file, never the directory; pre-create is 5d's | `internal/auth/roster.go:140` (`CreateRoster`) | same file | Landed as decided; `config/roster.example.json` created here rather than in 5d (recorded, spec correction below) |
+| R-5b21 | the audit record is a structured `slog` record; no audit file opens | no marker | `internal/auth/roster.go` (`AddMember`, Task 5) | Landed as decided |
+| R-5b22 | the unknown-address answer is `KindString`, default `kind`, values `kind`/`generic` | `cmd/dubplate-server/auth.go:161`, `auth_test.go:460` | `cmd/dubplate-server/auth.go:197-280` | Landed as decided |
+| R-5b23 | the limiter map bound and sweep period are package constants, not thresholds | no marker | `internal/auth/limit.go`, `internal/auth/nonce.go` | Landed as decided |
+| R-5b24 | three limiters, three key spaces, not one shared map | no marker | `internal/auth/limit.go` (`keyedLimiter`, three instances) | Landed as decided; **the security review's finding 3 shows the per-address key space is still charged before the per-client check refuses, an ordering gap R-5b24 did not itself cover** |
+| R-5b25 | handlers are `http.Handler` values from one dependency struct, no package-level route registration | no marker | `internal/auth/handlers.go` | Landed as decided |
+| R-5b26 | no redirect-target validator; R33 travels as a constraint to rung 12 | no marker | disposed, no function added | Confirmed: Task 0 item 10 and this close both grep `internal/auth` and find none; the `b91bae1` erratum's contrary claim is corrected below |
+| R-5b27 | the origin check inserts between normalization and prefix routing | no marker | `internal/serve/serve.go:159-172` (`Handler`) | Confirmed by reading `Handler`'s wrap order: strip, Normalize, refuseEchoMethods, origin check, routed |
+| R-5b28 | the generic answer's ordering: `kind` governs R9, `generic` answers before the send | no marker | `internal/auth/handlers.go` (Task 10) | Confirmed by the security review: "the generic answer is identical in bytes and in measured timing" |
 
 ### The seven conductor-owed folds
 
@@ -253,38 +434,65 @@ evicting a victim's per-address bucket, IPv6 per-client keys at /128,
 no trusted-proxy setting) and fourteen minors.
 
 **Disposition of the twenty 5b-i findings this review re-checked**
-(the do-not-relitigate baseline for 5c and 5d):
+(the do-not-relitigate baseline for 5c and 5d). Each row states where
+the fix landed (commit, file, symbol) and the test that proves it.
 
-| Finding | Status | Evidence |
-| --- | --- | --- |
-| B1 | Fixed | 1s retention, 48h token; at +25h, Removed 0, replay refused |
-| M1 | Fixed | A quoted space or comma is refused; every accepted corpus entry is a fixed point |
-| M2 | Fixed within one process | A backward bump returns `ErrEpochBackward`; cross-process is finding 14 below |
-| M3 | Fixed | 0 of 64x6 final-character variants verify |
-| M4 | Partial | `doctor`'s verdict is right, but no line names the offending key (finding 11) |
-| M5 | Fixed | 3 allocations for 64 KiB of separators |
-| m1 | Fixed | `Max-Age=2592000; HttpOnly; Secure; SameSite=Lax; Path=/` |
-| m2 | Fixed on refresh, not at mint | See finding 12 (no lifetime-vs-cap check at mint) |
-| m3 | Fixed | A 0755 leaf is refused |
-| m4 | Fixed | Userinfo, query, fragment refused (echo in message is finding 10) |
-| m5 | Fixed | Link expiry ceiling 1h, cap ceiling 2y, floors 1s |
-| m6 | Fixed | `Store.Write` is gone |
-| m7 | Fixed | `idRefusalReason` never prints the id |
-| m8 | Fixed | One unreadable record no longer blocks startup |
-| m9 | Fixed | Clear cookie renders `Max-Age=0` with matching attributes; the handler doc does not claim revocation |
-| m10 | ASCII only | Non-ASCII control/format characters (NEL, CSI, RLO, NBSP, ZWSP) pass `NormalizeAddress` (finding 8) |
-| m12 | Fixed | `RecordID` hashes a length-prefixed kind and value |
-| m14 | Fixed | A panicking subscriber leaves `err=<nil>`; the next subscriber still runs |
-| m11, m13 | Carried to 5d | As the plan states: the `ReadWritePaths` grant and the env template's nine keys |
+| Finding | Status | Landed (commit, file, symbol) | Proving test |
+| --- | --- | --- | --- |
+| B1 | Fixed | `f90c9ea`, `internal/auth/nonce.go` `Insert` | `TestRecordOutlivesItsToken` |
+| M1 | Fixed | `f90c9ea`, `internal/identity/identity.go` `NormalizeAddress` | `TestNormalizeAddressIsAFixedPoint` |
+| M2 | Fixed within one process | `f90c9ea`, `internal/auth/epoch.go` `advance` (called from `Bump`) | `TestBackwardBumpKeepsTheRevocation`; cross-process is finding 14 below |
+| M3 | Fixed | `f90c9ea`, `internal/auth/token.go` `splitSigned` (strict decode + CR/LF refusal) | `TestVerifyLinkRefusals`, `TestLinkHasOneEncoding` |
+| M4 | Partial | `772eb22`→`aae338c`, `cmd/dubplate-server/doctor.go` `rowStatuses`/`identitySourceStatus` | `TestDoctorCmd_NoRunReportsAllGreenOnLoadError`; the offending-key-naming half is unproven (finding 11, routed to 5c) |
+| M5 | Fixed | `f90c9ea`, `internal/auth/token.go` `splitSigned` (bounded split) | `TestSeparatorFloodAllocatesLittle` |
+| m1 | Fixed | `772eb22`, `internal/auth/session.go` `SessionCookie` | `TestSessionCookieAttributes` |
+| m2 | Fixed on refresh, not at mint | `772eb22`, `internal/auth/session.go` `RefreshSession` | `TestRefreshClampsAtTheExactBoundary`; see finding 12 (no lifetime-vs-cap check at mint) |
+| m3 | Fixed | `772eb22`, `internal/auth/store.go` `Open` | `TestOpen_RefusesWideLeaf` |
+| m4 | Fixed | `772eb22`, `cmd/dubplate-server/auth.go` `validatePublicURL` | `TestValidateMagicLinkSource_PublicURL`; echo in message is finding 10 |
+| m5 | Fixed | `772eb22`, `cmd/dubplate-server/auth.go` (duration threshold bounds) | `TestValidateMagicLinkSource_DurationBounds` |
+| m6 | Fixed | `772eb22`, `internal/auth/store.go` (`Store.Write` removed) | Confirmed by grep (no `Write` method on `*Store` in `internal/auth/store.go`); `store_test.go`'s corrected comment names each store's real write path |
+| m7 | Fixed | `772eb22`, `internal/auth/store.go` `recordPath` | `TestRecordPathRefusalNamesNoValue` |
+| m8 | Fixed | `772eb22`, `internal/auth/nonce.go` `Sweep` | `TestSweepRetainsUnreadableRecord` |
+| m9 | Fixed, with a stated residual | `772eb22`, `internal/auth/session.go` `ClearSessionCookie` | `TestClearSessionCookie`. **Residual**: clearing the cookie does not invalidate the signed session value, only expiry or an epoch bump does. **No pass owns this as future work**; it is accepted by design (a stateless session model, stated in `ClearSessionCookie`'s own doc comment) and recorded permanently as declared coverage gap 5 below, not deferred to 5c or 5d. |
+| m10 | ASCII only | `f90c9ea`, `internal/identity/identity.go` `NormalizeAddress` | `TestNormalizeAddress` (control/space rows); non-ASCII control and format characters (NEL, CSI, RLO, NBSP, ZWSP) still pass (finding 8, routed to 5c) |
+| m12 | Fixed | `772eb22`, `internal/auth/store.go` `RecordID` | `TestRecordID_KindSeparatesTheDigest` |
+| m14 | Fixed | `772eb22`, `internal/auth/epoch.go` `Bump` (subscriber notification under recover) | `TestBumpRecoversFromPanickingSubscriber` |
+| m11, m13 | Carried to 5d | not landed | As the plan states: the `ReadWritePaths` grant and the env template's nine keys |
 
-**Disposition of this review's own nineteen new findings** (Geoff
-ruled 2026-09-23): majors 1-4 plus minors 7, 8, 10, 11, 12, 13, 15, 17,
-19 become 5c's security-fold Task 1; minor 18 (HSTS) joins 5c's served
-header set; major 5 (trusted-proxy behind the tunnel) with minors 9 and
-14 are 5d deploy gates, minor 14 landing with 5d's offboarding verb;
-minor 16 (background-send load under the generic answer) is a recorded
-residual, no fix required. M4's partial status is covered by finding
-11 above; m10's ASCII-only status is covered by finding 8 above.
+**Disposition of this review's own nineteen new findings.** STATUS
+records only that "majors 1-4 plus the relevant minors become 5c's
+security-fold Task 1; major 5 is a 5d deploy gate" (`docs/STATUS.md`,
+current "Next action" item 1). **The granular per-minor split below is
+this close's own proposed routing, for the conductor to confirm at the
+fold — it is not itself a ruling any artifact records**, and the
+previous draft of this document wrongly attributed it to Geoff. Every
+finding appears exactly once, including minor 6, which the previous
+draft omitted.
+
+| Finding | Proposed owner |
+| --- | --- |
+| Major 1 (cross-process roster writes) | 5c security-fold Task 1 |
+| Major 2 (mailed links outside the owned prefix) | 5c security-fold Task 1 |
+| Major 3 (refused client evicts a victim's per-address bucket) | 5c security-fold Task 1 |
+| Major 4 (IPv6 per-client keys at /128) | 5c security-fold Task 1 |
+| Major 5 (no trusted-proxy setting behind the tunnel) | 5d deploy gate |
+| Minor 6 (kind-mode global ceiling enumeration and membership oracle) | 5c security-fold Task 1 (proposed here for the first time; grouped with the other oracle-shaped findings 10 and 12) |
+| Minor 7 (roster loader accepts non-schema files) | 5c security-fold Task 1 |
+| Minor 8 (non-ASCII control/format characters pass `NormalizeAddress`) | 5c security-fold Task 1 |
+| Minor 9 (forwarded hop not validated as an IP) | 5d deploy gate |
+| Minor 10 (refusal message echoes a public URL's userinfo password) | 5c security-fold Task 1 |
+| Minor 11 (M4 partial: `doctor` names no offending key) | 5c security-fold Task 1 |
+| Minor 12 (`doctor` green for sign-in-breaking configurations) | 5c security-fold Task 1 |
+| Minor 13 (`AddMember` accepts an empty actor / invalid channel) | 5c security-fold Task 1 |
+| Minor 14 (epoch monotonicity holds only within one process) | 5d, lands with the offboarding verb |
+| Minor 15 (`streamer_username` uniqueness case-sensitive, admits LIKE metacharacters) | 5c security-fold Task 1 |
+| Minor 16 (background-send load observable under the generic answer) | recorded residual, no fix required |
+| Minor 17 (request-link charges no limiter for an address that fails to normalize) | 5c security-fold Task 1 |
+| Minor 18 (origin check admits `http://` on the same host absent `Sec-Fetch-Site`) | joins 5c's served header set (HSTS) |
+| Minor 19 (unreadable nonce record never swept) | 5c security-fold Task 1 |
+
+M4's partial status is covered by finding 11 above; m10's ASCII-only
+status is covered by finding 8 above.
 
 ### The declared coverage gaps
 
@@ -307,7 +515,7 @@ expected list carried does not apply, corrected below.
 4. **The env template does not carry the nine keys the selected source
    requires** (security review m13), 5d's; the no-deploy carry stands.
 5. **A stateless session survives sign-out** (security review m9), by
-   design.
+   design, permanently — see the disposition table's m9 row above.
 6. **The mail transport is proved against a local test server only**
    (`internal/notify/notify_test.go`'s `startTestServer` binds
    `127.0.0.1:0`), never against a real provider.
@@ -355,11 +563,22 @@ fallback, so no gap is recorded for it.
   5b-i `HISTORY:` pointer in this plan sits 47 lines low at HEAD
   (Task 0 item 18, confirmed independently by this close):
   `:496-530` re-keys to `:543-577` (the 5b-i to 5b-ii handoff),
-  `:533-535` to `:580-582` and `:540-543` to `:587-590` (both budgets),
-  `:411-416` to `:458-463` (what this pass owes / the plan-prep tail).
-  `:1692` (the 5a-flag citation at `:497`) is a rung 5a pointer, not a
-  5b-i one, and is outside launch ruling (c)'s scope; it resolves
-  correctly at its cited line and needs no correction.
+  `:531-544` re-keys to `:578-591` (the re-derivation basis paragraph
+  that plan:465-469 cites, this close's own re-check catching the
+  pointer the prior draft round omitted), `:533-535` to `:580-582` and
+  `:540-543` to `:587-590` (both budgets), `:411-416` to `:458-463`
+  (what this pass owes / the plan-prep tail).
+  **Correction to this section's own prior claim**: the prior draft
+  round said `:1692` (the 5a-flag citation the plan makes at `:488`,
+  "`HISTORY:1688`") "resolves correctly at its cited line and needs no
+  correction". It does not: `docs/HISTORY.md:1692` is 5a's `strip.go`
+  header-list line, not a spend figure. The two 5a pointers this plan
+  actually uses (`plan:487-488`) are `HISTORY:1688` and `HISTORY:1692`
+  in the plan's own text; at HEAD they resolve to **`:1735`** (5a's
+  Task 0 spend, 0.13M) and **`:1739`** (5a's 3.4M flag), each 47 lines
+  low like every other 5a/5b-i pointer this plan carries, and both are
+  in scope for launch ruling (c) even though the ruling's own item 18
+  named only the 5b-i-labeled ones.
 - **No other Task-0 note rose to a correction.** The `Makefile:33`
   wording variant ("The web legs rejoin", plural, present tense) that
   Task 0 item 21 flagged is not a defect in this plan; it is carried
@@ -389,11 +608,16 @@ contact coming from the roster's admin entry; the consumption route's
 interstitial's contract, that it reads the token from
 `window.location`, clears it from the address bar, and POSTs it in a
 form field; the logout copy's bound, that a stateless session survives
-sign-out; the security-fold Task 1 (security review majors 1-4 and the
-listed minors); and the three rejoin-sentence corrections
-(`CLAUDE.md:122`, `scripts/check.sh:5`, `Makefile:33`, the last worded
-"The web legs rejoin", plural, present tense), `scripts/deploy.sh`'s
-`config/contributors.yaml` delivery left alone by R37.
+sign-out permanently (declared gap 5, not deferred work); the
+security-fold Task 1 (this close's proposed routing of the security
+review's majors 1-4 and minors 6, 7, 8, 10, 11, 12, 13, 15, 17, 19,
+above, pending the conductor's confirmation); and the three
+rejoin-sentence corrections
+(**`CLAUDE.md:131`** — corrected from the prior draft's stale
+`CLAUDE.md:122`, which was ruff-leg prose at HEAD — `scripts/check.sh:5`,
+`Makefile:33`, the last worded "The web legs rejoin", plural, present
+tense), `scripts/deploy.sh`'s `config/contributors.yaml` delivery left
+alone by R37.
 
 **Also carried to 5c** (from STATUS, unchanged by this close): rename
 `ErrRosterAdminChannelForbidden` when the CLI admin grant lands; the
@@ -414,7 +638,9 @@ at the pass-end security read. Attended time: zero planning misses (no
 question surfaced after launch that a planning question would have
 caught) and zero execution sittings, except the conductor's own
 mid-plan launch rulings (five, ruled together before Task 1 dispatched,
-which the plan itself states do not count as a sitting).
+which the plan itself states do not count as a sitting). Gate: `bash
+scripts/check.sh` measured **1m10.099s real** at this close's own
+re-run (see "The gate evidence" above).
 
 ---
 

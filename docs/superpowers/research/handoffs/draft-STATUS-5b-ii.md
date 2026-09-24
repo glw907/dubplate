@@ -18,11 +18,11 @@ exclusion denominator is still UNREAD, owed before rung 15.
    blocker, five majors, and fourteen minors against 5b-ii's own new
    surface, plus a re-check of all twenty 5b-i findings (eighteen fixed
    or fixed-with-narrower-scope, two carried to 5d). **Geoff ruled
-   2026-09-23**: the five majors and nine of the fourteen minors become
-   5c's security-fold Task 1; one minor (HSTS) joins 5c's header set;
-   one major with two minors are 5d deploy gates; one minor is a
-   recorded residual. Full disposition:
-   `research/handoffs/draft-HISTORY-5b-ii.md`.
+   2026-09-23**: majors 1-4 plus the relevant minors become 5c's
+   security-fold Task 1; major 5 is a 5d deploy gate. **The per-minor
+   split, including minor 6, is this close's own proposed routing for
+   the conductor to confirm**, no artifact ruling finer-grained. Full
+   disposition: `research/handoffs/draft-HISTORY-5b-ii.md`.
 2. **5c is next**: the pages, the `member` verb, and the web gate leg,
    against the ratified web surface standard and configuration homes
    revision 3. 5c's plan is authored just in time, after this merge.
