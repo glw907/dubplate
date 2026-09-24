@@ -2,31 +2,41 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, and rung 5's 5a, 5b-i, and **5b-ii** are closed; 5b-ii closed on master, about
-6.4M of 7.5M, zero misses, one sitting (HISTORY). Its architecture reads
-(`research/2026-09-23-rung-5b-ii-architecture-reads.md`) route a cleanup pass after 5c-i, joined with
-the staged comment-cleanup task. R4's exclusion denominator is still UNREAD, owed before rung 15.
+The overnight window (`plans/2026-09-23-overnight-window.md`, 12M cap, ends 05:00 AKDT) is running.
+
+- **5c-i segment A is closed.** All three tasks were accepted with every gate green:
+  - Task 1 at `36f528d`.
+  - Task 2 at `428665d`, `81cd77b`, and `49363bf`, after one fix round.
+  - Task 3 at `74919a6`.
+  - The spend was about 1.29M in subagents for three tasks, under the 0.533M basis, so the 6.5M ceiling
+    stands.
+  - Task 0 returned LAUNCH (`research/2026-09-23-rung-5c-i-task-0-report.md`). Minor 6's refusal
+    (R-5c18) goes into the close's scope ledger.
+- **Task 1's named mutation M9 has no proving test**, as the plan expects. The reviewer verified it,
+  and the pass-end security read covers the stat-and-read order. M8 fires on the generic rows only.
+- **The rung 6 errata are applied** (`b406f93`). Row 9's `identity.go` half waits for 5c-i to merge.
+- **The 6a plan is at revision 2.2 and awaits Geoff's approval** (`plans/2026-09-23-rung-6a-store-foundation.md`, `e1fb273`).
+  - The review ran three lenses, a fold, a verification read, a narrow second fold, and a prose fold.
+    The record is `research/2026-09-23-rung-6a-plan-fold-record.md`.
+  - Four rulings, each recommended yes: the 6.8M ceiling, `doctor` and `check` exiting 0 only for a
+    store that is absent, older, or current, serve refusing a create beside a snapshot copy, and the
+    busy timeout alone bounding the cross-process wait.
+  - Eleven errata are owed to the rung 6 spec on approval.
+- R4's exclusion denominator is still unread, and owed before rung 15.
 
 ## Next action
 
-1. **Launch the overnight window** (`plans/2026-09-23-overnight-window.md`; ends 05:00 AKDT, 12M cap).
-   Resume prompt for the fresh Opus 5.5 session: "Read docs/STATUS.md and the overnight window file,
-   then launch it: 5c-i from `plans/2026-09-23-rung-5c-pages-member-verb.md` (revision 2.2, approved by
-   Geoff 2026-09-23, all six rulings yes; Ruling 2's query is done) starting with Task 0, plus the two
-   document lanes." 5c-i: Tasks 1-5 fold 5b-ii's security majors 1-4 and minors; 6 the CLI admin grant;
-   7 the `member` verb; 6.5M ceiling, 4.72M projected. 5c-ii (outlined) opens with the admin gate.
-2. **Rung 6's spec is ratified** (Geoff, 2026-09-23): `specs/2026-09-23-rung-6-ops-seam-store.md`
-   revision 2.2, all fourteen rulings yes, five passes, about 28M; errata owed. The web surface
-   standard (`94d8af3`) and configuration homes revision 3 (layout parity conditional on a rung 12
-   Navidrome check) are ratified too. Rung 6 runs as lane 2 beside 5c/5d; 5 through 5d stays first.
-3. **Landed in `~/.dotfiles`**: `spec-plan-review` (`8c53329`); `stopOnEscalate` and infra task 9 (`ce70b5f`).
+1. Segment B: Tasks 4 to 7. Then the simplifier, the mail-copy register gate, and the pass-end
+   `web-auth-security-reviewer`.
+2. Segment C: the close.
+3. In the morning, Geoff approves 6a and rules its four rulings. Lane 2 then opens on 6a in a worktree.
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED. 5b-ii closed on master at the ledger fold; reopens on 5c-i once its plan is approved |
-| 2 | worktree removed, branch deleted | CLOSED. Reopens on rung 6 once its 6a plan is approved |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-i: segment A closed, segment B next |
+| 2 | worktree removed, branch deleted | CLOSED. The 6a plan (rev 2.2) awaits approval |
 
 ## Open items (carried)
 
