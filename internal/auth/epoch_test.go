@@ -111,7 +111,7 @@ func TestCheckSessionRefreshedAfterBumpStillRefused(t *testing.T) {
 	stateDir := t.TempDir()
 	store := newEpochStore(t, stateDir)
 
-	_, session, err := MintSession([]byte("session-secret"), epochFixtureAddress, epochClock.Add(-time.Hour), time.Hour)
+	_, session, err := MintSession([]byte("session-secret"), epochFixtureAddress, epochClock.Add(-time.Hour), time.Hour, 24*time.Hour)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
@@ -207,7 +207,7 @@ func TestBackwardBumpKeepsTheRevocation(t *testing.T) {
 	stateDir := t.TempDir()
 	store := newEpochStore(t, stateDir)
 
-	_, session, err := MintSession([]byte("session-secret"), epochFixtureAddress, epochClock, time.Hour)
+	_, session, err := MintSession([]byte("session-secret"), epochFixtureAddress, epochClock, time.Hour, 24*time.Hour)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}

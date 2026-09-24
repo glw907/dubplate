@@ -264,7 +264,9 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 		SessionSecret:      []byte(cfg.IdentitySourceValue(sessionSecretKey)),
 		LinkExpiry:         authCfg.magicLinkExpiry,
 		SessionLifetime:    authCfg.sessionLifetime,
+		SessionAbsoluteCap: authCfg.sessionAbsoluteCap,
 		PublicOrigin:       cfg.IdentitySourceValue(publicURLKey),
+		Prefix:             prefix.String(),
 		BodyCap:            int64(authCfg.authRequestBodyCap),
 		GenericAnswer:      authCfg.unknownAddressAnswer == "generic",
 	})
@@ -294,8 +296,11 @@ func methodOnly(method string, h http.Handler) http.Handler {
 
 // newMailer resolves the magic-link source's five SMTP keys into a
 // [notify.Mailer]. The port is the one value among them this file
-// converts rather than passes through: an unparseable port refuses
-// before the verb ever listens, naming the key.
+// converts rather than passes through. [validateMagicLinkSource]'s
+// Validate hook already bounds the port to 1 through 65535 at load
+// time, so doctor and every verb see a bad port before the serve verb
+// ever listens; this parse is the defensive second read that turns the
+// bounded string back into the int [notify.Config] takes.
 func newMailer(cfg *config.Config) (*notify.Mailer, error) {
 	port, err := strconv.Atoi(cfg.IdentitySourceValue(smtpPortKey))
 	if err != nil {

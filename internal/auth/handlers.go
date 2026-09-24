@@ -20,13 +20,14 @@ const (
 	tokenField   = "token"
 )
 
-// linkMailSubject and linkMailBody are the magic-link mail's text. The
-// body names no site, no person, and no deployment value, because the
-// same text goes out from every install; the link is the whole of what
-// differs.
+// linkMailSubject and linkMailBodyTemplate are the magic-link mail's
+// text. The body names no site, no person, and no deployment value
+// beyond the link and its expiry, because the same text goes out from
+// every install; the link is the whole of what differs. The template
+// takes the link and the expiry in whole minutes, in that order.
 const (
-	linkMailSubject = "Your sign-in link"
-	linkMailBody    = "Open this link to sign in:\n\n%s\n\nThe link works once and expires soon. If you did not ask to sign in, ignore this message.\n"
+	linkMailSubject      = "Your sign-in link"
+	linkMailBodyTemplate = "Use this link to sign in:\n\n%s\n\nThe link works once and expires in %d minutes. If you didn't ask for it, you can ignore this message.\n"
 )
 
 // Outcomes the handlers answer with, in the "outcome" field of every
@@ -76,9 +77,20 @@ type HandlersConfig struct {
 
 	LinkExpiry, SessionLifetime time.Duration
 
+	// SessionAbsoluteCap bounds how long a session can survive however
+	// many times it is refreshed. MintSession clamps every minted
+	// session's expiry to it, the same clamp RefreshSession applies.
+	SessionAbsoluteCap time.Duration
+
 	// PublicOrigin is the configured public URL every mailed link is
 	// built from.
 	PublicOrigin string
+
+	// Prefix is the owned prefix's string form (serve.Prefix's String),
+	// so a mailed link lands under the surface the shell routes to this
+	// package's own handlers rather than to whatever the fallthrough
+	// slot holds.
+	Prefix string
 
 	// BodyCap is the byte limit on every request body, applied before
 	// any parser reads it.
@@ -257,11 +269,12 @@ func (h *handlers) sendLink(ctx context.Context, now time.Time, address string) 
 	if err != nil {
 		return err
 	}
-	link, err := LinkURL(h.cfg.PublicOrigin, token)
+	link, err := LinkURL(h.cfg.PublicOrigin, h.cfg.Prefix, token)
 	if err != nil {
 		return err
 	}
-	return h.cfg.Send(ctx, address, linkMailSubject, fmt.Sprintf(linkMailBody, link))
+	minutes := int(h.cfg.LinkExpiry / time.Minute)
+	return h.cfg.Send(ctx, address, linkMailSubject, fmt.Sprintf(linkMailBodyTemplate, link, minutes))
 }
 
 func (h *handlers) logSendFailure(log *slog.Logger, err error) {
@@ -342,7 +355,7 @@ func (h *handlers) consume(now time.Time, token string) (string, Session, error)
 	if err := h.cfg.Nonces.Insert(tok.Nonce, now, tok.ExpiresAt); err != nil {
 		return "", Session{}, err
 	}
-	return MintSession(h.cfg.SessionSecret, tok.Address, now, h.cfg.SessionLifetime)
+	return MintSession(h.cfg.SessionSecret, tok.Address, now, h.cfg.SessionLifetime, h.cfg.SessionAbsoluteCap)
 }
 
 // signOut caps and reads its body like every auth endpoint, then

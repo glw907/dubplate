@@ -106,7 +106,7 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fx := newSeamFixture(t, tt.rosterJSON)
-			value, _, err := MintSession([]byte(currentFixture), tt.address, seamBirth, seamLifetime)
+			value, _, err := MintSession([]byte(currentFixture), tt.address, seamBirth, seamLifetime, seamCap)
 			if err != nil {
 				t.Fatalf("MintSession: %v", err)
 			}
@@ -146,7 +146,7 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 // instead of AnchoredAt would miss it.
 func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
 	fx := newSeamFixture(t, `[{"address":"member@example.com","display_name":"Member","admin":false}]`)
-	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime)
+	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
@@ -184,7 +184,7 @@ func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
 // forward regardless of sameOrigin.
 func TestMagicLinkSeam_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T) {
 	fx := newSeamFixture(t, `[{"address":"member@example.com","display_name":"Member","admin":false}]`)
-	value, minted, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime)
+	value, minted, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
@@ -213,7 +213,7 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 		t.Skip("running as root: permission bits do not block reads")
 	}
 	fx := newSeamFixture(t, `[{"address":"member@example.com","display_name":"Member","admin":false}]`)
-	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime)
+	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}

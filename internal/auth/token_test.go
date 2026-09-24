@@ -380,48 +380,63 @@ func TestSeparatorFloodAllocatesLittle(t *testing.T) {
 }
 
 // TestLinkURL holds security review finding 7: the link is built from
-// the configured public origin and from nothing a request carries, so
-// the URL changes when, and only when, the configuration does.
+// the configured public origin and the owned prefix, and from nothing a
+// request carries, so the URL changes when, and only when, the
+// configuration does. It also holds finding 2's fix: the link lands
+// under the owned prefix rather than at the bare origin, for both an
+// origin with a trailing separator and one without, so a hand
+// concatenation that dropped url.JoinPath's cleaning would double a
+// separator and fail the exact-string comparison.
 func TestLinkURL(t *testing.T) {
 	const vector = "ZHVicGxhdGUtbGluay0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc2NzMyMzk0NQ.MTc2NzMyMzA0NQ.AAECAwQFBgcICQoLDA0ODw.AlrfWVh3uFMLq21CzjH0PEnBk_Ai8FZeiotgxKl0MRg"
 
 	tests := []struct {
 		name    string
 		origin  string
+		prefix  string
 		want    string
 		wantErr bool
 	}{
 		{
-			name:   "origin at the root",
-			origin: "https://example.test/",
-			want:   "https://example.test/login/link?t=ZHVicGxhdGUtbGluay0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc2NzMyMzk0NQ.MTc2NzMyMzA0NQ.AAECAwQFBgcICQoLDA0ODw.AlrfWVh3uFMLq21CzjH0PEnBk_Ai8FZeiotgxKl0MRg",
+			name:   "origin at the root, default prefix",
+			origin: "https://example.test",
+			prefix: "/dubplate",
+			want:   "https://example.test/dubplate/login/link?t=ZHVicGxhdGUtbGluay0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc2NzMyMzk0NQ.MTc2NzMyMzA0NQ.AAECAwQFBgcICQoLDA0ODw.AlrfWVh3uFMLq21CzjH0PEnBk_Ai8FZeiotgxKl0MRg",
 		},
 		{
-			name:   "a different origin, under a path prefix",
-			origin: "https://listen.example.test/dubplate",
-			want:   "https://listen.example.test/dubplate/login/link?t=ZHVicGxhdGUtbGluay0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc2NzMyMzk0NQ.MTc2NzMyMzA0NQ.AAECAwQFBgcICQoLDA0ODw.AlrfWVh3uFMLq21CzjH0PEnBk_Ai8FZeiotgxKl0MRg",
+			name:   "origin carrying a trailing separator, same prefix, same link",
+			origin: "https://example.test/",
+			prefix: "/dubplate",
+			want:   "https://example.test/dubplate/login/link?t=ZHVicGxhdGUtbGluay0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc2NzMyMzk0NQ.MTc2NzMyMzA0NQ.AAECAwQFBgcICQoLDA0ODw.AlrfWVh3uFMLq21CzjH0PEnBk_Ai8FZeiotgxKl0MRg",
+		},
+		{
+			name:   "a different origin, under a different prefix",
+			origin: "https://listen.example.test",
+			prefix: "/library",
+			want:   "https://listen.example.test/library/login/link?t=ZHVicGxhdGUtbGluay0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc2NzMyMzk0NQ.MTc2NzMyMzA0NQ.AAECAwQFBgcICQoLDA0ODw.AlrfWVh3uFMLq21CzjH0PEnBk_Ai8FZeiotgxKl0MRg",
 		},
 		{
 			name:    "an origin net/url refuses",
 			origin:  "://bad",
+			prefix:  "/dubplate",
 			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := LinkURL(tt.origin, vector)
+			got, err := LinkURL(tt.origin, tt.prefix, vector)
 			if tt.wantErr {
 				if err == nil {
-					t.Fatalf("LinkURL(%q) error = nil, want an error", tt.origin)
+					t.Fatalf("LinkURL(%q, %q) error = nil, want an error", tt.origin, tt.prefix)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("LinkURL(%q) error = %v, want nil", tt.origin, err)
+				t.Fatalf("LinkURL(%q, %q) error = %v, want nil", tt.origin, tt.prefix, err)
 			}
 			if got != tt.want {
-				t.Errorf("LinkURL(%q) = %q, want %q", tt.origin, got, tt.want)
+				t.Errorf("LinkURL(%q, %q) = %q, want %q", tt.origin, tt.prefix, got, tt.want)
 			}
 		})
 	}
@@ -451,7 +466,7 @@ func TestErrorsCarryNoFixtureValues(t *testing.T) {
 	record(err)
 	_, err = VerifyLink([]byte(currentFixture), []byte(previousFixture), "!!!", fixtureMint)
 	record(err)
-	_, err = LinkURL("://bad", valid)
+	_, err = LinkURL("://bad", "/dubplate", valid)
 	record(err)
 
 	joined := strings.Join(texts, "\n")

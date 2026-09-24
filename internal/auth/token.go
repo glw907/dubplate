@@ -154,16 +154,19 @@ func VerifyLink(current, previous []byte, value string, now time.Time) (LinkToke
 	return tok, nil
 }
 
-// LinkURL builds the link a member receives, from publicOrigin and the
-// encoded token. publicOrigin is the configured public URL and never a
-// request header: a link built from a Host a request supplied would
-// mail an attacker's origin a token minted for someone else.
-func LinkURL(publicOrigin, token string) (string, error) {
+// LinkURL builds the link a member receives, from publicOrigin, the
+// owned prefix, and the encoded token. publicOrigin is the configured
+// public URL and never a request header: a link built from a Host a
+// request supplied would mail an attacker's origin a token minted for
+// someone else. prefix is the owned prefix's string form (serve.Prefix's
+// String), so the link lands on a path the shell routes to its own
+// handlers rather than to the fallthrough, whatever that slot holds.
+func LinkURL(publicOrigin, prefix, token string) (string, error) {
 	u, err := url.Parse(publicOrigin)
 	if err != nil {
 		return "", fmt.Errorf("magic link origin: %w", err)
 	}
-	u = u.JoinPath(linkPath)
+	u = u.JoinPath(prefix, linkPath)
 	u.RawQuery = url.Values{linkTokenParam: {token}}.Encode()
 	return u.String(), nil
 }

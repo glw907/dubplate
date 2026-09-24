@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/mail"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -88,6 +89,13 @@ const magicLinkExpiryCeiling = time.Hour
 // above the 4320h (180-day) default without admitting a cap that is, in
 // every practical sense, permanent (review m5).
 const sessionAbsoluteCapCeiling = 2 * 365 * 24 * time.Hour
+
+// nonceRetentionCeiling bounds how long a consumed link's nonce record
+// stays on disk. Ten times the 24h default, on the same ten-times rule
+// fork 3's four rate ceilings already follow (linkRequestsPerAddressCeiling):
+// generous headroom above the default without admitting a retention
+// that keeps every spent nonce indefinitely.
+const nonceRetentionCeiling = 240 * time.Hour
 
 // magicLinkExpiryThreshold, sessionLifetimeThreshold,
 // sessionAbsoluteCapThreshold, and nonceRetentionThreshold are rung
@@ -225,12 +233,14 @@ func registerAuthConfig(reg *config.Registry) {
 // validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
 // URL's shape, the ten thresholds' bounds (review m5, R28, security
-// constraint 3), the nonce-retention-vs-expiry relation (R31), the
-// unknown-address answer's accepted set (R25), and DUBPLATE_SMTP_FROM
-// (spec:1289), joining every failure it finds so [config.Load] reports
-// a short secret and a bad URL together. Every returned error names the
-// offending key and never the value or the length of a secret, so a
-// refusal narrows no guess about what the value was.
+// constraint 3), the session-lifetime-vs-absolute-cap and
+// nonce-retention-vs-expiry relations (R-5c11, R31), the unknown-address
+// answer's accepted set (R25), DUBPLATE_SMTP_FROM (spec:1289), and the
+// SMTP port bound (R-5c11), joining every failure it finds so
+// [config.Load] reports a short secret and a bad URL together. Every
+// returned error names the offending key and never the value or the
+// length of a secret, so a refusal narrows no guess about what the
+// value was.
 func validateMagicLinkSource(values map[string]string, environ []string) error {
 	var errs []error
 
@@ -257,15 +267,24 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		}
 	}
 
-	var expiry, retention time.Duration
-	var expiryErr, retentionErr error
+	if v, ok := values[smtpPortKey]; ok {
+		if err := validateSMTPPort(v); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	var expiry, retention, lifetime, absoluteCap time.Duration
+	var expiryErr, retentionErr, lifetimeErr, absoluteCapErr error
 	errs, expiry, expiryErr = checkDurationBounds(errs, environ, magicLinkExpiryThreshold, magicLinkExpiryCeiling)
-	errs, _, _ = checkDurationBounds(errs, environ, sessionLifetimeThreshold, 0)
-	errs, _, _ = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, sessionAbsoluteCapCeiling)
-	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, 0)
+	errs, lifetime, lifetimeErr = checkDurationBounds(errs, environ, sessionLifetimeThreshold, 0)
+	errs, absoluteCap, absoluteCapErr = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, sessionAbsoluteCapCeiling)
+	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, nonceRetentionCeiling)
 
 	if expiryErr == nil && retentionErr == nil && retention < expiry {
 		errs = append(errs, fmt.Errorf("%s: %s is below %s's %s", nonceRetentionThreshold.Key, retention, magicLinkExpiryThreshold.Key, expiry))
+	}
+	if lifetimeErr == nil && absoluteCapErr == nil && lifetime > absoluteCap {
+		errs = append(errs, fmt.Errorf("%s: %s is above %s's %s", sessionLifetimeThreshold.Key, lifetime, sessionAbsoluteCapThreshold.Key, absoluteCap))
 	}
 
 	errs = checkIntBounds(errs, environ, linkRequestsPerAddressThreshold, rateFloor, linkRequestsPerAddressCeiling)
@@ -281,6 +300,25 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// validateSMTPPort checks value parses as an integer from 1 through
+// 65535 (review finding 12): DUBPLATE_SMTP_PORT is a required source
+// key rather than a registered [config.Threshold], because it feeds
+// [strconv.Atoi] rather than one of the registry's parseable kinds, so
+// its bound lives here instead of in [checkIntBounds]. Landing the
+// check in this Validate hook, rather than leaving it to newMailer's
+// own parse, is what makes doctor and every verb see a bad port before
+// the serve verb ever dials out.
+func validateSMTPPort(value string) error {
+	port, err := strconv.Atoi(value)
+	if err != nil {
+		return fmt.Errorf("%s: not an integer", smtpPortKey)
+	}
+	if port < 1 || port > 65535 {
+		return fmt.Errorf("%s: %d is not in 1 through 65535", smtpPortKey, port)
+	}
+	return nil
 }
 
 // validateSMTPFrom checks value the way [config.Load] checks
@@ -341,40 +379,56 @@ func checkDurationBounds(errs []error, environ []string, th config.Threshold, ce
 
 // validatePublicURL checks value against the conditions a configured
 // public origin must meet (review m7): it parses; it carries no
-// userinfo, no query string, and no fragment, because any of the three
-// would ride into every link [LinkURL] builds and make an
-// attacker-chosen string part of its visible prefix or suffix (review
-// m4); it carries a non-empty host, because net/url accepts a bare
-// hostname with a nil error and an empty Host, and a URL with no host
-// builds a path-only link that defeats security review finding 7; and
-// its scheme is https unless its host is loopback, the carve-out the
-// W3C Secure Contexts definition of a potentially trustworthy origin
-// extends to the whole loopback set
+// userinfo, no query string, no fragment, and no path other than empty
+// or "/", because any of the four would ride into every link [LinkURL]
+// builds and make an attacker-chosen string part of its visible prefix
+// or suffix (review m4, finding 2's routing fix, R-5c9: the owned serve
+// prefix is what sets where dubplate lives, so the public URL carries
+// none of its own); it carries a non-empty host, because net/url
+// accepts a bare hostname with a nil error and an empty Host, and a URL
+// with no host builds a path-only link that defeats security review
+// finding 7; and its scheme is https unless its host is loopback, the
+// carve-out the W3C Secure Contexts definition of a potentially
+// trustworthy origin extends to the whole loopback set
 // (https://w3c.github.io/webappsec-secure-contexts/#is-origin-trustworthy,
 // read 2026-09-12), not the name localhost alone (review m6, ruled,
 // conductor 2026-09-12). The comparison reads the parsed hostname
 // rather than the host, since url.Parse("http://localhost:8080").Host
 // is "localhost:8080" and only Hostname() is "localhost".
+//
+// No returned error quotes value (review finding 10): every message
+// names the key and the defect alone. url.Parse's own error is not
+// wrapped verbatim either, since its Error method formats the whole
+// URL, password included
+// (net/url/url.go, fmt.Sprintf("%s %q: %s", e.Op, e.URL, e.Err), read
+// 2026-09-23); this reports the parse failure's own inner reason
+// through [errors.AsType] instead.
 func validatePublicURL(value string) error {
 	u, err := url.Parse(value)
 	if err != nil {
-		return fmt.Errorf("DUBPLATE_PUBLIC_URL: invalid URL %q: %w", value, err)
+		if uerr, ok := errors.AsType[*url.Error](err); ok {
+			return fmt.Errorf("%s: invalid URL: %w", publicURLKey, uerr.Err)
+		}
+		return fmt.Errorf("%s: invalid URL", publicURLKey)
 	}
 	if u.User != nil {
-		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q carries userinfo, which would become an attacker-chosen prefix of every mailed link", value)
+		return fmt.Errorf("%s: carries userinfo, which would become an attacker-chosen prefix of every mailed link", publicURLKey)
 	}
 	if u.RawQuery != "" {
-		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q carries a query string", value)
+		return fmt.Errorf("%s: carries a query string", publicURLKey)
 	}
 	if u.Fragment != "" {
-		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q carries a fragment", value)
+		return fmt.Errorf("%s: carries a fragment", publicURLKey)
+	}
+	if u.Path != "" && u.Path != "/" {
+		return fmt.Errorf("%s: must carry no path; the serve prefix sets where dubplate lives", publicURLKey)
 	}
 	host := u.Hostname()
 	if host == "" {
-		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q has no host", value)
+		return fmt.Errorf("%s: has no host", publicURLKey)
 	}
 	if u.Scheme != "https" && !isLoopbackHost(host) {
-		return fmt.Errorf("DUBPLATE_PUBLIC_URL: %q must use https unless its host is loopback", value)
+		return fmt.Errorf("%s: must use https unless its host is loopback", publicURLKey)
 	}
 	return nil
 }

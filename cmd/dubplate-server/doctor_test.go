@@ -371,6 +371,32 @@ func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
 	}
 }
 
+// TestDoctorCmd_SessionLifetimeAboveCapReportsUnsatisfied is review
+// finding 12's own repro (a 10-year session lifetime paired with a
+// one-hour absolute cap): doctor's exit status is 1 and the magic-link
+// row itself reports unsatisfied, rather than a green table that hides
+// a configuration that mints a cookie its own server refuses within the
+// hour.
+func TestDoctorCmd_SessionLifetimeAboveCapReportsUnsatisfied(t *testing.T) {
+	environ := append(authEnviron(t),
+		"DUBPLATE_SESSION_LIFETIME=87600h",
+		"DUBPLATE_SESSION_ABSOLUTE_CAP=1h",
+	)
+	reg := productionRegistry()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above the absolute cap")
+	}
+
+	want := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied")
+	if !strings.Contains(stdout.String(), want) {
+		t.Errorf("stdout = %q, want a line with prefix %q", stdout.String(), want)
+	}
+}
+
 // TestRowStatuses_FlattensNestedJoin proves the review M4 flatten fix
 // against a synthetic tree rowStatuses's own package tests never
 // otherwise reach: an outer errors.Join wrapping a single inner

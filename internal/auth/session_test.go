@@ -292,7 +292,7 @@ func TestVerifySession(t *testing.T) {
 func TestRefreshHoldsTheAnchor(t *testing.T) {
 	wantAnchor := time.Date(2026, 3, 4, 5, 6, 7, 0, time.UTC)
 
-	value, session, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture)
+	value, session, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture, sessionCapFixture)
 	if err != nil {
 		t.Fatalf("MintSession error = %v, want nil", err)
 	}
@@ -346,7 +346,7 @@ func TestRefreshHoldsTheAnchor(t *testing.T) {
 // the anchor plus the cap has passed. A cap checked against the issue
 // time would admit this session forever.
 func TestRefreshedSessionRefusedAtTheAbsoluteCap(t *testing.T) {
-	_, session, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture)
+	_, session, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture, sessionCapFixture)
 	if err != nil {
 		t.Fatalf("MintSession error = %v, want nil", err)
 	}
@@ -387,7 +387,7 @@ func TestRefreshClampsAtTheExactBoundary(t *testing.T) {
 	)
 	anchor := time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
 
-	_, session, err := MintSession([]byte(currentFixture), "alice@example.test", anchor, lifetime)
+	_, session, err := MintSession([]byte(currentFixture), "alice@example.test", anchor, lifetime, cap)
 	if err != nil {
 		t.Fatalf("MintSession error = %v, want nil", err)
 	}
@@ -398,6 +398,43 @@ func TestRefreshClampsAtTheExactBoundary(t *testing.T) {
 	want := anchor.Add(cap)
 	if !refreshed.ExpiresAt.Equal(want) {
 		t.Errorf("ExpiresAt = %v, want %v (anchor %v + cap %v)", refreshed.ExpiresAt, want, anchor, cap)
+	}
+}
+
+// TestMintSessionClampsAtTheAbsoluteCap holds review finding 12's mint
+// half: a lifetime configured far above the cap (the review's own
+// repro pairs a 87600h lifetime with a one-hour cap) never mints a
+// cookie whose Max-Age promises longer than VerifySession will honor.
+// RefreshSession already carried this clamp (review m2); this proves
+// MintSession carries it too, at the first mint, before any refresh.
+func TestMintSessionClampsAtTheAbsoluteCap(t *testing.T) {
+	const (
+		lifetime = 87600 * time.Hour
+		cap      = time.Hour
+	)
+	anchor := time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
+
+	value, minted, err := MintSession([]byte(currentFixture), "alice@example.test", anchor, lifetime, cap)
+	if err != nil {
+		t.Fatalf("MintSession error = %v, want nil", err)
+	}
+
+	wantExpiry := anchor.Add(cap)
+	if !minted.ExpiresAt.Equal(wantExpiry) {
+		t.Fatalf("ExpiresAt = %v, want it clamped to the cap %v", minted.ExpiresAt, wantExpiry)
+	}
+
+	cookie := SessionCookie(value, anchor, minted.ExpiresAt)
+	if wantMaxAge := int(cap.Seconds()); cookie.MaxAge > wantMaxAge {
+		t.Errorf("cookie Max-Age = %d, want at most %d (the cap in seconds)", cookie.MaxAge, wantMaxAge)
+	}
+
+	// The clamped value refuses at its own expiry exactly as a session
+	// refreshed to the cap boundary does: the mint clamp and the
+	// refresh clamp leave the same shape of signed value behind either
+	// way.
+	if _, err := VerifySession([]byte(currentFixture), nil, value, wantExpiry, cap); !errors.Is(err, ErrSessionCapReached) {
+		t.Errorf("VerifySession at the clamped expiry error = %v, want ErrSessionCapReached", err)
 	}
 }
 
@@ -441,7 +478,7 @@ func TestSessionAndLinkCannotCross(t *testing.T) {
 // TestSessionHasOneEncoding is TestLinkHasOneEncoding for the cookie,
 // which shares the link's decoder: one session, one string.
 func TestSessionHasOneEncoding(t *testing.T) {
-	value, _, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture)
+	value, _, err := MintSession([]byte(currentFixture), "alice@example.test", sessionBirth, sessionLifetimeFixture, sessionCapFixture)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
@@ -455,7 +492,7 @@ func TestSessionHasOneEncoding(t *testing.T) {
 func TestMintSession(t *testing.T) {
 	now := time.Date(2026, 3, 4, 5, 6, 7, 890_000_000, time.UTC)
 
-	value, minted, err := MintSession([]byte(currentFixture), "Alice.Smith@Example.TEST", now, sessionLifetimeFixture)
+	value, minted, err := MintSession([]byte(currentFixture), "Alice.Smith@Example.TEST", now, sessionLifetimeFixture, sessionCapFixture)
 	if err != nil {
 		t.Fatalf("MintSession error = %v, want nil", err)
 	}
@@ -483,7 +520,7 @@ func TestMintSession(t *testing.T) {
 		t.Errorf("verified session = %+v, want %+v", parsed, minted)
 	}
 
-	if _, _, err := MintSession([]byte(currentFixture), "not-an-address", now, sessionLifetimeFixture); !errors.Is(err, identity.ErrInvalidAddress) {
+	if _, _, err := MintSession([]byte(currentFixture), "not-an-address", now, sessionLifetimeFixture, sessionCapFixture); !errors.Is(err, identity.ErrInvalidAddress) {
 		t.Errorf("MintSession of an unparseable address error = %v, want identity.ErrInvalidAddress", err)
 	}
 }
@@ -504,7 +541,7 @@ func TestSessionErrorsCarryNoFixtureValues(t *testing.T) {
 		texts = append(texts, err.Error())
 	}
 
-	_, _, err := MintSession([]byte(currentFixture), "not-an-address", sessionBirth, sessionLifetimeFixture)
+	_, _, err := MintSession([]byte(currentFixture), "not-an-address", sessionBirth, sessionLifetimeFixture, sessionCapFixture)
 	record(err)
 	_, err = VerifySession([]byte(currentFixture), []byte(previousFixture), broken, sessionBirth, sessionCapFixture)
 	record(err)

@@ -37,6 +37,10 @@ var (
 	handlerOrigin = "https://music.example.com"
 )
 
+// handlerPrefix is the owned prefix every fixture's mailed links build
+// under, on servePrefixThreshold's own default.
+const handlerPrefix = "/dubplate"
+
 // handlerRoster carries one admin and four members, so a flood row has
 // distinct known addresses to walk and the kind answer has an admin to
 // name.
@@ -252,7 +256,9 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		SessionSecret:      []byte(sessionFixture),
 		LinkExpiry:         fixtureExpiry,
 		SessionLifetime:    seamLifetime,
+		SessionAbsoluteCap: seamCap,
 		PublicOrigin:       handlerOrigin,
+		Prefix:             handlerPrefix,
 		BodyCap:            bodyCap,
 		GenericAnswer:      opts.generic,
 	})
@@ -685,6 +691,46 @@ func TestRequestLink_KindAnswers(t *testing.T) {
 				t.Errorf("mail sent %d times, want %d", got, tt.wantMail)
 			}
 		})
+	}
+}
+
+// TestRequestLink_MailCopy proves the mail body a known address receives:
+// the link, the expiry stated in whole minutes computed from LinkExpiry
+// (fixtureExpiry is 15 minutes), the once-only and ignore-it sentences,
+// and nothing else configured. Stripping the link out of the body and
+// searching what remains for the roster's admin address, the public
+// origin's bare host, and the sign-in address itself is what proves the
+// last clause: none of them appears anywhere but inside the link this
+// test already extracted.
+func TestRequestLink_MailCopy(t *testing.T) {
+	fx := newHandlerFixture(t, fixtureOptions{})
+	serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+	m := fx.mail.waitCall(t)
+
+	if m.subject == "" {
+		t.Error("mail subject is empty")
+	}
+	if !strings.Contains(m.body, "once") {
+		t.Errorf("mail body = %q, want it to say the link works once", m.body)
+	}
+	if !strings.Contains(m.body, "ignore") {
+		t.Errorf("mail body = %q, want it to tell a reader who did not ask to ignore it", m.body)
+	}
+	const wantMinutes = "15"
+	if !strings.Contains(m.body, wantMinutes) {
+		t.Errorf("mail body = %q, want it to state the expiry in minutes (%s)", m.body, wantMinutes)
+	}
+
+	token := tokenFromMail(t, m)
+	link, err := LinkURL(handlerOrigin, handlerPrefix, token)
+	if err != nil {
+		t.Fatalf("LinkURL: %v", err)
+	}
+	stripped := strings.Replace(m.body, link, "", 1)
+	for _, forbidden := range []string{"member@example.com", "admin@example.com", "music.example.com"} {
+		if strings.Contains(stripped, forbidden) {
+			t.Errorf("mail body with the link removed still contains %q: %q", forbidden, stripped)
+		}
 	}
 }
 

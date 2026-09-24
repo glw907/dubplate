@@ -96,17 +96,28 @@ type Session struct {
 // anchor is the issue time at a first mint; only [RefreshSession] can
 // separate the two.
 //
+// The expiry is clamped to the anchor plus absoluteCap, the same clamp
+// [RefreshSession] applies (review m2's other half): a lifetime
+// configured above the cap would otherwise mint a cookie whose Max-Age
+// promises longer than [VerifySession] will ever honor, misleading
+// whatever reads the cookie's own attributes rather than the value it
+// carries.
+//
 // secret is the current session secret. There is no minting path for
 // the previous secret, which is what makes rotation routine rather than
 // an estate-wide sign-out.
-func MintSession(secret []byte, address string, now time.Time, lifetime time.Duration) (string, Session, error) {
+func MintSession(secret []byte, address string, now time.Time, lifetime, absoluteCap time.Duration) (string, Session, error) {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
 		return "", Session{}, fmt.Errorf("mint session: %w", err)
 	}
 	s := Session{Address: normalized, IssuedAt: now.UTC().Truncate(time.Second)}
 	s.AnchoredAt = s.IssuedAt
-	s.ExpiresAt = s.IssuedAt.Add(lifetime)
+	expiresAt := s.IssuedAt.Add(lifetime)
+	if capAt := s.AnchoredAt.Add(absoluteCap); expiresAt.After(capAt) {
+		expiresAt = capAt
+	}
+	s.ExpiresAt = expiresAt
 	return encodeSession(secret, s), s, nil
 }
 

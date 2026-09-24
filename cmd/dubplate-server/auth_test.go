@@ -278,6 +278,10 @@ func TestValidateMagicLinkSource_PublicURL(t *testing.T) {
 		{"query string", "https://dubplate.example?x=1", true},
 		{"fragment", "https://dubplate.example#frag", true},
 		{"clean https origin", "https://dubplate.example", false},
+		{"empty path", "https://dubplate.example", false},
+		{"root path", "https://dubplate.example/", false},
+		{"a path", "https://dubplate.example/dubplate", true},
+		{"a path with a trailing separator", "https://dubplate.example/x/", true},
 	}
 
 	for _, tt := range tests {
@@ -289,6 +293,42 @@ func TestValidateMagicLinkSource_PublicURL(t *testing.T) {
 			}
 			if err != nil && !strings.Contains(err.Error(), "DUBPLATE_PUBLIC_URL") {
 				t.Errorf("error = %q, want it to name DUBPLATE_PUBLIC_URL", err.Error())
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_PublicURLNeverEchoesTheValue holds review
+// finding 10: a public URL carrying a password in its userinfo, and a
+// separately unparseable value that also carries a password, both
+// refuse without the password (or any other part of the value) ever
+// reaching the error text. url.Parse's own *url.Error formats the whole
+// URL it was given, so the unparseable row is the one that fails if
+// validatePublicURL ever wraps that error verbatim instead of reading
+// its inner Err alone.
+func TestValidateMagicLinkSource_PublicURLNeverEchoesTheValue(t *testing.T) {
+	const password = "fixture-pass-not-real"
+
+	tests := []struct {
+		name string
+		url  string
+	}{
+		{"userinfo carries the password", "https://operator:" + password + "@dubplate.example.test"},
+		{"unparseable value also carries the password", "https://operator:" + password + "@dubplate.example.test:notaport"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			values := map[string]string{"DUBPLATE_PUBLIC_URL": tt.url}
+			err := validateMagicLinkSource(values, authEnviron(t))
+			if err == nil {
+				t.Fatal("validateMagicLinkSource() error = nil, want a refusal")
+			}
+			if strings.Contains(err.Error(), password) {
+				t.Errorf("error = %q, want it to never contain the password", err.Error())
+			}
+			if strings.Contains(err.Error(), tt.url) {
+				t.Errorf("error = %q, want it to never contain the whole value", err.Error())
 			}
 		})
 	}
@@ -364,7 +404,10 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		{"link expiry one below the floor (zero)", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "0s"), true},
 		{"session lifetime at the one-second floor", bound("DUBPLATE_SESSION_LIFETIME", "1s"), false},
 		{"session lifetime one below the floor (zero)", bound("DUBPLATE_SESSION_LIFETIME", "0s"), true},
-		{"session absolute cap at the one-second floor", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "1s"), false},
+		// The cap row's own floor is asserted with the session lifetime
+		// also lowered to one second, so R-5c11's separate
+		// lifetime-vs-cap relation cannot fire alongside it.
+		{"session absolute cap at the one-second floor", append(bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "1s"), "DUBPLATE_SESSION_LIFETIME=1s"), false},
 		{"session absolute cap one below the floor (zero)", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "0s"), true},
 		// The retention row's own floor is asserted with the link
 		// expiry also lowered to one second, so R31's separate
@@ -384,6 +427,12 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		// admitting a cap that is, in practice, permanent.
 		{"session absolute cap at the two-year ceiling", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "17520h"), false},
 		{"session absolute cap one hour past the ceiling", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "17521h"), true},
+
+		// A ceiling of 240h on nonce retention (R-5c11), ten times its
+		// 24h default on the same ten-times rule the rate thresholds'
+		// ceilings already follow.
+		{"nonce retention at the 240h ceiling", bound("DUBPLATE_NONCE_RETENTION", "240h"), false},
+		{"nonce retention one second past the ceiling", bound("DUBPLATE_NONCE_RETENTION", "240h0m1s"), true},
 	}
 
 	for _, tt := range tests {
@@ -452,6 +501,78 @@ func TestValidateMagicLinkSource_RateAndCapBounds(t *testing.T) {
 			err := validateMagicLinkSource(nil, tt.environ)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_SessionLifetimeAboveCap proves R-5c11's
+// load-time half: a lifetime at or below the cap loads, and one above it
+// refuses naming both keys. The doctor-level repro (lifetime 87600h,
+// cap 1h) is proved separately, through the doctor harness, in
+// doctor_test.go.
+func TestValidateMagicLinkSource_SessionLifetimeAboveCap(t *testing.T) {
+	tests := []struct {
+		name     string
+		lifetime string
+		cap      string
+		wantErr  bool
+	}{
+		{"lifetime equal to the cap", "4320h", "4320h", false},
+		{"lifetime below the cap", "2160h", "4320h", false},
+		{"lifetime one hour above the cap", "4321h", "4320h", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(baseEnviron(),
+				"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
+				"DUBPLATE_SESSION_LIFETIME="+tt.lifetime,
+				"DUBPLATE_SESSION_ABSOLUTE_CAP="+tt.cap,
+				"DUBPLATE_NONCE_RETENTION=24h",
+			)
+			err := validateMagicLinkSource(nil, environ)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				for _, key := range []string{"DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"} {
+					if !strings.Contains(err.Error(), key) {
+						t.Errorf("error = %q, want it to name %s", err.Error(), key)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestValidateMagicLinkSource_SMTPPort proves R-5c11's port bound: 1
+// and 65535 are the accepted extremes, 0 and 65536 each refuse naming
+// the key, and a non-integer value refuses too (named mutation 6: an
+// Atoi-only parse would let 0 load, since Atoi accepts it).
+func TestValidateMagicLinkSource_SMTPPort(t *testing.T) {
+	tests := []struct {
+		name    string
+		port    string
+		wantErr bool
+	}{
+		{"port at the low bound", "1", false},
+		{"port at the high bound", "65535", false},
+		{"port zero", "0", true},
+		{"port one past the high bound", "65536", true},
+		{"port negative", "-1", true},
+		{"port not an integer", "abc", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			values := map[string]string{"DUBPLATE_SMTP_PORT": tt.port}
+			err := validateMagicLinkSource(values, authEnviron(t))
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !strings.Contains(err.Error(), "DUBPLATE_SMTP_PORT") {
+				t.Errorf("error = %q, want it to name DUBPLATE_SMTP_PORT", err.Error())
 			}
 		})
 	}

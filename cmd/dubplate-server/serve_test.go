@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -490,5 +491,86 @@ func TestNewServeShell_SweepDriverStopsWithTheGivenContext(t *testing.T) {
 	case <-done:
 	case <-time.After(5 * time.Second):
 		t.Fatal("the sweep driver did not stop after the passed context was canceled")
+	}
+}
+
+// TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree holds
+// security review finding 2, R-5c9's routing test: a link minted
+// through the real handler config, the prefix and the public origin
+// [newServeShell] itself resolves, lands on a path the owned prefix
+// owns and a registered "login" subtree answers, never the
+// fallthrough. It runs for both public-URL forms, a bare origin and one
+// carrying a trailing separator, and asserts the same link path for
+// each, so a hand concatenation that dropped url.JoinPath's cleaning
+// (which would double the separator for the trailing-slash form alone)
+// fails it.
+//
+// Fixture state: the fallthrough's recorded query starts at a sentinel
+// a real request's RawQuery can never equal, so a pass cannot be
+// explained by a 404 that terminates the request before the
+// fallthrough is even reached.
+func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
+	origins := []string{"https://h.example.test", "https://h.example.test/"}
+	gotPaths := make([]string, len(origins))
+
+	for i, origin := range origins {
+		t.Run(origin, func(t *testing.T) {
+			environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_PUBLIC_URL", origin)
+
+			cfg, err := config.Load(environ, productionRegistry())
+			if err != nil {
+				t.Fatalf("config.Load: %v", err)
+			}
+			prefix, _, _, err := resolveServeConfig(environ)
+			if err != nil {
+				t.Fatalf("resolveServeConfig: %v", err)
+			}
+			authCfg, err := resolveAuthConfig(environ)
+			if err != nil {
+				t.Fatalf("resolveAuthConfig: %v", err)
+			}
+			shell, _, err := newServeShell(t.Context(), prefix, cfg, authCfg)
+			if err != nil {
+				t.Fatalf("newServeShell: %v", err)
+			}
+
+			var loginReached bool
+			shell.Register("login", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				loginReached = true
+				w.WriteHeader(http.StatusOK)
+			}))
+			const sentinel = "fallthrough not invoked"
+			fallthroughQuery := sentinel
+			shell.SetFallthrough(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				fallthroughQuery = r.URL.RawQuery
+			}))
+
+			link, err := auth.LinkURL(cfg.IdentitySourceValue(publicURLKey), prefix.String(), "fixture-token")
+			if err != nil {
+				t.Fatalf("auth.LinkURL: %v", err)
+			}
+			u, err := url.Parse(link)
+			if err != nil {
+				t.Fatalf("parse minted link: %v", err)
+			}
+			if !prefix.Owns(u.Path) {
+				t.Fatalf("minted link path %q is not owned by the prefix %q", u.Path, prefix.String())
+			}
+			gotPaths[i] = u.Path
+
+			r := httptest.NewRequest(http.MethodGet, u.Path+"?"+u.RawQuery, nil)
+			shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+
+			if !loginReached {
+				t.Error("the registered login subtree was never reached")
+			}
+			if fallthroughQuery != sentinel {
+				t.Errorf("fallthrough saw RawQuery=%q, want it never reached", fallthroughQuery)
+			}
+		})
+	}
+
+	if gotPaths[0] != gotPaths[1] {
+		t.Errorf("minted link path = %q for %q and %q for %q, want the same path for both origin forms", gotPaths[0], origins[0], gotPaths[1], origins[1])
 	}
 }
