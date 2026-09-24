@@ -485,6 +485,47 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 	}
 }
 
+// TestValidateMagicLinkSource_ExpiryBelowFloorNamesKeyNotValue proves
+// the mail-copy fix's load-time half directly on
+// [validateMagicLinkSource]: a link expiry one second below the
+// one-minute floor refuses with a *sourceKeyError naming
+// DUBPLATE_MAGIC_LINK_EXPIRY, and the joined error's own text never
+// quotes the submitted "59s".
+func TestValidateMagicLinkSource_ExpiryBelowFloorNamesKeyNotValue(t *testing.T) {
+	bound := func(key, value string) []string {
+		environ := append(baseEnviron(),
+			"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
+			"DUBPLATE_SESSION_LIFETIME=2160h",
+			"DUBPLATE_SESSION_ABSOLUTE_CAP=4320h",
+			"DUBPLATE_NONCE_RETENTION=24h",
+		)
+		return append(dropKey(environ, key), key+"="+value)
+	}
+
+	err := validateMagicLinkSource(nil, bound("DUBPLATE_MAGIC_LINK_EXPIRY", "59s"))
+	if err == nil {
+		t.Fatal("validateMagicLinkSource() error = nil, want a refusal")
+	}
+
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		t.Fatalf("validateMagicLinkSource() error does not implement Unwrap() []error: %v", err)
+	}
+
+	var found bool
+	for _, leaf := range joined.Unwrap() {
+		if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok && keyed.key == "DUBPLATE_MAGIC_LINK_EXPIRY" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("validateMagicLinkSource() error = %v, want a *sourceKeyError keyed DUBPLATE_MAGIC_LINK_EXPIRY", err)
+	}
+	if strings.Contains(err.Error(), "59s") {
+		t.Errorf("validateMagicLinkSource() error = %q, want it to never quote the submitted value", err.Error())
+	}
+}
+
 // TestDoctorCmd_MagicLinkExpiryBelowFloorNamesKeyNotValue proves the
 // mail-copy fix's load-time half end to end: a link expiry below the
 // one-minute floor makes doctor's magic-link source row report

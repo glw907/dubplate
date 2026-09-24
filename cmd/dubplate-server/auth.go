@@ -401,7 +401,7 @@ func checkDurationBounds(errs []error, environ []string, th config.Threshold, fl
 		return append(errs, keyed), 0, keyed
 	}
 	if d < floor {
-		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is below the floor of %s", d, floor)})
+		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("below the floor of %s", floor)})
 	}
 	if ceiling > 0 && d > ceiling {
 		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is above the ceiling of %s", d, ceiling)})
