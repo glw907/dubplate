@@ -43,7 +43,7 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED at 5c-i's close; reopens on 5c-ii once its plan is approved |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on the beets 2.14.1 adoption (Geoff, 2026-09-24: "do that in this pass"); 5c-ii follows once its plan is approved |
 | 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; segment A green at `2d863cb`, segment B (Tasks 4-7) in flight |
 
 ## Open items (carried)
