@@ -165,30 +165,30 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 		},
 		{
 			name:         "a no-break space in a display name",
-			members:      `[{"address":"a@example.com","display_name":"A B"}]`,
+			members:      `[{"address":"a@example.com","display_name":"A` + "\u00a0" + `B"}]`,
 			wantErr:      true,
 			wantSentinel: errInvalidDisplayName,
 		},
 		{
 			name:         "a right-to-left override in a display name",
-			members:      `[{"address":"a@example.com","display_name":"A‮B"}]`,
+			members:      `[{"address":"a@example.com","display_name":"A` + "\u202e" + `B"}]`,
 			wantErr:      true,
 			wantSentinel: errInvalidDisplayName,
 		},
 		{
 			name:         "a zero-width space in a display name",
-			members:      `[{"address":"a@example.com","display_name":"A​B"}]`,
+			members:      `[{"address":"a@example.com","display_name":"A` + "\u200b" + `B"}]`,
 			wantErr:      true,
 			wantSentinel: errInvalidDisplayName,
 		},
 		{
 			name:    "a zero-width non-joiner in a display name loads",
-			members: `[{"address":"a@example.com","display_name":"A‌B"}]`,
+			members: `[{"address":"a@example.com","display_name":"A` + "\u200c" + `B"}]`,
 			wantErr: false,
 		},
 		{
 			name:    "a zero-width joiner in a display name loads",
-			members: `[{"address":"a@example.com","display_name":"A‍B"}]`,
+			members: `[{"address":"a@example.com","display_name":"A` + "\u200d" + `B"}]`,
 			wantErr: false,
 		},
 		{
@@ -217,19 +217,19 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 		},
 		{
 			name:         "a right-to-left override in a quoted address local part",
-			members:      `[{"address":"\"a‮b\"@example.com","display_name":"A"}]`,
+			members:      `[{"address":"\"a` + "\u202e" + `b\"@example.com","display_name":"A"}]`,
 			wantErr:      true,
 			wantSentinel: errInvalidMemberAddress,
 		},
 		{
 			name:         "a no-break space in a quoted address local part",
-			members:      `[{"address":"\"a b\"@example.com","display_name":"A"}]`,
+			members:      `[{"address":"\"a` + "\u00a0" + `b\"@example.com","display_name":"A"}]`,
 			wantErr:      true,
 			wantSentinel: errInvalidMemberAddress,
 		},
 		{
 			name:         "a zero-width space in a quoted address local part",
-			members:      `[{"address":"\"a​b\"@example.com","display_name":"A"}]`,
+			members:      `[{"address":"\"a` + "\u200b" + `b\"@example.com","display_name":"A"}]`,
 			wantErr:      true,
 			wantSentinel: errInvalidMemberAddress,
 		},
