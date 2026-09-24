@@ -1,12 +1,16 @@
 # Rung 6, Pass 6a (The Store Foundation) Implementation Plan
 
-Status: **revision 2.1, 2026-09-23, review folded and verified; awaiting approval.**
+Status: **revision 2.2, 2026-09-23, review complete; awaiting Geoff's
+approval.**
 Revision 1 (`11f11c2`) took three lens reviews (contract, mechanics, and
 risk). Their folds, refusals, and owner forks are recorded in
 `docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`.
 Revision 2 (`1d69ab8`) took a fresh-context verification read
 (`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-verification.md`,
 V1 to V9); revision 2.1 folds it, and the fold record's "Second fold"
+section gives one disposition per finding. Revision 2.2 folds a prose and
+fact review (`docs/superpowers/research/2026-09-23-rung-6a-plan-prose-review.md`,
+B1 to B2, W1 to W10, S1 to S11); the fold record's "Prose review fold"
 section gives one disposition per finding. Four rulings for Geoff are
 open ("Rulings for Geoff").
 
@@ -72,44 +76,50 @@ the projection, and moves rung 6's reservation up by about 2.3M before
 ceiling that sits under the projection, so the flag fires on plan and the
 conductor asks mid-pass.
 
-**2. Does `doctor` keep exiting 0 when the store is absent or older than
-the binary, and exit nonzero only for a state `serve` cannot start
-through?** Recommendation: yes. Reason: nothing creates a store in
-production until 6d, so a nonzero exit on "absent" would fail 5d's
-carried "doctor exits 0" exit gate on every box, and an older store is
-the normal state after an upgrade that `serve` migrates. What each answer
-builds: yes makes `doctor` and `check` exit nonzero for a newer store, a
-restore in progress, a file that is not a store (an interrupted create
-included, since its report names the fix), a lock held exclusively, a
-refusal of any kind (owner, filesystem, ledger, an unreadable file), and
-exit 0 for absent, older, and current (R-6a12). No makes every state but
-"current" a nonzero exit, and 5d's exit gate then needs a pre-created
-store, which only `serve` may create.
+**2. Does `doctor` exit 0 when the store is absent, older, or current,
+and nonzero for every other state?** Recommendation: yes. Reason: nothing
+creates a store in production until 6d, so a nonzero exit on "absent"
+would fail 5d's carried "doctor exits 0" exit gate on every box, and an
+older store is the normal state after an upgrade that `serve` migrates.
+An interrupted create exits nonzero because it is not yet a store `serve`
+can start through: it needs a completion step, and its report names the
+fix. **What yes builds:** `doctor` and `check` exit nonzero for a newer
+store, a restore in progress, a file that is not a store (an interrupted
+create included), a lock held exclusively, a refusal of any kind (owner,
+filesystem, ledger, an unreadable file), and exit 0 for absent, older,
+and current (R-6a12). **What no builds:** every state but "current"
+exits nonzero, and 5d's exit gate then needs a pre-created store, which
+only `serve` may create.
 
 **3. Does `serve` refuse to create or complete a store when
 `snapshots/` holds a copy and the database is absent or an interrupted
-create?** Recommendation: yes. Reason: serve creates a store when the
-database file is absent, and completes one when the file is zero bytes
-with no `-wal` or header-only and unmarked (R-6a6). A database lost to a
-hand deletion, a mistaken `mv`, a failed copy, a `: > store.db`, or a
-disk repair meets one of those rows, and would be replaced by an empty
-catalog without a word; after 6b-i the next backup would upload that
-empty store as the latest. The check costs one directory read in serve's
-step 3 and one inspect branch. A genuine first create or interrupted
-create never meets a copy, because a store at version 0 takes no
-snapshot (R-6a11), so the check costs a fresh install nothing. What each
-answer builds: yes makes serve, holding the exclusive lock, read
+create?** Recommendation: yes.
+
+**Reason:** serve creates a store when the database file is absent, and
+completes one when the file is zero bytes with no `-wal` or header-only
+and unmarked (R-6a6). A database lost to a hand deletion, a mistaken
+`mv`, a failed copy, a `: > store.db`, or a disk repair meets one of
+those rows, and would be replaced by an empty catalog without a word;
+after 6b-i the next backup would upload that empty store as the latest.
+The check costs one directory read in serve's step 3 and one inspect
+branch. A genuine first create or interrupted create never meets a
+copy, because a store at version 0 takes no snapshot (R-6a11), so the
+check costs a fresh install nothing.
+
+**What yes builds:** serve, holding the exclusive lock, reads
 `snapshots/` before it creates a store or completes an interrupted
-create; with a `pre-migrate-v<N>.db` or `pre-restore-*.db` present, serve
+create. With a `pre-migrate-v<N>.db` or `pre-restore-*.db` present, serve
 refuses naming the newest copy and `restore --from-file`, leaves the
 database file as it found it, and inspect reports "refused" with the same
 text, which exits nonzero under Ruling 2 (R-6a5). With no copy present, a
 lost database is still created or completed empty; the guard covers only
-a leaf that kept a copy. No keeps revision 1's rule: serve creates
-whenever the database file is absent and completes every interrupted
-create. A third option, an explicit
-`serve --create-store` for any create after the first, is not
-recommended, because it adds an attended step to every fresh install.
+a leaf that kept a copy.
+
+**What no builds:** revision 1's rule stands. Serve creates whenever the
+database file is absent and completes every interrupted create. A third
+option, an explicit `serve --create-store` for any create after the
+first, is not recommended, because it adds an attended step to every
+fresh install.
 
 **4. Does a caller's deadline bound only the in-process wait, leaving
 SQLite's wait on another process's write lock bounded by the busy timeout
@@ -125,8 +135,9 @@ method pin a `*sql.Conn` and set `PRAGMA busy_timeout` to the smaller of
 the time left and the configured value before each `BEGIN IMMEDIATE`,
 which adds a statement per write and hand-manages the pool's one
 connection; Task 3 then carries a fifth deliverable and splits. That
-split costs about 0.53M and brings the projection to 5.45M, at Ruling
-1's flag, so the conductor asks at that boundary under the 80% rule.
+split costs about 0.53M and brings the projection to 5.45M, just past
+Ruling 1's 5.44M flag, so the conductor asks at that boundary under the
+80% rule.
 
 ### Spec deviations that take effect on approval
 
@@ -147,7 +158,16 @@ record lists them as owed errata.
 - Task 1: the filesystem probe refuses SMB, Ceph, and AFS beside the
   spec's list, runs on `db/` when it exists, and a create requires the
   effective uid to own the state directory.
-- Task 6: serve's step 1 shared wait is bounded by the migration wait.
+- Task 6: serve's step 1 shared wait is bounded by the migration wait and
+  logs the holders, as step 2 does.
+- Ruling 1's yes: the ceiling table row's figure becomes 6.8M execution
+  plus planning.
+- Ruling 3's yes: serve refuses a create or a completion when
+  `snapshots/` holds a copy, naming it and `restore --from-file`, and
+  inspect reports it as refused.
+- Ruling 4's yes: the write method's contract reads that the busy
+  timeout alone bounds the wait on another process's write lock, and a
+  context does not shorten it.
 
 ---
 
@@ -236,11 +256,11 @@ overrun rather than firing on plan. Either pre-named task split (Task 6's
 serve mode, or Task 3's under Ruling 4's no) adds about 0.53M and brings
 the projection to 5.45M, just past the flag, so the conductor asks at
 that boundary under the 80% rule rather than absorbing it. Both splits
-together project 5.98M, still under the ceiling. The spec's table row reads 5.5M,
-which is 0.95M of planning plus a 4.55M execution figure at 0.46M per
-task; the 0.46M rate subtracts planning and Task 0 that 5b-ii's recorded
-actual already amortizes. Re-derive at the segment A boundary from Tasks
-1 through 3's reports.
+together project 5.98M, still under the ceiling. The spec's table row
+reads 5.5M, which is 0.95M of planning plus a 4.55M execution figure
+(5.5M minus 0.95M) at 0.46M per task; the 0.46M rate subtracts planning
+and Task 0 that 5b-ii's recorded actual already amortizes. Re-derive at
+the segment A boundary from Tasks 1 through 3's reports.
 
 Checkpoint: STATUS at every segment boundary, after Task 3, after Task 7,
 and at the close. Every task reports its spend, its mutation outcomes,
@@ -254,7 +274,7 @@ shared classification takes its place).
 
 ---
 
-## Global Constraints
+## Global constraints
 
 - **Lane 2, a git worktree.** The conductor creates it from master before
   Task 0 and writes the lane registry row. Every task, gate, and commit
@@ -374,10 +394,10 @@ a closed state set, and nothing else. **Unexported at 6a:** the handle
 type, the write mode, the serve mode, the write method and its
 transaction handle, the migration runner, the snapshot function, the id
 function, and every sentinel no caller outside the package branches on.
-6b-i exports the write mode and the write method with `ops/local`; 6d
-exports the serve mode with `serve`. `cmd/dubplate-server` branches on
-the report's state, never on an error's identity, so the store exports no
-sentinel at 6a.
+6b-i exports the write method with `ops/local` and the write mode with
+`backup`; 6d exports the serve mode with `serve`. `cmd/dubplate-server`
+branches on the report's state, never on an error's identity, so the
+store exports no sentinel at 6a.
 
 ### R-6a3: the busy timeout registers at 6a; the migration wait at 6d
 
@@ -385,13 +405,13 @@ The fold record's contested row for `main.go` says "6a registers the busy
 timeout and the migration wait." The busy timeout has a 6a production
 reader: the inspect mode's DSN, which `doctor` and `check` pass. The
 migration wait's only reader is the serve mode, whose production caller
-is 6d's `serve`. Registering it at 6a would put an env key on `doctor`'s
-table that no production code reads, which misleads an adopter. So Task
-7 registers `DUBPLATE_STORE_BUSY_TIMEOUT` in
+is 6d's `serve`. Task 7 registers `DUBPLATE_STORE_BUSY_TIMEOUT` in
 `cmd/dubplate-server/store.go` (the rung's own file, per CLAUDE.md), and
 the serve mode takes the migration wait as a parameter; 6d registers
-`DUBPLATE_STORE_MIGRATION_WAIT` with `serve`. This is an owed erratum
-("Spec deviations that take effect on approval").
+`DUBPLATE_STORE_MIGRATION_WAIT` with `serve`. Registering it at 6a would
+put an env key on `doctor`'s table that no production code reads, which
+misleads an adopter. This is an owed erratum ("Spec deviations that take
+effect on approval").
 
 **The busy timeout's default is 15 seconds**, a `KindDuration` threshold.
 The researched basis: Navidrome's default DSN carries
@@ -408,7 +428,7 @@ resolves a threshold "at its point of use rather than at Load"
 prints `d.String()` for any duration that parses, so the threshold row
 shows `0s` or `-1s` as given. The registry has no bounds metadata until
 6c, and the one existing bounds channel (an identity source's `Validate`
-hook) lives in `auth.go`, a 5c-i file. So the caller in
+hook) lives in `auth.go`, a 5c-i file. The caller in
 `cmd/dubplate-server/store.go` checks the range before any open, and the
 store row carries the refusal, naming the key and the bound. The floor is
 1 ms, because `_busy_timeout` takes integer milliseconds and a positive
@@ -446,8 +466,10 @@ Migration 1 sets `PRAGMA application_id` to a fixed dubplate value
 transaction. The probe measured that `application_id` and `user_version`
 written inside a transaction roll back with it, and commit with it.
 
-**How a file is classified.** "Absent" is decided only by `os.Stat`
-returning an error for which `errors.Is(err, fs.ErrNotExist)` holds. No
+**How a file is classified.** Restore-in-progress and busy are decided
+before classification runs, at Task 6's "Every mode's order" steps 3 and
+6. "Absent" is decided only by `os.Stat` returning an error for which
+`errors.Is(err, fs.ErrNotExist)` holds. No
 SQLite code maps to absent: a risk probe measured a `mode=ro` open of an
 existing file with mode 0000 returning `unable to open database file
 (14)`, the same code an absent file returns. Every mode reads the marker,
@@ -502,8 +524,9 @@ code 26. The header-only row is R-6a6's.
 
 The serve mode creates a store by making the leaf, pre-creating the
 database file at 0600 with `O_CREATE|O_EXCL`, opening it, and applying
-migration 1. The open itself writes page 1. Two probes (the mechanics
-review's D and D2, the risk review's child process) measured a
+migration 1. The open itself writes page 1. Three probes (the mechanics
+review's D and D-2, and the risk review's child-process probe, distinct
+from the risk lens's own finding D2) measured a
 pre-created empty file opened with the write DSN reading 4096 bytes with
 no `-wal`, `application_id` 0, `user_version` 0, and no schema object,
 both after a rolled-back transaction and after a process exit without a
@@ -524,14 +547,15 @@ it; nothing is lost, because it holds nothing.
 The spec's criterion 13 ("a zero-byte file ... refused as not a store")
 holds for the inspect and write modes. This is an owed erratum.
 
-### R-6a7: a restore-intent record at 6a is presence only
+### R-6a7: a restore-intent record at 6a is presence only, and staging cleanup runs only in serve mode
 
 The intent record's format and its `reconcile-pending` state are 6b-ii's.
-At 6a: every mode checks for `restore-intent` in the leaf **before** any
-other step. Inspect reports "restore in progress." Write mode refuses
-naming `restore --resume`. **Serve mode also refuses**, naming `restore
---resume`, until 6b-ii teaches it the one state it accepts. 6b-ii refines
-both rules with the format.
+At 6a: every mode checks for `restore-intent` in the leaf at Task 6's
+"Every mode's order" step 3, after the stat and the owner check and
+before any other step. Inspect reports "restore in progress." Write mode
+refuses naming `restore --resume`. **Serve mode also refuses**, naming
+`restore --resume`, until 6b-ii teaches it the one state it accepts.
+6b-ii refines both rules with the format.
 
 **Staging cleanup runs in serve mode alone, holding the exclusive lock,**
 in step 3 after the intent check and before the create or the snapshot,
@@ -559,10 +583,10 @@ Invariant 3's `at` column follows the same rule.
 ### R-6a9: the path rules are CHECK constraints; the Go validator waits for rung 7
 
 The spec (`:480-487`): "The store refuses a path that is absolute, has an
-empty, `.`, or `..` component, or carries NUL." At 6a no Go code writes a
-path, and a Go validator with no caller would be exported ahead of its
-caller. So the refusal lands in the schema: `collections.root_path` and
-`tracks.rel_path` each carry a CHECK over the column's bytes. The probe
+empty, `.`, or `..` component, or carries NUL." The refusal lands in the
+schema: `collections.root_path` and `tracks.rel_path` each carry a CHECK
+over the column's bytes, because at 6a no Go code writes a path, and a Go
+validator with no caller would be exported ahead of its caller. The probe
 measured one form that works over a `STRICT` `BLOB` column with
 `LIKE_DOESNT_MATCH_BLOBS` compiled in: a non-empty length, a first byte
 that is not `/`, no NUL byte (`instr` with `x'00'`), and no `//`, `/./`,
@@ -582,10 +606,13 @@ to a callback:
   rest. Inside one `IMMEDIATE` transaction, an insert that succeeded,
   then an orphan insert that failed with `FOREIGN KEY constraint failed
   (787)`, then `Commit` returned nil, and the first row was committed.
-- `SQLITE_FULL` rolls the whole transaction back under SQLite. With
-  `PRAGMA max_page_count = 3`, an oversized insert failed with `database
-  or disk is full (13)`, and the following `Commit` failed with `cannot
-  commit - no transaction is active (1)`, with no row committed.
+- SQLite may end a transaction on its own after a statement fails, and
+  the spec names four codes that can do this: `SQLITE_FULL`,
+  `SQLITE_IOERR`, `SQLITE_INTERRUPT`, and `SQLITE_NOMEM`
+  (`lang_transaction.html` section 3, spec `:327-329`). With `PRAGMA
+  max_page_count = 3`, an oversized insert failed with `database or disk
+  is full (13)`, and the following `Commit` failed with `cannot commit -
+  no transaction is active (1)`, with no row committed.
 
 A third fact, measured by the risk review and re-run by the fold probe
 (`6a-fold-probes/`, P1), makes recording alone insufficient: **after
@@ -595,10 +622,8 @@ pinned at the current `page_count`, a callback ran `insert into small
 values(2)` (nil), an oversized insert (`database or disk is full (13)`),
 then `insert into small values(3)` (nil); `Rollback` answered `cannot
 rollback - no transaction is active (1)`, and `small` then held rows 1
-and 3. Row 3 committed outside any transaction. The spec names four codes
-that can end a transaction this way: `SQLITE_FULL`, `SQLITE_IOERR`,
-`SQLITE_INTERRUPT`, and `SQLITE_NOMEM` (`lang_transaction.html` section
-3, spec `:327-329`).
+and 3. Row 3 committed outside any transaction, one of the four codes
+named above.
 
 So the callback receives a store-owned transaction handle, never a
 `*sql.Tx`. Its statement methods (an exec, a single-row query whose scan
@@ -662,7 +687,7 @@ The serve mode's create makes the leaf (0700), `store.lock`, `db/`,
 `snapshots/`, and `staging/`. `leases/` is 6b-i's first consumer and
 lands there.
 
-### R-6a14: two named constants, with their values
+### R-6a14: three named constants, with their values
 
 - **The post-checkpoint WAL size**: `journal_size_limit` of 64 MiB,
   applied through `_pragma` on every writing class (the inspect class
@@ -717,14 +742,14 @@ the exec succeeded, `busy_timeout` read back 500, `journal_mode` read
 entry appeared at a truncated path (`a`) beside the directory.
 
 Every writing class (write pool, read pool, maintenance) carries
-`mode=rw`, and the inspect class carries `mode=ro`. The fold probe (P3)
-measured `mode=rw` on an absent file returning `unable to open database
-file (14)` and creating nothing, and (P2) `mode=rw` on a pre-created
-empty file opening it at that exact path in WAL mode (`journal_mode`
-read `wal`). So the
-serve mode's create, which pre-creates the file first, needs no DSN that
-can create, and a missing `os.Stat` check can no longer turn an open into
-a create. The snapshot's verification open uses the inspect DSN.
+`mode=rw`, and the inspect class carries `mode=ro`. No DSN can create a
+database. The serve mode's create, which pre-creates the file first,
+needs no DSN that can create, and a missing `os.Stat` check can no
+longer turn an open into a create. The fold probe (P3) measured `mode=rw`
+on an absent file returning `unable to open database file (14)` and
+creating nothing, and (P2) `mode=rw` on a pre-created empty file opening
+it at that exact path in WAL mode (`journal_mode` read `wal`). The
+snapshot's verification open uses the inspect DSN.
 
 ### R-6a18: a caller's deadline does not shorten SQLite's busy wait (Ruling 4)
 
@@ -734,8 +759,8 @@ after 3.01 s. The driver does interrupt a statement when its context is
 done (`sqlite.go`, `interruptOnDone`, v1.59.0), and its test
 `TestInMemoryDBSurvivesContextCancel` (`all_test.go`) states: "File-backed
 databases keep the existing behaviour: an interrupted connection is still
-discarded, since the underlying data lives on disk." So a write pool's one
-connection is replaced after an interrupt and per-connection state such
+discarded, since the underlying data lives on disk." A write pool's one
+connection is replaced after an interrupt, and per-connection state such
 as a test's `max_page_count` does not survive it. The interrupt does not
 cut the busy handler's wait. Under Ruling 4's yes, the write method's
 contract reads: the context bounds the in-process wait for the one write
@@ -747,8 +772,8 @@ gains the per-call busy timeout and splits (Ruling 4).
 
 ## Review focus
 
-The input classes most likely to bite that no happy path exercises, each
-pinned by a test in the task that owns it.
+These are the input classes most likely to bite, the ones no happy path
+exercises, each pinned by a test in the task that owns it.
 
 1. **A store opened by the wrong user.** `doctor` run as root on the box.
    Expected: refused, naming the owner and `runuser -u <owner> --`, with
@@ -881,7 +906,7 @@ every later task opens through it.
   flock()"; "A shared or exclusive lock can be placed on a file regardless
   of the mode in which the file was opened"; and "A call to flock() may
   block if an incompatible lock is held by another process. To make a
-  nonblocking request, include LOCK_NB". So every bounded wait polls
+  nonblocking request, include LOCK_NB". Every bounded wait polls
   `LOCK_NB` at the R-6a14 interval until `ctx` ends, and returns a busy
   error naming the holders when it does. The shared-nonblocking form
   (inspect) makes one attempt.
@@ -910,7 +935,8 @@ every later task opens through it.
   `/proc/locks` printed the superblock's (`00:25`). The fallback text is
   honest there, and the gap is declared (Task 8).
 - **The owner check.** Every mode that finds an existing leaf compares
-  the leaf's owner uid with `os.Geteuid()` before any other step. A
+  the leaf's owner uid with `os.Geteuid()`, at Task 6's "Every mode's
+  order" step 2, before the restore-intent check. A
   mismatch refuses, naming the owner (from `os/user.LookupId`, which
   returns "an error ... of type UnknownUserIdError" when "a user cannot be
   found", in which case the name is `uid:<n>`) and the fix `runuser -u
@@ -927,11 +953,12 @@ every later task opens through it.
   and `V9FS_MAGIC 0x01021997` refuse, because WAL needs every process on
   one host (the spec, citing `wal.html` section 1);
   `FUSE_SUPER_MAGIC 0x65735546` warns; every other type opens. Three more
-  multi-host types refuse on the same ground, beyond the spec's list:
-  `SMB_SUPER_MAGIC 0x517B` (the retired smbfs), `CEPH_SUPER_MAGIC
-  0x00c36400`, `AFS_SUPER_MAGIC 0x5346414F`, and `AFS_FS_MAGIC
-  0x6B414653` (`magic.h` line 56, the second AFS constant it defines;
-  line 7 carries the first). The probe measured
+  multi-host filesystems refuse on the same ground, beyond the spec's
+  list, over four constants: `SMB_SUPER_MAGIC 0x517B` (the retired
+  smbfs), `CEPH_SUPER_MAGIC 0x00c36400`, and AFS's two, `AFS_SUPER_MAGIC
+  0x5346414F` and `AFS_FS_MAGIC 0x6B414653` (`magic.h` line 56, the
+  second AFS constant it defines; line 7 carries the first). The probe
+  measured
   `tmpfs` (`0x1021994`) and `btrfs` (`0x9123683e`) on this workstation,
   so tests on `t.TempDir()` must open.
 
@@ -960,7 +987,7 @@ every later task opens through it.
 
 **Acceptance criteria a diff-reviewer verifies from the diff:**
 
-- Spec criterion 16's first two halves: the seam set to NFS refuses, to
+- Spec criterion 16's first two parts: the seam set to NFS refuses, to
   FUSE warns, and to ext4 (`0xEF53`) opens. **Fixture state:** the seam
   replaced for the test and restored by `t.Cleanup`, and a real leaf on
   `t.TempDir()` so the probe is the only difference. The owner-mismatch
@@ -1189,8 +1216,8 @@ deliverable.
 
 Model: `opus`. Depends on Task 2. **Lands 2.0 hook 9's seam.**
 
-The one way to write. Every later rung's transaction runs through it, so
-a wrong commit rule here is wrong everywhere.
+This is the one way to write. Every later rung's transaction runs
+through it, so a wrong commit rule here is wrong everywhere.
 
 **Files:**
 - Create: `internal/engine/store/write.go`, `internal/engine/store/write_test.go`
@@ -1358,7 +1385,8 @@ now and by 6b-i's backup later; a free-space check.
   or `ATTACH`; the diff-reviewer checks each new file for them.
 - **The version check runs first, before the ledger is read** (R-6a5):
   a `user_version` higher than the binary's highest is refused naming
-  both versions ("laptop ahead," CH:165-168), whatever the ledger holds.
+  both versions, the same "laptop ahead" case the configuration homes
+  spec names (`:180-183`), whatever the ledger holds.
 - **The ledger check** runs next, only when `user_version` is at or below
   the binary's highest, and before any apply: every ledger row's name and
   hash must equal the binary's file at that version, every version from 1
@@ -1529,7 +1557,7 @@ not a deliverable.
 ## Task 5: The first three migrations, their fixtures, and the invariant test
 
 Model: `sonnet`. Depends on Task 4. **Lands 2.0 hooks 4, 5 (the table),
-and 8, and hook 15's collection columns.**
+and 8.**
 
 **Files:**
 - Create: `internal/engine/store/migrations/0001_ledger.sql`,
@@ -1538,7 +1566,7 @@ and 8, and hook 15's collection columns.**
   `internal/engine/store/invariant_test.go`, `internal/engine/store/schema_test.go`
 - Create: `internal/engine/store/testdata/fixtures/` (one populated
   fixture per migration) and `internal/engine/store/testdata/violations/`
-  (one violating fixture per invariant)
+  (nine violating fixtures across the seven invariants)
 
 **Outcomes:**
 
@@ -1597,9 +1625,9 @@ and 8, and hook 15's collection columns.**
   reading 1 for a `STRICT` table and 0 otherwise. Rule 6's exemption list
   is named in the test and holds the ledger alone at 6a; 6c adds its own
   entries with its tables.
-- **One violating fixture per rule** proves the rule can fail for its
-  named catalog fact: a non-`STRICT` table; a `path` column declared
-  `TEXT`; a foreign key to a missing column; a foreign key to a
+- **Nine violating fixtures across the seven rules** prove each rule can
+  fail for its named catalog fact: a non-`STRICT` table; a `path` column
+  declared `TEXT`; a foreign key to a missing column; a foreign key to a
   non-unique parent; an `_events` table missing `at`; a bare `release_id`
   column; a foreign key plus `key` plus `value` table; an `INTEGER PRIMARY
   KEY` named `id`; and an `ON DELETE CASCADE` onto `users`.
@@ -1662,10 +1690,9 @@ and 8, and hook 15's collection columns.**
 
 **2.0 hooks: lands hook 4** (invariant 3 binding the job table first),
 **hook 5's table** (the surrogate id column and mint function; the
-resolution to it is 6d's), **hook 8** (`writer`, the epoch, the
-generation), and **hook 15's collection columns** (owner, visibility,
-root, epoch, generation, last-mirror time, collapse flag). **Deferred by
-ruling 2:** hooks 1, 2, 3, and 11. **Prior art:** consulted Navidrome's
+resolution to it is 6d's), and **hook 8** (`writer`, the epoch, the
+generation). **Deferred by ruling 2:** hooks 1, 2, 3, and 11. **Prior
+art:** consulted Navidrome's
 `user` table for behavior only (`db/migrations/20200130083147_create_schema.go`,
 read 2026-09-23): an opaque `id` primary key beside a unique `user_name`,
 the same surrogate-plus-handle split hook 5 takes. No code adopted (GPL).
@@ -1698,14 +1725,21 @@ directions).
 
 **Outcomes:**
 
-- **Every mode's order**: stat the leaf and its four names (`store.lock`,
-  `db/`, `snapshots/`, `staging/`); an absent leaf makes inspect report
-  absent and write refuse; owner check; serve then runs Task 1's
-  idempotent leaf create whenever the leaf or any of the four names is
-  missing, under Task 1's state-directory owner rule, so a present but
-  partial leaf is completed before the lock is taken; filesystem probe; check for `restore-intent` (R-6a7); take the lock in
-  its mode (inspect and write open `store.lock` without `O_CREATE`);
-  classify (R-6a5); open the mode's DSN.
+- **Every mode's order**, the one sequence R-6a7 and Task 1 point at:
+  1. Stat the leaf and its four names (`store.lock`, `db/`, `snapshots/`,
+     `staging/`). An absent leaf makes inspect report absent and write
+     refuse.
+  2. Owner check, when the leaf exists.
+  3. Restore-intent check (R-6a7).
+  4. Serve only: run Task 1's idempotent leaf create whenever the leaf or
+     any of the four names is missing, under Task 1's state-directory
+     owner rule, so a present but partial leaf is completed before the
+     lock is taken.
+  5. Filesystem probe.
+  6. Take the lock in its mode (inspect and write open `store.lock`
+     without `O_CREATE`).
+  7. Classify (R-6a5).
+  8. Open the mode's DSN.
 - **The classification is one function every mode shares** (R-6a5). It
   decides absence by `os.Stat` alone (`fs.ErrNotExist`), reads the size
   and the `-wal` beside a zero-byte file by `os.Stat` (R-6a4), and reads
@@ -1732,23 +1766,26 @@ directions).
   any version but the binary's, naming both and "start serve to migrate".
   It never removes a staging file (R-6a7).
 - **Serve mode** follows the spec's four-step procedure (`:344-358`):
-  shared, classify, and open; if not current, close every connection,
-  release, take exclusive bounded by the migration wait (logging holders
-  through a `*slog.Logger` parameter on the first failed poll, then at
-  R-6a14's holders log interval); holding exclusive,
-  re-stat and re-classify, remove staging leftovers when no intent record
-  exists (R-6a7), then create, complete an interrupted create (R-6a6), or
-  migrate; close every connection, convert to shared, and return to step
-  1. `flock(2)`, as the spec quotes: "Converting a lock ... is not
+  1. Take the lock shared, classify, and open. This wait is bounded by
+     the migration wait and logs the holders the same way step 2 does, so
+     a restore holding the exclusive lock never hangs serve silently.
+  2. If not current, close every connection, release, and take exclusive
+     bounded by the migration wait, logging holders through a
+     `*slog.Logger` parameter on the first failed poll, then at R-6a14's
+     holders log interval.
+  3. Holding exclusive, re-stat and re-classify, remove staging leftovers
+     when no intent record exists (R-6a7), then create, complete an
+     interrupted create (R-6a6), or migrate. A create pre-creates the
+     database at 0600 (Task 1) and applies every migration from version
+     0. Under Ruling 3's yes, a create and the completion of an
+     interrupted create each first read `snapshots/` and refuse beside a
+     copy.
+  4. Close every connection, convert to shared, and return to step 1.
+
+  `flock(2)`, as the spec quotes: "Converting a lock ... is not
   guaranteed to be atomic: the existing lock is first removed, and then a
   new lock is established. Between these two steps, a pending lock
-  request by another process may be granted." Step 1's shared wait is
-  bounded by the same migration wait and logs the holders the same way,
-  so a restore holding the exclusive lock never hangs serve silently. A
-  create pre-creates the database at 0600 (Task 1) and applies every
-  migration from version 0. Under Ruling 3's yes, a create and the
-  completion of an interrupted create each first read `snapshots/` and
-  refuse beside a copy.
+  request by another process may be granted."
 
 **States each check meets, and its report:** the R-6a5 table, plus:
 
@@ -1784,7 +1821,7 @@ directions).
   and after**, the lock file included.
 - The interrupted creates (R-6a6). **Fixture states:** a zero-byte
   database with no `-wal`; and a header-only database built the way the
-  mechanics review's D2 was (pre-create, open the write DSN, begin, roll
+  mechanics review's D-2 was (pre-create, open the write DSN, begin, roll
   back, close), asserted to be 4096 bytes before the row runs. Inspect
   and write report each as not a store naming "start serve to finish
   creating it"; serve completes each to current. A zero-byte database
@@ -1842,7 +1879,7 @@ directions).
   state is produced once from a real fixture: restore in progress (an
   empty `restore-intent` file), busy (an exclusive `flock` held by the
   test), not a store, refused (owner), current.
-- Spec criterion 16's last half: serve mode's create leaves the database
+- Spec criterion 16's third part: serve mode's create leaves the database
   at 0600 under a 0022 umask, and a snapshot likewise (Task 4's row
   re-run under this fixture).
 - Staging: a leftover `staging/pre-migrate-v1.db` beside an older store
@@ -1902,7 +1939,7 @@ Task 7, which depends only on the inspect mode.
 
 Model: `sonnet`. Depends on Task 6. **Neutral on 2.0 hooks.**
 
-The first production callers of the store.
+This task lands the first production callers of the store.
 
 **Files:**
 - Create: `cmd/dubplate-server/store.go` (the threshold's declaration and
@@ -2026,22 +2063,27 @@ Model: `sonnet`. Depends on Tasks 0 through 7 and the simplifier round.
   reason.
 - **The errata owed**, drafted paste-ready for the conductor from the
   fold record's "Owed errata" list, with each ruling's outcome applied.
-- **The 6b-i handoff**: the surface 6b-i builds on (the write method and
-  its transaction handle, which 6b-i exports with `ops/local`; the write
-  mode, exported with `backup`; the snapshot function; the job table's
-  columns; `leases/`, which 6b-i creates); the intent record rule 6b-ii
-  refines (R-6a7); the staging rule 6b-i inherits (a shared-lock stager
-  names its file by instance id, and its recovery removes only a file
-  whose owner's lease is free, since serve's cleanup runs only under the
-  exclusive lock); the snapshot's `wal_checkpoint(TRUNCATE)` result row,
-  which 6b-i must read because under a shared lock with serve writing it
-  can report busy in the row's first column rather than as a Go error
-  (logged, never a snapshot failure); a `VACUUM INTO` copy is a
-  rollback-journal database, so 6b-ii's restore sets WAL on the placed
-  file; an interrupted file-backed connection is discarded by the driver
-  (R-6a18); and the runbook lines owed (a root-run verb's refusal and the
-  `runuser` fix; a create refused because the state directory's owner
-  differs; the FUSE warning; the btrfs holder gap).
+- **The 6b-i handoff**:
+  1. The surface 6b-i builds on: the write method and its transaction
+     handle, which 6b-i exports with `ops/local`; the write mode,
+     exported with `backup`; the snapshot function; the job table's
+     columns; `leases/`, which 6b-i creates.
+  2. The intent record rule 6b-ii refines (R-6a7).
+  3. The staging rule 6b-i inherits: a shared-lock stager names its file
+     by instance id, and its recovery removes only a file whose owner's
+     lease is free, since serve's cleanup runs only under the exclusive
+     lock.
+  4. The snapshot's `wal_checkpoint(TRUNCATE)` result row, which 6b-i
+     must read because under a shared lock with serve writing it can
+     report busy in the row's first column rather than as a Go error
+     (logged, never a snapshot failure).
+  5. A `VACUUM INTO` copy is a rollback-journal database, so 6b-ii's
+     restore sets WAL on the placed file.
+  6. An interrupted file-backed connection is discarded by the driver
+     (R-6a18).
+  7. The runbook lines owed: a root-run verb's refusal and the `runuser`
+     fix; a create refused because the state directory's owner differs;
+     the FUSE warning; the btrfs holder gap.
 - **The STATUS draft** stays present tense and under 60 lines.
 
 **Acceptance criteria:** every count in the drafts was produced by a
@@ -2094,7 +2136,7 @@ ownership table before the lane launches, beside the fold record's
 | `internal/engine/store` (new) | rung 6 | Tasks 1-6 | none; later rungs append migrations with fixtures |
 | `go.mod`, `go.sum` | shared | Task 2 adds `modernc.org/sqlite` | 5c-i leaves both untouched; a later conflict resolves by `go mod tidy` and merge ritual step 5 |
 | `cmd/dubplate-server/main.go` | rung 1 | Task 7's one registration line | **5c-i Task 7 adds its `AddCommand` line**; a textual conflict keeps both in landing order |
-| `cmd/dubplate-server/doctor.go`, `doctor_test.go` | rung 1's skeleton, rung 5's rows | Task 7's store row and line-count constant | **5c-i Tasks 5 and 6 edit both**; non-fast-forward rebase, merge ritual step 5 |
+| `cmd/dubplate-server/doctor.go`, `doctor_test.go` | rung 1's skeleton, rung 5's rows | Task 7's store row and line-count constant | **5c-i Tasks 4, 5, and 6 edit both**; non-fast-forward rebase, merge ritual step 5 |
 | `cmd/dubplate-server/check.go`, `check_test.go` | rung 1 | Task 7 | 5c-i does not edit them |
 | `cmd/dubplate-server/store.go` (new) | rung 6 | Task 7 | none |
 | `internal/config` | rung 1b's contract | **untouched** | 6c's condition for lane 2 |

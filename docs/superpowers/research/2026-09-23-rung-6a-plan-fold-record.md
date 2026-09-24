@@ -229,3 +229,41 @@ a lost database with no copy beside it is still created or completed
 empty.
 
 **Ceiling change:** none. The ceiling stays 6.8M and the flag 5.44M.
+
+## Prose review fold
+
+The `prose-voice-reviewer` (Opus) read of revision 2.1
+(`docs/superpowers/research/2026-09-23-rung-6a-plan-prose-review.md`)
+found 2 blockers, 10 fact warnings, 3 register warnings, and 11
+suggestions. `tellgrader --register docs` returned 0 findings, and the
+reviewer confirmed the ceiling arithmetic, the commit ids, the spec line
+pointers, and the driver, header, and stdlib quotes. The plan moves to
+revision 2.2. The fold adds no task, no deliverable, and no ceiling
+change; the conductor ruled B2's adopted order and W3's drop, and set the
+bounds on W10's "So" count and S10's disposition.
+
+| ID | Disposition | Where and how |
+| --- | --- | --- |
+| B1 | Folded | Ruling 2's question now reads "exit 0 when the store is absent, older, or current, and nonzero for every other state," matching its own yes list, with a sentence added saying an interrupted create exits nonzero because it is not yet a store `serve` can start through. |
+| B2 | Folded, conductor's order | Task 6's "Every mode's order" states the sequence once, as a numbered list: stat, owner check, restore-intent check, (serve only) idempotent leaf create, filesystem probe, lock, classify, open. R-6a7 and Task 1's owner check both point at it instead of restating an order. Matches spec `:235`, which puts the intent check first among the writing steps that follow stat and the owner check. |
+| W1 | Folded | R-6a2 now reads "6b-i exports the write method with `ops/local` and the write mode with `backup`," matching Task 8's handoff text. |
+| W2 | Folded | "Spec deviations that take effect on approval" gains three bullets: Ruling 1's yes (the ceiling table row's 6.8M figure), Ruling 3's yes (serve's `snapshots/` guard on create and completion), and Ruling 4's yes (the write method's busy-timeout-alone contract) — E4, E10, and E11. Task 6's step 1 bullet gains "and logs the holders," matching E8. |
+| W3 | Dropped, conductor's ruling | The rung 6 spec's hook ledger (`:842-856`) lands hook 15's routed schema, settings home, and marker at 6c, with no line putting collection columns under hook 15. Task 5's header and its "2.0 hooks" paragraph both drop the hook 15 claim; Task 5 now lands hooks 4, 5, and 8 only. |
+| W4 | Folded | R-6a14's heading reads "three named constants," matching the WAL size, the lock poll interval, and the holders log interval it defines. |
+| W5 | Folded | The contested-surfaces row for `doctor.go`/`doctor_test.go` now reads "5c-i Tasks 4, 5, and 6 edit both," confirmed against the 5c-i plan's own file lists. |
+| W6 | Folded | R-6a10's second bullet now quotes `lang_transaction.html` section 3 and names the four codes (`SQLITE_FULL`, `SQLITE_IOERR`, `SQLITE_INTERRUPT`, `SQLITE_NOMEM`) at the point it asserts SQLite can end a transaction on its own, rather than asserting a bare "rolls the whole transaction back." The later paragraph's repeat of the same four codes is trimmed to a back-reference. |
+| W7 | Folded | R-6a6's probe sentence now reads "Three probes" and disambiguates the mechanics review's D and D-2 probes from the risk lens's own finding D2; Task 6's matching fixture-state sentence renames its reference to D-2 the same way. |
+| W8 | Folded | Ruling 3 is split into Reason, What yes builds, and What no builds, each its own paragraph. Ruling 2's single "What each answer builds" sentence is split into a "What yes builds" and a "What no builds" sentence. |
+| W9 | Folded | Task 6's serve-mode procedure, the "Every mode's order" list (B2's fold), and Task 8's 6b-i handoff are each rewritten as a numbered list in place of a run-on sentence. |
+| W10 | Folded, conductor's bound | Six of the nine "So"-led sections now lead with the decision instead: R-6a3 (twice), R-6a9, R-6a17, R-6a18, and Task 1's lock-poll bullet. Three "So" sentences stand, each already following its section's own bold or headed decision: R-6a6's crash-state sentence, R-6a10's transaction-handle sentence, and Task 3's nested-call sentence. |
+| S1 | Folded | Ruling 4's split-cost sentence now reads "just past Ruling 1's 5.44M flag," matching the wording used at "Token ceiling" and "Execution model." |
+| S2 | Folded | Task 1's filesystem-probe paragraph now reads "Three more multi-host filesystems refuse ... over four constants," naming SMB, Ceph, and AFS's two constants. |
+| S3 | Folded | R-6a5's "How a file is classified" now opens with a line naming that restore-in-progress and busy are decided before classification, at Task 6's order steps 3 and 6. |
+| S4 | Folded | Task 4's version-check bullet drops the undefined "CH:165-168" citation and instead names "the configuration homes spec (`:180-183`)," the section stating the "laptop ahead" refusal. |
+| S5 | Folded | Spec criterion 16's acceptance-criteria bullets now read "first two parts" and "third part" in place of "first two halves" and "last half," matching its three clauses (the statfs seam, the uid mismatch, and the 0600 creation). |
+| S6 | Folded | Task 5's fixture bullet and its Files line both read "nine violating fixtures across the seven invariants" in place of "one violating fixture per rule/invariant." |
+| S7 | Folded | The "Token ceiling" section's 4.55M sentence now shows the arithmetic: "4.55M execution figure (5.5M minus 0.95M)." |
+| S8 | Folded | `## Global Constraints` is retitled `## Global constraints`; the one other use of the phrase cites 5c-i's own section by name and is left as-is. |
+| S9 | Folded | Three fragment topic sentences gain a subject and verb: Task 3's "This is the one way to write," Task 7's "This task lands the first production callers of the store," and "Review focus"'s "These are the input classes most likely to bite, the ones no happy path exercises." |
+| S10 | Refused, plan convention | The bold reflexive lead phrases ("**The lock**," "**The owner check.**," and similar) are this plan's established label style, used throughout every task's Outcomes bullets; dropping them from only the Outcomes bullets would leave the plan inconsistent with itself. |
+| S11 | Folded | R-6a7's heading now reads "a restore-intent record at 6a is presence only, and staging cleanup runs only in serve mode." |
