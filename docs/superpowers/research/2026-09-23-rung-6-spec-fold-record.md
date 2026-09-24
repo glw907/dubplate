@@ -564,6 +564,10 @@ pre-task.
 | `internal/config/registry.go`, `thresholds.go` **[CH]** | rung 1b's contract; 6c adds the four metadata items and the correlated-rule list additively | rung 5's lane does not edit these files while 6c runs; if it must, 6c waits |
 | `internal/config/keys.go` | 6b-i removes the "backup targets" reserved class in the commit that declares its replacement, registering the retired names through `AddSuperseded`; 6d supersedes `DUBPLATE_ROSTER_FILE` | every later rung, by the same rule |
 | `cmd/dubplate-server/main.go` (`newProductionRegistry`, `AddCommand`) | 6a registers the busy timeout and the migration wait; 6b-i the class, its constants, and `backup`; 6b-ii `restore`; 6d `member import`; rung 5's 5c adds the `member` group in the same block | a textual conflict keeps both lines in landing order, and merge ritual step 5 runs |
+
+**Erratum 2026-09-24 (6a plan approval, E1):** the `main.go` row's 6a share is the busy
+timeout alone. The migration wait registers at 6d with `serve`, its first production caller
+(R-6a3, the rung 6a plan).
 | `cmd/dubplate-server/doctor.go`, `check.go` | 6a the store row and the inspect report; 6b-i the backup rows; 6c the settings rendering and read-only seed evaluation | rungs 5, 9, 13 add rows the same way |
 | `cmd/dubplate-server/serve.go` | rung 5 through 5d; 6d then adds the store open, recovery, and the seed rule before the listener | rungs 7, 12, 14 |
 | `go.mod`, `go.sum` | every lane adds its own requirements | a rebase conflict is resolved by `go mod tidy`, and merge ritual step 5 runs |

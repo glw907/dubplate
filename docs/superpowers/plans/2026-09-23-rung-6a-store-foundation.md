@@ -1,7 +1,7 @@
 # Rung 6, Pass 6a (The Store Foundation) Implementation Plan
 
-Status: **revision 2.2, 2026-09-23, review complete; awaiting Geoff's
-approval.**
+Status: **revision 2.2, 2026-09-23; approved by Geoff 2026-09-24 with
+all four rulings yes.**
 Revision 1 (`11f11c2`) took three lens reviews (contract, mechanics, and
 risk). Their folds, refusals, and owner forks are recorded in
 `docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`.
@@ -65,7 +65,7 @@ Four yes-or-no questions. The spec's fourteen rulings stand and are not
 reopened.
 
 **1. Does 6a run under a 6.8M execution ceiling, with planning recorded
-separately?** Recommendation: yes. Reason: the spec's 5.5M figure is a
+separately?** **Ruled yes (Geoff, 2026-09-24).** Recommendation: yes. Reason: the spec's 5.5M figure is a
 total that includes 0.95M of planning and a 0.46M chain rate, while
 5b-ii's recorded actual is 0.533M per task with everything amortized, the
 basis the approved 5c-i plan uses. On that basis, with the review fold's
@@ -77,7 +77,7 @@ ceiling that sits under the projection, so the flag fires on plan and the
 conductor asks mid-pass.
 
 **2. Does `doctor` exit 0 when the store is absent, older, or current,
-and nonzero for every other state?** Recommendation: yes. Reason: nothing
+and nonzero for every other state?** **Ruled yes (Geoff, 2026-09-24).** Recommendation: yes. Reason: nothing
 creates a store in production until 6d, so a nonzero exit on "absent"
 would fail 5d's carried "doctor exits 0" exit gate on every box, and an
 older store is the normal state after an upgrade that `serve` migrates.
@@ -93,7 +93,7 @@ only `serve` may create.
 
 **3. Does `serve` refuse to create or complete a store when
 `snapshots/` holds a copy and the database is absent or an interrupted
-create?** Recommendation: yes.
+create?** **Ruled yes (Geoff, 2026-09-24).** Recommendation: yes.
 
 **Reason:** serve creates a store when the database file is absent, and
 completes one when the file is zero bytes with no `-wal` or header-only
@@ -123,7 +123,7 @@ fresh install.
 
 **4. Does a caller's deadline bound only the in-process wait, leaving
 SQLite's wait on another process's write lock bounded by the busy timeout
-alone?** Recommendation: yes. Reason: a probe measured a `BeginTx` with a
+alone?** **Ruled yes (Geoff, 2026-09-24).** Recommendation: yes. Reason: a probe measured a `BeginTx` with a
 300 ms context and a 3 s busy timeout returning `database is locked (5)`
 after 3.01 s, because SQLite's busy handler does not check the interrupt
 the context triggers (R-6a18). The spec already says the in-process wait

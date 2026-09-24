@@ -215,6 +215,11 @@ Exported surface follows its first caller. 6a exports the open, whose production
 write method with `ops/local`, its first caller. 6d exports the serve mode and the seed rule with
 `serve`, their first caller.
 
+**Erratum 2026-09-24 (6a plan approval, E3):** "6a exports the open" means the inspect mode,
+its options (the state directory and the busy timeout), and its report type with a closed
+state set. The handle, the write mode, the serve mode, the write method, and the migration
+runner stay unexported until their own first caller.
+
 ---
 
 ## The store
@@ -235,11 +240,19 @@ or else it must be an empty file," sqlite.org/lang_vacuum.html).
 Every writing open checks for a `restore-intent` record first. Only then does it remove staging
 leftovers, and it never removes a file an intent record names.
 
+**Erratum 2026-09-24 (6a plan approval, E7):** only serve mode, holding the exclusive lock with
+no intent record present, removes staging leftovers. The write mode never does; `backup` and
+every `member` verb stage their own files under a shared lock, and a write-mode cleanup would
+remove a live one.
+
 Every verb that opens an existing leaf refuses when its effective uid differs from the leaf's owner,
 naming the owner and the fix (`runuser -u <owner> -- dubplate-server ...`); a root-run verb would
 otherwise leave a root-owned `-shm` or database that `serve` cannot open. An absent leaf reports
 absent with no uid check. After 6d, `deploy.sh`, which connects as root (`scripts/deploy.sh:114`),
 runs every store-opening verb through `runuser -u <owner>`.
+
+**Erratum 2026-09-24 (6a plan approval, E9):** a create also requires the effective uid to own
+the state directory, and otherwise refuses naming that owner before anything is created.
 
 The lock is an advisory `flock` on `store.lock`, released when the process exits:
 
@@ -256,6 +269,11 @@ The lock is an advisory `flock` on `store.lock`, released when the process exits
 WAL needs every process on one host (sqlite.org/wal.html section 1). The store probes the leaf's
 filesystem with `statfs`, refuses NFS, CIFS, SMB2, and 9p, and warns on FUSE, because sshfs and
 rclone mounts are remote while mergerfs is local and common on home servers.
+
+**Erratum 2026-09-24 (6a plan approval, E6):** the probe also refuses SMB, Ceph, and AFS
+(`SMB_SUPER_MAGIC`, `CEPH_SUPER_MAGIC`, `AFS_SUPER_MAGIC`, and `AFS_FS_MAGIC`, four constants),
+on the same multi-host ground. It probes `db/` when it exists, else the leaf, else the leaf's
+parent, since `statfs` follows a symlinked `db/` to its target.
 
 Rung 6 declares three test seams. Each exists because no unit test can produce the real condition:
 
@@ -283,6 +301,13 @@ version is not the binary's, naming both versions and "start serve to migrate." 
 
 The **serve mode** is the only mode that creates a store or migrates one (from 6d). It accepts one
 intent state, `reconcile-pending`, which "The restore verb" describes.
+
+**Erratum 2026-09-24 (6a plan approval, E11):** holding the exclusive lock, serve mode first
+reads `snapshots/` before it creates a store or completes an interrupted create (a zero-byte
+database with no `-wal`, or a header-only unmarked one). With a `pre-migrate-v<N>.db` or
+`pre-restore-*.db` present, it refuses naming the newest copy and `restore --from-file`, leaves
+the database file unchanged, and inspect reports it as refused. A lost database with no copy
+beside it is still created or completed empty; the guard covers only a leaf that kept a copy.
 
 ### Connections and transactions
 
@@ -330,6 +355,11 @@ transaction. That callback is hook 9's seam. Its contract:
 - Every read a write decides on runs inside the callback, never on the read pool.
 - It requires a context with a deadline, since an in-process wait for the one write connection is
   bounded by the context and never by `busy_timeout`. A nested call fails fast.
+
+  **Erratum 2026-09-24 (6a plan approval, E10):** measured and pinned by test: the busy timeout
+  alone bounds the wait on another process's write lock, and a caller's context does not shorten
+  it, because the driver discards an interrupted file-backed connection rather than cutting the
+  busy handler's own wait.
 - Its first statement reads `user_version` and fails closed on a value other than the binary's.
 - `SQLITE_FULL` surfaces as a named disk-full error.
 
@@ -349,6 +379,8 @@ LOCK_NB was specified." A waiting `restore` can win any conversion, so `serve` f
 procedure:
 
 1. Take the lock shared, open, and read the version. If it is current, keep the lock and continue.
+   **Erratum 2026-09-24 (6a plan approval, E8):** this shared wait is bounded by
+   `DUBPLATE_STORE_MIGRATION_WAIT` and logs the holders, as step 2 does.
 2. Otherwise close every connection, release, and take the lock exclusive, waiting at most
    `DUBPLATE_STORE_MIGRATION_WAIT` (a wall threshold with a researched default) and logging the
    holders at an interval. On expiry, exit nonzero naming the holders.
@@ -485,6 +517,9 @@ as well as in Go. Paths compare bytewise. The store refuses a path that is absol
 `LIKE` never matches a path; rung 9's query verb says how it searches paths. Rung 7's gate rules on
 non-UTF-8 filenames and canonicalizes symlinks once (EVO:363-366, EVO:600-602); whatever it admits,
 the store returns unchanged.
+
+**Erratum 2026-09-24 (6a plan approval, E5):** the path refusal lands as schema CHECK constraints
+at 6a, since no Go code writes a path yet. The Go-side validator lands with rung 7's first writer.
 
 ### Per-track metadata (U4, the build spec's typed-metadata rule)
 
@@ -938,6 +973,10 @@ fixture state it needs and the reason it would fail.
 13. A zero-byte file and a non-database file are each refused as not a store. A write-mode open of an
     absent store refuses naming "start serve first" and creates nothing; of an older store, refuses
     naming both versions; a newer store is refused.
+
+    **Erratum 2026-09-24 (6a plan approval, E2):** a zero-byte file and a header-only unmarked
+    file are interrupted creates that serve mode completes. "Refused as not a store" holds for
+    the inspect and write modes only.
 14. Serve mode with a second handle holding the lock shared waits and does not migrate; after that
     handle releases, it migrates. A second process that requests the exclusive lock while serve mode
     converts is granted it, and serve mode then holds no handle to the file that process renamed, and
@@ -1101,6 +1140,10 @@ record shows each row's arithmetic.
 | 6c | 7 | 5.6M (includes 10% for a config-contract change) | 4.5M |
 | 6d | 9 | 6.6M (includes 0.7M security review in the chain) | 5.3M |
 
+**Erratum 2026-09-24 (6a plan approval, E4):** the 6a row reads 6.8M execution plus planning
+recorded separately, with the flag at 5.44M, the approved rung 6a plan's Ruling 1 yes. The 5.5M
+and 4.4M figures above are superseded for 6a; the other rows are unchanged.
+
 The total is 28.0M. The phase ceiling and each lane's sub-ceiling are set at lane launch (PA
 section 4). Each ceiling is re-derived from the previous pass's actual before the next plan is
 drafted, and a plan that exceeds ten tasks splits the pass, names the follow-on, and re-derives both
@@ -1190,6 +1233,21 @@ per row:
   track-path clarification).
 - Row 14: same file, same erratum block (the backup-set and schedule-key correction to ladder
   entries 12 and 16).
+
+**Applied 2026-09-24 (6a plan approval):** E1-E11 landed inline, dated, in the documents they
+name. Notes per row:
+
+- E1: `research/2026-09-23-rung-6-spec-fold-record.md`, the `main.go` contested-surface row.
+- E2: this spec, criterion 13.
+- E3: this spec, "Package territory."
+- E4: this spec, the ceiling table's 6a row, Ruling 1 yes.
+- E5: this spec, "Paths."
+- E6: this spec, the filesystem probe paragraph under "Layout, ownership, and the lock."
+- E7: this spec, "Layout, ownership, and the lock," the staging-cleanup sentence.
+- E8: this spec, "Migrations," the serve procedure's step 1.
+- E9: this spec, "Layout, ownership, and the lock," the ownership paragraph.
+- E10: this spec, "The store exposes one way to write," the deadline bullet, Ruling 4 yes.
+- E11: this spec, "Three open modes," the serve mode bullet, Ruling 3 yes.
 
 ---
 

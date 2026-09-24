@@ -10,27 +10,22 @@ zero execution sittings. The window's document lanes applied the rung 6 errata (
 brought the **6a plan to revision 2.2** (`plans/2026-09-23-rung-6a-store-foundation.md`), which
 awaits approval. R4's exclusion denominator is still unread, and owed before rung 15.
 
-## Morning question for Geoff (one combined question)
+## Rulings taken (Geoff, 2026-09-24)
 
-1. **Approve the 6a plan and rule its four rulings** (each recommended yes): the 6.8M ceiling;
-   `doctor`/`check` exit 0 only when the store is absent, older, or current; serve refuses a create
-   beside a snapshot copy; the busy timeout alone bounds the cross-process wait. Eleven errata follow.
-2. **Accept 5c-i's flag crossing?** The pass came to about 5.8M against the 5.2M flag. The
-   security fold drove it (0 critical, 0 major, five minors folded). The conductor ran the close
-   within the ceiling rather than hold it for a sitting.
-3. **The principal-collision rule (m1).** Uniqueness now keys on the effective principal. A username
-   may equal another member's address only when that member has a username of its own. Should the
-   rule be stricter, with every address and username in one shared namespace? The recommendation is
-   no, because the current rule already guarantees that no two members share one principal.
-4. **Routed findings** (`research/2026-09-23-beets-2-14-and-disc-layout-findings.md`):
-   beets 2.14 fixes the "ft" pattern, but a pin bump moves the oracle mid-shadow (a
-   `dependency-upgrade` decision). The default layout omits disc numbers, so multi-disc albums
-   interleave in one folder: an owner fork, cheapest to fix before rung 16.
+- **The 6a plan is approved**, with all four of its rulings yes. Its eleven errata E1-E11 are applied.
+- **5c-i's flag crossing is accepted.** m1 keeps the effective-principal rule, and the stricter
+  shared-namespace rule is declined.
+- **Follow beets on the "ft" fix.** The oracle pin moves to the 2.14 line through `dependency-upgrade`.
+  The requirement is recorded in the build, rung 3, and rung 8 specs (`6d4dd05`).
+- **The layout carries disc numbers.** This is recorded in the configuration homes, build, and
+  organizer specs. The exact shape is pending one choice; prefix-when-multi-disc is recommended.
 
 ## Next action
 
-1. On Geoff's answers: open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1.
-   5c-ii opens with the admin gate and the roster API.
+1. Open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1. 5c-ii opens with the
+   admin gate and the roster API.
+3. The beets 2.14 oracle bump, through `dependency-upgrade`: the changelog survey, the corpus
+   re-derivation, and `BEETS_VERSION`. Settle the disc layout's shape before rung 10's template.
 2. The architecture cleanup pass joins the staged comment-cleanup task
    (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 
@@ -39,7 +34,7 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED at 5c-i's close; reopens on 5c-ii once its plan is approved |
-| 2 | worktree removed, branch deleted | CLOSED; reopens on 6a once Geoff approves it |
+| 2 | worktree removed, branch deleted | CLOSED; opens on 6a (approved 2026-09-24) |
 
 ## Open items (carried)
 
