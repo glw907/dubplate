@@ -116,14 +116,18 @@ validates against B9, takes the store's lock, re-checks the normalized
 address and `streamer_username` against the roster as loaded, writes
 atomically through `atomicfile.WriteStream`, re-reads the written file,
 and logs one structured `slog` audit record (R-5b21) naming the actor,
-channel, address, admin flag, and client IP. The admin flag may be set
-only when the caller's channel is `identity.ChannelServiceToken`,
-refused on every other channel by its own sentinel — the conductor's
-ruling that the invariant lives in the write path, not in 5c's caller.
-The fix round moved the admin-channel refusal from "every channel but
-one" partial coverage to every non-service-token channel, and gave
-`doctor` a row that reports a missing roster as a failure when a
-selected source requires one.
+channel, address, admin flag, and client IP. The admin flag is refused
+on every channel, a service token included, by its own sentinel
+(`internal/auth/roster.go:323-331`) — the conductor's ruling that the
+invariant lives in the write path, not in 5c's caller; 5c's CLI
+`member add --admin` brings the admin grant together with its own
+caller. The fix round (`dfa7155`) removed the write path's original
+service-token exception, deleting
+`TestAddMember_AdminFlagAllowedOnServiceTokenChannel` and folding a
+service-token admin row into `TestAddMember_ByteIdentityOnFailure`
+(`internal/auth/roster_test.go:445-449`), and gave `doctor` a row that
+reports a missing roster as a failure when a selected source requires
+one.
 
 Task 6 (`78779eb`, then `3ca0550` fix) added `internal/notify`, adopted
 from `_salvage/internal/notify` on merit under fresh review and
@@ -266,9 +270,9 @@ count matches its list.
 | 1 | Write before validating | `AddMember` (dropped early returns) | yes | `TestAddMember_ByteIdentityOnFailure` (3 of 5 subtests) |
 | 2 | Take the lock after the re-check | `AddMember` (moved `r.mu.Lock()`) | yes | `TestAddMember_ConcurrentStreamerUsernameCollision`, `-race -count=20` |
 | 3 | Use `atomicfile.WriteFile` rather than `WriteStream` | `AddMember` | **no** | `go test -race ./internal/auth/...` stayed green; per the plan this is a review-caught defect (the durability doc comment stops matching the call), not a test-caught one, and no test was written to force it |
-| 4 | Skip the re-read | `AddMember` (dropped the post-write reparse) | yes | `TestAddMember_WriteReReadAndMode`, `TestAddMember_AdminFlagAllowedOnServiceTokenChannel`, `TestAddMember_ConcurrentDistinctMembersBothSurvive`, `TestAddMember_ConcurrentStreamerUsernameCollision` |
+| 4 | Skip the re-read | `AddMember` (dropped the post-write reparse) | yes | `TestAddMember_WriteReReadAndMode`, `TestAddMember_ConcurrentDistinctMembersBothSurvive`, `TestAddMember_ConcurrentStreamerUsernameCollision` |
 | 5 | Drop the channel from the audit record | `AddMember` (logger call) | yes | `TestAddMember_AuditRecord` |
-| 6 | Accept the admin flag on any assertion channel | `AddMember` (guard forced `if false`) | yes | `TestAddMember_ByteIdentityOnFailure` (cookie- and header-channel admin rows) |
+| 6 | Accept the admin flag on any assertion channel | `AddMember` (guard forced `if false`) | yes | `TestAddMember_ByteIdentityOnFailure` (cookie-, header-, and service-token-channel admin rows) |
 | 7 | Let the read-open tolerate an absent file | `OpenRoster` | yes | `TestAddMember_WriteReReadAndMode` |
 
 **Task 6 — 4 mutations, 4 fired.**
@@ -402,11 +406,12 @@ Ruled at dispatch (plan `:22-56`); execution's own evidence for each:
    Task 10; the security review measured identical bytes and timing for
    the generic answer.
 4. **The admin-flag invariant enforces in the store's write path**, not
-   in 5c's caller. Confirmed: `AddMember` (`internal/auth/roster.go`,
-   Task 5) refuses `Admin` on every channel but
-   `identity.ChannelServiceToken`, and the security review's
-   "attacked and found sound" list confirms the seam reads `Admin` only
-   from the roster, never the request.
+   in 5c's caller. Confirmed: `AddMember`
+   (`internal/auth/roster.go:323-331`, Task 5, fixed at `dfa7155` to
+   drop the write path's original service-token exception) refuses
+   `Admin` on every channel, a service token included, and the security
+   review's "attacked and found sound" list confirms the seam reads
+   `Admin` only from the roster, never the request.
 5. **Task 8's model is `opus` unconditionally.** Confirmed: `c09bf44`'s
    trailer credits Claude Opus 5.5.
 6. **M5's failing-first test ships the named fallback if the allocation
@@ -459,17 +464,17 @@ the fix landed (commit, file, symbol) and the test that proves it.
 | m14 | Fixed | `772eb22`, `internal/auth/epoch.go` `Bump` (subscriber notification under recover) | `TestBumpRecoversFromPanickingSubscriber` |
 | m11, m13 | Carried to 5d | not landed | As the plan states: the `ReadWritePaths` grant and the env template's nine keys |
 
-**Disposition of this review's own nineteen new findings.** STATUS
-records only that "majors 1-4 plus the relevant minors become 5c's
-security-fold Task 1; major 5 is a 5d deploy gate" (`docs/STATUS.md`,
-current "Next action" item 1). **The granular per-minor split below is
-this close's own proposed routing, for the conductor to confirm at the
-fold — it is not itself a ruling any artifact records**, and the
-previous draft of this document wrongly attributed it to Geoff. Every
-finding appears exactly once, including minor 6, which the previous
-draft omitted.
+**Disposition of this review's own nineteen new findings.** Geoff
+accepted the conductor's recommendation on 2026-09-23 that majors 1-4
+plus the relevant minors become 5c's security-fold Task 1 and major 5
+become a 5d deploy gate (`docs/STATUS.md`, current "Next action"
+item 1). **The granular per-minor split below is the conductor's own
+ruling of 2026-09-23, made under that acceptance rather than a
+separate decision Geoff read finding by finding.** Every finding
+appears exactly once, including minor 6, which the previous draft
+round omitted.
 
-| Finding | Proposed owner |
+| Finding | Owner |
 | --- | --- |
 | Major 1 (cross-process roster writes) | 5c security-fold Task 1 |
 | Major 2 (mailed links outside the owned prefix) | 5c security-fold Task 1 |
@@ -560,8 +565,10 @@ fallback, so no gap is recorded for it.
   (R-5b20), because Task 4's loader test is what keeps it from rotting.
   The 5d row should drop the example-file clause.
 - **The launch rulings' own item (c): 5b-i `HISTORY:` pointers.** Every
-  5b-i `HISTORY:` pointer in this plan sits 47 lines low at HEAD
-  (Task 0 item 18, confirmed independently by this close):
+  one of the following 5b-i `HISTORY:` pointers in this plan sits
+  **exactly** 47 lines low at HEAD (Task 0 item 18, confirmed
+  independently by this close); the "47 lines low" claim below covers
+  only this set, not every `HISTORY:` pointer the plan carries:
   `:496-530` re-keys to `:543-577` (the 5b-i to 5b-ii handoff),
   `:531-544` re-keys to `:578-591` (the re-derivation basis paragraph
   that plan:465-469 cites, this close's own re-check catching the
@@ -576,9 +583,23 @@ fallback, so no gap is recorded for it.
   actually uses (`plan:487-488`) are `HISTORY:1688` and `HISTORY:1692`
   in the plan's own text; at HEAD they resolve to **`:1735`** (5a's
   Task 0 spend, 0.13M) and **`:1739`** (5a's 3.4M flag), each 47 lines
-  low like every other 5a/5b-i pointer this plan carries, and both are
-  in scope for launch ruling (c) even though the ruling's own item 18
-  named only the 5b-i-labeled ones.
+  low like every other pointer in this set, and both are in scope for
+  launch ruling (c) even though the ruling's own item 18 named only the
+  5b-i-labeled ones.
+  **Two more pointers do not fit the uniform 47-line shift and are
+  recorded separately.** `plan:347` cites `HISTORY:391-392` for R-V
+  (the 30-second read timeout and the `http.MaxBytesReader`
+  alternative); at HEAD that line range holds unrelated Task-4 prose,
+  and R-V's own sentence resolves instead to `:568-569` in the 5b-i
+  entry's own carry-forward list and to `:1605-1607` in 5a's original
+  entry — neither offset is 47. `plan:1329` cites `HISTORY:526-529` "of
+  the 5a entry" for the blast-radius class 5a's one planning miss
+  belonged to; that range now holds 5b-i prose, and the planning-miss
+  sentence itself resolves to `:1740-1743` in 5a's own entry, again not
+  a 47-line shift. Both citations were already mis-keyed at plan
+  authoring rather than merely drifted since; this close records the
+  correct resolution rather than re-deriving a shift that does not
+  apply.
 - **No other Task-0 note rose to a correction.** The `Makefile:33`
   wording variant ("The web legs rejoin", plural, present tense) that
   Task 0 item 21 flagged is not a defect in this plan; it is carried
@@ -594,10 +615,11 @@ store's write-open constructor (`CreateRoster`), which `member add
 second, so 5c inherits a call rather than reopening the package; the
 single resolution point (`normalizeMemberAddress`), which 5c's pages
 must not bypass; **the admin flag's channel refusal, enforced in the
-write path** (`AddMember` refuses `Admin` on every channel but
-`identity.ChannelServiceToken`), so the add-member handler inherits a
-refusal rather than a rule to remember, and 5c's CLI grant supplies its
-own caller with that one permitted channel; the verify-identity seam
+write path** (`AddMember` refuses `Admin` on every channel, a service
+token included, `internal/auth/roster.go:323-331`), so the add-member
+handler inherits a refusal rather than a rule to remember, and 5c's
+CLI `member add --admin` brings the admin grant together with its own
+caller rather than relying on any permitted channel; the verify-identity seam
 and its channel, which the add-member handler reads the admin flag
 through (never the cookie); the origin check, which covers 5c's
 add-member POST by construction, not by anything the page does; fork
@@ -609,15 +631,15 @@ interstitial's contract, that it reads the token from
 `window.location`, clears it from the address bar, and POSTs it in a
 form field; the logout copy's bound, that a stateless session survives
 sign-out permanently (declared gap 5, not deferred work); the
-security-fold Task 1 (this close's proposed routing of the security
-review's majors 1-4 and minors 6, 7, 8, 10, 11, 12, 13, 15, 17, 19,
-above, pending the conductor's confirmation); and the three
-rejoin-sentence corrections
-(**`CLAUDE.md:131`** — corrected from the prior draft's stale
-`CLAUDE.md:122`, which was ruff-leg prose at HEAD — `scripts/check.sh:5`,
-`Makefile:33`, the last worded "The web legs rejoin", plural, present
-tense), `scripts/deploy.sh`'s `config/contributors.yaml` delivery left
-alone by R37.
+security-fold Task 1 (the conductor's ruling, under Geoff's
+2026-09-23 acceptance of the majors-and-minors split, that routes the
+security review's majors 1-4 and minors 6, 7, 8, 10, 11, 12, 13, 15,
+17, 19 there, above); and the three rejoin-sentence corrections
+(the Gate section's "The `web/` leg rejoins at rung 7" sentence, at
+**`CLAUDE.md:140`** — `scripts/check.sh:5`, `Makefile:33`, the last
+worded "The web legs rejoin", plural, present tense),
+`scripts/deploy.sh`'s `config/contributors.yaml` delivery left alone by
+R37.
 
 **Also carried to 5c** (from STATUS, unchanged by this close): rename
 `ErrRosterAdminChannelForbidden` when the CLI admin grant lands; the
