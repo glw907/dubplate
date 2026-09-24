@@ -1,8 +1,12 @@
 # Rung 5, Pass 5c-ii (The Admin Gate, the Roster API, and the `web/` Tree Born Gated) Implementation Plan
 
-Status: **revision 1, 2026-09-24, draft, unreviewed.** Three rulings for
-Geoff are open ("Rulings for Geoff"). No review record exists yet; the
-`spec-plan-review` skill's three lenses run before approval.
+Status: **revision 2, 2026-09-24, folded, awaiting verification.**
+Revision 1 (`3ebfe3c`) took three lens reviews (`140e3cd`:
+`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
+`-mechanics.md`, `-risk.md`); the fold record, one disposition per
+finding, is
+`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`.
+Seven rulings for Geoff are open ("Rulings for Geoff").
 
 Sources: the approved 5c-i plan
 (`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`,
@@ -38,9 +42,10 @@ the spec's cross-surface exit rows through the real shell, and closes
 security n5 in the address normalizer. Task 3 births `web/` as a
 SvelteKit static app with its gate leg in the same commit, so no `web/`
 file ever lands ungated. Task 4 authors the one composed theme as data.
-Task 5 lands the embed path and the R4.5 document rewrite under a runtime
-prefix. Task 6 lands the generated branding stylesheet and the operator
-CSS file. Task 7 lands the served header set (CSP, `nosniff`,
+Task 5 lands the embed path and the R4.5 document rewrite's theme stamp
+under a runtime prefix. Task 6 lands the generated branding stylesheet,
+the operator CSS file, and the rewrite's two tier links beside the
+routes they point at. Task 7 lands the served header set (CSP, `nosniff`,
 `Referrer-Policy`, and HSTS), the cache rules, and the document routes,
 the admin-gated add-member document among them. Task 8 is the close.
 
@@ -71,19 +76,22 @@ believes it needs any of these stops and reports.
 
 ## Rulings for Geoff
 
-Three yes-or-no questions. The rung 5 spec's rulings, the 5c-i plan's
-six rulings, and the web surface standard's section 16 stand and are
-not reopened.
+Seven yes-or-no questions. Rulings 1 through 3 are revision 1's, with
+Ruling 1's figure and Ruling 2's shape updated by the fold; Rulings 4
+through 7 arrived with the reviews. The rung 5 spec's rulings, the 5c-i
+plan's six rulings, and the web surface standard's section 16 stand and
+are not reopened.
 
 **1. Does the remaining 5c scope split into 5c-ii and 5c-iii, with 5c-ii
-under an 8.8M execution ceiling?** Recommendation: yes.
+under a 9.4M execution ceiling?** Recommendation: yes.
 
 **Reason:** the 5c-i outline's remaining scope is thirteen tasks plus
 Task 0, past this build's twelve-task line, and 5c-i's actual rate
 (0.725M per task, "Token ceiling") puts it near 9.4M in one pass. The
 cut sits after the served-header task, which the 5c-i outline itself
 named as the natural seam. 5c-ii then carries the Go-side and delivery
-work (eight tasks, projected 6.35M). 5c-iii carries the fonts, the three
+work (eight tasks, projected 6.75M after the review fold added named
+states and proof rows). 5c-iii carries the fonts, the three
 pages with the string deck, the rendered gates, and the render-and-read
 (about six tasks, provisional 5.0M).
 
@@ -92,13 +100,15 @@ the web surface standard's section 15 take a second split erratum at
 the close; 5c's share of the rung reservation moves from about 18M
 (the 5c-i plan's Ruling 6) to about 20M, and rung 5's from about 37M to
 about 39M. **What no builds:** one pass over all thirteen tasks under a
-ceiling near 11.7M, with the flag at 9.4M. The gate leg and the pages
+ceiling near 12.2M, with the flag near 9.8M. The gate leg and the pages
 would then share one pass-end review, and the pages would build against
 a delivery path no reviewer had yet read.
 
 **2. Does the served header set carry `Strict-Transport-Security:
 max-age=31536000`, with no `includeSubDomains` and no `preload`, only
-when `DUBPLATE_PUBLIC_URL`'s scheme is https?** Recommendation: yes.
+when `DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not
+loopback (`isLoopbackHost`, `cmd/dubplate-server/auth.go:474-482`)?**
+Recommendation: yes.
 
 **Reason:** review finding 18 routes HSTS into this pass. HSTS is sticky
 in every browser that sees it, for the host as a whole and not only for
@@ -109,12 +119,20 @@ dubplate does not own. `preload` asks browsers to ship the host in
 their source, which only the domain's owner can decide. R38's loopback
 carve-out admits plain http on localhost, where RFC 6797 section 7.2
 says a host "MUST NOT include the STS header field", so the header
-follows the configured scheme.
+follows the configured scheme. The loopback exception is the mechanics
+review's m4: RFC 6797 section 8.3 matches a Known HSTS Host by host
+alone, and section 8.1.1 exempts only IP literals, so HSTS from
+`https://localhost` behind a local TLS proxy would pin every
+`localhost` port in that browser for a year. `validatePublicURL`
+accepts `https://localhost` (`auth.go:465`), and the exception reuses
+R38's own loopback set.
 
 **What yes builds:** R-5cii6 as written, with a named constant for the
-age. **What no builds:** a threshold for the age and a flag for
-`includeSubDomains`, two more `doctor` rows, and an adopter choice that
-most adopters cannot evaluate. Or no HSTS, which leaves finding 18 open.
+age and the loopback exception. **What no builds:** either HSTS on
+every https URL, `https://localhost` included (drop the exception), or a
+threshold for the age and a flag for `includeSubDomains`, two more
+`doctor` rows, and an adopter choice most adopters cannot evaluate. Or
+no HSTS, which leaves finding 18 open.
 
 **3. Does 5c-ii ship the three routes as unstyled structural stubs, with
 the page design taken into 5c-iii, and does Task 4 author the
@@ -133,6 +151,90 @@ check.
 beyond the theme binding; the mockup session's output, if any, is a
 standing input to 5c-iii's plan. **What no builds:** 5c-ii takes the
 mockup's output as a Task 4 input, and Task 4 waits on the session.
+
+**4. Do `DUBPLATE_BRANDING` and `DUBPLATE_OPERATOR_CSS_FILE` default to
+the literal `none`, meaning "not configured"?** Recommendation: yes.
+
+**Reason:** revision 1 gave both an empty default, and the registry
+panics on that (`internal/config/registry.go:322-325`: `case KindString:
+if t.Default == "" { panic(...) }`). `ParseString` documents why
+(`thresholds.go:124-128`): "the one invalid Default is the empty
+string, because wall.get's empty-equals-unset convention would otherwise
+make an empty-string default indistinguishable from no default at all".
+`cmd/dubplate-server/auth.go:33-36` records the same constraint. 5c-ii
+may not edit `internal/config` (R-5c17), so the fix lives in the keys'
+shape, and the shape is adopter-visible (review C1).
+
+**What yes builds:** both keys stay `KindString` thresholds as the spec's
+"Presentation (R14)" says, `doctor` prints their effective value, and an
+unset or empty value resolves to `none`. `none` means no branding
+declarations and no operator file; `none` is refused as a literal
+operator path by the `.css` suffix rule (R-5cii13). **What no builds:**
+the two keys become the `Optional` rows of a new integration class with
+an enable flag (`DUBPLATE_WEB_CUSTOMIZATION`, say), on the rotation
+secrets' precedent (`auth.go:30-36`). `doctor` then stops printing them,
+the adopter sets a flag before either key, the contested-surfaces row's
+"four `doctor` rows" becomes two, and the spec's "Each is `KindString`"
+takes an erratum.
+
+**5. Does `@types/node` join the web pins at an exact 24.x version, with
+`web/scripts/**/*.ts` in the type-checked set?** Recommendation: yes.
+
+**Reason:** `svelte-check` checks only what kit's generated
+`.svelte-kit/tsconfig.json` includes (`src/**`, `test/**`, `tests/**`,
+the vite config), and Node's type stripping does no type checking, so
+revision 1's "the gate scripts are TypeScript under `ts-conventions`"
+gated nothing (review M2). Including the scripts was measured: it fails
+with `Cannot find name 'process'` without Node's types. The package is
+types-only and a devDependency; the newest 24.x on 2026-09-24 is
+24.13.6 (`npm view @types/node@24 version`), matching the Node 24
+floor.
+
+**What yes builds:** R-5cii16 gains the row, `web/tsconfig.json`
+includes `scripts/**/*.ts`, and the gate type-checks every gate script.
+**What no builds:** the gate scripts are written as `.js` with JSDoc and
+the `ts-conventions` claim is dropped; or G1, G3, and the server-file
+check become Go tests, which the Go gate already type-checks. Under
+every answer `web/tsconfig.json` sets `skipLibCheck: true`, since strict
+`svelte-check` otherwise reports 41 errors inside
+`@sveltejs/kit/types/index.d.ts` (measured).
+
+**6. Does the header set keep `Referrer-Policy: no-referrer`, recording
+login from a browser without `Sec-Fetch-Site` as an unsupported
+residual?** Recommendation: yes.
+
+**Reason:** the Fetch standard serializes a non-CORS POST's `Origin` as
+`null` under `no-referrer`. `CrossOriginProtection.Check` falls back to
+`Origin` only when `Sec-Fetch-Site` is absent, and `null` fails its host
+comparison. So a browser that sends no `Sec-Fetch-Site` (Safari before
+16.4, iOS 15 devices) could fail every POST: request-link, consume, and
+add (review R5). `go doc net/http.CrossOriginProtection` says
+`Sec-Fetch-Site` is "available in all browsers since 2023", so only old
+devices are exposed, and WebKit's exact serialization is unverified.
+`no-referrer` is the spec's value (R32), so yes needs no erratum.
+
+**What yes builds:** R-5cii6 as written; the residual is written into
+the close's gap list and carried to 5d's runbook row. **What no
+builds:** `Referrer-Policy: same-origin`, which keeps every cross-origin
+referrer empty while letting `Origin` serialize normally. The token URL
+then reaches dubplate itself in `Referer` on the consumption page's
+same-origin requests (dubplate logs no `Referer`), and R32 takes an
+erratum.
+
+**7. Does a branding value outside the grammar, or an operator file that
+is missing or refused, stop serve startup?** Recommendation: yes.
+
+**Reason:** at 5c-ii that stops login only, a restart surfaces the error
+at once, and the box runs nothing yet. At rung 12 the same refusal would
+also stop the streamer fallthrough, so a color typo or a mount that is
+not ready takes the music server down (review R7). The security property
+(a refused value never reaches CSS) holds under either answer.
+
+**What yes builds:** R-5cii13 and R-5cii14 as written; the question is
+carried to rung 12's plan, where availability is the larger stake.
+**What no builds:** serve starts with an empty branding stylesheet and
+no operator link, logs the refusal at error level, and 5d's `doctor` row
+fails loudly; every refusal row in Task 6 becomes a degrade row.
 
 ---
 
@@ -154,7 +256,13 @@ Approving this plan approves these. The close drafts the erratum text
 - R-5cii15: G4, G5, G7's computed-value half, and G10 land in 5c-iii,
   with the fonts and the rendered tooling.
 - R-5cii10: `go.mod` gains one `ignore` directive, and `.gitleaks.toml`
-  gains two allowlist paths.
+  gains one allowlist path.
+- R-5cii20: the spec's embed-path line "Every served response carries
+  `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer`
+  beside the CSP" (`:1393-1394`) reads as: every served response carries
+  the first two, and every served document carries the CSP. A 404, a
+  JSON answer, an asset, or a stylesheet runs no script, and the gate's
+  404 must equal the terminator's, which carries no CSP.
 
 ---
 
@@ -198,8 +306,10 @@ Read these before Task 1, in this order.
 ## Goal
 
 After this pass, an admin can list and add members through a
-cookie-authenticated API that a non-admin cannot tell from an
-unregistered path. The `web/` tree exists, builds to a static bundle,
+cookie-authenticated API whose every server answer to a non-admin
+equals the answer to an unregistered path. (The route's existence is
+public: the client router's manifest names `/members` in ungated `_app`
+chunks, R-5cii19. The API is the boundary.) The `web/` tree exists, builds to a static bundle,
 and is gated from its first commit. The Go binary serves each
 prerendered document under any configured prefix, stamped with the
 composed theme and linked to the branding and operator stylesheets in
@@ -212,16 +322,17 @@ fonts, the pages, and the rendered proof.
 
 ## Owner touchpoints
 
-The three rulings above, at the plan-approval gate. Nothing else is
+The seven rulings above, at the plan-approval gate. Nothing else is
 expected; no attended check occurs inside 5c-ii, since the pages it
 serves are stubs (Ruling 3). What would become an owner touchpoint: a
 new Go module dependency (this pass adds none); a web dependency beyond
-the pinned set (R-5cii16); a threshold default changed on a task's own
+the pinned set (R-5cii16, with Ruling 5 settling `@types/node` before
+Task 3 dispatches); a threshold default changed on a task's own
 judgment; any change to what the box runs.
 
 ---
 
-## Token ceiling: 8.8M execution for 5c-ii (Ruling 1)
+## Token ceiling: 9.4M execution for 5c-ii (Ruling 1)
 
 `spec:2548-2549`'s rule governs: each ceiling is re-derived from the
 previous pass's actual. The basis is 5c-i's recorded actual, **about
@@ -249,20 +360,28 @@ ceiling.
 5. Five `go-architecture-reader` dispatches (`internal/auth`,
    `internal/identity`, `internal/serve`, `cmd/dubplate-server`, `web`)
    against 5c-i's three: add **0.10M**.
-6. **The projection is 6.35M.**
+6. The review fold (revision 2) adds named states and proof rows
+   without adding a task: Task 1's GET, HEAD, 405, `failed`, query, and
+   Content-Type rows; Task 3's per-state seeds and the hidden-lockfile
+   rows; Task 6's absorption of the rewrite's tier links with their
+   anchor states and the operator path's refusals; Task 7's route-state,
+   placeholder-tree, and minted-link rows. About 0.1M each: add
+   **0.40M**.
+7. **The projection is 6.75M.**
 
-A ceiling of **8.8M** puts the 80% flag at **7.04M**, 0.69M above the
+A ceiling of **9.4M** puts the 80% flag at **7.52M**, 0.77M above the
 projection, about one task at the measured rate. The flag then marks a
 real overrun rather than firing on plan. Either pre-named task split
 (Task 3's gates to Task 4, or Task 7's document routes to their own
-task) adds about 0.73M and brings the projection to 7.08M, just past
-the flag, so the conductor asks at that boundary under the 80% rule.
-Re-derive at the segment A and segment B boundaries.
+task) adds about 0.73M and brings the projection to 7.48M, just under
+the flag; both together cross it, and the conductor asks at that
+boundary under the 80% rule. Re-derive at the segment A and segment B
+boundaries.
 
 **5c-iii's provisional figure** is about 5.0M of execution: six tasks
 at 0.725M (4.35M), the first rendered tooling (+0.25M), the string
 deck's register gate (+0.15M), and the render-and-read (+0.20M), with
-about 0.8M of planning. 5c's three passes then project about 17.1M of
+about 0.8M of planning. 5c's three passes then project about 17.6M of
 execution and about 2.8M of planning, near 20M against Ruling 6's
 18M (Ruling 1).
 
@@ -271,9 +390,9 @@ after Task 5, after segment C's reviews, and at the close), at most
 three tasks apart. Every task reports its spend, its mutation outcomes,
 and its measured gate wall time.
 
-**Deliverable count:** thirty across Tasks 1 through 8, plus Task 0's
-report. Tasks 1, 2, 3, 5, 7, and 8 carry four each; Tasks 4 and 6 carry
-three. No task passes four.
+**Deliverable count:** thirty-one across Tasks 1 through 8, plus Task
+0's report. Tasks 1, 2, 3, 5, 6, 7, and 8 carry four each; Task 4
+carries three. No task passes four.
 
 ---
 
@@ -287,7 +406,9 @@ three. No task passes four.
   and no task ssh's to the box.
 - **Package territory, stated as a wall.** This pass writes:
   `internal/auth` (`admin.go` born; `handlers.go` for the `readForm`
-  lift; their tests); `internal/identity/identity.go` and its test (n5);
+  lift; their tests; `roster.go` for `actorRefusesRune`'s doc comment
+  only, which n5 would otherwise leave false); `internal/identity/identity.go`
+  and its test (n5);
   `internal/serve` (new files for the document, asset, and header
   handlers; `serve.go` for the header step; their tests);
   `cmd/dubplate-server` (`serve.go` edited, `web.go` born, `main.go`'s
@@ -303,8 +424,9 @@ three. No task passes four.
 - **No new Go module dependency.** `go.mod`'s only change is the
   `ignore ./web/node_modules` directive (R-5cii10). `go.sum` stays
   byte-identical.
-- **The web dependency set is exactly R-5cii16's pins.** No other npm
-  package enters `web/package.json`. `tus-js-client` stays out until
+- **The web dependency set is exactly R-5cii16's pins**, with
+  `@types/node` among them only under Ruling 5. No other npm package
+  enters `web/package.json`. `tus-js-client` stays out until
   rung 7, and no ESLint, Prettier, or Playwright package enters in 5c-ii.
 - **`internal/auth` reads no environment and renders no HTML**, and
   **`internal/serve` imports neither `internal/auth` nor
@@ -357,17 +479,19 @@ every channel that may set it.
 | Field | Channels that may set it | What refuses every other channel |
 | --- | --- | --- |
 | A member's `admin` flag | `dubplate-server member add --admin` through `identity.ChannelCommandLine` (5c-i). An operator's hand edit, validated at reload, with no audit record (5c-i's declared gap 2). | The roster API refuses any request whose `r.Form` carries an `admin` key, body or query, any value, empty included (Task 1). The store refuses the flag on every channel but the command line (5c-i Task 6). The seam reads the flag from the roster record, never the request (found sound). |
-| The authority to write the roster through the web | A cookie-channel actor whose record in the disk copy, re-read under the store's lock, holds the flag (5c-i Task 6), reached only through `RequireAdmin` (Task 1). | A stale gate decision: `AddMember` re-checks the actor under the lock. A request that bypassed the gate: the inner handler refuses on its own when its context carries no valid admin identity (Task 1). |
+| The authority to write the roster through the web | A cookie-channel actor whose record in the disk copy, re-read under the store's lock, holds the flag (5c-i Task 6), reached only through the admin gate (Task 1; exported as `RequireAdmin` in Task 7). | A stale gate decision: `AddMember` re-checks the actor under the lock. A request that bypassed the gate: the inner handler refuses on its own when its context carries no valid admin identity (Task 1). |
+| The roster's contents as a read (every address, admin flag, and streamer username) | The roster API's GET and HEAD to a verified admin (Task 1); `member list` on the command line (5c-i); 5b-ii's kind unknown-address answer, which hands out the one admin contact the spec names. | Every other requester of `<prefix>/roster` answers the gate's 404 (Task 1). The generic answer's setting governs the one contact the kind answer reveals (5b-ii). No log record or error string carries an address (global constraint). |
+| The three member fields a POST writes | `r.PostForm` only (R-5c13): the request body. | The query string: a POST carrying any query key answers `malformed` or `admin_not_grantable` before a field is read (R-5cii4), so an address never rides a URL into a proxy's access log. |
 | The audit record's actor | The gate's verified, normalized address, passed through an unexported context key (Task 1). | Any form field, header, or query value; a spoofed `actor` field is refused as an unknown field and never read (Task 1). |
 | The audit record's channel | The constant `identity.ChannelCookie` in the roster API. | Anything a request carries. |
-| `streamer_username` | The roster API (Task 1) and the verb (5c-i), both through `AddMember`. A hand edit. **It becomes a privilege channel at rung 12**, carried there as 5c-i's declared gap 5. | Nothing else writes the roster. |
+| `streamer_username` | The roster API (Task 1) and the verb (5c-i), both through `AddMember`. A hand edit. **It becomes a privilege channel at rung 12**, carried there as 5c-i's declared gap 5; rows the API writes now persist into rung 12, so rung 12's check re-validates every existing row's principal, not only new writes (Task 8's gap list). | Nothing else writes the roster. |
 | The refreshed session cookie | The gate, only after the admin check passes, and only for a request whose `Sec-Fetch-Site` is exactly `same-origin` (Task 1). | Every refusal, a verified non-admin included: the gate sets no cookie. The document handlers set no cookie. |
 | The member address set (n5) | `identity.NormalizeAddress` on every channel: login, roster load, `AddMember` (Task 2). | Every channel reads through the one normalizer, so no second address path exists to forget the refusal. |
-| The composed `data-theme` value stamped into a document | `DUBPLATE_THEME_MATCH` and `DUBPLATE_THEME_PALETTE`, validated at serve startup against the accepted set and the built bundle's theme blocks (Task 5). | Any request component: no route reads a query value, a header, or a cookie for the theme at 5c-ii. W5.10's signed-out cookie is rung 7's and is not built here. |
+| The composed `data-theme` value stamped into a document | `DUBPLATE_THEME_MATCH` and `DUBPLATE_THEME_PALETTE`, validated at serve startup: the palette against `[a-z0-9-]+` first, then the composed name as an exact token against the theme selectors extracted from the built bundle (Task 5, R-5cii12). | Any request component: no route reads a query value, a header, or a cookie for the theme at 5c-ii. W5.10's signed-out cookie is rung 7's and is not built here. |
 | The branding stylesheet's declarations | `DUBPLATE_BRANDING`, validated at serve startup: names from DL R2.1's set only, values from R-5cii14's grammar (Task 6). | Any request component. A value outside the grammar refuses startup rather than being escaped into place. |
-| The operator CSS file's bytes | The file at `DUBPLATE_OPERATOR_CSS_FILE`, read once at serve startup (Task 6). | Any request-supplied path component: the route serves one in-memory value at one fixed path. |
+| The operator CSS file's bytes | The file at `DUBPLATE_OPERATOR_CSS_FILE`, read once at serve startup, only when its path ends in `.css` and its content is UTF-8 with no NUL byte (Task 6, R-5cii13). | Any request-supplied path component: the route serves one in-memory value at one fixed path. |
 | The CSP header's script hashes | The embedded build's own SvelteKit CSP meta, per document, read at serve startup (Task 7). | No configuration key and no request component contributes a source to `script-src`. |
-| The presence of `Strict-Transport-Security` | The scheme of `DUBPLATE_PUBLIC_URL`, read at serve startup (Task 7). | The request's own scheme and every forwarded header: the ingress strip removes the forwarded family before any handler runs (5a). |
+| The presence of `Strict-Transport-Security` | The scheme and host of `DUBPLATE_PUBLIC_URL`, read at serve startup (Task 7, Ruling 2). The key is always set when serve runs: the magic-link source, the only declared identity source, lists it as Required (`cmd/dubplate-server/auth.go:50`), and the selector is required (`config.go`, `resolveIdentitySource`). | The request's own scheme and every forwarded header: the ingress strip removes the forwarded family before any handler runs (5a). |
 
 ---
 
@@ -438,12 +562,17 @@ computes its base from where the browser loaded it, so the same bundle
 works under any prefix. **Two consequences bind the Go routes.** A
 document is served only at its exact path: `<prefix>/login/` would
 compute the base one level too deep, so a trailing-slash request
-answers the terminator's 404 rather than the document. And the router
+answers the terminator's 404 rather than the document (R-5cii21 states
+the rule for every route). And the router
 never rewrites a path to reach a document; it maps an exact request
 path to one embedded file. The `reroute` hook and `router.type:
 'hash'` are declined: the first is unneeded, and the second disables
-prerendering. Task 0 runs the prefix probe before any implementer
-builds on this, and Task 5 proves it through the shell.
+prerendering. The mechanics review's probe at these pins confirmed it:
+served under `/p/q`, all three documents hydrated in headless Chromium,
+`$app/paths` `base` read `/p/q`, a `goto(base + '/members')` from
+`/p/q/login` rendered the members page, and no request under the prefix
+404'd. Task 0 re-runs the probe against the tree of its day, and Task 5
+proves the reference half through the shell.
 
 ### R-5cii3: the gate's refusal stays `http.NotFound`
 
@@ -474,12 +603,43 @@ and `streamer_username`, each at most once, and nothing else. An `admin`
 key keeps its own outcome (R-5c13). Any other key is `unknown_field`,
 which closes `Admin`, `is_admin`, `actor`, and every spelling the
 outline's `admin` rule left open. A repeated key is `malformed`, since
-`url.Values.Get` would silently take the first. A body whose
-Content-Type is not `application/x-www-form-urlencoded` is `malformed`:
-`go doc net/http.Request.ParseForm` states that "when the Content-Type
-is not application/x-www-form-urlencoded, the request Body is not read,
-and r.PostForm is initialized to a non-nil, empty value", so such a
-request would otherwise surface as three missing fields.
+`url.Values.Get` would silently take the first.
+
+**The three fields are read from `r.PostForm` only**, R-5c13's rule
+restated: the admin and unknown-key checks run over `r.Form` (body and
+query), and the values come from the body. A POST whose query string
+carries any key that survived the admin and unknown-key checks answers
+`malformed`, so `?address=...` with an empty body adds nobody and an
+address never rides a URL into a tunnel or proxy access log.
+
+**The Content-Type check parses the header.** `ParseForm` itself reads
+the type through `mime.ParseMediaType`, and `go doc
+mime.ParseMediaType` states that it "parses a media type value and any
+optional parameters, per RFC 1521" and "On success, ParseMediaType
+returns the media type converted to lowercase and trimmed of white
+space and a non-nil map". The check compares that media type alone and
+treats any returned error as a refusal, so a browser `fetch` with a `URLSearchParams`
+body, which sends `application/x-www-form-urlencoded;charset=UTF-8`
+(measured under Node 24's Fetch implementation), is accepted. Any other
+media type, a missing header, or a header `ParseMediaType` refuses is
+`malformed`: `go doc net/http.Request.ParseForm` states that "when the
+Content-Type is not application/x-www-form-urlencoded, the request Body
+is not read, and r.PostForm is initialized to a non-nil, empty value",
+so such a request would otherwise surface as three missing fields.
+
+**The order of the refusals** is fixed: Content-Type, the body cap
+(while `readForm` parses), a repeated key, an `admin` key, a key outside
+the three, a query key, and only then the fields.
+
+**The error mapping names every sentinel**, because every validation
+refusal from `AddMember` wraps both `ErrRosterRecordInvalid` and its
+specific sentinel (`roster.go`, `checkAddition` and `addTo`). The mapper tests
+the specific sentinels first and never branches on
+`ErrRosterRecordInvalid`; a mapper that did would turn
+`errActorNotAdmin` into a 400. `errRosterBusy` maps to `busy`.
+`errActorNotAdmin`, `errRosterWritableByOthers`, `errInvalidActor`, and
+`errAdminGrantForbidden` map to `failed`. `errNoAdmin` is unreachable on
+an addition and falls to `failed` if it ever surfaces.
 
 `errRosterWriteLanded` gets its own outcome, `write_unconfirmed`,
 because the member may be on disk. A generic `failed` would invite a
@@ -517,9 +677,29 @@ Ruling 3 of the 5c-i plan admits ZWJ and ZWNJ there, and the address
 set is the one n5 names.
 
 The table is the toolchain's. A Go release that moves to a later
-Unicode version can change the set; the test pins the named code points
-and states the version it measured, so a change surfaces as a failing
-row rather than a silent widening.
+Unicode version can change the set; the test pins the named code points,
+the set's size (4174), and the version it measured, so a change
+surfaces as a failing row rather than a silent widening, and an
+over-refusal (dropping `- Prepended_Concatenation_Mark` from the
+formula) fails the size row. The mechanics review confirmed
+the set equals, point for point, the 27 `Default_Ignorable_Code_Point`
+ranges in the file.
+
+**Three of the ten rows are regressions, not proofs.** The current
+normalizer already refuses all of `Cf` (`identity.go:70-72`), so
+U+200B, U+00AD, and U+E0001 fail before the change; the other seven
+pass today in both the local part and the domain (both reviews probed
+it). The test labels the three as pre-existing.
+
+`actorRefusesRune`'s doc comment (`internal/auth/roster.go:646-651`)
+says it refuses "the same set [identity.NormalizeAddress] refuses", and
+`validateActor`'s says a command-line actor is "free of every rune an
+address refuses". After n5 both are false. Task 2 rewrites the two
+comments to state what the command-line rule refuses on its own terms
+(control characters and `Cf`, `Zs`, `Zl`, `Zp`) and changes no code in
+the file. The command-line actor is an operating-system user name, never
+an address, and a cookie actor already passes through `NormalizeAddress`,
+so the n5 set reaches every address the audit record names.
 
 ### R-5cii6: the header set is the shell's outermost step, and HSTS follows the scheme (Ruling 2)
 
@@ -536,8 +716,12 @@ headers; the close carries that as a rung 12 edge.
 
 The CSP is not in this step. It is per document (R-5cii7).
 
+`Referrer-Policy` stays `no-referrer` under Ruling 6, with old-browser
+login recorded as a residual.
+
 HSTS: `max-age=31536000`, no other directive, set only when
-`DUBPLATE_PUBLIC_URL`'s scheme is https. RFC 6797 (read 2026-09-24):
+`DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not loopback by
+`isLoopbackHost` (Ruling 2). RFC 6797 (read 2026-09-24):
 section 6.1.1, "The REQUIRED 'max-age' directive specifies the number
 of seconds, after the reception of the STS header field, during which
 the UA regards the host ... as a Known HSTS Host"; section 7.2, "An HSTS
@@ -573,6 +757,11 @@ takes SvelteKit's.
   browser, which kit's own comment states: "'unsafe-inline' is ignored if
   either a hash or nonce value is present in the source list".
 
+- kit emits the boot script as a bare tag with no attribute in hash mode
+  (`src/runtime/server/page/render.js:586-588`: `` body += `\n\t\t\t<script${
+  csp.script_needs_nonce ? ` nonce="${csp.nonce}"` : '' }>${init_app}</script>\n\t\t`; ``),
+  and the probe build's documents each carry exactly one such script.
+
 At startup, the Go layer reads each embedded document's CSP meta,
 unescapes its `content` with `html.UnescapeString` (`go doc`: "It
 unescapes a larger range of entities than EscapeString escapes"), takes
@@ -584,12 +773,21 @@ and the two agree on every directive the meta can carry.
 
 **Every state the extraction can meet refuses startup**, naming the
 document: no CSP meta; a meta whose `script-src` is absent; a
-`script-src` carrying `'unsafe-inline'`; a document carrying an inline
-`<script>` while the meta lists no hash. G6 (Task 7) then proves the
-outcome independently: the test hashes every inline `<script>` body of
-each served document with `crypto/sha256` and `base64.StdEncoding` and
-asserts each hash is in that document's header. A drift between kit's
-hash and the bytes it emitted fails G6, which is the point. The R4.5
+`script-src` carrying `'unsafe-inline'`; an inline script whose
+`sha256` the startup computes and does not find in the meta's list
+(which covers a document with scripts and no hash, and a script added to
+`app.html` outside kit's set); and a script opening tag the extractor
+does not recognize, matched case-insensitively as `<script` followed by
+anything but `>` (an attributed or `type="module"` inline script, which
+kit does not emit, refuses rather than slipping past the scanner).
+
+G6 (Task 7) then proves the outcome independently: the test hashes
+every inline `<script>` body of each served document with
+`crypto/sha256` and `base64.StdEncoding` and asserts each hash is in
+that document's header. **G6's scanner is written in the test file and
+shares no function with `internal/serve`'s extractor**, so one blind
+spot cannot hide a script from both. A drift between kit's hash and the
+bytes it emitted fails G6, which is the point. The R4.5
 rewrite touches no script bytes (DL R5.6), and Task 5 proves it.
 
 ### R-5cii8: the cache directives, derived rather than copied
@@ -653,12 +851,16 @@ init".
   the directive it listed only the root, with `go vet ./...` and `go
   mod tidy` both clean. `web/.svelte-kit` begins with a dot and is
   excluded already.
-- **`.gitleaks.toml` gains `web/node_modules/` and `web/.svelte-kit/`**
-  in its allowlist paths. The full leg runs `gitleaks detect --no-git -s
-  .` (`scripts/check.sh:400`), which walks untracked files, and both
-  directories are third-party or generated, workstation-only, and never
-  shipped. `web/build/` stays scanned, since it is what the binary
-  embeds. The allowlist's own comment names why each path is there.
+- **`.gitleaks.toml` gains `web/.svelte-kit/`** in its allowlist paths.
+  The full leg runs `gitleaks detect --no-git -s .`
+  (`scripts/check.sh:400`), which walks untracked files. The mechanics
+  review measured gitleaks 8.30.1 under `[extend] useDefault = true`:
+  the built-in allowlist already skips `node_modules` and
+  `package-lock.json` (0 bytes scanned), so no entry is added for them;
+  without the `.svelte-kit` entry the scan read 563 KB of generated
+  files and took 2.5 s against 0.35 s. `web/build/` stays scanned
+  (97 KB, clean), since it is what the binary embeds. The allowlist's
+  comment names the generated directory as the reason.
 - **`.gitignore`** gains `/web/node_modules/`, `/web/.svelte-kit/`, and
   `/web/build/*` with `!/web/build/placeholder.txt`.
 
@@ -684,12 +886,25 @@ node_modules/.package-lock.json").
 | Node major below 24 | fails naming the found and required versions |
 | `web/node_modules` absent | fails naming `npm ci --prefix web` |
 | an installed package outside its declared range | fails naming `npm ci --prefix web` |
-| the lockfile pins a version the install does not carry | fails naming `npm ci --prefix web` and the first differing package |
+| an entry present in both lockfiles at different versions | fails naming `npm ci --prefix web` and the first differing package |
+| a lockfile entry marked `optional: true` absent from the hidden lockfile | proceeds (npm never installs another platform's binaries) |
+| a lockfile entry not marked optional absent from the hidden lockfile | fails naming the package and `npm ci --prefix web` |
 | installed and current | proceeds |
+
+The comparison skips the root `""` key and compares `version` only for
+entries present in both files. The mechanics review measured why the
+optional row exists: `package-lock.json` held 116 entries and the hidden
+lockfile 69, and the 46 missing were all `optional: true` platform
+binaries (`@rolldown/binding-darwin-arm64` and its kind). A reading of
+"every lockfile entry must be installed" would fail every clean
+`npm ci`.
 
 The leg never installs. An install is the lane's, per the spec's 5c
 lane-launch item, and a gate that mutates `node_modules` would race a
-second gate in the same tree.
+second gate in the same tree. The one exception is Task 3's implementer,
+who runs `npm install --prefix web` once against the exact pins to
+produce `web/package-lock.json`; the conductor runs `npm ci --prefix web`
+after Task 3 lands.
 
 ### R-5cii12: the presentation keys are four thresholds declared in `cmd/dubplate-server/web.go`
 
@@ -699,9 +914,36 @@ R14 declares the presentation keys in rung 5's own file with
 | Key | Default | Accepted |
 | --- | --- | --- |
 | `DUBPLATE_THEME_MATCH` | `dubplate` | exactly `dubplate` (DL R3.2) |
-| `DUBPLATE_THEME_PALETTE` | `gruvbox` | a palette whose composed name `<match>-<palette>` exists as a theme block in the embedded bundle |
-| `DUBPLATE_BRANDING` | empty | a declaration list under R-5cii14's grammar |
-| `DUBPLATE_OPERATOR_CSS_FILE` | empty | empty, or a path to a readable regular file within R-5cii13's size bound |
+| `DUBPLATE_THEME_PALETTE` | `gruvbox` | a value matching `[a-z0-9-]+` whose composed name `<match>-<palette>` exists as a theme selector in the embedded bundle |
+| `DUBPLATE_BRANDING` | `none` (Ruling 4) | `none`, or a declaration list under R-5cii14's grammar |
+| `DUBPLATE_OPERATOR_CSS_FILE` | `none` (Ruling 4) | `none`, or a path to a file R-5cii13 admits |
+
+**Why no default is empty.** The registry refuses an empty `KindString`
+default at registration (`internal/config/registry.go:322-325`: `case
+KindString: if t.Default == "" { panic(fmt.Sprintf("%s: invalid default
+%q", t.Key, t.Default)) }`), and the wall reads an empty value as unset
+(`internal/config/config.go:182-187`: `if !ok || v == "" { return "",
+false }`). Revision 1's empty defaults would have panicked every verb at
+`newProductionRegistry`. Under Ruling 4 the two optional keys take the
+literal `none`; under Ruling 4's "no" they become an integration class's
+`Optional` rows instead, and this table and the contested-surfaces
+`doctor` row change with it.
+
+**An empty value resolves to the default** for every key, by the wall's
+convention: `DUBPLATE_THEME_MATCH=` stamps `dubplate`, and a test proves
+it. No state row may promise that an empty value refuses.
+
+**The composed-name check reads the built CSS as measured.** The
+minified bundle writes the theme selector unquoted, inside a
+`theme-controller` form as well:
+`:is(:root:has(input.theme-controller[value=dubplate-gruvbox]:checked),[data-theme=dubplate-gruvbox])`
+(mechanics review, measured at the pins). The check finds the CSS files
+through each document's `rel="stylesheet"` links, extracts every
+`[data-theme=<name>]` selector in its quoted and unquoted forms, and
+matches the composed name as an exact token against that set. The
+palette's `[a-z0-9-]+` rule runs first, so a value carrying `"`, `>`,
+or whitespace never reaches the lookup or the attribute, and a prefix of
+a real name (`gruv`) fails the exact match.
 
 They register through one `registerWebConfig(reg)` call, one line in
 `newProductionRegistry` (`main.go`), which is a contested line with 6a
@@ -726,13 +968,22 @@ restart. It is served at `<prefix>/operator.css` with `Content-Type:
 text/css; charset=utf-8`, and the route reads no request-supplied
 component (R14). Its size is bounded by `operatorCSSMaxBytes`, 262144
 bytes (256 KiB), a named constant: well above any hand-written override
-and well below anything that belongs in the binary's memory. States:
+and well below anything that belongs in the binary's memory.
+
+**The route is public, so the file's class is checked.** A wrong path
+would otherwise publish whatever the service user can read: the roster
+(mode 0600, owned by the service user, well under the bound) or a
+secrets file (risk review R1). The path must end in `.css`, which no
+roster, env, or secrets file the estate or an adopter's template names
+does, and the content must be valid UTF-8 with no NUL byte. States:
 
 | State | Report |
 | --- | --- |
-| key empty | no tier 3 `<link>`; the route answers the terminator's 404 |
+| key unset, empty, or `none` | no tier 3 `<link>`; the route answers the terminator's 404 |
+| path not ending in `.css` (the roster fixture's path included) | serve refuses startup, naming the key and the rule, never the path's contents |
 | path absent, not a regular file, or unreadable | serve refuses startup, naming the key and the reason, never the file's bytes |
 | file over the bound | serve refuses startup, naming the key and the bound |
+| content not valid UTF-8, or carrying a NUL byte | serve refuses startup, naming the key and the rule |
 | file empty | served empty; the `<link>` stays |
 | file present and within the bound | served as read |
 
@@ -740,7 +991,8 @@ and well below anything that belongs in the binary's memory. States:
 
 `DUBPLATE_BRANDING` holds `;`-separated `name: value` pairs. The
 generated stylesheet at `<prefix>/branding.css` declares one `:root`
-block of those pairs and is empty when the key is empty (DL R4.3). The
+block of those pairs and is empty when the key is unset, empty, or
+`none` (DL R4.3, Ruling 4). The
 stylesheet is always linked, so tier order never depends on
 configuration.
 
@@ -758,7 +1010,8 @@ configuration.
   being escaped into place, because an escaped value that still parses
   as CSS is the class SEC filed against the salvage render.
 
-State table: empty key, one pair, many pairs, a repeated name (refused,
+State table: `none` and empty key, one pair, many pairs, a 64-byte
+value (accepted) beside a 65-byte one (refused), a repeated name (refused,
 naming it), an empty pair from a doubled `;` (refused), a pair with no
 `:` (refused), a name outside the set, and a value outside its grammar.
 
@@ -806,13 +1059,20 @@ view`), with one exception: TypeScript's newest is 7.0.2, but
 | `daisyui` | 5.7.45 |
 | `svelte-check` | 4.7.6 |
 | `typescript` | 6.0.3 |
+| `@types/node` (Ruling 5 only) | 24.13.6 |
 
 Every entry is a `devDependency`, since nothing Node ships to the box.
 Exact versions, no ranges, with `package-lock.json` committed. Node is
 24 or later: `node v24.20.0` runs a `.ts` file directly (measured:
 `node t.ts` printed `4` for `const x: number = 2; console.log(x * 2);`),
 so the gate scripts are TypeScript under `ts-conventions` with no
-runner dependency. A later bump goes through the `dependency-upgrade`
+runner dependency. Type stripping does no type checking, and
+`svelte-check` reads only kit's generated include set, so under Ruling 5
+`web/tsconfig.json` adds `scripts/**/*.ts` and the gate type-checks the
+scripts (measured: without `@types/node` that include fails on
+`process` and `node:fs`). `web/tsconfig.json` sets `skipLibCheck: true`
+under every answer to Ruling 5, since strict `svelte-check` otherwise
+reports 41 errors inside kit's own `types/index.d.ts`. A later bump goes through the `dependency-upgrade`
 skill. Task 0 re-reads each version and reports any newer one.
 
 ### R-5cii17: the review shape
@@ -829,8 +1089,11 @@ admin page" is met by the page itself.
 
 ### R-5cii18: nothing is exported ahead of a cross-package caller
 
-`auth.RequireAdmin`, `auth.NewRosterAPI`, and `auth.AdminConfig` are
-called from `cmd/dubplate-server` (Tasks 2 and 7). `web.Assets` is read
+`auth.NewRosterAPI` and `auth.AdminConfig` are called from
+`cmd/dubplate-server` in Task 2. The gate is unexported (`requireAdmin`)
+in Task 1, since `NewRosterAPI` composes it inside `internal/auth`, and
+Task 7 exports it as `auth.RequireAdmin` in the commit that adds its
+first outside caller, the `members` route. `web.Assets` is read
 from `cmd/dubplate-server` (Task 5). Each new `internal/serve` export
 has its caller in `cmd/dubplate-server` in the task that adds it. Every
 new refusal sentinel is unexported unless a caller outside its package
@@ -844,6 +1107,43 @@ non-admin learns: a non-admin's POST to `members` answers the gate's
 404 like any other method, and only a verified admin meets the 405. The
 roster API sits at `<prefix>/roster`, so the document and the API never
 share a route (the 5c-i outline).
+
+**The gate hides the response, not the route.** With `ssr = false`, the
+members page component ships in public `_app/immutable/` chunks, the
+client router's manifest names `/members` to every visitor, and a
+client-side `goto` renders the page without requesting `members.html`
+(measured). So the document's 404 keeps a non-admin from learning
+whether their session is an admin's; it does not hide that the route
+exists. The roster API is the authorization boundary, and nothing
+sensitive may live in the page component (carried to 5c-iii's handoff).
+
+### R-5cii20: the CSP rides documents only
+
+R-5cii7's header is set on each document response and on nothing else.
+The spec's embed-path sentence reads as all three headers on every
+response (a deviation, listed above). A 404, a JSON answer, an asset, or
+a stylesheet runs no script, and Task 7's mutation 5 depends on the
+gate's 404 carrying no CSP, since the terminator's carries none.
+
+### R-5cii21: every route answers its exact paths, for GET and HEAD, and nothing else
+
+`Shell.Register` mounts both `<prefix>/<name>` and every path under
+`<prefix>/<name>/` (`internal/serve/serve.go:94-96`), so each route
+names what its deeper paths answer. One rule for all of them:
+
+| Route | Exact paths it answers | Every other path under it | Methods |
+| --- | --- | --- | --- |
+| `login` | `<prefix>/login`, `<prefix>/login/link` | the terminator's 404, the trailing-slash forms included | GET, HEAD; any other answers 405 with `Allow: GET, HEAD` |
+| `members` | `<prefix>/members` | the gate's 404 to a non-admin, the terminator's 404 to an admin | GET, HEAD after the gate (R-5cii19) |
+| `roster` | `<prefix>/roster` | the gate's 404 to a non-admin, the terminator's 404 to an admin | GET, HEAD, POST after the gate (Task 1) |
+| `_app` | each embedded file under `_app/` | a directory path (`<prefix>/_app/immutable/`), the bare `<prefix>/_app`, and a missing file answer the terminator's 404; no listing, no redirect | GET, HEAD; any other answers 405 |
+| `branding.css`, `operator.css` | the name itself | the terminator's 404 (`<prefix>/operator.css/x`) | GET, HEAD; any other answers 405 |
+
+The `_app` handler is a lookup in the embedded tree, never
+`http.FileServerFS`, which lists a directory and redirects a path ending
+in `index.html`. A path carrying a `.` or `..` segment never reaches a
+route: `Normalize` refuses it with 400 first (`internal/serve/normalize.go`,
+rule 2), so a test aimed at a route uses a plain deeper segment.
 
 ---
 
@@ -863,8 +1163,9 @@ in the task that owns it.
    terminator's 404, never a document computing the wrong base. Pinned
    in Task 5.
 4. **A document that gains an inline script the CSP does not cover.**
-   Expected: serve refuses startup naming the document, and G6 fails.
-   Pinned in Task 7.
+   Expected: serve refuses startup naming the document, because startup
+   hashes every inline script against the meta's list (R-5cii7), and G6
+   fails on its own scanner. Pinned in Task 7.
 5. **Operator text shaped like CSS.** A branding value carrying `}` or
    `url(`. Expected: serve refuses startup; no stylesheet carries it.
    Pinned in Task 6.
@@ -918,10 +1219,15 @@ blocker.
    whether a client-side navigation from `/p/q/login` to
    `/p/q/members` resolves. A failure is a blocker; the conductor then
    rules between the `reroute` hook (the 5c-i outline's first
-   candidate) and refusing a non-default prefix until rung 7.
+   candidate) and refusing a non-default prefix until rung 7. The
+   mechanics review ran this probe green at the pins on 2026-09-24; the
+   re-run guards against a moved pin. Report also the built CSS's
+   theme selector form and each document's stylesheet link form, which
+   R-5cii12 and Task 6's anchor rely on.
 5. **Is every pin still the newest, and does TypeScript's peer range
    still exclude 7?** Report `npm view <pkg> version` for each
-   R-5cii16 row and the two peer ranges. A newer version is a note, and
+   R-5cii16 row (`@types/node@24` under Ruling 5) and the two peer
+   ranges. A newer version is a note, and
    the conductor rules under `dependency-upgrade`; a peer change that
    admits TypeScript 7 is a note.
 6. **Does the gate run cleanly at HEAD?** Run
@@ -968,8 +1274,9 @@ check, a JSON 404, an ungated export) pass every happy-path test.
 - Consumes: `Seam.VerifyIdentity`; `SessionCookie`; `(*Roster).List`,
   `(*Roster).AddMember`; the unexported roster sentinels;
   `identity.ChannelCookie`; `identity.Identity.Valid`.
-- Produces: `auth.RequireAdmin(cfg AdminConfig, next http.Handler)
-  http.Handler`; `auth.NewRosterAPI(cfg AdminConfig) http.Handler`,
+- Produces: the unexported gate `requireAdmin(cfg AdminConfig, next
+  http.Handler) http.Handler`, which Task 7 exports (R-5cii18);
+  `auth.NewRosterAPI(cfg AdminConfig) http.Handler`,
   which returns **the gated composition only**; `auth.AdminConfig{Seam
   Seam; Roster *Roster; ClientIP func(*http.Request) string; Now
   func() time.Time; Logger *slog.Logger; BodyCap int64}`. The verified
@@ -999,11 +1306,15 @@ check, a JSON 404, an ungated export) pass every happy-path test.
   with `address`, `display_name`, `streamer_username`, and `admin`. A
   roster store failure answers 500 `failed`, never a partial list.
   Any other method answers 405 with `Allow: GET, HEAD, POST`, reached
-  only by a verified admin.
-- **POST** takes a form-encoded body (R-5c13, R-5cii4): cap at `BodyCap`
-  before parsing, through the lifted `readForm`; refuse a non-form
-  Content-Type, a repeated key, an `admin` key, and any key outside the
-  three, in that order, before reading a field; then call `AddMember`
+  only by a verified admin. Any path under `roster/` answers the
+  terminator's 404 to an admin too (R-5cii21).
+- **POST** takes a form-encoded body (R-5c13, R-5cii4): refuse a
+  Content-Type whose `mime.ParseMediaType` media type is not
+  `application/x-www-form-urlencoded`; cap at `BodyCap` before parsing,
+  through the lifted `readForm`; refuse a repeated key, an `admin` key,
+  any key outside the three, and any remaining query key, in that
+  order, before reading a field; read the three fields from
+  `r.PostForm`; then call `AddMember`
   under `context.WithTimeout(r.Context(), wait)` with the gate's actor,
   `ChannelCookie`, and `ClientIP`. `go doc net/http.Request.Context`
   says a server request's context is canceled only "when the client's
@@ -1025,11 +1336,17 @@ check, a JSON 404, an ungated export) pass every happy-path test.
 | missing streamer username | 400 | `missing_streamer_username` |
 | an `admin` key in the body or query | 400 | `admin_not_grantable` |
 | any other key outside the three | 400 | `unknown_field` |
-| a repeated key, a non-form Content-Type, an unparseable body | 400 | `malformed` |
+| a repeated key, a non-form media type (`multipart/form-data; boundary=x` included), a missing or unparseable Content-Type, an unparseable body | 400 | `malformed` |
+| a field key (`address`, `display_name`, `streamer_username`) in the query string | 400 | `malformed` |
+| `application/x-www-form-urlencoded; charset=utf-8` with a valid body | as its fields decide | the parameter never refuses |
 | body over the cap | 413 | `too_large` |
-| the lock wait outlived its deadline | 503 | `busy` |
-| the write landed, then failed (m4) | 500 | `write_unconfirmed` |
-| any other error, the actor-not-admin and writable-by-others refusals included | 500 | `failed` |
+| the lock wait outlived its deadline (`errRosterBusy`) | 503 | `busy` |
+| the write landed, then failed (`errRosterWriteLanded`, m4) | 500 | `write_unconfirmed` |
+| `errActorNotAdmin`, `errRosterWritableByOthers`, `errInvalidActor`, `errAdminGrantForbidden`, `errNoAdmin` (unreachable on an addition), any other error | 500 | `failed` |
+
+The mapper tests the specific sentinels and never
+`ErrRosterRecordInvalid`, which every validation refusal also wraps
+(R-5cii4).
 
 The outcomes are specific because the caller is trusted
 (`spec:1442-1443`); the copy a person reads is 5c-iii's deck.
@@ -1056,9 +1373,46 @@ The outcomes are specific because the caller is trusted
   non-admin, with valid sessions minted for both; the non-admin's
   request is same-origin and old enough that the seam returns a
   refreshed value, so a gate that set the cookie before the admin check
-  fails the no-`Set-Cookie` assertion.
+  fails the no-`Set-Cookie` assertion. The test first asserts that the
+  seam returned a non-empty `RefreshedValue` for that session, so a
+  session too fresh to refresh cannot pass the row vacuously. The
+  non-admin rows carry an `admin=on` form value and an `X-Admin: 1`
+  header, so a gate reading either (mutation 3) admits them.
+- The inner handler built directly, with no identity in its context,
+  answers the same `http.NotFound` bytes.
 - A captured log for the forged-cookie row does not contain the cookie
-  value, and no refusal log line contains either fixture address.
+  value, and no refusal log line, gate or POST, contains either fixture
+  address. The `invalid_address` POST row submits an address `net/mail`
+  quotes in its error (`roster.go:699-701`), so logging the parse error
+  fails the row. **Fixture state:** the log sink holds at least one
+  record for each request, so "contains none" reads real lines.
+- **GET:** a roster holding an admin with a `streamer_username` and a
+  command-line-created admin without one answers 200 with
+  `Cache-Control: no-store` and a `members` array in file order, each
+  entry carrying exactly the four fields with the fixture's values.
+  **HEAD** answers the same status and headers with no body. **PUT**
+  from an admin answers 405 with `Allow: GET, HEAD, POST`; from a
+  non-admin, the gate's 404.
+- **The GET store-failure row**, on the in-package inner handler with an
+  admin identity in its context and the roster file corrupted after
+  `OpenRoster`: 500 `failed` and no `members` key. (Through the gate the
+  same fixture answers the gate's 404, since the seam's `Lookup` reads
+  the same file, so the row cannot be proved through the composition.)
+- **The `failed` rows**, each on the in-package inner handler with an
+  admin identity in its context: (i) the actor's admin flag removed from
+  the file by a hand edit after the identity was placed, which reaches
+  `errActorNotAdmin` under the lock; (ii) the roster chmodded to 0666
+  after `OpenRoster`, which `writeLocked`'s re-read refuses as
+  `errRosterWritableByOthers`. Each asserts 500 `failed`, the bytes
+  unchanged, and no audit record.
+- **The Content-Type rows:** `application/x-www-form-urlencoded;
+  charset=utf-8` with a valid body answers 201 `added`;
+  `multipart/form-data; boundary=x` and a missing header answer 400
+  `malformed`.
+- **The query-field row:** a POST to `roster?address=<valid>&display_name=x&streamer_username=y`
+  with an empty form body answers 400 `malformed`, the bytes unchanged.
+  **Fixture state:** the query values would be accepted as a body, so a
+  read that falls back from `r.PostForm` to `r.Form` adds the member.
 - A same-origin GET with a valid admin session carries a `Set-Cookie`
   whose expiry moved forward and whose anchor did not; a `same-site` GET
   and a header-less GET carry none. **Fixture state:** a session old
@@ -1099,8 +1453,15 @@ The outcomes are specific because the caller is trusted
 11. Map `errRosterWriteLanded` to `failed` → the `write_unconfirmed` row
     fails.
 12. Take the first of a repeated `address` → the repeated-key row writes.
+13. Compare the raw Content-Type string → the charset row answers
+    `malformed`.
+14. Map `ErrRosterRecordInvalid` to 400 before the specific sentinels →
+    `failed` fixture (i) answers 400.
+15. Read the fields from `r.Form` → the query-field row writes.
+16. Log the address parse error on a POST refusal → the
+    `invalid_address` log row finds the address.
 
-**2.0 hook: neutral to the schema.** `RequireAdmin` is the gate 2.0's
+**2.0 hook: neutral to the schema.** The gate is the one 2.0's
 web admin surface reuses (streamer spec, "Web surface", revision 2.2).
 
 **Prior art:** none external; the gate reuses the seam, the outcome
@@ -1121,6 +1482,8 @@ Model: `sonnet`. Depends on Task 1.
 - Modify: `cmd/dubplate-server/serve.go`, `cmd/dubplate-server/serve_test.go`
 - Modify: `internal/identity/identity.go`, `internal/identity/identity_test.go`
 - Modify: `internal/auth/roster_test.go` (the load-path row for n5 only)
+- Modify: `internal/auth/roster.go` (the doc comments of
+  `actorRefusesRune` and `validateActor` only, R-5cii5; no code)
 
 **Outcomes:**
 
@@ -1157,12 +1520,20 @@ Model: `sonnet`. Depends on Task 1.
   U+200B, U+00AD, U+E0001, and U+2800 embedded in an otherwise valid
   address is refused by `NormalizeAddress`, by the roster loader (a
   fixture file carrying one), by `AddMember` on both channels, and at
-  request-link (which answers its charged per-client outcome, 5c-i S2's
-  n1). **Fixture state:** the same address without the code point is
-  accepted by all four paths, so each refusal is the code point's. A
-  test asserts `unicode.Version` equals `"17.0.0"`, naming the measured
-  set, so a toolchain move to a later Unicode version fails loudly for
-  a reread.
+  request-link, which answers 400 `invalid_address` after
+  `allowLinkClient` has charged the client (`handlers.go:194-208`).
+  **Fixture state:** the same address without the code point is
+  accepted by all four paths, so each refusal is the code point's. The
+  task runs the table before the change and reports which rows fail:
+  U+200B, U+00AD, and U+E0001 are refused today by the `Cf` rule and are
+  labelled pre-existing regression rows in the table; the other seven
+  must pass before the change. Each refusal's error text names the code
+  point as `U+XXXX` and does not contain the address. A test asserts
+  `unicode.Version` equals `"17.0.0"` and the derived set's size equals
+  4174, so a toolchain move to a later Unicode version fails loudly for
+  a reread and an over-refusing formula fails the size row.
+- A verified admin's GET to `<prefix>/roster/x` answers the terminator's
+  404 (R-5cii21).
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
@@ -1177,6 +1548,8 @@ Model: `sonnet`. Depends on Task 1.
    passes the normalizer.
 5. Refuse only `Cf` → the Hangul filler rows pass.
 6. Drop the U+2800 rule → the braille-blank row passes.
+7. Drop `- Prepended_Concatenation_Mark` from the derivation (U+0600
+   through U+0605 are `Cf` and in that set) → the size row fails.
 
 **2.0 hook: hook 5 (a stable identity), neutral.** The write path is
 5c-i's; this task adds its second caller.
@@ -1221,7 +1594,15 @@ Model: `sonnet`. Depends on Task 0's prefix probe and Task 2. Skills:
   `trailingSlash` in `+layout.ts`; `kit.csp` in `'hash'` mode with DL
   R5.6's directive set; `paths` at defaults (R-5cii2); Tailwind 4
   through `@tailwindcss/vite`; DaisyUI 5 through the CSS `@plugin`
-  directive with its built-in themes left enabled (W5.9). Three route
+  directive with its built-in themes left enabled (W5.9), written as
+  `@plugin "daisyui" { themes: light --default, dark; }`. A bare
+  `@plugin "daisyui"` emits `@media (prefers-color-scheme:dark){:root:not([data-theme]){…}}`
+  from its `dark --prefersdark` default, the block W5.9 forbids; the
+  named line emits none and keeps `light` and `dark` for G10 (measured).
+  `web/tsconfig.json` sets `skipLibCheck: true` and, under Ruling 5,
+  includes `scripts/**/*.ts` (R-5cii16). The implementer runs
+  `npm install --prefix web` once against the exact pins to produce the
+  lockfile (R-5cii11). Three route
   stubs, each one `<main>` with one `<h1>` naming the page and nothing
   else (Ruling 3), and a root `+error.svelte` whose 404 is one human
   sentence (W3.7). Every `.svelte` file carries its `@component` block
@@ -1239,7 +1620,7 @@ Model: `sonnet`. Depends on Task 0's prefix probe and Task 2. Skills:
   met for the static rules; its rendered half is 5c-iii's and the new
   sentences say so.
 - **The repo plumbing (R-5cii10):** the `go.mod` `ignore` directive, the
-  two gitleaks allowlist paths with their comment, and the `.gitignore`
+  one gitleaks allowlist path with its comment, and the `.gitignore`
   entries.
 
 **The server-file check's states:**
@@ -1253,25 +1634,36 @@ Model: `sonnet`. Depends on Task 0's prefix probe and Task 2. Skills:
 | an `actions` export in any `+page` file | fails naming the file |
 
 G1's and G3's states follow the same shape: absent or empty input fails
-by name, and a violation names every site.
+by name, and a violation names every site. G3 reads both the source and
+the built bundle; its built-bundle half fails by name against a
+`web/build` holding only `placeholder.txt`.
 
 **Acceptance criteria:**
 
 - The build writes exactly `login.html`, `login/link.html`,
   `members.html`, `_app/`, and `placeholder.txt` into `web/build/`, and
   `git status` is clean after a build (the placeholder round-trips).
-- Each check fails by name against a seeded violation, and the task
-  reports each failure's text: a `+page.server.ts` stub, a
-  `bg-red-500` class (G1), an `@import url(https://...)` (G3), a deleted
-  `node_modules` (install state), and a lockfile edited to pin a newer
-  in-range version of one package (the drift row, **fixture state:** an
-  in-range version that `npm ls` accepts, so the row proves the
-  comparison and not `npm ls`).
+- **Every state row of every check is seeded**, and the task reports
+  each failure's text. The server-file check: `web/src` absent, `web/src`
+  empty, one `+page.server.ts` stub, three forbidden files at once (all
+  three named), and an `actions` export. G1: a `bg-red-500` class. G3: an
+  `@import url(https://...)` in source, and the placeholder-only
+  `web/build`. The install state (R-5cii11): `node` off `PATH` and a
+  `node` shim on `PATH` printing `v22.0.0` (the version row), a deleted
+  `node_modules`, a top-level package installed outside its range, the
+  hidden lockfile missing one non-optional entry, and a lockfile edited
+  to pin a newer in-range version of one **transitive** package
+  (**fixture state:** top-level pins are exact, so only a transitive
+  entry has an in-range newer version, and `npm ls` accepts it, so the
+  row proves the comparison and not `npm ls`). The clean install's
+  absent `optional: true` entries are the proceed row's fixture.
 - `go list ./...` lists no package under `web/node_modules` (**fixture
   state:** a `.go` file planted under `web/node_modules/` for the test
   and removed after).
-- The gitleaks leg's scanned byte count with `node_modules` installed is
-  within 5% of the count without it, reported both ways.
+- The gitleaks leg's scanned byte count and wall time with a built
+  `web/.svelte-kit` present, measured with and without the allowlist
+  entry, reported both ways (the entry must remove the generated tree
+  from the scan).
 - The task reports the full gate's wall time before and after, the
   bundle build's wall time, and the build's peak resident memory
   (`/usr/bin/time -v`), and whether that fits the light lane's 3G cap.
@@ -1287,6 +1679,10 @@ by name, and a violation names every site.
 3. Check only `+page.server.*` → the `hooks.server.ts` row passes.
 4. Rely on `npm ls` alone → the drift row passes.
 5. Drop the `ignore` directive → the planted `.go` row lists the package.
+6. Skip every lockfile entry absent from the hidden lockfile → the
+   missing non-optional row passes.
+7. Under Ruling 5, drop `scripts/**/*.ts` from the checked set → a
+   seeded type error in a gate script passes the gate.
 
 **2.0 hook: neutral.** The tree is where 2.0's device page and web admin
 surface arrive (spec, "The 2.0 hooks").
@@ -1329,8 +1725,12 @@ Ruling 3 governs the palette.
 - **The binding:** the bundle carries exactly one composed DaisyUI theme,
   named `dubplate-gruvbox` (DL R3.6), whose 32 variables are the two
   files' union, composed when the bundle builds with no runtime
-  JavaScript. The task quotes DaisyUI 5's theme-plugin syntax from the
-  `daisyui` skill or `daisyui@5.7.45`'s source before relying on it. No
+  JavaScript. The mechanism is measured: two `@plugin "daisyui/theme"`
+  blocks carrying the same `name: "dubplate-gruvbox"`, in two imported
+  files, build to one merged rule holding both files' variables, in
+  `@layer base` (so the unlayered `branding.css` outranks it at any link
+  order). The task quotes the theme-plugin syntax from
+  `daisyui@5.7.45`'s source before relying on it. No
   `:root:not([data-theme])` guard and no `prefers-color-scheme` block
   (W5.9).
 - **G2 and G9** in the leg, per DL section 6.
@@ -1349,9 +1749,13 @@ Ruling 3 governs the palette.
 
 **Acceptance criteria:**
 
-- The built CSS contains a `[data-theme="dubplate-gruvbox"]` block
-  carrying all 32 names with the data files' values. **Fixture state:**
-  the built bundle, not the source.
+- The built CSS contains a rule whose selector carries
+  `[data-theme=dubplate-gruvbox]` (the minifier drops the quotes;
+  R-5cii12 quotes the measured form, and the match accepts either form)
+  declaring all 32 names, each value equal to the data file's after both
+  are parsed, never compared as raw bytes, since the minifier may
+  rewrite a value's spelling. **Fixture state:** the built bundle, not
+  the source.
 - G2 and G9 each fail by name against a seeded defect per state row,
   and the task reports each text.
 - Every hard-coded ratio floor in G9 cites DL R2.6.
@@ -1362,8 +1766,12 @@ Ruling 3 governs the palette.
 1. Let G2 treat a missing name as inherited → the missing-name row
    passes.
 2. Compare contrast on raw values without converting to sRGB → a
-   seeded `oklch` pair's ratio differs from its expectation, which the
-   task computes by hand and cites.
+   seeded `oklch` pair's ratio differs from its expectation. The
+   expected ratio comes from an independent source recorded in the test
+   beside its citation: the CSS Color 4 specification's published
+   OKLab-to-sRGB sample code run in a scratch, or a published reference
+   pair. Never the implementer's own arithmetic, which would share the
+   defect it tests.
 3. Skip unparseable values in G9 → the unparseable row passes.
 
 **2.0 hook: hook 5 through DL R4.2, neutral.** The per-member theme row
@@ -1378,7 +1786,7 @@ published values, cited by URL in the data file's header.
 
 ---
 
-## Task 5: The embed path, the document rewrite, and the theme keys
+## Task 5: The embed path, the theme stamp, and the theme keys
 
 Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 
@@ -1396,24 +1804,25 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 - **The embed (R-5cii9):** `web.Assets` over `all:build`; the consumer
   in `cmd/dubplate-server` applies `fs.Sub` and refuses serve startup on
   the placeholder-only tree, naming `npm run build`.
-- **The rewrite (DL R4.5, W3.7):** one documented rewrite applied to
-  each prerendered document. It substitutes the placeholder token in
-  `app.html` with the validated composed name and inserts the tier 2 and
-  tier 3 `<link>` elements after the bundle stylesheet. It changes no
-  other byte. The rewritten documents are computed once at startup, not
-  per request.
-- **The theme keys (R-5cii12):** `DUBPLATE_THEME_MATCH` and
-  `DUBPLATE_THEME_PALETTE` registered through `registerWebConfig`, with
-  the two branding keys declared here as well and consumed in Task 6.
-  Serve's resolution refuses a match value outside `{dubplate}` with an
-  error naming the accepted set, and refuses a composed name absent from
-  the bundle's theme blocks, naming the name.
-- **The document routes, for `login` only**, in this task: the subtree
-  `login` answers `<prefix>/login` with `login.html` and
-  `<prefix>/login/link` with `login/link.html`, and every other path
-  under `login/` with the terminator's 404. The subtree `_app` serves
-  the bundle's assets. Task 7 adds `members`, the headers, and the cache
-  rules.
+- **The rewrite's first half (DL R4.5, W3.7):** one documented rewrite
+  applied to each prerendered document, computed once at startup, not
+  per request. In this task it substitutes the placeholder token in
+  `app.html` with the validated composed name and changes no other
+  byte. Task 6 adds the two tier links in the same function, in the
+  commit that adds the routes they point at, so every task's prefix
+  proof is green on its own commit.
+- **The theme keys (R-5cii12):** all four keys registered through
+  `registerWebConfig`, the two optional ones with Ruling 4's defaults,
+  consumed in Task 6. Serve's resolution refuses a match value outside
+  `{dubplate}` with an error naming the accepted set, refuses a palette
+  outside `[a-z0-9-]+`, and refuses a composed name that is not an exact
+  token in the bundle's extracted theme selectors, naming the name.
+- **The document routes, for `login` only**, in this task, and the
+  `_app` asset route, both under R-5cii21: the subtree `login` answers
+  `<prefix>/login` with `login.html` and `<prefix>/login/link` with
+  `login/link.html`; the subtree `_app` answers each embedded file by a
+  lookup in the embedded tree. Task 7 adds `members`, the headers, and
+  the cache rules.
 
 **States:**
 
@@ -1424,31 +1833,40 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 | Placeholder token | absent from a document | serve refuses startup naming the document |
 | Placeholder token | present more than once | serve refuses startup naming the document |
 | Match key | `dubplate` | proceeds |
-| Match key | anything else, empty included | serve refuses naming the accepted set |
-| Palette key | composed name present in the bundle | proceeds |
+| Match key | unset or empty | resolves to `dubplate` and proceeds (the wall's convention, R-5cii12) |
+| Match key | anything else | serve refuses naming the accepted set |
+| Palette key | unset or empty | resolves to `gruvbox` and proceeds |
+| Palette key | composed name an exact token in the bundle's theme selectors | proceeds |
 | Palette key | composed name absent | serve refuses naming the composed name |
-| Request path | exact document path | the rewritten document |
-| Request path | the same path with a trailing slash, or any other path under the subtree | the terminator's 404 |
+| Palette key | a prefix of a real palette (`gruv`) | serve refuses naming the composed name |
+| Palette key | carrying `"`, `>`, whitespace, or an uppercase letter | serve refuses naming the `[a-z0-9-]+` rule, never echoing the value into markup |
+| `login` path | exact document path | the rewritten document |
+| `login` path | the trailing-slash form, or any other path under the subtree | the terminator's 404 |
+| `login` method | anything but GET or HEAD | 405 with `Allow: GET, HEAD` |
+| `_app` path | an embedded file | the file |
+| `_app` path | `<prefix>/_app`, `<prefix>/_app/immutable/`, or a missing file | the terminator's 404, with no listing and no redirect |
+| `_app` method | anything but GET or HEAD | 405 with `Allow: GET, HEAD` |
 
 **Acceptance criteria:**
 
 - **The prefix proof, gate-resident:** with the prefix set to a
   non-default two-segment value, each served document's every `src` and
   `href` resolves, relative to that document's own URL, to a 200
-  through `shell.Handler()`. **Fixture state:** a prefix the build never
-  saw, and the real built bundle, so a root-absolute reference fails.
+  through `shell.Handler()`. At this task every reference is one the
+  build emitted, since the tier links arrive in Task 6. **Fixture
+  state:** a prefix the build never saw, and the real built bundle, so a
+  root-absolute reference fails.
 - **The prefix proof, recorded:** the lane renders each stub under the
   default and a non-default prefix in headless Chromium, reports whether
   the client router hydrated and whether any request failed, and
   attaches the screenshots to its report. This is evidence, not a gate
   (R-5cii15).
-- The rewrite changes exactly the token and the two insertions: a test
-  diffs each served document against its embedded original and asserts
-  every inline `<script>` body byte-identical.
+- The rewrite changes exactly the token: a test diffs each served
+  document against its embedded original and asserts every inline
+  `<script>` body byte-identical.
 - The served document carries `data-theme="dubplate-gruvbox"` on its
-  document element and links the bundle stylesheet, then
-  `branding.css`, then `operator.css` (the operator link only when the
-  key is set, proved both ways).
+  document element, and `DUBPLATE_THEME_MATCH=` (empty) stamps the same
+  value.
 - A clean checkout with no build fails the embed test by name (the
   ordering row Task 3 reported).
 - Every state row is a test.
@@ -1463,22 +1881,25 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 3. Serve a document at its trailing-slash path → the trailing-slash row
    answers 200.
 4. Accept any match value → the refused-match row passes.
+5. Match the composed name as a substring → the `gruv` row proceeds.
+6. Serve `_app` through `http.FileServerFS` → the directory row answers
+   a 200 listing.
 
 **2.0 hook: neutral.** DL R4.2's per-member stamp keys on rung 6's
 surrogate id; this task stamps the operator's default only.
 
 **Prior art:** the salvage embed package and static handler, adopted in
 reasoning (the placeholder and `fs.Sub`) and re-derived (the cache
-rule, R-5cii8).
+rule, R-5cii8, and the lookup that lists nothing, R-5cii21).
 
 **Independent: no.**
 
-**Deliverable count: 4** (the embed, the rewrite, the theme keys, the
-`login` and `_app` routes with the prefix proof).
+**Deliverable count: 4** (the embed, the theme stamp, the theme keys,
+the `login` and `_app` routes with the prefix proof).
 
 ---
 
-## Task 6: The branding stylesheet and the operator CSS file
+## Task 6: The branding stylesheet, the operator CSS file, and the tier links
 
 Model: `opus`. Depends on Task 5. Upshift reason: these are "the two
 places operator text becomes attribute markup and CSS declarations"
@@ -1487,34 +1908,73 @@ that admits one wrong character passes every well-formed fixture.
 
 **Files:**
 - Create: `internal/serve/branding.go`, `internal/serve/branding_test.go`
-- Modify: `cmd/dubplate-server/web.go`, `cmd/dubplate-server/web_test.go`,
-  `cmd/dubplate-server/serve.go`, `cmd/dubplate-server/serve_test.go`
+- Modify: `internal/serve/document.go`, `internal/serve/document_test.go`
+  (the tier links), `cmd/dubplate-server/web.go`,
+  `cmd/dubplate-server/web_test.go`, `cmd/dubplate-server/serve.go`,
+  `cmd/dubplate-server/serve_test.go`
 
 **Outcomes:**
 
 - **The branding stylesheet (DL R4.3, R-5cii14):** generated once at
   startup from `DUBPLATE_BRANDING`, served at `<prefix>/branding.css`,
-  one `:root` block, empty when the key is empty.
+  one `:root` block, empty when the key is unset, empty, or `none`.
 - **The operator file (DL R4.4, R-5cii13):** read once at startup from
-  `DUBPLATE_OPERATOR_CSS_FILE`, served at `<prefix>/operator.css`.
+  `DUBPLATE_OPERATOR_CSS_FILE` under its class checks, served at
+  `<prefix>/operator.css`.
+- **The tier links (DL R4.1, R4.5):** the rewrite inserts the tier 2
+  `branding.css` link always and the tier 3 `operator.css` link only
+  when the operator key names a file, **after the last kit-emitted
+  `rel="stylesheet"` link**. kit links every branch node's stylesheet
+  in an `ssr = false` prerender (`src/runtime/server/page/index.js:143-146`,
+  "provide nodes without running load functions so that the styles and
+  fonts are linked in the head before CSR takes over"; `render.js:83`
+  seeds the list from `client.stylesheets`, `render.js:287` adds each
+  node's, and `render.js:330-345` emits one link per entry as
+  `<link href="..." rel="stylesheet">`). The stubs carry one today;
+  5c-iii's pages will add more, and anchoring on the first would put
+  `branding.css` ahead of later bundle CSS.
 - **G8** as a Go test: the generated stylesheet declares only names from
   DL R2.1's set and is empty when nothing is configured.
 
+**Anchor states:**
+
+| State | Report |
+| --- | --- |
+| zero kit stylesheet links in a document | serve refuses startup naming the document |
+| one link | the tier links follow it |
+| several links | the tier links follow the last, proved on a fixture document carrying two |
+
 **Acceptance criteria:**
 
-- Every state row in R-5cii13 and R-5cii14 is a test, and each refusal
-  names the key and never echoes a refused value.
+- Every state row in R-5cii13, R-5cii14, and the anchor table is a test,
+  and each refusal names the key and never echoes a refused value.
 - **The injection table:** each of `}`, `{`, `;` inside a value,
   `url(https://example.invalid/x)`, `var(--x)`, `expression(`,
   `</style>`, a backslash escape, a control character, and a 65-byte
-  value refuses startup. **Fixture state:** each refused value sits
-  beside one valid pair, so the refusal is the bad value's and not an
-  empty-list artifact.
+  value refuses startup, and a 64-byte valid value is accepted.
+  **Fixture state:** each refused value sits beside one valid pair, so
+  the refusal is the bad value's and not an empty-list artifact.
+- **The operator path's class:** the key pointed at the test's own
+  roster fixture (a `.json` path) refuses startup naming the key and the
+  `.css` rule; a `.css` file carrying invalid UTF-8, and one carrying a
+  NUL byte, each refuse; `none` links nothing.
 - A valid multi-pair value renders byte-for-byte to the expected
   stylesheet, whose text the test states literally.
-- The operator route reads nothing from the request: a request to
-  `<prefix>/operator.css/../x` and to `<prefix>/operator.css?path=/etc/passwd`
-  answer the terminator's 404 or the same file, never another file.
+- **The routes read nothing from the request (R-5cii21):**
+  `<prefix>/operator.css/x` and `<prefix>/branding.css/x` answer the
+  terminator's 404; `<prefix>/operator.css?path=/etc/passwd` answers the
+  configured file; `<prefix>/operator.css/../x` answers `Normalize`'s
+  400 before any route runs, recorded as the normalizer's row; a POST
+  to either stylesheet answers 405 with `Allow: GET, HEAD`.
+- **Link order:** the served document links the bundle stylesheet(s),
+  then `branding.css`, then `operator.css`, with the operator link
+  present when the key names a file and absent when it is `none`, proved
+  both ways, and the branding link present when the branding key is
+  `none`.
+- **The prefix proof extends** over both stylesheet hrefs: under the
+  non-default prefix each resolves to a 200 through `shell.Handler()`.
+- The rewrite changes exactly the token and the two insertions: every
+  inline `<script>` body byte-identical to the embedded original.
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
@@ -1524,8 +1984,12 @@ that admits one wrong character passes every well-formed fixture.
 3. Read the operator file per request → a test that edits the file
    after startup sees the new bytes.
 4. Accept a name outside DL R2.1's set → G8's name row fails.
-5. Omit the branding `<link>` when the key is empty → Task 5's
-   link-order row fails.
+5. Omit the branding `<link>` when the key is `none` → the link-order
+   row fails.
+6. Anchor on the first stylesheet link → the two-link fixture's order
+   fails.
+7. Accept any operator path → the roster-fixture row starts and serves
+   the roster's bytes.
 
 **2.0 hook: neutral.** 6c moves these keys to the settings table.
 
@@ -1535,7 +1999,8 @@ refuses is smaller and stricter than a parser that accepts.
 
 **Independent: no.**
 
-**Deliverable count: 3** (the branding stylesheet, the operator file, G8).
+**Deliverable count: 4** (the branding stylesheet, the operator file,
+the tier links with their anchor, G8).
 
 ---
 
@@ -1551,74 +2016,107 @@ that does not hash the scripts itself.
   `internal/serve/csp.go`, `internal/serve/csp_test.go`
 - Modify: `internal/serve/serve.go` (the new first composition step and
   its doc), `internal/serve/doc.go`, `internal/serve/document.go`,
-  `internal/serve/document_test.go`, `cmd/dubplate-server/serve.go`,
+  `internal/serve/document_test.go`, `internal/auth/admin.go` and
+  `internal/auth/admin_test.go` (the gate exported as `RequireAdmin`,
+  R-5cii18), `cmd/dubplate-server/serve.go`,
   `cmd/dubplate-server/serve_test.go`
 
 **Outcomes:**
 
 - **The header step (R-5cii6):** `nosniff`, `Referrer-Policy:
-  no-referrer`, and, under Ruling 2, HSTS, set by the shell's new
-  outermost step on every response. `doc.go`'s composition list gains
-  the step as step 0.
-- **The CSP (R-5cii7):** built per document at startup from the kit
-  meta's hashes and DL R5.6's directive set, set on each document
-  response only.
+  no-referrer` (Ruling 6), and, under Ruling 2, HSTS, set by the
+  shell's new outermost step on every response. `doc.go`'s composition
+  list gains the step as step 0.
+- **The CSP (R-5cii7, R-5cii20):** built per document at startup from
+  the kit meta's hashes, after the startup hashes every inline script
+  against the meta's list, and DL R5.6's directive set; set on each
+  document response only.
 - **The cache rules (R-5cii8)**, per response class.
-- **The add-member document route (R-5cii19):** the subtree `members`,
-  composed in `cmd/dubplate-server` as `RequireAdmin` over the method
-  check over the document handler.
+- **The add-member document route (R-5cii19, R-5cii21):** the subtree
+  `members`, composed in `cmd/dubplate-server` as `auth.RequireAdmin`
+  over the method check over the document handler, answering the exact
+  path only.
+- **The log channel:** `newServeShell` takes the `*slog.Logger` it
+  passes to `serve.NewShell` (today `nil`, so records reach
+  `slog.Default()`, `cmd/dubplate-server/serve.go:215`), so a test
+  captures the whole shell's log without swapping a process global.
 
-**The CSP extraction's states** are R-5cii7's four refusals plus the
-passing state, each a test.
+**The CSP extraction's states** are R-5cii7's five refusals (no meta; no
+`script-src`; `'unsafe-inline'` in it; an inline script whose hash the
+meta lacks; an unrecognized script opening tag) plus the passing state,
+each a test.
 
 **Acceptance criteria:**
 
-- **G6:** for each served document, the header carries `default-src
+- **G6:** the served document set equals the route table's three
+  documents, asserted first. For each, the header carries `default-src
   'self'`, `script-src 'self'` plus one `sha256-` source for every
   inline `<script>` body (hashed by the test with `crypto/sha256` and
-  `base64.StdEncoding`), `style-src 'self' 'unsafe-inline'`,
-  `frame-ancestors 'none'`, `base-uri 'none'`, `object-src 'none'`,
-  `form-action 'self'`, no `'unsafe-inline'` in `script-src`, and no
-  `font-src`. **Fixture state:** the real built bundle, which carries at
-  least one inline script per document (asserted first, so the row
-  cannot pass on zero scripts).
-- **G7, link-order and cache half:** the bundle stylesheet, then
-  `branding.css`, then `operator.css`; `login.html` served `no-cache`,
+  `base64.StdEncoding`, through a scanner written in the test file that
+  shares no function with the extractor), `style-src 'self'
+  'unsafe-inline'`, `frame-ancestors 'none'`, `base-uri 'none'`,
+  `object-src 'none'`, `form-action 'self'`, no `'unsafe-inline'` in
+  `script-src`, and no `font-src`. **Fixture state:** the real built
+  bundle, which carries at least one inline script per document
+  (asserted, so the row cannot pass on zero scripts).
+- **G6 and G7 against the placeholder-only tree:** each runs over an
+  `fstest.MapFS` holding only `placeholder.txt` and fails naming the
+  missing build, so neither can pass on an empty document set.
+- **G7, link-order and cache half:** the document set equals the three
+  documents, asserted first; the bundle stylesheet(s), then
+  `branding.css`, then `operator.css`, with no `_app/` stylesheet link
+  after `branding.css`; `login.html` served `no-cache`,
   `login/link.html` `no-store`, `members.html` `private, no-cache`, one
-  `_app/immutable/` asset `public, max-age=31536000, immutable`, and
-  `_app/version.json` `no-cache`.
+  `_app/immutable/` asset `public, max-age=31536000, immutable`,
+  `_app/version.json` `no-cache`, and both stylesheets `no-cache`.
 - **Every response carries the header step:** a document, an asset, a
-  JSON answer, a 400 from normalization, a 403 from the origin check, a
-  405, the terminator's 404, and the gate's 404, through
-  `shell.Handler()`. HSTS is present on every one with an https public
-  URL and absent on every one with `http://localhost`. **Fixture
-  state:** both configurations, so presence and absence are each proved.
+  stylesheet, a JSON answer, a 400 from normalization, a 403 from the
+  origin check, a 405, the terminator's 404, the gate's 404, and a 404
+  for a path outside the prefix (the fallthrough slot, empty at rung 5),
+  through `shell.Handler()`. HSTS is present on every one with an
+  `https://` public URL on a non-loopback host, and absent on every one
+  with `http://localhost` and with `https://localhost` (Ruling 2's
+  loopback exception). **Fixture state:** all three configurations, so
+  presence and both absences are each proved.
 - **The non-admin rows for `members`:** a verified non-admin's GET and
   POST to `<prefix>/members` equal the terminator's answer to
   `<prefix>/<unknown>` in status, body, and every header but `Date`,
   with no `Set-Cookie`; an admin's GET answers the stamped document; an
-  admin's POST answers 405.
-- **The token never logs:** a GET to `<prefix>/login/link?token=<a
-  fixture value>` answers the document with `no-store`, and a captured
-  log from the whole shell holds no line containing the fixture value.
+  admin's POST answers 405; an admin's GET to `<prefix>/members/` and
+  `<prefix>/members/x` answers the terminator's 404.
+- **The minted link routes and never logs (risk review R4):** a link
+  built through `auth.LinkURL` with a fixture token (the real parameter
+  name, `t`, `internal/auth/token.go:64`) is requested through
+  `shell.Handler()` and answers the `login/link` document with
+  `no-store`, which binds `internal/auth`'s `linkPath` to the document
+  route. The same token also rides a GET to the trailing-slash
+  `<prefix>/login/link/`, a POST to `<prefix>/login/link`, and a request
+  `Normalize` refuses. Across all four, the captured shell log holds no
+  line containing the token. **Fixture state:** the log sink captured at
+  least one record for each request, so "no line contains" reads real
+  lines.
 - Every CSP extraction state is a test.
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
 
 1. Put the header step inside the prefix router → the normalization
-   400 and the fallthrough 404 lack `nosniff` or `Referrer-Policy`.
-2. Set HSTS whenever the request arrived → the localhost row carries it.
-3. Drop one hash → G6 names the unhashed script.
-4. Add `'unsafe-inline'` to `script-src` → G6's no-unsafe-inline row
+   400 and the out-of-prefix 404 lack `nosniff` or `Referrer-Policy`.
+2. Set HSTS whenever the request arrived → the `http://localhost` row
+   carries it.
+3. Set HSTS on every https URL → the `https://localhost` row carries it.
+4. Drop one hash → G6 names the unhashed script, and startup refuses.
+5. Add `'unsafe-inline'` to `script-src` → G6's no-unsafe-inline row
    fails.
-5. Serve the CSP on the gate's 404 → the members indistinguishability
+6. Serve the CSP on the gate's 404 → the members indistinguishability
    row fails, since the terminator's 404 carries none.
-6. Order method check before the gate → a non-admin's POST to
+7. Order method check before the gate → a non-admin's POST to
    `members` answers 405.
-7. Mark `login/link` `no-cache` → its cache row fails.
-8. Log `r.URL.String()` on a document request → the token row finds the
-   fixture value.
+8. Mark `login/link` `no-cache` → its cache row fails.
+9. Log `r.URL.String()` on a document request → the minted-link row
+   finds the token.
+10. Let G6 call the production extractor → the diff-reviewer rejects
+    the shared function (a structural check the reviewer confirms).
 
 **2.0 hook: neutral.** The header step is where rung 12 reconciles the
 streamer's own headers (carried as an edge).
@@ -1632,7 +2130,8 @@ R-5cii6. SvelteKit's `kit.csp` hash mode, adopted as the hash source.
 **Independent: no.**
 
 **Pre-named split:** if the four deliverables cannot land in one green
-gate, the `members` route moves to its own task after this one.
+gate, the `members` route moves to its own task after this one, and the
+gate's export moves with it.
 
 **Deliverable count: 4** (the header step with HSTS, the CSP, the cache
 rules, the `members` route).
@@ -1654,8 +2153,8 @@ the pass-end reviews with their folds.
   evidence (`go test -count=1 ./...` wall time, per-package times for
   `internal/auth`, `internal/identity`, `internal/serve`, `web`, and
   `cmd/dubplate-server`, the web leg's wall time, and the build's peak
-  memory); the resolutions R-5cii1 through R-5cii19 with where each
-  landed; the three rulings and their outcomes; the review findings and
+  memory); the resolutions R-5cii1 through R-5cii21 with where each
+  landed; the seven rulings and their outcomes; the review findings and
   their dispositions; the declared coverage gaps; both budgets; and
   "what a later pass would be wrong to rediscover". The gaps are at
   minimum: the theme keys' validation lives in serve's resolution, and
@@ -1664,10 +2163,20 @@ the pass-end reviews with their folds.
   computed half, and G10 are not yet gates (to 5c-iii); the n5 set is
   pinned to Unicode 17.0.0; the header step wraps the fallthrough and
   rung 12 must reconcile it; no ESLint comment config for TypeScript
-  yet (to rung 7's W12 static rules).
+  yet (to rung 7's W12 static rules). Also carried: rung 12 re-validates
+  every existing row's principal, not only new writes, since the API
+  writes `streamer_username` from 5c-ii on; the shared-origin residual
+  (script on the streamer's same-origin pages can call
+  `<prefix>/roster` with the admin's cookie) as a rung 12 threat-model
+  entry; Ruling 7's availability question to rung 12's plan; Ruling 6's
+  old-browser login residual to 5d's runbook row; and to 5d, that
+  `deploy.sh` builds the bundle from a clean committed tree (`npm ci`,
+  then the build) before `go build` and refuses a dirty `web/`, since
+  the binary embeds whatever `web/build` holds.
 - **The errata owed**, drafted paste-ready: the spec's 5c row and pass
   split (the second split); the web surface standard's section 15 line;
-  the spec's "failing config load" row (R-5cii12); R-5cii3's withdrawal
+  the spec's "failing config load" row (R-5cii12); the spec's
+  embed-path sentence on the CSP (R-5cii20); R-5cii3's withdrawal
   of the 5c-i outline's 404-tracking line; the spec's staleness item
   citing `CLAUDE.md:118`; and the HISTORY 5c-i entry's n5 sentence
   ("the standard `unicode` package does not expose" the table), which
@@ -1679,8 +2188,13 @@ the pass-end reviews with their folds.
   (Inter 4.1, OFL 1.1, license at
   `https://github.com/rsms/inter/blob/master/LICENSE.txt`, one variable
   file per style, which meets DL R5.5 without subsetting under R5.4),
-  recorded as a candidate for 5c-iii's plan to adopt or decline; and
-  the rendered tooling W12.6 describes.
+  recorded as a candidate for 5c-iii's plan to adopt or decline; the
+  rendered tooling W12.6 describes; that the members page component
+  ships in public chunks, so nothing sensitive may live in it and the
+  API alone authorizes (R-5cii19); and that `default-src 'self'` also
+  governs `img-src`, so any `url(data:...)` a DaisyUI component or
+  Vite's asset inlining puts in the built CSS is blocked, a conflict
+  5c-iii's first styled page meets and decides.
 - **The STATUS draft** stays present tense and under 60 lines.
 
 **Acceptance criteria:** every count in the drafts was produced by a
@@ -1699,9 +2213,10 @@ assertion below. Each maps to the spec's 5c row (`:2482`) or to this
 plan's scope, and each names its proving task.
 
 1. A non-admin session receives the terminator's 404 from the roster API
-   and from the add-member document, indistinguishable from an
-   unregistered path, while an admin receives the list and the document
-   (Tasks 1, 2, 7).
+   and from the add-member document, every server answer
+   indistinguishable from an unregistered path's (the route's existence
+   is public, R-5cii19), while an admin receives the list and the
+   document (Tasks 1, 2, 7).
 2. An add-member POST without a same-origin signal is denied (Task 2).
 3. An add-member POST that succeeds writes one audit record naming the
    actor and the channel; one that fails validation writes none and
@@ -1714,19 +2229,21 @@ plan's scope, and each names its proving task.
    half, G8, and G9 pass, and each fails by name against a seeded
    violation or the placeholder-only tree (Tasks 3, 4, 6, 7).
 7. The served document carries the composed `data-theme` value and the
-   three stylesheets in tier order (Tasks 5, 7).
+   three stylesheets in tier order (Tasks 5, 6, 7).
 8. Documents are `no-cache`, the consumption document is `no-store`, and
    a hashed asset is immutable (Task 7).
 9. `script-src` carries a hash for every inline script and no
    `'unsafe-inline'` (Task 7).
 10. `nosniff` and `Referrer-Policy: no-referrer` are on every served
-    response, and HSTS follows the configured scheme (Task 7).
+    response, and HSTS follows the configured scheme and host (Task 7).
 11. No log record on the consumption document route contains the token
     (Task 7).
 12. A rejected theme match value fails serve's resolution, naming the
     accepted set (Task 5).
 13. The bundle serves under a prefix it was never built for, with every
-    reference resolving (Task 5).
+    reference resolving (Tasks 5, 6).
+14. Every route answers its exact paths only, and no directory is listed
+    (R-5cii21; Tasks 5, 6, 7).
 
 **Deferred to 5c-iii, by name:** G4, G5, G7's computed-value half, G10,
 the three pages as authored, and the render-and-read at W4.1's
@@ -1744,13 +2261,13 @@ ownership table before the lane launches.
 | `cmd/dubplate-server/main.go` | rung 1's skeleton | Task 5 adds one line in `newProductionRegistry` | **6a Task 7 adds one line in the same function**; a textual conflict keeps both in landing order, and the second lander's rebase is non-fast-forward |
 | `go.mod` | shared | Task 3 adds one `ignore` directive; no requirement | **6a Task 2 adds `modernc.org/sqlite`**; the lines differ, and `go mod tidy` plus the merge ritual's in-tree gate resolve any overlap |
 | `go.sum` | shared | untouched | 6a's |
-| `cmd/dubplate-server/doctor.go`, `doctor_test.go` | rung 1's skeleton | **untouched**; the four new thresholds add four `doctor` rows through the registry, and `TestDoctorCmd_LineCountFollowsRegistry` derives its count | 6a Task 7 edits both; if 6a's goldens (R-6a16) pin the full output, the second lander regenerates them in its rebase |
+| `cmd/dubplate-server/doctor.go`, `doctor_test.go` | rung 1's skeleton | **untouched**; the four new thresholds add four `doctor` rows through the registry (two under Ruling 4's "no"), and `TestDoctorCmd_LineCountFollowsRegistry` derives its count | 6a Task 7 edits both; if 6a's goldens (R-6a16) pin the full output, the second lander regenerates them in its rebase |
 | `cmd/dubplate-server/check.go`, `check_test.go`, `store.go` | rung 6 | untouched | 6a's |
 | `internal/engine/store` | rung 6 | untouched | 6a's |
 | `internal/config` | rung 1b's contract | **untouched** (R-5c17) | 6c's condition for lane 2 |
 | `cmd/dubplate-server/serve.go`, `serve_test.go`, `web.go` (new) | rung 5 | Tasks 2, 5, 6, 7 | none; 6a does not edit them |
 | `internal/auth`, `internal/identity`, `internal/serve` | rung 5 | Tasks 1, 2, 5, 6, 7 | none |
-| `web/` (new tree) | rung 5 births it; rung 7 authors visuals | Tasks 3-5 | 5c-iii adds the fonts and the pages |
+| `web/` (new tree) | rung 5 births it; rung 7 authors visuals | Tasks 3, 4, 5 | 5c-iii adds the fonts and the pages |
 | `scripts/check.sh`, `Makefile` | rung 5 adds the web leg | Task 3 | **after 5c-ii lands on master, every full gate builds the bundle**: lane 2's next rebase needs `npm ci --prefix web` in its worktree before its in-tree gate |
 | `CLAUDE.md` gate paragraph | rung 5's pass 5c | Task 3 | conductor-committed docs in the main tree: Task 3's commit is path-limited |
 | `.gitleaks.toml`, `.gitignore` | shared | Task 3 appends | every lane; an append conflict resolves in landing order |
@@ -1827,11 +2344,10 @@ runs at `opus` in fresh context.
 
 **Where this pass splits further, if it must:** at the Task 5 / Task 6
 boundary, if segment B's re-derivation projects past the ceiling. Tasks
-6 and 7 then move to the head of 5c-iii together, since Task 5's
-rewrite already links `branding.css` and `operator.css` and Task 7's
-G7 row needs both routes. The routes would answer the terminator's 404
-in between, which the close records.
+6 and 7 then move to the head of 5c-iii together, since Task 6 adds the
+tier links with the routes they point at and Task 7's G7 row needs
+both. Task 5's commit links neither, so nothing 404s in between.
 
-**Budget:** 8.8M execution (Ruling 1), flag 7.04M, planning recorded
+**Budget:** 9.4M execution (Ruling 1), flag 7.52M, planning recorded
 separately, STATUS at each boundary, spend scored at close against the
 ceiling and against zero attended interactions after approval.
