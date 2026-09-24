@@ -652,7 +652,8 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 // naming an admin reports no extra row and no failure, while a missing
 // roster, a roster carrying a duplicate streamer_username, a roster
 // carrying two bad records, and a hand-edited roster that loads but
-// names no admin, with members or without, each render one roster row
+// names no admin, with members or without, and a roster a group may
+// write, each render one roster row
 // and take doctor's own exit status nonzero alongside it. A missing
 // roster fails because R2 makes it a startup refusal. Named mutation 8 (drop the doctor roster row)
 // makes every failing case report a clean table for a roster that
@@ -666,8 +667,9 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		rosterContent string // empty means the roster file is never created
-		wantStatus    string // the roster row's status prefix; empty means no roster row
+		rosterContent string      // empty means the roster file is never created
+		rosterMode    os.FileMode // the file's mode once written; zero means 0600
+		wantStatus    string      // the roster row's status prefix; empty means no roster row
 	}{
 		{
 			name:          "a valid roster",
@@ -700,6 +702,12 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			wantStatus: "invalid: ",
 		},
 		{
+			name:          "a group-writable roster",
+			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A","admin":true}]}`, fixtureAddressA),
+			rosterMode:    0o620,
+			wantStatus:    "invalid: auth: roster file unreadable: ",
+		},
+		{
 			name: "a roster with two bad records",
 			rosterContent: fmt.Sprintf(
 				`{"schema_version":1,"members":[`+
@@ -718,6 +726,11 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			if tt.rosterContent != "" {
 				if err := os.WriteFile(rosterPath, []byte(tt.rosterContent), 0o600); err != nil {
 					t.Fatalf("write fixture roster: %v", err)
+				}
+				if tt.rosterMode != 0 {
+					if err := os.Chmod(rosterPath, tt.rosterMode); err != nil {
+						t.Fatalf("Chmod fixture roster: %v", err)
+					}
 				}
 			}
 

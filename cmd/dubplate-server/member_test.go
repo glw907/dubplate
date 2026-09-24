@@ -161,6 +161,39 @@ func TestMemberAddCmd_MissingUsernameRefusedOnCreate(t *testing.T) {
 	}
 }
 
+// TestMemberAddCmd_BlankNameRefusedOnCreate proves the bootstrap
+// refuses an admin whose display name is empty or only spaces: the
+// kind answer offers a stranger the admin's display name as the
+// contact, so a blank one names nobody. cobra's required-flag check
+// passes on an explicit empty value, so the roster's own write-path
+// check is what refuses it, before any file is created.
+func TestMemberAddCmd_BlankNameRefusedOnCreate(t *testing.T) {
+	for _, name := range []string{"", "   "} {
+		t.Run(fmt.Sprintf("%q", name), func(t *testing.T) {
+			environ := memberEnviron(t)
+			rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
+
+			var stdout, stderr bytes.Buffer
+			cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
+			cmd.SetArgs([]string{"add", "--admin", "--name", name, "--streamer-username", "a", "a@example.test"})
+
+			err := cmd.Execute()
+			if err == nil {
+				t.Fatal("Execute() error = nil, want the blank-name refusal")
+			}
+			if !strings.Contains(err.Error(), "display name is empty or blank") {
+				t.Errorf("error = %q, want it to name the blank-name refusal", err.Error())
+			}
+			if strings.Contains(err.Error(), "a@example.test") {
+				t.Errorf("error = %q, want it never to carry the refused address", err.Error())
+			}
+			if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
+				t.Errorf("Stat(roster) after refusal error = %v, want ErrNotExist; nothing should be created", statErr)
+			}
+		})
+	}
+}
+
 func TestMemberAddCmd_MissingRequiredFlagsRefusedBeforeOpen(t *testing.T) {
 	tests := []struct {
 		name string

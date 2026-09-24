@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -827,7 +828,9 @@ func TestAddMember_WriteReReadAndMode(t *testing.T) {
 // secret, or cookie value can ride along. A cookie add keeps the
 // caller's client address. A command-line add or create names an
 // operating-system user as its actor and reads client_ip "local"
-// whatever the caller passed, so the record keeps one shape. Named
+// whatever the caller passed, so the record keeps one shape. A cookie
+// actor is logged in its normalized form, the form every other record
+// names that member by (security review n4). Named
 // mutation 5 (drop the channel from the audit record) fails the
 // "channel" key here.
 func TestAddMember_AuditRecord(t *testing.T) {
@@ -842,6 +845,20 @@ func TestAddMember_AuditRecord(t *testing.T) {
 			write: func(t *testing.T, logger *slog.Logger) error {
 				roster, _ := newAdminRoster(t)
 				return roster.AddMember(t.Context(), alice, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger)
+			},
+			want: map[string]any{
+				"actor":     "admin@example.com",
+				"channel":   "cookie",
+				"address":   "alice@example.com",
+				"admin":     false,
+				"client_ip": "198.51.100.7",
+			},
+		},
+		{
+			name: "a cookie add whose actor differs from its record in case",
+			write: func(t *testing.T, logger *slog.Logger) error {
+				roster, _ := newAdminRoster(t)
+				return roster.AddMember(t.Context(), alice, "Admin@Example.COM", identity.ChannelCookie, "198.51.100.7", logger)
 			},
 			want: map[string]any{
 				"actor":     "admin@example.com",
@@ -1704,4 +1721,320 @@ func readOrAbsent(t *testing.T, path string) []byte {
 		t.Fatalf("read %s: %v", path, err)
 	}
 	return data
+}
+
+// TestRoster_EffectivePrincipalUniqueness proves roster uniqueness keys
+// on the principal the seam derives for each member: the
+// streamer_username when set, otherwise the normalized address. A
+// username that case-folds to another member's address, where that
+// member has no username, gives both members one principal, and the
+// streamer resolves a username by case-insensitive equality, so they
+// would share one streamer account (security review m1). Both the
+// loader and the write path refuse it, and neither error names the
+// colliding value. A username naming another member's address when
+// that member has a username of its own shares no principal, so it
+// loads.
+func TestRoster_EffectivePrincipalUniqueness(t *testing.T) {
+	const (
+		// legacy is a roster the loader admits: alice predates the
+		// write path's username requirement and has none, so her
+		// principal is her address.
+		legacy = `{"schema_version":1,"members":[` +
+			`{"address":"root@example.test","display_name":"Root","streamer_username":"root","admin":true},` +
+			`{"address":"alice@example.test","display_name":"Alice"}]}`
+		collidingValue = "alice@example.test"
+	)
+
+	loadTests := []struct {
+		name    string
+		members string
+		wantErr error // nil means the roster loads
+	}{
+		{
+			name: "a username equal to a later member's address, case-folded",
+			members: `[{"address":"root@example.test","display_name":"Root","streamer_username":"Alice@Example.TEST","admin":true},` +
+				`{"address":"alice@example.test","display_name":"Alice"}]`,
+			wantErr: errDuplicatePrincipal,
+		},
+		{
+			name: "a username equal to an earlier member's address",
+			members: `[{"address":"alice@example.test","display_name":"Alice"},` +
+				`{"address":"root@example.test","display_name":"Root","streamer_username":"alice@example.test","admin":true}]`,
+			wantErr: errDuplicatePrincipal,
+		},
+		{
+			name: "a username equal to its own address and to another member's username",
+			members: `[{"address":"alice@example.test","display_name":"Alice","streamer_username":"alice@example.test"},` +
+				`{"address":"root@example.test","display_name":"Root","streamer_username":"ALICE@example.test","admin":true}]`,
+			wantErr: errDuplicateStreamerUsername,
+		},
+		{
+			name:    "a username equal to its own address alone",
+			members: `[{"address":"alice@example.test","display_name":"Alice","streamer_username":"Alice@Example.test","admin":true}]`,
+		},
+		{
+			name: "a username equal to the address of a member who has a username",
+			members: `[{"address":"alice@example.test","display_name":"Alice","streamer_username":"alice"},` +
+				`{"address":"root@example.test","display_name":"Root","streamer_username":"alice@example.test","admin":true}]`,
+		},
+	}
+	for _, tt := range loadTests {
+		t.Run("load: "+tt.name, func(t *testing.T) {
+			path := writeRosterFile(t, `{"schema_version":1,"members":`+tt.members+`}`)
+			_, err := OpenRoster(path)
+			if tt.wantErr == nil {
+				if err != nil {
+					t.Fatalf("OpenRoster error = %v, want nil", err)
+				}
+				return
+			}
+			if !errors.Is(err, ErrRosterRecordInvalid) || !errors.Is(err, tt.wantErr) {
+				t.Fatalf("OpenRoster error = %v, want it to wrap ErrRosterRecordInvalid and %v", err, tt.wantErr)
+			}
+			if strings.Contains(strings.ToLower(err.Error()), collidingValue) {
+				t.Errorf("OpenRoster error = %q, want it to not name the colliding value", err.Error())
+			}
+		})
+	}
+
+	writeTests := []struct {
+		name     string
+		username string
+		wantErr  error
+	}{
+		{name: "a username equal to a member's address, case-folded", username: "Alice@Example.test", wantErr: errDuplicatePrincipal},
+		{name: "a username equal to a member's address exactly", username: collidingValue, wantErr: errDuplicatePrincipal},
+		{name: "a username equal to another member's username, case-folded", username: "ROOT", wantErr: errDuplicateStreamerUsername},
+		{name: "a username naming no principal", username: "mallory"},
+	}
+	for _, tt := range writeTests {
+		t.Run("write: "+tt.name, func(t *testing.T) {
+			var logBuf bytes.Buffer
+			logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
+			path := writeRosterFile(t, legacy)
+			roster, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster: %v", err)
+			}
+			candidate := Member{Address: "mallory@example.test", DisplayName: "Mallory", StreamerUsername: tt.username}
+			err = roster.AddMember(t.Context(), candidate, "operator", identity.ChannelCommandLine, "", logger)
+			if tt.wantErr == nil {
+				if err != nil {
+					t.Fatalf("AddMember error = %v, want nil", err)
+				}
+				return
+			}
+			if !errors.Is(err, ErrRosterRecordInvalid) || !errors.Is(err, tt.wantErr) {
+				t.Fatalf("AddMember error = %v, want it to wrap ErrRosterRecordInvalid and %v", err, tt.wantErr)
+			}
+			if strings.Contains(strings.ToLower(err.Error()), collidingValue) {
+				t.Errorf("AddMember error = %q, want it to not name the colliding value", err.Error())
+			}
+			if got := readOrAbsent(t, path); string(got) != legacy {
+				t.Errorf("a refused add changed the file: got %q, want %q", got, legacy)
+			}
+			if logBuf.Len() != 0 {
+				t.Errorf("a refused add logged an audit record: %q", logBuf.String())
+			}
+		})
+	}
+}
+
+// TestOpenRoster_RefusesFileWritableByOthers proves the loader refuses
+// a roster file that a group or other user may write: the roster
+// carries the admin flag and a changed file takes effect on the next
+// request, so such a file would let another local account grant
+// itself admin with no audit record (security review m3). A file only
+// the owner writes loads whatever it grants for reading. The refusal
+// names the path and never the file's content.
+func TestOpenRoster_RefusesFileWritableByOthers(t *testing.T) {
+	const content = `{"schema_version":1,"members":[{"address":"mode-fixture@example.test","display_name":"A","streamer_username":"a","admin":true}]}`
+	tests := []struct {
+		mode    os.FileMode
+		wantErr bool
+	}{
+		{mode: 0o600},
+		{mode: 0o640},
+		{mode: 0o644},
+		{mode: 0o400},
+		{mode: 0o620, wantErr: true},
+		{mode: 0o602, wantErr: true},
+		{mode: 0o660, wantErr: true},
+		{mode: 0o666, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%04o", tt.mode), func(t *testing.T) {
+			path := writeRosterFile(t, content)
+			if err := os.Chmod(path, tt.mode); err != nil {
+				t.Fatalf("Chmod: %v", err)
+			}
+			_, err := OpenRoster(path)
+			if !tt.wantErr {
+				if err != nil {
+					t.Fatalf("OpenRoster(mode %04o) error = %v, want nil", tt.mode, err)
+				}
+				return
+			}
+			if !errors.Is(err, ErrRosterUnreadable) || !errors.Is(err, errRosterWritableByOthers) {
+				t.Fatalf("OpenRoster(mode %04o) error = %v, want it to wrap ErrRosterUnreadable and errRosterWritableByOthers", tt.mode, err)
+			}
+			if !strings.Contains(err.Error(), path) {
+				t.Errorf("OpenRoster error = %q, want it to name the path", err.Error())
+			}
+			if strings.Contains(err.Error(), "mode-fixture@example.test") {
+				t.Errorf("OpenRoster error = %q, want it to not carry the file's content", err.Error())
+			}
+		})
+	}
+}
+
+// TestRosterWrite_LandedFailureStillAudits proves a write that
+// reaches the rename logs its audit record even when a later step
+// fails, because the member is on disk whatever the caller is told
+// (security review m4). The failure after the rename, the directory
+// fsync or the re-read, is injected through the writeRosterStream
+// seam: the fsync row runs the real write and then reports an error,
+// and the re-read row runs the real write and then widens the file's
+// mode so the re-read refuses it. The error tells the operator the
+// change landed, and the record keeps the success record's fields at
+// warning level. A failure before the rename writes nothing and logs
+// nothing.
+func TestRosterWrite_LandedFailureStillAudits(t *testing.T) {
+	errInjected := errors.New("injected failure")
+	afterRenameFsync := func(path string, perm os.FileMode, write func(io.Writer) error) error {
+		if err := atomicfile.WriteStream(path, perm, write); err != nil {
+			return err
+		}
+		return errInjected
+	}
+	afterRenameReread := func(path string, perm os.FileMode, write func(io.Writer) error) error {
+		if err := atomicfile.WriteStream(path, perm, write); err != nil {
+			return err
+		}
+		return os.Chmod(path, 0o622)
+	}
+	beforeRename := func(string, os.FileMode, func(io.Writer) error) error {
+		return errInjected
+	}
+
+	candidate := Member{Address: "landed@example.test", DisplayName: "Landed", StreamerUsername: "landed"}
+	tests := []struct {
+		name       string
+		create     bool
+		stream     func(string, os.FileMode, func(io.Writer) error) error
+		wantLanded bool
+		wantAdmin  bool
+		wantAddr   string
+	}{
+		{name: "add: the directory fsync fails after the rename", stream: afterRenameFsync, wantLanded: true, wantAddr: "landed@example.test"},
+		{name: "add: the re-read fails after the rename", stream: afterRenameReread, wantLanded: true, wantAddr: "landed@example.test"},
+		{name: "add: the write fails before the rename", stream: beforeRename},
+		{name: "create: the directory fsync fails after the rename", create: true, stream: afterRenameFsync, wantLanded: true, wantAdmin: true, wantAddr: "admin@example.com"},
+		{name: "create: the write fails before the rename", create: true, stream: beforeRename},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var path string
+			var roster *Roster
+			if tt.create {
+				path = filepath.Join(t.TempDir(), "roster.json")
+			} else {
+				roster, path = newAdminRoster(t)
+			}
+			before := readOrAbsent(t, path)
+
+			t.Cleanup(func() { writeRosterStream = atomicfile.WriteStream })
+			writeRosterStream = tt.stream
+
+			var logBuf bytes.Buffer
+			logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
+			var err error
+			if tt.create {
+				_, err = CreateRoster(t.Context(), path, bootstrapAdmin, "operator", logger)
+			} else {
+				err = roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger)
+			}
+			if err == nil {
+				t.Fatal("write error = nil, want the injected failure reported")
+			}
+
+			if !tt.wantLanded {
+				if errors.Is(err, errRosterWriteLanded) {
+					t.Errorf("write error = %v, want it not to claim the change landed", err)
+				}
+				if logBuf.Len() != 0 {
+					t.Errorf("a write that never landed logged a record: %q", logBuf.String())
+				}
+				if got := readOrAbsent(t, path); !bytes.Equal(got, before) {
+					t.Errorf("a write that never landed changed the file: got %q, want %q", got, before)
+				}
+				return
+			}
+
+			if !errors.Is(err, errRosterWriteLanded) {
+				t.Errorf("write error = %v, want it to wrap errRosterWriteLanded", err)
+			}
+			var record map[string]any
+			if err := json.Unmarshal(bytes.TrimSpace(logBuf.Bytes()), &record); err != nil {
+				t.Fatalf("unmarshal audit record %q: %v", logBuf.String(), err)
+			}
+			want := map[string]any{
+				"level":   "WARN",
+				"actor":   "admin@example.com",
+				"channel": "cookie",
+				"address": tt.wantAddr,
+				"admin":   tt.wantAdmin,
+			}
+			if tt.create {
+				want["actor"] = "operator"
+				want["channel"] = "command-line"
+			}
+			for key, wantValue := range want {
+				if got := record[key]; got != wantValue {
+					t.Errorf("audit record[%q] = %v, want %v; record %q", key, got, wantValue, logBuf.String())
+				}
+			}
+			if _, ok := record["client_ip"]; !ok {
+				t.Errorf("audit record %q carries no client_ip", logBuf.String())
+			}
+		})
+	}
+}
+
+// TestValidateWriteCandidate_BlankDisplayName proves the write path
+// refuses a display name with nothing visible in it: the kind answer
+// hands a stranger the admin's display name as the contact, and an
+// empty one names nobody (security review n3). A name of spaces, or of
+// the zero-width joiners a display name otherwise admits, is as blank
+// as an empty one. The loader keeps admitting a blank name, so a
+// roster written before this rule still loads.
+func TestValidateWriteCandidate_BlankDisplayName(t *testing.T) {
+	tests := []struct {
+		name        string
+		displayName string
+		wantErr     bool
+	}{
+		{name: "empty", displayName: "", wantErr: true},
+		{name: "one space", displayName: " ", wantErr: true},
+		{name: "several spaces", displayName: "   ", wantErr: true},
+		{name: "a zero-width joiner alone", displayName: "\u200d", wantErr: true},
+		{name: "spaces around a zero-width non-joiner", displayName: " \u200c ", wantErr: true},
+		{name: "one letter", displayName: "A"},
+		{name: "a letter inside spaces", displayName: " A "},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			candidate := Member{Address: "a@example.com", DisplayName: tt.displayName, StreamerUsername: "a"}
+			_, err := validateWriteCandidate(candidate)
+			if tt.wantErr != errors.Is(err, errBlankDisplayName) {
+				t.Errorf("validateWriteCandidate(display name %q) error = %v, want errBlankDisplayName %v", tt.displayName, err, tt.wantErr)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("validateWriteCandidate(display name %q) error = %v, want nil", tt.displayName, err)
+			}
+			if _, err := memberRecord(candidate).validate(); err != nil {
+				t.Errorf("validate(display name %q) error = %v, want nil: the loader keeps admitting it", tt.displayName, err)
+			}
+		})
+	}
 }
