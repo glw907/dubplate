@@ -1,0 +1,3 @@
+-- Migration 1 records itself in the ledger table it creates; this
+-- fixture adds nothing further, since the table holds no other
+-- content at this version.

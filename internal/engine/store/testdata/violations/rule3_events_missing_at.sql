@@ -1,0 +1,4 @@
+CREATE TABLE bad_events (
+	id BLOB NOT NULL PRIMARY KEY,
+	kind TEXT NOT NULL
+) STRICT;

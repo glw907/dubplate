@@ -1,0 +1,9 @@
+CREATE TABLE parent (
+	id BLOB NOT NULL PRIMARY KEY,
+	label TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE bad_table (
+	id BLOB NOT NULL PRIMARY KEY,
+	parent_id BLOB NOT NULL REFERENCES parent (missing_column)
+) STRICT;

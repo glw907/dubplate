@@ -1,0 +1,4 @@
+CREATE TABLE bad_table (
+	id BLOB NOT NULL PRIMARY KEY,
+	release_id TEXT NOT NULL
+) STRICT;

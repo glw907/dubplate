@@ -1,0 +1,7 @@
+CREATE TABLE migrations (
+	version INTEGER PRIMARY KEY,
+	name TEXT NOT NULL,
+	sha256 TEXT NOT NULL
+) STRICT;
+
+PRAGMA application_id = 1685414512;

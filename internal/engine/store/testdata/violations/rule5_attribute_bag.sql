@@ -1,0 +1,10 @@
+CREATE TABLE parent (
+	id BLOB NOT NULL PRIMARY KEY
+) STRICT;
+
+CREATE TABLE bad_table (
+	id BLOB NOT NULL PRIMARY KEY,
+	parent_id BLOB NOT NULL REFERENCES parent (id),
+	"key" TEXT NOT NULL,
+	"value" TEXT NOT NULL
+) STRICT;

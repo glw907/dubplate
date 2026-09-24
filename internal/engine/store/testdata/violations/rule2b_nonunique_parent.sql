@@ -1,0 +1,9 @@
+CREATE TABLE parent (
+	id BLOB NOT NULL PRIMARY KEY,
+	code TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE bad_table (
+	id BLOB NOT NULL PRIMARY KEY,
+	parent_code TEXT NOT NULL REFERENCES parent (code)
+) STRICT;

@@ -1,0 +1,4 @@
+CREATE TABLE bad_table (
+	id BLOB NOT NULL PRIMARY KEY,
+	rel_path TEXT NOT NULL
+) STRICT;

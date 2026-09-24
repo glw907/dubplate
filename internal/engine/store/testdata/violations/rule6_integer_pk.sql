@@ -1,0 +1,4 @@
+CREATE TABLE bad_table (
+	id INTEGER PRIMARY KEY,
+	label TEXT NOT NULL
+) STRICT;
