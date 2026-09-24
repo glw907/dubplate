@@ -118,8 +118,8 @@ func readDSN(dbPath string, busyTimeout time.Duration) string {
 // maintenanceDSN builds the maintenance class's DSN: an immediate
 // begin mode, like the write pool, so a maintenance transaction takes
 // the write lock at BEGIN rather than deferring it to the first write.
-// It omits _journal_mode=WAL: a maintenance connection only ever opens
-// an already-migrated store, whose journal mode WAL already set.
+// It omits _journal_mode: journal mode persists in the database file,
+// so this class neither sets nor converts it.
 func maintenanceDSN(dbPath string, busyTimeout time.Duration) string {
 	return buildDSN(dbPath,
 		"mode=rw",

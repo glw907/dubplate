@@ -140,37 +140,61 @@ func TestDSNRejectsUnknownShorthandValue(t *testing.T) {
 // TestDSNEscapesSpecialPathChars proves the escaping DSN builder, not
 // string concatenation: a directory whose name carries '#', '%', and
 // '?' opens its database at the exact path, and creates nothing beside
-// the directory when the writing class finds no file there.
+// the directory itself (the fold probe's P2 shape: a concatenated DSN
+// would truncate the path and create a stray entry such as "a" next to
+// the directory).
 func TestDSNEscapesSpecialPathChars(t *testing.T) {
+	const dirName = "a#b%41?c"
 	base := t.TempDir()
-	dir := filepath.Join(base, "a#b%41?c")
+	dir := filepath.Join(base, dirName)
 	if err := os.Mkdir(dir, 0o700); err != nil {
 		t.Fatalf("mkdir %s: %v", dir, err)
 	}
 	path := filepath.Join(dir, "s.db")
 	precreateFile(t, path)
+	const busy = 300 * time.Millisecond
 
-	db, err := sql.Open(sqliteDriverName, writeDSN(path, 300*time.Millisecond))
-	if err != nil {
-		t.Fatalf("open: %v", err)
-	}
-	t.Cleanup(func() { _ = db.Close() })
-	if _, err := db.Exec(`CREATE TABLE t (id INTEGER)`); err != nil {
-		t.Fatalf("create table: %v", err)
+	// The write class runs first and sets WAL mode via its
+	// _journal_mode DSN param, since mode persists in the database
+	// file: the other three classes open the same file afterward and
+	// must see it, not set it themselves.
+	classes := []struct {
+		name string
+		dsn  string
+	}{
+		{"write", writeDSN(path, busy)},
+		{"read", readDSN(path, busy)},
+		{"maintenance", maintenanceDSN(path, busy)},
+		{"inspect", inspectDSN(path, busy)},
 	}
 
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		t.Fatalf("read dir: %v", err)
-	}
-	names := make(map[string]bool, len(entries))
-	for _, e := range entries {
-		names[e.Name()] = true
-	}
-	for _, want := range []string{"s.db", "s.db-wal", "s.db-shm"} {
-		if !names[want] {
-			t.Errorf("directory listing = %v, missing %q", names, want)
-		}
+	for _, class := range classes {
+		t.Run(class.name, func(t *testing.T) {
+			db, err := sql.Open(sqliteDriverName, class.dsn)
+			if err != nil {
+				t.Fatalf("open: %v", err)
+			}
+			t.Cleanup(func() { _ = db.Close() })
+
+			if class.name == "write" {
+				if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS t (id INTEGER)`); err != nil {
+					t.Fatalf("create table: %v", err)
+				}
+			} else {
+				var got string
+				if err := db.QueryRow("PRAGMA busy_timeout").Scan(&got); err != nil {
+					t.Fatalf("PRAGMA busy_timeout: %v", err)
+				}
+			}
+
+			entries, err := os.ReadDir(base)
+			if err != nil {
+				t.Fatalf("read dir: %v", err)
+			}
+			if len(entries) != 1 || entries[0].Name() != dirName {
+				t.Errorf("base directory listing = %v, want exactly [%q]", entries, dirName)
+			}
+		})
 	}
 
 	// A writing class against an absent file at the same escaped
