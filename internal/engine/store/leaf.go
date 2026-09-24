@@ -109,6 +109,21 @@ func checkOwner(info fs.FileInfo, euid int) error {
 	return fmt.Errorf("owned by %s: run as that user: runuser -u %s -- dubplate-server <command>", name, name)
 }
 
+// checkLeafShape refuses when info, the leaf's own stat, is not a
+// leafDirPerm directory: a regular file at path, or a directory at any
+// other mode. It takes info and path as parameters, rather than
+// stat'ing path itself, so a caller that already stat'd the leaf (to
+// decide it exists at all) does not stat it twice.
+func checkLeafShape(info fs.FileInfo, path string) error {
+	if !info.IsDir() {
+		return fmt.Errorf("leaf %s: not a directory, want a directory at mode %04o", path, leafDirPerm)
+	}
+	if mode := info.Mode().Perm(); mode != leafDirPerm {
+		return fmt.Errorf("leaf %s: mode %04o, want a directory at mode %04o", path, mode, leafDirPerm)
+	}
+	return nil
+}
+
 // ownerName resolves uid to a username, falling back to "uid:<n>" when
 // the uid has no passwd entry, the shape [user.LookupId] documents for
 // its UnknownUserIdError.

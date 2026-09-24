@@ -8,10 +8,29 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
 )
+
+// blockedSignalingCtx wraps a context.Context and closes blocked the
+// first time Done is called. acquireBounded's loop reaches ctx.Done()
+// only after a busy tryLock attempt, never before, so closing blocked
+// proves the waiter made at least one attempt and found the lock held.
+// A caller that waits on blocked before releasing the holder therefore
+// guarantees the waiter's first attempt happened while the lock was
+// still busy, rather than racing the release.
+type blockedSignalingCtx struct {
+	context.Context
+	once    sync.Once
+	blocked chan struct{}
+}
+
+func (c *blockedSignalingCtx) Done() <-chan struct{} {
+	c.once.Do(func() { close(c.blocked) })
+	return c.Context.Done()
+}
 
 // shmLockFile makes a lock file under /dev/shm, tmpfs on this
 // workstation and every dubplate host (the fold probe P9), so its
@@ -115,17 +134,19 @@ func TestAcquireExclusive_WaitsForSharedRelease(t *testing.T) {
 		t.Fatal("acquireExclusive: want busy while the shared holder is up, got nil")
 	}
 
+	waiterBlocked := make(chan struct{})
 	acquired := make(chan error, 1)
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		l, err := acquireExclusive(ctx, path)
+		l, err := acquireExclusive(&blockedSignalingCtx{Context: ctx, blocked: waiterBlocked}, path)
 		if err == nil {
 			err = l.release()
 		}
 		acquired <- err
 	}()
 
+	<-waiterBlocked
 	if err := holder.release(); err != nil {
 		t.Fatalf("release shared holder: %v", err)
 	}

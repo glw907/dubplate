@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -75,10 +76,15 @@ func TestCreateLeaf_CompletesAPartialCreate(t *testing.T) {
 	l := newLeaf(stateDir)
 	euid := os.Geteuid()
 
-	// A crash after the leaf and store.lock land but before db/,
-	// snapshots/, or staging/ do.
+	// A crash after the leaf, store.lock, and db/ land but before
+	// snapshots/ or staging/ do. db/ is planted at 0755 so
+	// assertLeafShape also proves the idempotent retry chmods a
+	// leftover directory back to 0700.
 	if err := os.MkdirAll(l.root, leafDirPerm); err != nil {
 		t.Fatalf("plant partial leaf: %v", err)
+	}
+	if err := os.MkdirAll(l.dbDir, 0o755); err != nil {
+		t.Fatalf("plant partial db dir: %v", err)
 	}
 	f, err := os.OpenFile(l.lockPath, os.O_CREATE|os.O_RDWR, lockFilePerm)
 	if err != nil {
@@ -99,11 +105,19 @@ func TestCreateLeaf_OwnerMismatchRefusesAndCreatesNothing(t *testing.T) {
 	l := newLeaf(stateDir)
 	mismatchEuid := os.Geteuid() + 1
 
-	err := createLeaf(l, stateDir, mismatchEuid)
+	cur, err := user.Current()
+	if err != nil {
+		t.Skipf("no current user info: %v", err)
+	}
+
+	err = createLeaf(l, stateDir, mismatchEuid)
 	if err == nil {
 		t.Fatal("createLeaf: want a refusal for a mismatched euid, got nil")
 	}
-	if !strings.Contains(err.Error(), "run as that user") {
+	if !strings.Contains(err.Error(), cur.Username) {
+		t.Errorf("createLeaf error %q does not name the owner %q", err, cur.Username)
+	}
+	if !strings.Contains(err.Error(), "runuser -u "+cur.Username+" --") {
 		t.Errorf("createLeaf error %q does not name the fix", err)
 	}
 	if _, statErr := os.Stat(l.root); !errors.Is(statErr, fs.ErrNotExist) {
@@ -142,6 +156,11 @@ func TestCheckOwner(t *testing.T) {
 	}
 	realUID := int(st.Uid)
 
+	cur, err := user.Current()
+	if err != nil {
+		t.Skipf("no current user info: %v", err)
+	}
+
 	tests := []struct {
 		name       string
 		euid       int
@@ -149,7 +168,7 @@ func TestCheckOwner(t *testing.T) {
 		wantSubstr string
 	}{
 		{name: "matching euid", euid: realUID, wantErr: false},
-		{name: "mismatched euid", euid: realUID + 1, wantErr: true, wantSubstr: "run as that user"},
+		{name: "mismatched euid", euid: realUID + 1, wantErr: true, wantSubstr: "runuser -u " + cur.Username + " --"},
 	}
 
 	for _, tt := range tests {
@@ -163,6 +182,74 @@ func TestCheckOwner(t *testing.T) {
 			}
 			if tt.wantSubstr != "" && !strings.Contains(err.Error(), tt.wantSubstr) {
 				t.Errorf("checkOwner error %q does not contain %q", err, tt.wantSubstr)
+			}
+		})
+	}
+}
+
+func TestCheckLeafShape(t *testing.T) {
+	tests := []struct {
+		name    string
+		plant   func(t *testing.T, path string)
+		wantErr bool
+	}{
+		{
+			name: "a regular file at the leaf path",
+			plant: func(t *testing.T, path string) {
+				t.Helper()
+				if err := os.WriteFile(path, nil, 0o700); err != nil {
+					t.Fatal(err)
+				}
+			},
+			wantErr: true,
+		},
+		{
+			name: "a directory at 0755 instead of 0700",
+			plant: func(t *testing.T, path string) {
+				t.Helper()
+				if err := os.Mkdir(path, 0o755); err != nil {
+					t.Fatal(err)
+				}
+			},
+			wantErr: true,
+		},
+		{
+			name: "a directory at 0700",
+			plant: func(t *testing.T, path string) {
+				t.Helper()
+				if err := os.Mkdir(path, leafDirPerm); err != nil {
+					t.Fatal(err)
+				}
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "store")
+			tt.plant(t, path)
+
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = checkLeafShape(info, path)
+			if tt.wantErr && err == nil {
+				t.Fatal("checkLeafShape: want an error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("checkLeafShape: want no error, got %v", err)
+			}
+			if tt.wantErr {
+				if !strings.Contains(err.Error(), path) {
+					t.Errorf("checkLeafShape error %q does not name the path %q", err, path)
+				}
+				if !strings.Contains(err.Error(), "a directory at mode 0700") {
+					t.Errorf("checkLeafShape error %q does not name the expected shape", err)
+				}
 			}
 		})
 	}
