@@ -552,8 +552,8 @@ func validateActor(actor string, channel identity.Channel) error {
 // neither carries the rendering or comparison hazard the rest of Cf
 // does.
 const (
-	zeroWidthNonJoiner = '‌'
-	zeroWidthJoiner    = '‍'
+	zeroWidthNonJoiner = '\u200c'
+	zeroWidthJoiner    = '\u200d'
 )
 
 // displayNameCarriesRefusedRune reports whether s carries a rune a

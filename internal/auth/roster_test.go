@@ -134,36 +134,104 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 		name    string
 		members string // the JSON "members" array body
 		wantErr bool
+		// wantSentinel is the specific refusal errors.Is must find
+		// wrapped inside ErrRosterRecordInvalid; nil when wantErr is
+		// false.
+		wantSentinel error
 	}{
 		{
-			name:    "a duplicate address differing only in case",
-			members: `[{"address":"Alice@Example.com","display_name":"A"},{"address":"alice@example.com","display_name":"B"}]`,
-			wantErr: true,
+			name:         "a duplicate address differing only in case",
+			members:      `[{"address":"Alice@Example.com","display_name":"A"},{"address":"alice@example.com","display_name":"B"}]`,
+			wantErr:      true,
+			wantSentinel: errDuplicateAddress,
 		},
 		{
-			name:    "a duplicate streamer_username",
-			members: `[{"address":"a@example.com","display_name":"A","streamer_username":"same"},{"address":"b@example.com","display_name":"B","streamer_username":"same"}]`,
-			wantErr: true,
+			name:         "a duplicate streamer_username",
+			members:      `[{"address":"a@example.com","display_name":"A","streamer_username":"same"},{"address":"b@example.com","display_name":"B","streamer_username":"same"}]`,
+			wantErr:      true,
+			wantSentinel: errDuplicateStreamerUsername,
 		},
 		{
-			name:    "a control character in a display name",
-			members: `[{"address":"a@example.com","display_name":"A\u0007B"}]`,
-			wantErr: true,
+			name:         "a control character in a display name",
+			members:      `[{"address":"a@example.com","display_name":"A\u0007B"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidDisplayName,
 		},
 		{
-			name:    "a C1 control character (CSI) in a display name",
-			members: `[{"address":"a@example.com","display_name":"A\u009bB"}]`,
-			wantErr: true,
+			name:         "a C1 control character (CSI) in a display name",
+			members:      `[{"address":"a@example.com","display_name":"A\u009bB"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidDisplayName,
 		},
 		{
-			name:    "a control character in an address",
-			members: `[{"address":"a\u0007b@example.com","display_name":"A"}]`,
-			wantErr: true,
+			name:         "a no-break space in a display name",
+			members:      `[{"address":"a@example.com","display_name":"A B"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidDisplayName,
 		},
 		{
-			name:    "an unparseable address",
-			members: `[{"address":"not-an-address","display_name":"A"}]`,
-			wantErr: true,
+			name:         "a right-to-left override in a display name",
+			members:      `[{"address":"a@example.com","display_name":"A‮B"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidDisplayName,
+		},
+		{
+			name:         "a zero-width space in a display name",
+			members:      `[{"address":"a@example.com","display_name":"A​B"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidDisplayName,
+		},
+		{
+			name:    "a zero-width non-joiner in a display name loads",
+			members: `[{"address":"a@example.com","display_name":"A‌B"}]`,
+			wantErr: false,
+		},
+		{
+			name:    "a zero-width joiner in a display name loads",
+			members: `[{"address":"a@example.com","display_name":"A‍B"}]`,
+			wantErr: false,
+		},
+		{
+			name:         "a control character in an address",
+			members:      `[{"address":"a\u0007b@example.com","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
+		},
+		{
+			name:         "an unparseable address",
+			members:      `[{"address":"not-an-address","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
+		},
+		{
+			name:         "a NEL control in a quoted address local part",
+			members:      `[{"address":"\"a\u0085b\"@example.com","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
+		},
+		{
+			name:         "a C1 CSI control in a quoted address local part",
+			members:      `[{"address":"\"a\u009bb\"@example.com","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
+		},
+		{
+			name:         "a right-to-left override in a quoted address local part",
+			members:      `[{"address":"\"a‮b\"@example.com","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
+		},
+		{
+			name:         "a no-break space in a quoted address local part",
+			members:      `[{"address":"\"a b\"@example.com","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
+		},
+		{
+			name:         "a zero-width space in a quoted address local part",
+			members:      `[{"address":"\"a​b\"@example.com","display_name":"A"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidMemberAddress,
 		},
 		{
 			name:    "display name exactly at the length cap",
@@ -171,9 +239,10 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "display name one byte over the length cap",
-			members: `[{"address":"a@example.com","display_name":"` + overCapDisplay + `"}]`,
-			wantErr: true,
+			name:         "display name one byte over the length cap",
+			members:      `[{"address":"a@example.com","display_name":"` + overCapDisplay + `"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidDisplayName,
 		},
 		{
 			name:    "streamer_username exactly at the length cap",
@@ -181,14 +250,16 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "streamer_username one byte over the length cap",
-			members: `[{"address":"a@example.com","display_name":"A","streamer_username":"` + overCapUsername + `"}]`,
-			wantErr: true,
+			name:         "streamer_username one byte over the length cap",
+			members:      `[{"address":"a@example.com","display_name":"A","streamer_username":"` + overCapUsername + `"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidStreamerUsername,
 		},
 		{
-			name:    "a streamer_username carrying a non-ASCII-printable byte",
-			members: `[{"address":"a@example.com","display_name":"A","streamer_username":"na` + "é" + `me"}]`,
-			wantErr: true,
+			name:         "a streamer_username carrying a non-ASCII-printable byte",
+			members:      `[{"address":"a@example.com","display_name":"A","streamer_username":"na` + "é" + `me"}]`,
+			wantErr:      true,
+			wantSentinel: errInvalidStreamerUsername,
 		},
 	}
 
@@ -202,8 +273,14 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 			if !tt.wantErr && err != nil {
 				t.Fatalf("OpenRoster() error = %v, want nil", err)
 			}
-			if tt.wantErr && !errors.Is(err, ErrRosterRecordInvalid) {
+			if !tt.wantErr {
+				return
+			}
+			if !errors.Is(err, ErrRosterRecordInvalid) {
 				t.Errorf("OpenRoster() error = %v, want it to wrap ErrRosterRecordInvalid", err)
+			}
+			if !errors.Is(err, tt.wantSentinel) {
+				t.Errorf("OpenRoster() error = %v, want it to wrap %v", err, tt.wantSentinel)
 			}
 		})
 	}
@@ -517,6 +594,9 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 	if !errors.Is(err, ErrRosterRecordInvalid) {
 		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap ErrRosterRecordInvalid", err)
 	}
+	if !errors.Is(err, errInvalidMemberAddress) {
+		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap errInvalidMemberAddress", err)
+	}
 
 	after, err := os.ReadFile(path)
 	if err != nil {
@@ -568,9 +648,9 @@ func TestDisplayNameCarriesRefusedRune(t *testing.T) {
 		{name: "newline", input: "a\nb", want: true},
 		{name: "C1 CSI", input: "a\u009bb", want: true},
 		{name: "non-control non-ASCII", input: "Zoë", want: false},
-		{name: "no-break space (Zs)", input: "a b", want: true},
-		{name: "line separator (Zl)", input: "a b", want: true},
-		{name: "paragraph separator (Zp)", input: "a b", want: true},
+		{name: "no-break space (Zs)", input: "a\u00a0b", want: true},
+		{name: "line separator (Zl)", input: "a\u2028b", want: true},
+		{name: "paragraph separator (Zp)", input: "a\u2029b", want: true},
 		{name: "right-to-left override (Cf)", input: "a\u202eb", want: true},
 		{name: "zero-width space (Cf)", input: "a\u200bb", want: true},
 		{name: "zero-width non-joiner (Cf, admitted)", input: "a\u200cb", want: false},
