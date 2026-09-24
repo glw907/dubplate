@@ -2316,6 +2316,56 @@ is `docs/HISTORY.md`'s pass entry, not repeated here.
 > full, matching R-5b14's own operative clause ("the driver arrives at
 > 5b-ii").
 
+**Pass 5b-ii's close, 2026-09-23, adds the corrections below.** Pass
+5b-ii (the roster, the mail seam, the rate limiters, the origin check,
+and the auth handlers, in the main tree from `1d4ed29`) closed with a
+fresh-context `web-auth-security-reviewer` read over both halves of 5b;
+its findings and their dispositions are the do-not-re-litigate record at
+`docs/superpowers/research/2026-09-23-rung-5b-ii-security-review.md`.
+
+> Erratum, 2026-09-23 (5b-ii close): **the 5b-i security read ran.**
+> The R24 erratum above (`spec:2174-2181`) says 5b-i's own read "was not
+> run this window for budget and is owed to 5b-ii's window as its first
+> item." It was written before the read ran. The read ran on 2026-09-12
+> at `1d4ed29` and is recorded at
+> `docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`
+> (R-5b18). 5b-ii's own pass-end read, scoped to `1d4ed29..08befea`,
+> re-checked all twenty of its findings alongside 5b-ii's own surface.
+
+> Erratum, 2026-09-23 (5b-ii close): **R33's redirect validation did
+> not land at 5b-i.** The erratum above (`spec:2287-2296`) states that
+> R33's post-login destination rule "landed in `internal/auth` at
+> 5b-i" and adds the redirect validation to the pass-split table's 5b
+> row. No such function exists in `internal/auth`; 5b-ii's Task 0 and
+> its close both confirm it by grep. As ruled (R-5b26), no
+> redirect-target validator is built at rung 5: R33 travels as a
+> constraint to rung 12, and the validator lands with rung 12's
+> destination parameter or not at all. The 5b row's added deliverable
+> is withdrawn.
+
+> Erratum, 2026-09-23 (5b-ii close): **5b-ii's ceiling and the rung
+> reservation.** 5b-ii ran against a 7.5M ceiling rather than the 4.5M
+> provisional that 5b-i's plan carried, and closed at about 6.4M. Rung 5
+> now stands at 24.4M (5a's 3.9M actual, 5b-i's 5.5M actual, 5b-ii's
+> 7.5M ceiling, 5c's 4.5M, and 5d's 3.0M) against the live 15.75M
+> reservation (`spec:2042-2050`). The 8.65M difference is recorded
+> against the reservation rather than taken from another pass.
+
+> Erratum, 2026-09-23 (5b-ii close): **the example roster file lands at
+> 5b-ii, not 5d.** The pass-split table's 5d row assigns "the example
+> roster file (R37)" to 5d. 5b-ii's Task 4 created
+> `config/roster.example.json` beside the roster loader (R-5b20),
+> because the loader test is what keeps the example from rotting. The
+> 5d row drops the example-file clause; its two `deploy.sh`
+> pre-creates stay.
+
+> Erratum, 2026-09-23 (5b-ii close): **the gate-rejoin sentence in
+> `CLAUDE.md` moved.** The paragraph above that names the three in-tree
+> copies of the rejoin sentence gives `CLAUDE.md:118`. The sentence is
+> now at `CLAUDE.md:140`, in the Gate section. The other two pointers,
+> `scripts/check.sh:5` and `Makefile:33`, still resolve; `Makefile:33`
+> reads "The web legs rejoin," plural.
+
 ---
 
 ## The pass split

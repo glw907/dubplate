@@ -68,6 +68,21 @@ the conductor ratifies or reverses in one edit:
 > proof uses a selected source. (e) The seven conductor-owed folds are
 > ratified as applied.
 
+> **Pointer re-keys (5b-ii close, 2026-09-23; launch ruling c).** This
+> plan's `HISTORY:` pointers were keyed before 5b-i's entry settled and
+> before 5b-ii's entry landed above it, so resolve each by its subsection
+> heading. With the 5b-ii entry in place they resolve as follows. 5b-i's
+> "The 5b-i to 5b-ii handoff" (`:496-530`) is `:1196-1230`; its
+> "Both budgets" (`:531-544`) is `:1231-1244`, with the quoted
+> spans `:533-535` and `:540-543` at `:1233-1235` and `:1240-1243`; its
+> "not run this window" record (`:411-416`) is the two bullets at
+> `:1109-1115`. 5a's Task 0 spend (`:1688`) is `:2388` and its 3.4M flag
+> (`:1692`) is `:2392`. Two pointers were mis-keyed at authoring rather
+> than drifted: R-V (`:391-392`) resolves to `:1221-1222` in 5b-i's
+> carry-forward list and `:2258-2260` in 5a's entry, and 5a's planning
+> miss (`:526-529`) resolves to `:2393-2396`. The body's pointers stay
+> as written.
+
 **This plan is the second half of the split `spec:2163-2172`
 pre-authorized and pass 5b-i took.** 5b-i landed the identity leaf, the
 config contract, the token, the session, and the two state records, and
