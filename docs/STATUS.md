@@ -9,16 +9,17 @@ the staged comment-cleanup task. R4's exclusion denominator is still UNREAD, owe
 
 ## Next action
 
-1. **5c's plan awaits Geoff's approval**: `plans/2026-09-23-rung-5c-pages-member-verb.md`, split into
-   5c-i (in full) and 5c-ii (outlined); three lens reviews at `2a416b5`, fold in review. 5c-i's Task 1
-   folds 5b-ii's security majors 1-4 and the relevant minors; major 5 (trusted proxy) is a 5d deploy
-   gate (Geoff, 2026-09-23; `research/2026-09-23-rung-5b-ii-security-review.md`, HISTORY). An
-   overnight window is planned for 5c-i's execution plus the rung 6 errata and a 6a plan draft.
+1. **Launch the overnight window** (`plans/2026-09-23-overnight-window.md`; ends 05:00 AKDT, 12M cap).
+   Resume prompt for the fresh Opus 5.5 session: "Read docs/STATUS.md and the overnight window file,
+   then launch it: 5c-i from `plans/2026-09-23-rung-5c-pages-member-verb.md` (revision 2.2, approved by
+   Geoff 2026-09-23, all six rulings yes; Ruling 2's query is done) starting with Task 0, plus the two
+   document lanes." 5c-i: Tasks 1-5 fold 5b-ii's security majors 1-4 and minors; 6 the CLI admin grant;
+   7 the `member` verb; 6.5M ceiling, 4.72M projected. 5c-ii (outlined) opens with the admin gate.
 2. **Rung 6's spec is ratified** (Geoff, 2026-09-23): `specs/2026-09-23-rung-6-ops-seam-store.md`
    revision 2.2, all fourteen rulings yes, five passes, about 28M; errata owed. The web surface
    standard (`94d8af3`) and configuration homes revision 3 (layout parity conditional on a rung 12
    Navidrome check) are ratified too. Rung 6 runs as lane 2 beside 5c/5d; 5 through 5d stays first.
-3. **Landed in `~/.dotfiles`**: `spec-plan-review` (`8c53329`); `stopOnEscalate`, infra task 9 (`ce70b5f`).
+3. **Landed in `~/.dotfiles`**: `spec-plan-review` (`8c53329`); `stopOnEscalate` and infra task 9 (`ce70b5f`).
 
 ## Lane registry
 
@@ -56,5 +57,4 @@ the staged comment-cleanup task. R4's exclusion denominator is still UNREAD, owe
 | mediafile (corpus manifest, 2d) | PyPI `mediafile` | `0.17.0` |
 | unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
 | lap (matcher tie mirroring, 3d) | PyPI `lap` | `0.5.13` |
-
 Spend: about 61.6M plus the 2026-09-12 window's 9.1M and 5b-ii's about 6.4M; 5b-i's overage sits on R23.
