@@ -457,7 +457,7 @@ func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	nonces, _, err := auth.OpenNonceStore(store, time.Hour, time.Now())
+	nonces, _, err := auth.OpenNonceStore(store, time.Hour, magicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		t.Fatalf("auth.OpenNonceStore: %v", err)
 	}

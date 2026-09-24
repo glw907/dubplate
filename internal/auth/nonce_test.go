@@ -32,13 +32,20 @@ var (
 // unless it says otherwise.
 const fixtureRetention = 24 * time.Hour
 
+// fixtureLinkExpiryCeiling stands for the configured ceiling on the
+// magic-link expiry, passed into OpenNonceStore by its caller. It is
+// shorter than fixtureRetention, so every row that opens a store with
+// it reads the retention, not the ceiling, as the mtime fallback's
+// life, unless the row says otherwise.
+const fixtureLinkExpiryCeiling = time.Hour
+
 func newNonceStore(t *testing.T, stateDir string, retention time.Duration, now time.Time) *NonceStore {
 	t.Helper()
 	store, err := Open(stateDir)
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(store, retention, now)
+	nonces, _, err := OpenNonceStore(store, retention, fixtureLinkExpiryCeiling, now)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -364,7 +371,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	if _, _, err := OpenNonceStore(store, fixtureRetention, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
+	if _, _, err := OpenNonceStore(store, fixtureRetention, fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
 		t.Errorf("OpenNonceStore: %v, want nil: a single unreadable record must not stop startup", err)
 	}
 
@@ -383,6 +390,70 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 	}
 	if sweep.Removed != 1 {
 		t.Errorf("Removed = %d, want 1: the unreadable record past its mtime plus retention", sweep.Removed)
+	}
+	if _, err := os.Stat(unreadable); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("Stat(unreadable) error = %v, want ErrNotExist: the record should have been swept", err)
+	}
+}
+
+// TestMtimeFallbackRespectsLinkExpiryCeiling proves m5: when the
+// configured retention is lower than the link-expiry ceiling, an
+// unreadable record survives past mtime+retention and is swept only
+// once it has aged past mtime+ceiling. Without the ceiling in the
+// fallback, an operator who lowers the retention below the ceiling
+// while a longer-lived link is still outstanding could have an
+// unreadable record for that link swept, and its nonce replayed,
+// before every token that could have produced it has expired.
+func TestMtimeFallbackRespectsLinkExpiryCeiling(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("running as root: chmod 0o000 does not block a root read")
+	}
+
+	const shortRetention = 30 * time.Minute // below fixtureLinkExpiryCeiling (1h)
+
+	stateDir := t.TempDir()
+	store, err := Open(stateDir)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	nonces, _, err := OpenNonceStore(store, shortRetention, fixtureLinkExpiryCeiling, nonceClock)
+	if err != nil {
+		t.Fatalf("OpenNonceStore: %v", err)
+	}
+
+	unreadable := recordPathFor(t, stateDir, consumedSample)
+	if err := os.WriteFile(unreadable, []byte("irrelevant"), 0o600); err != nil {
+		t.Fatalf("write unreadable record: %v", err)
+	}
+	if err := os.Chmod(unreadable, 0o000); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(unreadable, 0o600) })
+
+	info, err := os.Stat(unreadable)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+
+	pastRetention := info.ModTime().Add(shortRetention + time.Second)
+	sweep, err := nonces.Sweep(pastRetention)
+	if err != nil {
+		t.Fatalf("Sweep: %v, want nil", err)
+	}
+	if sweep.Removed != 0 || sweep.Malformed != 1 {
+		t.Fatalf("sweep past retention alone = %+v, want {Removed:0 Malformed:1}: the ceiling must hold the record", sweep)
+	}
+	if _, err := os.Stat(unreadable); err != nil {
+		t.Errorf("record swept before the ceiling: %v", err)
+	}
+
+	pastCeiling := info.ModTime().Add(fixtureLinkExpiryCeiling + time.Second)
+	sweep, err = nonces.Sweep(pastCeiling)
+	if err != nil {
+		t.Fatalf("Sweep: %v, want nil", err)
+	}
+	if sweep.Removed != 1 {
+		t.Errorf("sweep past the ceiling = %+v, want Removed:1", sweep)
 	}
 	if _, err := os.Stat(unreadable); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("Stat(unreadable) error = %v, want ErrNotExist: the record should have been swept", err)
@@ -446,7 +517,7 @@ func TestOpenSweeps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	_, sweep, err := OpenNonceStore(store, fixtureRetention, nonceClock.Add(fixtureRetention+time.Second))
+	_, sweep, err := OpenNonceStore(store, fixtureRetention, fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second))
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}

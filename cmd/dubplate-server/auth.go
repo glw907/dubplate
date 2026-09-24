@@ -428,19 +428,22 @@ func checkDurationBounds(errs []error, environ []string, th config.Threshold, fl
 // rather than the host, since url.Parse("http://localhost:8080").Host
 // is "localhost:8080" and only Hostname() is "localhost".
 //
-// No returned error quotes value: every message names the key and the
-// defect alone. url.Parse's own error is not
-// wrapped verbatim either, since its Error method formats the whole
-// URL, password included
+// No returned error quotes value or any part of it: every message names
+// the key and the defect alone. url.Parse's own error is never wrapped,
+// even its inner reason, because a raw value carrying userinfo with a
+// "/", "?" or "#" inside the password makes url.Parse cut the authority
+// there and misread "user:pass" as "host:port", so its error quotes the
+// password up to that character
 // (net/url/url.go, fmt.Sprintf("%s %q: %s", e.Op, e.URL, e.Err), read
-// 2026-09-23); this reports the parse failure's own inner reason
-// through [errors.AsType] instead.
+// 2026-09-23). value is checked for "@" before it is parsed at all, so
+// a value net/url would misparse this way is still caught as userinfo
+// rather than reaching url.Parse's error path.
 func validatePublicURL(value string) error {
+	if strings.Contains(value, "@") {
+		return &sourceKeyError{key: publicURLKey, reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
+	}
 	u, err := url.Parse(value)
 	if err != nil {
-		if uerr, ok := errors.AsType[*url.Error](err); ok {
-			return &sourceKeyError{key: publicURLKey, reason: fmt.Sprintf("invalid URL: %v", uerr.Err)}
-		}
 		return &sourceKeyError{key: publicURLKey, reason: "invalid URL"}
 	}
 	if u.User != nil {

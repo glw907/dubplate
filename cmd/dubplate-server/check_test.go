@@ -31,10 +31,10 @@ func baseEnviron() []string {
 // to succeed needs this, rather than baseEnviron alone, because rung 5
 // registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (auth.go).
 // DUBPLATE_ROSTER_FILE names a valid, empty roster written into
-// t.TempDir(), because config.Load opens that file and reports a
-// missing one as a failure; doctor additionally fails an empty roster
-// for naming no admin, so a test that needs doctor to pass the roster
-// row uses doctorEnviron's roster of one admin instead.
+// t.TempDir(). config.Load itself never opens it; serve and doctor do,
+// both through auth.OpenRoster, and doctor additionally fails an empty
+// roster for naming no admin, so a test that needs doctor to pass the
+// roster row uses doctorEnviron's roster of one admin instead.
 func authEnviron(t *testing.T) []string {
 	t.Helper()
 	rosterPath := filepath.Join(t.TempDir(), "roster.json")

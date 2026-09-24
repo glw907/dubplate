@@ -65,6 +65,15 @@ type NonceStore struct {
 	// copy also answers for a record whose own carried value cannot
 	// be read.
 	retention time.Duration
+
+	// linkExpiryCeiling is the configured ceiling on the magic-link
+	// expiry, the longest a token minted under any configuration
+	// can outlive its own mint. mtimeFallback answers with
+	// max(retention, linkExpiryCeiling) rather than retention alone,
+	// so a record this store can neither read nor parse cannot be
+	// swept, and its nonce replayed, before every token that could
+	// have produced it has already expired.
+	linkExpiryCeiling time.Duration
 }
 
 // A NonceSweep reports one sweep's counts. Malformed counts the records
@@ -77,14 +86,16 @@ type NonceSweep struct {
 }
 
 // OpenNonceStore returns the consumed-nonce store under store's leaf,
-// with retention the resolved DUBPLATE_NONCE_RETENTION, and sweeps it
-// once at now before returning. The caller runs Sweep on an interval
-// thereafter; this package owns no timer.
-func OpenNonceStore(store *Store, retention time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
+// with retention the resolved DUBPLATE_NONCE_RETENTION and
+// linkExpiryCeiling the configured ceiling on the magic-link expiry
+// (m5), and sweeps it once at now before returning. The caller runs
+// Sweep on an interval thereafter; this package owns no timer.
+func OpenNonceStore(store *Store, retention, linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
-		store:     store,
-		dir:       store.subdir(nonceSubdir),
-		retention: retention,
+		store:             store,
+		dir:               store.subdir(nonceSubdir),
+		retention:         retention,
+		linkExpiryCeiling: linkExpiryCeiling,
 	}
 	sweep, err := s.Sweep(now)
 	if err != nil {
@@ -177,9 +188,9 @@ func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) e
 // between leaves a zero-length file whose token may still verify, and
 // deleting it on sight would make that token consumable a second time
 // for the rest of its expiry. Such a record is removed once its mtime
-// has passed the store's retention, which is the one filesystem
-// timestamp this store reads and is read only because the record's own
-// expiry is unavailable.
+// has passed max(the store's retention, its link-expiry ceiling), which
+// is the one filesystem timestamp this store reads and is read only
+// because the record's own expiry is unavailable.
 //
 // The one failure Sweep still fails closed on is the directory listing
 // itself: an unreadable store directory is a deployment defect this
@@ -260,14 +271,24 @@ func (s *NonceStore) recordExpiry(path string) (time.Time, error) {
 // mtimeFallback answers for a record recordExpiry could not resolve
 // from its own bytes, whether because it could not be read (an
 // unreadable mode, most often) or because it could not be parsed: both
-// take the same mtime-plus-retention answer, so an unreadable record
-// ages out of the store exactly as an unparseable one already does.
+// take the same mtime-plus-life answer, so an unreadable record ages
+// out of the store exactly as an unparseable one already does.
+//
+// The life added is max(s.retention, s.linkExpiryCeiling), not
+// s.retention alone (m5): a readable record's own life is at least
+// its token's expiry (Insert), and a token's expiry is at most the
+// configured link-expiry ceiling, so this bound keeps the fallback at
+// least as long-lived as any record the sweep could have read
+// instead. Without it, lowering DUBPLATE_NONCE_RETENTION and the link
+// expiry together, while a link minted under a longer retention is
+// still outstanding, could sweep its unreadable record and let the
+// link replay before the token it names has expired.
 func (s *NonceStore) mtimeFallback(path string) (time.Time, error) {
 	info, statErr := os.Stat(path)
 	if statErr != nil {
 		return time.Time{}, statErr
 	}
-	return info.ModTime().Add(s.retention), errNonceRecordUnparseable
+	return info.ModTime().Add(max(s.retention, s.linkExpiryCeiling)), errNonceRecordUnparseable
 }
 
 // nonceRecord renders a record at second granularity, which is the

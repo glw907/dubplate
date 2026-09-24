@@ -218,7 +218,7 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 	if err != nil {
 		return nil, nil, err
 	}
-	nonces, _, err := auth.OpenNonceStore(store, authCfg.nonceRetention, time.Now())
+	nonces, _, err := auth.OpenNonceStore(store, authCfg.nonceRetention, magicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		return nil, nil, err
 	}

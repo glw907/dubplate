@@ -161,7 +161,18 @@ func VerifyLink(current, previous []byte, value string, now time.Time) (LinkToke
 // someone else. prefix is the owned prefix's string form (serve.Prefix's
 // String), so the link lands on a path the shell routes to its own
 // handlers rather than to the fallthrough, whatever that slot holds.
+//
+// prefix must name a real subtree: an empty or "/" prefix would build
+// a link at the bare origin, which is outside the owned prefix and
+// falls through to whatever the shell mounts there (n2, the same
+// defect major 2 named). Today's only caller passes a
+// [serve.Prefix.String] value, which serve.NewPrefix already refuses
+// in both shapes, so this check exists for a future caller that skips
+// that construction.
 func LinkURL(publicOrigin, prefix, token string) (string, error) {
+	if prefix == "" || prefix == "/" {
+		return "", fmt.Errorf("magic link prefix: empty or root, must name a subtree")
+	}
 	u, err := url.Parse(publicOrigin)
 	if err != nil {
 		return "", fmt.Errorf("magic link origin: %w", err)

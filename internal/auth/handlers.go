@@ -164,14 +164,16 @@ type adminContact struct {
 	Address     string `json:"address"`
 }
 
-// requestLink runs a fixed order: cap the body, parse it, charge the
-// client's link-request limit, normalize the address, resolve it
+// requestLink runs a fixed order: charge the client's link-request
+// limit, cap the body and parse it, normalize the address, resolve it
 // against the roster, charge the address's limit for a known address
 // only, and only then spend mail. The client is charged before the
-// address is read, so an address that fails to normalize still costs
-// the client a request. An unknown address is never charged, so a
-// flood of made-up addresses cannot fill the per-address map and evict
-// a member's spent bucket.
+// body is even read, so an oversized or unparseable body, and an
+// address that fails to normalize, all still cost the client a
+// request, matching consumeLink's own order of charging its client
+// limit before its own readForm. An unknown address is never charged,
+// so a flood of made-up addresses cannot fill the per-address map and
+// evict a member's spent bucket.
 //
 // Under the kind answer a known address over its limit is refused with
 // 429, which tells the requester nothing the kind answer's unknown
@@ -189,12 +191,12 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	clientIP := h.cfg.ClientIP(r)
 	log := h.cfg.Logger.With("client_ip", clientIP)
 
-	if !h.readForm(w, r, log) {
-		return
-	}
 	if err := h.cfg.Limiter.allowLinkClient(now, clientIP); err != nil {
 		log.Warn("auth rate limit tripped", "reason", err.Error())
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
+		return
+	}
+	if !h.readForm(w, r, log) {
 		return
 	}
 	// The normalizer's error can quote its input, so it is dropped

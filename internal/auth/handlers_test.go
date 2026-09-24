@@ -218,7 +218,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(store, fixtureRetention, handlerNow)
+	nonces, _, err := OpenNonceStore(store, fixtureRetention, fixtureLinkExpiryCeiling, handlerNow)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -1146,4 +1146,30 @@ func TestRequestLink_GenericOverLimitAnswersAsUnknown(t *testing.T) {
 			t.Errorf("mail sent %d times, want 1 (the over-limit address is not mailed)", got)
 		}
 	})
+}
+
+// TestRequestLink_ClientChargedBeforeBodyParses holds n1: the
+// per-client limit is charged before the body is even read, so a body
+// that fails to parse still costs the client a request, matching
+// consumeLink's own AllowConsumption-before-readForm order. A request
+// with no Content-Type header fails ParseForm with an unsupported media
+// type, which readForm answers as malformed.
+func TestRequestLink_ClientChargedBeforeBodyParses(t *testing.T) {
+	limits := generousLimits
+	limits.LinkRequestsPerClient = 1
+	fx := newHandlerFixture(t, fixtureOptions{limits: limits})
+
+	// "%zz" is not a valid percent-escape, which url.ParseQuery (and so
+	// r.ParseForm) refuses.
+	bad := post("/login", peerIPPort, "address=%zz")
+
+	first := serveOne(fx.handlers.RequestLink, bad)
+	if got := outcomeOf(t, first); got != outcomeMalformed {
+		t.Fatalf("first request outcome = %q, want %q", got, outcomeMalformed)
+	}
+
+	second := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+	if got := outcomeOf(t, second); got != outcomeRateLimited {
+		t.Errorf("second request outcome = %q, want %q: the malformed body should already have charged the client's one token", got, outcomeRateLimited)
+	}
 }

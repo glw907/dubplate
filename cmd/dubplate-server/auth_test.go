@@ -300,13 +300,13 @@ func TestValidateMagicLinkSource_PublicURL(t *testing.T) {
 }
 
 // TestValidateMagicLinkSource_PublicURLNeverEchoesTheValue holds review
-// finding 10: a public URL carrying a password in its userinfo, and a
-// separately unparseable value that also carries a password, both
-// refuse without the password (or any other part of the value) ever
-// reaching the error text. url.Parse's own *url.Error formats the whole
-// URL it was given, so the unparseable row is the one that fails if
-// validatePublicURL ever wraps that error verbatim instead of reading
-// its inner Err alone.
+// finding 10 and its m2 residual: a public URL carrying a password in
+// its userinfo, an unparseable value that also carries a password, and
+// a password containing "/", "?" or "#" (each of which makes
+// url.Parse cut the authority early and misread "user:pass" as
+// "host:port", quoting the password up to that character in its own
+// *url.Error) all refuse without the password, or any other part of
+// the value, ever reaching the error text.
 func TestValidateMagicLinkSource_PublicURLNeverEchoesTheValue(t *testing.T) {
 	const password = "fixture-pass-not-real"
 
@@ -316,6 +316,9 @@ func TestValidateMagicLinkSource_PublicURLNeverEchoesTheValue(t *testing.T) {
 	}{
 		{"userinfo carries the password", "https://operator:" + password + "@dubplate.example.test"},
 		{"unparseable value also carries the password", "https://operator:" + password + "@dubplate.example.test:notaport"},
+		{"password contains a slash", "https://operator:" + password + "/notreal@dubplate.example.test"},
+		{"password contains a question mark", "https://operator:" + password + "?notreal@dubplate.example.test"},
+		{"password contains a hash", "https://operator:" + password + "#notreal@dubplate.example.test"},
 	}
 
 	for _, tt := range tests {
@@ -435,9 +438,10 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		environ []string
 		wantErr bool
 	}{
-		// A positive floor of one second on all four (review m5): zero
-		// or a negative duration cannot mean "never" or "immediately"
-		// here.
+		// A positive floor on all four (review m5): zero or a negative
+		// duration cannot mean "never" or "immediately" here. The link
+		// expiry's own floor is one minute; the other three keep the
+		// one-second floor.
 		{"link expiry at the one-minute floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1m"), false},
 		{"link expiry one second below the floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "59s"), true},
 		{"session lifetime at the one-second floor", bound("DUBPLATE_SESSION_LIFETIME", "1s"), false},
@@ -452,7 +456,7 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		// separate retention-vs-expiry relation cannot fire alongside
 		// it: retention's 1s floor can no longer stand alone once
 		// expiry's floor is a full minute above it.
-		{"nonce retention at the one-minute floor (matching expiry's own floor)", append(bound("DUBPLATE_NONCE_RETENTION", "1m"), "DUBPLATE_MAGIC_LINK_EXPIRY=1m"), false},
+		{"nonce retention at its own one-second floor, with the link expiry also at its one-minute floor", append(bound("DUBPLATE_NONCE_RETENTION", "1m"), "DUBPLATE_MAGIC_LINK_EXPIRY=1m"), false},
 		{"nonce retention one below the floor (zero)", bound("DUBPLATE_NONCE_RETENTION", "0s"), true},
 
 		// A ceiling of one hour on the link expiry (review m5): the
