@@ -23,9 +23,10 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Next action
 
-1. **Lane 2 runs 6a**, segment A (Tasks 1-3) in flight via pass-execute. Task 0 found no blockers
-   at `49160dd`; its notes 7 and 8 (`TestDoctorCmd`'s exact count, `baseEnviron`'s fixed
-   `/var/lib/dubplate`) go into Task 7's brief. Segment B follows the boundary STATUS.
+1. **Lane 2 runs 6a.** Segment A closed green (Tasks 1-3 accepted, `814a891`..`2d863cb`, one fix
+   round each on 1 and 2); spend about 1.66M with Task 0. Re-derived: segment B about 2.2M, the
+   simplifier round about 0.4M, segment C about 0.8M, so about 5.1M against the 5.44M flag and 6.8M
+   ceiling. Segment B (Tasks 4-7) in flight; Task 0's notes 7 and 8 ride Task 7's brief.
 2. **5c-ii's plan, revision 2.2** (`plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
    `a2f63bb`), reviewed by three lenses, verified, and prose-folded, awaits Geoff's seven rulings.
    Lane 1 opens on it once approved.
@@ -43,7 +44,7 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED at 5c-i's close; reopens on 5c-ii once its plan is approved |
-| 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; Task 0 (staleness) first, then segment A (Tasks 1-3) |
+| 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; segment A green at `2d863cb`, segment B (Tasks 4-7) in flight |
 
 ## Open items (carried)
 
