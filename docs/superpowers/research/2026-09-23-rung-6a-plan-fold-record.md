@@ -198,3 +198,34 @@ joins the serve mode, and the shared classification takes its place. The
 plan pre-names the split instead: serve mode moves to its own task if
 the implementer cannot land all four in one green gate. That split costs
 about 0.53M, which the flag's headroom covers.
+
+## Second fold
+
+The fresh-context verification read of revision 2
+(`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-verification.md`)
+found 0 blockers, 2 majors, and 7 minors. Each was checked against the
+plan text and its evidence before folding. The plan moves to revision 2.1.
+The fold adds no task, no deliverable, and no ceiling change.
+
+| ID | Severity | Disposition | Where and how |
+| --- | --- | --- | --- |
+| V1 | major | Folded | Confirmed: revision 2's ledger-completeness row and the "newer" row both matched a newer store. R-6a5 now decides "newer" on `user_version` alone, before the ledger is read, and runs the ledger rows only at or below the binary's head. Task 4 splits the check into a version check first and the ledger check second, and its "above M" row says no ledger row fires. Criterion 13's newer fixture and criterion 15's hot-WAL fixtures name their writes: older applies migration 2 through the runner on a sub-`fs.FS`; newer sets `user_version` to head+1 and inserts that version's ledger row. Task 6 mutation 11 (ledger read first) fails both newer rows. |
+| V2 | major | Folded | Confirmed: R-6a6 completed any zero-byte or header-only file with no condition, so the "yes" guard had a second door. Under yes, the `snapshots/` read now guards the completion too. Ruling 3's question, reason, and "what yes builds" are rewritten, and the text states the remaining gap (a lost database with no copy beside it is still created or completed empty). R-6a5's copy row covers absent, zero-byte, and header-only files, and the two interrupted-create rows require no copy. R-6a6 and Task 6's serve outcome carry the clause. Task 6's Ruling 3 criterion gains one row (a zero-byte database beside `snapshots/pre-migrate-v1.db`), and mutation 10 covers it. Owed erratum E11 broadens to match: under yes, serve refuses a create or a completion beside a copy. |
+| V3 | minor | Folded | R-6a5's foreign row reads "`application_id` 0 with any schema object or a nonzero `user_version`: not a store". |
+| V4 | minor | Folded | Task 2's DSN table lands the inspect class, marked as first used by Task 4's snapshot verification. Criterion 4's readback includes it. A probe (`scratchpad/6a-fold2-probe/`, modernc.org/sqlite v1.59.0) measured a `mode=ro&_busy_timeout=700&_query_only=1` open of a WAL file reading back `700`, `1`, and `wal`. |
+| V5 | minor | Folded | R-6a14 names the holders log interval at 5 s, with the first record emitted on the first failed poll. Task 6's serve outcome cites it. The value is a design choice, and no mechanism depends on it. |
+| V6 | minor | Folded | P2 was re-run: `base: [a#b%41?c d1.db] inner: [s.db]`, with the listing taken after the close. Both R-6a17 sentences now state what P2 shows: the database is at the exact path in WAL mode, and nothing appears at the truncated path `a`. |
+| V7 | minor | Folded | Verified in `/usr/include/linux/magic.h`: line 56 reads `#define AFS_FS_MAGIC 0x6B414653`, beside `AFS_SUPER_MAGIC` at line 7. Task 1's probe refuses both. The plan cites only the header, not the verifier's unprobed claim about which client reports which constant. Refusing a constant that no local type reports costs nothing. |
+| V8 | minor | Folded | The arithmetic is confirmed: 4.92M plus 0.53M is 5.45M, just past the 5.44M flag. The ceiling section, Task 6's pre-named split, and the "Where this pass splits" paragraph now say that either split reaches the flag and the conductor asks at that boundary under the 80% rule. Ruling 4's "no" is priced the same way. Both splits together project 5.98M, under the 6.8M ceiling, so the ceiling does not change. This corrects the "Ceiling change" section above, which said the flag's headroom covers the split. |
+| V9 | minor | Folded | Task 6's order stats the leaf's four names. Serve runs Task 1's idempotent create whenever the leaf or any name is missing, after the owner check, under the state-directory owner rule, and before the lock is taken. |
+
+**Corrected Ruling 3, in one line:** under yes, serve holding the
+exclusive lock reads `snapshots/` before it creates a store or completes
+an interrupted create (a zero-byte database with no `-wal`, or a
+header-only unmarked one), and with any `pre-migrate-v<N>.db` or
+`pre-restore-*.db` there it refuses naming the newest copy and `restore
+--from-file`, leaving the file unchanged, while inspect reports "refused";
+a lost database with no copy beside it is still created or completed
+empty.
+
+**Ceiling change:** none. The ceiling stays 6.8M and the flag 5.44M.

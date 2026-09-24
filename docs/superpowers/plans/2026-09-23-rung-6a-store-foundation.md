@@ -1,10 +1,14 @@
 # Rung 6, Pass 6a (The Store Foundation) Implementation Plan
 
-Status: **revision 2, 2026-09-23, review folded; awaiting approval.**
+Status: **revision 2.1, 2026-09-23, review folded and verified; awaiting approval.**
 Revision 1 (`11f11c2`) took three lens reviews (contract, mechanics, and
 risk). Their folds, refusals, and owner forks are recorded in
-`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`. Four
-rulings for Geoff are open ("Rulings for Geoff").
+`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`.
+Revision 2 (`1d69ab8`) took a fresh-context verification read
+(`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-verification.md`,
+V1 to V9); revision 2.1 folds it, and the fold record's "Second fold"
+section gives one disposition per finding. Four rulings for Geoff are
+open ("Rulings for Geoff").
 
 Sources: the ratified rung 6 spec
 (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
@@ -82,19 +86,28 @@ exit 0 for absent, older, and current (R-6a12). No makes every state but
 "current" a nonzero exit, and 5d's exit gate then needs a pre-created
 store, which only `serve` may create.
 
-**3. Does `serve` refuse to create a store when the leaf holds no
-database but `snapshots/` holds a copy?** Recommendation: yes. Reason:
-serve decides "create" from the database file's absence, so a database
-lost to a hand deletion, a mistaken `mv`, or a disk repair would be
-replaced by an empty catalog without a word, and after 6b-i the next
-backup would upload that empty store as the latest. The check costs one
-directory read in serve's step 3 and one inspect branch. What each answer
-builds: yes makes serve create only when no database file exists and
-`snapshots/` holds no `pre-migrate-v<N>.db` or `pre-restore-*.db`; with a
-copy present, serve refuses naming the newest copy and `restore
---from-file`, and inspect reports "refused" with the same text, which
-exits nonzero under Ruling 2 (R-6a5). No keeps revision 1's rule: serve
-creates whenever the database file is absent. A third option, an explicit
+**3. Does `serve` refuse to create or complete a store when
+`snapshots/` holds a copy and the database is absent or an interrupted
+create?** Recommendation: yes. Reason: serve creates a store when the
+database file is absent, and completes one when the file is zero bytes
+with no `-wal` or header-only and unmarked (R-6a6). A database lost to a
+hand deletion, a mistaken `mv`, a failed copy, a `: > store.db`, or a
+disk repair meets one of those rows, and would be replaced by an empty
+catalog without a word; after 6b-i the next backup would upload that
+empty store as the latest. The check costs one directory read in serve's
+step 3 and one inspect branch. A genuine first create or interrupted
+create never meets a copy, because a store at version 0 takes no
+snapshot (R-6a11), so the check costs a fresh install nothing. What each
+answer builds: yes makes serve, holding the exclusive lock, read
+`snapshots/` before it creates a store or completes an interrupted
+create; with a `pre-migrate-v<N>.db` or `pre-restore-*.db` present, serve
+refuses naming the newest copy and `restore --from-file`, leaves the
+database file as it found it, and inspect reports "refused" with the same
+text, which exits nonzero under Ruling 2 (R-6a5). With no copy present, a
+lost database is still created or completed empty; the guard covers only
+a leaf that kept a copy. No keeps revision 1's rule: serve creates
+whenever the database file is absent and completes every interrupted
+create. A third option, an explicit
 `serve --create-store` for any create after the first, is not
 recommended, because it adds an attended step to every fresh install.
 
@@ -111,7 +124,9 @@ behavior, pins it with a test, and adds no mechanism. No makes the write
 method pin a `*sql.Conn` and set `PRAGMA busy_timeout` to the smaller of
 the time left and the configured value before each `BEGIN IMMEDIATE`,
 which adds a statement per write and hand-manages the pool's one
-connection; Task 3 then carries a fifth deliverable and splits.
+connection; Task 3 then carries a fifth deliverable and splits. That
+split costs about 0.53M and brings the projection to 5.45M, at Ruling
+1's flag, so the conductor asks at that boundary under the 80% rule.
 
 ### Spec deviations that take effect on approval
 
@@ -217,7 +232,11 @@ actual against the rung and outside this ceiling.
 
 A ceiling of **6.8M** puts the 80% flag at **5.44M**, 0.52M above the
 projection, about one task at the measured rate, so the flag marks a real
-overrun rather than firing on plan. The spec's table row reads 5.5M,
+overrun rather than firing on plan. Either pre-named task split (Task 6's
+serve mode, or Task 3's under Ruling 4's no) adds about 0.53M and brings
+the projection to 5.45M, just past the flag, so the conductor asks at
+that boundary under the 80% rule rather than absorbing it. Both splits
+together project 5.98M, still under the ceiling. The spec's table row reads 5.5M,
 which is 0.95M of planning plus a 4.55M execution figure at 0.46M per
 task; the 0.46M rate subtracts planning and Task 0 that 5b-ii's recorded
 actual already amortizes. Re-derive at the segment A boundary from Tasks
@@ -444,14 +463,14 @@ open gives:**
 | Leaf or file | Report |
 | --- | --- |
 | no leaf, or a leaf (with or without `store.lock`, `db/`, `snapshots/`, or `staging/`) holding no database file and no copy in `snapshots/` | absent (inspect, which creates nothing, the lock file included); refused naming "start serve first" (write); created, or the leaf completed and then created (serve) |
-| a leaf with no database file beside a `pre-migrate-v<N>.db` or `pre-restore-*.db` | Ruling 3: under yes, refused in every mode, naming the newest copy and `restore --from-file`; under no, as the row above |
+| a leaf whose database file is absent, zero bytes with no `-wal`, or header-only and unmarked, beside a `pre-migrate-v<N>.db` or `pre-restore-*.db` in `snapshots/` | Ruling 3: under yes, refused in every mode, naming the newest copy and `restore --from-file`, with the database file unchanged; under no, as the row for the file's own state |
 | a leaf missing `store.lock` while a database file exists | not a store, naming the missing lock file and "start serve to finish creating it" (inspect and write, which read nothing without the lock and never create the lock file); completed under the exclusive lock (serve) |
-| zero bytes, no `-wal` | not a store, naming "start serve to finish creating it" (inspect and write); an interrupted create that serve completes (R-6a6) |
+| zero bytes, no `-wal`, and no copy in `snapshots/` (Ruling 3) | not a store, naming "start serve to finish creating it" (inspect and write); an interrupted create that serve completes (R-6a6) |
 | zero bytes with a `-wal` beside it | not a store, naming both files; no mode truncates or removes either |
-| any size, `application_id` 0, `user_version` 0, and no schema object | an interrupted create: not a store, naming "start serve to finish creating it" (inspect and write); completed by serve (R-6a6) |
+| any size, `application_id` 0, `user_version` 0, no schema object, and no copy in `snapshots/` (Ruling 3) | an interrupted create: not a store, naming "start serve to finish creating it" (inspect and write); completed by serve (R-6a6) |
 | SQLite answers `SQLITE_NOTADB` (code 26) | not a store, naming the path |
 | a SQLite database whose `application_id` is neither 0 nor dubplate's | not a store, naming the path and the foreign id |
-| `application_id` 0 and a schema with any object | not a store (a foreign database never marked, whatever its `user_version`) |
+| `application_id` 0 with any schema object or a nonzero `user_version` | not a store (a foreign database never marked) |
 | present, but `os.Stat` fails with anything but not-exist, or the open or first read fails with any code but 26 (14 on a present file, 8, 10, 11) | refused, naming the path and the error |
 | marked, and the ledger table is missing | refused, naming the path |
 | marked, `user_version` below the binary's highest | older, naming each pending migration file |
@@ -459,6 +478,14 @@ open gives:**
 | marked, current, ledger agrees | current |
 | marked, a ledger row whose name or hash differs from the binary's file | refused, naming both |
 | marked, a version at or below `user_version` with no ledger row, or a ledger row above `user_version` | refused, naming the version and `user_version` |
+
+**"Newer" is decided on `user_version` alone, before the ledger is
+read.** A marked store whose `user_version` is above the binary's highest
+reports newer, naming both versions, whatever its ledger holds, because
+the binary cannot judge versions above its head: a newer binary leaves
+ledger rows for versions this binary has no file for, and those rows are
+expected, not a disagreement. The ledger rows of this table run only when
+`user_version` is at or below the binary's highest.
 
 The inspect report's closed state set holds every row: absent, restore in
 progress, busy, not a store, refused, older, newer, current. A ledger
@@ -488,7 +515,9 @@ applies every migration from version 0, with no snapshot, since the store
 is empty. The revision 1 probe measured that SQLite creates a WAL
 database inside a pre-created empty 0600 file and gives `-wal` and `-shm`
 the same 0600. The inspect and write modes report either as "not a
-store" with the fix. A foreign SQLite file that is also empty and
+store" with the fix. Under Ruling 3's yes, serve first reads `snapshots/`,
+and a copy there makes either file "refused" in every mode rather than a
+create to complete. A foreign SQLite file that is also empty and
 unmarked is indistinguishable from a header-only create, and serve adopts
 it; nothing is lost, because it holds nothing.
 
@@ -645,6 +674,11 @@ lands there.
 - **The lock poll interval**: 50 ms, the interval every bounded lock wait
   polls `LOCK_NB` at (the salvage lock package's shape, adopted in
   reasoning, as 5c-i did).
+- **The holders log interval**: 5 s. A bounded lock wait that logs its
+  holders (serve mode's shared and exclusive waits, Task 6) emits the
+  first holders record on its first failed poll, then one record every
+  5 s until the wait ends. The first record needs no interval to pass, so
+  a test ordered on it waits one poll, not 5 s.
 
 ### R-6a15: every migration ships with a populated fixture
 
@@ -679,13 +713,15 @@ Path: p}).String()` followed by `?` and the class's keys. The fold probe
 (P2) measured it: under a directory named `a#b%41?c` it produced
 `file:///.../a%23b%2541%3Fc/s.db?mode=rw&_journal_mode=WAL&_busy_timeout=500`,
 the exec succeeded, `busy_timeout` read back 500, `journal_mode` read
-`wal`, and the only entry beside the directory was the directory itself.
+`wal`, the database was at the exact path (`a#b%41?c/s.db`), and no
+entry appeared at a truncated path (`a`) beside the directory.
 
 Every writing class (write pool, read pool, maintenance) carries
 `mode=rw`, and the inspect class carries `mode=ro`. The fold probe (P3)
 measured `mode=rw` on an absent file returning `unable to open database
 file (14)` and creating nothing, and (P2) `mode=rw` on a pre-created
-empty file converting it to WAL and creating `-wal` beside it. So the
+empty file opening it at that exact path in WAL mode (`journal_mode`
+read `wal`). So the
 serve mode's create, which pre-creates the file first, needs no DSN that
 can create, and a missing `os.Stat` check can no longer turn an open into
 a create. The snapshot's verification open uses the inspect DSN.
@@ -893,7 +929,9 @@ every later task opens through it.
   `FUSE_SUPER_MAGIC 0x65735546` warns; every other type opens. Three more
   multi-host types refuse on the same ground, beyond the spec's list:
   `SMB_SUPER_MAGIC 0x517B` (the retired smbfs), `CEPH_SUPER_MAGIC
-  0x00c36400`, and `AFS_SUPER_MAGIC 0x5346414F`. The probe measured
+  0x00c36400`, `AFS_SUPER_MAGIC 0x5346414F`, and `AFS_FS_MAGIC
+  0x6B414653` (`magic.h` line 56, the second AFS constant it defines;
+  line 7 carries the first). The probe measured
   `tmpfs` (`0x1021994`) and `btrfs` (`0x9123683e`) on this workstation,
   so tests on `t.TempDir()` must open.
 
@@ -1020,7 +1058,7 @@ the driver's `*sqlite.Error` code.
   | write pool (`SetMaxOpenConns(1)`) | `mode=rw`, `_busy_timeout`, `_foreign_keys=1`, `_journal_mode=WAL`, `_synchronous=FULL`, `_txlock=immediate`, `_pragma=journal_size_limit(<bound>)` |
   | read pool | the same without `_txlock`, plus `_query_only=1` |
   | maintenance (its own `*sql.DB`, one connection, closed after use) | `mode=rw`, `_busy_timeout`, `_foreign_keys=1`, `_synchronous=FULL`, `_txlock=immediate`, `_pragma=journal_size_limit(<bound>)` |
-  | inspect (Task 6) | `mode=ro`, `_busy_timeout`, `_query_only=1` |
+  | inspect (first used by Task 4's snapshot verification, then Task 6) | `mode=ro`, `_busy_timeout`, `_query_only=1` |
 
   The maintenance class carries `_txlock=immediate` because `newTx`
   issues a plain `begin` when the begin mode is empty (quoted below); the
@@ -1078,7 +1116,10 @@ the driver's `*sqlite.Error` code.
 - Spec criterion 4: every setting (journal mode, foreign keys,
   synchronous, busy timeout, `journal_size_limit`, `query_only`) reads
   back on a freshly opened connection of each class, the maintenance
-  connection included. **Fixture state:** each read pool connection is
+  connection included. The inspect class reads back its busy timeout and
+  `query_only` 1, the only keys it sets; a verification probe
+  (`6a-fold2-probe/`) measured a `mode=ro&_busy_timeout=700&_query_only=1`
+  open of a WAL file reading back `700`, `1`, and `wal`. **Fixture state:** each read pool connection is
   forced fresh (the test holds one connection with `DB.Conn` and opens a
   second, so the second is new), because a reused connection would pass
   on settings a single `PRAGMA` set once. The probe's readback on write
@@ -1315,12 +1356,14 @@ now and by 6b-i's backup later; a free-space check.
   `*sql.Tx` returning nil and persisting both tables). Migration files
   carry no `COMMIT`, `END`, `ROLLBACK`, `SAVEPOINT`, `RELEASE`, `VACUUM`,
   or `ATTACH`; the diff-reviewer checks each new file for them.
-- **The ledger check** runs before any apply: every ledger row's name and
+- **The version check runs first, before the ledger is read** (R-6a5):
+  a `user_version` higher than the binary's highest is refused naming
+  both versions ("laptop ahead," CH:165-168), whatever the ledger holds.
+- **The ledger check** runs next, only when `user_version` is at or below
+  the binary's highest, and before any apply: every ledger row's name and
   hash must equal the binary's file at that version, every version from 1
   through `user_version` must have a row, and no row may sit above
-  `user_version`, or the runner refuses naming both sides. A version
-  higher than the binary's highest is refused naming both versions
-  ("laptop ahead," CH:165-168).
+  `user_version`, or the runner refuses naming both sides.
 - **The snapshot** (R-6a11) runs before the first pending file of a
   non-empty store: free-space check, pre-create `staging/pre-migrate-vN.db`
   at 0600 (Task 1), `VACUUM INTO ?` on the maintenance connection with
@@ -1383,7 +1426,7 @@ now and by 6b-i's backup later; a free-space check.
 | Version | 0 (empty) | apply all, no snapshot |
 | Version | N below M | snapshot, then apply N+1 through M |
 | Version | equal | nothing applies |
-| Version | above M | refused, naming both |
+| Version | above M | refused, naming both; decided before the ledger is read, so no ledger row fires |
 | Free space | enough | proceed |
 | Free space | short | refused, naming the need, the free bytes, and the path |
 | Snapshot | copy fails `integrity_check`, or reads a version other than N or no marker | refused, copy removed from staging, store at N |
@@ -1655,9 +1698,12 @@ directions).
 
 **Outcomes:**
 
-- **Every mode's order**: stat the leaf (absent: inspect reports absent,
-  write refuses, serve runs Task 1's idempotent leaf create); owner check;
-  filesystem probe; check for `restore-intent` (R-6a7); take the lock in
+- **Every mode's order**: stat the leaf and its four names (`store.lock`,
+  `db/`, `snapshots/`, `staging/`); an absent leaf makes inspect report
+  absent and write refuse; owner check; serve then runs Task 1's
+  idempotent leaf create whenever the leaf or any of the four names is
+  missing, under Task 1's state-directory owner rule, so a present but
+  partial leaf is completed before the lock is taken; filesystem probe; check for `restore-intent` (R-6a7); take the lock in
   its mode (inspect and write open `store.lock` without `O_CREATE`);
   classify (R-6a5); open the mode's DSN.
 - **The classification is one function every mode shares** (R-6a5). It
@@ -1688,7 +1734,8 @@ directions).
 - **Serve mode** follows the spec's four-step procedure (`:344-358`):
   shared, classify, and open; if not current, close every connection,
   release, take exclusive bounded by the migration wait (logging holders
-  at an interval through a `*slog.Logger` parameter); holding exclusive,
+  through a `*slog.Logger` parameter on the first failed poll, then at
+  R-6a14's holders log interval); holding exclusive,
   re-stat and re-classify, remove staging leftovers when no intent record
   exists (R-6a7), then create, complete an interrupted create (R-6a6), or
   migrate; close every connection, convert to shared, and return to step
@@ -1699,8 +1746,9 @@ directions).
   bounded by the same migration wait and logs the holders the same way,
   so a restore holding the exclusive lock never hangs serve silently. A
   create pre-creates the database at 0600 (Task 1) and applies every
-  migration from version 0. Under Ruling 3's yes, a create first reads
-  `snapshots/` and refuses beside a copy.
+  migration from version 0. Under Ruling 3's yes, a create and the
+  completion of an interrupted create each first read `snapshots/` and
+  refuse beside a copy.
 
 **States each check meets, and its report:** the R-6a5 table, plus:
 
@@ -1721,8 +1769,10 @@ directions).
   naming "start serve first" and **the leaf is still absent afterward**;
   against an older store (the embedded set's first two migrations
   applied, through the runner on a sub-`fs.FS`) refuses naming both
-  versions; a newer store (`user_version` set past the head by a raw
-  connection) is refused. A foreign SQLite database with its own
+  versions; a newer store is refused naming both versions. **Newer
+  fixture's write:** a raw connection sets `user_version` to head+1 and
+  inserts that version's ledger row, as a newer binary would, so a
+  ledger-first classification reports "refused" and fails the row. A foreign SQLite database with its own
   `application_id`, and a foreign rollback-journal database with
   `user_version` set and no `application_id`, are each refused as not a
   store by write and serve modes with the file's bytes unchanged (hashed
@@ -1779,9 +1829,14 @@ directions).
   WAL** for the older and newer rows. After the store is built and
   closed, the test re-executes its own binary (`os.Args[0]` with
   `-test.run` naming a helper and an environment variable naming the
-  store); the child makes the write that decides the state (the version
-  change) with `wal_autocheckpoint(0)` and exits through `os.Exit`
-  without a close, so the `-wal` holds that frame. The test hashes the
+  store); the child makes the write that decides the state with
+  `wal_autocheckpoint(0)` on its connection and exits through `os.Exit`
+  without a close, so the `-wal` holds that frame. **Older:** the store
+  is built at version 1, and the child applies migration 2 through the
+  runner on a sub-`fs.FS` holding the first two files, leaving the store
+  at 2 with its ledger complete. **Newer:** the store is built at the
+  head, and the child sets `user_version` to head+1 and inserts that
+  version's ledger row, as a newer binary would. The test hashes the
   main file with no handle open, runs inspect, and hashes again; the
   report's state proves inspect read through the WAL. Every other report
   state is produced once from a real fixture: restore in progress (an
@@ -1797,7 +1852,11 @@ directions).
 - Ruling 3's row: under yes, a leaf with no database file and a
   `snapshots/pre-migrate-v1.db` makes serve refuse naming that copy and
   `restore --from-file`, and inspect report "refused", with the listing
-  unchanged; under no, serve creates.
+  unchanged; under no, serve creates. A second row: under yes, a
+  zero-byte database with no `-wal` beside `snapshots/pre-migrate-v1.db`
+  makes serve refuse naming that copy and inspect report "refused", and
+  the database is still zero bytes afterward; under no, serve completes
+  it to current.
 - `bash scripts/check.sh` green.
 
 **Named mutations this task reports:**
@@ -1817,8 +1876,11 @@ directions).
 8. Classify through the write DSN → the foreign rollback-journal row's
    bytes change.
 9. Skip serve's staging cleanup → the leftover row refuses the snapshot.
-10. Under Ruling 3's yes, create without reading `snapshots/` → the
-    missing-database row creates an empty store.
+10. Under Ruling 3's yes, create or complete without reading
+    `snapshots/` → the missing-database row creates an empty store, and
+    the zero-byte-beside-copy row completes one.
+11. Read the ledger before deciding "newer" → criterion 13's and
+    criterion 15's newer rows report "refused" instead of newer.
 
 A reviewer-read row: detecting a zero-byte file by opening it, which
 R-6a4 forbids and no test observes.
@@ -2111,8 +2173,9 @@ then move together to the head of 6b-i, so the inspect mode never ships
 without its callers (R-6a2). Inside the pass, Task 6 carries a pre-named
 task split: its serve mode moves to its own task before Task 7 if the
 implementer reports that the four deliverables cannot land in one green
-gate. That split stays inside segment B and adds about 0.53M, which the
-flag's headroom covers.
+gate. That split stays inside segment B and adds about 0.53M, which
+brings the projection to 5.45M, just past the 5.44M flag, so the
+conductor asks at that boundary under the 80% rule ("Token ceiling").
 
 **Budget:** 6.8M execution (Ruling 1), flag 5.44M, planning recorded
 separately, STATUS at each boundary, spend scored at close against the
