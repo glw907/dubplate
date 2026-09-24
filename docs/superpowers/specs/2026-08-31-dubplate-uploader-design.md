@@ -53,6 +53,14 @@ degraded one** — iOS Safari has no folder selection at any version, so the
 page detects the platform and words the path accordingly; album grouping
 comes from the session, not from a directory the browser cannot supply.
 
+> Requirement, Geoff, 2026-09-23: the uploader accepts compressed albums in the
+> common archive formats, not ZIP alone. That includes `.zip`, `.tar.gz`, and
+> similar formats. Rung 7's plan settles the exact format list, weighing each
+> format by its prior art and its extraction safety: path traversal, links,
+> decompression bombs, and the validator's stream check. A `.tar.gz` has no
+> central directory, so the in-request ZIP check below does not carry over to it
+> unchanged.
+
 Per-file verdicts render as the stream checks run during upload, in
 `internal/reject` wording. The journey states are honest about every real
 outcome:
