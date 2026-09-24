@@ -2,72 +2,85 @@
 
 ## Current state
 
-The overnight window (`plans/2026-09-23-overnight-window.md`, 12M cap, ends 05:00 AKDT) is running.
+Rungs 1b, 3, 4, 8, and rung 5's 5a, 5b-i, 5b-ii, and **5c-i** are closed. 5c-i closed on master in
+the 2026-09-23 overnight window (HISTORY, top entry). Its seven tasks were accepted, and all eight
+exit-gate assertions pass. The security read found no critical and no major finding, and its minors
+are folded. The spend is about 5.8M against the 6.5M ceiling, which crossed the 5.2M flag. There were
+zero execution sittings. The window's document lanes applied the rung 6 errata (`b406f93`) and
+brought the **6a plan to revision 2.2** (`plans/2026-09-23-rung-6a-store-foundation.md`), which
+awaits approval. R4's exclusion denominator is still unread, and owed before rung 15.
 
-- **5c-i segments A and B are closed.** All tasks were accepted with every gate green:
-  - Task 1 at `36f528d`.
-  - Task 2 at `428665d`, `81cd77b`, and `49363bf`, after one fix round.
-  - Task 3 at `74919a6`.
-  - Task 4 at `16fd4c1`, `af6c06f`, and `55d0305`, after one fix round.
-  - Task 5 at `f4fe4a3` and `e8bd5f5`. Its second `fix` was a vacuous proof of named mutation 3.
-    The conductor ruled it as a test-only follow-up, "5f", at `4c80b5d`, instead of parking the lane.
-  - Task 6 at `730d3ce`.
-  - Task 7 at `4d54a85` and `537482e`, after one fix round.
-  - The spend was about 3.65M in subagents across segments A and B.
-- **Now running:** the simplifier round and the mail-copy register gate, then the pass-end security read.
-- **Task 1's named mutation M9 has no proving test**, as the plan expects. The reviewer verified it,
-  and the pass-end security read covers the stat-and-read order. M8 fires on the generic rows only.
-- **The rung 6 errata are applied** (`b406f93`). Row 9's `identity.go` half waits for 5c-i to merge.
-- **The 6a plan is at revision 2.2 and awaits Geoff's approval** (`plans/2026-09-23-rung-6a-store-foundation.md`, `e1fb273`).
-  - The review ran three lenses, a fold, a verification read, a narrow second fold, and a prose fold.
-    The record is `research/2026-09-23-rung-6a-plan-fold-record.md`.
-  - Four rulings, each recommended yes: the 6.8M ceiling, `doctor` and `check` exiting 0 only for a
-    store that is absent, older, or current, serve refusing a create beside a snapshot copy, and the
-    busy timeout alone bounding the cross-process wait.
-  - Eleven errata are owed to the rung 6 spec on approval.
-- R4's exclusion denominator is still unread, and owed before rung 15.
+## Morning question for Geoff (one combined question)
+
+1. **Approve the 6a plan and rule its four rulings.** Each is recommended yes:
+   - a 6.8M ceiling;
+   - `doctor` and `check` exit 0 only for a store that is absent, older, or current;
+   - serve refuses to create a store beside a snapshot copy;
+   - the busy timeout alone bounds the cross-process wait.
+
+   Eleven spec errata land on approval.
+2. **Accept 5c-i's flag crossing?** The pass came to about 5.8M against the 5.2M flag. The
+   security fold drove it (0 critical, 0 major, five minors folded). The conductor ran the close
+   within the ceiling rather than hold it for a sitting.
+3. **The principal-collision rule (m1).** Uniqueness now keys on the effective principal. A username
+   may equal another member's address only when that member has a username of its own. Should the
+   rule be stricter, with every address and username in one shared namespace? The recommendation is
+   no, because the current rule already guarantees that no two members share one principal.
+4. **Routed findings** (`research/2026-09-23-beets-2-14-and-disc-layout-findings.md`):
+   - **beets 2.14 fixes the "ft" pattern.** Bumping the pin moves the oracle mid-shadow, so this is a
+     `dependency-upgrade` decision.
+   - **Disc numbers in file names.** The default layout omits them, so multi-disc albums interleave
+     in one folder. This is an owner fork, and a fix is cheapest before rung 16.
 
 ## Next action
 
-1. Segment B's boundary: fold the simplifier and the register gate, then run the
-   `web-auth-security-reviewer` read and fold it.
-2. Segment C: the close.
-3. In the morning, Geoff approves 6a and rules its four rulings. Lane 2 then opens on 6a in a worktree.
+1. On Geoff's answers: open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1.
+   5c-ii opens with the admin gate and the roster API.
+2. The architecture cleanup pass joins the staged comment-cleanup task
+   (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-i: segments A and B closed, the boundary review is running |
-| 2 | worktree removed, branch deleted | CLOSED. The 6a plan (rev 2.2) awaits approval |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED at 5c-i's close; reopens on 5c-ii once its plan is approved |
+| 2 | worktree removed, branch deleted | CLOSED; reopens on 6a once Geoff approves it |
 
 ## Open items (carried)
 
-- No deploy until 5d: the env template selects `magic-link` without its nine required keys, so a
-  render would refuse every server verb; `newProductionRegistry` in `main.go` is a contested surface.
-- Carried to 5c: rename `ErrRosterAdminChannelForbidden` with the CLI admin grant; the atomic
-  last-admin lockout guard; the session-refresh call site; the magic-link mail copy; the rejoin
-  sentences (`CLAUDE.md:140`, `scripts/check.sh:5`, `Makefile:33`). Carried to 5d: the "`doctor`
-  exits 0" row (the 5d exit gate) after the bootstrap verb; `ReadWritePaths`; the template's nine
-  keys; the trusted-proxy setting with minors 9 and 14.
-- Configuration homes routes tasks into rungs 6, 7, 9, 12, 14, 16 and the 2.0 list. Seventy-nine
-  declared coverage gaps (six new at 5b-ii), none blocking. Fork B ruled FLAC-only for 1.0 (ROADMAP
-  `formats-1-1`); the group non-FLAC question is carried.
-- Staged gate legs (warn today): 313 process citations (a comment-cleanup task flips
-  `CHECK_CITATIONS=fail`); 134 exported-unused symbols (HISTORY's 5b-i process-changes note).
-- Leftovers: four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
-  response-status extension; `Case.Extra`; `slices.Clone` (rung 9); the corrupted untracked
-  2026-09-04 evidence doc; two review albums on the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed
-  units; `DUBPLATE_SITE_NAME` re-mint.
+- **No deploy until 5d.** The env template selects `magic-link` without its nine required keys.
+  `newProductionRegistry` in `main.go` is contested.
+- **Carried to 5c-ii:**
+  - the admin gate (R-5c12) and the roster API (R-5c13);
+  - the serve wiring and the `web/` tree;
+  - the rejoin sentences (`CLAUDE.md:140`, `scripts/check.sh:5`, `Makefile:33`);
+  - refusing invisible code points on the web write path (security n5).
+- **Carried to 5d:**
+  - the "`doctor` exits 0" row;
+  - `ReadWritePaths`;
+  - the template's nine keys;
+  - the trusted-proxy setting;
+  - the runbook row for running `member add` without secrets in argv;
+  - the runbook sentences on kind mode's enumeration bound and the mail-ceiling lockout lever.
+- **Carried to rung 12:** no principal may map a non-admin member onto a streamer admin account.
+  Navidrome v0.63.2 matches usernames case-insensitively.
+- **Carried to rung 6:** row 9's `identity.go` half of the errata (`Identity.UserID`), now unblocked.
+- **Carried to rung 7:** the uploader accepts `.zip`, `.tar.gz`, and similar archives
+  (uploader spec, `d74543d`).
+- **Coverage gaps and staged legs.** 86 declared coverage gaps, none blocking. The staged gate legs
+  warn today: 325 process citations and 128 exported-unused symbols. Configuration homes routes tasks
+  into rungs 6, 7, 9, 12, 14, 16 and the 2.0 list. Fork B ruled 1.0 FLAC-only, and the group non-FLAC
+  question is carried.
+- **Leftovers:** four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
+  `Case.Extra`; `slices.Clone` (rung 9); the corrupted untracked 2026-09-04 evidence doc; two review
+  albums on the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed units; `DUBPLATE_SITE_NAME` re-mint.
+- **Pinned (2026-08-30):**
+  - Navidrome `0.63.2`
+  - cloudflared `2026.8.2`
+  - beets `2.13.1`
+  - mediafile `0.17.0`
+  - unidecode `1.4.0`
+  - lap `0.5.13`
 
-## Pinned versions (looked up 2026-08-30)
-
-| Component | Image / package | Tag / version |
-|---|---|---|
-| Navidrome | `deluan/navidrome` | `0.63.2` |
-| cloudflared | `cloudflare/cloudflared` | `2026.8.2` |
-| beets (box, via uv) | PyPI `beets` | `2.13.1` |
-| mediafile (corpus manifest, 2d) | PyPI `mediafile` | `0.17.0` |
-| unidecode (matcher table, 3a) | PyPI `unidecode` | `1.4.0` |
-| lap (matcher tie mirroring, 3d) | PyPI `lap` | `0.5.13` |
-Spend: about 61.6M plus the 2026-09-12 window's 9.1M and 5b-ii's about 6.4M; 5b-i's overage sits on R23.
+  Spend: about 61.6M, plus 9.1M (the 2026-09-12 window), 6.4M (5b-ii), and about 8.3M for the
+  2026-09-23 window of the 12M cap.
