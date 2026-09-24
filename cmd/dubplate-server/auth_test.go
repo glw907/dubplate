@@ -456,7 +456,7 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		// separate retention-vs-expiry relation cannot fire alongside
 		// it: retention's 1s floor can no longer stand alone once
 		// expiry's floor is a full minute above it.
-		{"nonce retention at its own one-second floor, with the link expiry also at its one-minute floor", append(bound("DUBPLATE_NONCE_RETENTION", "1m"), "DUBPLATE_MAGIC_LINK_EXPIRY=1m"), false},
+		{"nonce retention equal to the link expiry at its one-minute floor (the retention-vs-expiry relation, not retention's 1s floor, sets the minimum)", append(bound("DUBPLATE_NONCE_RETENTION", "1m"), "DUBPLATE_MAGIC_LINK_EXPIRY=1m"), false},
 		{"nonce retention one below the floor (zero)", bound("DUBPLATE_NONCE_RETENTION", "0s"), true},
 
 		// A ceiling of one hour on the link expiry (review m5): the

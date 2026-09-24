@@ -1151,9 +1151,9 @@ func TestRequestLink_GenericOverLimitAnswersAsUnknown(t *testing.T) {
 // TestRequestLink_ClientChargedBeforeBodyParses holds n1: the
 // per-client limit is charged before the body is even read, so a body
 // that fails to parse still costs the client a request, matching
-// consumeLink's own AllowConsumption-before-readForm order. A request
-// with no Content-Type header fails ParseForm with an unsupported media
-// type, which readForm answers as malformed.
+// consumeLink's own AllowConsumption-before-readForm order. The body
+// carries an invalid percent-escape ("%zz"), which r.ParseForm
+// refuses, so readForm answers malformed.
 func TestRequestLink_ClientChargedBeforeBodyParses(t *testing.T) {
 	limits := generousLimits
 	limits.LinkRequestsPerClient = 1
