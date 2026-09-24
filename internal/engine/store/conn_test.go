@@ -197,33 +197,51 @@ func TestDSNEscapesSpecialPathChars(t *testing.T) {
 		})
 	}
 
-	// A writing class against an absent file at the same escaped
-	// directory returns SQLITE_CANTOPEN and creates nothing.
-	absentPath := filepath.Join(dir, "absent.db")
-	absentDB, err := sql.Open(sqliteDriverName, writeDSN(absentPath, 300*time.Millisecond))
-	if err != nil {
-		t.Fatalf("open absent: %v", err)
+	// Every class against an absent file at the same escaped directory
+	// returns SQLITE_CANTOPEN and creates nothing: the writing classes
+	// carry mode=rw and inspect carries mode=ro, and a DSN without
+	// either opens with SQLite's default read-write-create mode.
+	// Each class gets its own absent path, so a class that creates
+	// its file fails its own row and no other.
+	absent := []struct {
+		name string
+		dsn  func(path string, busy time.Duration) string
+	}{
+		{"write", writeDSN},
+		{"read", readDSN},
+		{"maintenance", maintenanceDSN},
+		{"inspect", inspectDSN},
 	}
-	t.Cleanup(func() { _ = absentDB.Close() })
+	for _, class := range absent {
+		t.Run(class.name+" on an absent file", func(t *testing.T) {
+			absentPath := filepath.Join(dir, "absent-"+class.name+".db")
+			db, err := sql.Open(sqliteDriverName, class.dsn(absentPath, busy))
+			if err != nil {
+				t.Fatalf("open absent: %v", err)
+			}
+			t.Cleanup(func() { _ = db.Close() })
 
-	before, err := os.ReadDir(dir)
-	if err != nil {
-		t.Fatalf("read dir before: %v", err)
-	}
-	_, err = absentDB.Exec(`CREATE TABLE t (id INTEGER)`)
-	if err == nil {
-		t.Fatal("write against an absent file: got nil error, want SQLITE_CANTOPEN (14)")
-	}
-	var se *sqlite.Error
-	if !errors.As(err, &se) || se.Code() != 14 {
-		t.Errorf("write against an absent file: err = %v, want a *sqlite.Error with code 14", err)
-	}
-	after, err := os.ReadDir(dir)
-	if err != nil {
-		t.Fatalf("read dir after: %v", err)
-	}
-	if len(after) != len(before) {
-		t.Errorf("directory listing changed after the absent-file write attempt: before %v, after %v", before, after)
+			before, err := os.ReadDir(dir)
+			if err != nil {
+				t.Fatalf("read dir before: %v", err)
+			}
+			var version int
+			err = db.QueryRow("PRAGMA user_version").Scan(&version)
+			if err == nil {
+				t.Fatal("read against an absent file: got nil error, want SQLITE_CANTOPEN (14)")
+			}
+			var se *sqlite.Error
+			if !errors.As(err, &se) || se.Code() != 14 {
+				t.Errorf("read against an absent file: err = %v, want a *sqlite.Error with code 14", err)
+			}
+			after, err := os.ReadDir(dir)
+			if err != nil {
+				t.Fatalf("read dir after: %v", err)
+			}
+			if len(after) != len(before) {
+				t.Errorf("directory listing changed after the absent-file open: before %v, after %v", before, after)
+			}
+		})
 	}
 }
 
