@@ -457,6 +457,12 @@ that silently corrupt:
   equal the on-disk layout before anything writes. A one-character
   difference from `config/beets-config.yaml`'s query-prefixed path
   formats re-lays-out the entire library on the first post-swap run.
+  (Erratum 2026-09-24: the no-move assertion is measured against the
+  disc-aware layout, not the interim beets default, which puts no disc
+  number in file names. The one-time re-layout of multi-disc albums
+  happens before or at the rung 16 swap, the cheapest point. Rung 16
+  owns the move, and the configuration homes spec's default template
+  owns the shape. Source: Geoff's ruling, 2026-09-24 morning question.)
 
 ### Rollback
 

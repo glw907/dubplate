@@ -156,6 +156,16 @@ server. The launch gate has four parts, and all four hold at once:
    > question to Geoff before rung 16, with grandfathered roots as the
    > alternative.
 
+   > Erratum, 2026-09-24 (Geoff's ruling, 2026-09-24 morning question): parity
+   > is measured against the disc-aware layout, not the interim beets
+   > default. That default puts no disc number in file names, so a
+   > multi-disc album's tracks interleave in one folder and can collide.
+   > The configuration homes spec's default template renders the disc
+   > number for multi-disc albums, and it owns the exact shape. The
+   > one-time re-layout of multi-disc albums happens before or at the
+   > rung 16 swap, the cheapest point. Rung 16 owns that move. The
+   > organizer spec's no-move assertion is read the same way.
+
 There is no partial launch and no beets fallback inside the new
 server. If the matcher cannot clear the bar, the honest outcome is
 that the launch waits: the interim estate keeps serving Geoff's own
@@ -177,6 +187,18 @@ and not about truth, and the corpus machinery below separates the
 two. Everything else the server does is comparatively well-understood
 engineering; the evidence track is where the initiative's uncertainty
 lives, and the ladder prices it that way.
+
+> Erratum, 2026-09-24 (Geoff's ruling, 2026-09-24 morning question): the conformance oracle's pin moves
+> from beets 2.13.1 to the 2.14 line. beets v2.14.0 (2026-09-07)
+> released the fix (upstream `19d091440`) that stops ordinary words
+> such as "draft" from matching the featuring pattern. With the bump,
+> the oracle agrees with that fix, and the ft-pattern entry leaves the
+> known-oracle-bug ledger. Geoff accepts that the oracle moves during
+> the shadow run. The bump is owed through the `dependency-upgrade`
+> skill: a changelog survey of 2.14.0 and 2.14.1 for other
+> matcher-affecting changes, a corpus re-derivation, and
+> `BEETS_VERSION` in `scripts/deploy.sh`. Until it lands, 2.13.1
+> stays the pin.
 
 Improving on beets is in scope, on one discipline (Geoff,
 2026-09-02): improvements never ride the port. The port proves the
@@ -806,6 +828,10 @@ are marked [E].
     snapshots as the alternative source). A non-empty diff here is a
     rung 9 defect found cheap; the same assertion re-runs at rung 16
     as a gate, not a discovery.
+
+    > Erratum, 2026-09-24: the no-move diff compares against the
+    > disc-aware layout; see the launch bar's layout-parity erratum.
+
 11. **Built-ins and lifecycle hooks** (M). The built-in set
     re-derived against the plugin survey and the estate's real
     config, under the fixed policies: scrapers refused,
@@ -873,6 +899,11 @@ are marked [E].
     organizer's rollback shape. One attended gate: Geoff verifies
     login, upload, and player on his devices in a single sitting. On
     his yes, the group launch.
+
+    > Erratum, 2026-09-24: this rung also performs the one-time
+    > re-layout of multi-disc albums to the disc-aware layout, before
+    > or at the swap; see the launch bar's layout-parity erratum.
+
 17. **Launch close-out** (S, after the deprecation window). The
     interim estate's remnants and `_salvage/` retire, the beets
     deprecation window closes, ROADMAP and the organizer spec
