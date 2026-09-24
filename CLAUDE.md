@@ -105,6 +105,15 @@ each privileged field names every channel that may set it; and each
 proof names the fixture state it needs (selected, populated) so the test
 cannot pass vacuously. The plan-review lenses check these four.
 
+**Findings are ranked, and a fold may refuse (conductor, 2026-09-23).**
+Anthropic's Claude Code guidance warns that "a reviewer prompted to find
+gaps will usually report some, even when the work is sound" and that
+"chasing every finding leads to over-engineering"; the rung 6 spec folded
+about 200 findings with none refused. Every reviewer dispatch asks for
+correctness gaps ranked by consequence, not polish, and every fold
+dispatch may refuse a finding whose fix costs more than the risk it
+removes, with a one-line reason in the fold record.
+
 **Expected owner touchpoints, and only these:** rung-spec rulings
 (known ahead: rung 9's concurrency model), corpus and shadow
 adjudication batches (small and regular; an unadjudicated divergence
