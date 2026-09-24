@@ -4,14 +4,17 @@
 
 The overnight window (`plans/2026-09-23-overnight-window.md`, 12M cap, ends 05:00 AKDT) is running.
 
-- **5c-i segment A is closed.** All three tasks were accepted with every gate green:
+- **5c-i segments A and B are closed.** All tasks were accepted with every gate green:
   - Task 1 at `36f528d`.
   - Task 2 at `428665d`, `81cd77b`, and `49363bf`, after one fix round.
   - Task 3 at `74919a6`.
-  - The spend was about 1.29M in subagents for three tasks, under the 0.533M basis, so the 6.5M ceiling
-    stands.
-  - Task 0 returned LAUNCH (`research/2026-09-23-rung-5c-i-task-0-report.md`). Minor 6's refusal
-    (R-5c18) goes into the close's scope ledger.
+  - Task 4 at `16fd4c1`, `af6c06f`, and `55d0305`, after one fix round.
+  - Task 5 at `f4fe4a3` and `e8bd5f5`. Its second `fix` was a vacuous proof of named mutation 3.
+    The conductor ruled it as a test-only follow-up, "5f", at `4c80b5d`, instead of parking the lane.
+  - Task 6 at `730d3ce`.
+  - Task 7 at `4d54a85` and `537482e`, after one fix round.
+  - The spend was about 3.65M in subagents across segments A and B.
+- **Now running:** the simplifier round and the mail-copy register gate, then the pass-end security read.
 - **Task 1's named mutation M9 has no proving test**, as the plan expects. The reviewer verified it,
   and the pass-end security read covers the stat-and-read order. M8 fires on the generic rows only.
 - **The rung 6 errata are applied** (`b406f93`). Row 9's `identity.go` half waits for 5c-i to merge.
@@ -26,8 +29,8 @@ The overnight window (`plans/2026-09-23-overnight-window.md`, 12M cap, ends 05:0
 
 ## Next action
 
-1. Segment B: Tasks 4 to 7. Then the simplifier, the mail-copy register gate, and the pass-end
-   `web-auth-security-reviewer`.
+1. Segment B's boundary: fold the simplifier and the register gate, then run the
+   `web-auth-security-reviewer` read and fold it.
 2. Segment C: the close.
 3. In the morning, Geoff approves 6a and rules its four rulings. Lane 2 then opens on 6a in a worktree.
 
@@ -35,7 +38,7 @@ The overnight window (`plans/2026-09-23-overnight-window.md`, 12M cap, ends 05:0
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-i: segment A closed, segment B next |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-i: segments A and B closed, the boundary review is running |
 | 2 | worktree removed, branch deleted | CLOSED. The 6a plan (rev 2.2) awaits approval |
 
 ## Open items (carried)
