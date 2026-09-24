@@ -29,6 +29,8 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Next action
 
+0. The nine rung 5 spec corrections are in flight (HISTORY 5c-i entry, "The spec corrections this
+   pass owes"). They apply before 5c-ii's plan is drafted.
 1. On Geoff's answers: open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1.
    5c-ii opens with the admin gate and the roster API.
 2. The architecture cleanup pass joins the staged comment-cleanup task
@@ -48,14 +50,16 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 - To 5c-ii: the admin gate (R-5c12), the roster API (R-5c13), serve wiring, `web/`, the rejoin
   sentences (`CLAUDE.md:140`, `scripts/check.sh:5`, `Makefile:33`), security n5 on the web write path.
 - To 5d: the "`doctor` exits 0" row, `ReadWritePaths`, the nine keys, the trusted proxy, and the
-  runbook rows (secret-free `member add`, kind mode's enumeration bound, the mail-ceiling lever).
+  runbook rows (`member add` without secrets in argv, kind mode's enumeration bound, the mail-ceiling lever).
 - To rung 12: no principal maps a non-admin onto a streamer admin (Navidrome 0.63.2 matches names
-  case-insensitively). To rung 6: errata row 9's `identity.go` half. To rung 7: archive uploads.
+  case-insensitively). To rung 6: errata row 9's `identity.go` half. To rung 7: archive uploads (`d74543d`).
 - 86 declared coverage gaps, none blocking. Staged legs warn: 325 process citations, 128
   exported-unused. Fork B: 1.0 is FLAC-only; the group non-FLAC question is carried.
+  Configuration homes routes tasks into rungs 6, 7, 9, 12, 14, 16 and the 2.0 list.
 - Leftovers: four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
-  `Case.Extra`; `slices.Clone` (rung 9); the corrupted 2026-09-04 evidence doc; two review albums on
+  response-status extension; `Case.Extra`; `slices.Clone` (rung 9); the corrupted untracked 2026-09-04 evidence doc; two review albums on
   the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed units; `DUBPLATE_SITE_NAME` re-mint.
-- Pinned (2026-08-30): Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.13.1`, mediafile
-  `0.17.0`, unidecode `1.4.0`, lap `0.5.13`. Spend: about 61.6M plus 9.1M (2026-09-12 window),
-  6.4M (5b-ii), and about 8.3M (2026-09-23 window, 12M cap).
+- Pinned (2026-08-30): Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.13.1`, mediafile `0.17.0`,
+  unidecode `1.4.0`, lap `0.5.13`. Spend: about 61.6M plus 9.1M (2026-09-12 window),
+  6.4M (5b-ii), and about 8.3M (2026-09-23 window, 12M cap; conductor's sum of subagent tokens).
+  5b-i's overage still sits on R23.

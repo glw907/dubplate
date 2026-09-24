@@ -370,9 +370,6 @@ close.
   default rates. Both facts belong in the 5d runbook, not rediscovered
   from the limiter's source.
 
----
-
-*End of draft. Corrections above are drafted for the conductor's fold;
 none has been applied to `docs/HISTORY.md`, `docs/STATUS.md`, or the
 spec.*
 
@@ -386,13 +383,18 @@ spec.*
 - **Architecture reads.** All three packages graded workmanlike
   (`research/2026-09-24-rung-5c-i-architecture-reads.md`). The findings route to the
   architecture cleanup pass. Deleting `Identity.Valid` is refused, because the 5c-ii admin gate is
-  its planned caller. Deleting the seam and `EpochStore.Bump` gets weighed against their planned
+  its planned caller, and deleting `Channel.Valid` is refused on the same ground. Deleting the seam and `EpochStore.Bump` gets weighed against their planned
   callers. The false comment at `doctor.go:329-333` is owed to that pass.
 - **The window's document lanes** ran beside this pass. The rung 6 errata landed at `b406f93`, and
   row 9's `identity.go` half is now unblocked. The 6a plan reached revision 2.2 at `e1fb273` after the
   full `spec-plan-review` cycle.
-
-
+- **m1's rule.** S1 keys roster uniqueness on the effective principal, so no two members share one.
+  A username may equal another member's address only when that member has a username of its own.
+  The wider rule, one shared namespace for every address and username, is pending Geoff's ruling.
+- **The spec corrections.** The nine corrections in "The spec corrections this pass owes" were applied
+  after the fold. The commit that applies them is recorded in STATUS.
+- **Spend figures.** The spend figures are the conductor's own sums of the dispatches'
+  `subagent_tokens`. They exclude the conductor's own turns.
 
 ## Rung 5, pass 5b-ii (the roster, the mail seam, the rate limiters, the origin check, the auth handlers, the security fold): closed 2026-09-23, lane 1
 
