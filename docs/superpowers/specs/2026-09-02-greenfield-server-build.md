@@ -1,6 +1,6 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2.1, ratified 2026-09-02, with three errata.
+Status: revision 2.1, ratified 2026-09-02, with four errata.
 
 **Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
 `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
@@ -40,6 +40,22 @@ contract gains two pieces of metadata per key, its home (wall or store)
 and its apply mode (immediately, next operation, restart). (3) The
 out-of-scope entry for the web admin page is superseded: the 2.0 web
 surface gains an admin settings surface (2.0 spec, revision 2.2).
+
+**Erratum 2026-09-23 (rung 6 spec, `docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`,
+ratified; errata 1, 2, 3, 13, 14).** Five passages below are corrected. (1) Ladder entry 6's
+band is L, not M: the ops seam and store is five passes. (2) The box-safety section's claim
+that "rungs 1 through 3, 5 through 9, and 11 through 15 touch the box not at all" is false for
+rungs 5 and 6: both edit deploy files in this repo (systemd units, the env template), but
+neither rung's own execution touches the box; that deploy rides the next rung whose plan is
+ruled to actually converge it. (3) Ladder entry 6's backup mention is a single remote plus an
+on/off flag, with credentials read from rclone's own environment variables rendered from the
+age store, never Cloudflare R2 specifically. (4) Ladder entry 6's path note ("paths stored
+library-relative and byte-preserving from the first schema") is clarified: a track path is
+relative to its own collection's library-relative root, not to one shared library root. (5)
+Ladder entry 12 (streamer driver and SSO) gains the streamer's own database to the backup set
+it participates in; ladder entry 16 (launch cutover) declares the backup schedule key and
+renders the `RCLONE_CONFIG_*` template rows, superseding the R2-only backup language in both
+entries.
 
 **The config wall is registry contents, not a closed table.** After
 rung 1b, `internal/config.Load` takes the registry it enforces against

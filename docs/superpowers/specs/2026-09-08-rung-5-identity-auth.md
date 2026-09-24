@@ -199,6 +199,10 @@ file on a fresh deployment, and fork 1 changes that answer: the service
 writes the file, so `deploy.sh` pre-creates the directory it lives in
 and the CLI verb creates the file, and no deploy ever overwrites it.
 
+> Erratum, 2026-09-23 (rung 6 spec, erratum 8, ruling 1 yes): this pre-create retires at rung
+> 6d. Once `member import` moves the roster into the store, the roster leaf and its
+> directory are no longer needed and `deploy.sh` stops pre-creating them.
+
 **Fork 2: the mail transport.** Recommendation: authenticated SMTP
 submission, and only that. Five configured values, any provider. What it
 changes for an adopter: they need one mailbox and one app password, and
@@ -336,6 +340,11 @@ record deliberately keyed on an address, because the epoch must exist
 before any durable user id does. The re-key to rung 6's surrogate id is
 recorded here as rung 6's obligation, so rung 6 inherits it rather than
 discovering it. S20:367-369 is the constraint on the other side.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 10): the rung 6 spec settles this obligation as a
+> permanent dual-key read, not a one-time swap. Rung 6 reads the epoch by the normalized
+> address and by the surrogate `UserID`, and a revocation bumps both keys together, so a
+> record minted before the surrogate id existed and a record minted after it both resolve.
 
 **R5. The pending identity-source wall row retires into a real selector
 key.** *Ruled, conductor 2026-09-08, as applied.* `ownedWall` carries
@@ -536,7 +545,8 @@ cell (5,6) records that no document answers this and that answering it
 "no" is legitimate and worth writing down. The records are small,
 self-expiring, and needed before the store opens, so no migration is
 owed and rung 6 absorbs neither. The one change rung 6 makes is R4's
-re-key of the epoch.
+re-key of the epoch, permanent and dual-keyed rather than a one-time
+swap (erratum 2026-09-23, rung 6 spec, erratum 10).
 
 **R19. Rung 5 ships one font family and does not choose it for taste.**
 *Ruled, conductor 2026-09-08, as applied.* DL R5.2's license bar,
@@ -712,6 +722,11 @@ carry the user's valid-after epoch: a subscriber that is not running
 never learns of the event, a restart loses it, and a credential store
 minting a password afterwards has no way to read the epoch it must
 stamp. R4's re-key at rung 6 changes the key of both halves together.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 10): the re-key is permanent and dual-keyed (see
+> R4's erratum above), and the change notification's payload gains the surrogate `UserID`
+> alongside whatever it already carried, so a subscriber minting a password can stamp the
+> right epoch without a second lookup.
 
 **R36. Rung 5 authors one composed theme as data, not as a roster
 entry.** *Ruled, conductor 2026-09-08, as applied.* DL revision 2 ships
@@ -1158,6 +1173,12 @@ the verb is where a surrogate id would be minted, so rung 6 replaces one
 derivation on the read side and one on the write side, both inside the
 store.
 
+> Erratum, 2026-09-23 (rung 6 spec, erratum 9, spec half only): the surrogate id this passage
+> describes is named `Identity.UserID`; `Principal` stays the name for the streamer handle
+> (`streamer_username`), and the two are never conflated. The `internal/identity` code change
+> this naming implies is deferred to rung 6's own lane, since rung 5's `identity.go` is a
+> package this document does not edit.
+
 Email matching is case-insensitive on a normalized, length-capped,
 lowercased address, and the normalization happens before any keying, any
 logging, and any rate-limit lookup.
@@ -1554,6 +1575,10 @@ universality rule that no address lives outside `internal/config` is
 satisfied more strictly than before, since now no address lives in
 configuration at all.
 
+> Erratum, 2026-09-23 (rung 6 spec, erratum 8, ruling 1 yes): this key does not stay. Rung 6d's
+> `member import` moves the roster into the store, after which `DUBPLATE_ROSTER_FILE` is a
+> retired setting; the file becomes an import source only.
+
 Revision 1 declined the `Load` edit and rested on "the wall proves the
 selector is present". It does not. `Registry.AddWallRow`
 (`internal/config/registry.go:138-152`) claims the name and creates no
@@ -1687,7 +1712,8 @@ the address itself. An address local part may legally carry `/`, `.`,
 and `..`, so that is a path-traversal shape derived from admin-authored
 roster data, and it also writes the roster into cleartext filenames. The
 digest is what makes R4's re-key onto rung 6's surrogate id a change of
-one derivation rather than a rename of every record.
+one derivation rather than a rename of every record (permanent and
+dual-keyed; erratum 2026-09-23, rung 6 spec, erratum 10, see R4 above).
 
 The layout follows rung 4's store wholesale in shape: one package-level
 constant per leaf so each `ReadWritePaths` entry is a static path, one
@@ -1812,6 +1838,11 @@ itself at the roster's single resolution point (R3). It absorbs neither
 state record (R18). Its contract suite runs `httptest` against its own
 handler until rung 12 opens the shell again, which is the cost the
 dependency analysis already priced.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 10): the re-key obligation is a permanent
+> dual-key read on both the normalized address and the surrogate `UserID`, with a
+> revocation bumping both keys, not a one-time swap; R35's notification gains the
+> `UserID` in its payload.
 
 **Rung 7** adds files at the extension point, embeds its own bundle
 through the same static path, authors the theme roster, and owns the

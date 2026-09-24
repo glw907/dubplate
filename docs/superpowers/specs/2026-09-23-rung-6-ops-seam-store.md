@@ -1157,6 +1157,40 @@ Each lands, dated 2026-09-23 or at ratification, in the named document when Geof
 | 13 | BS:662-664 | A track path is relative to its collection's library-relative root (clarifying) |
 | 14 | BS:844-851 and rung 12's entry | Rung 12 adds the streamer database to the backup set; rung 16 declares the schedule key and renders the `RCLONE_CONFIG_*` rows |
 
+**Applied 2026-09-23:** rows 1-8 and 10-14 landed in the named documents, inline and dated. Row
+9 landed its R5S half only. The `identity.go` half waits for pass 5c-i to merge, because 5c-i's
+Task 6 writes `internal/identity`; the rung 6 pass that introduces `Identity.UserID` lands it. Notes
+per row:
+
+- Row 1: `specs/2026-09-02-greenfield-server-build.md`, a new dated erratum block after the
+  2026-09-12 erratum, covering rows 1, 2, 3, 13, and 14 together (the ladder list itself is
+  left as history, per this file's own convention of recording supersession in the front-matter
+  erratum block rather than rewriting the numbered ladder).
+- Row 2: same block, box-safety correction.
+- Row 3: same block, backup-class correction.
+- Row 4: `specs/2026-09-11-configuration-homes-design.md`, inline blockquote after the wall
+  paragraph naming the backup schedule and failure-ping classes.
+- Row 5: same file, inline blockquote replacing the roster file in the owned-wall list.
+- Row 6: same file, inline blockquote after the wall paragraph naming the backup schedule key.
+- Row 7: same file, the rung 6 forward-hook bullet under "What this spec routes elsewhere",
+  moving apply mode and the sensitive flag out of the settings-table column list.
+- Row 8: `specs/2026-09-03-parallel-build-approach.md`'s state-directory-layout matrix row, and
+  `specs/2026-09-08-rung-5-identity-auth.md` at the `DUBPLATE_ROSTER_FILE` claim and the
+  roster-leaf pre-create claim.
+- Row 9: `specs/2026-09-08-rung-5-identity-auth.md`, inline blockquote at the single-resolution-
+  point passage, spec half only. **Deferred: `internal/identity`'s `Identity.UserID` /
+  `Principal` naming, owned by rung 6's Task 6.**
+- Row 10: `specs/2026-09-08-rung-5-identity-auth.md`, inline blockquotes at R4, R18, R35, the
+  digest passage, and "Edges to later rungs": the re-key is a permanent dual-key read with
+  bumps to both keys, and R35's notification gains the `UserID`.
+- Row 11: `specs/2026-09-07-streamer-2-0-design.md`, a blockquote after the forward-hooks list
+  naming hooks 1, 2, 3, and 11.
+- Row 12: same file, the `ncruces/go-sqlite3` and `pressly/goose` prior-art table rows.
+- Row 13: `specs/2026-09-02-greenfield-server-build.md`, same erratum block as rows 1-3 (the
+  track-path clarification).
+- Row 14: same file, same erratum block (the backup-set and schedule-key correction to ladder
+  entries 12 and 16).
+
 ---
 
 ## Not verified in this revision

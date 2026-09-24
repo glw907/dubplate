@@ -398,6 +398,13 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     written once or never; retrofitting means re-tagging the library.
 14. An ID3 version ruling, rung 8. Record whether the library writes ID3v2.3 or v2.4, so the question is not answered by
     reading files later.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 11, ruling 2 yes): hooks 1, 2, 3, and 11 above each
+> read "rung 6 schema" for where their column lands. That column lands with the rung that
+> computes it, not as a nullable column added at rung 6c: the audio key, file hash, and sort
+> key migrate in with rungs 7 and 9, and the gain fields migrate in with rung 9. CLAUDE.md's
+> 2026-09-12 refinement ("a hook is built by its first consumer") governs; nothing an adopter
+> sees changes.
 15. Configuration homes, rung 6 and rung 14. The store carries a settings table (source, apply mode, sensitive flag,
     audit table), per-member overrides and preferences tables, a device-credential table, two quota counters, a
     move-intent journal, and on the collection row `owner` (non-null surrogate id), `visibility`, a server-allocated
@@ -426,13 +433,13 @@ alike, so that signal discriminates nothing and adoption evidence does the real 
 | `go.senan.xyz/taglib` | Tag read and write | LGPL-2.1, whole module ([LICENSE](https://github.com/sentriz/go-taglib/blob/master/LICENSE)) | Mostly good; wazero cache hardcoded to `os.TempDir()`, host module panics with no recover | v0.14.0, 2026-07-24; depends on wazero at an untagged pseudo-version | 11 importers; Navidrome runs its own fork | Open ruling 2. The "MIT wrapper" claim was false and the MPL-1.1 escape does not exist. |
 | `tetratelabs/wazero` | Runs the WebAssembly | Apache-2.0, URL from study rung | High | v1.12.0, 2026-05-29 | 714 importers | Adopt only as taglib's transitive dependency, never directly. |
 | `modernc.org/sqlite` | cgo-free SQLite | BSD-3, URL from study rung | Transpiled C; the house bar applies only to the `database/sql` layer | v1.58.0, 2026-09-01, near-weekly | 3,518 importers | Adopt on a condition: rung 6 proves FTS5's trigram tokenizer and WAL under concurrent readers by a test in the gate. |
-| `ncruces/go-sqlite3` | The named fallback | MIT, URL from study rung | Well-documented VFS design | Active | 96 importers; gonic uses it | Record as the fallback if the trigram or WAL check fails. |
+| `ncruces/go-sqlite3` | The named fallback | MIT, URL from study rung | Well-documented VFS design; a wasm2go translation of SQLite, not a hand-written driver (erratum 2026-09-23, rung 6 spec, erratum 12) | Active | 96 importers; gonic uses it | Record as the fallback if the trigram or WAL check fails. |
 | `mewkiz/flac` | Pure-Go FLAC decode; the intake integrity check | Unlicense, URL from study rung | Idiomatic package split | v1.0.14, 2026-08-19 | 96 importers | Adopt for rung 7. It supplies audio-frame decode, which the repo's own FLAC reader deliberately lacks. |
 | Picard tag-mapping tables | Which tag names each container uses | CC0 1.0, URL from study rung | n/a | Versioned with Picard | The canonical mapping | Adopt, cited to a pinned doc version. |
 | `golang.org/x/image`, `gen2brain/webp` | Art resize and encode | BSD-3 and MIT, URLs from study rung | Exemplar; webp is generated but the seam is honest | x/image v0.45.0; webp v0.6.4 | 1,948 and 18 importers | Adopt. The resize filter is a stated choice with a measurement, because the cache pays the encode once. |
 | `golang.org/x/time/rate` | Per-account and per-address auth rate limits | BSD-3, URL from study rung | Exemplar | Go team | 14,348 importers | Adopt. The repo's MusicBrainz limiter solves a different problem. |
 | `crypto/aes` and `cipher.NewGCM` | App-password encryption at rest | stdlib | n/a | n/a | n/a | Adopt the stdlib; no KDF library is needed. |
-| Schema migrations | Rung 6's mechanism | stdlib | n/a | n/a | n/a | Hand-roll with `embed.FS` and `PRAGMA user_version`. `pressly/goose` is declined: it direct-requires ten database drivers for a Go-function migration mechanism no hook asks for. |
+| Schema migrations | Rung 6's mechanism | stdlib | n/a | n/a | n/a | Hand-roll with `embed.FS` and `PRAGMA user_version`. `pressly/goose` is declined: it direct-requires ten database drivers for a Go-function migration mechanism no hook asks for, and its decline rests chiefly on its silent-ahead `Up`, which applies every migration newer than the tracked version with no confirmation step (erratum 2026-09-23, rung 6 spec, erratum 12). |
 | Stream-through transcode cache | 2.0 rung 5 | stdlib | n/a | n/a | n/a | Hand-roll. `djherbis/fscache` is declined: 7 importers, no tag since 2021, and the partial-write semantics the design needs exist only in an untagged commit landed by its one serious user. |
 | `internal/atomicfile` | Streaming atomic writes for blobs and cache entries | in-repo | n/a | n/a | n/a | Extend it with a streaming write rather than inventing a second temp-file convention. |
 | M3U read and write; Subsonic XML and JSON dual encoding | Cutover import and the response layer | stdlib | n/a | n/a | n/a | Hand-roll both. The study rung enumerates the encoding quirks (attribute-heavy XML, the wrapper, singleton-versus-array in JSON, JSONP) so the harness tests them. |

@@ -1,7 +1,10 @@
 # Configuration homes: where each setting lives
 
 Design spec. Revision 3, 2026-09-12. Status: **ratified, Geoff read the file 2026-09-23**, with
-two errata of that date (the founding library's hand-over, and per-collection layout parity).
+six errata of that date (the founding library's hand-over, per-collection layout parity, and
+four the ratified rung 6 spec owes: the shadow pair stays on the wall, the roster file
+retires from the wall list, the backup schedule key is rung 16's, and apply mode plus the
+sensitive flag are registry metadata).
 
 Revision 1 is dated 2026-09-11, revisions 2 and 3 fold five adversarial reviews
 (competitors and demand; collection interactions; technical design; threat model;
@@ -50,18 +53,30 @@ what the build spec's config-wall section says (Geoff, 2026-09-12). The store ta
 that section calls tunables.
 
 The wall holds the owned, required, no-default keys (the library root, the state directory,
-the site name, the public URL, the identity source and its correlated set, and the roster
-file), every secret, and every integration class whole, flag-enabled and
-required-when-enabled, exactly as rung 1b's registry enforces today: SMTP, the streamer
-driver, backup targets and schedule, monitoring, the trusted-proxy pair, and a forward-auth
-front. The integration classes stay whole rather than split by convenience. The registry's
+the site name, the public URL, and the identity source and its correlated set), every
+secret, and every integration class whole, flag-enabled and required-when-enabled, exactly
+as rung 1b's registry enforces today: SMTP, the streamer driver, backup targets and a
+schedule key, monitoring, the trusted-proxy pair, and a forward-auth front.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 5, ruling 1 yes): "the roster file" retires
+> from this list. Rung 6d's `member import` moves the roster into the store; the file
+> is an import source only and `DUBPLATE_ROSTER_FILE` is a retired setting after the
+> import.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 6): the backup schedule key named above is
+> declared by rung 16, with its timer, not by rung 6. The integration classes stay whole rather than split by convenience. The registry's
 rule that a flag makes its correlated config required
 is enforced in `Load` and reported by `doctor`, and a class half on the wall and half in
-the store would break it. And two of the classes are read by processes other than the
-server: the backup schedule is a systemd timer, and the failure pings are sent by a separate
-unit with its own env. A setting whose consumer cannot see the store must not live in the
-store, or an admin changes it on a page that confirms the change while the timer keeps its
-old hour forever.
+the store would break it. And classes are read by processes other than the server: the
+backup schedule is a systemd timer, and the failure pings are sent by a separate unit with
+its own env. A setting whose consumer cannot see the store must not live in the store, or an
+admin changes it on a page that confirms the change while the timer keeps its old hour
+forever.
+
+> Erratum, 2026-09-23 (rung 6 spec, erratum 4, ruling 3 yes): the shadow floor and budget
+> are a third example of this wall category. Their only reader, the shadow unit, has no
+> access to the store and retires at launch, so both stay in the env template rather than
+> moving to the store.
 
 The store holds every tunable that ships with a default, and everything created after boot.
 Tunables are the thresholds: match cutoffs, session and token lifetimes, link expiry, rate
@@ -635,7 +650,9 @@ bar on a stolen session and does nothing against a live-compromised admin browse
 ## What this spec routes elsewhere
 
 - Rung 6 store, filed as 2.0 forward hook 15:
-  - the settings table with source, apply mode, the sensitive flag, and the audit table;
+  - the settings table with source and the audit table (apply mode and the sensitive flag
+    are registry metadata per key, not settings-table columns; erratum 2026-09-23, rung 6
+    spec, erratum 7, clarifying, with the build spec's registry-contract erratum);
   - the per-member overrides and preferences tables;
   - on the collection row: `owner` (non-null, surrogate id), `visibility`, `root_path`
     (server-allocated, disjoint), writer epoch, mirror generation, last-mirror time, and
