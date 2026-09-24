@@ -17,15 +17,16 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
   shared-namespace rule is declined.
 - **Follow beets on the "ft" fix.** The oracle pin moves to the 2.14 line through `dependency-upgrade`.
   The requirement is recorded in the build, rung 3, and rung 8 specs (`6d4dd05`).
-- **The layout carries disc numbers.** This is recorded in the configuration homes, build, and
-  organizer specs. The exact shape is pending one choice; prefix-when-multi-disc is recommended.
+- **The layout carries disc numbers**, as a `1-01` prefix only on multi-disc albums, with `Disc N/`
+  subfolders available as a configured template. This is recorded in the configuration homes, build,
+  and organizer specs.
 
 ## Next action
 
 1. Open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1. 5c-ii opens with the
    admin gate and the roster API.
 3. The beets 2.14 oracle bump, through `dependency-upgrade`: the changelog survey, the corpus
-   re-derivation, and `BEETS_VERSION`. Settle the disc layout's shape before rung 10's template.
+   re-derivation, and `BEETS_VERSION`.
 2. The architecture cleanup pass joins the staged comment-cleanup task
    (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 

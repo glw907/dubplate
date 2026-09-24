@@ -309,12 +309,14 @@ rejects the album, because the album is the verdict unit.
 > the disc number for a multi-disc album. The interim beets default
 > (`$albumartist/$album%aunique{}/$track $title` with
 > `per_disc_numbering: yes`) interleaves a multi-disc album's tracks
-> and can collide. The exact shape waits on one owner choice. The
-> recommended shape prefixes the file name with the disc number only
-> when the album has more than one disc, as in `1-01 Title`. Single-disc
-> albums then do not move, and folder-mode clients still see one album.
-> The alternatives are a `Disc N/` subfolder, or a disc prefix on every
-> album. Rung 16 performs the one-time re-layout, per the build spec's
+> and can collide. Geoff ruled the shape the same day: the default
+> prefixes the file name with the disc number only when the album has
+> more than one disc, as in `1-01 Title`. This matches MusicBrainz
+> Picard's default naming script (`$if($gt(%totaldiscs%,1),%discnumber%-,)`)
+> and Plex's naming guidance. Single-disc albums then do not move, and
+> folder-mode clients still see one album. A group that prefers `Disc N/`
+> subfolders sets that as its configured template; the injectivity rule
+> above covers both shapes. Rung 16 performs the one-time re-layout, per the build spec's
 > layout-parity erratum of the same date.
 
 A tagging policy can reach the identity set indirectly, by renaming some other tag to
