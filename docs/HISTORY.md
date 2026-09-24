@@ -35,6 +35,14 @@ total at the time, and a bare "green" is the claim 5b-i's close reviewer
 escalated, so the close re-ran the same gate at its own commit with
 `time CAIRN_GATE_LANE=light cairn-run-gate 'bash scripts/check.sh'`:
 **1m10.099s real** (`6m35.341s` user, `0m3.586s` sys) for a clean pass.
+
+One process defect surfaced in execution. The segment B run committed
+Task 5 on top of Task 4 while Task 4's review escalation was still open,
+because a reviewer's `escalate` did not stop a sequential `pass-execute`
+run. The conductor ruled both tasks in one fix round (`dfa7155`), and
+the workstation's `pass-execute.js` gained a `stopOnEscalate` option that
+ends a sequential run after any task whose final status is not accepted
+(`~/.dotfiles` `ce70b5f`, 2026-09-23).
 That is a fresh measurement, not a reconstruction of an earlier wall
 time no artifact recorded.
 
@@ -535,7 +543,7 @@ fallback, so no gap is recorded for it.
 
 The close applied the first, second, third, and fifth items below as
 dated errata (2026-09-23, 5b-ii close) under the rung 5 spec's "Errata
-the close applies", with a fourth erratum re-keying that section's
+the close applies", with a fifth erratum re-keying that section's
 `CLAUDE.md:118` pointer to `CLAUDE.md:140`. The pointer re-keys are one
 dated note in the plan's header.
 
@@ -649,9 +657,10 @@ no-deploy carry); the trusted-proxy setting and its minors 9 and 14.
 Tokens: about **6.4M against the 7.5M ceiling**, the 6.0M flag crossed
 at the pass-end security read. Attended time: zero planning misses (no
 question surfaced after launch that a planning question would have
-caught) and zero execution sittings, except the conductor's own
-mid-plan launch rulings (five, ruled together before Task 1 dispatched,
-which the plan itself states do not count as a sitting). Gate: `bash
+caught) and **one execution sitting**: the combined question at the
+6.0M flag (fold the security majors here or as 5c's Task 1), which Geoff
+answered with the conductor's recommendation. The conductor's launch
+rulings before Task 1 do not count, as the plan states. Gate: `bash
 scripts/check.sh` measured **1m10.099s real** at this close's own
 re-run (see "The gate evidence" above).
 

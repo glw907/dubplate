@@ -2,9 +2,10 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, and rung 5's 5a, 5b-i, and **5b-ii** (roster, mail seam, limiters, origin check,
-auth handlers) are closed; 5b-ii closed on master at the ledger fold, about 6.4M of 7.5M, zero misses,
-zero sittings (HISTORY). R4's exclusion denominator is still UNREAD, owed before rung 15.
+Rungs 1b, 3, 4, 8, and rung 5's 5a, 5b-i, and **5b-ii** are closed; 5b-ii closed on master, about
+6.4M of 7.5M, zero misses, one sitting (HISTORY). Its architecture reads
+(`research/2026-09-23-rung-5b-ii-architecture-reads.md`) route a cleanup pass after 5c-i, joined with
+the staged comment-cleanup task. R4's exclusion denominator is still UNREAD, owed before rung 15.
 
 ## Next action
 
@@ -25,7 +26,6 @@ zero sittings (HISTORY). R4's exclusion denominator is still UNREAD, owed before
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED. 5b-ii closed on master at the ledger fold; reopens on 5c-i once its plan is approved |
 | 2 | worktree removed, branch deleted | CLOSED. Reopens on rung 6 once its 6a plan is approved |
-| doc | main tree | CLOSED. Rung 6 spec revision 2.2 ratified 2026-09-23 |
 
 ## Open items (carried)
 
