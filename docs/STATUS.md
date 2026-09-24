@@ -12,13 +12,9 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Morning question for Geoff (one combined question)
 
-1. **Approve the 6a plan and rule its four rulings.** Each is recommended yes:
-   - a 6.8M ceiling;
-   - `doctor` and `check` exit 0 only for a store that is absent, older, or current;
-   - serve refuses to create a store beside a snapshot copy;
-   - the busy timeout alone bounds the cross-process wait.
-
-   Eleven spec errata land on approval.
+1. **Approve the 6a plan and rule its four rulings** (each recommended yes): the 6.8M ceiling;
+   `doctor`/`check` exit 0 only when the store is absent, older, or current; serve refuses a create
+   beside a snapshot copy; the busy timeout alone bounds the cross-process wait. Eleven errata follow.
 2. **Accept 5c-i's flag crossing?** The pass came to about 5.8M against the 5.2M flag. The
    security fold drove it (0 critical, 0 major, five minors folded). The conductor ran the close
    within the ceiling rather than hold it for a sitting.
@@ -27,10 +23,9 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
    rule be stricter, with every address and username in one shared namespace? The recommendation is
    no, because the current rule already guarantees that no two members share one principal.
 4. **Routed findings** (`research/2026-09-23-beets-2-14-and-disc-layout-findings.md`):
-   - **beets 2.14 fixes the "ft" pattern.** Bumping the pin moves the oracle mid-shadow, so this is a
-     `dependency-upgrade` decision.
-   - **Disc numbers in file names.** The default layout omits them, so multi-disc albums interleave
-     in one folder. This is an owner fork, and a fix is cheapest before rung 16.
+   beets 2.14 fixes the "ft" pattern, but a pin bump moves the oracle mid-shadow (a
+   `dependency-upgrade` decision). The default layout omits disc numbers, so multi-disc albums
+   interleave in one folder: an owner fork, cheapest to fix before rung 16.
 
 ## Next action
 
@@ -48,39 +43,19 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Open items (carried)
 
-- **No deploy until 5d.** The env template selects `magic-link` without its nine required keys.
-  `newProductionRegistry` in `main.go` is contested.
-- **Carried to 5c-ii:**
-  - the admin gate (R-5c12) and the roster API (R-5c13);
-  - the serve wiring and the `web/` tree;
-  - the rejoin sentences (`CLAUDE.md:140`, `scripts/check.sh:5`, `Makefile:33`);
-  - refusing invisible code points on the web write path (security n5).
-- **Carried to 5d:**
-  - the "`doctor` exits 0" row;
-  - `ReadWritePaths`;
-  - the template's nine keys;
-  - the trusted-proxy setting;
-  - the runbook row for running `member add` without secrets in argv;
-  - the runbook sentences on kind mode's enumeration bound and the mail-ceiling lockout lever.
-- **Carried to rung 12:** no principal may map a non-admin member onto a streamer admin account.
-  Navidrome v0.63.2 matches usernames case-insensitively.
-- **Carried to rung 6:** row 9's `identity.go` half of the errata (`Identity.UserID`), now unblocked.
-- **Carried to rung 7:** the uploader accepts `.zip`, `.tar.gz`, and similar archives
-  (uploader spec, `d74543d`).
-- **Coverage gaps and staged legs.** 86 declared coverage gaps, none blocking. The staged gate legs
-  warn today: 325 process citations and 128 exported-unused symbols. Configuration homes routes tasks
-  into rungs 6, 7, 9, 12, 14, 16 and the 2.0 list. Fork B ruled 1.0 FLAC-only, and the group non-FLAC
-  question is carried.
-- **Leftovers:** four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
-  `Case.Extra`; `slices.Clone` (rung 9); the corrupted untracked 2026-09-04 evidence doc; two review
-  albums on the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed units; `DUBPLATE_SITE_NAME` re-mint.
-- **Pinned (2026-08-30):**
-  - Navidrome `0.63.2`
-  - cloudflared `2026.8.2`
-  - beets `2.13.1`
-  - mediafile `0.17.0`
-  - unidecode `1.4.0`
-  - lap `0.5.13`
-
-  Spend: about 61.6M, plus 9.1M (the 2026-09-12 window), 6.4M (5b-ii), and about 8.3M for the
-  2026-09-23 window of the 12M cap.
+- No deploy until 5d: the env template selects `magic-link` without its nine keys; `main.go`'s
+  `newProductionRegistry` is contested.
+- To 5c-ii: the admin gate (R-5c12), the roster API (R-5c13), serve wiring, `web/`, the rejoin
+  sentences (`CLAUDE.md:140`, `scripts/check.sh:5`, `Makefile:33`), security n5 on the web write path.
+- To 5d: the "`doctor` exits 0" row, `ReadWritePaths`, the nine keys, the trusted proxy, and the
+  runbook rows (secret-free `member add`, kind mode's enumeration bound, the mail-ceiling lever).
+- To rung 12: no principal maps a non-admin onto a streamer admin (Navidrome 0.63.2 matches names
+  case-insensitively). To rung 6: errata row 9's `identity.go` half. To rung 7: archive uploads.
+- 86 declared coverage gaps, none blocking. Staged legs warn: 325 process citations, 128
+  exported-unused. Fork B: 1.0 is FLAC-only; the group non-FLAC question is carried.
+- Leftovers: four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
+  `Case.Extra`; `slices.Clone` (rung 9); the corrupted 2026-09-04 evidence doc; two review albums on
+  the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed units; `DUBPLATE_SITE_NAME` re-mint.
+- Pinned (2026-08-30): Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.13.1`, mediafile
+  `0.17.0`, unidecode `1.4.0`, lap `0.5.13`. Spend: about 61.6M plus 9.1M (2026-09-12 window),
+  6.4M (5b-ii), and about 8.3M (2026-09-23 window, 12M cap).
