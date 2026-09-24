@@ -292,8 +292,10 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 		}
 	}
 
+	validateFailed := false
 	if src.Validate != nil {
 		if err := src.Validate(identitySourceValues(environ, src), environ); err != nil {
+			validateFailed = true
 			for _, leaf := range flattenErrors(err) {
 				if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok {
 					fail(keyed.key, "invalid")
@@ -303,6 +305,14 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 	}
 
 	if len(failing) == 0 {
+		// A Validate refusal that named no key through
+		// [sourceKeyError] must still read unsatisfied: every
+		// refusal validateMagicLinkSource can return is keyed today,
+		// but a future hook's unkeyed error must never fall through
+		// to "active" and hide a real refusal from the table.
+		if validateFailed {
+			return "unsatisfied"
+		}
 		return "active"
 	}
 	return "unsatisfied: " + strings.Join(failing, ", ")

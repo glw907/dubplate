@@ -211,11 +211,12 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 				continue
 			}
 		case err != nil:
-			// recordExpiry's own mtime fallback could not stat
-			// the record either, most often because it was
-			// removed between the listing and the read. Retained
-			// and counted rather than joined into a returned
-			// error: a single bad record must not stop
+			// The mtime fallback's own stat failed for a reason
+			// other than absence (a removal surfaces as
+			// fs.ErrNotExist and the case above already consumes
+			// it), most often a permission error on the directory
+			// entry. Retained and counted rather than joined into
+			// a returned error: a single bad record must not stop
 			// OpenNonceStore from starting the login surface at
 			// all.
 			sweep.Malformed++

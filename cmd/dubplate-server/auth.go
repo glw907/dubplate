@@ -318,9 +318,9 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 	errs = checkIntBounds(errs, environ, authRequestBodyCapThreshold, authRequestBodyCapFloor, authRequestBodyCapCeiling)
 
 	if answer, err := config.ParseString(environ, unknownAddressAnswerThreshold); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, &sourceKeyError{key: unknownAddressAnswerThreshold.Key, reason: splitKeyReason(err)})
 	} else if answer != "kind" && answer != "generic" {
-		errs = append(errs, fmt.Errorf("%s: %q is not one of kind, generic", unknownAddressAnswerThreshold.Key, answer))
+		errs = append(errs, &sourceKeyError{key: unknownAddressAnswerThreshold.Key, reason: fmt.Sprintf("%q is not one of kind, generic", answer)})
 	}
 
 	return errors.Join(errs...)
@@ -370,13 +370,13 @@ func validateSMTPFrom(value string) error {
 func checkIntBounds(errs []error, environ []string, th config.Threshold, floor, ceiling int) []error {
 	n, err := config.ParseInt(environ, th)
 	if err != nil {
-		return append(errs, err)
+		return append(errs, &sourceKeyError{key: th.Key, reason: splitKeyReason(err)})
 	}
 	if n < floor {
-		errs = append(errs, fmt.Errorf("%s: %d is below the floor of %d", th.Key, n, floor))
+		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%d is below the floor of %d", n, floor)})
 	}
 	if n > ceiling {
-		errs = append(errs, fmt.Errorf("%s: %d is above the ceiling of %d", th.Key, n, ceiling))
+		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%d is above the ceiling of %d", n, ceiling)})
 	}
 	return errs
 }
@@ -390,13 +390,14 @@ func checkIntBounds(errs []error, environ []string, th config.Threshold, floor, 
 func checkDurationBounds(errs []error, environ []string, th config.Threshold, ceiling time.Duration) ([]error, time.Duration, error) {
 	d, err := config.ParseDuration(environ, th)
 	if err != nil {
-		return append(errs, err), 0, err
+		keyed := &sourceKeyError{key: th.Key, reason: splitKeyReason(err)}
+		return append(errs, keyed), 0, keyed
 	}
 	if d < durationFloor {
-		errs = append(errs, fmt.Errorf("%s: %s is below the floor of %s", th.Key, d, durationFloor))
+		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is below the floor of %s", d, durationFloor)})
 	}
 	if ceiling > 0 && d > ceiling {
-		errs = append(errs, fmt.Errorf("%s: %s is above the ceiling of %s", th.Key, d, ceiling))
+		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is above the ceiling of %s", d, ceiling)})
 	}
 	return errs, d, nil
 }

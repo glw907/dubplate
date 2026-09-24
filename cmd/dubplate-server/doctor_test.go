@@ -541,6 +541,16 @@ func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
 			extra:   []string{"DUBPLATE_PUBLIC_URL=https://operator:fixture-pass-not-real@dubplate.example.test"},
 			wantKey: "DUBPLATE_PUBLIC_URL",
 		},
+		{
+			// DUBPLATE_MAGIC_LINK_EXPIRY is a registered threshold,
+			// not one of magic-link's Required or Optional keys, so
+			// its bound refusal reaches this row only through
+			// validateMagicLinkSource's own [sourceKeyError], never
+			// through the per-key Required/Optional sweep above.
+			name:    "link expiry above its ceiling",
+			extra:   []string{"DUBPLATE_MAGIC_LINK_EXPIRY=2h"},
+			wantKey: "DUBPLATE_MAGIC_LINK_EXPIRY",
+		},
 	}
 
 	for _, tt := range tests {
