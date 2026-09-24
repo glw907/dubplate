@@ -180,5 +180,34 @@ verifier's probe app before it was folded.
 
 **Refused:** none. **Ceiling:** unchanged at 9.4M (flag 7.52M). The
 second fold adds five rows and three mutations across Tasks 1 through 3
-and withdraws one, well inside the 0.85M between the 6.75M projection
+and withdraws one, well inside the 0.77M between the 6.75M projection
 and the flag. The task count and deliverable count (31) are unchanged.
+
+## Prose review fold
+
+Revision 2.1 (`0bb3722`) to revision 2.2 (prose folded, awaiting owner
+approval). Input: the prose review
+(`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-prose-review.md`),
+P1 through P15. Every changed pointer was checked against the tree
+before it was written.
+
+| ID | Severity | Disposition | Where |
+| --- | --- | --- | --- |
+| P1 | blocker | **Folded, re-derived.** The Reason now rests on 5c-ii's 6.75M projection and drops the bare 13 × 0.725M figure. The one-pass branch uses the plan's own adders: 13 × 0.725M (9.43M) plus 0.95M (5c-ii) and 0.60M (5c-iii) projects 10.98M, and 1.3 times that is a 14.3M ceiling with its 80% flag at 11.4M, above the projection. The review's 13.8M ceiling is not taken, since its flag would sit on the projection. | Ruling 1 |
+| P2 | blocker | **Folded.** Each "no" builds one thing. Ruling 2: no HSTS header, finding 18 open. Ruling 5: `.js` gate scripts with JSDoc, the `ts-conventions` claim dropped. Each names the other option as an answer Geoff can give instead. Ruling 5's `skipLibCheck` sentence leaves the ruling; R-5cii16 already carries it. | Rulings 2 and 5 |
+| P3 | warning | **Folded.** Ruling 3 asks one question: does Task 4 author the `dubplate` match file and the `gruvbox` palette file now. The stubs move into the Reason as fixed under every answer (R-5cii1). | Ruling 3 |
+| P4 | warning | **Folded.** `thresholds.go:124-128` is now `internal/config/thresholds.go:123-126`. The `resolveIdentitySource` pointer now reads `internal/config/config.go:291-296`. Both checked against the tree. | Ruling 4; privileged-fields table, HSTS row |
+| P5 | warning | **Folded.** The section opens with "Seven questions, each with a recommendation", the standing rulings, and a pointer to this record. | Rulings for Geoff |
+| P6 | warning | **Folded.** "Fixed, not asked" is now two sentences pointing to R-5cii6. R-5cii6 takes the section 8.3 and 8.1.1 reasoning, the `isLoopbackHost` pointer (`auth.go:474-482`, checked), and the `validatePublicURL` pointer (`auth.go:465`, checked). | Ruling 2; R-5cii6 |
+| P7 | warning | **Folded.** Ruling 7's Reason is split into separate sentences. | Ruling 7 |
+| P8 | warning | **Folded** in the review's wording. | Ruling 4 |
+| P9 | suggestion | **Folded.** The WebKit hedge is its own sentence. | Ruling 6 |
+| P10 | suggestion | **Folded.** Ruling 1's "What yes builds" is four sentences. | Ruling 1 |
+| P11 | suggestion | **Folded.** Ruling 5 now names kit's generated type files, the two vite configs, and `src/`, `test/`, and `tests/`, matching R-5cii16's list, and points to it. | Ruling 5 |
+| P12 | suggestion | **Folded, with a figure change.** Decomposing the 2.8M showed it left out 5c-i's planning, which Ruling 6's 18M counted (the 5c plan fold record, `:511`). Planning is now 4.3M: 5c-i's 1.5M estimate, 5c-ii's 1.0M plus 1.0M for this split (`:503-505`), and 5c-iii's 0.8M. 5c then comes to about 22M, not 20M, and rung 5 to about 41M, not 39M. Ruling 1's "What yes builds" carries both. | Token ceiling, 5c-iii paragraph; Ruling 1 |
+| P13 | suggestion | **Folded.** This record's second-fold headroom reads 0.77M. | This record, "Second fold" |
+| P14 | suggestion | **Folded** at the R-5cii19 sentence the review names. The other two sites are left as the review directs. | R-5cii19 |
+| P15 | suggestion | **Not folded.** No touched line fell in the named ranges. | None |
+
+**Refused:** none. **Ceiling:** unchanged at 9.4M (flag 7.52M). The task
+count and deliverable count (31) are unchanged.

@@ -1,13 +1,16 @@
 # Rung 5, Pass 5c-ii (The Admin Gate, the Roster API, and the `web/` Tree Born Gated) Implementation Plan
 
-Status: **revision 2.1, 2026-09-24, second fold, awaiting prose review.**
+Status: **revision 2.2, 2026-09-24, prose folded, awaiting owner approval.**
 Revision 1 (`3ebfe3c`) took three lens reviews (`140e3cd`:
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
 `-mechanics.md`, `-risk.md`); revision 2 (`74066b1`) folded them and
 took a fresh-context verification read (`cebcda2`:
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`,
-V1 through V9), folded here. The fold record, one disposition per
-finding in both folds, is
+V1 through V9), which revision 2.1 (`0bb3722`) folded. Revision 2.2
+folds the prose review
+(`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-prose-review.md`,
+P1 through P15). The fold record, one disposition per finding in all
+three folds, is
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`.
 Seven rulings for Geoff are open ("Rulings for Geoff").
 
@@ -79,133 +82,111 @@ believes it needs any of these stops and reports.
 
 ## Rulings for Geoff
 
-Seven yes-or-no questions. Rulings 1 through 3 are revision 1's, with
-Ruling 1's figure and Ruling 2's shape updated by the fold, and Ruling
-2's loopback exception fixed rather than asked (V6); Rulings 4
-through 7 arrived with the reviews. The rung 5 spec's rulings, the 5c-i
-plan's six rulings, and the web surface standard's section 16 stand and
-are not reopened.
+Seven questions, each with a recommendation. The rung 5 spec's rulings,
+the 5c-i plan's six rulings, and the web surface standard's section 16
+stand and are not reopened. The fold record gives each question's
+history (`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`).
 
 **1. Does the remaining 5c scope split into 5c-ii and 5c-iii, with 5c-ii
 under a 9.4M execution ceiling?** Recommendation: yes.
 
-**Reason:** the 5c-i outline's remaining scope is thirteen tasks plus
-Task 0, past this build's twelve-task line, and 5c-i's actual rate
-(0.725M per task, "Token ceiling") puts it near 9.4M in one pass. The
-cut sits after the served-header task, which the 5c-i outline itself
-named as the natural seam. 5c-ii then carries the Go-side and delivery
-work (eight tasks, projected 6.75M after the review fold added named
-states and proof rows). 5c-iii carries the fonts, the three
-pages with the string deck, the rendered gates, and the render-and-read
-(about six tasks, provisional 5.0M).
+**Reason:** the remaining 5c scope is thirteen tasks plus Task 0, past
+this build's twelve-task line. 5c-ii takes the Go-side and delivery
+work: eight tasks, projected at 6.75M ("Token ceiling"). 5c-iii takes
+the fonts, the three pages with the string deck, the rendered gates, and
+the render-and-read: about six tasks, provisionally 5.0M. The cut sits
+after the served-header task, the seam the 5c-i outline named. The split
+also gives the delivery path its own pass-end review before any page
+builds on it.
 
-**What yes builds:** this plan as written; the rung 5 spec's 5c row and
-the web surface standard's section 15 take a second split erratum at
-the close; 5c's share of the rung reservation moves from about 18M
-(the 5c-i plan's Ruling 6) to about 20M, and rung 5's from about 37M to
-about 39M. **What no builds:** one pass over all thirteen tasks under a
-ceiling near 12.2M, with the flag near 9.8M. The gate leg and the pages
-would then share one pass-end review, and the pages would build against
-a delivery path no reviewer had yet read.
+**What yes builds:** this plan as written. At the close, the rung 5
+spec's 5c row and the web surface standard's section 15 take a second
+split erratum. 5c's share of the rung reservation moves from about 18M
+(the 5c-i plan's Ruling 6) to about 22M. Rung 5's reservation moves from
+about 37M to about 41M. **What no builds:** one pass over all thirteen
+tasks. Thirteen tasks at 0.725M (9.43M) plus both halves' adders (0.95M
+and 0.60M) projects 10.98M, and 1.3 times that is a 14.3M ceiling with
+its 80% flag at 11.4M.
 
 **2. Does the served header set carry `Strict-Transport-Security:
 max-age=31536000`, with no `includeSubDomains` and no `preload`?**
 Recommendation: yes.
 
-**Reason:** review finding 18 routes HSTS into this pass. HSTS is sticky
-in every browser that sees it, for the host as a whole and not only for
-the owned prefix, so its shape is adopter-visible and slow to reverse.
-The shape is chosen from RFC 6797 (R-5cii6). `includeSubDomains` would
-reach sibling hosts an adopter runs under the same domain, which
-dubplate does not own. `preload` asks browsers to ship the host in
-their source, which only the domain's owner can decide.
+**Reason:** review finding 18 routes HSTS into this pass. A browser that
+sees HSTS applies it to the whole host for the full age, so the shape is
+visible to adopters and slow to reverse. The shape comes from RFC 6797
+(R-5cii6). `includeSubDomains` would reach sibling hosts that an adopter
+runs under the same domain, and dubplate does not own those hosts.
+`preload` asks browsers to ship the host in their source, which only the
+domain's owner can decide.
 
-**Fixed, not asked:** under every answer the header is sent only when
-`DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not loopback
-(`isLoopbackHost`, `cmd/dubplate-server/auth.go:474-482`). R38's
-loopback carve-out admits plain http on localhost, and RFC 6797 section
-7.2 says a host "MUST NOT include the STS header field" over non-secure
-transport, so the header follows the configured scheme. The loopback
-exception is a correctness call (the mechanics review's m4, verification
-V6): section 8.3 matches a Known HSTS Host by host alone, and section
-8.1.1 exempts only IP literals, so HSTS from `https://localhost` behind
-a local TLS proxy would pin every `localhost` port in that browser for
-a year. `validatePublicURL` accepts `https://localhost` (`auth.go:465`),
-and the exception reuses R38's own loopback set.
+Under every answer, the header is sent only when `DUBPLATE_PUBLIC_URL`
+uses https on a host that is not loopback. R-5cii6 gives the
+correctness reason, so the exception is not asked.
 
 **What yes builds:** R-5cii6 as written, with a named constant for the
-age. **What no builds:** a threshold for the age and a flag for
-`includeSubDomains`, two more `doctor` rows, and an adopter choice most
-adopters cannot evaluate. Or no HSTS, which leaves finding 18 open.
+age. **What no builds:** no HSTS header, and finding 18 stays open. A
+configurable age or an `includeSubDomains` flag is an answer Geoff can
+name instead.
 
-**3. Does 5c-ii ship the three routes as unstyled structural stubs, with
-the page design taken into 5c-iii, and does Task 4 author the
-`gruvbox` palette as the one palette data file?** Recommendation: yes.
+**3. Does Task 4 author the theme now, as the `dubplate` match file and
+the `gruvbox` palette file, without waiting on a UI mockup session?**
+Recommendation: yes.
 
-**Reason:** Geoff may run a UI mockup session for these pages outside
-the tree. A look fixed here would pre-empt it. DL section 3 records the
-estate's configuration as `match dubplate, palette gruvbox`, and R36
-requires one palette block as data before G2 and G9 can run. Both data
-files are replaceable without a markup change, because every page binds
-to variable names only (spec, "The pages"). Contrast is gated (G9), so
-any replacement palette the mockup session produces passes the same
-check.
+**Reason:** the three routes ship as unstyled structural stubs under
+every answer, and the page design is 5c-iii's (R-5cii1). Geoff may run a
+mockup session for those pages outside the tree, and its output feeds
+5c-iii's plan. DL section 3 records the estate's configuration as `match
+dubplate, palette gruvbox`. R36 requires the theme as data before G2 and
+G9 can run. Every page binds to variable names only (spec, "The pages"),
+so either file can be replaced without a markup change. G9 gates
+contrast, so a replacement palette passes the same check.
 
-**What yes builds:** stubs that carry one heading and nothing styled
-beyond the theme binding; the mockup session's output, if any, is a
-standing input to 5c-iii's plan. **What no builds:** 5c-ii takes the
-mockup's output as a Task 4 input, and Task 4 waits on the session.
+**What yes builds:** Task 4 as written. **What no builds:** Task 4 waits
+on the mockup session and takes its palette as input.
 
 **4. Do `DUBPLATE_BRANDING` and `DUBPLATE_OPERATOR_CSS_FILE` default to
 the literal `none`, meaning "not configured"?** Recommendation: yes.
 
-**Reason:** revision 1 gave both an empty default, and the registry
-panics on that (`internal/config/registry.go:322-325`: `case KindString:
-if t.Default == "" { panic(...) }`). `ParseString` documents why
-(`thresholds.go:124-128`): "the one invalid Default is the empty
-string, because wall.get's empty-equals-unset convention would otherwise
-make an empty-string default indistinguishable from no default at all".
-`cmd/dubplate-server/auth.go:33-36` records the same constraint. 5c-ii
-may not edit `internal/config` (R-5c17), so the fix lives in the keys'
-shape, and the shape is adopter-visible (review C1).
+**Reason:** the registry panics on an empty `KindString` default
+(`internal/config/registry.go:322-325`). `ParseString` documents why
+(`internal/config/thresholds.go:123-126`): "the one invalid Default is
+the empty string, because wall.get's empty-equals-unset convention would
+otherwise make an empty-string default indistinguishable from no default
+at all". `cmd/dubplate-server/auth.go:33-36` records the same
+constraint. 5c-ii may not edit `internal/config` (R-5c17), so the fix
+lives in the keys' shape, and adopters see that shape (review C1).
 
-**What yes builds:** both keys stay `KindString` thresholds as the spec's
-"Presentation (R14)" says, `doctor` prints their effective value, and an
-unset or empty value resolves to `none`. `none` means no branding
-declarations and no operator file; `none` is refused as a literal
-operator path by the `.css` suffix rule (R-5cii13). **What no builds:**
-the two keys become the `Optional` rows of a new integration class with
-an enable flag (`DUBPLATE_WEB_CUSTOMIZATION`, say), on the rotation
-secrets' precedent (`auth.go:30-36`). `doctor` then stops printing them,
-the adopter sets a flag before either key, the contested-surfaces row's
-"four `doctor` rows" becomes two, and the spec's "Each is `KindString`"
+**What yes builds:** both keys stay `KindString` thresholds, as the
+spec's "Presentation (R14)" says. `doctor` prints their effective value,
+and an unset or empty value resolves to `none`. `none` means no branding
+declarations and no operator file. It cannot shadow a real file, because
+R-5cii13 admits only paths ending in `.css`. **What no builds:** the two
+keys become the `Optional` rows of a new integration class with an
+enable flag, on the rotation secrets' precedent (`auth.go:30-36`).
+`doctor` stops printing them, and the spec's "Each is `KindString`"
 takes an erratum.
 
 **5. Does `@types/node` join the web pins at an exact 24.x version, with
 `web/scripts/**/*.ts` in the type-checked set?** Recommendation: yes.
 
 **Reason:** `svelte-check` checks only what kit's generated
-`.svelte-kit/tsconfig.json` includes (`src/**`, `test/**`, `tests/**`,
-the vite config), and Node's type stripping does no type checking, so
-revision 1's "the gate scripts are TypeScript under `ts-conventions`"
-gated nothing (review M2). Including the scripts was measured: it fails
-with `Cannot find name 'process'` without Node's types. The package is
-types-only and a devDependency; the newest 24.x on 2026-09-24 is
-24.13.6 (`npm view @types/node@24 version`), matching the Node 24
-floor.
+`.svelte-kit/tsconfig.json` includes: kit's generated type files, the
+two vite configs, and `src/`, `test/`, and `tests/` (R-5cii16). Node's
+type stripping does no type checking. So revision 1's "the gate scripts
+are TypeScript under `ts-conventions`" gated nothing (review M2).
+Including the scripts was measured, and it fails with `Cannot find name
+'process'` without Node's types. The package is types-only and a
+devDependency. The newest 24.x on 2026-09-24 is 24.13.6 (`npm view
+@types/node@24 version`), matching the Node 24 floor.
 
-**What yes builds:** R-5cii16 gains the row, and `svelte.config.js`'s
-`kit.typescript.config` hook appends `../scripts/**/*.ts` to kit's
-generated include list and sets `allowImportingTsExtensions: true`, so
-the gate type-checks every gate script and still checks all of `src/`.
-A plain `include` in `web/tsconfig.json` would replace kit's list, not
-extend it, and silently stop checking `src/` (verification V1, R-5cii16).
-**What no builds:** the gate scripts are written as `.js` with JSDoc and
-the `ts-conventions` claim is dropped; or G1, G3, and the server-file
-check become Go tests, which the Go gate already type-checks. Under
-every answer `web/tsconfig.json` sets `skipLibCheck: true`, since strict
-`svelte-check` otherwise reports 41 errors inside
-`@sveltejs/kit/types/index.d.ts` (measured).
+**What yes builds:** R-5cii16 gains the row. `svelte.config.js`'s
+`kit.typescript.config` hook appends the scripts to kit's generated
+include list, so the gate type-checks every gate script and still checks
+all of `src/` (R-5cii16, "How the scripts join the set"). **What no
+builds:** the gate scripts are written as `.js` with JSDoc, and the
+`ts-conventions` claim is dropped. Moving G1, G3, and the server-file
+check into Go tests is an answer Geoff can name instead.
 
 **6. Does the header set keep `Referrer-Policy: no-referrer`, recording
 login from a browser without `Sec-Fetch-Site` as an unsupported
@@ -218,31 +199,31 @@ comparison. So a browser that sends no `Sec-Fetch-Site` (Safari before
 16.4, iOS 15 devices) could fail every POST: request-link, consume, and
 add (review R5). `go doc net/http.CrossOriginProtection` says
 `Sec-Fetch-Site` is "available in all browsers since 2023", so only old
-devices are exposed, and WebKit's exact serialization is unverified.
+devices are exposed. WebKit's exact serialization is unverified.
 `no-referrer` is the spec's value (R32), so yes needs no erratum.
 
-**What yes builds:** R-5cii6 as written; the residual is written into
-the close's gap list and carried to 5d's runbook row. **What no
-builds:** `Referrer-Policy: same-origin`, which keeps every cross-origin
-referrer empty while letting `Origin` serialize normally. The token URL
-then reaches dubplate itself in `Referer` on the consumption page's
-same-origin requests (dubplate logs no `Referer`), and R32 takes an
-erratum.
+**What yes builds:** R-5cii6 as written. The residual goes into the
+close's gap list and is carried to 5d's runbook row. **What no builds:**
+`Referrer-Policy: same-origin`, with an erratum to R32. It keeps every
+cross-origin referrer empty and lets `Origin` serialize normally. The
+token URL then reaches dubplate itself in `Referer` on the consumption
+page's same-origin requests, and dubplate logs no `Referer`.
 
 **7. Does a branding value outside the grammar, or an operator file that
 is missing or refused, stop serve startup?** Recommendation: yes.
 
-**Reason:** at 5c-ii that stops login only, a restart surfaces the error
-at once, and the box runs nothing yet. At rung 12 the same refusal would
-also stop the streamer fallthrough, so a color typo or a mount that is
-not ready takes the music server down (review R7). The security property
-(a refused value never reaches CSS) holds under either answer.
+**Reason:** at 5c-ii a refused startup stops login only. A restart
+surfaces the error at once. The box runs nothing yet. At rung 12 the
+same refusal would also stop the streamer fallthrough, so a color typo
+or a mount that is not ready would take the music server down (review
+R7). The security property holds under either answer: a refused value
+never reaches CSS.
 
-**What yes builds:** R-5cii13 and R-5cii14 as written; the question is
+**What yes builds:** R-5cii13 and R-5cii14 as written. The question is
 carried to rung 12's plan, where availability is the larger stake.
 **What no builds:** serve starts with an empty branding stylesheet and
-no operator link, logs the refusal at error level, and 5d's `doctor` row
-fails loudly; every refusal row in Task 6 becomes a degrade row.
+no operator link, and logs the refusal at error level. Every refusal row
+in Task 6 becomes a degrade row, and 5d's `doctor` row fails loudly.
 
 ---
 
@@ -390,8 +371,12 @@ boundaries.
 at 0.725M (4.35M), the first rendered tooling (+0.25M), the string
 deck's register gate (+0.15M), and the render-and-read (+0.20M), with
 about 0.8M of planning. 5c's three passes then project about 17.6M of
-execution and about 2.8M of planning, near 20M against Ruling 6's
-18M (Ruling 1).
+execution (5.8M, 6.75M, and 5.0M). Planning adds about 4.3M: 5c-i's
+1.5M estimate, since no actual is recorded
+(`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-record.md:511`);
+5c-ii's 1.0M plus 1.0M for proposing this split (`:503-505`); and
+5c-iii's 0.8M. That is about 22M against Ruling 6's 18M, which counted
+5c-i's planning the same way (Ruling 1).
 
 **Checkpoint interval:** STATUS at every segment boundary (after Task 2,
 after Task 5, after segment C's reviews, and at the close), at most
@@ -499,7 +484,7 @@ every channel that may set it.
 | The branding stylesheet's declarations | `DUBPLATE_BRANDING`, validated at serve startup: names from DL R2.1's set only, values from R-5cii14's grammar (Task 6). | Any request component. A value outside the grammar refuses startup rather than being escaped into place. |
 | The operator CSS file's bytes | The file at `DUBPLATE_OPERATOR_CSS_FILE`, read once at serve startup, only when its path ends in `.css` and its content is UTF-8 with no NUL byte (Task 6, R-5cii13). | Any request-supplied path component: the route serves one in-memory value at one fixed path. |
 | The CSP header's script hashes | The embedded build's own SvelteKit CSP meta, per document, read at serve startup (Task 7). | No configuration key and no request component contributes a source to `script-src`. |
-| The presence of `Strict-Transport-Security` | The scheme and host of `DUBPLATE_PUBLIC_URL`, read at serve startup (Task 7, Ruling 2). The key is always set when serve runs: the magic-link source, the only declared identity source, lists it as Required (`cmd/dubplate-server/auth.go:50`), and the selector is required (`config.go`, `resolveIdentitySource`). | The request's own scheme and every forwarded header: the ingress strip removes the forwarded family before any handler runs (5a). |
+| The presence of `Strict-Transport-Security` | The scheme and host of `DUBPLATE_PUBLIC_URL`, read at serve startup (Task 7, Ruling 2). The key is always set when serve runs: the magic-link source, the only declared identity source, lists it as Required (`cmd/dubplate-server/auth.go:50`), and the selector is required (`resolveIdentitySource`, `internal/config/config.go:291-296`). | The request's own scheme and every forwarded header: the ingress strip removes the forwarded family before any handler runs (5a). |
 
 ---
 
@@ -732,8 +717,13 @@ login recorded as a residual.
 
 HSTS: `max-age=31536000`, no other directive, set only when
 `DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not loopback by
-`isLoopbackHost` (fixed under every answer to Ruling 2; RFC 6797
-section 8.3, V6). RFC 6797 (read 2026-09-24):
+`isLoopbackHost` (`cmd/dubplate-server/auth.go:474-482`), fixed under
+every answer to Ruling 2 (V6). RFC 6797 section 8.3 matches a Known
+HSTS Host by host alone, and section 8.1.1 exempts only IP literals. So
+HSTS from `https://localhost` behind a local TLS proxy would pin every
+`localhost` port in that browser for a year. `validatePublicURL` accepts
+`https://localhost` (`auth.go:465`), and the exception reuses R38's own
+loopback set. RFC 6797 (read 2026-09-24):
 section 6.1.1, "The REQUIRED 'max-age' directive specifies the number
 of seconds, after the reception of the STS header field, during which
 the UA regards the host ... as a Known HSTS Host"; section 7.2, "An HSTS
@@ -1150,7 +1140,7 @@ non-admin learns: a non-admin's POST to `members` answers the gate's
 roster API sits at `<prefix>/roster`, so the document and the API never
 share a route (the 5c-i outline).
 
-**The gate hides the response, not the route.** With `ssr = false`, the
+**The gate hides the members document; the route itself is public.** With `ssr = false`, the
 members page component ships in public `_app/immutable/` chunks, the
 client router's manifest names `/members` to every visitor, and a
 client-side `goto` renders the page without requesting `members.html`
