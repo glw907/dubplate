@@ -112,11 +112,7 @@ func MintSession(secret []byte, address string, now time.Time, lifetime, absolut
 	}
 	s := Session{Address: normalized, IssuedAt: now.UTC().Truncate(time.Second)}
 	s.AnchoredAt = s.IssuedAt
-	expiresAt := s.IssuedAt.Add(lifetime)
-	if capAt := s.AnchoredAt.Add(absoluteCap); expiresAt.After(capAt) {
-		expiresAt = capAt
-	}
-	s.ExpiresAt = expiresAt
+	s.clampExpiry(lifetime, absoluteCap)
 	return encodeSession(secret, s), s, nil
 }
 
@@ -141,12 +137,19 @@ func MintSession(secret []byte, address string, now time.Time, lifetime, absolut
 // error to return.
 func RefreshSession(secret []byte, s Session, now time.Time, lifetime, absoluteCap time.Duration) (string, Session) {
 	s.IssuedAt = now.UTC().Truncate(time.Second)
+	s.clampExpiry(lifetime, absoluteCap)
+	return encodeSession(secret, s), s
+}
+
+// clampExpiry sets s.ExpiresAt to the earlier of s.IssuedAt plus
+// lifetime and s.AnchoredAt plus absoluteCap, the clamp both
+// [MintSession] and [RefreshSession] apply.
+func (s *Session) clampExpiry(lifetime, absoluteCap time.Duration) {
 	expiresAt := s.IssuedAt.Add(lifetime)
 	if capAt := s.AnchoredAt.Add(absoluteCap); expiresAt.After(capAt) {
 		expiresAt = capAt
 	}
 	s.ExpiresAt = expiresAt
-	return encodeSession(secret, s), s
 }
 
 // SessionCookie builds the cookie carrying value, expiring at

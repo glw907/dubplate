@@ -80,10 +80,7 @@ func NewLimiter(limits Limits) *Limiter {
 // client's budget, and a refused client never reaches the per-address
 // map.
 func (l *Limiter) allowLinkClient(now time.Time, client string) error {
-	if !l.perClient.allow(now, clientKey(client)) {
-		return fmt.Errorf("%w: link requests per client", ErrRateLimited)
-	}
-	return nil
+	return l.perClient.chargeOrRefuse(now, clientKey(client), "link requests per client")
 }
 
 // allowLinkAddress charges one link request against address, which the
@@ -93,10 +90,7 @@ func (l *Limiter) allowLinkClient(now time.Time, client string) error {
 // holds no more keys than the roster has members and a flood of
 // made-up addresses never reaches it.
 func (l *Limiter) allowLinkAddress(now time.Time, address string) error {
-	if !l.perAddress.allow(now, address) {
-		return fmt.Errorf("%w: link requests per address", ErrRateLimited)
-	}
-	return nil
+	return l.perAddress.chargeOrRefuse(now, address, "link requests per address")
 }
 
 // AllowConsumption charges one link consumption attempt against client
@@ -104,10 +98,7 @@ func (l *Limiter) allowLinkAddress(now time.Time, address string) error {
 // spent. The caller runs it before verifying the link, so a flood of
 // forged tokens is bounded here rather than reaching the verifier.
 func (l *Limiter) AllowConsumption(now time.Time, client string) error {
-	if !l.consumption.allow(now, clientKey(client)) {
-		return fmt.Errorf("%w: link consumption attempts per client", ErrRateLimited)
-	}
-	return nil
+	return l.consumption.chargeOrRefuse(now, clientKey(client), "link consumption attempts per client")
 }
 
 // AllowLinkMail charges one outbound link mail against the global
@@ -207,6 +198,16 @@ func newKeyedLimiter(perInterval, capacity int, policy atCapacity) *keyedLimiter
 	}
 	k.ring.prev, k.ring.next = &k.ring, &k.ring
 	return k
+}
+
+// chargeOrRefuse charges one event against key at now and returns an
+// error wrapping [ErrRateLimited] naming reason when the limit is
+// spent.
+func (k *keyedLimiter) chargeOrRefuse(now time.Time, key, reason string) error {
+	if !k.allow(now, key) {
+		return fmt.Errorf("%w: %s", ErrRateLimited, reason)
+	}
+	return nil
 }
 
 // allow charges one event against key's bucket at now, creating the
