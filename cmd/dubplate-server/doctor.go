@@ -251,40 +251,71 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 }
 
 // identitySourceStatus reports how src stands against environ:
-// inactive when the selector names another source, unsatisfied when it
-// is the selected one and either [config.Load] flagged one of its
-// Required or Optional rows or src's own Validate hook refuses the
-// values those rows resolve to, and active otherwise. Optional is
-// consulted alongside Required (review M4): a short rotation-overlap
-// secret is one of the source's Optional keys, and until this
-// consultation it never reflected in this row, however plainly the
-// operator's own terminal showed the secret's key rejected by name
-// elsewhere. Validate is rerun directly (review M4) because a
-// relational refusal, such as R31's retention-vs-expiry comparison, is
-// keyed against a threshold's own name rather than one of src's
-// Required or Optional keys, so the per-key sweep above cannot see it.
-// It names no value, because a source's required set carries secrets
-// and doctor's table is read on a terminal (Resolution R-5b6).
+// inactive when the selector names another source, "unsatisfied: "
+// plus every failing key when it is the selected one and either
+// [config.Load] flagged one of its Required or Optional rows or src's
+// own Validate hook refuses the values those rows resolve to, and
+// active otherwise. Optional is consulted alongside Required (review
+// M4): a short rotation-overlap secret is one of the source's Optional
+// keys, and until this consultation it never reflected in this row,
+// however plainly the operator's own terminal showed the secret's key
+// rejected by name elsewhere. Validate is rerun directly (review M4)
+// because a relational refusal, such as R31's retention-vs-expiry
+// comparison, is keyed against a threshold's own name rather than one
+// of src's Required or Optional keys, so the per-key sweep above cannot
+// see it; its failing keys are read through [sourceKeyError] via
+// errors.As, never by parsing the rendered message, so a reason that
+// itself carries a colon cannot be mistaken for a key. It names no
+// value, because a source's required set carries secrets and doctor's
+// table is read on a terminal (Resolution R-5b6).
 func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
 	}
+
+	var failing []string
+	fail := func(key, word string) {
+		line := key + " " + word
+		if !slices.Contains(failing, line) {
+			failing = append(failing, line)
+		}
+	}
+
 	for _, key := range src.Required {
-		if statuses[key] != "" {
-			return "unsatisfied"
+		if status := statuses[key]; status != "" {
+			fail(key, failingWord(status))
 		}
 	}
 	for _, key := range src.Optional {
-		if statuses[key] != "" {
-			return "unsatisfied"
+		if status := statuses[key]; status != "" {
+			fail(key, failingWord(status))
 		}
 	}
+
 	if src.Validate != nil {
 		if err := src.Validate(identitySourceValues(environ, src), environ); err != nil {
-			return "unsatisfied"
+			for _, leaf := range flattenErrors(err) {
+				if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok {
+					fail(keyed.key, "invalid")
+				}
+			}
 		}
 	}
-	return "active"
+
+	if len(failing) == 0 {
+		return "active"
+	}
+	return "unsatisfied: " + strings.Join(failing, ", ")
+}
+
+// failingWord renders one per-key status as the single word doctor's
+// source line carries beside the key: "missing" for [rowStatuses]'s
+// "missing" entry, "invalid" for its "invalid: " prefixed entries.
+func failingWord(status string) string {
+	if status == "missing" {
+		return "missing"
+	}
+	return "invalid"
 }
 
 // identitySourceValues resolves src's Required and Optional keys from

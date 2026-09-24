@@ -230,6 +230,21 @@ func registerAuthConfig(reg *config.Registry) {
 	reg.AddThreshold(unknownAddressAnswerThreshold)
 }
 
+// sourceKeyError names one identity source key and the reason it
+// refuses, letting doctor recover the key by reading this type's own
+// field through errors.As rather than by parsing the rendered message:
+// a reason that happens to carry a colon of its own cannot be mistaken
+// for a key. Error renders "KEY: reason", so every refusal built from
+// this type reads exactly as the plain-string refusals it replaces.
+type sourceKeyError struct {
+	key    string
+	reason string
+}
+
+func (e *sourceKeyError) Error() string {
+	return e.key + ": " + e.reason
+}
+
 // validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
 // URL's shape, the ten thresholds' bounds (review m5, R28, security
@@ -250,7 +265,7 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		"DUBPLATE_SESSION_SECRET_PREVIOUS",
 	} {
 		if v, ok := values[key]; ok && len(v) < secretLengthFloor {
-			errs = append(errs, fmt.Errorf("%s: too short, want at least %d bytes", key, secretLengthFloor))
+			errs = append(errs, &sourceKeyError{key: key, reason: fmt.Sprintf("too short, want at least %d bytes", secretLengthFloor)})
 		}
 	}
 
@@ -279,11 +294,21 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 	errs, absoluteCap, absoluteCapErr = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, sessionAbsoluteCapCeiling)
 	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, nonceRetentionCeiling)
 
+	// A relational refusal names both keys it compares: the pair below
+	// appends one sourceKeyError per key rather than one error naming
+	// only the first, so doctor's per-key walk reports both sides of
+	// the comparison.
 	if expiryErr == nil && retentionErr == nil && retention < expiry {
-		errs = append(errs, fmt.Errorf("%s: %s is below %s's %s", nonceRetentionThreshold.Key, retention, magicLinkExpiryThreshold.Key, expiry))
+		errs = append(errs,
+			&sourceKeyError{key: nonceRetentionThreshold.Key, reason: fmt.Sprintf("%s is below %s's %s", retention, magicLinkExpiryThreshold.Key, expiry)},
+			&sourceKeyError{key: magicLinkExpiryThreshold.Key, reason: fmt.Sprintf("%s is above %s's %s", expiry, nonceRetentionThreshold.Key, retention)},
+		)
 	}
 	if lifetimeErr == nil && absoluteCapErr == nil && lifetime > absoluteCap {
-		errs = append(errs, fmt.Errorf("%s: %s is above %s's %s", sessionLifetimeThreshold.Key, lifetime, sessionAbsoluteCapThreshold.Key, absoluteCap))
+		errs = append(errs,
+			&sourceKeyError{key: sessionLifetimeThreshold.Key, reason: fmt.Sprintf("%s is above %s's %s", lifetime, sessionAbsoluteCapThreshold.Key, absoluteCap)},
+			&sourceKeyError{key: sessionAbsoluteCapThreshold.Key, reason: fmt.Sprintf("%s is below %s's %s", absoluteCap, sessionLifetimeThreshold.Key, lifetime)},
+		)
 	}
 
 	errs = checkIntBounds(errs, environ, linkRequestsPerAddressThreshold, rateFloor, linkRequestsPerAddressCeiling)
@@ -406,28 +431,28 @@ func validatePublicURL(value string) error {
 	u, err := url.Parse(value)
 	if err != nil {
 		if uerr, ok := errors.AsType[*url.Error](err); ok {
-			return fmt.Errorf("%s: invalid URL: %w", publicURLKey, uerr.Err)
+			return &sourceKeyError{key: publicURLKey, reason: fmt.Sprintf("invalid URL: %v", uerr.Err)}
 		}
-		return fmt.Errorf("%s: invalid URL", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "invalid URL"}
 	}
 	if u.User != nil {
-		return fmt.Errorf("%s: carries userinfo, which would become an attacker-chosen prefix of every mailed link", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
 	}
 	if u.RawQuery != "" {
-		return fmt.Errorf("%s: carries a query string", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "carries a query string"}
 	}
 	if u.Fragment != "" {
-		return fmt.Errorf("%s: carries a fragment", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "carries a fragment"}
 	}
 	if u.Path != "" && u.Path != "/" {
-		return fmt.Errorf("%s: must carry no path; the serve prefix sets where dubplate lives", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "must carry no path; the serve prefix sets where dubplate lives"}
 	}
 	host := u.Hostname()
 	if host == "" {
-		return fmt.Errorf("%s: has no host", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "has no host"}
 	}
 	if u.Scheme != "https" && !isLoopbackHost(host) {
-		return fmt.Errorf("%s: must use https unless its host is loopback", publicURLKey)
+		return &sourceKeyError{key: publicURLKey, reason: "must use https unless its host is loopback"}
 	}
 	return nil
 }

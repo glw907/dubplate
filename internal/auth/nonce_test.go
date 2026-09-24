@@ -309,8 +309,18 @@ func TestSweepRetainsMalformedRecord(t *testing.T) {
 // malformed one, and neither the sweep nor OpenNonceStore reports an
 // error for it. A record's presence, not its readability, is what
 // blocks a replay, so one bad mode must not take the login surface
-// down.
+// down. It also proves the unreadable record still refuses a replay of
+// its own nonce while retained, and that a later sweep, run past the
+// file's own mtime plus retention, removes it the same way an
+// unparseable record already ages out (the mutation this row guards:
+// skipping the mtime fallback on a read error would keep the record
+// forever). The chmod this test relies on has no effect for root, which
+// bypasses file mode entirely, so the test skips there and says so.
 func TestSweepRetainsUnreadableRecord(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("running as root: chmod 0o000 does not block a root read")
+	}
+
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
 	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
@@ -340,17 +350,42 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 		t.Errorf("unreadable record was not retained: %v", err)
 	}
 
+	// The record's own nonce still refuses a replay while it is
+	// retained: O_CREATE|O_EXCL detects the existing file without
+	// reading it, so the insert never needed the mode that blocks
+	// os.ReadFile.
+	if err := nonces.Insert(secondSample, nonceClock, sampleExpiry); !errors.Is(err, ErrNonceReplayed) {
+		t.Errorf("Insert() error = %v, want ErrNonceReplayed while the record is retained", err)
+	}
+
 	// OpenNonceStore runs a sweep at open, so the same store carrying
 	// the same unreadable record must still start.
-	if err := os.Chmod(unreadable, 0o000); err != nil {
-		t.Fatalf("Chmod: %v", err)
-	}
 	store, err := Open(stateDir)
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
 	if _, _, err := OpenNonceStore(store, fixtureRetention, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
 		t.Errorf("OpenNonceStore: %v, want nil: a single unreadable record must not stop startup", err)
+	}
+
+	// A later sweep run past the file's own (real) mtime plus
+	// retention removes it: the fallback this file takes for being
+	// unreadable is the same mtime-plus-retention answer an
+	// unparseable record already takes.
+	info, err := os.Stat(unreadable)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+	past := info.ModTime().Add(fixtureRetention + time.Second)
+	sweep, err = nonces.Sweep(past)
+	if err != nil {
+		t.Fatalf("Sweep: %v, want nil", err)
+	}
+	if sweep.Removed != 1 {
+		t.Errorf("Removed = %d, want 1: the unreadable record past its mtime plus retention", sweep.Removed)
+	}
+	if _, err := os.Stat(unreadable); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("Stat(unreadable) error = %v, want ErrNotExist: the record should have been swept", err)
 	}
 }
 

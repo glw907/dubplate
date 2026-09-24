@@ -211,12 +211,13 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 				continue
 			}
 		case err != nil:
-			// A record this sweep cannot even read, most often
-			// a bad mode or a bad inode. Retained and counted
-			// alongside a record it can read but not parse,
-			// rather than joined into a returned error: a
-			// single bad record must not stop OpenNonceStore
-			// from starting the login surface at all.
+			// recordExpiry's own mtime fallback could not stat
+			// the record either, most often because it was
+			// removed between the listing and the read. Retained
+			// and counted rather than joined into a returned
+			// error: a single bad record must not stop
+			// OpenNonceStore from starting the login surface at
+			// all.
 			sweep.Malformed++
 			continue
 		case !now.After(expiresAt):
@@ -235,23 +236,37 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 }
 
 // recordExpiry returns when the record at path may be removed. For a
-// record it cannot parse it returns the mtime fallback alongside
-// errNonceRecordUnparseable, so the caller has both the reason and the
-// answer.
+// record it cannot read or cannot parse it returns the mtime fallback
+// alongside errNonceRecordUnparseable, so the caller has both the
+// reason and the answer: an absent file is reported as its own error
+// instead, since the sweep's caller already answers for that case (it
+// was removed between the listing and the read).
 func (s *NonceStore) recordExpiry(path string) (time.Time, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return time.Time{}, err
+		if errors.Is(err, fs.ErrNotExist) {
+			return time.Time{}, err
+		}
+		return s.mtimeFallback(path)
 	}
 	expiresAt, err := parseNonceRecord(data)
 	if err == nil {
 		return expiresAt, nil
 	}
+	return s.mtimeFallback(path)
+}
+
+// mtimeFallback answers for a record recordExpiry could not resolve
+// from its own bytes, whether because it could not be read (an
+// unreadable mode, most often) or because it could not be parsed: both
+// take the same mtime-plus-retention answer, so an unreadable record
+// ages out of the store exactly as an unparseable one already does.
+func (s *NonceStore) mtimeFallback(path string) (time.Time, error) {
 	info, statErr := os.Stat(path)
 	if statErr != nil {
 		return time.Time{}, statErr
 	}
-	return info.ModTime().Add(s.retention), err
+	return info.ModTime().Add(s.retention), errNonceRecordUnparseable
 }
 
 // nonceRecord renders a record at second granularity, which is the

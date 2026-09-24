@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -368,6 +369,40 @@ func TestValidateMagicLinkSource_NonceRetention(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestValidateMagicLinkSource_NonceRetentionNamesBothKeysAsDistinctErrors
+// proves R-5c10's keyed-type mechanism directly: a retention-vs-expiry
+// refusal joins two distinct *sourceKeyError values, one per key, so
+// doctor's errors.As walk (cmd/dubplate-server/doctor.go,
+// identitySourceStatus) can recover both rather than only the one whose
+// message happens to come first.
+func TestValidateMagicLinkSource_NonceRetentionNamesBothKeysAsDistinctErrors(t *testing.T) {
+	environ := append(baseEnviron(),
+		"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
+		"DUBPLATE_NONCE_RETENTION=14m",
+	)
+	err := validateMagicLinkSource(nil, environ)
+	if err == nil {
+		t.Fatal("validateMagicLinkSource() error = nil, want a refusal: retention is below expiry")
+	}
+
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		t.Fatalf("validateMagicLinkSource() error does not implement Unwrap() []error: %v", err)
+	}
+
+	var keys []string
+	for _, leaf := range joined.Unwrap() {
+		if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok {
+			keys = append(keys, keyed.key)
+		}
+	}
+	for _, want := range []string{"DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"} {
+		if !slices.Contains(keys, want) {
+			t.Errorf("keyed errors named %v, want %s among them", keys, want)
+		}
 	}
 }
 

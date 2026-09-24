@@ -257,10 +257,10 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 
 // TestDoctorCmd_IdentitySourceRows proves the per-source row's three
 // states and its silence about values: the selected source reports
-// active when its required rows resolve and unsatisfied when one does
-// not, every other declared source reports inactive, and no row
-// carries a resolved value, because a source's required set carries
-// secrets (Resolution R-5b6).
+// active when its required rows resolve and "unsatisfied: " plus the
+// failing key when one does not, every other declared source reports
+// inactive, and no row carries a resolved value, because a source's
+// required set carries secrets (Resolution R-5b6).
 func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 	const (
 		selector  = "DUBPLATE_TEST_SCRATCH_SELECTOR"
@@ -291,10 +291,10 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 			},
 		},
 		{
-			name:  "the selected source with a required row missing is unsatisfied",
+			name:  "the selected source with a required row missing is unsatisfied and names the key",
 			extra: []string{selector + "=scratch-a"},
 			wantLines: []string{
-				fmt.Sprintf("%-32s %s", "scratch-a", "unsatisfied"),
+				fmt.Sprintf("%-32s %s", "scratch-a", "unsatisfied: "+requiredA+" missing"),
 				fmt.Sprintf("%-32s %s", "scratch-b", "inactive"),
 			},
 		},
@@ -513,6 +513,127 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
+	}
+}
+
+// TestDoctorCmd_SourceLineNamesFailingKey proves R-5c10: the selected
+// source's own line names the offending key, key name only and never a
+// value, for each of the review's three cases: a short rotation-overlap
+// secret, a short primary secret, and a public URL carrying userinfo.
+func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
+	tests := []struct {
+		name    string
+		extra   []string
+		wantKey string
+	}{
+		{
+			name:    "short rotation-overlap secret",
+			extra:   []string{"DUBPLATE_SESSION_SECRET_PREVIOUS=" + fixtureSecretBelowFloor},
+			wantKey: "DUBPLATE_SESSION_SECRET_PREVIOUS",
+		},
+		{
+			name:    "short primary secret",
+			extra:   []string{"DUBPLATE_MAGIC_LINK_SECRET=" + fixtureSecretBelowFloor},
+			wantKey: "DUBPLATE_MAGIC_LINK_SECRET",
+		},
+		{
+			name:    "public URL carrying userinfo",
+			extra:   []string{"DUBPLATE_PUBLIC_URL=https://operator:fixture-pass-not-real@dubplate.example.test"},
+			wantKey: "DUBPLATE_PUBLIC_URL",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(authEnviron(t), tt.extra...)
+			reg := productionRegistry()
+
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			if err := cmd.Execute(); err == nil {
+				t.Fatal("Execute() error = nil, want a refusal")
+			}
+
+			want := fmt.Sprintf("%-32s unsatisfied: %s invalid", "magic-link", tt.wantKey)
+			out := stdout.String()
+			if !strings.Contains(out, want) {
+				t.Errorf("stdout = %q, want it to contain %q", out, want)
+			}
+			for _, secret := range []string{fixtureSecretBelowFloor, "fixture-pass-not-real"} {
+				if strings.Contains(out, secret) {
+					t.Errorf("stdout = %q, want no secret value present", out)
+				}
+			}
+		})
+	}
+}
+
+// TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce proves R-5c10's
+// acceptance criterion that two failing keys at once both appear on the
+// one line: both magic-link secrets below the floor, on the fixture
+// TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
+// rowStatuses keeps as two separate entries. Fixture state: the source
+// is selected (authEnviron), so the line prints at all.
+func TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce(t *testing.T) {
+	environ := append(authEnviron(t),
+		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
+		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
+	)
+	reg := productionRegistry()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: both secrets are below the floor")
+	}
+
+	out := stdout.String()
+	for _, key := range []string{"DUBPLATE_MAGIC_LINK_SECRET", "DUBPLATE_SESSION_SECRET"} {
+		if !strings.Contains(out, key+" invalid") {
+			t.Errorf("stdout = %q, want it to name %s", out, key)
+		}
+	}
+
+	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+	found := false
+	for _, line := range lines {
+		if strings.HasPrefix(line, "magic-link") {
+			found = true
+			if !strings.Contains(line, "DUBPLATE_MAGIC_LINK_SECRET invalid") || !strings.Contains(line, "DUBPLATE_SESSION_SECRET invalid") {
+				t.Errorf("magic-link line = %q, want both failing keys on the one line", line)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("no line starts with magic-link")
+	}
+}
+
+// TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix proves
+// R-5c10's mechanism: doctor reads a Validate refusal's failing key from
+// [sourceKeyError]'s own field via errors.As, never by parsing the
+// rendered message's prefix. The fixture's reason begins with a
+// colon-bearing phrase that resembles a key; a doctor that parsed the
+// message text instead of the type would print that phrase, not the
+// real key, once the parse point moved past the real key's own colon.
+func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
+	const (
+		selector = "DUBPLATE_TEST_SCRATCH_SELECTOR"
+		key      = "DUBPLATE_TEST_SCRATCH_KEY"
+	)
+	src := config.IdentitySource{
+		Name:     "scratch",
+		Selector: selector,
+		Validate: func(map[string]string, []string) error {
+			return &sourceKeyError{key: key, reason: "DUBPLATE_TEST_SCRATCH_OTHER: not a real key, part of the reason text"}
+		},
+	}
+	environ := []string{selector + "=scratch"}
+
+	got := identitySourceStatus(environ, src, map[string]string{})
+	want := "unsatisfied: " + key + " invalid"
+	if got != want {
+		t.Errorf("identitySourceStatus() = %q, want %q", got, want)
 	}
 }
 
