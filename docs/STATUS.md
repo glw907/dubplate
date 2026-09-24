@@ -30,9 +30,10 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 2. **5c-ii is approved** (Geoff, 2026-09-24, all seven rulings yes): revision 2.2 at
    `plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`, 9.4M ceiling, 5c-iii split off.
    It opens in lane 1 once the beets adoption lands (one executor per tree).
-3. **Beets 2.14.1 adoption runs in lane 1** (Geoff, 2026-09-24: "do that in this pass"; the six
-   sanctioned empty-search corpus edits approved with it): shim adaptation from the parked stash,
-   the matcher's ft compat class retired, re-freeze, ledgers, `BEETS_VERSION`.
+3. **Beets 2.14.1 adopted** at `367564c` (the ft compat class retired, six sanctioned empty-search
+   responses, 215 cases re-frozen: 209 `config_hash` only, six `adv-ft-*` now medium/skip). Review
+   verdict fix, comment-only; the fix round (citation re-anchor in `tunables.go`, README, one test
+   message) is in flight, then `code-simplifier`, then 5c-ii opens in lane 1.
 4. The architecture cleanup pass joins the staged comment-cleanup task
    (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 
@@ -56,6 +57,12 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 - 86 declared coverage gaps, none blocking. Staged legs warn: 325 process citations, 128
   exported-unused. Fork B: 1.0 is FLAC-only; the group non-FLAC question is carried.
   Configuration homes routes tasks into rungs 6, 7, 9, 12, 14, 16 and the 2.0 list.
+- From the beets adoption: Go RE2's ASCII `\b` against Python's Unicode `\b` gives a tenfold ft
+  false positive on words like "Geschäft:" in both matcher modes (pre-existing, not a regression;
+  needs a design call and a corpus case); about 263 beets line citations across `internal/engine`
+  still point at 2.13.1 (to the comment-cleanup pass); the six `adj-adv-ft-*` rows still read
+  "unreleased at 2.13.1" (Geoff's next adjudication batch); 2.14's empty-query search skip for the
+  musicbrainz port; `deploy.sh`'s `BEETS_VERSION` 2.14.1 upgrades the box at the 5d deploy.
 - Leftovers: four-knob wall registration; `AdminEmail`'s contact row; five 3b items; `profile_hashes`;
   response-status extension; `Case.Extra`; `slices.Clone` (rung 9); the corrupted untracked 2026-09-04 evidence doc; two review albums on
   the box; `FILEBROWSER_ADMIN_PASSWORD`; stale failed units; `DUBPLATE_SITE_NAME` re-mint.
