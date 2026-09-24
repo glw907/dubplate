@@ -192,12 +192,13 @@ func (c *logCapture) waitFor(t *testing.T, msg string) map[string]any {
 // fixtureOptions are what a row varies; the zero value is the kind
 // answer under generousLimits with ClientIP in direct mode.
 type fixtureOptions struct {
-	generic  bool
-	limits   Limits
-	proxy    serve.TrustedProxyConfig
-	bodyCap  int64
-	mailErr  error
-	maxCalls int
+	generic    bool
+	limits     Limits
+	proxy      serve.TrustedProxyConfig
+	bodyCap    int64
+	mailErr    error
+	maxCalls   int
+	linkExpiry time.Duration
 }
 
 type handlerFixture struct {
@@ -242,6 +243,11 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	logs := newLogCapture()
 	limiter := NewLimiter(limits)
 
+	linkExpiry := opts.linkExpiry
+	if linkExpiry == 0 {
+		linkExpiry = fixtureExpiry
+	}
+
 	h := NewHandlers(HandlersConfig{
 		Roster:             roster,
 		Nonces:             nonces,
@@ -254,7 +260,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		LinkSecret:         []byte(currentFixture),
 		PreviousLinkSecret: []byte(previousFixture),
 		SessionSecret:      []byte(sessionFixture),
-		LinkExpiry:         fixtureExpiry,
+		LinkExpiry:         linkExpiry,
 		SessionLifetime:    seamLifetime,
 		SessionAbsoluteCap: seamCap,
 		PublicOrigin:       handlerOrigin,
@@ -696,12 +702,15 @@ func TestRequestLink_KindAnswers(t *testing.T) {
 
 // TestRequestLink_MailCopy proves the mail body a known address receives:
 // the link, the expiry stated in whole minutes computed from LinkExpiry
-// (fixtureExpiry is 15 minutes), the once-only and ignore-it sentences,
+// (fixtureExpiry is 15 minutes), the only-once and ignore-it sentences,
 // and nothing else configured. Stripping the link out of the body and
 // searching what remains for the roster's admin address, the public
 // origin's bare host, and the sign-in address itself is what proves the
 // last clause: none of them appears anywhere but inside the link this
-// test already extracted.
+// test already extracted. The expiry assertion checks the full "expires
+// in 15 minutes." phrase, not the bare digits "15": the link's own token
+// can itself contain the substring "15", so a bare-digit check could
+// pass even if the digits came from the URL rather than the expiry.
 func TestRequestLink_MailCopy(t *testing.T) {
 	fx := newHandlerFixture(t, fixtureOptions{})
 	serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
@@ -710,15 +719,15 @@ func TestRequestLink_MailCopy(t *testing.T) {
 	if m.subject == "" {
 		t.Error("mail subject is empty")
 	}
-	if !strings.Contains(m.body, "once") {
-		t.Errorf("mail body = %q, want it to say the link works once", m.body)
+	if !strings.Contains(m.body, "works only once") {
+		t.Errorf("mail body = %q, want it to say the link works only once", m.body)
 	}
 	if !strings.Contains(m.body, "ignore") {
 		t.Errorf("mail body = %q, want it to tell a reader who did not ask to ignore it", m.body)
 	}
-	const wantMinutes = "15"
-	if !strings.Contains(m.body, wantMinutes) {
-		t.Errorf("mail body = %q, want it to state the expiry in minutes (%s)", m.body, wantMinutes)
+	const wantExpiryPhrase = "expires in 15 minutes."
+	if !strings.Contains(m.body, wantExpiryPhrase) {
+		t.Errorf("mail body = %q, want it to contain %q", m.body, wantExpiryPhrase)
 	}
 
 	token := tokenFromMail(t, m)
@@ -731,6 +740,38 @@ func TestRequestLink_MailCopy(t *testing.T) {
 		if strings.Contains(stripped, forbidden) {
 			t.Errorf("mail body with the link removed still contains %q: %q", forbidden, stripped)
 		}
+	}
+}
+
+// TestRequestLink_MailCopyExpiryRounding proves sendLink rounds any
+// partial minute of LinkExpiry up rather than truncating, and switches
+// between "1 minute" singular and "N minutes" plural on the rounded
+// count alone: a 90-second expiry must never read "1 minute", which
+// truncation would produce. Each row asserts the full "expires in ..."
+// phrase, not the bare digit, on the same reasoning
+// TestRequestLink_MailCopy documents: the link's own token can contain
+// a digit that would let a bare-digit check pass for the wrong reason.
+func TestRequestLink_MailCopyExpiryRounding(t *testing.T) {
+	tests := []struct {
+		name       string
+		linkExpiry time.Duration
+		wantPhrase string
+	}{
+		{"exactly one minute reads singular", time.Minute, "expires in 1 minute."},
+		{"ninety seconds rounds up to two minutes", 90 * time.Second, "expires in 2 minutes."},
+		{"fifteen minutes reads plural", 15 * time.Minute, "expires in 15 minutes."},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fx := newHandlerFixture(t, fixtureOptions{linkExpiry: tt.linkExpiry})
+			serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+			m := fx.mail.waitCall(t)
+
+			if !strings.Contains(m.body, tt.wantPhrase) {
+				t.Errorf("mail body = %q, want it to contain %q", m.body, tt.wantPhrase)
+			}
+		})
 	}
 }
 

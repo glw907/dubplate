@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
 	"time"
 
@@ -24,11 +25,25 @@ const (
 // text. The body names no site, no person, and no deployment value
 // beyond the link and its expiry, because the same text goes out from
 // every install; the link is the whole of what differs. The template
-// takes the link and the expiry in whole minutes, in that order.
+// takes the link and the expiry-in-minutes phrase ("1 minute" or "N
+// minutes", built by [expiryMinutesPhrase]), in that order.
 const (
 	linkMailSubject      = "Your sign-in link"
-	linkMailBodyTemplate = "Use this link to sign in:\n\n%s\n\nThe link works once and expires in %d minutes. If you didn't ask for it, you can ignore this message.\n"
+	linkMailBodyTemplate = "Use this link to sign in:\n\n%s\n\nThe link works only once and expires in %s. If you didn't ask for it, you can ignore this message.\n"
 )
+
+// expiryMinutesPhrase renders expiry in whole minutes for the magic-
+// link mail, rounding any partial minute up so the mail never
+// understates how long the link stays valid: a 90-second expiry reads
+// "2 minutes", never "1 minute". It reads "1 minute" singular only
+// when the rounded count is exactly one.
+func expiryMinutesPhrase(expiry time.Duration) string {
+	minutes := int(math.Ceil(expiry.Minutes()))
+	if minutes == 1 {
+		return "1 minute"
+	}
+	return fmt.Sprintf("%d minutes", minutes)
+}
 
 // Outcomes the handlers answer with, in the "outcome" field of every
 // JSON response. The copy a person reads is the page's; these are the
@@ -273,8 +288,8 @@ func (h *handlers) sendLink(ctx context.Context, now time.Time, address string) 
 	if err != nil {
 		return err
 	}
-	minutes := int(h.cfg.LinkExpiry / time.Minute)
-	return h.cfg.Send(ctx, address, linkMailSubject, fmt.Sprintf(linkMailBodyTemplate, link, minutes))
+	phrase := expiryMinutesPhrase(h.cfg.LinkExpiry)
+	return h.cfg.Send(ctx, address, linkMailSubject, fmt.Sprintf(linkMailBodyTemplate, link, phrase))
 }
 
 func (h *handlers) logSendFailure(log *slog.Logger, err error) {

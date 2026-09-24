@@ -70,11 +70,18 @@ var magicLinkSource = config.IdentitySource{
 // bytes passes with room to spare.
 const secretLengthFloor = 32
 
-// durationFloor is the positive floor every one of rung 5's four
-// duration thresholds shares: zero or a negative duration cannot mean
-// "never" or "immediately" here, and config.ParseDuration accepts
-// both, so this floor is the only refusal of them (review m5).
+// durationFloor is the positive floor three of rung 5's four duration
+// thresholds share: zero or a negative duration cannot mean "never" or
+// "immediately" here, and config.ParseDuration accepts both, so this
+// floor is the only refusal of them (review m5).
 const durationFloor = time.Second
+
+// magicLinkExpiryFloor is DUBPLATE_MAGIC_LINK_EXPIRY's own floor,
+// raised above durationFloor: a link that expires inside a minute
+// leaves no time for the mail to arrive and be opened, so a value
+// below one minute is refused rather than merely rounding to "1
+// minute" in the mailed copy.
+const magicLinkExpiryFloor = time.Minute
 
 // magicLinkExpiryCeiling bounds how long a mailed link can stay
 // redeemable. The threat model's mail-scanner residual is bounded by
@@ -289,10 +296,10 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 
 	var expiry, retention, lifetime, absoluteCap time.Duration
 	var expiryErr, retentionErr, lifetimeErr, absoluteCapErr error
-	errs, expiry, expiryErr = checkDurationBounds(errs, environ, magicLinkExpiryThreshold, magicLinkExpiryCeiling)
-	errs, lifetime, lifetimeErr = checkDurationBounds(errs, environ, sessionLifetimeThreshold, 0)
-	errs, absoluteCap, absoluteCapErr = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, sessionAbsoluteCapCeiling)
-	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, nonceRetentionCeiling)
+	errs, expiry, expiryErr = checkDurationBounds(errs, environ, magicLinkExpiryThreshold, magicLinkExpiryFloor, magicLinkExpiryCeiling)
+	errs, lifetime, lifetimeErr = checkDurationBounds(errs, environ, sessionLifetimeThreshold, durationFloor, 0)
+	errs, absoluteCap, absoluteCapErr = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, durationFloor, sessionAbsoluteCapCeiling)
+	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, durationFloor, nonceRetentionCeiling)
 
 	// A relational refusal names both keys it compares: the pair below
 	// appends one sourceKeyError per key rather than one error naming
@@ -382,19 +389,19 @@ func checkIntBounds(errs []error, environ []string, th config.Threshold, floor, 
 }
 
 // checkDurationBounds parses th against environ and appends a bound
-// refusal to errs when the value is below durationFloor or, when
-// ceiling is positive, above it. It returns the parsed value alongside
-// errs and the parse error, so a caller that needs the value for a
-// further relational check (the retention-vs-expiry comparison) does
-// not parse it a second time.
-func checkDurationBounds(errs []error, environ []string, th config.Threshold, ceiling time.Duration) ([]error, time.Duration, error) {
+// refusal to errs when the value is below floor or, when ceiling is
+// positive, above it. It returns the parsed value alongside errs and
+// the parse error, so a caller that needs the value for a further
+// relational check (the retention-vs-expiry comparison) does not parse
+// it a second time.
+func checkDurationBounds(errs []error, environ []string, th config.Threshold, floor, ceiling time.Duration) ([]error, time.Duration, error) {
 	d, err := config.ParseDuration(environ, th)
 	if err != nil {
 		keyed := &sourceKeyError{key: th.Key, reason: splitKeyReason(err)}
 		return append(errs, keyed), 0, keyed
 	}
-	if d < durationFloor {
-		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is below the floor of %s", d, durationFloor)})
+	if d < floor {
+		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is below the floor of %s", d, floor)})
 	}
 	if ceiling > 0 && d > ceiling {
 		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is above the ceiling of %s", d, ceiling)})

@@ -409,10 +409,13 @@ func TestValidateMagicLinkSource_NonceRetentionNamesBothKeysAsDistinctErrors(t *
 // TestValidateMagicLinkSource_DurationBounds proves the review m5 fix:
 // each of the four thresholds refuses at and one past its floor, and
 // the two that carry a ceiling (the link expiry and the session
-// absolute cap) refuse at and one past it too. Every literal below is
-// written out rather than derived from durationFloor,
-// magicLinkExpiryCeiling, or sessionAbsoluteCapCeiling, so the test
-// cannot pass by echoing the code under test.
+// absolute cap) refuse at and one past it too. The link expiry's own
+// floor is one minute, not durationFloor's one second, because a mail
+// that quotes the expiry in minutes must never read "0 minutes". Every
+// literal below is written out rather than derived from durationFloor,
+// magicLinkExpiryFloor, magicLinkExpiryCeiling, or
+// sessionAbsoluteCapCeiling, so the test cannot pass by echoing the
+// code under test.
 func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 	// bound overrides one threshold key in a base environ that
 	// otherwise satisfies every other threshold and relation, so a
@@ -435,8 +438,8 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		// A positive floor of one second on all four (review m5): zero
 		// or a negative duration cannot mean "never" or "immediately"
 		// here.
-		{"link expiry at the one-second floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1s"), false},
-		{"link expiry one below the floor (zero)", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "0s"), true},
+		{"link expiry at the one-minute floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1m"), false},
+		{"link expiry one second below the floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "59s"), true},
 		{"session lifetime at the one-second floor", bound("DUBPLATE_SESSION_LIFETIME", "1s"), false},
 		{"session lifetime one below the floor (zero)", bound("DUBPLATE_SESSION_LIFETIME", "0s"), true},
 		// The cap row's own floor is asserted with the session lifetime
@@ -445,9 +448,11 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 		{"session absolute cap at the one-second floor", append(bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "1s"), "DUBPLATE_SESSION_LIFETIME=1s"), false},
 		{"session absolute cap one below the floor (zero)", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "0s"), true},
 		// The retention row's own floor is asserted with the link
-		// expiry also lowered to one second, so R31's separate
-		// retention-vs-expiry relation cannot fire alongside it.
-		{"nonce retention at the one-second floor", append(bound("DUBPLATE_NONCE_RETENTION", "1s"), "DUBPLATE_MAGIC_LINK_EXPIRY=1s"), false},
+		// expiry also lowered to its own one-minute floor, so R31's
+		// separate retention-vs-expiry relation cannot fire alongside
+		// it: retention's 1s floor can no longer stand alone once
+		// expiry's floor is a full minute above it.
+		{"nonce retention at the one-minute floor (matching expiry's own floor)", append(bound("DUBPLATE_NONCE_RETENTION", "1m"), "DUBPLATE_MAGIC_LINK_EXPIRY=1m"), false},
 		{"nonce retention one below the floor (zero)", bound("DUBPLATE_NONCE_RETENTION", "0s"), true},
 
 		// A ceiling of one hour on the link expiry (review m5): the
@@ -477,6 +482,43 @@ func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
 				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+// TestDoctorCmd_MagicLinkExpiryBelowFloorNamesKeyNotValue proves the
+// mail-copy fix's load-time half end to end: a link expiry below the
+// one-minute floor makes doctor's magic-link source row report
+// DUBPLATE_MAGIC_LINK_EXPIRY unsatisfied, reading the refusal through
+// [sourceKeyError] the same way [identitySourceStatus] already does
+// for every other threshold. That row's own reporting names only the
+// key, never the submitted "59s" (identitySourceStatus's fail() writes
+// "key invalid", nothing else), the same key-only discipline the
+// nonce-retention-vs-expiry relation already relies on.
+func TestDoctorCmd_MagicLinkExpiryBelowFloorNamesKeyNotValue(t *testing.T) {
+	environ := dropKey(authEnviron(t), "DUBPLATE_MAGIC_LINK_EXPIRY")
+	environ = append(environ, "DUBPLATE_MAGIC_LINK_EXPIRY=59s")
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd.SetOut(&stdout)
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() error = nil, want error")
+	}
+
+	wantPrefix := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied: DUBPLATE_MAGIC_LINK_EXPIRY invalid")
+	var sourceLine string
+	for line := range strings.SplitSeq(stdout.String(), "\n") {
+		if strings.HasPrefix(line, wantPrefix) {
+			sourceLine = line
+			break
+		}
+	}
+	if sourceLine == "" {
+		t.Fatalf("stdout = %q, want a line with prefix %q", stdout.String(), wantPrefix)
+	}
+	if strings.Contains(sourceLine, "59s") {
+		t.Errorf("magic-link row = %q, want it to never quote the submitted value", sourceLine)
 	}
 }
 
