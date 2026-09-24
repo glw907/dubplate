@@ -23,10 +23,13 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Next action
 
-1. **Lane 2 runs 6a.** Segment A closed green (Tasks 1-3 accepted, `814a891`..`2d863cb`, one fix
-   round each on 1 and 2); spend about 1.66M with Task 0. Re-derived: segment B about 2.2M, the
-   simplifier round about 0.4M, segment C about 0.8M, so about 5.1M against the 5.44M flag and 6.8M
-   ceiling. Segment B (Tasks 4-7) in flight; Task 0's notes 7 and 8 ride Task 7's brief.
+1. **Lane 2 runs 6a.** Segments A and B closed green (Tasks 1-7 accepted, `814a891`..`dedc1b7`);
+   spend about 3.0M, re-derived total about 5.1M against the 5.44M flag. A tidy fix (tests off the
+   host state dir, one untested row, doctor comments) runs before the simplifier round; then
+   segment C. For the close: a migration file carrying its own `COMMIT` is caught only at Commit,
+   after its tail ran in autocommit (6b-i); a failed snapshot rename leaves staging occupied; the
+   rebuild marker matches exact bytes only; serve's settle loop is unbounded and `logger` unguarded
+   (6d); mutation 4 is unobservable and mutation 11 panics inside `checkLedger`'s contract.
 2. **5c-ii is approved** (Geoff, 2026-09-24, all seven rulings yes): revision 2.2 at
    `plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`, 9.4M ceiling, 5c-iii split off.
    It opens in lane 1 once the beets adoption lands (one executor per tree).
@@ -40,7 +43,7 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-ii since 2026-09-24 (beets 2.14.1 closed at `422efcd`, simplifier clean); Task 0 first |
-| 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; segment A green at `2d863cb`, segment B (Tasks 4-7) in flight |
+| 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; segments A and B green at `dedc1b7`; tidy fix, then the simplifier round and segment C |
 
 ## Open items (carried)
 
