@@ -97,11 +97,10 @@ type Session struct {
 // separate the two.
 //
 // The expiry is clamped to the anchor plus absoluteCap, the same clamp
-// [RefreshSession] applies (review m2's other half): a lifetime
-// configured above the cap would otherwise mint a cookie whose Max-Age
-// promises longer than [VerifySession] will ever honor, misleading
-// whatever reads the cookie's own attributes rather than the value it
-// carries.
+// [RefreshSession] applies: a lifetime configured above the cap would
+// otherwise mint a cookie whose Max-Age promises longer than
+// [VerifySession] will ever honor, misleading whatever reads the
+// cookie's own attributes rather than the value it carries.
 //
 // secret is the current session secret. There is no minting path for
 // the previous secret, which is what makes rotation routine rather than

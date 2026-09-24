@@ -234,13 +234,12 @@ func registerAuthConfig(reg *config.Registry) {
 // checks the secret length floor on both rotation pairs, the public
 // URL's shape, the ten thresholds' bounds (review m5, R28, security
 // constraint 3), the session-lifetime-vs-absolute-cap and
-// nonce-retention-vs-expiry relations (R-5c11, R31), the unknown-address
-// answer's accepted set (R25), DUBPLATE_SMTP_FROM (spec:1289), and the
-// SMTP port bound (R-5c11), joining every failure it finds so
-// [config.Load] reports a short secret and a bad URL together. Every
-// returned error names the offending key and never the value or the
-// length of a secret, so a refusal narrows no guess about what the
-// value was.
+// nonce-retention-vs-expiry relations, the unknown-address answer's
+// accepted set (R25), DUBPLATE_SMTP_FROM (spec:1289), and the SMTP port
+// bound, joining every failure it finds so [config.Load] reports a
+// short secret and a bad URL together. Every returned error names the
+// offending key and never the value or the length of a secret, so a
+// refusal narrows no guess about what the value was.
 func validateMagicLinkSource(values map[string]string, environ []string) error {
 	var errs []error
 
@@ -303,8 +302,8 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 }
 
 // validateSMTPPort checks value parses as an integer from 1 through
-// 65535 (review finding 12): DUBPLATE_SMTP_PORT is a required source
-// key rather than a registered [config.Threshold], because it feeds
+// 65535. DUBPLATE_SMTP_PORT is a required source key rather than a
+// registered [config.Threshold], because it feeds
 // [strconv.Atoi] rather than one of the registry's parseable kinds, so
 // its bound lives here instead of in [checkIntBounds]. Landing the
 // check in this Validate hook, rather than leaving it to newMailer's
@@ -382,9 +381,9 @@ func checkDurationBounds(errs []error, environ []string, th config.Threshold, ce
 // userinfo, no query string, no fragment, and no path other than empty
 // or "/", because any of the four would ride into every link [LinkURL]
 // builds and make an attacker-chosen string part of its visible prefix
-// or suffix (review m4, finding 2's routing fix, R-5c9: the owned serve
-// prefix is what sets where dubplate lives, so the public URL carries
-// none of its own); it carries a non-empty host, because net/url
+// or suffix (review m4): the owned serve prefix is what sets where
+// dubplate lives, so the public URL carries none of its own; it
+// carries a non-empty host, because net/url
 // accepts a bare hostname with a nil error and an empty Host, and a URL
 // with no host builds a path-only link that defeats security review
 // finding 7; and its scheme is https unless its host is loopback, the
@@ -396,8 +395,8 @@ func checkDurationBounds(errs []error, environ []string, th config.Threshold, ce
 // rather than the host, since url.Parse("http://localhost:8080").Host
 // is "localhost:8080" and only Hostname() is "localhost".
 //
-// No returned error quotes value (review finding 10): every message
-// names the key and the defect alone. url.Parse's own error is not
+// No returned error quotes value: every message names the key and the
+// defect alone. url.Parse's own error is not
 // wrapped verbatim either, since its Error method formats the whole
 // URL, password included
 // (net/url/url.go, fmt.Sprintf("%s %q: %s", e.Op, e.URL, e.Err), read
