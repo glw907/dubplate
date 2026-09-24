@@ -196,11 +196,12 @@ type fixtureOptions struct {
 }
 
 type handlerFixture struct {
-	handlers Handlers
-	stateDir string
-	epoch    *EpochStore
-	mail     *fakeMail
-	logs     *logCapture
+	handlers   Handlers
+	stateDir   string
+	rosterPath string
+	epoch      *EpochStore
+	mail       *fakeMail
+	logs       *logCapture
 }
 
 func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
@@ -215,7 +216,8 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
 	epoch := OpenEpochStore(store)
-	roster, err := OpenRoster(writeRosterFile(t, `{"schema_version":1,"members":`+handlerRoster+`}`))
+	rosterPath := writeRosterFile(t, `{"schema_version":1,"members":`+handlerRoster+`}`)
+	roster, err := OpenRoster(rosterPath)
 	if err != nil {
 		t.Fatalf("OpenRoster: %v", err)
 	}
@@ -251,7 +253,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		BodyCap:            bodyCap,
 		GenericAnswer:      opts.generic,
 	})
-	return handlerFixture{handlers: h, stateDir: stateDir, epoch: epoch, mail: mail, logs: logs}
+	return handlerFixture{handlers: h, stateDir: stateDir, rosterPath: rosterPath, epoch: epoch, mail: mail, logs: logs}
 }
 
 // post builds a urlencoded POST to target from peer carrying body.
@@ -678,6 +680,64 @@ func TestRequestLink_KindAnswers(t *testing.T) {
 			}
 			if got := fx.mail.count(); got != tt.wantMail {
 				t.Errorf("mail sent %d times, want %d", got, tt.wantMail)
+			}
+		})
+	}
+}
+
+// TestRequestLink_BrokenRoster breaks the roster file after the server
+// has opened it, the way a bad hand edit would, and asks for a link.
+// Under the kind answer a broken roster is a failed request, never an
+// unknown address: answering unknown would hand a member the admin
+// contact meant for a stranger, and would name that admin from a roster
+// that no longer loads. Under the generic answer the response is the
+// same bytes a working roster answers with, and the failure reaches
+// the log alone.
+func TestRequestLink_BrokenRoster(t *testing.T) {
+	tests := []struct {
+		name    string
+		generic bool
+		address string
+	}{
+		{name: "kind answer, known address", address: "member@example.com"},
+		{name: "kind answer, unknown address", address: "stranger@example.com"},
+		{name: "generic answer, known address", generic: true, address: "member@example.com"},
+		{name: "generic answer, unknown address", generic: true, address: "stranger@example.com"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fx := newHandlerFixture(t, fixtureOptions{generic: tt.generic})
+			if err := os.WriteFile(fx.rosterPath, []byte(`{"schema_version":1,"members":[`), 0o600); err != nil {
+				t.Fatalf("break roster: %v", err)
+			}
+
+			w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(tt.address)))
+			fx.logs.waitFor(t, "auth roster unavailable")
+
+			if tt.generic {
+				// The control is a working roster answering the same
+				// request, so the comparison is to what the page sees
+				// normally, not to a literal this test could get wrong.
+				control := newHandlerFixture(t, fixtureOptions{generic: true})
+				want := serveOne(control.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(tt.address)))
+				if got := responseOf(w); !reflect.DeepEqual(got, responseOf(want)) {
+					t.Errorf("broken roster answered %+v, a working one %+v", got, responseOf(want))
+				}
+			} else {
+				if w.Code != http.StatusInternalServerError || strings.TrimSpace(w.Body.String()) != `{"outcome":"failed"}` {
+					t.Errorf("got %d %s, want 500 {\"outcome\":\"failed\"}", w.Code, w.Body.String())
+				}
+				if strings.Contains(w.Body.String(), "admin@example.com") {
+					t.Errorf("body %s names the admin contact", w.Body.String())
+				}
+			}
+			if got := fx.mail.count(); got != 0 {
+				t.Errorf("mail sent %d times against a broken roster, want 0", got)
+			}
+			for _, rec := range fx.logs.records(t) {
+				if rec["msg"] == "auth link requested" && rec["known"] == false {
+					t.Errorf("a broken roster was logged as an unknown address: %v", rec)
+				}
 			}
 		})
 	}

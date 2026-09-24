@@ -2,16 +2,21 @@ package auth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
 )
@@ -25,6 +30,17 @@ func writeRosterFile(t *testing.T, content string) string {
 		t.Fatalf("write fixture roster: %v", err)
 	}
 	return path
+}
+
+// mustList returns r's members, failing the test when the roster does
+// not load.
+func mustList(t *testing.T, r *Roster) []Member {
+	t.Helper()
+	members, err := r.List()
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	return members
 }
 
 // TestOpenRoster_LoadRefusals proves the four fail-closed refusals
@@ -289,7 +305,7 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 		t.Fatalf("OpenRoster(absent) error = %v, want ErrRosterMissing", err)
 	}
 
-	if _, err := CreateRoster(path); err != nil {
+	if _, err := CreateRoster(t.Context(), path); err != nil {
 		t.Fatalf("CreateRoster: %v", err)
 	}
 	info, err := os.Stat(path)
@@ -300,7 +316,7 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 		t.Errorf("CreateRoster() file mode = %o, want %o", mode, 0o600)
 	}
 
-	if _, err := CreateRoster(path); !errors.Is(err, ErrRosterExists) {
+	if _, err := CreateRoster(t.Context(), path); !errors.Is(err, ErrRosterExists) {
 		t.Fatalf("CreateRoster(existing) error = %v, want ErrRosterExists", err)
 	}
 
@@ -308,7 +324,7 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenRoster(after create) error = %v, want nil: the read-open must still work once the file exists", err)
 	}
-	if got := loaded.List(); len(got) != 0 {
+	if got := mustList(t, loaded); len(got) != 0 {
 		t.Errorf("List() after CreateRoster = %v, want empty", got)
 	}
 }
@@ -320,7 +336,7 @@ func TestRosterExampleFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenRoster(config/roster.example.json) error = %v, want nil", err)
 	}
-	if len(roster.List()) == 0 {
+	if len(mustList(t, roster)) == 0 {
 		t.Error("config/roster.example.json parsed to zero members, want at least one")
 	}
 }
@@ -385,7 +401,7 @@ func TestCreateRoster_PropagatesStatError(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
 
 	path := filepath.Join(dir, "roster.json")
-	if _, err := CreateRoster(path); err == nil {
+	if _, err := CreateRoster(t.Context(), path); err == nil {
 		t.Fatal("CreateRoster() error = nil, want a stat failure")
 	} else if errors.Is(err, ErrRosterExists) {
 		t.Errorf("CreateRoster() error = %v, want it to not claim the file exists", err)
@@ -461,7 +477,7 @@ func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 				t.Fatalf("OpenRoster: %v", err)
 			}
 
-			err = roster.AddMember(tt.candidate, "tester", tt.channel, "203.0.113.1", logger)
+			err = roster.AddMember(t.Context(), tt.candidate, "tester", tt.channel, "203.0.113.1", logger)
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("AddMember() error = %v, want it to wrap %v", err, tt.wantErr)
 			}
@@ -487,13 +503,13 @@ func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 func TestAddMember_WriteReReadAndMode(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(path)
+	roster, err := CreateRoster(t.Context(), path)
 	if err != nil {
 		t.Fatalf("CreateRoster: %v", err)
 	}
 
 	candidate := Member{Address: "Alice@Example.com", DisplayName: "Alice", StreamerUsername: "alice"}
-	if err := roster.AddMember(candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
+	if err := roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
 		t.Fatalf("AddMember: %v", err)
 	}
 
@@ -528,13 +544,13 @@ func TestAddMember_AuditRecord(t *testing.T) {
 	logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
 
 	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(path)
+	roster, err := CreateRoster(t.Context(), path)
 	if err != nil {
 		t.Fatalf("CreateRoster: %v", err)
 	}
 
 	candidate := Member{Address: "alice@example.com", DisplayName: "Alice"}
-	if err := roster.AddMember(candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
+	if err := roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
 		t.Fatalf("AddMember: %v", err)
 	}
 
@@ -581,7 +597,7 @@ func TestAddMember_AuditRecord(t *testing.T) {
 func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(path)
+	roster, err := CreateRoster(t.Context(), path)
 	if err != nil {
 		t.Fatalf("CreateRoster: %v", err)
 	}
@@ -596,7 +612,7 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 		wg.Add(1)
 		go func(i int, candidate Member) {
 			defer wg.Done()
-			errs[i] = roster.AddMember(candidate, "tester", identity.ChannelServiceToken, "203.0.113.1", logger)
+			errs[i] = roster.AddMember(t.Context(), candidate, "tester", identity.ChannelServiceToken, "203.0.113.1", logger)
 		}(i, candidate)
 	}
 	wg.Wait()
@@ -607,14 +623,14 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 		}
 	}
 
-	if got := roster.List(); len(got) != len(candidates) {
+	if got := mustList(t, roster); len(got) != len(candidates) {
 		t.Fatalf("List() after concurrent adds = %d members, want %d", len(got), len(candidates))
 	}
 	onDisk, err := OpenRoster(path)
 	if err != nil {
 		t.Fatalf("OpenRoster after concurrent adds: %v", err)
 	}
-	if got := onDisk.List(); len(got) != len(candidates) {
+	if got := mustList(t, onDisk); len(got) != len(candidates) {
 		t.Errorf("the file on disk carries %d members, want %d", len(got), len(candidates))
 	}
 }
@@ -627,7 +643,7 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(path)
+	roster, err := CreateRoster(t.Context(), path)
 	if err != nil {
 		t.Fatalf("CreateRoster: %v", err)
 	}
@@ -642,7 +658,7 @@ func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
 		wg.Add(1)
 		go func(i int, candidate Member) {
 			defer wg.Done()
-			errs[i] = roster.AddMember(candidate, "tester", identity.ChannelServiceToken, "203.0.113.1", logger)
+			errs[i] = roster.AddMember(t.Context(), candidate, "tester", identity.ChannelServiceToken, "203.0.113.1", logger)
 		}(i, candidate)
 	}
 	wg.Wait()
@@ -661,7 +677,501 @@ func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
 	if successes != 1 || refusals != 1 {
 		t.Fatalf("got %d successes and %d refusals, want exactly one of each", successes, refusals)
 	}
-	if got := roster.List(); len(got) != 1 {
+	if got := mustList(t, roster); len(got) != 1 {
 		t.Fatalf("List() after the collision = %d members, want 1", len(got))
+	}
+}
+
+// TestOpenRoster_StrictLoader proves the loader refuses every loose
+// shape of the file rather than reading it as something it is not. A
+// case-variant key ("ADMIN") and a repeated key would otherwise bind to
+// the admin flag the way a lenient decoder binds them, and a null or
+// missing members array would otherwise load as an empty roster. Each
+// refusal is ErrRosterUnparseable naming the path; the version and
+// members rows also name the rule that failed.
+func TestOpenRoster_StrictLoader(t *testing.T) {
+	const member = `{"address":"a@example.com","display_name":"A"}`
+	tests := []struct {
+		name        string
+		content     string
+		wantErr     error
+		wantMention string
+	}{
+		{name: "zero-byte file", content: ``, wantErr: ErrRosterUnparseable},
+		{name: "null", content: `null`, wantErr: ErrRosterUnparseable, wantMention: "schema_version"},
+		{name: "empty object", content: `{}`, wantErr: ErrRosterUnparseable, wantMention: "schema_version"},
+		{name: "version with no members", content: `{"schema_version":1}`, wantErr: ErrRosterUnparseable, wantMention: "members"},
+		{name: "null members", content: `{"schema_version":1,"members":null}`, wantErr: ErrRosterUnparseable, wantMention: "members"},
+		{name: "schema_version 0", content: `{"schema_version":0,"members":[]}`, wantErr: ErrRosterUnparseable, wantMention: "schema_version"},
+		{name: "schema_version 2", content: `{"schema_version":2,"members":[]}`, wantErr: ErrRosterUnparseable, wantMention: "schema_version"},
+		{name: "schema_version 99", content: `{"schema_version":99,"members":[]}`, wantErr: ErrRosterUnparseable, wantMention: "schema_version"},
+		{
+			name:    "an unknown member key",
+			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A","role":"owner"}]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "a case-variant admin key",
+			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A","ADMIN":true}]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "a duplicate admin key",
+			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A","admin":false,"admin":true}]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "an unknown top-level key",
+			content: `{"schema_version":1,"members":[` + member + `],"admins":[]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "invalid UTF-8 in a display name",
+			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A` + "\xff" + `"}]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "trailing data after the object",
+			content: `{"schema_version":1,"members":[` + member + `]} {}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{name: "an empty members array loads", content: `{"schema_version":1,"members":[]}`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := writeRosterFile(t, tt.content)
+			roster, err := OpenRoster(path)
+			if tt.wantErr == nil {
+				if err != nil {
+					t.Fatalf("OpenRoster() error = %v, want nil", err)
+				}
+				if got := mustList(t, roster); len(got) != 0 {
+					t.Errorf("List() = %v, want empty", got)
+				}
+				return
+			}
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("OpenRoster() error = %v, want it to wrap %v", err, tt.wantErr)
+			}
+			if !strings.Contains(err.Error(), path) {
+				t.Errorf("OpenRoster() error = %q, want it to name the path", err.Error())
+			}
+			if tt.wantMention != "" && !strings.Contains(err.Error(), tt.wantMention) {
+				t.Errorf("OpenRoster() error = %q, want it to name the %s rule", err.Error(), tt.wantMention)
+			}
+		})
+	}
+}
+
+// replaceRosterFile writes content to a sibling of path and renames it
+// over path, the way an atomic writer or an editor that saves by rename
+// does, so path names a new inode.
+func replaceRosterFile(t *testing.T, path, content string) {
+	t.Helper()
+	tmp := path + ".new"
+	if err := os.WriteFile(tmp, []byte(content), 0o600); err != nil {
+		t.Fatalf("write replacement: %v", err)
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		t.Fatalf("rename replacement: %v", err)
+	}
+}
+
+// TestRoster_ReloadsChangedFile changes the file under an open Roster
+// and asks it again. A roster that answered from the copy it loaded
+// would keep resolving a member an operator removed by hand, so every
+// change must reach Lookup, and a change that breaks the file must
+// refuse rather than fall back to the last good copy.
+func TestRoster_ReloadsChangedFile(t *testing.T) {
+	const aliceAndBob = `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"},{"address":"bob@example.com","display_name":"Bob"}]}`
+	const bobOnly = `{"schema_version":1,"members":[{"address":"bob@example.com","display_name":"Bob"}]}`
+
+	tests := []struct {
+		name      string
+		change    func(t *testing.T, path string)
+		wantAlice error // nil means alice resolves
+		wantBob   error
+	}{
+		{
+			name:      "a hand removal rewritten in place",
+			change:    func(t *testing.T, path string) { writeInPlace(t, path, bobOnly) },
+			wantAlice: ErrMemberNotFound,
+		},
+		{
+			name:      "a hand removal saved by rename",
+			change:    func(t *testing.T, path string) { replaceRosterFile(t, path, bobOnly) },
+			wantAlice: ErrMemberNotFound,
+		},
+		{
+			name:      "an unparseable edit",
+			change:    func(t *testing.T, path string) { writeInPlace(t, path, `{"schema_version":1,"members":[`) },
+			wantAlice: ErrRosterUnparseable,
+			wantBob:   ErrRosterUnparseable,
+		},
+		{
+			name: "an edit failing validation",
+			change: func(t *testing.T, path string) {
+				writeInPlace(t, path, `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"},{"address":"ALICE@example.com","display_name":"Again"}]}`)
+			},
+			wantAlice: ErrRosterRecordInvalid,
+			wantBob:   ErrRosterRecordInvalid,
+		},
+		{
+			name: "the file removed",
+			change: func(t *testing.T, path string) {
+				if err := os.Remove(path); err != nil {
+					t.Fatalf("Remove: %v", err)
+				}
+			},
+			wantAlice: ErrRosterMissing,
+			wantBob:   ErrRosterMissing,
+		},
+		{
+			name:   "the same bytes saved by rename",
+			change: func(t *testing.T, path string) { replaceRosterFile(t, path, aliceAndBob) },
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := writeRosterFile(t, aliceAndBob)
+			roster, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster: %v", err)
+			}
+			if _, err := roster.Lookup("alice@example.com"); err != nil {
+				t.Fatalf("Lookup(alice) before the change: %v", err)
+			}
+
+			tt.change(t, path)
+
+			for _, row := range []struct {
+				address string
+				want    error
+			}{{"alice@example.com", tt.wantAlice}, {"bob@example.com", tt.wantBob}} {
+				_, err := roster.Lookup(row.address)
+				if row.want == nil && err != nil {
+					t.Errorf("Lookup(%s) error = %v, want nil", row.address, err)
+				}
+				if row.want != nil && !errors.Is(err, row.want) {
+					t.Errorf("Lookup(%s) error = %v, want it to wrap %v", row.address, err, row.want)
+				}
+			}
+			if tt.wantBob != nil {
+				if _, err := roster.List(); !errors.Is(err, tt.wantBob) {
+					t.Errorf("List() error = %v, want it to wrap %v", err, tt.wantBob)
+				}
+			}
+		})
+	}
+}
+
+// writeInPlace rewrites path's content through the same inode, the way
+// an editor that saves in place does.
+func writeInPlace(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("rewrite in place: %v", err)
+	}
+}
+
+// TestRoster_ModTimeTrustWindow rewrites the file in place with the same
+// inode, the same size, and the same modification time, so its stat
+// cannot tell the old content from the new. A roster that read the file
+// long after its modification time serves its cache, which is the only
+// thing that explains the old answer surviving. A roster that read the
+// file within a second of that time cannot trust the stat and re-reads,
+// which is the only thing that explains the new answer.
+func TestRoster_ModTimeTrustWindow(t *testing.T) {
+	// alice and carol are the same length, so the rewrite keeps the size.
+	const before = `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"A"}]}`
+	const after = `{"schema_version":1,"members":[{"address":"carol@example.com","display_name":"A"}]}`
+	if len(before) != len(after) {
+		t.Fatalf("fixtures differ in length: %d and %d", len(before), len(after))
+	}
+
+	tests := []struct {
+		name    string
+		age     bool
+		wantOld bool
+	}{
+		{name: "a read well after the modification time serves its cache", age: true, wantOld: true},
+		{name: "a read within a second of the modification time re-reads", age: false, wantOld: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := writeRosterFile(t, before)
+			if tt.age {
+				past := time.Now().Add(-10 * time.Second)
+				if err := os.Chtimes(path, past, past); err != nil {
+					t.Fatalf("Chtimes: %v", err)
+				}
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatalf("Stat: %v", err)
+			}
+			roster, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster: %v", err)
+			}
+
+			writeInPlace(t, path, after)
+			if err := os.Chtimes(path, info.ModTime(), info.ModTime()); err != nil {
+				t.Fatalf("Chtimes restore: %v", err)
+			}
+			rewritten, err := os.Stat(path)
+			if err != nil {
+				t.Fatalf("Stat after rewrite: %v", err)
+			}
+			if !os.SameFile(info, rewritten) || info.Size() != rewritten.Size() || !info.ModTime().Equal(rewritten.ModTime()) {
+				t.Fatal("fixture: the rewrite changed the inode, the size, or the modification time")
+			}
+
+			_, aliceErr := roster.Lookup("alice@example.com")
+			_, carolErr := roster.Lookup("carol@example.com")
+			if tt.wantOld {
+				if aliceErr != nil || !errors.Is(carolErr, ErrMemberNotFound) {
+					t.Errorf("Lookup(alice) = %v, Lookup(carol) = %v; want the cached answer (alice resolves, carol does not)", aliceErr, carolErr)
+				}
+				return
+			}
+			if carolErr != nil || !errors.Is(aliceErr, ErrMemberNotFound) {
+				t.Errorf("Lookup(alice) = %v, Lookup(carol) = %v; want the re-read answer (carol resolves, alice does not)", aliceErr, carolErr)
+			}
+		})
+	}
+}
+
+// TestRoster_CrossProcessWrites runs the command line and the server as
+// two Roster values over one file, both opened before either writes, so
+// the server's copy in memory is stale. The command line adds a member,
+// an operator removes one by hand, and then the server adds a member.
+// The final file must carry both additions and not the removed member:
+// a write merged from memory resurrects the removal and drops the
+// command line's addition. One row asks the server about the removed
+// member before its own add, which only a re-read can answer; the other
+// adds with the stale copy untouched.
+func TestRoster_CrossProcessWrites(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	const seed = `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"},{"address":"bob@example.com","display_name":"Bob"}]}`
+	const bobRemoved = `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"},{"address":"carol@example.com","display_name":"Carol"}]}`
+
+	for _, lookupFirst := range []bool{true, false} {
+		name := "the server adds with its stale copy"
+		if lookupFirst {
+			name = "the server looks up the removed member before adding"
+		}
+		t.Run(name, func(t *testing.T) {
+			path := writeRosterFile(t, seed)
+			cli, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster(cli): %v", err)
+			}
+			server, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster(server): %v", err)
+			}
+
+			if err := cli.AddMember(t.Context(), Member{Address: "carol@example.com", DisplayName: "Carol"}, "operator", identity.ChannelServiceToken, "", logger); err != nil {
+				t.Fatalf("cli AddMember: %v", err)
+			}
+			writeInPlace(t, path, bobRemoved)
+
+			if lookupFirst {
+				if _, err := server.Lookup("bob@example.com"); !errors.Is(err, ErrMemberNotFound) {
+					t.Errorf("server Lookup(bob) after the hand removal error = %v, want ErrMemberNotFound", err)
+				}
+			}
+			if err := server.AddMember(t.Context(), Member{Address: "dave@example.com", DisplayName: "Dave"}, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
+				t.Fatalf("server AddMember: %v", err)
+			}
+
+			onDisk, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster(final): %v", err)
+			}
+			var got []string
+			for _, m := range mustList(t, onDisk) {
+				got = append(got, m.Address)
+			}
+			want := []string{"alice@example.com", "carol@example.com", "dave@example.com"}
+			if !slices.Equal(got, want) {
+				t.Errorf("final file members = %v, want %v", got, want)
+			}
+			if _, err := server.Lookup("bob@example.com"); !errors.Is(err, ErrMemberNotFound) {
+				t.Errorf("server Lookup(bob) after its add error = %v, want ErrMemberNotFound", err)
+			}
+		})
+	}
+}
+
+// TestRoster_ConcurrentWritersAcrossValues runs one writer per Roster
+// value, all over one file and all at once, the way several processes
+// would. Every addition must survive: the writers exclude one another
+// through the directory lock alone, since no two share a mutex.
+func TestRoster_ConcurrentWritersAcrossValues(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	path := writeRosterFile(t, `{"schema_version":1,"members":[]}`)
+
+	const writers = 8
+	rosters := make([]*Roster, writers)
+	for i := range rosters {
+		r, err := OpenRoster(path)
+		if err != nil {
+			t.Fatalf("OpenRoster(%d): %v", i, err)
+		}
+		rosters[i] = r
+	}
+
+	start := make(chan struct{})
+	errs := make([]error, writers)
+	var wg sync.WaitGroup
+	for i, r := range rosters {
+		wg.Go(func() {
+			<-start
+			candidate := Member{Address: fmt.Sprintf("writer%d@example.com", i), DisplayName: "Writer"}
+			errs[i] = r.AddMember(t.Context(), candidate, "operator", identity.ChannelServiceToken, "", logger)
+		})
+	}
+	close(start)
+	wg.Wait()
+
+	for i, err := range errs {
+		if err != nil {
+			t.Errorf("AddMember(writer %d) error = %v, want nil", i, err)
+		}
+	}
+	onDisk, err := OpenRoster(path)
+	if err != nil {
+		t.Fatalf("OpenRoster(final): %v", err)
+	}
+	if got := mustList(t, onDisk); len(got) != writers {
+		t.Errorf("the file carries %d members, want %d: a concurrent write was lost", len(got), writers)
+	}
+}
+
+// TestCreateRoster_ConcurrentCreate races two CreateRoster calls at one
+// absent path, many times over. Exactly one must create the file and the
+// other must get ErrRosterExists, and the file on disk must be the one
+// the winner read back. A check made outside the lock lets both see the
+// path absent, and the second write then replaces the first.
+func TestCreateRoster_ConcurrentCreate(t *testing.T) {
+	const rounds = 50
+	for round := range rounds {
+		path := filepath.Join(t.TempDir(), "roster.json")
+		start := make(chan struct{})
+		var (
+			wg      sync.WaitGroup
+			rosters [2]*Roster
+			errs    [2]error
+		)
+		for i := range 2 {
+			wg.Go(func() {
+				<-start
+				rosters[i], errs[i] = CreateRoster(t.Context(), path)
+			})
+		}
+		close(start)
+		wg.Wait()
+
+		var winner *Roster
+		exists := 0
+		for i, err := range errs {
+			switch {
+			case err == nil:
+				winner = rosters[i]
+			case errors.Is(err, ErrRosterExists):
+				exists++
+			default:
+				t.Fatalf("round %d: CreateRoster() error = %v, want nil or ErrRosterExists", round, err)
+			}
+		}
+		if winner == nil || exists != 1 {
+			t.Fatalf("round %d: %d ErrRosterExists and winner %v, want exactly one creator and one ErrRosterExists", round, exists, winner != nil)
+		}
+		info, err := os.Stat(path)
+		if err != nil {
+			t.Fatalf("round %d: Stat: %v", round, err)
+		}
+		if !os.SameFile(info, winner.snap.info) {
+			t.Fatalf("round %d: the file on disk is not the one the winner created", round)
+		}
+	}
+}
+
+// waitObservedContext closes waiting the first time Done is called. A
+// roster writer consults Done only after an attempt on the directory
+// lock has failed, so waiting closing proves the writer is inside its
+// lock wait.
+type waitObservedContext struct {
+	context.Context
+	once    sync.Once
+	waiting chan struct{}
+}
+
+func (c *waitObservedContext) Done() <-chan struct{} {
+	c.once.Do(func() { close(c.waiting) })
+	return c.Context.Done()
+}
+
+// TestAddMember_BusyWhileLockHeld holds the roster directory's lock
+// from outside the Roster, as another process would, and starts a
+// write. The write must give up with the busy error when its context
+// ends and leave the file byte-identical. While it waits, a Lookup on
+// the same Roster value must answer at once: the writer takes the
+// directory lock before the in-process mutex, so a login never queues
+// behind another process's write.
+func TestAddMember_BusyWhileLockHeld(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"}]}`)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	roster, err := OpenRoster(path)
+	if err != nil {
+		t.Fatalf("OpenRoster: %v", err)
+	}
+
+	dir, err := os.Open(filepath.Dir(path))
+	if err != nil {
+		t.Fatalf("open roster directory: %v", err)
+	}
+	defer func() { _ = dir.Close() }()
+	if err := syscall.Flock(int(dir.Fd()), syscall.LOCK_EX); err != nil {
+		t.Fatalf("flock roster directory: %v", err)
+	}
+
+	timeout, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	defer cancel()
+	ctx := &waitObservedContext{Context: timeout, waiting: make(chan struct{})}
+	writeDone := make(chan error, 1)
+	go func() {
+		writeDone <- roster.AddMember(ctx, Member{Address: "bob@example.com", DisplayName: "Bob"}, "operator", identity.ChannelServiceToken, "", logger)
+	}()
+	select {
+	case <-ctx.waiting:
+	case err := <-writeDone:
+		t.Fatalf("AddMember() returned %v without waiting on the held directory lock", err)
+	}
+
+	if _, err := roster.Lookup("alice@example.com"); err != nil {
+		t.Errorf("Lookup(alice) while a writer waits error = %v, want nil", err)
+	}
+	if timeout.Err() != nil {
+		t.Error("Lookup returned only after the writer's context ended: it queued behind the writer's lock wait")
+	}
+
+	if err := <-writeDone; !errors.Is(err, errRosterBusy) {
+		t.Errorf("AddMember() under a held lock error = %v, want it to wrap errRosterBusy", err)
+	}
+	after, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read fixture after: %v", err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Errorf("a refused write changed the file: before %q, after %q", before, after)
 	}
 }

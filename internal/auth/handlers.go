@@ -168,8 +168,21 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
-	member, lookupErr := h.cfg.Roster.Lookup(address)
-	known := lookupErr == nil
+	member, err := h.cfg.Roster.Lookup(address)
+	known := err == nil
+	if err != nil && !errors.Is(err, ErrMemberNotFound) {
+		// A roster that fails to load is never reported as an unknown
+		// address: the kind answer would hand a member the admin
+		// contact meant for a stranger. The generic answer's bytes stay
+		// the same, so the failure reaches the log alone.
+		log.Error("auth roster unavailable", "reason", err.Error())
+		if h.cfg.GenericAnswer {
+			writeAnswer(w, http.StatusOK, answer{Outcome: outcomeRequested})
+			return
+		}
+		writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
+		return
+	}
 
 	if h.cfg.GenericAnswer {
 		log.Info("auth link requested", "known", known)
@@ -190,8 +203,14 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !known {
+		contact, err := h.adminContact()
+		if err != nil {
+			log.Error("auth roster unavailable", "reason", err.Error())
+			writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
+			return
+		}
 		log.Info("auth link requested", "known", false)
-		writeAnswer(w, http.StatusOK, answer{Outcome: outcomeUnknown, AdminContact: h.adminContact()})
+		writeAnswer(w, http.StatusOK, answer{Outcome: outcomeUnknown, AdminContact: contact})
 		return
 	}
 	if err := h.sendLink(r.Context(), now, member.Address); err != nil {
@@ -233,14 +252,18 @@ func (h *handlers) logSendFailure(log *slog.Logger, err error) {
 }
 
 // adminContact returns the first admin on the roster, or nil when the
-// roster names none.
-func (h *handlers) adminContact() *adminContact {
-	for _, m := range h.cfg.Roster.List() {
+// roster names none. A roster that fails to load returns its error.
+func (h *handlers) adminContact() (*adminContact, error) {
+	members, err := h.cfg.Roster.List()
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range members {
 		if m.Admin {
-			return &adminContact{DisplayName: m.DisplayName, Address: m.Address}
+			return &adminContact{DisplayName: m.DisplayName, Address: m.Address}, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // consumeLink runs a fixed order, and no step may move: the per-client

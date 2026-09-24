@@ -1,14 +1,19 @@
 package auth
 
 import (
-	"encoding/json"
+	"context"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
+	"syscall"
+	"time"
 	"unicode"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
@@ -114,12 +119,47 @@ type memberRecord struct {
 // validates it, answers a lookup, and lists the roster. No caller
 // outside this file knows the format is JSON, which is what makes
 // rung 6's substitution a change of one constructor.
+//
+// The file may change under a Roster: another process writes it, or an
+// operator edits it by hand. Every Lookup and List checks the file and
+// re-reads it when it has changed, and every write merges into the
+// copy on disk, never the copy in memory.
 type Roster struct {
-	mu        sync.Mutex
-	path      string
+	path string
+
+	// mu guards snap. A writer holds it only to swap in the copy it
+	// has just written, never while it waits for another writer, so a
+	// Lookup never queues behind a lock another process holds.
+	mu   sync.Mutex
+	snap *rosterSnapshot
+}
+
+// rosterSnapshot is one read of the roster file: the members it
+// carried, the stat of the descriptor they were read through, and when
+// the read began.
+type rosterSnapshot struct {
 	members   []Member
 	byAddress map[string]int
+	info      os.FileInfo
+	readAt    time.Time
 }
+
+// modTimeTrustWindow is how far a snapshot's read must trail the file's
+// modification time before an unchanged stat is trusted to mean
+// unchanged content. An in-place edit that keeps the inode and the size
+// inside one timestamp tick keeps the modification time as well, so a
+// read taken within one tick of that time cannot tell the two contents
+// apart. One second covers the coarsest common filesystem timestamp.
+const modTimeTrustWindow = time.Second
+
+// rosterLockPollInterval is how often a writer retries the directory
+// lock while another writer holds it. flock(2) offers no wait a context
+// can cancel, so the writer polls a non-blocking attempt instead.
+const rosterLockPollInterval = 25 * time.Millisecond
+
+// errRosterBusy reports that a roster write gave up waiting for the
+// directory lock because its context ended first.
+var errRosterBusy = errors.New("auth: roster busy")
 
 // OpenRoster is the read-open (R1, R2): it reads and validates the
 // roster file at path, and never creates it, so a fresh install with
@@ -127,54 +167,216 @@ type Roster struct {
 // missing, unreadable, or unparseable file, and a record failing
 // validation, are each a distinct, path-naming error.
 func OpenRoster(path string) (*Roster, error) {
-	data, err := os.ReadFile(path)
+	snap, err := readRoster(path)
+	if err != nil {
+		return nil, err
+	}
+	return &Roster{path: path, snap: snap}, nil
+}
+
+// CreateRoster is the write-open: it creates path at 0600 carrying an
+// empty, schema-versioned roster when path is absent, and refuses with
+// ErrRosterExists when path already exists, so a second bootstrap can
+// never overwrite a first roster. The existence check and the write run
+// under the same directory lock every roster write takes, so of two
+// concurrent calls exactly one creates the file. It creates no
+// directory: the deployment owns that.
+func CreateRoster(ctx context.Context, path string) (*Roster, error) {
+	unlock, err := lockRosterDir(ctx, filepath.Dir(path))
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+
+	if _, err := os.Stat(path); err == nil {
+		return nil, fmt.Errorf("%w: %s", ErrRosterExists, path)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, path, err)
+	}
+	if err := writeRoster(path, nil); err != nil {
+		return nil, err
+	}
+	return OpenRoster(path)
+}
+
+// readRoster opens path, stats the open descriptor, and reads the
+// content from that same descriptor, so the stat a snapshot caches
+// always describes the content it caches. Reading by path and then
+// statting the path could pair the old content with a file renamed in
+// between, and every later check would then match the new file while
+// the cache served the old one.
+func readRoster(path string) (*rosterSnapshot, error) {
+	// The clock is read before the file is, so any edit the read
+	// misses happened after readAt and cannot share a modification time
+	// with the content read once readAt trails it by the trust window.
+	readAt := time.Now()
+	f, err := os.Open(path)
 	switch {
 	case errors.Is(err, os.ErrNotExist):
 		return nil, fmt.Errorf("%w: %s", ErrRosterMissing, path)
 	case err != nil:
 		return nil, fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, path, err)
 	}
-	return parseRoster(path, data)
-}
+	defer func() { _ = f.Close() }()
 
-// CreateRoster is the write-open (R37, R-5b20): it creates path at
-// 0600 carrying an empty, schema-versioned roster when path is absent,
-// and refuses when path already exists, so dubplate-server member add
-// --admin can bootstrap a fresh install without a second constructor
-// ever overwriting a first roster. It creates no directory:
-// deploy.sh's pre-create and the serve unit's ReadWritePaths grant own
-// that.
-func CreateRoster(path string) (*Roster, error) {
-	if _, err := os.Stat(path); err == nil {
-		return nil, fmt.Errorf("%w: %s", ErrRosterExists, path)
-	} else if !errors.Is(err, os.ErrNotExist) {
+	info, err := f.Stat()
+	if err != nil {
 		return nil, fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, path, err)
 	}
-
-	// Members is []memberRecord{} rather than nil so the written file
-	// carries "members": [] instead of "members": null.
-	empty := rosterFile{SchemaVersion: rosterSchemaVersion, Members: []memberRecord{}}
-	data, err := json.Marshal(empty)
+	data, err := io.ReadAll(f)
 	if err != nil {
-		return nil, fmt.Errorf("auth: marshal empty roster: %w", err)
+		return nil, fmt.Errorf("%w: %s: read: %v", ErrRosterUnreadable, path, err)
 	}
-	if err := atomicfile.WriteFile(path, data, 0o600); err != nil {
-		return nil, fmt.Errorf("auth: create roster %s: %w", path, err)
+	members, byAddress, err := parseRoster(path, data)
+	if err != nil {
+		return nil, err
 	}
-	return OpenRoster(path)
+	return &rosterSnapshot{members: members, byAddress: byAddress, info: info, readAt: readAt}, nil
 }
 
-// parseRoster unmarshals and validates data as loaded from path.
-func parseRoster(path string, data []byte) (*Roster, error) {
+// parseRoster decodes and validates data as loaded from path. The
+// decoding is strict: member names match case-sensitively, an unknown
+// or duplicated name is refused, and so is trailing data or invalid
+// UTF-8. A file that decodes cleanly must still carry the current
+// schema version and a members array, since null, {} and a missing or
+// null members all decode without error.
+func parseRoster(path string, data []byte) ([]Member, map[string]int, error) {
 	var file rosterFile
-	if err := json.Unmarshal(data, &file); err != nil {
-		return nil, fmt.Errorf("%w: %s: %v", ErrRosterUnparseable, path, err)
+	if err := json.Unmarshal(data, &file, json.RejectUnknownMembers(true)); err != nil {
+		return nil, nil, fmt.Errorf("%w: %s: %v", ErrRosterUnparseable, path, err)
+	}
+	if file.SchemaVersion != rosterSchemaVersion {
+		return nil, nil, fmt.Errorf("%w: %s: schema_version is %d, want %d", ErrRosterUnparseable, path, file.SchemaVersion, rosterSchemaVersion)
+	}
+	if file.Members == nil {
+		return nil, nil, fmt.Errorf("%w: %s: members is absent or null", ErrRosterUnparseable, path)
 	}
 	members, byAddress, err := validateRoster(file.Members)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
+		return nil, nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
 	}
-	return &Roster{path: path, members: members, byAddress: byAddress}, nil
+	return members, byAddress, nil
+}
+
+// writeRoster writes members to path through atomicfile, so a reader
+// sees the old file or the new one and never a partial one.
+func writeRoster(path string, members []Member) error {
+	// Members is never nil, so the file carries "members": [] rather
+	// than null, which the loader refuses.
+	records := make([]memberRecord, 0, len(members))
+	for _, m := range members {
+		records = append(records, memberRecord(m))
+	}
+	file := rosterFile{SchemaVersion: rosterSchemaVersion, Members: records}
+	if err := atomicfile.WriteStream(path, 0o600, func(w io.Writer) error {
+		return json.MarshalWrite(w, file)
+	}); err != nil {
+		return fmt.Errorf("auth: write roster %s: %w", path, err)
+	}
+	return nil
+}
+
+// lockRosterDir takes an exclusive flock(2) on dir, the directory that
+// holds the roster file, retrying until ctx ends, and returns the
+// function that releases it. The lock is on the directory because every
+// write replaces the file by rename: a lock on the file would sit on
+// the inode the rename retires, and a writer opening the path afterward
+// would lock the new inode unopposed. flock treats two descriptors for
+// one file independently, so two writers in one process exclude each
+// other exactly as two processes do.
+func lockRosterDir(ctx context.Context, dir string) (func(), error) {
+	d, err := os.Open(dir)
+	if err != nil {
+		return nil, fmt.Errorf("auth: open roster directory %s: %v", dir, err)
+	}
+	unlock := func() { _ = d.Close() }
+	for {
+		err := syscall.Flock(int(d.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+		if err == nil {
+			return unlock, nil
+		}
+		if !errors.Is(err, syscall.EWOULDBLOCK) && !errors.Is(err, syscall.EINTR) {
+			unlock()
+			return nil, fmt.Errorf("auth: lock roster directory %s: %v", dir, err)
+		}
+		select {
+		case <-ctx.Done():
+			unlock()
+			return nil, fmt.Errorf("%w: %s: %v", errRosterBusy, dir, context.Cause(ctx))
+		case <-time.After(rosterLockPollInterval):
+		}
+	}
+}
+
+// update is the roster's one read-modify-write, and every write goes
+// through it. It takes the directory lock, re-reads and validates the
+// file from disk, hands apply that disk copy, writes the members apply
+// returns, re-reads the written file, and swaps that read in as the
+// cache before the lock is released. A refusal from apply writes
+// nothing.
+func (r *Roster) update(ctx context.Context, apply func(disk *rosterSnapshot) ([]Member, error)) error {
+	unlock, err := lockRosterDir(ctx, filepath.Dir(r.path))
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
+	disk, err := readRoster(r.path)
+	if err != nil {
+		return err
+	}
+	next, err := apply(disk)
+	if err != nil {
+		return err
+	}
+	if err := writeRoster(r.path, next); err != nil {
+		return err
+	}
+	written, err := readRoster(r.path)
+	if err != nil {
+		return err
+	}
+
+	r.mu.Lock()
+	r.snap = written
+	r.mu.Unlock()
+	return nil
+}
+
+// current returns the roster as the file holds it now. It serves the
+// cached snapshot only when the file's stat still matches it and the
+// snapshot's read trails the file's modification time by the trust
+// window; otherwise it re-reads. A failed re-read drops the cache and
+// returns the failure rather than the last good copy, which may carry
+// the very member a hand edit just removed. The caller holds r.mu.
+func (r *Roster) current() (*rosterSnapshot, error) {
+	if r.snap != nil && r.snap.matches(r.path) {
+		return r.snap, nil
+	}
+	snap, err := readRoster(r.path)
+	if err != nil {
+		r.snap = nil
+		return nil, err
+	}
+	r.snap = snap
+	return snap, nil
+}
+
+// matches reports whether the file at path is, as far as its stat can
+// tell, the file s was read from: the same device and inode, the same
+// size, and the same modification time, with s's read taken far enough
+// after that time for the time to be trusted.
+func (s *rosterSnapshot) matches(path string) bool {
+	if s.readAt.Sub(s.info.ModTime()) < modTimeTrustWindow {
+		return false
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return os.SameFile(info, s.info) &&
+		info.Size() == s.info.Size() &&
+		info.ModTime().Equal(s.info.ModTime())
 }
 
 // normalizeMemberAddress is the store's single resolution point (R1,
@@ -282,7 +484,10 @@ func isASCIIPrintable(s string) bool {
 // Lookup resolves address to its roster member, matching
 // case-insensitively on the normalized address, with normalization
 // happening before any keying, logging, or rate-limit lookup
-// (spec:1161-1163).
+// (spec:1161-1163). It re-reads the file first when the file has
+// changed, and a re-read that fails returns its load error, never
+// ErrMemberNotFound, so a caller can tell a broken roster from an
+// unknown address.
 func (r *Roster) Lookup(address string) (Member, error) {
 	// The parse error is dropped rather than wrapped: net/mail quotes
 	// the unparsed remainder of its input, which would carry an address
@@ -293,39 +498,48 @@ func (r *Roster) Lookup(address string) (Member, error) {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	idx, ok := r.byAddress[normalized]
+	snap, err := r.current()
+	if err != nil {
+		return Member{}, err
+	}
+	idx, ok := snap.byAddress[normalized]
 	if !ok {
 		return Member{}, ErrMemberNotFound
 	}
-	return r.members[idx], nil
+	return snap.members[idx], nil
 }
 
-// List returns a copy of every member on the roster, in file order.
-func (r *Roster) List() []Member {
+// List returns a copy of every member on the roster, in file order,
+// re-reading the file first when it has changed. A re-read that fails
+// returns its load error.
+func (r *Roster) List() ([]Member, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	out := make([]Member, len(r.members))
-	copy(out, r.members)
-	return out
+	snap, err := r.current()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Clone(snap.members), nil
 }
 
-// AddMember validates candidate against B9's list, takes the store's
-// lock, re-checks candidate's address and streamer_username against
-// the roster as currently loaded, writes the whole roster atomically
-// through atomicfile.WriteStream, re-reads the written file, and logs
-// one audit record naming actor, channel, candidate.Address,
-// candidate.Admin, and clientIP. It is the roster's only write path.
+// AddMember validates candidate against B9's list, then, holding the
+// roster's directory lock, re-checks candidate's address and
+// streamer_username against the file as it is on disk, appends
+// candidate to that disk copy, writes the whole roster atomically,
+// re-reads it, and logs one audit record naming actor, channel,
+// candidate.Address, candidate.Admin, and clientIP. The lock wait ends
+// with an error when ctx does. It is the roster's only member write.
 //
-// Every check runs before atomicfile.WriteStream is called, so a
-// candidate that fails validation, fails the collision re-check, or
-// sets Admin changes no byte on disk.
+// Every check runs before the write, so a candidate that fails
+// validation, fails the collision re-check, or sets Admin changes no
+// byte on disk.
 //
 // AddMember refuses candidate.Admin on every channel with
 // ErrRosterAdminChannelForbidden. Each channel is an identity asserted
 // over the network, a service token as much as a cookie or a header,
 // and the command-line verb is the only path to an admin. That verb
 // brings the admin grant with it; until then no caller can mint one.
-func (r *Roster) AddMember(candidate Member, actor string, channel identity.Channel, clientIP string, logger *slog.Logger) error {
+func (r *Roster) AddMember(ctx context.Context, candidate Member, actor string, channel identity.Channel, clientIP string, logger *slog.Logger) error {
 	if candidate.Admin {
 		return fmt.Errorf("%w: channel %s", ErrRosterAdminChannelForbidden, channel)
 	}
@@ -335,43 +549,22 @@ func (r *Roster) AddMember(candidate Member, actor string, channel identity.Chan
 		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
 	}
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if _, dup := r.byAddress[member.Address]; dup {
-		return fmt.Errorf("%w: %s: duplicate address", ErrRosterRecordInvalid, r.path)
-	}
-	if member.StreamerUsername != "" {
-		for _, existing := range r.members {
-			if existing.StreamerUsername == member.StreamerUsername {
-				return fmt.Errorf("%w: %s: duplicate streamer_username", ErrRosterRecordInvalid, r.path)
+	err = r.update(ctx, func(disk *rosterSnapshot) ([]Member, error) {
+		if _, dup := disk.byAddress[member.Address]; dup {
+			return nil, fmt.Errorf("%w: %s: duplicate address", ErrRosterRecordInvalid, r.path)
+		}
+		if member.StreamerUsername != "" {
+			for _, existing := range disk.members {
+				if existing.StreamerUsername == member.StreamerUsername {
+					return nil, fmt.Errorf("%w: %s: duplicate streamer_username", ErrRosterRecordInvalid, r.path)
+				}
 			}
 		}
-	}
-
-	records := make([]memberRecord, 0, len(r.members)+1)
-	for _, m := range r.members {
-		records = append(records, memberRecord(m))
-	}
-	records = append(records, memberRecord(member))
-	file := rosterFile{SchemaVersion: rosterSchemaVersion, Members: records}
-
-	if err := atomicfile.WriteStream(r.path, 0o600, func(w io.Writer) error {
-		return json.NewEncoder(w).Encode(file)
-	}); err != nil {
-		return fmt.Errorf("auth: write roster %s: %w", r.path, err)
-	}
-
-	data, err := os.ReadFile(r.path)
-	if err != nil {
-		return fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, r.path, err)
-	}
-	fresh, err := parseRoster(r.path, data)
+		return append(slices.Clone(disk.members), member), nil
+	})
 	if err != nil {
 		return err
 	}
-	r.members = fresh.members
-	r.byAddress = fresh.byAddress
 
 	logger.Info("roster member added",
 		"actor", actor,
