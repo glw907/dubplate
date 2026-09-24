@@ -32,8 +32,9 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
    fixes hold except M4 (partial) and m10 (ASCII only).** Majors: cross-process roster writes lose and
    resurrect members; mailed links land outside the owned prefix (token to the fallthrough); a refused
    client's flood evicts a victim's per-address bucket; IPv6 per-client keys at /128; no trusted-proxy
-   setting behind the tunnel (a 5d deploy gate). Spend about 6.3M, past the 6.0M flag: **the combined
-   question to Geoff is open** (fold majors 1-4 here over the ceiling, or as 5c's security-fold Task 1).
+   setting behind the tunnel (a 5d deploy gate). Spend about 6.3M, past the 6.0M flag: **Geoff ruled 2026-09-23**: majors 1-4 plus
+   the relevant minors become 5c's security-fold Task 1; major 5 is a 5d deploy gate; 5b-ii closes on its
+   ceiling. Task 12's close runs next, then the merge ritual.
 2. **Critical path (conductor, 2026-09-23):** the web surface standard is ratified (Geoff, 2026-09-23, `94d8af3`), so 5c's plan
    is unblocked; configuration homes revision 3 is ratified too
    (2026-09-23; per-collection layout parity, conditional on a rung 12 Navidrome check) (gates rung 6's spec). Rung 6 runs as lane 2 beside 5c/5d once
@@ -49,7 +50,7 @@ exclusion denominator is UNREAD (box unreachable at 03:14 AKDT), owed before run
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | ACTIVE. 5b-ii segment D2 (Task 11, then the close); D1 closed at `644dfba` |
 | 2 | worktree removed, branch deleted | CLOSED. 5b-i merged at `1d4ed29`; reopens on rung 6 once its spec is ruled and its plan approved |
-| doc | main tree | CLOSED. Rung 6 spec revision 2.2 committed after four lenses, two folds, a verification read, and a prose review; awaiting Geoff's fourteen rulings (all recommended yes), five passes, about 28M |
+| doc | main tree | CLOSED. Rung 6 spec revision 2.2 committed after four lenses, two folds, a verification read, and a prose review; ratified by Geoff 2026-09-23 (all fourteen rulings yes), five passes, about 28M; errata owed |
 
 ## Open items (carried)
 

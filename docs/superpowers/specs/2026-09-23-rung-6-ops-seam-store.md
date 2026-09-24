@@ -1,7 +1,7 @@
 # Rung 6: the ops seam and the store
 
-Status: **revision 2.2, draft for the owner's ratification**, 2026-09-23. No owner ruling below is
-given yet. Its review history, every finding's disposition, and the arguments this spec only states
+Status: **revision 2.2, ratified by Geoff 2026-09-23**: all fourteen owner rulings below are ruled
+yes, as recommended. The errata this spec owes land in the documents they name. Its review history, every finding's disposition, and the arguments this spec only states
 are in `research/2026-09-23-rung-6-spec-fold-record.md`.
 
 Rung 6 builds dubplate-server's library store and its operation vocabulary. The store is one
@@ -41,6 +41,8 @@ this revision."
 ---
 
 ## Owner rulings
+
+**Ruled, Geoff, 2026-09-23: yes to all fourteen, as recommended.**
 
 Fourteen yes-or-no questions, ordered by how much build each answer changes. Thirteen change what
 an adopter sees, configures, or is asked for; ruling 2 changes only when schema lands. Each carries a
