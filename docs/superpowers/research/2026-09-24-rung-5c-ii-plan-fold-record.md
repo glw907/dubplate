@@ -156,3 +156,29 @@ erratum (Task 8).
   specify its class. None for the DaisyUI plugin line, which keeps
   W5.9's built-in themes enabled. CLAUDE.md is unchanged by the
   revision; Task 3 already edits its gate paragraph and web rule.
+
+## Second fold
+
+Revision 2 (`74066b1`) to revision 2.1 (second fold, awaiting prose
+review). Input: the verification read at `cebcda2`
+(`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`),
+V1 through V9. Scope was limited to those nine. Each finding's evidence
+was checked against the tree, `go doc`, or the kit 2.70.3 source in the
+verifier's probe app before it was folded.
+
+| ID | Severity | Disposition | Where |
+| --- | --- | --- | --- |
+| V1 | major | **Folded, with a different mechanism.** Confirmed: a child tsconfig's `include` replaces kit's list. The fold appends through kit's documented `kit.typescript.config` hook (`types/index.d.ts:851-861`; called at `write_tsconfig.js:131`) instead of restating kit's list, which would drift silently at a kit bump. Kit's generated list (`write_tsconfig.js:58-85`) is quoted in R-5cii16. `allowImportingTsExtensions` is set in the same hook. Measured on a scratch copy of the probe app: `src/` still checked, a `./lib.ts` script import accepted. A `src/` seeded-error row is added under every answer to Ruling 5, with mutation 8 (a plain `include` narrows the check). | Ruling 5 "What yes builds"; R-5cii16 "How the scripts join the set"; Task 3 scaffold, `src/` row, mutation 8 |
+| V2 | major | **Folded.** Confirmed: `Makefile:52` is the `.PHONY` list and does not yet name `web`. Task 3 adds it; a row proves `make check` and `make web` fail naming `npm ci --prefix web` with `node_modules` deleted; mutation 9 drops the entry. | R-5cii10 "Order"; Task 3 leg, `make` rows, mutation 9 |
+| V3 | minor | **Folded.** Mutation 15 now drops the query-key check; the `r.Form` read is stated as an equivalent mutant. Mutation 5's symptom corrected to `malformed`. The privileged-fields row adds `unknown_field`. The query-field row's fixture now names the `?admin=on` and `?foo=1` answers. | R-5cii4; privileged-fields table; Task 1 query-field row, mutations 5 and 15 |
+| V4 | minor | **Folded.** Confirmed: `Register` mounts `pattern` and `pattern+"/"` (`serve.go:94-96`), and `terminated` dispatches through `s.mux.Handler(r)` (`serve.go:218`), leaving `r.Pattern` unset. Task 2's mount wraps the gated API in an exact-path check against `prefix.String() + "/roster"`, falling to `serve.Terminator()`. Rows for `roster/x`, `roster/`, and `roster/roster`; mutation 8 is the suffix test. Task 1's "any path under `roster/`" sentence moves to Task 2. | Task 1 GET outcome; Task 2 mount, rows, mutation 8; R-5cii21 roster row |
+| V5 | minor | **Folded.** Fixture (i) keeps a second admin and first asserts `OpenRoster` succeeds on the edited file, so the row reaches `roster.go:798`, not `:460`. | Task 1 `failed` rows |
+| V6 | minor | **Folded as a correctness fix, not an owner fork.** RFC 6797 section 8.3 matches by host alone, so the loopback exception is fixed under every answer. Ruling 2 now asks only the HSTS shape; "drop the exception" is removed from "What no builds". | Ruling 2; R-5cii6; Task 7 header row |
+| V7 | minor | **Folded by withdrawal.** Task 5 mutation 2 is withdrawn: the "present more than once" state row refuses the planted token under the correct rewrite too, and that row is the guard. Redefining the token's legal site would add a parse-aware count for no added protection. | Task 5 mutation 2 |
+| V8 | minor | **Folded.** Task 2's Files parenthetical names every n5 row in `roster_test.go`. | Task 2 Files |
+| V9 | minor | **Folded.** The cache table's last row reads "every 404 and every non-JSON refusal", and names `writeAnswer`'s `no-store`. | R-5cii8 |
+
+**Refused:** none. **Ceiling:** unchanged at 9.4M (flag 7.52M). The
+second fold adds five rows and three mutations across Tasks 1 through 3
+and withdraws one, well inside the 0.85M between the 6.75M projection
+and the flag. The task count and deliverable count (31) are unchanged.

@@ -1,10 +1,13 @@
 # Rung 5, Pass 5c-ii (The Admin Gate, the Roster API, and the `web/` Tree Born Gated) Implementation Plan
 
-Status: **revision 2, 2026-09-24, folded, awaiting verification.**
+Status: **revision 2.1, 2026-09-24, second fold, awaiting prose review.**
 Revision 1 (`3ebfe3c`) took three lens reviews (`140e3cd`:
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
-`-mechanics.md`, `-risk.md`); the fold record, one disposition per
-finding, is
+`-mechanics.md`, `-risk.md`); revision 2 (`74066b1`) folded them and
+took a fresh-context verification read (`cebcda2`:
+`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`,
+V1 through V9), folded here. The fold record, one disposition per
+finding in both folds, is
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`.
 Seven rulings for Geoff are open ("Rulings for Geoff").
 
@@ -77,7 +80,8 @@ believes it needs any of these stops and reports.
 ## Rulings for Geoff
 
 Seven yes-or-no questions. Rulings 1 through 3 are revision 1's, with
-Ruling 1's figure and Ruling 2's shape updated by the fold; Rulings 4
+Ruling 1's figure and Ruling 2's shape updated by the fold, and Ruling
+2's loopback exception fixed rather than asked (V6); Rulings 4
 through 7 arrived with the reviews. The rung 5 spec's rulings, the 5c-i
 plan's six rulings, and the web surface standard's section 16 stand and
 are not reopened.
@@ -105,9 +109,7 @@ would then share one pass-end review, and the pages would build against
 a delivery path no reviewer had yet read.
 
 **2. Does the served header set carry `Strict-Transport-Security:
-max-age=31536000`, with no `includeSubDomains` and no `preload`, only
-when `DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not
-loopback (`isLoopbackHost`, `cmd/dubplate-server/auth.go:474-482`)?**
+max-age=31536000`, with no `includeSubDomains` and no `preload`?**
 Recommendation: yes.
 
 **Reason:** review finding 18 routes HSTS into this pass. HSTS is sticky
@@ -116,23 +118,25 @@ the owned prefix, so its shape is adopter-visible and slow to reverse.
 The shape is chosen from RFC 6797 (R-5cii6). `includeSubDomains` would
 reach sibling hosts an adopter runs under the same domain, which
 dubplate does not own. `preload` asks browsers to ship the host in
-their source, which only the domain's owner can decide. R38's loopback
-carve-out admits plain http on localhost, where RFC 6797 section 7.2
-says a host "MUST NOT include the STS header field", so the header
-follows the configured scheme. The loopback exception is the mechanics
-review's m4: RFC 6797 section 8.3 matches a Known HSTS Host by host
-alone, and section 8.1.1 exempts only IP literals, so HSTS from
-`https://localhost` behind a local TLS proxy would pin every
-`localhost` port in that browser for a year. `validatePublicURL`
-accepts `https://localhost` (`auth.go:465`), and the exception reuses
-R38's own loopback set.
+their source, which only the domain's owner can decide.
+
+**Fixed, not asked:** under every answer the header is sent only when
+`DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not loopback
+(`isLoopbackHost`, `cmd/dubplate-server/auth.go:474-482`). R38's
+loopback carve-out admits plain http on localhost, and RFC 6797 section
+7.2 says a host "MUST NOT include the STS header field" over non-secure
+transport, so the header follows the configured scheme. The loopback
+exception is a correctness call (the mechanics review's m4, verification
+V6): section 8.3 matches a Known HSTS Host by host alone, and section
+8.1.1 exempts only IP literals, so HSTS from `https://localhost` behind
+a local TLS proxy would pin every `localhost` port in that browser for
+a year. `validatePublicURL` accepts `https://localhost` (`auth.go:465`),
+and the exception reuses R38's own loopback set.
 
 **What yes builds:** R-5cii6 as written, with a named constant for the
-age and the loopback exception. **What no builds:** either HSTS on
-every https URL, `https://localhost` included (drop the exception), or a
-threshold for the age and a flag for `includeSubDomains`, two more
-`doctor` rows, and an adopter choice most adopters cannot evaluate. Or
-no HSTS, which leaves finding 18 open.
+age. **What no builds:** a threshold for the age and a flag for
+`includeSubDomains`, two more `doctor` rows, and an adopter choice most
+adopters cannot evaluate. Or no HSTS, which leaves finding 18 open.
 
 **3. Does 5c-ii ship the three routes as unstyled structural stubs, with
 the page design taken into 5c-iii, and does Task 4 author the
@@ -190,8 +194,12 @@ types-only and a devDependency; the newest 24.x on 2026-09-24 is
 24.13.6 (`npm view @types/node@24 version`), matching the Node 24
 floor.
 
-**What yes builds:** R-5cii16 gains the row, `web/tsconfig.json`
-includes `scripts/**/*.ts`, and the gate type-checks every gate script.
+**What yes builds:** R-5cii16 gains the row, and `svelte.config.js`'s
+`kit.typescript.config` hook appends `../scripts/**/*.ts` to kit's
+generated include list and sets `allowImportingTsExtensions: true`, so
+the gate type-checks every gate script and still checks all of `src/`.
+A plain `include` in `web/tsconfig.json` would replace kit's list, not
+extend it, and silently stop checking `src/` (verification V1, R-5cii16).
 **What no builds:** the gate scripts are written as `.js` with JSDoc and
 the `ts-conventions` claim is dropped; or G1, G3, and the server-file
 check become Go tests, which the Go gate already type-checks. Under
@@ -481,7 +489,7 @@ every channel that may set it.
 | A member's `admin` flag | `dubplate-server member add --admin` through `identity.ChannelCommandLine` (5c-i). An operator's hand edit, validated at reload, with no audit record (5c-i's declared gap 2). | The roster API refuses any request whose `r.Form` carries an `admin` key, body or query, any value, empty included (Task 1). The store refuses the flag on every channel but the command line (5c-i Task 6). The seam reads the flag from the roster record, never the request (found sound). |
 | The authority to write the roster through the web | A cookie-channel actor whose record in the disk copy, re-read under the store's lock, holds the flag (5c-i Task 6), reached only through the admin gate (Task 1; exported as `RequireAdmin` in Task 7). | A stale gate decision: `AddMember` re-checks the actor under the lock. A request that bypassed the gate: the inner handler refuses on its own when its context carries no valid admin identity (Task 1). |
 | The roster's contents as a read (every address, admin flag, and streamer username) | The roster API's GET and HEAD to a verified admin (Task 1); `member list` on the command line (5c-i); 5b-ii's kind unknown-address answer, which hands out the one admin contact the spec names. | Every other requester of `<prefix>/roster` answers the gate's 404 (Task 1). The generic answer's setting governs the one contact the kind answer reveals (5b-ii). No log record or error string carries an address (global constraint). |
-| The three member fields a POST writes | `r.PostForm` only (R-5c13): the request body. | The query string: a POST carrying any query key answers `malformed` or `admin_not_grantable` before a field is read (R-5cii4), so an address never rides a URL into a proxy's access log. |
+| The three member fields a POST writes | `r.PostForm` only (R-5c13): the request body. | The query string: a POST carrying any query key answers `admin_not_grantable`, `unknown_field`, or `malformed` before a field is read (R-5cii4), so an address never rides a URL into a proxy's access log. |
 | The audit record's actor | The gate's verified, normalized address, passed through an unexported context key (Task 1). | Any form field, header, or query value; a spoofed `actor` field is refused as an unknown field and never read (Task 1). |
 | The audit record's channel | The constant `identity.ChannelCookie` in the roster API. | Anything a request carries. |
 | `streamer_username` | The roster API (Task 1) and the verb (5c-i), both through `AddMember`. A hand edit. **It becomes a privilege channel at rung 12**, carried there as 5c-i's declared gap 5; rows the API writes now persist into rung 12, so rung 12's check re-validates every existing row's principal, not only new writes (Task 8's gap list). | Nothing else writes the roster. |
@@ -610,7 +618,10 @@ restated: the admin and unknown-key checks run over `r.Form` (body and
 query), and the values come from the body. A POST whose query string
 carries any key that survived the admin and unknown-key checks answers
 `malformed`, so `?address=...` with an empty body adds nobody and an
-address never rides a URL into a tunnel or proxy access log.
+address never rides a URL into a tunnel or proxy access log. Once that
+check passes, `r.Form` and `r.PostForm` hold the same three fields, so
+the `r.PostForm` read is defense in depth: equivalent under the check,
+so no mutation can tell it apart (V3).
 
 **The Content-Type check parses the header.** `ParseForm` itself reads
 the type through `mime.ParseMediaType`, and `go doc
@@ -721,7 +732,8 @@ login recorded as a residual.
 
 HSTS: `max-age=31536000`, no other directive, set only when
 `DUBPLATE_PUBLIC_URL`'s scheme is https and its host is not loopback by
-`isLoopbackHost` (Ruling 2). RFC 6797 (read 2026-09-24):
+`isLoopbackHost` (fixed under every answer to Ruling 2; RFC 6797
+section 8.3, V6). RFC 6797 (read 2026-09-24):
 section 6.1.1, "The REQUIRED 'max-age' directive specifies the number
 of seconds, after the reception of the STS header field, during which
 the UA regards the host ... as a Known HSTS Host"; section 7.2, "An HSTS
@@ -804,7 +816,7 @@ The salvage handler's `private` fit an authenticated surface (spec,
 | The add-member document (`members`) | `private, no-cache` | It answers per requester, behind the gate. |
 | The branding and operator stylesheets | `no-cache` | Configuration changes at restart without a name change. |
 | Every JSON answer | `no-store` | The 5b-ii precedent, kept. |
-| Every 404 and every refusal | none set | `http.NotFound` sets none, and the gate's 404 must equal it. |
+| Every 404 and every non-JSON refusal | none set | `http.NotFound` sets none, and the gate's 404 must equal it. A JSON refusal (a 400 `malformed`, a 503 `busy`) is a JSON answer and carries `no-store`, as `writeAnswer` sets today (`internal/auth/handlers.go:416`). |
 
 ### R-5cii9: the embed lives in package `web`, and a build re-emits its placeholder
 
@@ -837,7 +849,11 @@ init".
 - **Order.** Go tests in `web` and `cmd/dubplate-server` read the
   embedded bundle, so the bundle must be current before `go test` runs.
   The Makefile gains a `web` target (install-state check, build, and the
-  static web gates), and `check` depends on it first. `check.sh`'s
+  static web gates), and `check` depends on it first. The target joins
+  the `.PHONY` list (`Makefile:52`): it has no file prerequisites, and
+  beside the `web/` directory make otherwise treats it as up to date and
+  skips its recipe while `check` exits 0 (V2, measured by the
+  verification probe). `check.sh`'s
   `--scope-changed` path calls `make web` before its narrowed Go
   targets, and its `--reduced` path runs the build step alone before its
   `go test`. Every form builds; only `--reduced` skips the static web
@@ -1068,9 +1084,35 @@ Exact versions, no ranges, with `package-lock.json` committed. Node is
 so the gate scripts are TypeScript under `ts-conventions` with no
 runner dependency. Type stripping does no type checking, and
 `svelte-check` reads only kit's generated include set, so under Ruling 5
-`web/tsconfig.json` adds `scripts/**/*.ts` and the gate type-checks the
-scripts (measured: without `@types/node` that include fails on
-`process` and `node:fs`). `web/tsconfig.json` sets `skipLibCheck: true`
+the gate scripts join that set (measured: without `@types/node` the
+scripts fail on `process` and `node:fs`).
+
+**How the scripts join the set (V1).** A child tsconfig's `include`
+replaces the one it extends; it does not merge. The verification probe
+measured it: `"include": ["scripts/**/*.ts"]` in `web/tsconfig.json`
+checked 108 files and missed a type error seeded in `src/lib/bad.ts`.
+Kit 2.70.3 generates its list in
+`src/core/sync/write_tsconfig.js:58-85` (`'ambient.d.ts'`, `'env.d.ts'`,
+`'non-ambient.d.ts'`, `'./types/**/$types.d.ts'`, the two vite configs,
+then `${dir}/**/*.js`, `.ts`, and `.svelte` for `src/`, `test/`, and
+`tests/`), and then returns `kit.typescript.config(config) ?? config`
+(`:131`). Kit documents that hook as "a function that allows you to edit
+the generated `tsconfig.json`. You can mutate the config (recommended)
+... Note that any paths configured here should be relative to the
+generated config file, which is written to `.svelte-kit/tsconfig.json`"
+(`types/index.d.ts:851-861`). So `svelte.config.js` mutates, never
+restates: `config.include.push('../scripts/**/*.ts')` and
+`config.compilerOptions.allowImportingTsExtensions = true`. Restating
+kit's list in `web/tsconfig.json` would also work today, but it would
+drift silently at a kit bump that adds an entry. The flag is needed
+because Node's type stripping requires a sibling import to name its
+`.ts` extension, which strict checking otherwise refuses ("An import
+path can only end with a '.ts' extension when
+'allowImportingTsExtensions' is enabled"); kit's `noEmit: true`
+permits it. Measured on a scratch copy of the probe app: 180 files
+checked, a `./lib.ts` import between two scripts accepted, the seeded
+`src/lib/bad.ts` error reported, and the only other errors the
+`process` and `node:fs` names `@types/node` supplies. `web/tsconfig.json` sets `skipLibCheck: true`
 under every answer to Ruling 5, since strict `svelte-check` otherwise
 reports 41 errors inside kit's own `types/index.d.ts`. A later bump goes through the `dependency-upgrade`
 skill. Task 0 re-reads each version and reports any newer one.
@@ -1135,7 +1177,7 @@ names what its deeper paths answer. One rule for all of them:
 | --- | --- | --- | --- |
 | `login` | `<prefix>/login`, `<prefix>/login/link` | the terminator's 404, the trailing-slash forms included | GET, HEAD; any other answers 405 with `Allow: GET, HEAD` |
 | `members` | `<prefix>/members` | the gate's 404 to a non-admin, the terminator's 404 to an admin | GET, HEAD after the gate (R-5cii19) |
-| `roster` | `<prefix>/roster` | the gate's 404 to a non-admin, the terminator's 404 to an admin | GET, HEAD, POST after the gate (Task 1) |
+| `roster` | `<prefix>/roster` | the terminator's 404 to everyone, from the exact-path wrap Task 2 mounts outside the gate (byte-equal to the gate's) | GET, HEAD, POST after the gate (Task 1) |
 | `_app` | each embedded file under `_app/` | a directory path (`<prefix>/_app/immutable/`), the bare `<prefix>/_app`, and a missing file answer the terminator's 404; no listing, no redirect | GET, HEAD; any other answers 405 |
 | `branding.css`, `operator.css` | the name itself | the terminator's 404 (`<prefix>/operator.css/x`) | GET, HEAD; any other answers 405 |
 
@@ -1306,8 +1348,9 @@ check, a JSON 404, an ungated export) pass every happy-path test.
   with `address`, `display_name`, `streamer_username`, and `admin`. A
   roster store failure answers 500 `failed`, never a partial list.
   Any other method answers 405 with `Allow: GET, HEAD, POST`, reached
-  only by a verified admin. Any path under `roster/` answers the
-  terminator's 404 to an admin too (R-5cii21).
+  only by a verified admin. The API does not see its own path, since
+  `AdminConfig` carries none; Task 2's mount confines it to the exact
+  path (R-5cii21).
 - **POST** takes a form-encoded body (R-5c13, R-5cii4): refuse a
   Content-Type whose `mime.ParseMediaType` media type is not
   `application/x-www-form-urlencoded`; cap at `BodyCap` before parsing,
@@ -1401,7 +1444,11 @@ The outcomes are specific because the caller is trusted
 - **The `failed` rows**, each on the in-package inner handler with an
   admin identity in its context: (i) the actor's admin flag removed from
   the file by a hand edit after the identity was placed, which reaches
-  `errActorNotAdmin` under the lock; (ii) the roster chmodded to 0666
+  `errActorNotAdmin` under the lock (**fixture state:** the edited
+  roster still names a second admin, and the row first asserts that
+  `OpenRoster` on the edited file succeeds, so the refusal is the
+  under-lock actor check at `roster.go:798` and not the load's
+  `errNoAdmin` at `roster.go:460`); (ii) the roster chmodded to 0666
   after `OpenRoster`, which `writeLocked`'s re-read refuses as
   `errRosterWritableByOthers`. Each asserts 500 `failed`, the bytes
   unchanged, and no audit record.
@@ -1411,8 +1458,11 @@ The outcomes are specific because the caller is trusted
   `malformed`.
 - **The query-field row:** a POST to `roster?address=<valid>&display_name=x&streamer_username=y`
   with an empty form body answers 400 `malformed`, the bytes unchanged.
-  **Fixture state:** the query values would be accepted as a body, so a
-  read that falls back from `r.PostForm` to `r.Form` adds the member.
+  **Fixture state:** the query values would be accepted as a body, so
+  without the query-key check the empty body reaches the field checks
+  and answers a field outcome, never `malformed`. A `?admin=on`
+  POST with a valid body answers `admin_not_grantable`, and a `?foo=1`
+  POST with a valid body answers `unknown_field`.
 - A same-origin GET with a valid admin session carries a `Set-Cookie`
   whose expiry moved forward and whose anchor did not; a `same-site` GET
   and a header-less GET carry none. **Fixture state:** a session old
@@ -1441,7 +1491,9 @@ The outcomes are specific because the caller is trusted
 3. Read the admin flag from a request field or header → the non-admin
    row reaches the inner handler.
 4. Refresh on any request → the header-less row carries a cookie.
-5. Check `admin` in `r.PostForm` only → the query-string row writes.
+5. Check `admin` in `r.PostForm` only → the `?admin=on` row answers
+   `malformed`, not `admin_not_grantable` (the query-key check still
+   refuses it, so nothing writes).
 6. Take the actor from the form → the `actor=x` row reaches the store.
 7. Parse before capping → the over-cap row reads the whole body (a
    reader that counts bytes read).
@@ -1457,7 +1509,9 @@ The outcomes are specific because the caller is trusted
     `malformed`.
 14. Map `ErrRosterRecordInvalid` to 400 before the specific sentinels →
     `failed` fixture (i) answers 400.
-15. Read the fields from `r.Form` → the query-field row writes.
+15. Drop the query-key check → the query-field row answers a field
+    outcome, not `malformed`. (Reading the fields from `r.Form` is an
+    equivalent mutant under the check, R-5cii4, so it is not named.)
 16. Log the address parse error on a POST refusal → the
     `invalid_address` log row finds the address.
 
@@ -1481,15 +1535,27 @@ Model: `sonnet`. Depends on Task 1.
 **Files:**
 - Modify: `cmd/dubplate-server/serve.go`, `cmd/dubplate-server/serve_test.go`
 - Modify: `internal/identity/identity.go`, `internal/identity/identity_test.go`
-- Modify: `internal/auth/roster_test.go` (the load-path row for n5 only)
+- Modify: `internal/auth/roster_test.go` (the n5 rows only: the load
+  path and `AddMember` on both channels)
 - Modify: `internal/auth/roster.go` (the doc comments of
   `actorRefusesRune` and `validateActor` only, R-5cii5; no code)
 
 **Outcomes:**
 
 - **`newServeShell` passes the seam it constructs into `AdminConfig`**
-  and registers `NewRosterAPI(cfg)` as the subtree `roster`. The
-  comment saying "No handler here consumes the seam" is removed. The
+  and registers `NewRosterAPI(cfg)` as the subtree `roster`, wrapped in
+  an exact-path check: a request whose `r.URL.Path` is not exactly
+  `prefix.String() + "/roster"` goes to `serve.Terminator()`, and only
+  the exact path reaches the gate (V4). The wrap is needed because
+  `Shell.Register` mounts both the name and its subtree
+  (`internal/serve/serve.go:94-96`: `s.mux.Handle(pattern, h)` and
+  `s.mux.Handle(pattern+"/", h)`), and the shell dispatches through
+  `s.mux.Handler(r)` (`serve.go:218`), which leaves `r.Pattern` unset,
+  so the API cannot tell its exact path from a deeper one. A suffix
+  test is refused: it answers the list at `<prefix>/roster/roster`. The
+  gate's 404 and the terminator's are byte-equal, so a non-admin sees
+  the same answer on either side of the wrap. The comment saying "No
+  handler here consumes the seam" is removed. The
   body cap is the existing `DUBPLATE_AUTH_REQUEST_BODY_CAP` value.
 - **The cross-surface exit rows are proved through `shell.Handler()`**,
   because a handler test cannot see the origin check or the prefix
@@ -1532,8 +1598,11 @@ Model: `sonnet`. Depends on Task 1.
   `unicode.Version` equals `"17.0.0"` and the derived set's size equals
   4174, so a toolchain move to a later Unicode version fails loudly for
   a reread and an over-refusing formula fails the size row.
-- A verified admin's GET to `<prefix>/roster/x` answers the terminator's
-  404 (R-5cii21).
+- A verified admin's GET to `<prefix>/roster/x`, `<prefix>/roster/`,
+  and `<prefix>/roster/roster` each answers the terminator's 404
+  (R-5cii21). **Fixture state:** the same admin's GET to
+  `<prefix>/roster` answers the list in the same test, so the 404s are
+  the path's.
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
@@ -1550,6 +1619,8 @@ Model: `sonnet`. Depends on Task 1.
 6. Drop the U+2800 rule → the braille-blank row passes.
 7. Drop `- Prepended_Concatenation_Mark` from the derivation (U+0600
    through U+0605 are `Cf` and in that set) → the size row fails.
+8. Confine the roster mount by `strings.HasSuffix(path, "/roster")` →
+   the `<prefix>/roster/roster` row answers the list.
 
 **2.0 hook: hook 5 (a stable identity), neutral.** The write path is
 5c-i's; this task adds its second caller.
@@ -1599,8 +1670,11 @@ Model: `sonnet`. Depends on Task 0's prefix probe and Task 2. Skills:
   `@plugin "daisyui"` emits `@media (prefers-color-scheme:dark){:root:not([data-theme]){…}}`
   from its `dark --prefersdark` default, the block W5.9 forbids; the
   named line emits none and keeps `light` and `dark` for G10 (measured).
-  `web/tsconfig.json` sets `skipLibCheck: true` and, under Ruling 5,
-  includes `scripts/**/*.ts` (R-5cii16). The implementer runs
+  `web/tsconfig.json` sets `skipLibCheck: true` and carries no
+  `include` of its own; under Ruling 5, `svelte.config.js`'s
+  `kit.typescript.config` hook appends `../scripts/**/*.ts` and sets
+  `allowImportingTsExtensions` (R-5cii16, "How the scripts join the
+  set"). The implementer runs
   `npm install --prefix web` once against the exact pins to produce the
   lockfile (R-5cii11). Three route
   stubs, each one `<main>` with one `<h1>` naming the page and nothing
@@ -1612,7 +1686,8 @@ Model: `sonnet`. Depends on Task 0's prefix probe and Task 2. Skills:
   `npm run build --prefix web`; `svelte-check` with strict TypeScript;
   the server-file check; G1; G3. R-5cii10's order: `make check` runs
   `web` first; `--scope-changed` calls `make web` first; `--reduced`
-  runs the build alone before its `go test`.
+  runs the build alone before its `go test`. `web` joins the `.PHONY`
+  list at `Makefile:52` in this commit.
 - **The rejoin sentences**, rewritten at all three sites to say the
   `web/` leg runs today and what it runs: `CLAUDE.md:140`,
   `scripts/check.sh:4-6`, and `Makefile:33-34` (plural there). The web
@@ -1657,6 +1732,14 @@ the built bundle; its built-bundle half fails by name against a
   entry has an in-range newer version, and `npm ls` accepts it, so the
   row proves the comparison and not `npm ls`). The clean install's
   absent `optional: true` entries are the proceed row's fixture.
+- **The `make` rows (V2):** with `web/` present and
+  `web/node_modules` deleted, `make check` itself exits non-zero and
+  its output names `npm ci --prefix web`; the same holds for `make web`.
+  **Fixture state:** the `web/` directory exists and the target names no
+  prerequisite, so make runs the recipe only because of `.PHONY`.
+- **The `src/` row (V1):** a type error seeded in `web/src/lib/` fails
+  `svelte-check` in the gate under every answer to Ruling 5, and, under
+  Ruling 5, a type error seeded in a gate script fails it too.
 - `go list ./...` lists no package under `web/node_modules` (**fixture
   state:** a `.go` file planted under `web/node_modules/` for the test
   and removed after).
@@ -1683,6 +1766,13 @@ the built bundle; its built-bundle half fails by name against a
    missing non-optional row passes.
 7. Under Ruling 5, drop `scripts/**/*.ts` from the checked set → a
    seeded type error in a gate script passes the gate.
+8. Under Ruling 5, set `"include": ["scripts/**/*.ts"]` in
+   `web/tsconfig.json` in place of the hook → a type error seeded in
+   `web/src/lib/` passes the gate (the `src/` row). Under every answer
+   to Ruling 5 the `src/` row is seeded, so a later `include` cannot
+   narrow the check unseen.
+9. Drop `web` from the Makefile's `.PHONY` list → the missing
+   `node_modules` row passes `make check` (V2).
 
 **2.0 hook: neutral.** The tree is where 2.0's device page and web admin
 surface arrive (spec, "The 2.0 hooks").
@@ -1876,8 +1966,11 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 
 1. Embed `build` without `all:` → the `_app` assets are missing and the
    prefix proof fails.
-2. Rewrite by string replace across the whole document → a token
-   planted inside an inline script's body changes that script's bytes.
+2. (Withdrawn, V7: a planted second token is refused at startup by the
+   "present more than once" row under the correct rewrite too, so the
+   mutant cannot be told apart. That row is the guard: a document can
+   carry only the one token, so a document-wide replace touches no
+   script.)
 3. Serve a document at its trailing-slash path → the trailing-slash row
    answers 200.
 4. Accept any match value → the refused-match row passes.
@@ -2075,8 +2168,8 @@ each a test.
   for a path outside the prefix (the fallthrough slot, empty at rung 5),
   through `shell.Handler()`. HSTS is present on every one with an
   `https://` public URL on a non-loopback host, and absent on every one
-  with `http://localhost` and with `https://localhost` (Ruling 2's
-  loopback exception). **Fixture state:** all three configurations, so
+  with `http://localhost` and with `https://localhost` (the fixed
+  loopback exception, R-5cii6). **Fixture state:** all three configurations, so
   presence and both absences are each proved.
 - **The non-admin rows for `members`:** a verified non-admin's GET and
   POST to `<prefix>/members` equal the terminator's answer to
