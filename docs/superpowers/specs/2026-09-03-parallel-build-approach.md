@@ -181,7 +181,7 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | The roster loader | rung 5 (assigned twice today, to 5 and 7; award it to 5) | rung 7 |
 | The journey vocabulary | rung 7 | rung 9 adds one state |
 | The `AppliedFields` type | rung 2's case format pins it | rungs 8, 9 |
-| The theme pairing | rung 12 configures Navidrome first | rung 7 authors to match |
+| ~~The theme pairing~~ (retired by Geoff, 2026-09-24: dubplate replaces Navidrome at 2.0 and has its own visual identity; nothing authors to match a streamer) | none | none |
 | Session vocabulary and token acquisition | the seam is born at rung 5; non-browser token acquisition stays at rung 14 (the build spec's supersession list governs, over the analysis's 5 → 14 note) | rung 14 |
 | `internal/harness/conform` (added 2026-09-04, per the rung 3 spec's fold) | born by rung 3 pass 3a; rung 3's lane thereafter | the tier 0-2 conformance runners; rung 15's re-run |
 | `internal/harness/oracle` | lane E1 through 2d's close (landed); rung 3 pass 3b adds the derived-AlbumInfo entry point, and rung 3 pass 3d carries `TieEntry.Adjudicator` through `writeTieLedger` and the diff test's field mask (conductor ruling, 2026-09-05, at 3d's plan fold) | `make derive`; 3b's ledger |

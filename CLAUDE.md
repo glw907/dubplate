@@ -195,9 +195,11 @@ today and gate at the comment-cleanup task.
 `diff-reviewer` per plan task. At pass end, fan out by surface:
 `svelte-reviewer` + `daisyui-a11y-reviewer` for `web/`,
 `web-auth-security-reviewer` for the serve/JWT surface,
-`cloudflare-workers-reviewer` only in the pings repo. Uploader UI work
-additionally gates on the visual-fidelity chain (Navidrome reference
-screenshots, fresh-context `visual-verifier`, Geoff's before/after).
+`cloudflare-workers-reviewer` only in the pings repo. Web UI work
+matches no streamer: dubplate replaces Navidrome at 2.0 and carries its
+own visual identity (Geoff, 2026-09-24), so no reference screenshots and
+no visual-fidelity chain. Every user-path page is rendered and read
+before Geoff sees it, and the rung 7 uploader is Geoff's design review.
 At each pass's merge the conductor dispatches one `go-architecture-reader`
 per touched Go package, with no plan in context; it grades the package,
 which is the unit the per-task `diff-reviewer` cannot see. Every

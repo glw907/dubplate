@@ -17,6 +17,14 @@ its Navidrome theming note is dropped. The seam stays universal because
 stack rule moves to SvelteKit in static mode (CLAUDE.md, Stack rules),
 adopted before rung 5's plan is authored.
 
+**Erratum 2026-09-24 (Geoff).** Dubplate is a full replacement for
+Navidrome, so its web surface has its own visual identity and matches no
+streamer. The visual-fidelity chain no longer applies to any rung: ladder
+entry 7's "uploader UI gates on the visual-fidelity chain" and the
+process section's "rung 7's uploader before/after, per the
+visual-fidelity mandate" now mean Geoff's design review of dubplate's own
+design, rendered and read first, with no reference screenshots.
+
 **Erratum 2026-09-08 (rung 1b close, source
 `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`).** The
 config-wall section's `:182-183` sentence is superseded: the wall is no
