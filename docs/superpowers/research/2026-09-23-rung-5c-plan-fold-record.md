@@ -285,3 +285,235 @@ different form than proposed, each with a one-line reason:
   basis in 5b-ii.
 - **5c-ii's size.** It now carries thirteen tasks plus Task 0, past the
   twelve-task line, so its own plan should propose a split.
+
+---
+
+## Revision 2.2: the prose review folded, and the plan shortened (revision 2.1 to 2.2)
+
+Input: `docs/superpowers/research/2026-09-23-rung-5c-plan-prose-review.md`
+(P1-P23: 4 blockers, 10 warnings, 9 suggestions), read against the plan at
+`675a1a0`. Between that read and this fold, `c73965b` recorded Geoff's
+approval (all six rulings yes) and widened R-5c6's write-path shape to
+`[A-Za-z0-9][A-Za-z0-9._@+-]*`, after Ruling 2's query found the estate's
+one account name email-shaped.
+
+**No ruling's substance changed, and no task's acceptance criterion
+changed** except for the listed fixes:
+- P14 adds a Task 2 row and a mutation.
+- P13 narrows Task 7's mutation 3 to the row it can reach.
+- P11 renames two methods to unexported names.
+- P12 changes Task 0's pointer-grading rule.
+
+The shortening moved text out of the plan and removed revision narration
+and lens credits. It kept every trap and every rule an agent acts on.
+
+### Dispositions
+
+| ID | Tier, severity | Disposition | Where |
+| --- | --- | --- | --- |
+| P1 | 1, warning | Folded: R-5c19's reason now quotes `go doc net/http.Request.Context` ("For incoming server requests, the context is canceled when the client's connection closes, the request is canceled (with HTTP/2), or when the ServeHTTP method returns"); the conclusion is unchanged | R-5c19 |
+| P2 | 1, suggestion | Folded: the done query now reads "which changes no data" (a WAL read-only open still writes the wal-index). The ruling's original wording moved to this record verbatim, below, as history | Conductor's actions item 3 |
+| P3 | 1, suggestion | Folded: softened to "a /48 is cheap to obtain". The full Ruling 1 text holding the unsourced claim moved here | R-5c3 |
+| P4 | 2, blocker | Folded: the split box states the Task 7 / Task 8 cut | The split |
+| P5 | 2, blocker | Folded: "(Task 8's HISTORY draft records it as a declared gap)"; the `LIKE` mention dropped | Privileged-fields table |
+| P6 | 2, warning | Folded: "The handlers are `http.Handler` values that `cmd/dubplate-server` mounts, as 5c-ii's gate will be" | Global Constraints |
+| P7 | 2, warning | Folded: "two `Roster` values over one file, standing in for `serve` and the verb" | Review focus 1 |
+| P8 | 2, warning | Folded: "(5c-ii Task 2)" and "The page is Task 10's" | 5c-ii outline |
+| P9 | 2, warning | Folded: "thirteen tasks plus Task 0" in the outline, matching the ceiling line | 5c-ii outline |
+| P10 | 2, warning | Folded: every reference to the spec row's four moved assertions now names them by content (the non-admin 404, the same-origin denial, the web write's audit record, `member list` reading the API's write) | The split, Exit gate intro, outline head |
+| P11 | 2, warning | Folded: `allowLinkClient` and `allowLinkAddress` are unexported. Only `internal/auth/handlers.go` calls the limiter's methods (checked at `cd2b5ca`; `cmd/dubplate-server/serve.go` only constructs it) | Task 3 |
+| P12 | 2, blocker | Folded: every spec pointer at or past `spec:2316` re-resolved at `cd2b5ca` (+50 after `d82e9cf`): 2331→2381, 2344-2346→2391-2396, 2321-2346→2371-2396, 2348-2380→2398-2430, 2378-2380→2428-2430, 2382-2441→2432-2491, 2395-2397→2447-2448, 2443-2507→2493-2557, 2526-2531→2576-2580, 2595-2601→2644-2650, 2646-2652→2696-2700. Task 0's rule now reads "a pointer whose content survives at any offset is a note naming the new line, and a pointer whose content is gone is a blocker" | Header, Primary inputs, Owner touchpoints, Token ceiling, Global Constraints, Exit gate, outline, Task 0 |
+| P13 | 2, warning | Folded: Task 7 mutation 3 targets the second-add `--admin` row and says why the create row cannot catch it | Task 7 |
+| P14 | 2, blocker | Folded: Task 2 row "`a@example.test`, `a+b@example.test` accepted" plus mutation 6 ("drop `@` from the character class → the email-shaped row refuses"); Ruling 2's query marked done in Conductor's actions item 3 with a do-not-ssh-again rule; R-5c6's pre-Task-2 paragraph replaced by the done record; Task 0 item 12 confirms instead of asking; Task 8's gap for Ruling 2's "no" dropped | Task 2, Conductor's actions, R-5c6, Task 0, Task 8 |
+| P15 | 2, suggestion | Folded: "A `streamer_username` counts as an address for this rule, since the estate's is email-shaped" | Global Constraints |
+| P16 | 2, suggestion | Recorded here (moot, ruled yes): on the plan's own rates, the add-member surface Ruling 6's "no" would have moved is about 1.8M (the two head tasks at 1.07M plus the page task at 0.69M). The 2.3M in the ruling text added an unstated share for the security read over that surface. The ruling text below keeps 2.3M as written | This record |
+| P17 | 3, warning | Moot: the rulings section is now a six-row ruled table, and the full questions moved here unchanged | Rulings table |
+| P18 | 3, warning | Moot, same reason | Rulings table |
+| P19 | 3, suggestion | Moot, same reason; the Navidrome evidence stays in R-5c6 | Rulings table, R-5c6 |
+| P20 | 4, warning | Folded: the revision history, the lens credits, and the "Revision 1 ..." clauses are removed; where a clause carried a trap, it is restated as a rule ("Do not point the row at `/` ...", "Do not compare refusal rows only with each other ...", "Do not apply the address set to display names ...") | Throughout |
+| P21 | 4, suggestion | Folded: one gating sentence, in Execution model, reworded as a resumed conductor's record since every ruling is answered | Execution model |
+| P22 | 4, suggestion | Partly folded, see below | `Model:` lines, Conductor's actions, Token ceiling |
+| P23 | 4, suggestion | Folded: Conductor's actions item 1 split into three items (before Task 0, before Task 1, the done query) | Conductor's actions |
+
+**P22, the partial fold.** Bold is removed from the `Model:` lines, the
+ceiling paragraphs, and the Conductor's actions headings. It stays on
+"No deploy of any kind", the live-executor rule, the Ruling 2
+do-not-ssh line, and "Do not deploy".
+
+A sweep of the remaining roughly 240 bold lead-ins is not taken. It would
+touch outcome and acceptance-criteria text across every task, and the
+risk of an unintended criterion edit costs more than the emphasis it
+restores.
+
+### Moved from the plan
+
+**The shortening, per the review's "Sections that could move".**
+- **Moved here verbatim:** the rulings section's full questions and
+  branches, the ceiling basis narrative, and the 5c-ii provisional and
+  rung-reservation derivation (below).
+- **Removed as dead text:**
+  - the "a 'no' ..." notes in R-5c3, R-5c6, and R-5c13;
+  - the "(written to its recommended answer ...)" clauses in the Task 2,
+    3, and 6 and 5c-ii Task 1 headers;
+  - the "Moved to Ruling N" placeholders;
+  - the split's count paragraph and its revision history;
+  - the Status paragraph's revision narration.
+- **Kept in the plan:** the 5c-ii head, which is 5c-ii's starting
+  material.
+
+#### The rulings as Geoff read them (revision 2.1 text, including `c73965b`'s ruled note)
+
+
+> **Ruled, Geoff, 2026-09-23: yes to all six.** Ruling 2's read-only query ran
+> the same evening (`sqlite3 -readonly` on the box's `navidrome.db`,
+> `SELECT user_name FROM user`): the estate holds one account, and its name
+> is email-shaped, so it failed the drafted shape on `@`. Under ruling 2's yes
+> branch the conductor widened R-5c6's write-path shape to
+> `[A-Za-z0-9][A-Za-z0-9._@+-]*` before Task 2 (`+` admitted with `@`, since
+> email-shaped handles carry it). No case-insensitive duplicate exists. The
+> name itself is not recorded here.
+
+Six yes-or-no questions. Each carries a recommendation, and the plan is
+written to the recommended answer, so a "yes" changes nothing and a "no"
+names the edit. Ruling 6 gates the launch; Rulings 2, 3, and 4 gate Task
+2; Ruling 1 gates Task 3; and Ruling 5 gates Task 6.
+
+1. **Should the per-address sign-in limit count only addresses on the
+   roster, while the two per-client limits keep evicting the
+   least-recently-used entry when full?** Recommendation: yes. The
+   security review's own fix for its finding 3 refuses every new key once
+   a full map has nothing refilled. Anyone holding about 2,500 IPv6 /64s,
+   a sliver of one free /48, could then fill a map and lock the whole
+   group out of sign-in for as long as the flood runs. Yes builds a
+   per-address bucket charged after the roster lookup and only for a
+   known address, so a flood of made-up addresses never touches a
+   member's bucket and the map never holds more keys than the roster has
+   members. Under the generic answer, a known address over its limit
+   still answers "requested" and sends nothing. The per-client and
+   consumption limits keep evicting the least-recently-used bucket, which
+   hands an attacker nothing it does not already control. No builds the
+   review's fix as written on all three maps, and records the group
+   lockout as a residual.
+
+2. **May the conductor run one read-only query of the box's Navidrome
+   usernames before Task 2?** Recommendation: yes. A `streamer_username`
+   names a member's existing streamer account, so a shape rule that
+   refuses an existing account name would stop that member being added.
+   The write-path shape is `[A-Za-z0-9][A-Za-z0-9._@+-]*` (R-5c6), and
+   Navidrome v0.63.2 matches usernames by case-insensitive equality, not
+   by SQL `LIKE` (its `FindByUsername` builds `user.user_name = ? COLLATE
+   NOCASE`, `persistence/user_repository.go`, read 2026-09-23), so the one
+   open fact is whether the estate's names fit that shape. Yes builds
+   one command on the production box, `sudo sqlite3 -readonly
+   /srv/music/state/navidrome/navidrome.db "SELECT user_name FROM user;"`,
+   which writes nothing; if a name does not fit, the shape widens to admit
+   it before Task 2. No applies the same shape without the check, and
+   records the unverified fit as a residual: a member whose existing
+   account name falls outside the shape cannot be added until the shape
+   widens.
+
+3. **Should display names allow the zero-width joiner and non-joiner
+   (U+200D and U+200C), while addresses keep refusing them?**
+   Recommendation: yes. Persian, several Indic scripts, and emoji
+   sequences need them, and the characters that actually disguise a name
+   (the right-to-left override, the zero-width space) stay refused. Yes
+   builds a display-name rule that refuses control characters, line and
+   paragraph separators, every space character except the ordinary
+   space, and every format character except those two. No refuses every
+   format character, so a member whose name needs a joiner types it
+   without one.
+
+4. **Should the `member` verb and the add-member form require a
+   streamer username from 5c, rather than from rung 6's pass 6d?**
+   Recommendation: yes. Your rung 6 ruling 8 makes the import refuse a
+   member without one, so a member added without one now is a member the
+   import refuses later. Yes builds both write paths refusing a missing
+   username by name, while the loader still accepts an older file without
+   one, and the close owes four spec passages an erratum. No leaves the
+   field optional and leaves 6d to backfill every member added in
+   between.
+
+5. **Should the add-member page drop the spec's admin checkbox, so the
+   command line stays the only way to make an admin?** Recommendation:
+   yes. Fork 1 makes the CLI verb "the only path that grants the admin
+   flag to an account that has never signed in", and everyone added
+   through the page has never signed in, so the checkbox could only ever
+   be refused. Yes builds a form of address, display name, and streamer
+   username, a list that still marks who is an admin, a roster API that
+   refuses any request carrying an admin field, and an erratum on
+   `spec:1417`. No builds the checkbox and reverses part of fork 1, so a
+   signed-in admin can grant admin from the browser: before Task 6
+   dispatches, the plan re-writes Task 6 (the store admits the flag on the
+   cookie channel for a verified admin actor), 5c-ii's roster API task
+   (the admin field passes through), exit gate 7, threat-model claim 1,
+   and the privileged-fields table's admin row, and the rung 6 spec's
+   "except 5c's CLI grant" takes an erratum.
+
+6. **Do you accept rung 5's budget reservation moving from 15.75M to
+   about 37M, with 5c at about 18M across its two passes?** The web
+   surface standard's section 15, which you ratified, says 5c's "4.5M
+   ceiling is unchanged". Recommendation: yes. The rung's four original
+   ceilings were priced at a planning rate the passes have since run at
+   about three times, and 5b-i and 5b-ii already account for 11.9M. Yes
+   builds 5c-i at a 6.5M execution ceiling against a 4.72M projection,
+   plus its planning spend, and 5c-ii at about 10.3M provisional,
+   re-derived from 5c-i's actual, with the difference recorded against
+   the reservation. No moves the add-member surface to rung 7: 5c-ii
+   drops the roster API, its serve wiring, and the add-member page, about
+   2.3M; exit gates 1, 2, 3, and 5 of the spec's 5c row move with them;
+   fork 1's "rung 5 builds it" takes an erratum; and the rung stands near
+   35M.
+
+
+#### The ceiling basis (revision 2.1 text)
+
+**The basis: the figure 5b-ii's close records.** `docs/HISTORY.md`'s top
+entry, "Both budgets", records "about **6.4M against the 7.5M ceiling**".
+Revision 2 used 6.5M, which no report carries. The entry does not
+itemize the 6.4M, so this plan reads it by what the window contained:
+the pass launched on 2026-09-23 with Task 0 and ran through the close,
+the conductor's own turns, both simplifier rounds, and the pass-end
+security read with its fold. Its plan had been prepared in the
+2026-09-12 window, so plan preparation is outside it. Its four
+architecture reads were recorded after the close
+(`docs: record the four 5b-ii architecture reads`), so they are outside
+it too. Dividing 6.4M by the twelve tasks it bought gives **0.533M per
+task, the conductor's turns included**. Revision 2's separate 0.40M
+conductor line counted those turns twice, and is replaced here by the
+architecture reads alone.
+
+**Planning is counted as spent at launch.** Drafting this plan, its
+three lenses, the fold, the verification read, this second fold, and the
+prose review are already spent when Task 0 dispatches. The conductor
+records that actual against the rung and outside this ceiling, so the
+ceiling measures execution alone and the flag cannot fire on work done
+before the launch.
+
+
+#### 5c-ii provisional figure and the rung reservation (revision 2.1 text)
+
+**5c-ii's provisional figure: about 10.3M, an assumption, not a
+measurement.** 5c-ii now opens with revision 2's Tasks 8 and 9, two Go
+tasks at 0.533M (1.07M). Ten `web/` tasks at **0.69M** (the Go rate plus
+about 30% for an `npm` install and a bundle build inside every gate once
+the leg exists, a render-and-read per page, and a new stack's first-time
+friction) is 6.9M. The close at 0.53M, the two web reviewers beyond the
+security read the rate carries at 0.5M, the string deck's register gate
+at 0.1M, and the architecture reads at 0.15M bring execution to about
+**9.25M**; planning adds about **1.0M**. That is thirteen tasks plus Task
+0, past this build's twelve-task line, so 5c-ii's own plan should expect
+to propose its own split, which adds about 1.0M of planning.
+
+**Recorded against the rung reservation (Ruling 6).** R23 set rung 5 at
+14.5M and 5a's close moved the live baseline to **15.75M**
+(`spec:2042-2050`). Taking actuals for closed passes and ceilings for open
+ones: 3.9M (5a) plus 5.5M (5b-i) plus 6.4M (5b-ii) plus about 8.0M for
+5c-i (the 6.5M ceiling plus planning, estimated at 1.5M until the
+conductor supplies the actual) plus about 10.3M (5c-ii) plus 3.0M (5d, a
+stale figure from the original planning rate) is **about 37.1M against
+15.75M**. The difference, about 21.4M, is recorded against the
+reservation, not taken from another pass. The web surface standard's
+section 15 states 5c's "4.5M ceiling is unchanged by this standard"; the
+close owes that line an erratum. The conductor re-derives 5d's figure at
+5c-ii's close.
+
