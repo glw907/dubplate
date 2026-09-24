@@ -1158,9 +1158,11 @@ trigger is an ordinary word in the middle of a title or a name, nothing
 is a credit, and the same 0.1 weight discards up to 90 percent of a real
 difference between two unrelated releases. The mechanism is identical;
 only the word boundary tells the two apart, and pinned 2.13.1 does not
-have one. No case in this family hand-edits a generated response: the
-defective verdict is `strong`, so beets' own early return retires the
-search fallback and one release document is the whole fixture.
+have one. No case in this family hand-edits a generated response: under
+the 2.13.1 derivation, the defective verdict was `strong`, so beets' own
+early return retired the search fallback and one release document was
+the whole fixture. The note below records what the 2.14.1 re-derivation
+changed about that shape.
 
 | id | what it probes | derived | defect-free | hand-edit |
 | --- | --- | --- | --- | --- |
@@ -2349,10 +2351,11 @@ two not:
   mechanism firing correctly at pinned beets 2.13.1 once
   `import.languages` makes it reachable, contradicting the report.
 
-All six hypotheses were ruled by the owner on 2026-09-04, and none is
-pending. `bug-ft-pattern` left the ledger on 2026-09-24, when the pin
-moved to beets 2.14.1, which ships its fix. `bug-ft-pattern`, `bug-remix-parenthetical`, and
-`bug-nonlatin-alias-selection` sit at `disposition: "oracle-wrong"`;
+All six hypotheses were ruled by the owner on 2026-09-04, and none was
+left pending. `bug-ft-pattern` left the ledger on 2026-09-24, when the
+pin moved to beets 2.14.1, which ships its fix; five hypotheses remain.
+`bug-remix-parenthetical` and `bug-nonlatin-alias-selection` sit at
+`disposition: "oracle-wrong"`;
 `bug-threshold-boundary` and `bug-locale-alias-ignored` sit at
 `disposition: "oracle-correct"`. `bug-assignment-rejection-gap` was
 re-disposed by the owner on 2026-09-07, applying rung 3d's inherited

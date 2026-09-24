@@ -43,8 +43,8 @@ var ErrInvalidTunable = errors.New("invalid tunable")
 //
 // Two more are deliberately absent for a different reason:
 // album_disambig_fields and singleton_disambig_fields
-// (config_default.yaml:205-206) are display-only, read through
-// Match.disambig_fields (match.py:113-142) and never on the distance
+// (config_default.yaml:206-207) are display-only, read through
+// Match.disambig_fields (match.py:113-139) and never on the distance
 // path either.
 //
 // Four fields are the operator-facing subset a later rung 3 pass
@@ -62,19 +62,19 @@ type Tunables struct {
 	// StrongRecThresh is the distance below which a match earns a
 	// "strong" recommendation. The comparison is strict "<", the
 	// asymmetry that makes the proximity flag possible (contract 3).
-	// Default 0.04 (config_default.yaml:167). Operator-facing.
+	// Default 0.04 (config_default.yaml:168). Operator-facing.
 	StrongRecThresh float64
 
 	// MediumRecThresh is the distance at or below which a match earns
 	// at least a "medium" recommendation. The comparison is "<=",
 	// unlike StrongRecThresh's strict form (contract 3). Default 0.25
-	// (config_default.yaml:168). Operator-facing.
+	// (config_default.yaml:169). Operator-facing.
 	MediumRecThresh float64
 
 	// RecGapThresh is the minimum distance gap between the best and
 	// second-best candidate below which the recommendation degrades,
 	// the other half of the proximity flag (contract 3). Default 0.25
-	// (config_default.yaml:169). Operator-facing.
+	// (config_default.yaml:170). Operator-facing.
 	RecGapThresh float64
 
 	// MaxRec caps the recommendation a penalty key may reach even at
@@ -82,82 +82,87 @@ type Tunables struct {
 	// ceilings at, so the value is a level name and not a number
 	// (matching cassette.Thresholds.MaxRec, cassette.go:88-93). Default
 	// {"missing_tracks": "medium", "unmatched_tracks": "medium"}
-	// (config_default.yaml:170-172).
+	// (config_default.yaml:171-173).
 	MaxRec map[string]string
 
 	// DistanceWeights is match.distance_weights: twenty keys
-	// (config_default.yaml:174-193; :173 is the distance_weights:
+	// (config_default.yaml:175-194; :174 is the distance_weights:
 	// header). The mechanics study's Q4 says nineteen; the venv and
 	// every committed corpus case's echoed weight set agree on twenty
 	// (m2), so twenty is what this field ships.
 	DistanceWeights map[string]float64
 
 	// Preferred holds match.preferred's three sub-keys
-	// (config_default.yaml:194-197).
+	// (config_default.yaml:195-198).
 	Preferred Preferred
 
 	// Ignored is match.ignored: source identifiers a candidate is
 	// dropped for regardless of distance. Default [] (empty)
-	// (config_default.yaml:198). No committed corpus case exercises a
+	// (config_default.yaml:199). No committed corpus case exercises a
 	// nonempty value; coverage is 3d's table-driven unit tests, not a
 	// corpus fixture.
 	Ignored []string
 
 	// Required is match.required: metadata fields a candidate must
 	// carry to be considered. Default [] (empty)
-	// (config_default.yaml:199). No committed corpus case exercises a
+	// (config_default.yaml:200). No committed corpus case exercises a
 	// nonempty value; coverage is 3d's table-driven unit tests, not a
 	// corpus fixture.
 	Required []string
 
 	// IgnoredMedia is match.ignored_media: media type strings excluded
-	// before scoring. Default [] (empty) (config_default.yaml:200).
+	// before scoring. Default [] (empty) (config_default.yaml:201).
 	IgnoredMedia []string
 
 	// IgnoreDataTracks is match.ignore_data_tracks. Default true
-	// (config_default.yaml:201).
+	// (config_default.yaml:202).
 	IgnoreDataTracks bool
 
 	// IgnoreVideoTracks is match.ignore_video_tracks. Default true
-	// (config_default.yaml:202).
+	// (config_default.yaml:203).
 	IgnoreVideoTracks bool
 
 	// TrackLengthGrace is match.track_length_grace, in seconds:
 	// subtracted from the absolute track-length difference before it
-	// is ratioed against TrackLengthMax
-	// (autotag/distance.py:365-367,398). Default 10
-	// (config_default.yaml:203).
+	// is ratioed against TrackLengthMax. 2.14.1 reads it through the
+	// cached get_track_length_grace() (autotag/distance.py:376-379),
+	// called inline in track_distance's length component
+	// (autotag/distance.py:410-411), replacing the direct config read
+	// 2.13.1 had at the same site. Default 10 (config_default.yaml:204).
 	TrackLengthGrace float64
 
 	// TrackLengthMax is match.track_length_max, in seconds: the
-	// denominator AddRatio divides the graced length difference by
-	// (autotag/distance.py:371-373,399). Default 30
-	// (config_default.yaml:204).
+	// denominator AddRatio divides the graced length difference by.
+	// 2.14.1 reads it through the cached get_track_length_max()
+	// (autotag/distance.py:382-385), called inline alongside
+	// get_track_length_grace() (autotag/distance.py:411). Default 30
+	// (config_default.yaml:205).
 	TrackLengthMax float64
 
 	// SearchLimit is the metadata-source plugin's own search_limit
 	// subkey, not a top-level match: key
-	// (metadata_plugins.py:201,415). The legacy spelling beets still
+	// (metadata_plugins.py:203,421). The legacy spelling beets still
 	// reads and deprecates is musicbrainz.match.searchlimit
-	// (beetsplug/musicbrainz.py:292-294, beets/plugins.py:200), read
-	// relative to the plugin's own config namespace. Beets' own
-	// deprecation message spells it musicbrainz.searchlimit
-	// (beetsplug/musicbrainz.py:297), which is where every wrong copy of
-	// this fact came from. Default 5. Operator-facing.
+	// (beetsplug/musicbrainz.py:292-294), read relative to the plugin's
+	// own config namespace through deprecate_for_user
+	// (beets/util/deprecation.py:37). Beets' own deprecation message
+	// spells it musicbrainz.searchlimit (beetsplug/musicbrainz.py:297),
+	// which is where every wrong copy of this fact came from. Default 5.
+	// Operator-facing.
 	SearchLimit int
 
 	// DataSourceMismatchPenalty is the loaded MusicBrainz plugin's own
 	// mismatch penalty, resolved source_weight-first through the
-	// property data_source_mismatch_penalty (metadata_plugins.py:190-
-	// 195, whose own deprecated legacy spelling is
+	// property data_source_mismatch_penalty (metadata_plugins.py:192-
+	// 197, whose own deprecated legacy spelling is
 	// musicbrainz.source_weight) and wired into the plugin's own config
-	// at init time (:201-202). It is the value that populates
+	// at init time (:203-204). It is the value that populates
 	// DataSourcePenalties["MusicBrainz"] in [DefaultTunables], not the
 	// class-level fallback get_penalty falls back to when
 	// DataSourcePenalties names no matching source at all: that fallback
 	// is the unexported defaultDataSourceMismatchPenalty constant
 	// (penalty.go), MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_
-	// PENALTY (metadata_plugins.py:180). The two are the same value at
+	// PENALTY (metadata_plugins.py:182). The two are the same value at
 	// launch (0.5) and diverge the moment source_weight is configured
 	// (3a's carry to 3c, closed here). Default 0.5.
 	DataSourceMismatchPenalty float64
@@ -166,13 +171,13 @@ type Tunables struct {
 	// AddDataSource's get_penalty(after) scans before falling back to
 	// the class-level defaultDataSourceMismatchPenalty constant
 	// (penalty.go): each loaded plugin's own data_source name
-	// (metadata_plugins.py:182-188, cls.__name__ with "Plugin"
+	// (metadata_plugins.py:184-190, cls.__name__ with "Plugin"
 	// stripped) mapped to that plugin's own mismatch penalty
-	// (metadata_plugins.py:159-169). At launch beets loads one plugin,
-	// plugins: [musicbrainz] (config_default.yaml:10), whose class is
+	// (metadata_plugins.py:160-170). At launch beets loads one plugin,
+	// plugins: [musicbrainz] (config_default.yaml:11), whose class is
 	// MusicBrainzPlugin (beetsplug/musicbrainz.py:243) and so whose
 	// data_source name is "MusicBrainz", carrying the plugin base
-	// class's own shipped default (metadata_plugins.py:180). Default
+	// class's own shipped default (metadata_plugins.py:182). Default
 	// {"MusicBrainz": 0.5}.
 	DataSourcePenalties map[string]float64
 
@@ -183,12 +188,12 @@ type Tunables struct {
 
 	// Timid is import.timid: whether every match, not only a low-
 	// confidence one, stops for confirmation. Default false
-	// (config_default.yaml:27).
+	// (config_default.yaml:28).
 	Timid bool
 
 	// Languages is import.languages: locale preference order for a
 	// candidate's preferred-alias selection. Default [] (empty)
-	// (config_default.yaml:32), which makes _preferred_alias
+	// (config_default.yaml:33), which makes _preferred_alias
 	// structurally unreachable at launch. Shipping a nonempty default
 	// would be an improvement riding the port, forbidden by Ruling D;
 	// closing this reachability gap is a post-launch candidate.
@@ -196,28 +201,28 @@ type Tunables struct {
 
 	// IgnoredAliasTypes is import.ignored_alias_types: alias type
 	// names excluded from preferred-alias selection. Default [] (empty)
-	// (config_default.yaml:58).
+	// (config_default.yaml:59).
 	IgnoredAliasTypes []string
 
 	// Quiet is import.quiet: whether a "none" recommendation runs
 	// NoneRecAction without asking. Default false
-	// (config_default.yaml:28).
+	// (config_default.yaml:29).
 	Quiet bool
 
 	// QuietFallback is import.quiet_fallback: the action a quiet,
 	// timid-incompatible import takes on an ambiguous match. Default
-	// "skip" (config_default.yaml:33).
+	// "skip" (config_default.yaml:34).
 	QuietFallback string
 
 	// NoneRecAction is import.none_rec_action: the action taken on a
 	// "none" recommendation when not Quiet. Default "ask"
-	// (config_default.yaml:34).
+	// (config_default.yaml:35).
 	NoneRecAction string
 
 	// VAName is the va_name config key: the artist string every
 	// artist field is overwritten with on a various-artists release
 	// (beetsplug/musicbrainz.py:673-681). Default "Various Artists"
-	// (config_default.yaml:106). It moves no distance, because the
+	// (config_default.yaml:107). It moves no distance, because the
 	// album artist component is skipped entirely when AlbumInfo.VA
 	// (album_artist.go:13-15). It does move AlbumInfo.Artist, which
 	// the ruling-E ledger grades field by field, so it is a tunable
@@ -228,7 +233,7 @@ type Tunables struct {
 	//
 	// musicbrainz.aliases_as_credits is deliberately NOT here: it
 	// selects only which object supplies artist_credit
-	// (musicbrainz.py:311-313), and artist_credit is neither in
+	// (musicbrainz.py:331-333), and artist_credit is neither in
 	// AlbumInfo nor in the ledger's graded set, so the translation
 	// never reads it.
 	VAName string
@@ -243,7 +248,7 @@ type Tunables struct {
 	StringDistPatterns []SDPattern
 }
 
-// Preferred is match.preferred (config_default.yaml:194-197).
+// Preferred is match.preferred (config_default.yaml:195-198).
 type Preferred struct {
 	// Countries is preferred.countries: country codes ranked above
 	// others at equal distance. Default [] (empty).
@@ -319,7 +324,7 @@ func DefaultTunables() Tunables {
 		StringDistPatterns:        BeetsSDPatterns,
 	}
 	// The per-source entry for MusicBrainz IS the plugin's own resolved
-	// penalty (metadata_plugins.py:182-195, Resolution R15): read back
+	// penalty (metadata_plugins.py:184-197, Resolution R15): read back
 	// from the field just set above, not a second literal, so the field
 	// has a real production reader.
 	tun.DataSourcePenalties = map[string]float64{"MusicBrainz": tun.DataSourceMismatchPenalty}
@@ -336,7 +341,7 @@ type SDPattern struct {
 	Weight  float64
 }
 
-// SDEndWords is SD_END_WORDS (autotag/distance.py:33): words moved
+// SDEndWords is SD_END_WORDS (autotag/distance.py:34): words moved
 // from a trailing ", <word>" to the front of the string before the
 // pattern loop runs, so "something, the" scores equal to "the
 // something".
@@ -349,13 +354,13 @@ type SDReplacement struct {
 	Replacement string
 }
 
-// SDReplace is SD_REPLACE (autotag/distance.py:44): applied once to
+// SDReplace is SD_REPLACE (autotag/distance.py:45): applied once to
 // each input, in order, before the pattern loop.
 var SDReplace = []SDReplacement{
 	{Pattern: "&", Replacement: "and"},
 }
 
-// BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-43), beets'
+// BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
 // six shipped discounts in their fixed order. It is the default of
 // [Tunables.StringDistPatterns] and must stay byte-identical to beets'
 // literals (TestBeetsSDPatternsMatchBeetsLiterals). The featuring
@@ -382,7 +387,7 @@ var BeetsSDPatterns = []SDPattern{
 // full weight", which holds only while no later pattern fires: a
 // full-weight discount still shifts str1, str2 and base_dist for the
 // rest of the loop where a removed pattern does not
-// (beets/autotag/distance.py:98-118). The two agree on all four
+// (beets/autotag/distance.py:98-120). The two agree on all four
 // adv-remix-* pairs, so the committed figures stand; the table is
 // defined by what it removes, not by that equivalence. It is the table
 // the four adv-remix-* cases' defect_free figures are derived under,
@@ -434,18 +439,20 @@ func (t Tunables) Validate() error {
 
 	// import.quiet_fallback and import.none_rec_action share a lexer
 	// but carry different legal sets (fold M-d): as_choice({"skip":
-	// SKIP, "asis": ASIS}) for the former (session.py:340-342) and
-	// as_choice({"skip": SKIP, "asis": ASIS, "ask": None}) for the
-	// latter (session.py:346-352). ActionFor tests the same two sets.
+	// SKIP, "asis": ASIS}) for the former
+	// (ui/commands/import_/session.py:377-379) and as_choice({"skip":
+	// SKIP, "asis": ASIS, "ask": None}) for the latter
+	// (ui/commands/import_/session.py:383-388). ActionFor tests the same
+	// two sets.
 	if fallback, err := ParseAction(t.QuietFallback); err != nil {
 		errs = append(errs, fmt.Errorf("import.quiet_fallback: %w", err))
 	} else if !slices.Contains(LegalQuietFallbacks, fallback) {
-		errs = append(errs, fmt.Errorf("import.quiet_fallback: %q: %w (session.py:340-342)", t.QuietFallback, ErrInvalidTunable))
+		errs = append(errs, fmt.Errorf("import.quiet_fallback: %q: %w (ui/commands/import_/session.py:377-379)", t.QuietFallback, ErrInvalidTunable))
 	}
 	if noneRecAction, err := ParseAction(t.NoneRecAction); err != nil {
 		errs = append(errs, fmt.Errorf("import.none_rec_action: %w", err))
 	} else if !slices.Contains(LegalNoneRecActions, noneRecAction) {
-		errs = append(errs, fmt.Errorf("import.none_rec_action: %q: %w (session.py:346-350)", t.NoneRecAction, ErrInvalidTunable))
+		errs = append(errs, fmt.Errorf("import.none_rec_action: %q: %w (ui/commands/import_/session.py:383-388)", t.NoneRecAction, ErrInvalidTunable))
 	}
 
 	return errors.Join(errs...)

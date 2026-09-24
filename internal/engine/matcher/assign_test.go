@@ -358,7 +358,7 @@ func loadLapjvOptima(t *testing.T) lapjvTable {
 		t.Fatalf("decode frozen table: %v", err)
 	}
 	if table.Lap != "0.5.13" || table.Numpy != "2.5.2" {
-		t.Fatalf("frozen table was generated against lap %q and numpy %q, want the pins 0.5.13 and 2.5.2", table.Lap, table.Numpy)
+		t.Fatalf("frozen table was generated against lap %q and numpy %q, want the versions it was frozen at, 0.5.13 and 2.5.2", table.Lap, table.Numpy)
 	}
 	if table.Command == "" {
 		t.Fatal("frozen table carries no regeneration command; the provenance header is what makes it re-derivable")

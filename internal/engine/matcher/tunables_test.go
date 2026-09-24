@@ -9,7 +9,7 @@ import (
 
 // TestDefaultTunables_MatchScalars proves DefaultTunables ships beets'
 // pinned 2.14.1 shipped values for the scalar and small-structure match:
-// keys (config_default.yaml:167-204), each hard-coded here rather than
+// keys (config_default.yaml:168-205), each hard-coded here rather than
 // derived from DefaultTunables itself.
 func TestDefaultTunables_MatchScalars(t *testing.T) {
 	got := DefaultTunables()
@@ -59,7 +59,7 @@ func TestDefaultTunables_MaxRec(t *testing.T) {
 }
 
 // TestDefaultTunables_DistanceWeights pins all twenty
-// match.distance_weights keys (config_default.yaml:174-193) against
+// match.distance_weights keys (config_default.yaml:175-194) against
 // pinned beets, resolving m2: the mechanics study's Q4 says nineteen
 // keys, but the venv and every committed corpus case's echoed weight
 // set carry twenty.
@@ -146,7 +146,7 @@ func TestDefaultTunables_OutsideMatch(t *testing.T) {
 }
 
 // TestDefaultTunables_VAName pins va_name's shipped default
-// (config_default.yaml:106), the string every artist field is
+// (config_default.yaml:107), the string every artist field is
 // overwritten with on a various-artists release.
 func TestDefaultTunables_VAName(t *testing.T) {
 	got := DefaultTunables().VAName
@@ -181,7 +181,7 @@ func TestDefaultTunables_StringDistPatternsDefaultsToBeets(t *testing.T) {
 }
 
 // TestBeetsSDPatterns_SixEntriesInBeetsOrder pins SD_PATTERNS
-// (autotag/distance.py:36-43) byte-for-byte in beets' own order.
+// (autotag/distance.py:36-42) byte-for-byte in beets' own order.
 func TestBeetsSDPatterns_SixEntriesInBeetsOrder(t *testing.T) {
 	want := []SDPattern{
 		{Pattern: `^the `, Weight: 0.1},
