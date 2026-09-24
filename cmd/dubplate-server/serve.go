@@ -250,7 +250,27 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 		authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
-	handlers := auth.NewHandlers(auth.HandlersConfig{
+	handlersConfig := authHandlersConfig(prefix, cfg, authCfg, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
+	handlers := auth.NewHandlers(handlersConfig)
+
+	// The auth handlers apply no method check of their own; mounting
+	// each behind methodOnly is what fixes the one method it accepts.
+	shell.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
+	shell.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
+	shell.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
+
+	done := startNonceSweep(ctx, nonces, shell.Logger())
+	return shell, done, nil
+}
+
+// authHandlersConfig builds the [auth.HandlersConfig] newServeShell
+// mounts the auth handlers from. It exists as its own function so a
+// test can read the config it built rather than recomputing the same
+// values by hand: PublicOrigin, Prefix, and SessionAbsoluteCap are each
+// wiring rather than logic, so the only proof a caller loses each one
+// correctly is a test that reads this function's own return value.
+func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, authCfg authConfig, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
+	return auth.HandlersConfig{
 		Roster:             roster,
 		Nonces:             nonces,
 		Epoch:              epoch,
@@ -258,7 +278,7 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 		Send:               mailer.Send,
 		ClientIP:           clientIP,
 		Now:                time.Now,
-		Logger:             shell.Logger(),
+		Logger:             logger,
 		LinkSecret:         []byte(cfg.IdentitySourceValue(magicLinkSecretKey)),
 		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(magicLinkSecretPreviousKey)),
 		SessionSecret:      []byte(cfg.IdentitySourceValue(sessionSecretKey)),
@@ -269,16 +289,7 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 		Prefix:             prefix.String(),
 		BodyCap:            int64(authCfg.authRequestBodyCap),
 		GenericAnswer:      authCfg.unknownAddressAnswer == "generic",
-	})
-
-	// The auth handlers apply no method check of their own; mounting
-	// each behind methodOnly is what fixes the one method it accepts.
-	shell.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
-	shell.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
-	shell.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
-
-	done := startNonceSweep(ctx, nonces, shell.Logger())
-	return shell, done, nil
+	}
 }
 
 // methodOnly wraps h, answering 405 with an Allow header naming method

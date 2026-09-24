@@ -534,6 +534,14 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 				t.Fatalf("newServeShell: %v", err)
 			}
 
+			handlersConfig := authHandlersConfig(prefix, cfg, authCfg, nil, nil, nil, nil, nil, nil, nil)
+			if handlersConfig.SessionAbsoluteCap != authCfg.sessionAbsoluteCap {
+				t.Errorf("authHandlersConfig SessionAbsoluteCap = %v, want %v", handlersConfig.SessionAbsoluteCap, authCfg.sessionAbsoluteCap)
+			}
+			if handlersConfig.Prefix != prefix.String() {
+				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
+			}
+
 			var loginReached bool
 			shell.Register("login", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				loginReached = true
@@ -545,7 +553,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 				fallthroughQuery = r.URL.RawQuery
 			}))
 
-			link, err := auth.LinkURL(cfg.IdentitySourceValue(publicURLKey), prefix.String(), "fixture-token")
+			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
 			if err != nil {
 				t.Fatalf("auth.LinkURL: %v", err)
 			}
