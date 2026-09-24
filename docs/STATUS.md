@@ -30,10 +30,8 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 2. **5c-ii is approved** (Geoff, 2026-09-24, all seven rulings yes): revision 2.2 at
    `plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`, 9.4M ceiling, 5c-iii split off.
    It opens in lane 1 once the beets adoption lands (one executor per tree).
-3. **Beets 2.14.1 adopted** at `367564c` (the ft compat class retired, six sanctioned empty-search
-   responses, 215 cases re-frozen: 209 `config_hash` only, six `adv-ft-*` now medium/skip). Review
-   verdict fix, comment-only; the fix round (citation re-anchor in `tunables.go`, README, one test
-   message) is in flight, then `code-simplifier`, then 5c-ii opens in lane 1.
+3. **Beets 2.14.1 adopted and closed** (`367564c`, fix round `422efcd`, simplifier clean): the ft
+   compat class retired, six sanctioned empty-search responses, 215 cases re-frozen.
 4. The architecture cleanup pass joins the staged comment-cleanup task
    (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 
@@ -41,7 +39,7 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on the beets 2.14.1 adoption (Geoff, 2026-09-24: "do that in this pass"); 5c-ii follows once its plan is approved |
+| 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-ii since 2026-09-24 (beets 2.14.1 closed at `422efcd`, simplifier clean); Task 0 first |
 | 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; segment A green at `2d863cb`, segment B (Tasks 4-7) in flight |
 
 ## Open items (carried)
