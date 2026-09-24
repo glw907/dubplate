@@ -52,6 +52,10 @@ type handle struct {
 	// version is the binary's highest migration. The write method
 	// refuses a store whose user_version differs from it.
 	version int
+
+	// lock is the store lock a mode's open holds for the handle's
+	// life, or nil for a handle opened on a bare file.
+	lock *storeLock
 }
 
 // openHandle opens dbPath's write pool (capped at one connection) and
@@ -73,10 +77,14 @@ func openHandle(dbPath string, busyTimeout time.Duration) (*handle, error) {
 	return &handle{write: write, read: read, path: dbPath}, nil
 }
 
-// close closes h's write and read pools, joining both errors when
-// closing the write pool fails without skipping the read pool.
+// close closes h's write and read pools, then releases its lock,
+// joining every error rather than stopping at the first.
 func (h *handle) close() error {
-	return errors.Join(h.write.Close(), h.read.Close())
+	err := errors.Join(h.write.Close(), h.read.Close())
+	if h.lock != nil {
+		err = errors.Join(err, h.lock.release())
+	}
+	return err
 }
 
 // openMaintenanceConn opens a maintenance connection at dbPath for one
