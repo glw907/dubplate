@@ -35,7 +35,7 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | CLOSED at 5c-i's close; reopens on 5c-ii once its plan is approved |
-| 2 | worktree removed, branch deleted | CLOSED; opens on 6a (approved 2026-09-24) |
+| 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | OPEN on 6a since 2026-09-24; Task 0 (staleness) first, then segment A (Tasks 1-3) |
 
 ## Open items (carried)
 

@@ -219,6 +219,10 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | `env/dubplate-server.env.template` (amends the existing row) | rung 4 by its own header; rung 5 adds commented pending rows only (conductor ruling, 2026-09-12, at the overnight-window pre-flight) | rung 16 mints |
 | `scripts/check.sh` | rung 5 adds the `web/` leg, the Node requirement, and the generalized state-dir check (conductor ruling, 2026-09-12, at the overnight-window pre-flight) | every lane, and after 5c every full gate builds the bundle |
 | `CLAUDE.md` and `Makefile` rejoin sentences | rung 5's pass 5c (conductor ruling, 2026-09-12, at the overnight-window pre-flight) | every reader |
+| `internal/engine/store` (new) | rung 6, created by pass 6a (Tasks 1-6); no other lane writes it (conductor ruling, 2026-09-24, at the 6a lane launch) | later rungs append migrations with fixtures; 6b-i, 6c, 6d |
+| `go.mod`, `go.sum` | shared; pass 6a Task 2 adds `modernc.org/sqlite`; a later conflict resolves by `go mod tidy` and the merge ritual's in-tree gate (conductor ruling, 2026-09-24, at the 6a lane launch) | every lane |
+| `cmd/dubplate-server/store.go` (new), `check.go`, `check_test.go` | rung 6, pass 6a Task 7 (conductor ruling, 2026-09-24, at the 6a lane launch) | 6b-i, 6d |
+| `cmd/dubplate-server/main.go`, `doctor.go`, `doctor_test.go` while 6a and 5c-ii both run (amends the root command row) | rung 1's skeleton; 6a Task 7 adds one registration line and the store row; 5c-ii adds its own verbs and rows; a textual conflict keeps both in landing order, and the rebase is non-fast-forward, so the merge ritual's re-review runs (conductor ruling, 2026-09-24, at the 6a lane launch) | every rung adding a verb |
 
 **Rejected alternatives.**
 
