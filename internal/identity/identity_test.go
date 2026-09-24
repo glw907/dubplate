@@ -197,8 +197,7 @@ func TestChannel_StringAndValid(t *testing.T) {
 		want    string
 	}{
 		{"cookie", ChannelCookie, "cookie"},
-		{"header", ChannelHeader, "header"},
-		{"service token", ChannelServiceToken, "service-token"},
+		{"command line", ChannelCommandLine, "command-line"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -217,10 +216,13 @@ func TestChannel_StringAndValid(t *testing.T) {
 	if Channel(0).Valid() {
 		t.Error("Valid() of zero value = true, want false")
 	}
+	if Channel(3).Valid() {
+		t.Error("Valid() of Channel(3) = true, want false")
+	}
 
-	// The seam distinguishes exactly three channels. A fourth value
-	// added to the enumeration above without a matching change here
-	// must fail this count, not silently pass by extension.
+	// Exactly two channels are recognized. A third value added to the
+	// enumeration above without a matching change here must fail this
+	// count, not silently pass by extension.
 	validCount := 0
 	for c := Channel(0); c <= Channel(len(tests)+1); c++ {
 		if c.Valid() {
@@ -287,6 +289,31 @@ func TestIdentity_Valid(t *testing.T) {
 				Address:   "alice@example.com",
 				Principal: "alice",
 				Source:    "magic-link",
+			},
+			want: false,
+		},
+		{
+			// The command line names an operating-system user, never a
+			// verified login, so every other field being valid must not
+			// rescue it.
+			name: "command-line channel",
+			id: Identity{
+				Address:     "alice@example.com",
+				Principal:   "alice",
+				DisplayName: "Alice",
+				Source:      "magic-link",
+				Channel:     ChannelCommandLine,
+			},
+			want: false,
+		},
+		{
+			name: "an unrecognized channel past the last constant",
+			id: Identity{
+				Address:     "alice@example.com",
+				Principal:   "alice",
+				DisplayName: "Alice",
+				Source:      "magic-link",
+				Channel:     Channel(3),
 			},
 			want: false,
 		},

@@ -79,47 +79,48 @@ func parseLower(value string) (string, error) {
 	return strings.ToLower(addr.Address), nil
 }
 
-// Channel identifies how a verified identity was asserted. Admin-only
-// verbs reject a cookie-channel identity, so the channel must travel
-// with the identity rather than be inferred later from the request.
+// Channel identifies how an identity reached the code acting on it,
+// and travels with the identity rather than being inferred later from
+// the request.
+//
+// [ChannelCookie] is an assertion: a verifier emits it for a login a
+// signed session cookie proves. [ChannelCommandLine] is not. It names
+// an operating-system user, established by owning the process that
+// invokes the command, and it exists so an audit record can say where
+// a change came from. No verifier emits it, and [Identity.Valid]
+// refuses an identity that carries it.
 type Channel int
 
 const (
 	// ChannelCookie identifies an identity asserted by a signed
 	// session cookie on a browser request.
 	ChannelCookie Channel = iota + 1
-	// ChannelHeader identifies an identity asserted by a header a
-	// reverse-proxy sets on a forward-auth front.
-	ChannelHeader
-	// ChannelServiceToken identifies an identity asserted by a
-	// service token presented directly, without a browser session.
-	ChannelServiceToken
+	// ChannelCommandLine identifies a change made by an
+	// operating-system user through the server's own command line.
+	ChannelCommandLine
 )
+
+// channelNames holds every recognized channel and the name an audit
+// record or a log line carries for it.
+var channelNames = map[Channel]string{
+	ChannelCookie:      "cookie",
+	ChannelCommandLine: "command-line",
+}
 
 // String returns the name an audit record or a log line carries for
 // c. An unrecognized value reports "unknown" rather than a number.
 func (c Channel) String() string {
-	switch c {
-	case ChannelCookie:
-		return "cookie"
-	case ChannelHeader:
-		return "header"
-	case ChannelServiceToken:
-		return "service-token"
-	default:
-		return "unknown"
+	if name, ok := channelNames[c]; ok {
+		return name
 	}
+	return "unknown"
 }
 
-// Valid reports whether c names one of the three assertion channels.
-// The zero value is not among them.
+// Valid reports whether c is a recognized channel. The zero value is
+// not one.
 func (c Channel) Valid() bool {
-	switch c {
-	case ChannelCookie, ChannelHeader, ChannelServiceToken:
-		return true
-	default:
-		return false
-	}
+	_, ok := channelNames[c]
+	return ok
 }
 
 // Identity is a verified login. The zero value is not a valid
@@ -141,9 +142,11 @@ type Identity struct {
 	Channel Channel
 }
 
-// Valid reports whether id carries a normalized address, a
-// principal, a source, and a recognized channel. The zero value
-// fails on every one of these.
+// Valid reports whether id carries a non-empty address, a non-empty
+// principal, a non-empty source, and a recognized channel other than
+// [ChannelCommandLine], which names an operating-system user and never
+// a verified login. The zero value fails on every one of these.
 func (id Identity) Valid() bool {
-	return id.Address != "" && id.Principal != "" && id.Source != "" && id.Channel.Valid()
+	return id.Address != "" && id.Principal != "" && id.Source != "" &&
+		id.Channel.Valid() && id.Channel != ChannelCommandLine
 }

@@ -49,10 +49,7 @@ type VerifiedIdentity struct {
 	Identity identity.Identity
 
 	// Admin is read from the roster record at the seam, never from
-	// anything the request carries. An admin verb rejects an identity
-	// whose Channel is ChannelCookie; the one exception is the
-	// add-member handler, which accepts a cookie-derived identity whose
-	// roster record carries this flag.
+	// anything the request carries.
 	Admin bool
 
 	// Session is the session backing Identity, refreshed when the

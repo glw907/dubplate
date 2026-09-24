@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -135,6 +136,39 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 				t.Errorf("Admin = %v, want %v", got.Admin, tt.wantAdmin)
 			}
 		})
+	}
+}
+
+// TestMagicLinkSeam_VerifyIdentity_NeverCommandLine proves every
+// identity the seam verifies carries the cookie channel and passes
+// identity.Identity.Valid, for an admin and a non-admin, with and
+// without a refresh. The command-line channel names an operating-system
+// user and is the one channel that may grant the admin flag, so a seam
+// emitting it would hand a browser request the grant.
+func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
+	const rosterJSON = `[` +
+		`{"address":"lead@example.com","display_name":"Lead","streamer_username":"lead","admin":true},` +
+		`{"address":"member@example.com","display_name":"Member","streamer_username":"member"}]`
+	for _, address := range []string{"lead@example.com", "member@example.com"} {
+		for _, sameOrigin := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s same-origin %v", address, sameOrigin), func(t *testing.T) {
+				fx := newSeamFixture(t, rosterJSON)
+				value, _, err := MintSession([]byte(currentFixture), address, seamBirth, seamLifetime, seamCap)
+				if err != nil {
+					t.Fatalf("MintSession: %v", err)
+				}
+				got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), seamBirth.Add(time.Hour), sameOrigin)
+				if err != nil {
+					t.Fatalf("VerifyIdentity: %v", err)
+				}
+				if got.Identity.Channel != identity.ChannelCookie {
+					t.Errorf("Channel = %v, want cookie", got.Identity.Channel)
+				}
+				if !got.Identity.Valid() {
+					t.Errorf("Identity.Valid() = false for %+v, want true", got.Identity)
+				}
+			})
+		}
 	}
 }
 

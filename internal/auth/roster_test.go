@@ -32,6 +32,22 @@ func writeRosterFile(t *testing.T, content string) string {
 	return path
 }
 
+// bootstrapAdmin is the first member newAdminRoster creates, and the
+// admin every cookie-channel write in these tests names as its actor.
+var bootstrapAdmin = Member{Address: "admin@example.com", DisplayName: "Admin", StreamerUsername: "admin", Admin: true}
+
+// newAdminRoster creates a roster under t.TempDir() through CreateRoster
+// carrying bootstrapAdmin alone, and returns it with its path.
+func newAdminRoster(t *testing.T) (*Roster, string) {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "roster.json")
+	roster, err := CreateRoster(t.Context(), path, bootstrapAdmin, "operator", slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatalf("CreateRoster: %v", err)
+	}
+	return roster, path
+}
+
 // mustList returns r's members, failing the test when the roster does
 // not load.
 func mustList(t *testing.T, r *Roster) []Member {
@@ -394,7 +410,8 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 		t.Fatalf("OpenRoster(absent) error = %v, want ErrRosterMissing", err)
 	}
 
-	if _, err := CreateRoster(t.Context(), path); err != nil {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	if _, err := CreateRoster(t.Context(), path, bootstrapAdmin, "operator", logger); err != nil {
 		t.Fatalf("CreateRoster: %v", err)
 	}
 	info, err := os.Stat(path)
@@ -405,7 +422,8 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 		t.Errorf("CreateRoster() file mode = %o, want %o", mode, 0o600)
 	}
 
-	if _, err := CreateRoster(t.Context(), path); !errors.Is(err, ErrRosterExists) {
+	second := Member{Address: "other@example.com", DisplayName: "Other", StreamerUsername: "other", Admin: true}
+	if _, err := CreateRoster(t.Context(), path, second, "operator", logger); !errors.Is(err, ErrRosterExists) {
 		t.Fatalf("CreateRoster(existing) error = %v, want ErrRosterExists", err)
 	}
 
@@ -413,8 +431,8 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenRoster(after create) error = %v, want nil: the read-open must still work once the file exists", err)
 	}
-	if got := mustList(t, loaded); len(got) != 0 {
-		t.Errorf("List() after CreateRoster = %v, want empty", got)
+	if got := mustList(t, loaded); !slices.Equal(got, []Member{bootstrapAdmin}) {
+		t.Errorf("List() after CreateRoster = %v, want only the first member", got)
 	}
 }
 
@@ -495,7 +513,7 @@ func TestValidateWriteCandidate_StreamerUsernameRequired(t *testing.T) {
 // one account. Named mutation 4 (compare with ==) admits this row.
 func TestAddMember_StreamerUsernameCaseFoldDuplicate(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"seed@example.com","display_name":"Seed","streamer_username":"alice"}]}`)
+	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"alice","admin":true}]}`)
 	roster, err := OpenRoster(path)
 	if err != nil {
 		t.Fatalf("OpenRoster: %v", err)
@@ -523,11 +541,11 @@ func TestOpenRoster_StreamerUsernameCaseFoldDuplicate(t *testing.T) {
 
 // TestAddMember_ActorAndChannelRefusals proves AddMember refuses
 // before any write when the channel is not one Channel.Valid accepts,
-// or when the actor does not meet its channel's own rule: today the
-// only reachable rule requires the actor to normalize as a login
-// address, since every channel this package can currently assert is a
-// network assertion. Named mutation 8 (skip the channel validity
-// check) admits the Channel(0) row.
+// or when the actor does not meet its channel's own rule: a cookie
+// actor must normalize as a login address, and a command-line actor
+// must be non-empty and carry no rune an address refuses. Named
+// mutation 8 (skip the channel validity check) admits the Channel(0)
+// row.
 func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	candidate := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "new"}
@@ -540,6 +558,10 @@ func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 		{name: "an empty actor", actor: "", channel: identity.ChannelCookie},
 		{name: "a malformed actor on the cookie channel", actor: "not-an-address", channel: identity.ChannelCookie},
 		{name: "an invalid channel", actor: "admin@example.com", channel: identity.Channel(0)},
+		{name: "an empty actor on the command line", actor: "", channel: identity.ChannelCommandLine},
+		{name: "a command-line actor carrying a space", actor: "some operator", channel: identity.ChannelCommandLine},
+		{name: "a command-line actor carrying U+202E", actor: "oper\u202eator", channel: identity.ChannelCommandLine},
+		{name: "a command-line actor carrying a newline", actor: "operator\nforged", channel: identity.ChannelCommandLine},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -679,7 +701,8 @@ func TestCreateRoster_PropagatesStatError(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
 
 	path := filepath.Join(dir, "roster.json")
-	if _, err := CreateRoster(t.Context(), path); err == nil {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	if _, err := CreateRoster(t.Context(), path, bootstrapAdmin, "operator", logger); err == nil {
 		t.Fatal("CreateRoster() error = nil, want a stat failure")
 	} else if errors.Is(err, ErrRosterExists) {
 		t.Errorf("CreateRoster() error = %v, want it to not claim the file exists", err)
@@ -689,57 +712,47 @@ func TestCreateRoster_PropagatesStatError(t *testing.T) {
 // TestAddMember_ByteIdentityOnFailure proves that a write refused for
 // any reason leaves the file byte-identical: the validation failures
 // caught before the lock, the collision re-check caught with the lock
-// held, and the admin refusal are each a different code path, so each
-// gets its own row. The admin refusal gets one row per channel, since
-// no channel, a service token included, may set the flag. Named
-// mutation 1 (write before validating) fails every row here; named
-// mutation 6 (accept the admin flag on any assertion channel) fails
-// each admin row.
+// held, and the admin grant refusal are each a different code path, so
+// each gets its own row. Named mutation 1 (write before validating)
+// fails every row here.
 func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	const seedJSON = `{"schema_version":1,"members":[{"address":"seed@example.com","display_name":"Seed","streamer_username":"seed"}]}`
+	const seedJSON = `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true},{"address":"seed@example.com","display_name":"Seed","streamer_username":"seed"}]}`
 
 	tests := []struct {
 		name      string
 		candidate Member
+		actor     string
 		channel   identity.Channel
 		wantErr   error
 	}{
 		{
 			name:      "an address that does not parse",
-			candidate: Member{Address: "not-an-address", DisplayName: "A"},
-			channel:   identity.ChannelServiceToken,
-			wantErr:   ErrRosterRecordInvalid,
+			candidate: Member{Address: "not-an-address", DisplayName: "A", StreamerUsername: "a"},
+			actor:     "operator",
+			channel:   identity.ChannelCommandLine,
+			wantErr:   errInvalidMemberAddress,
 		},
 		{
 			name:      "a duplicate address",
 			candidate: Member{Address: "seed@example.com", DisplayName: "A", StreamerUsername: "not-seed"},
-			channel:   identity.ChannelServiceToken,
-			wantErr:   ErrRosterRecordInvalid,
+			actor:     "operator",
+			channel:   identity.ChannelCommandLine,
+			wantErr:   errDuplicateAddress,
 		},
 		{
 			name:      "a duplicate streamer_username",
 			candidate: Member{Address: "new@example.com", DisplayName: "A", StreamerUsername: "seed"},
-			channel:   identity.ChannelServiceToken,
-			wantErr:   ErrRosterRecordInvalid,
+			actor:     "operator",
+			channel:   identity.ChannelCommandLine,
+			wantErr:   errDuplicateStreamerUsername,
 		},
 		{
-			name:      "the admin flag on a cookie channel",
-			candidate: Member{Address: "new@example.com", DisplayName: "A", Admin: true},
+			name:      "the admin flag on the cookie channel",
+			candidate: Member{Address: "new@example.com", DisplayName: "A", StreamerUsername: "new", Admin: true},
+			actor:     "admin@example.com",
 			channel:   identity.ChannelCookie,
-			wantErr:   ErrRosterAdminChannelForbidden,
-		},
-		{
-			name:      "the admin flag on a header channel",
-			candidate: Member{Address: "new@example.com", DisplayName: "A", Admin: true},
-			channel:   identity.ChannelHeader,
-			wantErr:   ErrRosterAdminChannelForbidden,
-		},
-		{
-			name:      "the admin flag on a service-token channel",
-			candidate: Member{Address: "new@example.com", DisplayName: "A", Admin: true},
-			channel:   identity.ChannelServiceToken,
-			wantErr:   ErrRosterAdminChannelForbidden,
+			wantErr:   errAdminGrantForbidden,
 		},
 	}
 
@@ -755,7 +768,7 @@ func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 				t.Fatalf("OpenRoster: %v", err)
 			}
 
-			err = roster.AddMember(t.Context(), tt.candidate, "tester@example.com", tt.channel, "203.0.113.1", logger)
+			err = roster.AddMember(t.Context(), tt.candidate, tt.actor, tt.channel, "203.0.113.1", logger)
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("AddMember() error = %v, want it to wrap %v", err, tt.wantErr)
 			}
@@ -780,11 +793,7 @@ func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 // absent file) fails the OpenRoster(other) case.
 func TestAddMember_WriteReReadAndMode(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(t.Context(), path)
-	if err != nil {
-		t.Fatalf("CreateRoster: %v", err)
-	}
+	roster, path := newAdminRoster(t)
 
 	candidate := Member{Address: "Alice@Example.com", DisplayName: "Alice", StreamerUsername: "alice"}
 	if err := roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
@@ -815,54 +824,95 @@ func TestAddMember_WriteReReadAndMode(t *testing.T) {
 
 // TestAddMember_AuditRecord proves the audit record names every
 // attribute the spec requires and carries no other key, so no token,
-// secret, or cookie value can ride along. Named mutation 5 (drop the
-// channel from the audit record) fails the "channel" key here.
+// secret, or cookie value can ride along. A cookie add keeps the
+// caller's client address. A command-line add or create names an
+// operating-system user as its actor and reads client_ip "local"
+// whatever the caller passed, so the record keeps one shape. Named
+// mutation 5 (drop the channel from the audit record) fails the
+// "channel" key here.
 func TestAddMember_AuditRecord(t *testing.T) {
-	var logBuf bytes.Buffer
-	logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
-
-	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(t.Context(), path)
-	if err != nil {
-		t.Fatalf("CreateRoster: %v", err)
-	}
-
-	candidate := Member{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "alice"}
-	if err := roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
-		t.Fatalf("AddMember: %v", err)
-	}
-
-	var record map[string]any
-	if err := json.Unmarshal(bytes.TrimSpace(logBuf.Bytes()), &record); err != nil {
-		t.Fatalf("unmarshal audit record %q: %v", logBuf.String(), err)
-	}
-
-	want := map[string]any{
-		"actor":     "admin@example.com",
-		"channel":   "cookie",
-		"address":   "alice@example.com",
-		"admin":     false,
-		"client_ip": "198.51.100.7",
-	}
-	for key, wantValue := range want {
-		gotValue, ok := record[key]
-		if !ok {
-			t.Errorf("audit record missing %q", key)
-			continue
-		}
-		if gotValue != wantValue {
-			t.Errorf("audit record[%q] = %v, want %v", key, gotValue, wantValue)
-		}
+	alice := Member{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "alice"}
+	tests := []struct {
+		name  string
+		write func(t *testing.T, logger *slog.Logger) error
+		want  map[string]any
+	}{
+		{
+			name: "a cookie add",
+			write: func(t *testing.T, logger *slog.Logger) error {
+				roster, _ := newAdminRoster(t)
+				return roster.AddMember(t.Context(), alice, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger)
+			},
+			want: map[string]any{
+				"actor":     "admin@example.com",
+				"channel":   "cookie",
+				"address":   "alice@example.com",
+				"admin":     false,
+				"client_ip": "198.51.100.7",
+			},
+		},
+		{
+			name: "a command-line add",
+			write: func(t *testing.T, logger *slog.Logger) error {
+				roster, _ := newAdminRoster(t)
+				return roster.AddMember(t.Context(), alice, "operator", identity.ChannelCommandLine, "198.51.100.7", logger)
+			},
+			want: map[string]any{
+				"actor":     "operator",
+				"channel":   "command-line",
+				"address":   "alice@example.com",
+				"admin":     false,
+				"client_ip": "local",
+			},
+		},
+		{
+			name: "a command-line create",
+			write: func(t *testing.T, logger *slog.Logger) error {
+				path := filepath.Join(t.TempDir(), "roster.json")
+				_, err := CreateRoster(t.Context(), path, bootstrapAdmin, "operator", logger)
+				return err
+			},
+			want: map[string]any{
+				"actor":     "operator",
+				"channel":   "command-line",
+				"address":   "admin@example.com",
+				"admin":     true,
+				"client_ip": "local",
+			},
+		},
 	}
 
 	allowed := map[string]bool{
 		"time": true, "level": true, "msg": true,
 		"actor": true, "channel": true, "address": true, "admin": true, "client_ip": true,
 	}
-	for key, value := range record {
-		if !allowed[key] {
-			t.Errorf("audit record carries unexpected key %q (value %v)", key, value)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var logBuf bytes.Buffer
+			if err := tt.write(t, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
+				t.Fatalf("write: %v", err)
+			}
+
+			var record map[string]any
+			if err := json.Unmarshal(bytes.TrimSpace(logBuf.Bytes()), &record); err != nil {
+				t.Fatalf("unmarshal audit record %q: %v", logBuf.String(), err)
+			}
+			for key, wantValue := range tt.want {
+				gotValue, ok := record[key]
+				if !ok {
+					t.Errorf("audit record missing %q", key)
+					continue
+				}
+				if gotValue != wantValue {
+					t.Errorf("audit record[%q] = %v, want %v", key, gotValue, wantValue)
+				}
+			}
+			for key, value := range record {
+				if !allowed[key] {
+					t.Errorf("audit record carries unexpected key %q (value %v)", key, value)
+				}
+			}
+		})
 	}
 }
 
@@ -874,11 +924,7 @@ func TestAddMember_AuditRecord(t *testing.T) {
 // covers that.
 func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(t.Context(), path)
-	if err != nil {
-		t.Fatalf("CreateRoster: %v", err)
-	}
+	roster, path := newAdminRoster(t)
 
 	candidates := []Member{
 		{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "alice"},
@@ -890,7 +936,7 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 		wg.Add(1)
 		go func(i int, candidate Member) {
 			defer wg.Done()
-			errs[i] = roster.AddMember(t.Context(), candidate, "tester@example.com", identity.ChannelServiceToken, "203.0.113.1", logger)
+			errs[i] = roster.AddMember(t.Context(), candidate, "operator", identity.ChannelCommandLine, "", logger)
 		}(i, candidate)
 	}
 	wg.Wait()
@@ -901,15 +947,17 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 		}
 	}
 
-	if got := mustList(t, roster); len(got) != len(candidates) {
-		t.Fatalf("List() after concurrent adds = %d members, want %d", len(got), len(candidates))
+	// The bootstrap admin is the roster's first member, so every
+	// count below is the candidates plus one.
+	if got := mustList(t, roster); len(got) != len(candidates)+1 {
+		t.Fatalf("List() after concurrent adds = %d members, want %d", len(got), len(candidates)+1)
 	}
 	onDisk, err := OpenRoster(path)
 	if err != nil {
 		t.Fatalf("OpenRoster after concurrent adds: %v", err)
 	}
-	if got := mustList(t, onDisk); len(got) != len(candidates) {
-		t.Errorf("the file on disk carries %d members, want %d", len(got), len(candidates))
+	if got := mustList(t, onDisk); len(got) != len(candidates)+1 {
+		t.Errorf("the file on disk carries %d members, want %d", len(got), len(candidates)+1)
 	}
 }
 
@@ -920,11 +968,7 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 // test fails under that mutation.
 func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := filepath.Join(t.TempDir(), "roster.json")
-	roster, err := CreateRoster(t.Context(), path)
-	if err != nil {
-		t.Fatalf("CreateRoster: %v", err)
-	}
+	roster, _ := newAdminRoster(t)
 
 	candidates := []Member{
 		{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "same"},
@@ -936,7 +980,7 @@ func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
 		wg.Add(1)
 		go func(i int, candidate Member) {
 			defer wg.Done()
-			errs[i] = roster.AddMember(t.Context(), candidate, "tester@example.com", identity.ChannelServiceToken, "203.0.113.1", logger)
+			errs[i] = roster.AddMember(t.Context(), candidate, "operator", identity.ChannelCommandLine, "", logger)
 		}(i, candidate)
 	}
 	wg.Wait()
@@ -955,8 +999,8 @@ func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
 	if successes != 1 || refusals != 1 {
 		t.Fatalf("got %d successes and %d refusals, want exactly one of each", successes, refusals)
 	}
-	if got := mustList(t, roster); len(got) != 1 {
-		t.Fatalf("List() after the collision = %d members, want 1", len(got))
+	if got := mustList(t, roster); len(got) != 2 {
+		t.Fatalf("List() after the collision = %d members, want 2 (the bootstrap admin and one winner)", len(got))
 	}
 }
 
@@ -1233,8 +1277,8 @@ func TestRoster_ModTimeTrustWindow(t *testing.T) {
 // adds with the stale copy untouched.
 func TestRoster_CrossProcessWrites(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	const seed = `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"},{"address":"bob@example.com","display_name":"Bob"}]}`
-	const bobRemoved = `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice"},{"address":"carol@example.com","display_name":"Carol"}]}`
+	const seed = `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","admin":true},{"address":"bob@example.com","display_name":"Bob"}]}`
+	const bobRemoved = `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","admin":true},{"address":"carol@example.com","display_name":"Carol"}]}`
 
 	for _, lookupFirst := range []bool{true, false} {
 		name := "the server adds with its stale copy"
@@ -1252,7 +1296,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 				t.Fatalf("OpenRoster(server): %v", err)
 			}
 
-			if err := cli.AddMember(t.Context(), Member{Address: "carol@example.com", DisplayName: "Carol", StreamerUsername: "carol"}, "operator@example.com", identity.ChannelServiceToken, "", logger); err != nil {
+			if err := cli.AddMember(t.Context(), Member{Address: "carol@example.com", DisplayName: "Carol", StreamerUsername: "carol"}, "operator", identity.ChannelCommandLine, "", logger); err != nil {
 				t.Fatalf("cli AddMember: %v", err)
 			}
 			writeInPlace(t, path, bobRemoved)
@@ -1274,7 +1318,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 			for _, m := range mustList(t, onDisk) {
 				got = append(got, m.Address)
 			}
-			want := []string{"alice@example.com", "carol@example.com", "dave@example.com"}
+			want := []string{"admin@example.com", "carol@example.com", "dave@example.com"}
 			if !slices.Equal(got, want) {
 				t.Errorf("final file members = %v, want %v", got, want)
 			}
@@ -1291,7 +1335,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 // through the directory lock alone, since no two share a mutex.
 func TestRoster_ConcurrentWritersAcrossValues(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := writeRosterFile(t, `{"schema_version":1,"members":[]}`)
+	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","admin":true}]}`)
 
 	const writers = 8
 	rosters := make([]*Roster, writers)
@@ -1310,7 +1354,7 @@ func TestRoster_ConcurrentWritersAcrossValues(t *testing.T) {
 		wg.Go(func() {
 			<-start
 			candidate := Member{Address: fmt.Sprintf("writer%d@example.com", i), DisplayName: "Writer", StreamerUsername: fmt.Sprintf("writer%d", i)}
-			errs[i] = r.AddMember(t.Context(), candidate, "operator@example.com", identity.ChannelServiceToken, "", logger)
+			errs[i] = r.AddMember(t.Context(), candidate, "operator", identity.ChannelCommandLine, "", logger)
 		})
 	}
 	close(start)
@@ -1325,8 +1369,8 @@ func TestRoster_ConcurrentWritersAcrossValues(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenRoster(final): %v", err)
 	}
-	if got := mustList(t, onDisk); len(got) != writers {
-		t.Errorf("the file carries %d members, want %d: a concurrent write was lost", len(got), writers)
+	if got := mustList(t, onDisk); len(got) != writers+1 {
+		t.Errorf("the file carries %d members, want %d (the seeded admin plus every writer): a concurrent write was lost", len(got), writers+1)
 	}
 }
 
@@ -1348,7 +1392,8 @@ func TestCreateRoster_ConcurrentCreate(t *testing.T) {
 		for i := range 2 {
 			wg.Go(func() {
 				<-start
-				rosters[i], errs[i] = CreateRoster(t.Context(), path)
+				first := Member{Address: fmt.Sprintf("admin%d@example.com", i), DisplayName: "Admin", StreamerUsername: fmt.Sprintf("admin%d", i), Admin: true}
+				rosters[i], errs[i] = CreateRoster(t.Context(), path, first, "operator", slog.New(slog.NewTextHandler(io.Discard, nil)))
 			})
 		}
 		close(start)
@@ -1427,7 +1472,7 @@ func TestAddMember_BusyWhileLockHeld(t *testing.T) {
 	ctx := &waitObservedContext{Context: timeout, waiting: make(chan struct{})}
 	writeDone := make(chan error, 1)
 	go func() {
-		writeDone <- roster.AddMember(ctx, Member{Address: "bob@example.com", DisplayName: "Bob", StreamerUsername: "bob"}, "operator@example.com", identity.ChannelServiceToken, "", logger)
+		writeDone <- roster.AddMember(ctx, Member{Address: "bob@example.com", DisplayName: "Bob", StreamerUsername: "bob"}, "operator", identity.ChannelCommandLine, "", logger)
 	}()
 	select {
 	case <-ctx.waiting:
@@ -1452,4 +1497,211 @@ func TestAddMember_BusyWhileLockHeld(t *testing.T) {
 	if !bytes.Equal(before, after) {
 		t.Errorf("a refused write changed the file: before %q, after %q", before, after)
 	}
+}
+
+// TestRosterWrites_AdminInvariantAndGrant proves the rules every roster
+// write shares: the store never writes a roster naming no admin, only
+// the command line may grant the admin flag, and a cookie actor must
+// hold the flag in the file as re-read under the lock. The bootstrap
+// create runs every check an add does, from an absent file. Each
+// refused row asserts the file's bytes, or its absence, are unchanged.
+//
+// The two race rows open the Roster while the admin they depend on
+// still exists, then edit the file by hand before the write, so only a
+// check that re-reads the disk copy explains the refusal. In the
+// demoted-actor row the hand edit promotes another member, so the
+// roster still names an admin and the actor check alone refuses it.
+func TestRosterWrites_AdminInvariantAndGrant(t *testing.T) {
+	const (
+		oneAdmin = `{"schema_version":1,"members":[` +
+			`{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true},` +
+			`{"address":"member@example.com","display_name":"Member","streamer_username":"member"}]}`
+		noAdmin = `{"schema_version":1,"members":[` +
+			`{"address":"member@example.com","display_name":"Member","streamer_username":"member"}]}`
+		noMembers    = `{"schema_version":1,"members":[]}`
+		actorDemoted = `{"schema_version":1,"members":[` +
+			`{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin"},` +
+			`{"address":"member@example.com","display_name":"Member","streamer_username":"member","admin":true}]}`
+	)
+	newAdmin := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "new", Admin: true}
+	newMember := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "new"}
+
+	tests := []struct {
+		name      string
+		create    bool   // CreateRoster rather than AddMember
+		disk      string // the file before the write; empty means absent
+		handEdit  string // when set, replaces the file after the Roster opens
+		candidate Member
+		channel   identity.Channel
+		actor     string
+		wantErr   error // nil means the write lands
+	}{
+		{
+			name: "create: an admin from the command line", create: true,
+			candidate: newAdmin, channel: identity.ChannelCommandLine, actor: "operator",
+		},
+		{
+			name: "create: a non-admin", create: true,
+			candidate: newMember, channel: identity.ChannelCommandLine, actor: "operator",
+			wantErr: errNoAdmin,
+		},
+		{
+			name: "create: an admin with no streamer_username", create: true,
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Admin: true},
+			channel:   identity.ChannelCommandLine, actor: "operator",
+			wantErr: errMissingStreamerUsername,
+		},
+		{
+			name: "create: an admin with streamer_username .x", create: true,
+			candidate: Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: ".x", Admin: true},
+			channel:   identity.ChannelCommandLine, actor: "operator",
+			wantErr: errInvalidStreamerUsername,
+		},
+		{
+			name: "create: an admin whose display name carries U+202E", create: true,
+			candidate: Member{Address: "new@example.com", DisplayName: "Ne\u202ew", StreamerUsername: "new", Admin: true},
+			channel:   identity.ChannelCommandLine, actor: "operator",
+			wantErr: errInvalidDisplayName,
+		},
+		{
+			name: "create: an empty actor", create: true,
+			candidate: newAdmin, channel: identity.ChannelCommandLine, actor: "",
+			wantErr: errInvalidActor,
+		},
+		{
+			name: "create: the file is present", create: true, disk: oneAdmin,
+			candidate: newAdmin, channel: identity.ChannelCommandLine, actor: "operator",
+			wantErr: ErrRosterExists,
+		},
+		{
+			name: "add: a non-admin to a roster naming no admin", disk: noAdmin,
+			candidate: newMember, channel: identity.ChannelCommandLine, actor: "operator",
+			wantErr: errNoAdmin,
+		},
+		{
+			name: "add: a non-admin to a roster with no members", disk: noMembers,
+			candidate: newMember, channel: identity.ChannelCommandLine, actor: "operator",
+			wantErr: errNoAdmin,
+		},
+		{
+			name: "add: an admin from the command line to a roster naming no admin", disk: noAdmin,
+			candidate: newAdmin, channel: identity.ChannelCommandLine, actor: "operator",
+		},
+		{
+			name: "add: an admin over a cookie by an admin actor", disk: oneAdmin,
+			candidate: newAdmin, channel: identity.ChannelCookie, actor: "admin@example.com",
+			wantErr: errAdminGrantForbidden,
+		},
+		{
+			name: "add: a non-admin over a cookie by the admin", disk: oneAdmin,
+			candidate: newMember, channel: identity.ChannelCookie, actor: "admin@example.com",
+		},
+		{
+			name: "add: a non-admin over a cookie by a non-admin member", disk: oneAdmin,
+			candidate: newMember, channel: identity.ChannelCookie, actor: "member@example.com",
+			wantErr: errActorNotAdmin,
+		},
+		{
+			name: "add: the actor is demoted by hand after the Roster opened", disk: oneAdmin, handEdit: actorDemoted,
+			candidate: newMember, channel: identity.ChannelCookie, actor: "admin@example.com",
+			wantErr: errActorNotAdmin,
+		},
+		{
+			name: "add: the last admin is removed by hand after the Roster opened", disk: oneAdmin, handEdit: noAdmin,
+			candidate: newMember, channel: identity.ChannelCommandLine, actor: "operator",
+			wantErr: errNoAdmin,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var logBuf bytes.Buffer
+			logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
+			path := filepath.Join(t.TempDir(), "roster.json")
+			if tt.disk != "" {
+				if err := os.WriteFile(path, []byte(tt.disk), 0o600); err != nil {
+					t.Fatalf("write fixture roster: %v", err)
+				}
+			}
+
+			var err error
+			if tt.create {
+				_, err = CreateRoster(t.Context(), path, tt.candidate, tt.actor, logger)
+			} else {
+				roster, openErr := OpenRoster(path)
+				if openErr != nil {
+					t.Fatalf("OpenRoster: %v", openErr)
+				}
+				if tt.handEdit != "" {
+					replaceRosterFile(t, path, tt.handEdit)
+				}
+				before := readOrAbsent(t, path)
+				err = roster.AddMember(t.Context(), tt.candidate, tt.actor, tt.channel, "198.51.100.7", logger)
+				if tt.wantErr != nil && !bytes.Equal(before, readOrAbsent(t, path)) {
+					t.Errorf("a refused add changed the file: before %q, after %q", before, readOrAbsent(t, path))
+				}
+			}
+
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("write error = %v, want it to wrap %v", err, tt.wantErr)
+				}
+				if logBuf.Len() != 0 {
+					t.Errorf("a refused write logged an audit record: %q", logBuf.String())
+				}
+				switch {
+				case tt.create && tt.disk == "":
+					if _, statErr := os.Stat(path); !errors.Is(statErr, os.ErrNotExist) {
+						t.Errorf("a refused create left a file behind: Stat error = %v", statErr)
+					}
+				case tt.create:
+					if got := readOrAbsent(t, path); !bytes.Equal(got, []byte(tt.disk)) {
+						t.Errorf("a refused create changed the existing file: got %q, want %q", got, tt.disk)
+					}
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("write error = %v, want nil", err)
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatalf("Stat after the write: %v", err)
+			}
+			if mode := info.Mode().Perm(); mode != 0o600 {
+				t.Errorf("file mode after the write = %o, want %o", mode, 0o600)
+			}
+			onDisk, err := OpenRoster(path)
+			if err != nil {
+				t.Fatalf("OpenRoster after the write: %v", err)
+			}
+			got, err := onDisk.Lookup(tt.candidate.Address)
+			if err != nil {
+				t.Fatalf("Lookup(candidate) after the write: %v", err)
+			}
+			if got.Admin != tt.candidate.Admin {
+				t.Errorf("the written candidate's admin flag = %v, want %v", got.Admin, tt.candidate.Admin)
+			}
+			if tt.create && len(mustList(t, onDisk)) != 1 {
+				t.Errorf("a created roster carries %d members, want 1", len(mustList(t, onDisk)))
+			}
+			if records := strings.Count(logBuf.String(), "\n"); records != 1 {
+				t.Errorf("the write logged %d audit records, want 1: %q", records, logBuf.String())
+			}
+		})
+	}
+}
+
+// readOrAbsent returns path's content, or nil when path does not exist.
+func readOrAbsent(t *testing.T, path string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	return data
 }

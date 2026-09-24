@@ -335,7 +335,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 // asserted generally, not against one row's literal text, so it also
 // covers whatever other row a future rung's own hook fails against.
 func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
-	environ := append(authEnviron(t),
+	environ := append(doctorEnviron(t),
 		"DUBPLATE_MAGIC_LINK_EXPIRY=45m",
 		"DUBPLATE_NONCE_RETENTION=30m",
 	)
@@ -378,7 +378,7 @@ func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
 // a configuration that mints a cookie its own server refuses within the
 // hour.
 func TestDoctorCmd_SessionLifetimeAboveCapReportsUnsatisfied(t *testing.T) {
-	environ := append(authEnviron(t),
+	environ := append(doctorEnviron(t),
 		"DUBPLATE_SESSION_LIFETIME=87600h",
 		"DUBPLATE_SESSION_ABSOLUTE_CAP=1h",
 	)
@@ -427,7 +427,7 @@ func TestRowStatuses_FlattensNestedJoin(t *testing.T) {
 // status, not one entry naming the first and swallowing the second's
 // reason inside a stray newline.
 func TestDoctorCmd_RowStatusesSurviveSimultaneousFailures(t *testing.T) {
-	environ := append(authEnviron(t),
+	environ := append(doctorEnviron(t),
 		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
 		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
 	)
@@ -459,7 +459,7 @@ func TestDoctorCmd_RowStatusesSurviveSimultaneousFailures(t *testing.T) {
 // satisfied it is the only thing wrong, yet the source's own row must
 // still read unsatisfied rather than active.
 func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
-	environ := append(authEnviron(t), "DUBPLATE_SESSION_SECRET_PREVIOUS="+fixtureSecretBelowFloor)
+	environ := append(doctorEnviron(t), "DUBPLATE_SESSION_SECRET_PREVIOUS="+fixtureSecretBelowFloor)
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
@@ -486,7 +486,7 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 // TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
 // rowStatuses keeps as two separate entries.
 func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
-	environ := append(authEnviron(t),
+	environ := append(doctorEnviron(t),
 		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
 		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
 	)
@@ -555,7 +555,7 @@ func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			environ := append(authEnviron(t), tt.extra...)
+			environ := append(doctorEnviron(t), tt.extra...)
 			reg := productionRegistry()
 
 			var stdout, stderr bytes.Buffer
@@ -583,9 +583,9 @@ func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
 // one line: both magic-link secrets below the floor, on the fixture
 // TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
 // rowStatuses keeps as two separate entries. Fixture state: the source
-// is selected (authEnviron), so the line prints at all.
+// is selected (doctorEnviron), so the line prints at all.
 func TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce(t *testing.T) {
-	environ := append(authEnviron(t),
+	environ := append(doctorEnviron(t),
 		"DUBPLATE_MAGIC_LINK_SECRET="+fixtureSecretBelowFloor,
 		"DUBPLATE_SESSION_SECRET="+fixtureSecretBelowFloor,
 	)
@@ -649,11 +649,12 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 }
 
 // TestDoctorCmd_RosterRow proves the R3 roster row: a valid roster
-// reports no extra row and no failure, while a missing roster, a
-// roster carrying a duplicate streamer_username, and a roster carrying
-// two bad records each render one roster row and take doctor's own exit
-// status nonzero alongside it. A missing roster fails because R2 makes
-// it a startup refusal. Named mutation 8 (drop the doctor roster row)
+// naming an admin reports no extra row and no failure, while a missing
+// roster, a roster carrying a duplicate streamer_username, a roster
+// carrying two bad records, and a hand-edited roster that loads but
+// names no admin, with members or without, each render one roster row
+// and take doctor's own exit status nonzero alongside it. A missing
+// roster fails because R2 makes it a startup refusal. Named mutation 8 (drop the doctor roster row)
 // makes every failing case report a clean table for a roster that
 // refuses to load; the two-record case pins the one-row rule against
 // an errors.Join newline leaking into the table.
@@ -670,8 +671,18 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 	}{
 		{
 			name:          "a valid roster",
-			rosterContent: `{"schema_version":1,"members":[]}`,
+			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A","admin":true}]}`, fixtureAddressA),
 			wantStatus:    "",
+		},
+		{
+			name:          "a hand-edited roster with no members",
+			rosterContent: `{"schema_version":1,"members":[]}`,
+			wantStatus:    "no admin; run dubplate-server member add --admin",
+		},
+		{
+			name:          "a hand-edited roster naming no admin",
+			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A"}]}`, fixtureAddressA),
+			wantStatus:    "no admin; run dubplate-server member add --admin",
 		},
 		{
 			name:          "a roster not yet bootstrapped",
@@ -710,7 +721,7 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 				}
 			}
 
-			environ := append(dropKey(authEnviron(t), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
+			environ := append(dropKey(doctorEnviron(t), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
 			reg := productionRegistry()
 
 			var stdout, stderr bytes.Buffer
@@ -762,6 +773,20 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 	}
 }
 
+// doctorEnviron returns authEnviron with DUBPLATE_ROSTER_FILE naming a
+// roster of one admin, written into t.TempDir(). doctor fails a roster
+// that names no admin, so a test expecting the roster to pass needs one
+// that does rather than authEnviron's empty roster.
+func doctorEnviron(t *testing.T) []string {
+	t.Helper()
+	rosterPath := filepath.Join(t.TempDir(), "roster.json")
+	const admin = `{"schema_version":1,"members":[{"address":"doctor-admin@example.test","display_name":"Admin","admin":true}]}`
+	if err := os.WriteFile(rosterPath, []byte(admin), 0o600); err != nil {
+		t.Fatalf("write fixture roster: %v", err)
+	}
+	return append(dropKey(authEnviron(t), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
+}
+
 // doctorLines runs newDoctorCmd against reg with a satisfied base
 // environ and returns its stdout split into lines. It ignores
 // Execute's own error: a scratch owned row this test never sets a
@@ -797,7 +822,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	// source, so this half runs against the production registry and a
 	// fully satisfied environment instead.
 	var authStdout, authStderr bytes.Buffer
-	authCmd := newDoctorCmd(authEnviron(t), productionRegistry(), &authStdout, &authStderr)
+	authCmd := newDoctorCmd(doctorEnviron(t), productionRegistry(), &authStdout, &authStderr)
 	if err := authCmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}

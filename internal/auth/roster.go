@@ -86,14 +86,12 @@ var (
 	// ErrMemberNotFound reports that Lookup's address matched no member
 	// once normalized.
 	ErrMemberNotFound = errors.New("auth: member not found")
-
-	// ErrRosterAdminChannelForbidden reports that AddMember refused to
-	// set the admin flag. Every identity.Channel is a network assertion,
-	// a service token included, and the spec makes the command-line
-	// verb the only path to an admin, so AddMember refuses the flag on
-	// all of them. The admin grant arrives together with that verb.
-	ErrRosterAdminChannelForbidden = errors.New("auth: admin flag refused on this channel")
 )
+
+// errAdminGrantForbidden reports that AddMember refused to set the
+// admin flag because the change did not come from the command line,
+// the one channel that may grant it.
+var errAdminGrantForbidden = errors.New("auth: admin flag may be granted only from the command line")
 
 // The refusals below are each returned wrapping ErrRosterRecordInvalid
 // rather than exported on their own: nothing outside this package
@@ -130,6 +128,16 @@ var (
 	// the rule its channel imposes: an unrecognized channel, or an
 	// actor that does not meet the shape its channel requires.
 	errInvalidActor = errors.New("auth: invalid audit actor or channel")
+
+	// errNoAdmin reports that a write would leave the roster naming no
+	// admin, which would leave nobody able to change it but an operator
+	// editing the file by hand.
+	errNoAdmin = errors.New("auth: the roster must name at least one admin")
+
+	// errActorNotAdmin reports that a change arriving over the network
+	// named an actor whose record in the roster on disk does not hold
+	// the admin flag.
+	errActorNotAdmin = errors.New("auth: the actor is not an admin")
 )
 
 // Member is one roster entry (R1): a login address, a display name, an
@@ -223,29 +231,30 @@ func OpenRoster(path string) (*Roster, error) {
 	return &Roster{path: path, snap: snap}, nil
 }
 
-// CreateRoster is the write-open: it creates path at 0600 carrying an
-// empty, schema-versioned roster when path is absent, and refuses with
+// CreateRoster is the write-open: when path is absent it creates it at
+// 0600 carrying first as the roster's only member, and it refuses with
 // ErrRosterExists when path already exists, so a second bootstrap can
-// never overwrite a first roster. The existence check and the write run
-// under the same directory lock every roster write takes, so of two
-// concurrent calls exactly one creates the file. It creates no
-// directory: the deployment owns that.
-func CreateRoster(ctx context.Context, path string) (*Roster, error) {
-	unlock, err := lockRosterDir(ctx, filepath.Dir(path))
+// never overwrite a first roster. first and actor pass every check
+// AddMember applies on identity.ChannelCommandLine, and first must hold
+// the admin flag, since the store never writes a roster that names no
+// admin. The existence check and the write run under the same directory
+// lock every roster write takes, so of two concurrent calls exactly one
+// creates the file. On success it logs the same audit record AddMember
+// does. It creates no directory: the deployment owns that.
+func CreateRoster(ctx context.Context, path string, first Member, actor string, logger *slog.Logger) (*Roster, error) {
+	const channel = identity.ChannelCommandLine
+	member, err := checkAddition(path, first, actor, channel)
 	if err != nil {
 		return nil, err
 	}
-	defer unlock()
-
-	if _, err := os.Stat(path); err == nil {
-		return nil, fmt.Errorf("%w: %s", ErrRosterExists, path)
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, path, err)
-	}
-	if err := writeRoster(path, nil); err != nil {
+	written, err := writeLocked(ctx, path, true, func(disk *rosterSnapshot) ([]Member, error) {
+		return addTo(path, disk, member, actor, channel)
+	})
+	if err != nil {
 		return nil, err
 	}
-	return OpenRoster(path)
+	logAddition(logger, member, actor, channel, "")
+	return &Roster{path: path, snap: written}, nil
 }
 
 // readRoster opens path, stats the open descriptor, and reads the
@@ -357,35 +366,58 @@ func lockRosterDir(ctx context.Context, dir string) (func(), error) {
 	}
 }
 
-// update is the roster's one read-modify-write, and every write goes
-// through it. It takes the directory lock, re-reads and validates the
-// file from disk, hands apply that disk copy, writes the members apply
-// returns, re-reads the written file, and swaps that read in as the
-// cache before the lock is released. A refusal from apply writes
-// nothing.
-func (r *Roster) update(ctx context.Context, apply func(disk *rosterSnapshot) ([]Member, error)) error {
-	unlock, err := lockRosterDir(ctx, filepath.Dir(r.path))
+// writeLocked is the roster's one read-modify-write, and every write
+// goes through it. It takes the directory lock and finds the starting
+// state: with create set, path must be absent and the starting state is
+// an empty roster, and otherwise it is the file re-read and validated
+// from disk. It hands apply that starting state, refuses the members
+// apply returns unless at least one holds the admin flag, writes them,
+// and returns the written file as re-read, all before the lock is
+// released. A refusal from apply or from the admin check writes
+// nothing. Every mutation routing through here is what keeps the admin
+// invariant free of exemptions.
+func writeLocked(ctx context.Context, path string, create bool, apply func(disk *rosterSnapshot) ([]Member, error)) (*rosterSnapshot, error) {
+	unlock, err := lockRosterDir(ctx, filepath.Dir(path))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer unlock()
 
-	disk, err := readRoster(r.path)
-	if err != nil {
-		return err
-	}
-	next, err := apply(disk)
-	if err != nil {
-		return err
-	}
-	if err := writeRoster(r.path, next); err != nil {
-		return err
-	}
-	written, err := readRoster(r.path)
-	if err != nil {
-		return err
+	var disk *rosterSnapshot
+	if create {
+		if _, err := os.Stat(path); err == nil {
+			return nil, fmt.Errorf("%w: %s", ErrRosterExists, path)
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("%w: %s: %v", ErrRosterUnreadable, path, err)
+		}
+		disk = &rosterSnapshot{byAddress: map[string]int{}}
+	} else {
+		disk, err = readRoster(path)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	next, err := apply(disk)
+	if err != nil {
+		return nil, err
+	}
+	if !slices.ContainsFunc(next, func(m Member) bool { return m.Admin }) {
+		return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, errNoAdmin)
+	}
+	if err := writeRoster(path, next); err != nil {
+		return nil, err
+	}
+	return readRoster(path)
+}
+
+// update runs writeLocked over the file r was opened on and swaps the
+// written file in as r's cache.
+func (r *Roster) update(ctx context.Context, apply func(disk *rosterSnapshot) ([]Member, error)) error {
+	written, err := writeLocked(ctx, r.path, false, apply)
+	if err != nil {
+		return err
+	}
 	r.mu.Lock()
 	r.snap = written
 	r.mu.Unlock()
@@ -530,20 +562,33 @@ func validateWriteCandidate(candidate Member) (Member, error) {
 
 // validateActor reports whether actor satisfies the rule its channel
 // imposes on an audit record's actor. An unrecognized channel refuses
-// outright. Every channel a verifier can assert today carries an
-// identity over the network, so its actor must itself normalize as a
-// login address; a channel whose assertion carries no network address
-// takes its own rule where that channel is added.
+// outright. A cookie carries a login over the network, so its actor
+// must normalize as a login address. The command line names an
+// operating-system user, which is no address, so its actor need only
+// be non-empty and free of every rune an address refuses, the ordinary
+// space included.
 func validateActor(actor string, channel identity.Channel) error {
 	switch channel {
-	case identity.ChannelCookie, identity.ChannelHeader, identity.ChannelServiceToken:
+	case identity.ChannelCookie:
 		if _, err := identity.NormalizeAddress(actor); err != nil {
+			return errInvalidActor
+		}
+		return nil
+	case identity.ChannelCommandLine:
+		if actor == "" || strings.ContainsFunc(actor, actorRefusesRune) {
 			return errInvalidActor
 		}
 		return nil
 	default:
 		return errInvalidActor
 	}
+}
+
+// actorRefusesRune reports whether a command-line actor refuses r: the
+// same set [identity.NormalizeAddress] refuses, every control character
+// and every rune in the Unicode Cf, Zs, Zl, or Zp categories.
+func actorRefusesRune(r rune) bool {
+	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
 }
 
 // zeroWidthNonJoiner and zeroWidthJoiner are the two Cf runes a display
@@ -631,46 +676,83 @@ func (r *Roster) List() ([]Member, error) {
 // against the file as it is on disk, appends candidate to that disk
 // copy, writes the whole roster atomically, re-reads it, and logs one
 // audit record naming actor, channel, candidate.Address,
-// candidate.Admin, and clientIP. The lock wait ends with an error when
-// ctx does. It is the roster's only member write.
+// candidate.Admin, and clientIP. On identity.ChannelCommandLine the
+// record's client_ip reads "local" whatever clientIP holds, so every
+// record keeps one shape. The lock wait ends with an error when ctx
+// does. It is the roster's only member write after CreateRoster.
 //
-// Every check runs before the write, so a candidate that fails
-// validation, an actor or channel that fails its own check, or a
-// candidate that fails the collision re-check changes no byte on disk.
+// Only identity.ChannelCommandLine may set candidate.Admin; any other
+// channel is refused with errAdminGrantForbidden before the lock is
+// taken. On any other channel the actor must also hold the admin flag
+// in the disk copy re-read under the lock, so a hand edit demoting the
+// actor after a caller checked it still refuses the write. Whatever
+// the channel, the roster written must name at least one admin.
 //
-// AddMember refuses candidate.Admin on every channel with
-// ErrRosterAdminChannelForbidden. Each channel is an identity asserted
-// over the network, a service token as much as a cookie or a header,
-// and the command-line verb is the only path to an admin. That verb
-// brings the admin grant with it; until then no caller can mint one.
+// Every check runs before the write, so a refused candidate, actor, or
+// channel changes no byte on disk.
 func (r *Roster) AddMember(ctx context.Context, candidate Member, actor string, channel identity.Channel, clientIP string, logger *slog.Logger) error {
-	if candidate.Admin {
-		return fmt.Errorf("%w: channel %s", ErrRosterAdminChannelForbidden, channel)
-	}
-	if err := validateActor(actor, channel); err != nil {
-		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
-	}
-
-	member, err := validateWriteCandidate(candidate)
+	member, err := checkAddition(r.path, candidate, actor, channel)
 	if err != nil {
-		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
+		return err
 	}
-
 	err = r.update(ctx, func(disk *rosterSnapshot) ([]Member, error) {
-		if _, dup := disk.byAddress[member.Address]; dup {
-			return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, errDuplicateAddress)
-		}
-		for _, existing := range disk.members {
-			if strings.EqualFold(existing.StreamerUsername, member.StreamerUsername) {
-				return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, errDuplicateStreamerUsername)
-			}
-		}
-		return append(slices.Clone(disk.members), member), nil
+		return addTo(r.path, disk, member, actor, channel)
 	})
 	if err != nil {
 		return err
 	}
+	logAddition(logger, member, actor, channel, clientIP)
+	return nil
+}
 
+// checkAddition runs every check on an addition that needs no roster:
+// the admin grant's channel, the actor's rule for its channel, and the
+// candidate's own fields. It returns the candidate as validated.
+func checkAddition(path string, candidate Member, actor string, channel identity.Channel) (Member, error) {
+	if candidate.Admin && channel != identity.ChannelCommandLine {
+		return Member{}, fmt.Errorf("%w: channel %s", errAdminGrantForbidden, channel)
+	}
+	if err := validateActor(actor, channel); err != nil {
+		return Member{}, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
+	}
+	member, err := validateWriteCandidate(candidate)
+	if err != nil {
+		return Member{}, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
+	}
+	return member, nil
+}
+
+// addTo returns disk's members with member appended, after the checks
+// that need the roster as it is on disk: an actor on any channel but
+// the command line must hold the admin flag there, and member's address
+// and streamer_username must collide with no existing member.
+func addTo(path string, disk *rosterSnapshot, member Member, actor string, channel identity.Channel) ([]Member, error) {
+	if channel != identity.ChannelCommandLine {
+		// validateActor has already normalized this actor once, so the
+		// error cannot recur here. The lookup keys through the store's
+		// own resolution point, the way every member is keyed.
+		normalized, _ := normalizeMemberAddress(actor)
+		idx, ok := disk.byAddress[normalized]
+		if !ok || !disk.members[idx].Admin {
+			return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, errActorNotAdmin)
+		}
+	}
+	if _, dup := disk.byAddress[member.Address]; dup {
+		return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, errDuplicateAddress)
+	}
+	for _, existing := range disk.members {
+		if strings.EqualFold(existing.StreamerUsername, member.StreamerUsername) {
+			return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, errDuplicateStreamerUsername)
+		}
+	}
+	return append(slices.Clone(disk.members), member), nil
+}
+
+// logAddition writes the audit record for member's addition.
+func logAddition(logger *slog.Logger, member Member, actor string, channel identity.Channel, clientIP string) {
+	if channel == identity.ChannelCommandLine {
+		clientIP = "local"
+	}
 	logger.Info("roster member added",
 		"actor", actor,
 		"channel", channel.String(),
@@ -678,5 +760,4 @@ func (r *Roster) AddMember(ctx context.Context, candidate Member, actor string, 
 		"admin", member.Admin,
 		"client_ip", clientIP,
 	)
-	return nil
 }

@@ -86,12 +86,15 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// nothing to report. It names no value (Resolution R-5b6):
 			// [auth.OpenRoster]'s own errors carry only a record's
 			// position and the path, never its address or principal, and
-			// a multi-record refusal is folded onto the one line.
+			// a multi-record refusal is folded onto the one line. A
+			// roster that loads but names no admin fails the same row,
+			// since nobody could then change it but by hand, and the row
+			// names the command that recovers it.
 			rosterFailed := false
 			if path, ok := selectedRosterPath(environ, reg); ok {
-				if _, err := auth.OpenRoster(path); err != nil {
+				if status, failed := rosterRowStatus(path); failed {
 					rosterFailed = true
-					if err := printRow(stdout, "roster", rosterStatus(err)); err != nil {
+					if err := printRow(stdout, "roster", status); err != nil {
 						return err
 					}
 				}
@@ -117,6 +120,24 @@ func selectedRosterPath(environ []string, reg *config.Registry) (string, bool) {
 		if src.Selected(environ) && slices.Contains(src.Required, rosterKey) {
 			return lookupEnviron(environ, rosterKey)
 		}
+	}
+	return "", false
+}
+
+// rosterRowStatus opens the roster at path and reports the roster
+// row's status and whether the row fails: an [auth.OpenRoster] refusal
+// rendered by rosterStatus, or a roster that loads but names no admin.
+func rosterRowStatus(path string) (string, bool) {
+	roster, err := auth.OpenRoster(path)
+	if err != nil {
+		return rosterStatus(err), true
+	}
+	members, err := roster.List()
+	if err != nil {
+		return rosterStatus(err), true
+	}
+	if !slices.ContainsFunc(members, func(m auth.Member) bool { return m.Admin }) {
+		return "no admin; run dubplate-server member add --admin", true
 	}
 	return "", false
 }
