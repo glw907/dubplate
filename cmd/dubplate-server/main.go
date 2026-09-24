@@ -109,6 +109,7 @@ func newRootCmd() *cobra.Command {
 		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newShadowCmd(os.Environ(), reg, matcherCommit, os.Stdout, os.Stderr),
 		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 	)
 	return cmd
 }
