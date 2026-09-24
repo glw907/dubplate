@@ -45,6 +45,13 @@ var errReadOnly = errors.New("store read-only")
 type handle struct {
 	write *sql.DB
 	read  *sql.DB
+
+	// path is the database file, named in errors a caller reports.
+	path string
+
+	// version is the binary's highest migration. The write method
+	// refuses a store whose user_version differs from it.
+	version int
 }
 
 // openHandle opens dbPath's write pool (capped at one connection) and
@@ -63,7 +70,7 @@ func openHandle(dbPath string, busyTimeout time.Duration) (*handle, error) {
 		return nil, fmt.Errorf("open read pool: %w", err)
 	}
 
-	return &handle{write: write, read: read}, nil
+	return &handle{write: write, read: read, path: dbPath}, nil
 }
 
 // close closes h's write and read pools, joining both errors when
