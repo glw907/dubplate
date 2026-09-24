@@ -23,11 +23,19 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Next action
 
-1. Open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1. 5c-ii opens with the
-   admin gate and the roster API.
-3. The beets 2.14 oracle bump, through `dependency-upgrade`: the changelog survey, the corpus
-   re-derivation, and `BEETS_VERSION`.
-2. The architecture cleanup pass joins the staged comment-cleanup task
+1. **Lane 2 runs 6a**, segment A (Tasks 1-3) in flight via pass-execute. Task 0 found no blockers
+   at `49160dd`; its notes 7 and 8 (`TestDoctorCmd`'s exact count, `baseEnviron`'s fixed
+   `/var/lib/dubplate`) go into Task 7's brief. Segment B follows the boundary STATUS.
+2. **5c-ii's plan, revision 2.2** (`plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
+   `a2f63bb`), reviewed by three lenses, verified, and prose-folded, awaits Geoff's seven rulings.
+   Lane 1 opens on it once approved.
+3. **Beets 2.14.1** is parked in `stash@{0}` (shim adaptation, venv pins, manifest, full derive:
+   209 cases change `config_hash` only, six `adv-ft-*` cases move strong/apply to medium/skip). It
+   needs its own small pass: retire the matcher's ft compat class (`BeetsSDPatterns`, four tests),
+   add six sanctioned empty search responses (a corpus edit the classifier refused an agent; Geoff
+   approves), re-freeze, ledgers, `BEETS_VERSION`. Filed with it: Go RE2's ASCII `\b` against
+   Python's Unicode `\b`, and 2.14's empty-query search skip for the musicbrainz port.
+4. The architecture cleanup pass joins the staged comment-cleanup task
    (`research/2026-09-24-rung-5c-i-architecture-reads.md`, plus the 5b-ii reads).
 
 ## Lane registry
