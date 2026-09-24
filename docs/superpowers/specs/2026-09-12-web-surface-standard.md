@@ -1754,6 +1754,16 @@ embed path, the R4.5 rewrite, the branding stylesheet and operator file,
 the served header set, the `member` verb group, and the gate leg with
 DL's G1 through G10.
 
+> Erratum, 2026-09-24 (pass 5c-i close): **the 4.5M ceiling is stale.**
+> Rung 5c split at the `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+> Task 7 / Task 8 boundary into 5c-i and 5c-ii, and Ruling 6 (2026-09-23,
+> that plan) moved rung 5's own reservation from 15.75M to about 37M,
+> with 5c's share at about 18M split across the two passes rather than
+> one 4.5M pass. 5c-i closed under a 6.5M ceiling; 5c-ii's ceiling is
+> its own plan's. See the matching erratum in
+> `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`'s "Errata
+> the close applies" section.
+
 **No new artifact moves into 5c.** The grammar-token module and its
 inventory (W2.1 through W2.8), W2.7's measured ink split, W5.10's theme
 pick, W7.6's live-region helper, the styleguide (W11.3), the dev fixture

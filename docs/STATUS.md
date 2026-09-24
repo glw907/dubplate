@@ -29,8 +29,6 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
 
 ## Next action
 
-0. The nine rung 5 spec corrections are in flight (HISTORY 5c-i entry, "The spec corrections this
-   pass owes"). They apply before 5c-ii's plan is drafted.
 1. On Geoff's answers: open lane 2 on 6a in a worktree, and draft 5c-ii's plan for lane 1.
    5c-ii opens with the admin gate and the roster API.
 2. The architecture cleanup pass joins the staged comment-cleanup task

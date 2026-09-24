@@ -392,7 +392,7 @@ spec.*
   A username may equal another member's address only when that member has a username of its own.
   The wider rule, one shared namespace for every address and username, is pending Geoff's ruling.
 - **The spec corrections.** The nine corrections in "The spec corrections this pass owes" were applied
-  after the fold. The commit that applies them is recorded in STATUS.
+  after the fold. They were applied in the commit that follows the fold.
 - **Spend figures.** The spend figures are the conductor's own sums of the dispatches'
   `subagent_tokens`. They exclude the conductor's own turns.
 
@@ -899,6 +899,13 @@ appears exactly once.
 
 M4's partial status is covered by finding 11 above; m10's ASCII-only
 status is covered by finding 8 above.
+
+Note, 2026-09-24 (pass 5c-i close): minor 6's routing above sent it to 5c
+security-fold Task 1 for a first proposal. 5c-i's disposition is a
+refusal of the code fix (R-5c18); the fix costs more than the risk it
+removes, since only a trusted admin can trigger the kind-mode oracle
+today. A runbook sentence about the mail-ceiling lockout lever carries
+to 5d instead. See `docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`.
 
 ### The declared coverage gaps
 

@@ -2397,6 +2397,76 @@ its findings and their dispositions are the do-not-re-litigate record at
 > `scripts/check.sh:5` and `Makefile:33`, still resolve; `Makefile:33`
 > reads "The web legs rejoin," plural.
 
+**Pass 5c-i's close, 2026-09-24, adds the corrections below.** Pass 5c-i
+(the security fold, the CLI admin grant, and the `member` verb, in the
+main tree from `cb9ecc3`) closed with a fresh-context
+`web-auth-security-reviewer` read scoped to `cb9ecc3..657f9ec`; its
+findings and their dispositions are the do-not-re-litigate record at
+`docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`. The
+plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+(revision 2.2), and all six of its rulings were ruled yes by Geoff on
+2026-09-23.
+
+> Erratum, 2026-09-24 (pass 5c-i close): **`streamer_username` is
+> required on the write path.** R1's write path (`spec:297-298`), R3
+> (`spec:326-334`), "The roster"'s validation list and member-record
+> sentence (`spec:1120-1129`), and the add-member page's form
+> description (`spec:1436-1438`) each call it optional. Ruling 4
+> (2026-09-23) makes it required on the write path for both the
+> `member` verb and the add-member form. The loader itself stays
+> optional in the schema, since a roster file written before 5c-i can
+> still carry a record with no `streamer_username`. Read each of those
+> passages as "optional in the schema, required on every write."
+
+> Erratum, 2026-09-24 (pass 5c-i close): **the add-member page has no
+> admin checkbox.** `spec:1436-1438`'s form list ("an address, a
+> display name, an optional streamer username, and an admin checkbox")
+> drops the fourth item. Ruling 5 (2026-09-23) and R-5c13 make the
+> command line the only admin grant; the roster API 5c-ii builds reads
+> no `admin` key from the submitted form and refuses one if present.
+
+> Erratum, 2026-09-24 (pass 5c-i close): **the assertion channel is one
+> of two, not three.** `spec:1244`'s "the assertion channel, which is
+> cookie, header, or service token" is superseded. Task 6
+> (conductor-owed fold 12, R-5c7) dropped `ChannelHeader` and
+> `ChannelServiceToken` as unused and added `ChannelCommandLine` as the
+> CLI admin grant's own channel (`internal/identity/identity.go`), so
+> the assertion channel is cookie or command line. `Identity.Valid`
+> refuses `ChannelCommandLine` on every path but the `member` verb's
+> own construction site.
+
+> Erratum, 2026-09-24 (pass 5c-i close): **the 5c row splits into 5c-i
+> and 5c-ii.** The pass-split table's 5c row (below) described one
+> pass at 4.5M. R-5c1 splits it at the Task 7 / Task 8 boundary: 5c-i
+> carries the security fold, the CLI admin grant, and the `member` verb
+> group, and closed under a 6.5M ceiling at about 5.3M in subagent
+> tokens through the security fold (5c-i's own HISTORY entry has the
+> figure). 5c-ii carries the pages, the theme, the embed path, and the
+> gate's `web/` leg rejoin, under its own plan's ceiling.
+
+> Erratum, 2026-09-24 (pass 5c-i close): **R23's reservation moves
+> again.** The erratum above (`spec:2377-2383`) put rung 5's
+> reservation at 15.75M. Ruling 6 (2026-09-23) moves it to about 37M,
+> with 5c's own share at about 18M split across 5c-i and 5c-ii. The web
+> surface standard's section 15 carries the same "5c ceiling
+> unchanged" line and needs the matching update
+> (`docs/superpowers/specs/2026-09-12-web-surface-standard.md`).
+
+> Erratum, 2026-09-24 (pass 5c-i close): **R24's review shape across
+> the split.** R24 (`spec:587-593`) and the erratum above naming a
+> second `web-auth-security-reviewer` read "at 5c" did not anticipate
+> the Task 7 / Task 8 split. 5c-i's own read ran once, at this pass's
+> close, scoped to its own diff (`cb9ecc3..657f9ec`), not deferred to a
+> single review spanning both halves. 5c-ii's plan states its own
+> review scope explicitly rather than inheriting 5c-i's.
+
+> Erratum, 2026-09-24 (pass 5c-i close): **the public URL carries no
+> path.** `spec:1048-1049`'s "Link hostnames derive from
+> `DUBPLATE_PUBLIC_URL` and never from a request header" is extended.
+> R-5c9 adds: the link's path is `<prefix>/login/link`; the public URL
+> itself carries no path, and config load now refuses one on
+> `DUBPLATE_PUBLIC_URL`.
+
 ---
 
 ## The pass split
