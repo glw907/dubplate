@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/glw907/dubplate/internal/serve"
@@ -200,6 +201,7 @@ type handlerFixture struct {
 	stateDir   string
 	rosterPath string
 	epoch      *EpochStore
+	limiter    *Limiter
 	mail       *fakeMail
 	logs       *logCapture
 }
@@ -234,12 +236,13 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	mail.err = opts.mailErr
 	mail.maxCalls = opts.maxCalls
 	logs := newLogCapture()
+	limiter := NewLimiter(limits)
 
 	h := NewHandlers(HandlersConfig{
 		Roster:             roster,
 		Nonces:             nonces,
 		Epoch:              epoch,
-		Limiter:            NewLimiter(limits),
+		Limiter:            limiter,
 		Send:               mail.Send,
 		ClientIP:           func(r *http.Request) string { return serve.ClientIP(r, opts.proxy) },
 		Now:                func() time.Time { return handlerNow },
@@ -253,7 +256,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		BodyCap:            bodyCap,
 		GenericAnswer:      opts.generic,
 	})
-	return handlerFixture{handlers: h, stateDir: stateDir, rosterPath: rosterPath, epoch: epoch, mail: mail, logs: logs}
+	return handlerFixture{handlers: h, stateDir: stateDir, rosterPath: rosterPath, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
 }
 
 // post builds a urlencoded POST to target from peer carrying body.
@@ -869,4 +872,191 @@ func TestSignOut_ClearsCookie(t *testing.T) {
 	if w.Code != http.StatusOK || outcomeOf(t, w) != "signed_out" {
 		t.Errorf("response = %d %s, want 200 signed_out", w.Code, w.Body.String())
 	}
+}
+
+// floodPeer is the RemoteAddr of the i'th flooding client, each in a
+// /64 of its own, so no per-client limit can refuse a flood request
+// and the per-client order cannot explain a row's result.
+func floodPeer(i int) string {
+	return fmt.Sprintf("[2001:db8:%x:%x::1]:40000", i>>16, i&0xffff)
+}
+
+// TestRequestLink_UnknownFloodLeavesSpentAddress spends a member's
+// per-address budget, then floods as many made-up addresses as the
+// limiter holds keys, each from a /64 of its own and all at the same
+// instant. The member is still refused: no refill can explain a pass,
+// and the flood never charged the per-address map, so it evicted
+// nothing from it.
+func TestRequestLink_UnknownFloodLeavesSpentAddress(t *testing.T) {
+	const perAddress = 2
+	limits := generousLimits
+	limits.LinkRequestsPerAddress = perAddress
+	fx := newHandlerFixture(t, fixtureOptions{limits: limits, maxCalls: perAddress})
+
+	for i := range perAddress {
+		w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+		if got := outcomeOf(t, w); got != "sent" {
+			t.Fatalf("victim request %d: outcome %q, want sent", i+1, got)
+		}
+	}
+	before := fx.limiter.perAddress.size()
+	for i := range maxLimiterKeys {
+		serveOne(fx.handlers.RequestLink, post("/login", floodPeer(i), requestLinkBody(fmt.Sprintf("stranger%d@example.com", i))))
+	}
+	if after := fx.limiter.perAddress.size(); after != before {
+		t.Errorf("per-address map held %d keys before the flood and %d after, want no change", before, after)
+	}
+
+	w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+	if w.Code != http.StatusTooManyRequests || outcomeOf(t, w) != "rate_limited" {
+		t.Errorf("victim after the flood: got %d %s, want 429 rate_limited", w.Code, w.Body.String())
+	}
+	if got := fx.mail.count(); got != perAddress {
+		t.Errorf("mail sent %d times, want %d", got, perAddress)
+	}
+}
+
+// TestRequestLink_ChargingOrder walks each state the request-link
+// handler's limits meet. The client is charged first, for every
+// request, so a refused client never reaches the address map and an
+// address that fails to normalize still spends the client's token; the
+// address is charged only once the roster knows it. Each row runs in a
+// synctest bubble, so the generic answer's send, which outlives the
+// response, has finished or never started when the mail is counted.
+func TestRequestLink_ChargingOrder(t *testing.T) {
+	type linkRequest struct{ address, peer string }
+	oneClient := generousLimits
+	oneClient.LinkRequestsPerClient = 1
+	oneAddress := generousLimits
+	oneAddress.LinkRequestsPerAddress = 1
+
+	tests := []struct {
+		name            string
+		generic         bool
+		limits          Limits
+		before          []linkRequest
+		final           linkRequest
+		wantStatus      int
+		wantOutcome     string
+		wantAddressKeys int
+		wantMail        int
+	}{
+		{
+			name:            "a refused client never reaches the address map",
+			limits:          oneClient,
+			before:          []linkRequest{{"member1@example.com", peerIPPort}},
+			final:           linkRequest{"member@example.com", peerIPPort},
+			wantStatus:      http.StatusTooManyRequests,
+			wantOutcome:     "rate_limited",
+			wantAddressKeys: 1,
+			wantMail:        1,
+		},
+		{
+			name:            "an address that fails to normalize spends the client's token",
+			limits:          oneClient,
+			before:          []linkRequest{{"not an address", peerIPPort}},
+			final:           linkRequest{"member@example.com", peerIPPort},
+			wantStatus:      http.StatusTooManyRequests,
+			wantOutcome:     "rate_limited",
+			wantAddressKeys: 0,
+			wantMail:        0,
+		},
+		{
+			name:   "spellings of one address share its bucket",
+			limits: oneAddress,
+			before: []linkRequest{{"<MEMBER@Example.COM>", floodPeer(1)}},
+			final:  linkRequest{"member@example.com", peerIPPort},
+			// The first spelling was mailed; the second is refused.
+			wantStatus:      http.StatusTooManyRequests,
+			wantOutcome:     "rate_limited",
+			wantAddressKeys: 1,
+			wantMail:        1,
+		},
+		{
+			name:        "kind answer, unknown address leaves the address map alone",
+			final:       linkRequest{"stranger@example.com", peerIPPort},
+			wantStatus:  http.StatusOK,
+			wantOutcome: "unknown",
+		},
+		{
+			name:        "generic answer, unknown address leaves the address map alone",
+			generic:     true,
+			final:       linkRequest{"stranger@example.com", peerIPPort},
+			wantStatus:  http.StatusOK,
+			wantOutcome: "requested",
+		},
+		{
+			name:            "kind answer, known address over its limit is refused",
+			limits:          oneAddress,
+			before:          []linkRequest{{"member@example.com", floodPeer(1)}},
+			final:           linkRequest{"member@example.com", peerIPPort},
+			wantStatus:      http.StatusTooManyRequests,
+			wantOutcome:     "rate_limited",
+			wantAddressKeys: 1,
+			wantMail:        1,
+		},
+		{
+			name:            "generic answer, known address over its limit is told requested and not mailed",
+			generic:         true,
+			limits:          oneAddress,
+			before:          []linkRequest{{"member@example.com", floodPeer(1)}},
+			final:           linkRequest{"member@example.com", peerIPPort},
+			wantStatus:      http.StatusOK,
+			wantOutcome:     "requested",
+			wantAddressKeys: 1,
+			wantMail:        1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				fx := newHandlerFixture(t, fixtureOptions{generic: tt.generic, limits: tt.limits})
+				for _, req := range tt.before {
+					serveOne(fx.handlers.RequestLink, post("/login", req.peer, requestLinkBody(req.address)))
+				}
+				w := serveOne(fx.handlers.RequestLink, post("/login", tt.final.peer, requestLinkBody(tt.final.address)))
+				synctest.Wait()
+
+				if w.Code != tt.wantStatus || outcomeOf(t, w) != tt.wantOutcome {
+					t.Errorf("got %d %s, want %d %s", w.Code, w.Body.String(), tt.wantStatus, tt.wantOutcome)
+				}
+				if got := fx.limiter.perAddress.size(); got != tt.wantAddressKeys {
+					t.Errorf("per-address map holds %d keys, want %d", got, tt.wantAddressKeys)
+				}
+				if got := fx.mail.count(); got != tt.wantMail {
+					t.Errorf("mail sent %d times, want %d", got, tt.wantMail)
+				}
+			})
+		})
+	}
+}
+
+// TestRequestLink_GenericOverLimitAnswersAsUnknown compares the generic
+// answer to a known address over its per-address limit against its
+// answer to an unknown address, whole response against whole response,
+// and requires that the over-limit address is not mailed. A 429 here
+// would tell a stranger the address is on the roster.
+func TestRequestLink_GenericOverLimitAnswersAsUnknown(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		limits := generousLimits
+		limits.LinkRequestsPerAddress = 1
+		fx := newHandlerFixture(t, fixtureOptions{generic: true, limits: limits})
+
+		serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+		synctest.Wait()
+		if got := fx.mail.count(); got != 1 {
+			t.Fatalf("first request mailed %d times, want 1", got)
+		}
+
+		overLimit := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+		unknown := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("stranger@example.com")))
+		synctest.Wait()
+
+		if got, want := responseOf(overLimit), responseOf(unknown); !reflect.DeepEqual(got, want) {
+			t.Errorf("over-limit known address answered %+v, unknown answered %+v", got, want)
+		}
+		if got := fx.mail.count(); got != 1 {
+			t.Errorf("mail sent %d times, want 1 (the over-limit address is not mailed)", got)
+		}
+	})
 }

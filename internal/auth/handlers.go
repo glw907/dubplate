@@ -137,9 +137,19 @@ type adminContact struct {
 	Address     string `json:"address"`
 }
 
-// requestLink runs a fixed order: cap the body, parse it, normalize
-// the address, charge both link-request limits, resolve the address
-// against the roster, and only then spend mail.
+// requestLink runs a fixed order: cap the body, parse it, charge the
+// client's link-request limit, normalize the address, resolve it
+// against the roster, charge the address's limit for a known address
+// only, and only then spend mail. The client is charged before the
+// address is read, so an address that fails to normalize still costs
+// the client a request. An unknown address is never charged, so a
+// flood of made-up addresses cannot fill the per-address map and evict
+// a member's spent bucket.
+//
+// Under the kind answer a known address over its limit is refused with
+// 429, which tells the requester nothing the kind answer's unknown
+// reply does not. Under the generic answer it is told requested and
+// sent nothing, the same bytes an unknown address receives.
 //
 // Under the generic answer the response is written before the mail is
 // attempted and does not depend on its result. Waiting would hand a
@@ -155,17 +165,17 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	if !h.readForm(w, r, log) {
 		return
 	}
+	if err := h.cfg.Limiter.allowLinkClient(now, clientIP); err != nil {
+		log.Warn("auth rate limit tripped", "reason", err.Error())
+		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
+		return
+	}
 	// The normalizer's error can quote its input, so it is dropped
 	// rather than logged.
 	address, err := identity.NormalizeAddress(r.PostForm.Get(addressField))
 	if err != nil {
 		log.Info("auth link request refused", "reason", "address does not parse")
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeInvalid})
-		return
-	}
-	if err := h.cfg.Limiter.AllowLinkRequest(now, address, clientIP); err != nil {
-		log.Warn("auth rate limit tripped", "reason", err.Error())
-		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
 	member, err := h.cfg.Roster.Lookup(address)
@@ -182,6 +192,17 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		}
 		writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
 		return
+	}
+	if known {
+		if err := h.cfg.Limiter.allowLinkAddress(now, address); err != nil {
+			log.Warn("auth rate limit tripped", "reason", err.Error())
+			if h.cfg.GenericAnswer {
+				writeAnswer(w, http.StatusOK, answer{Outcome: outcomeRequested})
+				return
+			}
+			writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
+			return
+		}
 	}
 
 	if h.cfg.GenericAnswer {

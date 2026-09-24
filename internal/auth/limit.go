@@ -3,12 +3,11 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"net/netip"
 	"sync"
 	"time"
 
 	"golang.org/x/time/rate"
-
-	"github.com/glw907/dubplate/internal/identity"
 )
 
 // ErrRateLimited reports that a login request or a link consumption was
@@ -23,13 +22,14 @@ var ErrRateLimited = errors.New("auth: rate limit tripped")
 const limitInterval = time.Hour
 
 // maxLimiterKeys bounds each of [Limiter]'s three keyed maps. An entry
-// is one key of at most [identity.MaxAddressLength] bytes, an 80-byte
-// bucket, and two ring pointers, under half a kilobyte in all, so three
-// full maps hold about fifteen megabytes however many distinct keys a
-// flood presents. Ten thousand is two orders of magnitude above the
-// addresses and client addresses a group's own members present in an
-// hour, so honest traffic never reaches the bound and only a flood
-// drives eviction.
+// is one key of at most 254 bytes (a normalized address; a client key
+// is shorter), an 80-byte bucket, and two ring pointers, under half a
+// kilobyte in all, so three full maps hold about fifteen megabytes
+// however many distinct keys a flood presents. Ten thousand is two
+// orders of magnitude above the addresses and client networks a
+// group's own members present in an hour, so honest traffic never
+// reaches the bound. The per-address map holds only roster addresses,
+// so it reaches the bound only on a roster that large.
 const maxLimiterKeys = 10_000
 
 // Limits is the four per-hour counts a [Limiter] enforces, resolved
@@ -49,7 +49,12 @@ type Limits struct {
 //
 // Every method takes the caller's clock reading as now, and a client
 // address the caller has already resolved through its trusted-proxy
-// policy. Limiter derives no client address of its own.
+// policy. Limiter derives no client address of its own, but it keys a
+// client on its network rather than its address: an IPv4 address,
+// or an IPv4-mapped IPv6 one, keys on itself, and an IPv6 address keys
+// on its /64, since any IPv6 host holds at least a /64 and would
+// otherwise present 2^64 clients. A value that does not parse as an
+// address shares one bucket with every other such value.
 type Limiter struct {
 	perAddress  *keyedLimiter
 	perClient   *keyedLimiter
@@ -61,34 +66,35 @@ type Limiter struct {
 // full.
 func NewLimiter(limits Limits) *Limiter {
 	return &Limiter{
-		perAddress:  newKeyedLimiter(limits.LinkRequestsPerAddress, maxLimiterKeys),
-		perClient:   newKeyedLimiter(limits.LinkRequestsPerClient, maxLimiterKeys),
-		consumption: newKeyedLimiter(limits.ConsumptionAttemptsPerClient, maxLimiterKeys),
+		perAddress:  newKeyedLimiter(limits.LinkRequestsPerAddress, maxLimiterKeys, evictRefilledOrAdmit),
+		perClient:   newKeyedLimiter(limits.LinkRequestsPerClient, maxLimiterKeys, evictLeastRecent),
+		consumption: newKeyedLimiter(limits.ConsumptionAttemptsPerClient, maxLimiterKeys, evictLeastRecent),
 		linkMail:    newBucket(limits.LinkMailCeiling),
 	}
 }
 
-// AllowLinkRequest charges one link request against address and against
-// client, and returns an error wrapping [ErrRateLimited] when either
-// limit is spent. Both are charged even when one refuses, so a client
-// cycling through addresses spends its own budget on every attempt.
-// address is normalized first, so two spellings of one address share a
-// bucket; an address that does not normalize returns an error wrapping
-// [identity.ErrInvalidAddress] and charges nothing.
-func (l *Limiter) AllowLinkRequest(now time.Time, address, client string) error {
-	key, err := identity.NormalizeAddress(address)
-	if err != nil {
-		// The normalizer's error can quote its input, and no error this
-		// package returns names an address.
-		return fmt.Errorf("rate limit key: %w", identity.ErrInvalidAddress)
-	}
-	addressOK := l.perAddress.allow(now, key)
-	clientOK := l.perClient.allow(now, client)
-	switch {
-	case !addressOK:
-		return fmt.Errorf("%w: link requests per address", ErrRateLimited)
-	case !clientOK:
+// allowLinkClient charges one link request against client, and returns
+// an error wrapping [ErrRateLimited] when its limit is spent. The
+// caller charges it first, for every request, before it reads the
+// address: an address that fails to normalize still spends the
+// client's budget, and a refused client never reaches the per-address
+// map.
+func (l *Limiter) allowLinkClient(now time.Time, client string) error {
+	if !l.perClient.allow(now, clientKey(client)) {
 		return fmt.Errorf("%w: link requests per client", ErrRateLimited)
+	}
+	return nil
+}
+
+// allowLinkAddress charges one link request against address, which the
+// caller has normalized and found on the roster, and returns an error
+// wrapping [ErrRateLimited] when its limit is spent. The caller never
+// charges an address the roster does not hold, so the per-address map
+// holds no more keys than the roster has members and a flood of
+// made-up addresses never reaches it.
+func (l *Limiter) allowLinkAddress(now time.Time, address string) error {
+	if !l.perAddress.allow(now, address) {
+		return fmt.Errorf("%w: link requests per address", ErrRateLimited)
 	}
 	return nil
 }
@@ -98,7 +104,7 @@ func (l *Limiter) AllowLinkRequest(now time.Time, address, client string) error 
 // spent. The caller runs it before verifying the link, so a flood of
 // forged tokens is bounded here rather than reaching the verifier.
 func (l *Limiter) AllowConsumption(now time.Time, client string) error {
-	if !l.consumption.allow(now, client) {
+	if !l.consumption.allow(now, clientKey(client)) {
 		return fmt.Errorf("%w: link consumption attempts per client", ErrRateLimited)
 	}
 	return nil
@@ -122,20 +128,64 @@ func newBucket(perInterval int) *rate.Limiter {
 	return rate.NewLimiter(rate.Every(limitInterval/time.Duration(perInterval)), perInterval)
 }
 
-// keyedLimiter is a map from key to bucket holding at most capacity keys.
-// Admitting a key past the bound evicts the least recently used one:
-// a bucket nobody has charged recently is the one closest to full, and
-// a bucket untouched for a whole [limitInterval] has refilled
-// completely, so losing it and recreating it full later changes
-// nothing. Evicting a recent key instead would hand whoever charged it
-// a fresh bucket, which is exactly the reset a flood of distinct keys
-// would be sent to buy.
+// unparsedClientKey is the one key every client value that does not
+// parse as an address shares, so malformed input cannot mint distinct
+// keys. No parsed address or prefix formats as this string.
+const unparsedClientKey = "unparsed"
+
+// clientKey returns the key client is limited under: an IPv4 address,
+// unmapped from IPv6 when it arrives wrapped, keys on itself, and an
+// IPv6 address keys on its /64, zone dropped.
+func clientKey(client string) string {
+	addr, err := netip.ParseAddr(client)
+	if err != nil {
+		return unparsedClientKey
+	}
+	addr = addr.Unmap()
+	if addr.Is4() {
+		return addr.String()
+	}
+	// Prefix refuses only a length outside 0 through 128, and 64 is
+	// inside it for every IPv6 address.
+	prefix, _ := addr.Prefix(64)
+	return prefix.String()
+}
+
+// atCapacity is what a keyedLimiter does when a new key arrives and it
+// already holds its capacity.
+type atCapacity int
+
+const (
+	// evictLeastRecent evicts the least recently used bucket. A bucket
+	// nobody has charged recently is usually the one closest to full,
+	// and evicting a recent key instead would hand whoever charged it
+	// a fresh bucket, which is exactly the reset a flood of distinct
+	// keys would be sent to buy. Under a flood, though, a bucket
+	// charged seconds ago can be the least recently used one, so this
+	// policy suits only a key space where a reset hands the flooder
+	// nothing it does not already hold, such as its own client key.
+	evictLeastRecent atCapacity = iota
+
+	// evictRefilledOrAdmit evicts the least recently used bucket that
+	// has fully refilled, and when none has, admits the event without
+	// tracking the new key, so no spent bucket is ever reset. The scan
+	// starts at the least recently used end and stops at the first
+	// refilled bucket; it cannot stop at the least recently used bucket
+	// alone, because refill time depends on the tokens spent, not on
+	// recency. At worst it reads every bucket, [maxLimiterKeys] of
+	// them, under the map's lock.
+	evictRefilledOrAdmit
+)
+
+// keyedLimiter is a map from key to bucket holding at most capacity
+// keys, with policy deciding what a new key does once it is full.
 //
 // Recency is an intrusive doubly linked ring through the buckets
 // themselves, typed so no lookup needs a type assertion.
 type keyedLimiter struct {
 	perInterval int
 	capacity    int
+	policy      atCapacity
 
 	mu    sync.Mutex
 	byKey map[string]*keyedBucket
@@ -148,10 +198,11 @@ type keyedBucket struct {
 	prev, next *keyedBucket
 }
 
-func newKeyedLimiter(perInterval, capacity int) *keyedLimiter {
+func newKeyedLimiter(perInterval, capacity int, policy atCapacity) *keyedLimiter {
 	k := &keyedLimiter{
 		perInterval: perInterval,
 		capacity:    capacity,
+		policy:      policy,
 		byKey:       make(map[string]*keyedBucket),
 	}
 	k.ring.prev, k.ring.next = &k.ring, &k.ring
@@ -168,9 +219,14 @@ func (k *keyedLimiter) allow(now time.Time, key string) bool {
 	case ok:
 		kb.unlink()
 	case len(k.byKey) >= k.capacity:
-		oldest := k.ring.prev
-		oldest.unlink()
-		delete(k.byKey, oldest.key)
+		victim := k.evictable(now)
+		if victim == nil {
+			// A new bucket starts full, so tracking the key would
+			// have admitted this event too.
+			return true
+		}
+		victim.unlink()
+		delete(k.byKey, victim.key)
 		fallthrough
 	default:
 		kb = &keyedBucket{key: key, bucket: newBucket(k.perInterval)}
@@ -178,6 +234,20 @@ func (k *keyedLimiter) allow(now time.Time, key string) bool {
 	}
 	k.pushFront(kb)
 	return kb.bucket.AllowN(now, 1)
+}
+
+// evictable returns the bucket policy evicts at now, or nil when it
+// evicts none.
+func (k *keyedLimiter) evictable(now time.Time) *keyedBucket {
+	if k.policy == evictLeastRecent {
+		return k.ring.prev
+	}
+	for kb := k.ring.prev; kb != &k.ring; kb = kb.prev {
+		if kb.bucket.TokensAt(now) >= float64(kb.bucket.Burst()) {
+			return kb
+		}
+	}
+	return nil
 }
 
 func (kb *keyedBucket) unlink() {
