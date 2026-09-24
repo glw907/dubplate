@@ -3,7 +3,7 @@
 // expressed in, and (in later files) the [Distance] accumulator and the
 // penalty components that compose it. It never imports
 // internal/harness and never reads a clock; every citation below is
-// checked against pinned beets 2.13.1 (tools/venv/.venv).
+// checked against pinned beets 2.14.1 (tools/venv/.venv).
 package matcher
 
 import (
@@ -236,10 +236,10 @@ type Tunables struct {
 	// StringDistPatterns is the SD_PATTERNS table string_dist's
 	// pattern loop runs, defaulting to [BeetsSDPatterns]. It exists as
 	// a field, not a package-level constant a component reads
-	// directly, so 3d's compat switch for the adjudicated
-	// bug-ft-pattern/bug-remix-parenthetical defects (adj-adv-ft-draft-
-	// colon) swaps in [SDPatternsWordBoundary] by assignment rather
-	// than editing string_dist itself.
+	// directly, so the compat switch for the adjudicated
+	// bug-remix-parenthetical defect swaps in
+	// [SDPatternsNoBracketDiscount] by assignment rather than editing
+	// string_dist itself.
 	StringDistPatterns []SDPattern
 }
 
@@ -261,7 +261,7 @@ type Preferred struct {
 	OriginalYear bool
 }
 
-// DefaultTunables returns beets' shipped defaults, pinned at 2.13.1
+// DefaultTunables returns beets' shipped defaults, pinned at 2.14.1
 // and cited field by field on [Tunables].
 func DefaultTunables() Tunables {
 	tun := Tunables{
@@ -355,36 +355,22 @@ var SDReplace = []SDReplacement{
 	{Pattern: "&", Replacement: "and"},
 }
 
-// BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:35-42), beets'
+// BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-43), beets'
 // six shipped discounts in their fixed order. It is the default of
 // [Tunables.StringDistPatterns] and must stay byte-identical to beets'
-// literals (Task 4's byte-identity test): the featuring pattern here
-// carries the adjudicated bug-ft-pattern defect (matching "ft" inside
-// an ordinary word like "Draft") on purpose, because 3a ships beets'
-// behavior exactly and a "corrected" default here would ship a green
-// tier 0 and a wrong matcher (M-a: the defect is provably invisible to
-// all 72 committed rows).
+// literals (TestBeetsSDPatternsMatchBeetsLiterals). The featuring
+// pattern carries the word boundaries upstream shipped in beets 2.14.0
+// (19d091440), so "ft" inside an ordinary word such as "Draft" no
+// longer reads as a featuring credit.
+//
+// Python re's \b is Unicode-aware and Go RE2's is ASCII-only, so the
+// two disagree where a non-ASCII letter abuts the trigger: "Rüft:"
+// fires the Go pattern and not beets' own. No committed case carries
+// such a string.
 var BeetsSDPatterns = []SDPattern{
 	{Pattern: `^the `, Weight: 0.1},
 	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
-	{Pattern: `\(.*?\)`, Weight: 0.3},
-	{Pattern: `\[.*?\]`, Weight: 0.3},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
-}
-
-// SDPatternsWordBoundary carries the same six discounts as
-// [BeetsSDPatterns] with one change: the featuring pattern requires a
-// word boundary before its trigger, matching upstream's symmetric fix
-// (19d091440, unreleased at pinned 2.13.1) for the defect adjudication
-// row adj-adv-ft-draft-colon names ("Draft:" wrongly read as a
-// featuring credit). Nothing in 3a uses this table; it exists so 3b's
-// defect_free derivation and 3d's compat switch can select it by
-// assignment rather than editing string_dist.
-var SDPatternsWordBoundary = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `\b[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
 	{Pattern: `\(.*?\)`, Weight: 0.3},
 	{Pattern: `\[.*?\]`, Weight: 0.3},
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
@@ -393,53 +379,21 @@ var SDPatternsWordBoundary = []SDPattern{
 // SDPatternsNoBracketDiscount carries BeetsSDPatterns' six discounts
 // with the two 0.3-weight bracket patterns removed. The corpus README
 // calls that "arithmetically the same as charging a parenthetical at
-// full weight" (corpus/README.md:1107-1108), which holds only while no
-// later pattern fires: a full-weight discount still shifts str1, str2
-// and base_dist for the rest of the loop where a removed pattern does
-// not (beets/autotag/distance.py:97-117). The two agree on all four
+// full weight", which holds only while no later pattern fires: a
+// full-weight discount still shifts str1, str2 and base_dist for the
+// rest of the loop where a removed pattern does not
+// (beets/autotag/distance.py:98-118). The two agree on all four
 // adv-remix-* pairs, so the committed figures stand; the table is
 // defined by what it removes, not by that equivalence. It is the table
 // the four adv-remix-* cases' defect_free figures are derived under,
-// and the counterpart to SDPatternsWordBoundary for the adjudicated
+// and the corrected behavior for the adjudicated
 // bug-remix-parenthetical defect (#5868). Nothing on the distance path
-// selects it; 3d's compat switch assigns it to
+// selects it; [Compat.Apply] assigns it to
 // Tunables.StringDistPatterns.
 var SDPatternsNoBracketDiscount = []SDPattern{
 	{Pattern: `^the `, Weight: 0.1},
 	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
-}
-
-// SDPatternsGuardedNoBracketDiscount is BeetsSDPatterns with BOTH
-// adjudicated string-heuristic defects removed: the featuring pattern
-// carries SDPatternsWordBoundary's \b guard and the two 0.3-weight
-// bracket rows are absent, as in SDPatternsNoBracketDiscount.
-//
-// It exists because Tunables.StringDistPatterns is one slot and both
-// hypotheses are ruled oracle-wrong, so ruling A defaults both switches
-// off at once and neither committed table expresses that. It reproduces
-// each committed defect_free figure because the two defects do not
-// overlap on the ten probe cases: measured across all ten, no adv-ft-*
-// compared string carries a bracket or parenthesis and no adv-remix-*
-// compared string carries a featuring trigger, over the item titles,
-// albums and artists and every title, name, artist, albumartist,
-// sort-name and disambiguation string in their response bodies. The
-// proof that survives is internal/harness/conform's ModeDefault run,
-// which grades all ten against their committed figures.
-//
-// This name is deliberately NOT a legal analysis.LegalPatternTables
-// value (adjudication.go:96): that field records which single-defect
-// beets edit produced a recorded figure, and this table derived
-// nothing.
-//
-// The \b regime divergence rides with it unchanged: Python re's \b is
-// Unicode-aware and Go RE2's is ASCII-only, benign today because all
-// six adv-ft-* pairs are ASCII (3b guard 11).
-var SDPatternsGuardedNoBracketDiscount = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `\b[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
 }
 

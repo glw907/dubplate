@@ -1,33 +1,6 @@
 {
   "entries": [
     {
-      "id": "bug-ft-pattern",
-      "bug_class": "featuring-pattern (\"ft\") false positive",
-      "citation": "742ebdf69 (SD_PATTERNS' featuring discount, no word boundary, Sept 2010); 7b59604c5 (partial fix, beets 2.13.0); 19d091440 (symmetric word-boundary fix, still unreleased at pinned 2.13.1)",
-      "probe_case_ids": [
-        "adv-ft-draft-colon",
-        "adv-ft-left-colon",
-        "adv-ft-gift-space",
-        "adv-ft-soft-onesided",
-        "adv-ft-craft-titles",
-        "adv-ft-theft-artist"
-      ],
-      "reproduced": "yes",
-      "reproduced_reason": "Reproduced by all six probe cases (Task 16). Each pairs two genuinely different strings that share a leading word ending in \"ft\" (\"Draft\", \"Left\", \"Gift\", \"Soft\", \"Craft\", \"Theft\"), so SD_PATTERNS' unbounded featuring trigger deletes the rest of both strings and charges the real difference at 0.1. Every case's derived recommendation is strong/apply; recomputed with a word boundary before the trigger, every case's distance lands past strong_rec_thresh (0.04) in the medium band, so all six move the verdict. Per case, derived against defect-free distance: adv-ft-draft-colon 0.010185 / 0.101852; adv-ft-left-colon 0.011765 / 0.117647; adv-ft-gift-space 0.010784 / 0.107843; adv-ft-soft-onesided 0.030095 / 0.086667; adv-ft-craft-titles 0.009171 / 0.091708; adv-ft-theft-artist 0.009091 / 0.090909. The six span the album, track_title, and artist components, both the symmetric and the one-sided firing, and all three members of the trigger's `[\\. :]` separator class.",
-      "adjudication_refs": [
-        "adj-adv-ft-draft-colon",
-        "adj-adv-ft-left-colon",
-        "adj-adv-ft-gift-space",
-        "adj-adv-ft-soft-onesided",
-        "adj-adv-ft-craft-titles",
-        "adj-adv-ft-theft-artist"
-      ],
-      "disposition": "oracle-wrong",
-      "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary (742ebdf69, Sept 2010; partial fix 7b59604c5 in beets 2.13.0; the symmetric word-boundary fix 19d091440 still unreleased at pinned 2.13.1) is a real defect. All six probe cases move from strong/apply to medium/skip at their defect-free distance, per their own adjudication rows. Ruling taken in chat 2026-09-04, recorded by the conductor.",
-      "adjudicator": "Geoff",
-      "date": "2026-09-04"
-    },
-    {
       "id": "bug-remix-parenthetical",
       "bug_class": "parenthetical/remix near-duplicate discount",
       "citation": "#5868",

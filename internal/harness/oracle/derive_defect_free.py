@@ -31,10 +31,9 @@ baseline half: the caller runs the same subjects twice, once with no
 substitution to reproduce each case's committed distance bit-identically,
 and once with the named table to get the defect-free figure.
 
-The two tables are the same literals ``matcher.SDPatternsWordBoundary``
-and ``matcher.SDPatternsNoBracketDiscount`` carry, so a divergence
-between the Go table and this script's table is visible in review
-rather than hidden in a monkeypatch.
+The table is the same literals ``matcher.SDPatternsNoBracketDiscount``
+carries, so a divergence between the Go table and this script's table
+is visible in review rather than hidden in a monkeypatch.
 """
 
 from __future__ import annotations
@@ -52,29 +51,16 @@ from derive_oracle import build_items, pin_date, stable_json
 # shim cannot be mistaken for each other.
 SHIM_VERSION = "1"
 
-# The word-boundary-guarded table: matcher.SDPatternsWordBoundary's six
-# discounts, byte-identical to matcher.BeetsSDPatterns except the
-# featuring pattern gains a leading \b.
-SD_PATTERNS_WORD_BOUNDARY = [
-    (r"^the ", 0.1),
-    (r"[\[\(]?(ep|single)[\]\)]?", 0.0),
-    (r"\b[\[\(]?(featuring|feat|ft)[\. :].+", 0.1),
-    (r"\(.*?\)", 0.3),
-    (r"\[.*?\]", 0.3),
-    (r"(, )?(pt\.|part) .+", 0.2),
-]
-
 # matcher.SDPatternsNoBracketDiscount: BeetsSDPatterns' six discounts
 # with the two 0.3-weight bracket patterns removed.
 SD_PATTERNS_NO_BRACKET_DISCOUNT = [
     (r"^the ", 0.1),
     (r"[\[\(]?(ep|single)[\]\)]?", 0.0),
-    (r"[\[\(]?(featuring|feat|ft)[\. :].+", 0.1),
+    (r"[\[\(]?\b(featuring|feat|ft)\b[\. :].+", 0.1),
     (r"(, )?(pt\.|part) .+", 0.2),
 ]
 
 PATTERN_TABLES: dict[str, list[tuple[str, float]]] = {
-    "SDPatternsWordBoundary": SD_PATTERNS_WORD_BOUNDARY,
     "SDPatternsNoBracketDiscount": SD_PATTERNS_NO_BRACKET_DISCOUNT,
 }
 
@@ -115,6 +101,7 @@ def normalized_release(response_path: str, release_mbid: str) -> dict[str, Any]:
 
 def derive_row(plugin: Any, subject: dict[str, Any]) -> dict[str, Any]:
     from beets.autotag.match import AlbumMatch, _recommendation, assign_items
+    from beets.util import get_most_common_tags
     from derive_oracle import quiet_action
 
     pin_date(subject["eval_date"])
@@ -129,7 +116,9 @@ def derive_row(plugin: Any, subject: dict[str, Any]) -> dict[str, Any]:
         distance_module.SD_PATTERNS = PATTERN_TABLES[table_name]
     try:
         pairs, extra_items, extra_tracks = assign_items(items, info.tracks)
-        dist = distance_module.distance(items, info, pairs)
+        dist = distance_module.distance(
+            get_most_common_tags(items), info, pairs, len(extra_items)
+        )
     finally:
         distance_module.SD_PATTERNS = original_patterns
 

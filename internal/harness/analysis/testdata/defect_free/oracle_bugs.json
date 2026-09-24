@@ -1,24 +1,12 @@
 {
   "entries": [
     {
-      "id": "bug-ft-pattern",
-      "bug_class": "featuring-pattern (\"ft\") false positive",
-      "citation": "fixture",
-      "probe_case_ids": ["ft-fixture-a", "ft-fixture-b"],
-      "reproduced": "yes",
-      "adjudication_refs": ["adj-ft-fixture-a", "adj-ft-fixture-b"],
-      "disposition": "oracle-wrong",
-      "reason": "fixture: stands in for the real bug-ft-pattern row",
-      "adjudicator": "Geoff",
-      "date": "2026-09-04"
-    },
-    {
       "id": "bug-remix-parenthetical",
       "bug_class": "parenthetical/remix near-duplicate discount",
       "citation": "fixture",
-      "probe_case_ids": ["remix-fixture-c"],
+      "probe_case_ids": ["remix-fixture-a", "remix-fixture-b", "remix-fixture-c"],
       "reproduced": "yes",
-      "adjudication_refs": ["adj-remix-fixture-c"],
+      "adjudication_refs": ["adj-remix-fixture-a", "adj-remix-fixture-b", "adj-remix-fixture-c"],
       "disposition": "oracle-wrong",
       "reason": "fixture: stands in for the real bug-remix-parenthetical row",
       "adjudicator": "Geoff",

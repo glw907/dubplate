@@ -68,9 +68,9 @@
     {
       "case_id": "adv-ft-craft-titles",
       "album_id": "ad7e0005-1c4d-4a91-9b02-1d5e7a3c0005",
-      "optimal_cost": 0.08253676470588237,
-      "best_forbidden_cost": 0.4314950980392157,
-      "difference": 0.34895833333333337,
+      "optimal_cost": 0.8253676470588236,
+      "best_forbidden_cost": 1.2704656862745098,
+      "difference": 0.44509803921568625,
       "unique": true
     },
     {

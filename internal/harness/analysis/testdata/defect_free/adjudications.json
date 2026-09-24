@@ -1,9 +1,9 @@
 {
   "entries": [
     {
-      "id": "adj-ft-fixture-a",
-      "subject": {"case_id": "ft-fixture-a"},
-      "suspected": "fixture: stands in for a real adv-ft-* row",
+      "id": "adj-remix-fixture-a",
+      "subject": {"case_id": "remix-fixture-a"},
+      "suspected": "fixture: stands in for a real adv-remix-* row",
       "citation": "fixture",
       "release_truth": "fixture",
       "disposition": "oracle-wrong",
@@ -15,13 +15,13 @@
         "distance": 0.101851852,
         "recommendation": "medium",
         "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
+        "pattern_table": "SDPatternsNoBracketDiscount"
       }
     },
     {
-      "id": "adj-ft-fixture-b",
-      "subject": {"case_id": "ft-fixture-b"},
-      "suspected": "fixture: stands in for a real adv-ft-* row",
+      "id": "adj-remix-fixture-b",
+      "subject": {"case_id": "remix-fixture-b"},
+      "suspected": "fixture: stands in for a real adv-remix-* row",
       "citation": "fixture",
       "release_truth": "fixture",
       "disposition": "oracle-wrong",
@@ -33,7 +33,7 @@
         "distance": 0.117647059,
         "recommendation": "medium",
         "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
+        "pattern_table": "SDPatternsNoBracketDiscount"
       }
     },
     {

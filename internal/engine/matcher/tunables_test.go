@@ -8,7 +8,7 @@ import (
 )
 
 // TestDefaultTunables_MatchScalars proves DefaultTunables ships beets'
-// pinned 2.13.1 shipped values for the scalar and small-structure match:
+// pinned 2.14.1 shipped values for the scalar and small-structure match:
 // keys (config_default.yaml:167-204), each hard-coded here rather than
 // derived from DefaultTunables itself.
 func TestDefaultTunables_MatchScalars(t *testing.T) {
@@ -170,60 +170,29 @@ func TestDefaultTunables_ExcludedKeysStayAbsent(t *testing.T) {
 
 // TestDefaultTunables_StringDistPatternsDefaultsToBeets proves the
 // SD_PATTERNS-as-a-value seam: Tunables.StringDistPatterns defaults to
-// BeetsSDPatterns, not SDPatternsWordBoundary, so 3a's default replays
-// beets' behavior including the adjudicated bug-ft-pattern defect.
+// BeetsSDPatterns, not SDPatternsNoBracketDiscount, so the default
+// replays beets' behavior including the adjudicated
+// bug-remix-parenthetical defect.
 func TestDefaultTunables_StringDistPatternsDefaultsToBeets(t *testing.T) {
 	got := DefaultTunables().StringDistPatterns
 	if !reflect.DeepEqual(got, BeetsSDPatterns) {
 		t.Errorf("StringDistPatterns = %v, want BeetsSDPatterns (%v)", got, BeetsSDPatterns)
 	}
-	if reflect.DeepEqual(got, SDPatternsWordBoundary) {
-		t.Error("StringDistPatterns defaults to SDPatternsWordBoundary; it must default to BeetsSDPatterns")
-	}
 }
 
 // TestBeetsSDPatterns_SixEntriesInBeetsOrder pins SD_PATTERNS
-// (autotag/distance.py:35-42) byte-for-byte in beets' own order.
+// (autotag/distance.py:36-43) byte-for-byte in beets' own order.
 func TestBeetsSDPatterns_SixEntriesInBeetsOrder(t *testing.T) {
 	want := []SDPattern{
 		{Pattern: `^the `, Weight: 0.1},
 		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-		{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+		{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
 		{Pattern: `\(.*?\)`, Weight: 0.3},
 		{Pattern: `\[.*?\]`, Weight: 0.3},
 		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
 	}
 	if !reflect.DeepEqual(BeetsSDPatterns, want) {
 		t.Errorf("BeetsSDPatterns = %v, want %v", BeetsSDPatterns, want)
-	}
-}
-
-// TestSDPatternsWordBoundary_OnlyFeaturingPatternDiffers proves the
-// guarded table (adj-adv-ft-draft-colon, upstream 19d091440) changes
-// exactly one entry, at the same index, by prepending a word boundary,
-// and leaves the other five discounts byte-identical to
-// [BeetsSDPatterns].
-func TestSDPatternsWordBoundary_OnlyFeaturingPatternDiffers(t *testing.T) {
-	if len(SDPatternsWordBoundary) != len(BeetsSDPatterns) {
-		t.Fatalf("SDPatternsWordBoundary has %d entries, want %d", len(SDPatternsWordBoundary), len(BeetsSDPatterns))
-	}
-
-	const featuringIndex = 2
-	for i, beets := range BeetsSDPatterns {
-		guarded := SDPatternsWordBoundary[i]
-		if i == featuringIndex {
-			wantGuarded := `\b` + beets.Pattern
-			if guarded.Pattern != wantGuarded {
-				t.Errorf("SDPatternsWordBoundary[%d].Pattern = %q, want %q", i, guarded.Pattern, wantGuarded)
-			}
-			if guarded.Weight != beets.Weight {
-				t.Errorf("SDPatternsWordBoundary[%d].Weight = %v, want %v (unchanged)", i, guarded.Weight, beets.Weight)
-			}
-			continue
-		}
-		if guarded != beets {
-			t.Errorf("SDPatternsWordBoundary[%d] = %+v, want byte-identical %+v", i, guarded, beets)
-		}
 	}
 }
 
@@ -234,7 +203,7 @@ func TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved(t *testing.T) {
 	want := []SDPattern{
 		{Pattern: `^the `, Weight: 0.1},
 		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-		{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+		{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
 		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
 	}
 	if !reflect.DeepEqual(SDPatternsNoBracketDiscount, want) {

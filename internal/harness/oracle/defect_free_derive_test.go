@@ -18,17 +18,15 @@ import (
 // hypothesisPatternTable names the SD_PATTERNS substitution each
 // analysis.StringHeuristicHypotheses member's probe cases derive their
 // defect-free figure under ([analysis.DefectFree]'s own doc comment):
-// the word-boundary-guarded table for bug-ft-pattern's six adv-ft-*
-// rows, and the bracket-discount-free table for
-// bug-remix-parenthetical's four adv-remix-* rows.
+// the bracket-discount-free table for bug-remix-parenthetical's four
+// adv-remix-* rows.
 var hypothesisPatternTable = map[string]string{
-	"bug-ft-pattern":          "SDPatternsWordBoundary",
 	"bug-remix-parenthetical": "SDPatternsNoBracketDiscount",
 }
 
 // defectFreeSubjects resolves analysis.StringHeuristicHypotheses' probe
 // cases from the real, committed oracle-bug and adjudication ledgers
-// into the ten DefectFreeSubjects this pass populates. pattern names
+// into the four DefectFreeSubjects the ledgers populate. pattern names
 // the substitution: an empty string asks for the both-ways check's
 // baseline half, and the named table asks for the defect-free figure.
 func defectFreeSubjects(t *testing.T, root string, pattern func(hypothesis string) string) []DefectFreeSubject {
@@ -110,7 +108,7 @@ func deriveDefectFreeRows(t *testing.T, opts Options, subjects []DefectFreeSubje
 
 // TestDefectFreeReproducesCommittedDistanceBitIdentically is the
 // both-ways check's baseline half (R20, M-a): run with SD_PATTERNS
-// untouched over all ten string-heuristic subjects, and every row's
+// untouched over all four string-heuristic subjects, and every row's
 // distance must equal the case's own committed candidate distance,
 // bit-identically. A script that cannot reproduce the committed number
 // has not proved its counterfactual half, so the defect-free half below
@@ -124,8 +122,8 @@ func TestDefectFreeReproducesCommittedDistanceBitIdentically(t *testing.T) {
 
 	subjects := defectFreeSubjects(t, root, func(string) string { return "" })
 	rows := deriveDefectFreeRows(t, opts, subjects)
-	if len(rows) != 10 {
-		t.Fatalf("derived %d baseline rows, want 10", len(rows))
+	if len(rows) != 4 {
+		t.Fatalf("derived %d baseline rows, want 4", len(rows))
 	}
 
 	for _, row := range rows {
@@ -142,7 +140,7 @@ func TestDefectFreeReproducesCommittedDistanceBitIdentically(t *testing.T) {
 }
 
 // TestDefectFreeMatchesTheFirstPopulation is this task's acceptance
-// line for the ten rows: every derived defect-free distance,
+// line for the four rows: every derived defect-free distance,
 // recommendation, action, and pattern_table must equal the block
 // corpus/analysis/adjudications.json commits for that row, and the test
 // reports each pair (R13's one-time numeric half).
@@ -155,8 +153,8 @@ func TestDefectFreeMatchesTheFirstPopulation(t *testing.T) {
 
 	subjects := defectFreeSubjects(t, root, func(hyp string) string { return hypothesisPatternTable[hyp] })
 	rows := deriveDefectFreeRows(t, opts, subjects)
-	if len(rows) != 10 {
-		t.Fatalf("derived %d defect-free rows, want 10", len(rows))
+	if len(rows) != 4 {
+		t.Fatalf("derived %d defect-free rows, want 4", len(rows))
 	}
 
 	adj, err := analysis.LoadAdjudications(filepath.Join(root, "corpus", "analysis", "adjudications.json"))
@@ -276,7 +274,7 @@ func TestDefectFreeReDeriveCatchesAPerturbation(t *testing.T) {
 // 8: with the SD_PATTERNS substitution removed (every subject asks for
 // the untouched table, as the both-ways check's baseline half does),
 // every derived distance equals its own baseline rather than its
-// committed defect-free figure, so the re-derive diff fires on all ten
+// committed defect-free figure, so the re-derive diff fires on all four
 // rows.
 func TestDefectFreeReDeriveCatchesTheMonkeypatchRemoved(t *testing.T) {
 	opts := venvOptions(t)
@@ -287,8 +285,8 @@ func TestDefectFreeReDeriveCatchesTheMonkeypatchRemoved(t *testing.T) {
 
 	subjects := defectFreeSubjects(t, root, func(string) string { return "" })
 	rows := deriveDefectFreeRows(t, opts, subjects)
-	if len(rows) != 10 {
-		t.Fatalf("derived %d rows, want 10", len(rows))
+	if len(rows) != 4 {
+		t.Fatalf("derived %d rows, want 4", len(rows))
 	}
 
 	adj, err := analysis.LoadAdjudications(filepath.Join(root, "corpus", "analysis", "adjudications.json"))
@@ -312,7 +310,7 @@ func TestDefectFreeReDeriveCatchesTheMonkeypatchRemoved(t *testing.T) {
 			diverged++
 		}
 	}
-	if diverged != 10 {
-		t.Errorf("removing the monkeypatch diverged from the committed defect_free figures on %d of 10 rows, want 10", diverged)
+	if diverged != len(rows) {
+		t.Errorf("removing the monkeypatch diverged from the committed defect_free figures on %d of %d rows, want all", diverged, len(rows))
 	}
 }

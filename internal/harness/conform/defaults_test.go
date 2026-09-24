@@ -183,7 +183,6 @@ func TestItemFieldsProjectionAgreesWithCorpus(t *testing.T) {
 // silently.
 func TestPatternTableNamesResolve(t *testing.T) {
 	tables := map[string][]matcher.SDPattern{
-		"SDPatternsWordBoundary":      matcher.SDPatternsWordBoundary,
 		"SDPatternsNoBracketDiscount": matcher.SDPatternsNoBracketDiscount,
 	}
 	for _, name := range analysis.LegalPatternTables {

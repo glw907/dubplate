@@ -1,10 +1,10 @@
 {
   "schema_version": "4",
-  "beets": "2.13.1",
+  "beets": "2.14.1",
   "unidecode": "1.4.0",
   "jellyfish": "1.2.1",
   "lap": "0.5.13",
-  "numpy": "2.5.2",
+  "numpy": "2.5.3",
   "mediafile": "0.17.0",
   "shim_version": "1",
   "profile_hashes": {

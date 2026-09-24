@@ -477,7 +477,7 @@ func TestLoadManifest(t *testing.T) {
 
 func TestLoadManifestRejectsMissingSchemaVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "manifest.json")
-	if err := os.WriteFile(path, []byte(`{"beets":"2.13.1"}`), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"beets":"2.14.1"}`), 0o644); err != nil {
 		t.Fatalf("write manifest fixture: %v", err)
 	}
 	_, err := LoadManifest(path)

@@ -10,7 +10,7 @@ import (
 // fullTable builds a table that satisfies every check, so each subtest
 // below can break exactly one thing and attribute the failure to it.
 func fullTable() *ComponentTable {
-	t := &ComponentTable{Beets: "2.13.1", ShimVersion: "1"}
+	t := &ComponentTable{Beets: "2.14.1", ShimVersion: "1"}
 	for i := range ComponentRowFloor {
 		method := componentMethods[i%len(componentMethods)]
 		t.Rows = append(t.Rows, ComponentRow{

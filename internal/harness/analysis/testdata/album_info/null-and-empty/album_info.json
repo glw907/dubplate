@@ -1,6 +1,6 @@
 {
   "shim_version": "1",
-  "beets_version": "2.13.1",
+  "beets_version": "2.14.1",
   "rows": [
     {
       "case_id": "clean-match",

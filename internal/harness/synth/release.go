@@ -146,7 +146,7 @@ type wsMedium struct {
 // on internal/harness/oracle/testdata/cases/smoke/responses/release.json,
 // the proven minimal shape a real derivation accepts, and cross-checked
 // against beetsplug/musicbrainz.py's own album_info/track_info parsing
-// (pinned beets 2.13.1).
+// (pinned beets 2.14.1).
 type wsRelease struct {
 	ID                 string               `json:"id"`
 	Title              string               `json:"title"`

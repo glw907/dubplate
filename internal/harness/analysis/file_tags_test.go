@@ -33,7 +33,7 @@ func fullFileTagCases() map[string]*cassette.Case {
 func fullFileTagLedger() *FileTagLedger {
 	l := &FileTagLedger{
 		ShimVersion:    "1",
-		BeetsVersion:   "2.13.1",
+		BeetsVersion:   "2.14.1",
 		WritableFields: []string{"title", "artist"},
 		ReadonlyFields: []string{"length", "bitrate"},
 		Template:       map[string]any{"length": 0.0, "bitrate": 0},
@@ -140,7 +140,7 @@ func TestLoadFileTagLedgerParsesTheTestdataFixture(t *testing.T) {
 func TestLoadFileTagLedgerRejectsAnInventedKey(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "file_tags.json")
-	body := `{"shim_version":"1","beets_version":"2.13.1","writable_fields":[],"readonly_fields":[],"template":{},"rows":[],"extra_key":true}`
+	body := `{"shim_version":"1","beets_version":"2.14.1","writable_fields":[],"readonly_fields":[],"template":{},"rows":[],"extra_key":true}`
 	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
 		t.Fatalf("write fixture: %v", err)
 	}

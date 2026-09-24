@@ -163,7 +163,7 @@ func TestCheckAdjudications_DefectFreeWithinRowRules(t *testing.T) {
 		Adjudicator:      "Geoff",
 		Date:             "2026-09-04",
 	}
-	goodBlock := DefectFree{Distance: 0.101851852, Recommendation: "medium", Action: "skip", PatternTable: "SDPatternsWordBoundary"}
+	goodBlock := DefectFree{Distance: 0.101851852, Recommendation: "medium", Action: "skip", PatternTable: "SDPatternsNoBracketDiscount"}
 
 	withBlock := oracleWrong
 	block := goodBlock
@@ -345,8 +345,8 @@ func TestAppliedFieldExampleDecodesAndPasses(t *testing.T) {
 }
 
 // loadDefectFreeFixture loads the hand-authored oracle-bug and
-// adjudication ledgers under testdata/defect_free: three hypotheses (two
-// StringHeuristicHypotheses members and bug-assignment-rejection-gap,
+// adjudication ledgers under testdata/defect_free: two hypotheses (the
+// StringHeuristicHypotheses member and bug-assignment-rejection-gap,
 // which is oracle-wrong but not a member) resolving to five
 // adjudication rows, invented rather than drawn from the committed
 // corpus per the fixture discipline.
@@ -379,29 +379,29 @@ func TestCheckDefectFree(t *testing.T) {
 			name: "a probe case's defect_free block deleted",
 			mutate: func(_ *OracleBugLedger, adj *AdjudicationLedger) {
 				for i := range adj.Entries {
-					if adj.Entries[i].ID == "adj-ft-fixture-a" {
+					if adj.Entries[i].ID == "adj-remix-fixture-a" {
 						adj.Entries[i].DefectFree = nil
 					}
 				}
 			},
-			wantHas: `probe case "ft-fixture-a" (bug-ft-pattern): adjudication row adj-ft-fixture-a carries no defect_free block`,
+			wantHas: `probe case "remix-fixture-a" (bug-remix-parenthetical): adjudication row adj-remix-fixture-a carries no defect_free block`,
 		},
 		{
 			name: "an illegal pattern_table value",
 			mutate: func(_ *OracleBugLedger, adj *AdjudicationLedger) {
 				for i := range adj.Entries {
-					if adj.Entries[i].ID == "adj-ft-fixture-a" {
+					if adj.Entries[i].ID == "adj-remix-fixture-a" {
 						adj.Entries[i].DefectFree.PatternTable = "BeetsSDPatterns"
 					}
 				}
 			},
-			wantHas: `pattern_table "BeetsSDPatterns" is not one of the two legal values`,
+			wantHas: `pattern_table "BeetsSDPatterns" is not a legal value`,
 		},
 		{
 			name: "a recommendation that does not appear in corrected_verdict",
 			mutate: func(_ *OracleBugLedger, adj *AdjudicationLedger) {
 				for i := range adj.Entries {
-					if adj.Entries[i].ID == "adj-ft-fixture-a" {
+					if adj.Entries[i].ID == "adj-remix-fixture-a" {
 						adj.Entries[i].DefectFree.Recommendation = "strong"
 					}
 				}
@@ -413,7 +413,7 @@ func TestCheckDefectFree(t *testing.T) {
 			mutate: func(_ *OracleBugLedger, adj *AdjudicationLedger) {
 				for i := range adj.Entries {
 					if adj.Entries[i].ID == "adj-assign-fixture-d" {
-						adj.Entries[i].DefectFree = &DefectFree{Distance: 0.05, Recommendation: "medium", Action: "skip", PatternTable: "SDPatternsWordBoundary"}
+						adj.Entries[i].DefectFree = &DefectFree{Distance: 0.05, Recommendation: "medium", Action: "skip", PatternTable: "SDPatternsNoBracketDiscount"}
 					}
 				}
 			},

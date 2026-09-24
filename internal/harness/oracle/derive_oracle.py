@@ -237,7 +237,7 @@ def derive(config_path: str, input_path: str) -> dict[str, Any]:
 
         items = build_items(case["items"])
         item_index = {id(item): i for i, item in enumerate(items)}
-        _, _, proposal = autotag.tag_album(items)
+        proposal = autotag.tag_album(autotag.Source.from_items(items))
 
         candidates = [candidate_record(c, item_index) for c in proposal.candidates]
         best = candidates[0] if candidates else None

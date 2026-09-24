@@ -1171,6 +1171,18 @@ search fallback and one release document is the whole fixture.
 | `adv-ft-craft-titles` | the per-track path: `track_distance` calls the same `string_dist` for `track_title`, so all three items' `Craft: ...` titles discount against three different `Craft: ...` candidate tracks (0.050000, 0.056250, 0.058824 against true 0.500000, 0.562500, 0.588235). The album title matches exactly on both sides, so `album` reads 0 and the record isolates the per-track path. | `tracks: 0.009171`, distance 0.009170752, **strong, apply** | distance 0.091707516, **medium, skip** | none |
 | `adv-ft-theft-artist` | the album-level `artist` component (distance.py:447-448) runs the same `string_dist`: items credited `Theft Marine` against a candidate credited `Theft Signal`, both collapsing to `the`. `string_dist` reads 0.054545 against a true 0.545455. Both `artist` and `albumartist` are overridden, per family 3's `get_most_common_tags` note. | `artist: 0.009091`, distance 0.009090909, **strong, apply** | distance 0.090909091, **medium, skip** | none |
 
+**Beets 2.14.1 moved the pin past this defect (Geoff's ruling,
+2026-09-24).** Beets 2.14.0 shipped the word-boundary fix (`19d091440`),
+so `SD_PATTERNS`' featuring pattern now reads
+`[\[\(]?\b(featuring|feat|ft)\b[\. :].+` and none of the six triggers
+fires. The re-derived records read the defect-free column above, bit
+for bit, at medium/skip. `bug-ft-pattern` left `oracle_bugs.json`, and
+the six adjudication rows no longer carry a `defect_free` block. The
+table's "derived" column is the 2.13.1 record. A medium verdict no
+longer takes beets' strong-match early return, so each case now logs the
+text-search fallback too, answered by the corpus's default empty search
+result (`responses/002.json`).
+
 ### The parenthetical and remix near-duplicate discount
 
 `adv-remix-*`, 4 cases, probing `oracle_bugs.json`'s
@@ -2338,7 +2350,8 @@ two not:
   `import.languages` makes it reachable, contradicting the report.
 
 All six hypotheses were ruled by the owner on 2026-09-04, and none is
-pending. `bug-ft-pattern`, `bug-remix-parenthetical`, and
+pending. `bug-ft-pattern` left the ledger on 2026-09-24, when the pin
+moved to beets 2.14.1, which ships its fix. `bug-ft-pattern`, `bug-remix-parenthetical`, and
 `bug-nonlatin-alias-selection` sit at `disposition: "oracle-wrong"`;
 `bug-threshold-boundary` and `bug-locale-alias-ignored` sit at
 `disposition: "oracle-correct"`. `bug-assignment-rejection-gap` was

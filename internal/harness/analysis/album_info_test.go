@@ -76,7 +76,7 @@ func fullAlbumInfoCases() map[string]*cassette.Case {
 // failure to it, matching fullFileTagLedger's role for
 // CheckFileTagLedger.
 func fullAlbumInfoLedger() *AlbumInfoLedger {
-	l := &AlbumInfoLedger{ShimVersion: "1", BeetsVersion: "2.13.1"}
+	l := &AlbumInfoLedger{ShimVersion: "1", BeetsVersion: "2.14.1"}
 	for _, s := range AlbumInfoSubjects {
 		for n := range albumInfoTestLookups[s.CaseID] {
 			row := AlbumInfoLedgerRow{
@@ -260,7 +260,7 @@ func TestLoadAlbumInfoLedgerKeepsNullDistinctFromEmpty(t *testing.T) {
 func TestLoadAlbumInfoLedgerRejectsAnInventedKey(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "album_info.json")
-	body := `{"shim_version":"1","beets_version":"2.13.1","rows":[],"extra_key":true}`
+	body := `{"shim_version":"1","beets_version":"2.14.1","rows":[],"extra_key":true}`
 	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
 		t.Fatalf("write fixture: %v", err)
 	}

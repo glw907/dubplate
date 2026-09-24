@@ -122,7 +122,7 @@ type AppliedField struct {
 // StringHeuristicHypotheses names the oracle-bug hypotheses whose
 // defect is a defect OF SD_PATTERNS, and therefore the only ones whose
 // corrected expectation a pattern-table swap can express. Of
-// corpus/analysis/oracle_bugs.json's four hypotheses not ruled
+// corpus/analysis/oracle_bugs.json's three hypotheses not ruled
 // oracle-correct, the other two are excluded on purpose:
 // bug-nonlatin-alias-selection (oracle-wrong) is a translation defect
 // with no SD_PATTERNS counterfactual, and
@@ -131,17 +131,16 @@ type AppliedField struct {
 // so no correct answer exists for the oracle to have produced) is the
 // class ruling A names as having no beets counterfactual at all, so its
 // six adv-assign-* probe cases owe no block.
-var StringHeuristicHypotheses = []string{"bug-ft-pattern", "bug-remix-parenthetical"}
+var StringHeuristicHypotheses = []string{"bug-remix-parenthetical"}
 
-// LegalPatternTables is the two legal values [DefectFree.PatternTable]
-// carries: the guarded table for bug-ft-pattern's six adv-ft-* rows and
-// the bracket-discount-free table for bug-remix-parenthetical's four
-// adv-remix-* rows. A hand-edit to a third string fails loudly rather
-// than becoming an unreproducible figure. It is exported so
-// internal/harness/conform's m11 fold checks these very names against
-// the matcher tables they stand for, which this package must not
-// import.
-var LegalPatternTables = []string{"SDPatternsWordBoundary", "SDPatternsNoBracketDiscount"}
+// LegalPatternTables is the legal values [DefectFree.PatternTable]
+// carries: the bracket-discount-free table for
+// bug-remix-parenthetical's four adv-remix-* rows. A hand-edit to any
+// other string fails loudly rather than becoming an unreproducible
+// figure. It is exported so internal/harness/conform checks these very
+// names against the matcher tables they stand for, which this package
+// must not import.
+var LegalPatternTables = []string{"SDPatternsNoBracketDiscount"}
 
 // AdjudicationLedger is corpus/analysis/adjudications.json: the general
 // divergence log, forward-compatible with rung 4's shadow divergences.
@@ -342,7 +341,7 @@ func CheckDefectFree(bugs *OracleBugLedger, adj *AdjudicationLedger) error {
 			}
 			block := row.DefectFree
 			if !slices.Contains(LegalPatternTables, block.PatternTable) {
-				errs = append(errs, fmt.Errorf("defect_free: %s: pattern_table %q is not one of the two legal values (%s)", row.ID, block.PatternTable, strings.Join(LegalPatternTables, ", ")))
+				errs = append(errs, fmt.Errorf("defect_free: %s: pattern_table %q is not a legal value (%s)", row.ID, block.PatternTable, strings.Join(LegalPatternTables, ", ")))
 			}
 			if !strings.Contains(row.CorrectedVerdict, block.Recommendation) {
 				errs = append(errs, fmt.Errorf("defect_free: %s: recommendation %q does not appear verbatim in corrected_verdict %q", row.ID, block.Recommendation, row.CorrectedVerdict))

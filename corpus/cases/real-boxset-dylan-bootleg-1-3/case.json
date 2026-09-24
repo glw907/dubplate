@@ -713,7 +713,7 @@
     "recommendation": "strong",
     "action": "apply",
     "echoed_date": "2026-09-03",
-    "config_hash": "9817096b9c74a98d79388d7e7ed83d06b0431b877eb2b3fdc25fa52740972c15",
+    "config_hash": "75f9a26d158785d969a0382b6af577b2da9bd4680144c53a02c42f8dc5376200",
     "weights": {
       "album": 3,
       "album_id": 5,

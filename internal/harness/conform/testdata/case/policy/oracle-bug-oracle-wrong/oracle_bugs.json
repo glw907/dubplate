@@ -1,7 +1,7 @@
 {
   "entries": [
     {
-      "id": "bug-ft-pattern",
+      "id": "bug-remix-parenthetical",
       "bug_class": "string-heuristic",
       "citation": "fixture/policy-table",
       "probe_case_ids": [

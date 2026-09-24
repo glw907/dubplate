@@ -48,18 +48,18 @@ const (
 // DefectFreeFloor is the number of adjudication rows carrying a
 // defect_free block today, which is ModeDefault's whole graded
 // population.
-const DefectFreeFloor = 10
+const DefectFreeFloor = 4
 
-// ProbeCaseFloor is the number of probe cases across the four
+// ProbeCaseFloor is the number of probe cases across the three
 // hypotheses in corpus/analysis/oracle_bugs.json not ruled
-// oracle-correct: bug-ft-pattern (6), bug-remix-parenthetical (4),
+// oracle-correct: bug-remix-parenthetical (4),
 // bug-nonlatin-alias-selection (4), and bug-assignment-rejection-gap
 // (6, no-correct-answer, owner ruling 2026-09-07). The other two
 // hypotheses carry probe cases too but are excluded here because they
 // are ruled oracle-correct: bug-threshold-boundary's
 // rec-strong-medium-boundary, and bug-locale-alias-ignored's
 // real-nonlatin-utada-first-love and real-nonlatin-utada-first-love-locale.
-const ProbeCaseFloor = 20
+const ProbeCaseFloor = 14
 
 // ProbeCaseOracleCorrectRows is the number of those probe cases whose
 // OWN adjudication row reads oracle-correct, so they carry no corrected
@@ -147,13 +147,13 @@ type CaseGradeSummary struct {
 //
 // ModeDefault does not drive tag.Album. It re-scores each case's own
 // committed candidate set under the corrected table, and the reason is
-// that a corrected verdict changes the FLOW: all ten defect_free probe
+// that a corrected verdict changes the FLOW: all four defect_free probe
 // cases log one lookup and zero searches and score strong under compat
 // and medium under the corrected table, so re-running the flow would
 // lose the strong-match early return (match.py:436), issue a search the
 // case never logged, and fail the request-set rule before any
 // defect_free figure was compared. The request-set rule is therefore
-// ModeCompat's alone. Re-scoring reproduces the ten committed figures
+// ModeCompat's alone. Re-scoring reproduces the four committed figures
 // exactly, because the ladder's medium rung is decided by the minimum
 // distance alone (match.py:288-290) and a candidate set a search would
 // have widened cannot move a medium verdict off medium. Revision 2,
@@ -516,14 +516,13 @@ func checkRequestSet(caseID string, srv *stub.Server) []error {
 // compatFor returns the compat selection one case is graded under: the
 // mode's own baseline, widened by every defect class the case's policy
 // turns on. Widening is what a pending hypothesis asks for, and it is
-// inert under ModeCompat, where both switches are already on.
+// inert under ModeCompat, where every switch is already on.
 func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 	base := matcher.DefaultCompat()
 	if mode == ModeCompat {
 		base = matcher.FullCompat()
 	}
 	return matcher.Compat{
-		FtPattern:          base.FtPattern || policy.Compat.FtPattern,
 		RemixParenthetical: base.RemixParenthetical || policy.Compat.RemixParenthetical,
 	}
 }
@@ -534,7 +533,7 @@ func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 // name against the case's own stub, translates each, re-solves the
 // assignment, re-scores the album distance and re-sorts, all under
 // matcher.DefaultCompat()'s corrected pattern table, and issues no
-// search. That reproduces the ten committed defect_free figures exactly
+// search. That reproduces the four committed defect_free figures exactly
 // (GradeMode's own doc comment states why) without ever taking a flow
 // the case's request log does not cover, so the request-set rule stays
 // ModeCompat's alone.
@@ -545,7 +544,7 @@ func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 // no-correct-answer (policy.GradeVerdict false) has no corrected verdict
 // to grade against and is marked ungraded; a probe of an oracle-wrong
 // hypothesis whose OWN row agrees (policy.VerdictFrom) is graded against
-// its defect_free block when the row carries one (the ten defect_free
+// its defect_free block when the row carries one (the four defect_free
 // rows), or otherwise marked ungraded, since it has no expressible
 // rung-3 fix (Resolution R1) either; every other case is compared
 // against its own committed (that is, ModeCompat) verdict, and a
@@ -648,7 +647,7 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		res.ungraded = true
 		res.ungradedReason = fmt.Sprintf("%s: adjudicated no-correct-answer, so it has no corrected verdict to grade against (Resolution R1)", c.ID)
 	case policy.VerdictFrom == verdictFromAdjudication && hasRow && row.DefectFree != nil:
-		// One of the ten defect_free rows: graded against the block
+		// One of the four defect_free rows: graded against the block
 		// rather than the case's own (defective) committed record.
 		var dist float64
 		if len(sorted) > 0 {
@@ -683,8 +682,8 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	return res, nil
 }
 
-// CheckDefaultCompatMatchesTheLedger proves matcher.DefaultCompat's two
-// literals still agree with corpus/analysis/oracle_bugs.json's own
+// CheckDefaultCompatMatchesTheLedger proves matcher.DefaultCompat's
+// literal still agrees with corpus/analysis/oracle_bugs.json's own
 // dispositions. The engine never reads corpus/, so this is the only
 // place the two can be compared, and it is a HARD failure rather than a
 // pending row: a disposition is an owner decision, and an agent
@@ -705,7 +704,6 @@ func CheckDefaultCompatMatchesTheLedger(root string) error {
 		hypothesisID string
 		switchOn     bool
 	}{
-		{"bug-ft-pattern", def.FtPattern},
 		{"bug-remix-parenthetical", def.RemixParenthetical},
 	}
 
@@ -885,10 +883,8 @@ const (
 //
 // Compat is the whole per-class selection rather than one bool, because
 // "a switch is per defect class and cannot be half on" (spec :302) is a
-// statement about EACH class: a case probing a pending bug-ft-pattern
-// while bug-remix-parenthetical stays oracle-wrong needs {true, false},
-// which a single bool would render as {true, true} and bake into rung
-// 15's reference behavior. It is dormant today only because
+// statement about EACH class, and a second expressible class must not
+// be rendered on because its neighbor is. It is dormant today because
 // oracle_bugs.json carries zero pending rows.
 type casePolicy struct {
 	DistanceCompare    distanceCompare
@@ -989,15 +985,13 @@ func policyFor(caseID string, ties *analysis.TieLedger, prox *analysis.Proximity
 
 // widenCompat turns on the defect class hypothesisID names, leaving
 // every other class as it was. A hypothesis whose defect no compat
-// switch can express widens nothing: matcher.Compat carries the two
-// string-heuristic classes and no more, because the other two
+// switch can express widens nothing: matcher.Compat carries the one
+// string-heuristic class and no more, because the other two
 // hypotheses (bug-nonlatin-alias-selection, oracle-wrong;
 // bug-assignment-rejection-gap, no-correct-answer) have no fix a rung-3
 // port can express.
 func widenCompat(c matcher.Compat, hypothesisID string) matcher.Compat {
 	switch hypothesisID {
-	case "bug-ft-pattern":
-		c.FtPattern = true
 	case "bug-remix-parenthetical":
 		c.RemixParenthetical = true
 	}

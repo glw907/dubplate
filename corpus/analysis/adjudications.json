@@ -12,13 +12,7 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.101852",
-      "defect_free": {
-        "distance": 0.10185185185185186,
-        "recommendation": "medium",
-        "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
-      }
+      "corrected_verdict": "medium, skip; defect-free distance 0.101852"
     },
     {
       "id": "adj-adv-ft-left-colon",
@@ -32,13 +26,7 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.117647",
-      "defect_free": {
-        "distance": 0.11764705882352941,
-        "recommendation": "medium",
-        "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
-      }
+      "corrected_verdict": "medium, skip; defect-free distance 0.117647"
     },
     {
       "id": "adj-adv-ft-gift-space",
@@ -52,13 +40,7 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.107843",
-      "defect_free": {
-        "distance": 0.10784313725490197,
-        "recommendation": "medium",
-        "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
-      }
+      "corrected_verdict": "medium, skip; defect-free distance 0.107843"
     },
     {
       "id": "adj-adv-ft-soft-onesided",
@@ -72,13 +54,7 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.086667",
-      "defect_free": {
-        "distance": 0.08666666666666667,
-        "recommendation": "medium",
-        "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
-      }
+      "corrected_verdict": "medium, skip; defect-free distance 0.086667"
     },
     {
       "id": "adj-adv-ft-craft-titles",
@@ -92,13 +68,7 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.091708",
-      "defect_free": {
-        "distance": 0.09170751633986929,
-        "recommendation": "medium",
-        "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
-      }
+      "corrected_verdict": "medium, skip; defect-free distance 0.091708"
     },
     {
       "id": "adj-adv-ft-theft-artist",
@@ -112,13 +82,7 @@
       "reason": "Adjudicated by the owner: the featuring pattern's missing word boundary is a real defect. SD_PATTERNS' featuring discount (742ebdf69, Sept 2010) carries no word boundary before its \"featuring|feat|ft\" trigger; 7b59604c5 (beets 2.13.0) is only a partial fix, and the symmetric word-boundary fix, 19d091440, remains unreleased at pinned beets 2.13.1. The verdict moves from strong/apply to the corrected medium/skip at the defect-free distance. Batch 1, hypothesis 1 (Geoff, 2026-09-04).",
       "adjudicator": "Geoff",
       "date": "2026-09-04",
-      "corrected_verdict": "medium, skip; defect-free distance 0.090909",
-      "defect_free": {
-        "distance": 0.0909090909090909,
-        "recommendation": "medium",
-        "action": "skip",
-        "pattern_table": "SDPatternsWordBoundary"
-      }
+      "corrected_verdict": "medium, skip; defect-free distance 0.090909"
     },
     {
       "id": "adj-adv-remix-both-sides",

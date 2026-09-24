@@ -160,7 +160,7 @@
     "recommendation": "strong",
     "action": "apply",
     "echoed_date": "2026-09-03",
-    "config_hash": "ca321f1cb078529cecad206cd4073d6aeb6502c5db5185f4e0010ca44118da92",
+    "config_hash": "50047bc59abf9e7927e6b2a95d41131c50efb8db5280c913548827e56f1942f3",
     "weights": {
       "album": 3,
       "album_id": 5,

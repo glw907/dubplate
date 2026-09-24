@@ -179,7 +179,7 @@
     "recommendation": "medium",
     "action": "skip",
     "echoed_date": "2026-09-03",
-    "config_hash": "714180f33f88aa6398573dc1ee1a5490e4d34cdaa98d9435abaf1d81a13fe96b",
+    "config_hash": "d8e6aa6e26cf00c896b31eb829611b2731bda3ce7c7b74c4a1c44b263adf0986",
     "weights": {
       "album": 3,
       "album_id": 5,

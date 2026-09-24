@@ -9,7 +9,7 @@ import (
 
 // Every want below was measured by calling
 // beets.autotag.distance.string_dist in the pinned venv
-// (tools/venv/.venv, beets 2.13.1) on exactly these inputs, and the
+// (tools/venv/.venv, beets 2.14.1) on exactly these inputs, and the
 // comparison is exact rather than tolerant because bit identity is the
 // port's target (contract 12). A row that needs a tolerance is a
 // finding about operation order, not a test to loosen.
@@ -53,11 +53,11 @@ func TestStringDist(t *testing.T) {
 		{"part", new("Ember Wharf part 2"), new("Ember Wharf"), 0.06666666666666667},
 		{"pt", new("Ember Wharf, pt. 2"), new("Ember Wharf"), 0.046153846153846156},
 
-		// The bug-ft-pattern defect, shipped on purpose: "ft" inside
-		// "Draft" is read as a featuring credit, so the colon and
-		// everything after it is discounted away. See
-		// TestStringDistSeparatesPatternTables.
-		{"ft inside a word", new("Draft: Ember Wharf"), new("Draft: Northern Lines"), 0.061111111111111116},
+		// The featuring trigger needs a word boundary on both sides, so
+		// the "ft" inside "Draft" is not a featuring credit and the two
+		// titles are charged their whole difference. See
+		// TestStringDistFeaturingNeedsAWordBoundary.
+		{"ft inside a word", new("Draft: Ember Wharf"), new("Draft: Northern Lines"), 0.6111111111111112},
 
 		// The three solo rows, where one side empties. "the " deletes
 		// to nothing and earns the full 0.1; "(ep)" deletes to nothing
@@ -101,20 +101,20 @@ func TestStringDistPatternLoopAdoptsOnlyOnPositiveDelta(t *testing.T) {
 }
 
 // TestBeetsSDPatternsMatchBeetsLiterals holds BeetsSDPatterns to the
-// six literals at beets/autotag/distance.py:35-42, pinned 2.13.1, byte
+// six literals at beets/autotag/distance.py:36-43, pinned 2.14.1, byte
 // for byte.
 //
 // The literals are written out here rather than compared against
-// anything the package exports, so correcting the shipped table takes
+// anything the package exports, so editing the shipped table takes
 // two edits and cannot happen quietly. Tier 0 cannot stand in for this
-// check: the word-boundary guard on the featuring pattern changes none
-// of the 72 committed rows, so the corpus is blind to exactly the edit
-// most likely to be made.
+// check: the featuring pattern's word boundaries change none of the 72
+// committed rows, so tier 0 is blind to exactly the edit most likely to
+// be made.
 func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
 	shipped := []SDPattern{
 		{Pattern: `^the `, Weight: 0.1},
 		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-		{Pattern: `[\[\(]?(featuring|feat|ft)[\. :].+`, Weight: 0.1},
+		{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
 		{Pattern: `\(.*?\)`, Weight: 0.3},
 		{Pattern: `\[.*?\]`, Weight: 0.3},
 		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
@@ -132,32 +132,30 @@ func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
 	}
 }
 
-// TestStringDistSeparatesPatternTables is the fixture that tells the
-// two shipped tables apart, so SDPatternsWordBoundary is a measured
-// value rather than dead weight.
-//
-// Both figures were measured against pinned beets, the second by
-// substituting the word-boundary table into the module before calling
-// string_dist. They differ by an order of magnitude because
-// BeetsSDPatterns reads the "ft" in "Draft:" as a featuring credit and
-// discounts everything after it, which is the defect
-// adj-adv-ft-draft-colon names.
-func TestStringDistSeparatesPatternTables(t *testing.T) {
+// TestStringDistFeaturingNeedsAWordBoundary pins both sides of the
+// featuring pattern's word boundaries, each figure measured against
+// pinned beets. A trigger inside a word fires nothing; a trigger after
+// a space or an opening bracket discounts the credit at 0.1. Dropping
+// the leading \b makes the "Draft:" and "Gift " rows read the pre-2.14
+// defect's 0.061111 and 0.064706. The trailing \b is always satisfied,
+// since the separator class that must follow it holds no word
+// character, so no row here can tell it apart.
+func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 	tests := []struct {
-		name     string
-		patterns []SDPattern
-		want     float64
+		name       string
+		str1, str2 string
+		want       float64
 	}{
-		{"beets shipped table", BeetsSDPatterns, 0.061111111111111116},
-		{"word boundary table", SDPatternsWordBoundary, 0.6111111111111112},
+		{"ft inside a word, colon", "Draft: Ember Wharf", "Draft: Northern Lines", 0.6111111111111112},
+		{"ft inside a word, space", "Gift Wrapped Nights", "Gift Horse Blues", 0.6470588235294118},
+		{"ft after a space", "Ember Wharf ft. Northern", "Ember Wharf", 0.05},
+		{"feat after a parenthesis", "Ember Wharf (feat. Northern)", "Ember Wharf", 0.05454545454545454},
+		{"ft after a bracket", "Ember Wharf [ft. Northern]", "Ember Wharf", 0.05},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tun := DefaultTunables()
-			tun.StringDistPatterns = tt.patterns
-			got := StringDist(tun, new("Draft: Ember Wharf"), new("Draft: Northern Lines"))
-			if got != tt.want {
-				t.Errorf("StringDist = %v, want %v", got, tt.want)
+			if got := StringDist(DefaultTunables(), &tt.str1, &tt.str2); got != tt.want {
+				t.Errorf("StringDist(%q, %q) = %v, want %v", tt.str1, tt.str2, got, tt.want)
 			}
 		})
 	}

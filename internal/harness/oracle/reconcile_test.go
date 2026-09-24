@@ -32,11 +32,11 @@ func TestReconcileIgnoresAProbeComponentPinnedNeverChecks(t *testing.T) {
 	t.Setenv("FAKEVENV_EXTRA_COMPONENT", "somelib")
 
 	m := &cassette.Manifest{
-		Beets:     "2.13.1",
+		Beets:     "2.14.1",
 		Unidecode: "1.4.0",
 		Jellyfish: "1.2.1",
 		Lap:       "0.5.13",
-		Numpy:     "2.5.2",
+		Numpy:     "2.5.3",
 		MediaFile: "0.17.0",
 	}
 
@@ -53,11 +53,11 @@ func TestReconcileIgnoresAProbeComponentPinnedNeverChecks(t *testing.T) {
 // against, not merely into versionProbe's string.
 func TestReconcileCatchesAMediaFileMismatchWithoutTheRealVenv(t *testing.T) {
 	m := &cassette.Manifest{
-		Beets:     "2.13.1",
+		Beets:     "2.14.1",
 		Unidecode: "1.4.0",
 		Jellyfish: "1.2.1",
 		Lap:       "0.5.13",
-		Numpy:     "2.5.2",
+		Numpy:     "2.5.3",
 		MediaFile: "0.0.1", // fakevenv always reports 0.17.0
 	}
 	err := Reconcile(context.Background(), m, fakevenvOptions())

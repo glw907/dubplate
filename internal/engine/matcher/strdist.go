@@ -23,8 +23,8 @@ import (
 // TestStringDistLowercasesBeforeTransliterating.
 //
 // The pattern table comes from tun rather than from [BeetsSDPatterns]
-// directly, so 3d's compat switch selects a table by assignment instead
-// of editing this function.
+// directly, so [Compat.Apply] selects a table by assignment instead of
+// editing this function.
 func StringDist(tun Tunables, str1, str2 *string) float64 {
 	if str1 == nil && str2 == nil {
 		return 0
@@ -143,7 +143,7 @@ func applySDReplace(s string) string {
 // makes a malformed literal a startup panic rather than a per-call
 // error, and nothing writes the map afterward, so the eight lookups a
 // StringDist call makes take no lock.
-var sdShippedRegexps = compileSDPatterns(BeetsSDPatterns, SDPatternsWordBoundary)
+var sdShippedRegexps = compileSDPatterns(BeetsSDPatterns, SDPatternsNoBracketDiscount)
 
 func compileSDPatterns(tables ...[]SDPattern) map[string]*regexp.Regexp {
 	compiled := make(map[string]*regexp.Regexp)

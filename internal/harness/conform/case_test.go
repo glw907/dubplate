@@ -58,7 +58,7 @@ func loadEveryCase(t *testing.T, root string) []*cassette.Case {
 // policy table names, spelled here so a row reads as a selection rather
 // than as two bools.
 var (
-	fullCompat = matcher.Compat{FtPattern: true, RemixParenthetical: true}
+	fullCompat = matcher.Compat{RemixParenthetical: true}
 	noCompat   = matcher.Compat{}
 )
 
@@ -129,7 +129,6 @@ func TestPolicyForHonorsEveryDispositionRow(t *testing.T) {
 		{"ties excluded", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: false, GradeAlbumDistance: false, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: true, Pending: false, VerdictFrom: verdictFromRecord}},
 		{"ties skipped", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: false, GradeAlbumDistance: false, GradeVerdict: true, ExpectNoCandidate: true, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
 		{"oracle bug pending", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: fullCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
-		{"oracle bug pending on one class only", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: matcher.Compat{FtPattern: true}, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
 		{"oracle bug oracle wrong", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromAdjudication}},
 		{"oracle bug no correct answer", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: false, ExpectNoCandidate: false, Compat: fullCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
 		{"oracle bug oracle correct", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
@@ -138,8 +137,8 @@ func TestPolicyForHonorsEveryDispositionRow(t *testing.T) {
 		{"case row oracle wrong under a pending hypothesis", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: fullCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
 		{"probe row oracle correct under an oracle wrong hypothesis", casePolicy{DistanceCompare: compareEpsilon, GradeAssignment: true, GradeAlbumDistance: true, GradeVerdict: true, ExpectNoCandidate: false, Compat: noCompat, Excluded: false, Pending: false, VerdictFrom: verdictFromRecord}},
 	}
-	if len(tests) != 16 {
-		t.Fatalf("the table carries %d rows; it must carry one per spec disposition row (12), the adjudications-pending path, the per-class pending shape, and both precedence shapes", len(tests))
+	if len(tests) != 15 {
+		t.Fatalf("the table carries %d rows; it must carry one per spec disposition row (12), the adjudications-pending path, and both precedence shapes", len(tests))
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -149,24 +148,6 @@ func TestPolicyForHonorsEveryDispositionRow(t *testing.T) {
 				t.Errorf("policyFor(%s) = %+v, want %+v", caseID, got, tt.want)
 			}
 		})
-	}
-}
-
-// TestPolicyForKeepsClassesIndependent proves the half-on shape a
-// single bool could not express: with bug-ft-pattern pending and
-// bug-remix-parenthetical ruled, exactly one switch is on, and the
-// selection the sweep grades under widens only that class.
-func TestPolicyForKeepsClassesIndependent(t *testing.T) {
-	ties, prox, adj, bugs, caseID := loadPolicyFixture(t, "oracle bug pending on one class only")
-	policy := policyFor(caseID, ties, prox, adj, bugs)
-	if policy.Compat.RemixParenthetical {
-		t.Error("the ruled class's switch is on; a single bool would have turned both on and baked the defect into rung 15's reference behavior")
-	}
-	if got := compatFor(ModeDefault, policy); got != (matcher.Compat{FtPattern: true}) {
-		t.Errorf("compatFor(ModeDefault) = %+v, want the pending class alone", got)
-	}
-	if got := compatFor(ModeCompat, policy); got != fullCompat {
-		t.Errorf("compatFor(ModeCompat) = %+v, want every switch on: the compat run reproduces every ledgered defect", got)
 	}
 }
 

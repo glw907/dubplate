@@ -29,7 +29,7 @@ SERVER_ENV_TEMPLATE="$REPO_ROOT/env/dubplate-server.env.template"
 REMOTE_DIR="/opt/dubplate"
 REMOTE_ENV="/etc/dubplate/env"
 REMOTE_SERVER_ENV="/etc/dubplate/server.env"
-BEETS_VERSION="2.13.1"
+BEETS_VERSION="2.14.1"
 
 # Pinned uv installer: a specific release tag (an immutable GitHub release
 # asset URL, not the astral.sh/uv/install.sh alias that always serves

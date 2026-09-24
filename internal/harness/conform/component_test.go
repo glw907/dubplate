@@ -267,7 +267,7 @@ func TestComponentTableBelowFloorFails(t *testing.T) {
 			Output: json.RawMessage(`{"penalties":[1]}`),
 		}
 	}
-	table := &analysis.ComponentTable{Beets: "2.13.1", ShimVersion: "1", Rows: rows}
+	table := &analysis.ComponentTable{Beets: "2.14.1", ShimVersion: "1", Rows: rows}
 	if err := analysis.CheckComponentTable(table); err == nil {
 		t.Fatal("CheckComponentTable accepted a table one row below the floor")
 	}
