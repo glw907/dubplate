@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -37,6 +38,17 @@ const maxDisplayNameLength = 200
 // Discord 32) with headroom, while still refusing an attempt to stuff
 // arbitrary text into what R3 requires as a stable principal.
 const maxStreamerUsernameLength = 64
+
+// streamerUsernamePattern is the shape the write path enforces for
+// streamer_username: an alphanumeric first character, refusing a
+// leading dot or hyphen at no cost to a plausible account name, then
+// any run of alphanumerics, '.', '_', '@', '+', or '-'. '@' and '+'
+// admit an email-shaped username, and '_' stays allowed since a
+// downstream streamer resolves a username with a case-insensitive
+// equality check, never a SQL LIKE pattern that would treat it as a
+// wildcard. The loader keeps the older ASCII-printable check, so a
+// roster written before this rule still loads.
+var streamerUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
 
 // Roster load and lookup sentinels. A refusal names the check that
 // failed and the file's path, never a record's own address or
@@ -81,6 +93,43 @@ var (
 	// verb the only path to an admin, so AddMember refuses the flag on
 	// all of them. The admin grant arrives together with that verb.
 	ErrRosterAdminChannelForbidden = errors.New("auth: admin flag refused on this channel")
+)
+
+// The refusals below are each returned wrapping ErrRosterRecordInvalid
+// rather than exported on their own: nothing outside this package
+// branches on which one fired, only on ErrRosterRecordInvalid itself.
+var (
+	// errDuplicateAddress reports that a candidate's address matches a
+	// member already on the roster, once both are normalized.
+	errDuplicateAddress = errors.New("auth: duplicate address")
+
+	// errDuplicateStreamerUsername reports that a candidate's
+	// streamer_username matches a member already on the roster,
+	// compared case-insensitively.
+	errDuplicateStreamerUsername = errors.New("auth: duplicate streamer_username")
+
+	// errInvalidMemberAddress reports that a record's address does not
+	// normalize as a login address.
+	errInvalidMemberAddress = errors.New("auth: address does not parse as a login address")
+
+	// errInvalidDisplayName reports that a record's display name
+	// carries a refused rune or exceeds maxDisplayNameLength.
+	errInvalidDisplayName = errors.New("auth: display name is invalid")
+
+	// errInvalidStreamerUsername reports that a record's
+	// streamer_username fails its shape check or exceeds
+	// maxStreamerUsernameLength.
+	errInvalidStreamerUsername = errors.New("auth: streamer_username is invalid")
+
+	// errMissingStreamerUsername reports that a write candidate carries
+	// no streamer_username, which the write path requires even though
+	// the loader still accepts a roster written before this rule.
+	errMissingStreamerUsername = errors.New("auth: streamer_username is required")
+
+	// errInvalidActor reports that AddMember's actor or channel failed
+	// the rule its channel imposes: an unrecognized channel, or an
+	// actor that does not meet the shape its channel requires.
+	errInvalidActor = errors.New("auth: invalid audit actor or channel")
 )
 
 // Member is one roster entry (R1): a login address, a display name, an
@@ -390,10 +439,11 @@ func normalizeMemberAddress(address string) (string, error) {
 
 // validateRoster promotes records to Members, applying B9's list: each
 // address is parsed and normalized through normalizeMemberAddress and
-// unique after normalization, no field carries a control character,
-// every field is bounded, and streamer_username, when present, is
-// ASCII-printable and unique across the roster. A record's own address
-// or principal never appears in a returned error, only its position.
+// unique after normalization, no field carries a refused rune, every
+// field is bounded, and streamer_username, when present, is
+// ASCII-printable and unique across the roster comparing
+// case-insensitively. A record's own address or principal never
+// appears in a returned error, only its position.
 func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 	members := make([]Member, 0, len(records))
 	byAddress := make(map[string]int, len(records))
@@ -407,15 +457,16 @@ func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 			continue
 		}
 		if _, dup := byAddress[member.Address]; dup {
-			errs = append(errs, fmt.Errorf("member %d: duplicate address", i))
+			errs = append(errs, fmt.Errorf("member %d: %w", i, errDuplicateAddress))
 			continue
 		}
 		if member.StreamerUsername != "" {
-			if _, dup := seenStreamer[member.StreamerUsername]; dup {
-				errs = append(errs, fmt.Errorf("member %d: duplicate streamer_username", i))
+			key := strings.ToLower(member.StreamerUsername)
+			if _, dup := seenStreamer[key]; dup {
+				errs = append(errs, fmt.Errorf("member %d: %w", i, errDuplicateStreamerUsername))
 				continue
 			}
-			seenStreamer[member.StreamerUsername] = i
+			seenStreamer[key] = i
 		}
 
 		byAddress[member.Address] = len(members)
@@ -429,28 +480,24 @@ func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 
 // validate validates the fields of one record that do not depend on
 // the rest of the roster: the address parses and normalizes, no field
-// carries a control character, and every field is bounded. It is the
+// carries a refused rune, and every field is bounded. It is the
 // field-level half of B9's list; the duplicate checks that need the
 // rest of the roster stay in validateRoster's loop and in AddMember's
 // locked re-check, since only those two callers know what "the rest of
-// the roster" currently is.
+// the roster" currently is. streamer_username keeps the looser
+// ASCII-printable check here: validateWriteCandidate adds the write
+// path's narrower shape on top for a caller that writes the roster.
 func (rec memberRecord) validate() (Member, error) {
 	normalized, err := normalizeMemberAddress(rec.Address)
 	if err != nil {
-		return Member{}, errors.New("address does not parse as a login address")
+		return Member{}, errInvalidMemberAddress
 	}
-	if containsControl(rec.DisplayName) {
-		return Member{}, errors.New("display name carries a control character")
-	}
-	if len(rec.DisplayName) > maxDisplayNameLength {
-		return Member{}, fmt.Errorf("display name exceeds %d bytes", maxDisplayNameLength)
+	if displayNameCarriesRefusedRune(rec.DisplayName) || len(rec.DisplayName) > maxDisplayNameLength {
+		return Member{}, errInvalidDisplayName
 	}
 	if rec.StreamerUsername != "" {
-		if !isASCIIPrintable(rec.StreamerUsername) {
-			return Member{}, errors.New("streamer_username is not ASCII-printable")
-		}
-		if len(rec.StreamerUsername) > maxStreamerUsernameLength {
-			return Member{}, fmt.Errorf("streamer_username exceeds %d bytes", maxStreamerUsernameLength)
+		if !isASCIIPrintable(rec.StreamerUsername) || len(rec.StreamerUsername) > maxStreamerUsernameLength {
+			return Member{}, errInvalidStreamerUsername
 		}
 	}
 	return Member{
@@ -461,11 +508,67 @@ func (rec memberRecord) validate() (Member, error) {
 	}, nil
 }
 
-// containsControl reports whether s carries a C0 or C1 control
-// character or DEL. C1 matters as much as C0: U+009B is a
-// single-character CSI that a terminal honors like ESC [.
-func containsControl(s string) bool {
-	return strings.ContainsFunc(s, unicode.IsControl)
+// validateWriteCandidate validates candidate the way validate does,
+// then adds the write path's own rules: streamer_username is required,
+// and its shape is the narrower pattern streamerUsernamePattern
+// describes rather than the loader's plain ASCII-printable check. A
+// roster written before that requirement existed still loads through
+// validate alone.
+func validateWriteCandidate(candidate Member) (Member, error) {
+	member, err := memberRecord(candidate).validate()
+	if err != nil {
+		return Member{}, err
+	}
+	if member.StreamerUsername == "" {
+		return Member{}, errMissingStreamerUsername
+	}
+	if !streamerUsernamePattern.MatchString(member.StreamerUsername) {
+		return Member{}, errInvalidStreamerUsername
+	}
+	return member, nil
+}
+
+// validateActor reports whether actor satisfies the rule its channel
+// imposes on an audit record's actor. An unrecognized channel refuses
+// outright. Every channel a verifier can assert today carries an
+// identity over the network, so its actor must itself normalize as a
+// login address; a channel whose assertion carries no network address
+// takes its own rule where that channel is added.
+func validateActor(actor string, channel identity.Channel) error {
+	switch channel {
+	case identity.ChannelCookie, identity.ChannelHeader, identity.ChannelServiceToken:
+		if _, err := identity.NormalizeAddress(actor); err != nil {
+			return errInvalidActor
+		}
+		return nil
+	default:
+		return errInvalidActor
+	}
+}
+
+// zeroWidthNonJoiner and zeroWidthJoiner are the two Cf runes a display
+// name admits despite the Cf category refusal below: both compose a
+// legal name in scripts that use them (Persian, Indic ligatures), and
+// neither carries the rendering or comparison hazard the rest of Cf
+// does.
+const (
+	zeroWidthNonJoiner = '‌'
+	zeroWidthJoiner    = '‍'
+)
+
+// displayNameCarriesRefusedRune reports whether s carries a rune a
+// display name refuses: every control character, the line and
+// paragraph separators, every space separator but the ordinary one
+// (U+0020, so "Alice Example" is unaffected), and every format
+// character but the zero-width joiner and non-joiner.
+func displayNameCarriesRefusedRune(s string) bool {
+	return strings.ContainsFunc(s, func(r rune) bool {
+		switch r {
+		case ' ', zeroWidthNonJoiner, zeroWidthJoiner:
+			return false
+		}
+		return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
+	})
 }
 
 // isASCIIPrintable reports whether every byte of s is an ASCII
@@ -522,17 +625,18 @@ func (r *Roster) List() ([]Member, error) {
 	return slices.Clone(snap.members), nil
 }
 
-// AddMember validates candidate against B9's list, then, holding the
-// roster's directory lock, re-checks candidate's address and
-// streamer_username against the file as it is on disk, appends
-// candidate to that disk copy, writes the whole roster atomically,
-// re-reads it, and logs one audit record naming actor, channel,
-// candidate.Address, candidate.Admin, and clientIP. The lock wait ends
-// with an error when ctx does. It is the roster's only member write.
+// AddMember validates actor and channel, then candidate against B9's
+// list and the write path's own rules, then, holding the roster's
+// directory lock, re-checks candidate's address and streamer_username
+// against the file as it is on disk, appends candidate to that disk
+// copy, writes the whole roster atomically, re-reads it, and logs one
+// audit record naming actor, channel, candidate.Address,
+// candidate.Admin, and clientIP. The lock wait ends with an error when
+// ctx does. It is the roster's only member write.
 //
 // Every check runs before the write, so a candidate that fails
-// validation, fails the collision re-check, or sets Admin changes no
-// byte on disk.
+// validation, an actor or channel that fails its own check, or a
+// candidate that fails the collision re-check changes no byte on disk.
 //
 // AddMember refuses candidate.Admin on every channel with
 // ErrRosterAdminChannelForbidden. Each channel is an identity asserted
@@ -543,21 +647,22 @@ func (r *Roster) AddMember(ctx context.Context, candidate Member, actor string, 
 	if candidate.Admin {
 		return fmt.Errorf("%w: channel %s", ErrRosterAdminChannelForbidden, channel)
 	}
+	if err := validateActor(actor, channel); err != nil {
+		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
+	}
 
-	member, err := memberRecord(candidate).validate()
+	member, err := validateWriteCandidate(candidate)
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, err)
 	}
 
 	err = r.update(ctx, func(disk *rosterSnapshot) ([]Member, error) {
 		if _, dup := disk.byAddress[member.Address]; dup {
-			return nil, fmt.Errorf("%w: %s: duplicate address", ErrRosterRecordInvalid, r.path)
+			return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, errDuplicateAddress)
 		}
-		if member.StreamerUsername != "" {
-			for _, existing := range disk.members {
-				if existing.StreamerUsername == member.StreamerUsername {
-					return nil, fmt.Errorf("%w: %s: duplicate streamer_username", ErrRosterRecordInvalid, r.path)
-				}
+		for _, existing := range disk.members {
+			if strings.EqualFold(existing.StreamerUsername, member.StreamerUsername) {
+				return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, r.path, errDuplicateStreamerUsername)
 			}
 		}
 		return append(slices.Clone(disk.members), member), nil

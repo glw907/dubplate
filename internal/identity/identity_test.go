@@ -75,7 +75,7 @@ func normalizeCorpus(t *testing.T) []normalizeCase {
 			name:    "quoted local part carrying a space",
 			input:   `"a b"@example.com`,
 			wantErr: true,
-			reason:  "control character or space",
+			reason:  "control character or invisible character",
 		},
 		{
 			// The same unquoting with no space or control byte
@@ -87,12 +87,51 @@ func normalizeCorpus(t *testing.T) []normalizeCase {
 		},
 		{
 			// net/mail's re-parse refuses this input too, as it
-			// refuses every control byte and space, so the
-			// reason is what shows the byte check refused it.
+			// refuses every control byte and invisible character, so
+			// the reason is what shows the rune check refused it.
 			name:    "quoted local part carrying a TAB",
 			input:   "\"a\tb\"@example.com",
 			wantErr: true,
-			reason:  "control character or space",
+			reason:  "control character or invisible character",
+		},
+		{
+			name:    "quoted local part carrying a NEL control",
+			input:   "\"a\u0085b\"@example.com",
+			wantErr: true,
+			reason:  "control character or invisible character",
+		},
+		{
+			name:    "quoted local part carrying a C1 CSI control",
+			input:   "\"a\u009bb\"@example.com",
+			wantErr: true,
+			reason:  "control character or invisible character",
+		},
+		{
+			name:    "quoted local part carrying a right-to-left override",
+			input:   "\"a\u202eb\"@example.com",
+			wantErr: true,
+			reason:  "control character or invisible character",
+		},
+		{
+			name:    "quoted local part carrying a no-break space",
+			input:   "\"a\u00a0b\"@example.com",
+			wantErr: true,
+			reason:  "control character or invisible character",
+		},
+		{
+			name:    "quoted local part carrying a zero width space",
+			input:   "\"a\u200bb\"@example.com",
+			wantErr: true,
+			reason:  "control character or invisible character",
+		},
+		{
+			// strings.ToLower maps the Kelvin sign (U+212A) to the
+			// ASCII "k", and net/mail accepts the unlowered form, so
+			// the stored and mailed address is the ASCII owner's,
+			// never a distinct lookalike.
+			name:  "Kelvin sign lowercases to ASCII k",
+			input: "a@\u212Aexample.com",
+			want:  "a@kexample.com",
 		},
 	}
 }

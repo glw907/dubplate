@@ -10,6 +10,7 @@
     {
       "address": "member@example.test",
       "display_name": "Example Member",
+      "streamer_username": "example-member",
       "admin": false
     }
   ]

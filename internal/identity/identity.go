@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/mail"
 	"strings"
+	"unicode"
 )
 
 // MaxAddressLength is the byte length [NormalizeAddress] refuses to
@@ -38,7 +39,11 @@ var ErrInvalidAddress = errors.New("identity: invalid address")
 // "a,b"@example.com parses to a,b@example.com, which it then refuses;
 // such an address is refused here, before any credential can name it,
 // rather than accepted once and refused by every later step. The
-// result also carries no control character, no DEL, and no space.
+// result also carries no control character and no rune in the Unicode
+// format, space-separator, line-separator, or paragraph-separator
+// categories: a quoted local part can carry a byte-order mark or a
+// bidi override that renders differently from how it compares, and
+// every such rune is refused rather than enumerated one at a time.
 func NormalizeAddress(value string) (string, error) {
 	if len(value) > MaxAddressLength {
 		return "", fmt.Errorf("%w: exceeds %d bytes", ErrInvalidAddress, MaxAddressLength)
@@ -47,13 +52,23 @@ func NormalizeAddress(value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if strings.ContainsFunc(normalized, func(r rune) bool { return r <= ' ' || r == 0x7F }) {
-		return "", fmt.Errorf("%w: carries a control character or space", ErrInvalidAddress)
+	if strings.ContainsFunc(normalized, addressRefusesRune) {
+		return "", fmt.Errorf("%w: carries a control character or invisible character", ErrInvalidAddress)
 	}
 	if again, err := parseLower(normalized); err != nil || again != normalized {
 		return "", fmt.Errorf("%w: normalized form does not parse to itself", ErrInvalidAddress)
 	}
 	return normalized, nil
+}
+
+// addressRefusesRune reports whether an address refuses r: every
+// control character plus every rune in the Unicode Cf (format), Zs
+// (space separator), Zl (line separator), or Zp (paragraph separator)
+// categories. The ordinary space (U+0020, in Zs) is already refused by
+// this rule, so it changes nothing that the byte-range check it
+// replaces did not already refuse.
+func addressRefusesRune(r rune) bool {
+	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
 }
 
 func parseLower(value string) (string, error) {
