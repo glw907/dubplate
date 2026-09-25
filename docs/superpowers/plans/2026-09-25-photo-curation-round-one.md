@@ -36,6 +36,9 @@ dispatches (below six sequential tasks; Task 3 is already drafted).
 
 ## Global constraints
 
+- Research inputs live in `docs/superpowers/research/2026-09-24-identity-photos/`; every bare
+  report or `outreach/` name in this plan is relative to it. An archive key's spaces and slashes
+  become `_` in its `source_id` (PV16).
 - Never touch `web/`, `cmd/`, `internal/`, `Makefile`, `scripts/`, or the 5c-iii plan. Lane 1
   owns them. Never stage a path outside the task's Files list; lane 1's warm changes share this
   tree.
@@ -64,6 +67,8 @@ dispatches (below six sequential tasks; Task 3 is already drafted).
   - every `upload.wikimedia.org` download runs under `flock /tmp/dubplate-photos-wm-media.lock`
     with `--limit-rate 2M`;
   - every Flickr request runs under `flock /tmp/dubplate-photos-flickr.lock`.
+  - each locked Commons command ends with `sleep 0.25` inside the lock, so serial requests stay
+    below the robot policy's 5 per second (PV15).
   curl's manual says `--retry` covers HTTP 429 and 503 and that "curl complies with the
   Retry-After: response header" (PM3). An agent that still meets 429 or 403 after the retries
   stops and reports; it never loops.
@@ -142,7 +147,9 @@ four modes, one populated vocabulary, one fixture table.
 **Dispatch text (verbatim):** "Your gate is
 `cd /var/home/glw907/Projects/dubplate && CAIRN_GATE_LANE=light cairn-run-gate 'node --test tools/photos/check.test.mjs'`.
 This replaces workflow step 5's `bash scripts/check.sh` form. Never run `scripts/check.sh`.
-Re-issue the same command on exit 75 until it prints the gate exit status." The lane choice
+Re-issue the same command on exit 75 until it prints the gate exit status. Commit only this
+task's Files, in ONE Bash call: `git add -N -- <new paths>` then `git commit -- <paths>`, never a
+bare `git add` or `git commit`, because another lane's staged changes share this index." The lane choice
 rests on the tool's header: "CAIRN_GATE_LANE=light is for a gate that launches no browser ...:
 it queues on its own lock, so it never waits behind a browser gate" (`~/.local/bin/cairn-run-gate`,
 lines 17 to 19). The tool has no `--help` flag; its header is its usage text.
@@ -162,15 +169,22 @@ refinements with the Global constraints' form.
   breach, 1 on a breach, 2 on unreadable input, and prints no JSON on exit 2. `--json` carries
   every count, band, and breach, plus the derivation maps (scene to family, country code to
   region) and the picked pool's normalized artist and landmark names and IDs.
+- Candidate file layout, shared by `candidate` and `sheet`: a candidate record is
+  `<id>.json`, where `<id>` is the source ID in the spec's filename form, `<source>-<key>`
+  (`commons-12345.json`). Both modes read only files matching that pattern, so `drops.json`,
+  scripts, and temporary files are never read as records, and both skip any directory whose name
+  starts with `_` (`_sheet/`, `_open/`, `_close/`). Raw evidence goes under `<agent>/raw/`, which
+  neither reads.
 - `candidate <file.json | dir>`: validates candidate records so search agents can self-check. On
   a directory it also reports repeats across the records it read, and a key collision with picked,
   rejected, or pack records.
-- `sheet [--root <dir>] --out <dir>`: reads every `.candidates/*/*.json`, drops pack records,
+- `sheet [--root <dir>] --out <dir>`: reads every `.candidates/<agent>/<id>.json`, drops pack records,
   dedupes across agents on `source_id`, `origin_id`, and `source_sha256` (first found wins, the
   rest listed as `duplicate` drops), sets the second-image flag against the picked keys and the
   other candidates' normalized names, adds each candidate's derived family, region, and primary
   subject, orders by `screen` score, and writes one JSON document per candidate, ready for an
-  `ArtifactData` batch.
+  `ArtifactData` batch. Every caller passes `--out photos/.candidates/_sheet/`, which the `_`
+  rule keeps out of the next read.
 
 **The vocabulary (`vocab.json`), populated, never empty:**
 - Scenes with their family, subjects, shots, formats, surfaces, and regions with their ISO
@@ -207,7 +221,10 @@ which keeps it inside `ArtifactData`'s `doc_id` pattern (PM10).
   a CC BY scan; an empty floor cell; a Commons record and its Flickr original sharing an
   `origin_id`; an unparsable record; a `.webp` without a record; a picked record at 1100px
   without `size_exception`; a picked record at 900px; a `public_domain` on an unlisted base; a
-  hash mismatch; a missing thumbnail; an NC license without `pack`; a bad `source_id`. It also
+  hash mismatch; a missing thumbnail; an NC license without `pack`; a bad `source_id`; a rejected
+  entry that repeats a picked record's key (the rule Task 6's `duplicate` handling relies on);
+  a `drops.json` and a `raw/` JSON file beside valid records, which `candidate` and `sheet` must
+  not read as records; and a `_sheet/` directory `sheet` must skip. It also
   proves the waiver path: a waived breach passes, the same waiver with a wrong key fails, and a
   waiver on an unknown `rule` fails integrity. A passing pool exercises every field and holds a
   `.candidates/a/` directory with a record and a `.webp` that integrity must ignore. Each of the
@@ -224,31 +241,44 @@ which keeps it inside `ArtifactData`'s `doc_id` pattern (PM10).
 **Files:** create `tools/photos/sorter.html` (the artifact's source, committed so every round
 reuses it) and `tools/photos/testdata/sorter-fixture.json`.
 
-**Conductor first:** load `artifact-design` and `artifact-capabilities`. Confirm the `db` and
-`assets` capabilities in the roster the skill serves; if either is missing, stop and tell Geoff.
-Pass the implementer the exact `db` and `assets` calls, the collection and document-id rules, the
-page contract, and the capability declaration, all quoted from the skill. The implementer never
-guesses the runtime API.
-
-**Implementer:** `general-purpose`, model `sonnet`, effort `high`. It publishes the page itself
-(it wrote the file, and the Artifact tool publishes only a file its caller has read) and returns
-the URL.
+**Implementer:** `general-purpose`, model `sonnet`, effort `high`. The Artifact tool's contract
+binds the agent that writes and publishes, so the implementer loads `artifact-design` before
+writing the file and `artifact-capabilities` before passing `capabilities` or writing any
+`window.claude` code, and takes the `db` and `assets` calls, the document-id rules, and the
+capability declaration from those skills, never from memory. It confirms `db` and `assets` in
+the roster the skill serves; if either is missing, it stops and reports, and the conductor tells
+Geoff. It publishes the page itself (it wrote the file, and the Artifact tool publishes only a
+file its caller has read) and returns the URL. The conductor records the URL in the round log at
+Task 2's close, and every Task 6 dispatch names it.
 
 **Outcome:** the page the spec's Process section describes, reading everything from its database:
 - One round document per round, written only by the conductor's side through `ArtifactData`: the
-  round number, `closed`, and the balance JSON. One candidate document per candidate (from
-  `sheet`), each with its caption fields, flags, and the thumbnail and preview asset URLs. One
-  choice document per candidate, keyed by `source_id` and carrying the round number, written only
-  by the page. The page has no control that writes `closed`.
-- A thumbnail grid in score order with captions (subject, place, year, license); the
-  `size_exception` line, the second-image flag, and any people flag shown beside the image;
+  round id (a number, or `test` for the Task 6 test round), `closed`, and the balance JSON. One candidate document per candidate (from
+  `sheet`), each with its caption fields, flags, and, for the thumbnail and the preview, both the
+  asset `id` and the `url` the upload returned. The page renders each image from `"/_blob/" + id`,
+  which the assets contract names as the durable pointer (`assets.d.ts`: store the `id` in `db`
+  and "build `"/_blob/" + id`"). One choice document per candidate, keyed by `source_id` and
+  carrying the round number, written only by the page. The page has no control that writes
+  `closed`. To reopen a round, the conductor clears `closed` through `ArtifactData`, and the page
+  accepts changes again.
+- The layout is written down once: the collection paths, the document-id rule, and each
+  document's fields, in a comment block at the top of `tools/photos/sorter.html` and in the
+  implementer's report. The Task 6 dispatches quote that block, since their agents start with
+  no other way to learn it.
+- A header naming the open round (so round `test` reads as a test); a thumbnail grid in score
+  order with captions (subject, place, year, license); the `size_exception` line, the second-image flag, and any people flag shown beside the image;
   `Y`/`N`/arrows/`Space`, clicks and taps; `Space` opens the 1600px preview, the exact encode
   round close commits; filter chips (family, subject, region); a count bar seeded from the round's
   balance JSON that adds keeps client-side; a closed round shows its state and refuses changes.
   Pack candidates never appear (`sheet` drops them).
-- When `claude.use("db")` resolves to `null` (the runtime does so "after 10 s when no viewer
-  answers" outside claude.ai, PM8), the page falls back to an in-memory store seeded from a local
-  fixture file, so it can be rendered headless.
+- The fixture fallback follows the runtime contract (`claude.d.ts`): "any other top-level copy
+  of the page (a saved file, another host) has no `window.claude` at all", while a page served
+  top-level by the platform gets `null` from every `use()`, and a framed page whose host never
+  answers gets `null` after 10 s. So the page falls back to an in-memory store seeded from the
+  local fixture file only when `window.claude` is absent and the page is served from
+  `localhost`, which is the headless render's case. A `null` `db` anywhere else shows a plain
+  "Choices can't be saved here" state with no grid, so no sitting can run with its choices saved
+  nowhere.
 
 **Acceptance:**
 - A `general-purpose` Sonnet render agent serves the page locally with the fallback store and a
@@ -256,12 +286,13 @@ the URL.
   `chromium-shot` at desktop width and with `--mobile` (390x844). It drives the keyboard and tap
   paths with Playwright loaded read-only from a scratchpad script (`web/node_modules/playwright`,
   1.63.0; it installs nothing and writes nothing under `web/`). `Y`, `N`, and a tap each save a
-  choice; a closed fixture round refuses both keys and shows its state. It returns the
-  screenshots, which the conductor reads before Geoff sees anything.
-- One functional pass on the published page by the conductor, under the separate round id
-  `test`: seed a few fixture candidates through `ArtifactData`, make a keep and a pass, confirm
-  them with an `ArtifactData` `list`, set `closed` and confirm the page refuses a change, then
-  delete every `test` document and confirm a `list` shows none.
+  choice; a closed fixture round refuses both keys and shows its state. A second case, on
+  `localhost` with a stubbed `window.claude` whose `use("db")` resolves `null`, shows the
+  "Choices can't be saved here" state and no grid. It returns the screenshots, which the
+  conductor reads before Geoff sees anything.
+- The proof that a choice made on the published page reaches the store is the labeled test
+  round at the start of the first sitting (Task 6); the headless render cannot reach the real
+  store, and the conductor has no signed-in browser to press a key with.
 - It follows the artifact contract (tokens on `:root`, dark mode, no external origins, 16px
   gutter) and loads nothing outside its own files.
 - Plain labels; no record-shop wording.
@@ -300,8 +331,11 @@ Each agent's brief carries the vocabulary (`photos/meta/vocab.json`), the Global
 spec's Categories, Storage, and Licensing sections, the rejected ledger, and the other agents'
 territories. Each agent writes one small fetch-and-encode script in its own directory, run under
 the Global constraints' locks, and spends its turns on judgment rather than per-file tool calls.
-Each writes a source, a `<id>.thumb.webp`, and a `<id>.preview.webp` (the 1600px encode) per
-kept candidate.
+Each writes a source, a `<id>.json` record, a `<id>.thumb.webp`, and a `<id>.preview.webp` (the
+1600px encode) per kept candidate, with `<id>` in the filename form `<source>-<key>`
+(`commons-12345`), per Task 1's candidate file layout. Raw evidence goes under
+`photos/.candidates/<agent>/raw/`, and drops go in `<agent>/drops.json`; nothing else in the
+agent's directory is named like a record.
 
 People flags: an agent sets `flags` to `personality-rights` when the Commons wikitext carries a
 personality-rights template (quoted in `verified`), and to `apparent-minor` when an apparent minor
@@ -319,8 +353,10 @@ is in focus. It never drops a candidate for either.
 ### Task 5: License spot-check (after Task 4)
 
 **Reader:** `general-purpose`, model `opus`, effort `high`, fresh context. The conductor passes a
-seed; the reader draws the spec's sample (every public-domain, flyer, and zine cover record, plus
-20% of the rest, at least five) by a stated deterministic method over the `sheet` output, and
+seed; the reader first runs `node tools/photos/check.mjs sheet --out photos/.candidates/_sheet/`
+itself, since nothing earlier produces that output. It draws the spec's sample (every
+public-domain, flyer, and zine cover record, plus 20% of the rest, at least five) by a stated
+deterministic method over that output, and
 logs the seed, the method, the pool size, and the computed sample size. It checks each record
 through the same raw channel and the same Flickr rule as the search agents, applies the
 laundering and deletion checks, and writes its results to the round log.
@@ -331,15 +367,34 @@ mismatch sends the whole round back for re-verification before Task 6, per the s
 
 ### Task 6: Round open, first sitting, and round close
 
-**Round open.** The conductor tells Geoff the uploads are coming (about 12 approval prompts: 150
-thumbnails and 150 previews in calls of 25), so he approves them in one burst. It then dispatches
-a `general-purpose` Sonnet round-open agent that runs `balance --json` and `sheet`, reads the
-artifact once (`action: read`, which the Artifact tool requires before an upload), uploads the
-thumbnails and previews, and seeds the round and candidate documents through `ArtifactData`
-`batch` with the URLs the upload results return. It returns counts. The conductor opens the page
-and reads one screen at desktop and phone width, then sends Geoff one message: the sitting is
-ready, and the five letters are ready to read and send (two touchpoints, one message). Passed
-images are never deleted from the store.
+**Round open.** Every Task 6 dispatch names the artifact URL from the round log and quotes the
+page's layout block from `tools/photos/sorter.html` (Task 2).
+1. The conductor tells Geoff the approvals are coming, so he approves them in one burst: about
+   19 prompts, which are 12 upload calls of 25 (150 thumbnails and 150 previews), one
+   `ArtifactData` batch to seed the test round and one to delete it, four batches of up to 50
+   writes to seed round one's 150 candidate documents and its round document, and one write to
+   set `closed` at the end.
+2. The conductor dispatches a `general-purpose` Sonnet round-open agent at `high`. It runs
+   `balance --json`, and it reuses Task 5's `photos/.candidates/_sheet/` output unless a Task 5
+   re-verification changed a record, in which case it runs `sheet` again. It re-encodes each
+   candidate's thumbnail and preview from the source with the pinned encode into
+   `photos/.candidates/_open/`, so it wrote every file it uploads (the Artifact tool requires
+   reading a file Claude did not write before publishing it, and reading 300 images is out of
+   budget), and it views a handful as a sample. It reads the artifact once (`action: read`, which
+   the Artifact tool requires before an upload) and uploads the `_open/` files. It seeds the
+   test round: round id `test`, three candidate documents with IDs `fixture:1` to `fixture:3`
+   captioned "Test, not a real photo" over three of the uploaded thumbnails. It writes round one's
+   seed batches under `_open/` and does not seed them yet. It returns counts and the path list.
+3. The conductor sends Geoff one message: the sitting starts with the test round, where he makes
+   one keep and one pass and says so, and the five letters are ready to read and send (two
+   touchpoints, one message).
+4. On Geoff's word, the conductor confirms both test choices with an `ArtifactData` `list`,
+   deletes every `test` document (round, candidates, and choices) in one batch, and confirms a
+   `list` shows none. It then continues the round-open agent with `SendMessage` to seed round
+   one from its `_open/` batches, and tells Geoff round one is open. If either test choice is
+   missing, it stops before seeding round one: the page's save path is broken, and Task 2
+   reopens.
+Passed images and uploaded assets are never deleted from the store.
 
 **Close.**
 1. When Geoff says he is done, the conductor sets `closed` on the round document.
@@ -348,28 +403,37 @@ images are never deleted from the store.
    into `photos/.candidates/_close/`, never into `photos/`:
    - a keep applies only where the candidate file's hash equals `source_sha256`; a missing file
      or mismatch goes back to Geoff unpicked and into the round log;
-   - it mints each slug and refuses one whose `.webp` or `.json` already exists; encodes;
-     writes `sha256`, `width`, and `height`; strips `screen`, `flags`, `source_width`, and
-     `source_height`;
+   - it mints each slug and refuses one whose `.webp` or `.json` already exists; it copies the
+     keep's `_open/<id>.preview.webp` to the slug's `.webp` rather than encoding again, so the file
+     Geoff judged is the file that ships; it writes `sha256` (the hash of that copy), `width`, and
+     `height`, and strips `screen`, `flags`, `source_width`, and `source_height`;
    - it runs the MusicBrainz step at one request per second, recording an MBID only when exactly
      one result matches the normalized name and its area or active years fit the record;
      otherwise the ID stays absent, the name key applies, and the name is logged;
    - it writes the waiver a flagged keep carries (the spec's rule), and never any other: a
      duplicate that first appears after the MBID step goes back to Geoff unpicked;
-   - it merges passes and drops into `rejected.json` and moves pack records to `pack.json`
-     (tracked meta files, edited in place); unsorted candidates stay in `.candidates/` for the
-     next round and go nowhere;
-   - it runs `integrity --root` over a staging copy of the pool plus the new pairs.
-   It returns: kept, returned unpicked with reasons, waivers written, the MBID table, the path
-   list, and the integrity output.
+   - it writes the updated `rejected.json` (passes and non-duplicate drops merged in),
+     `pack.json` (pack records moved in), and `waivers.json` to `_close/meta/`, never editing
+     `photos/meta/` in place; unsorted candidates stay in `.candidates/` for the next round and
+     go nowhere;
+   - `duplicate` drops, from `sheet` or from an agent's `drops.json`, never enter `rejected.json`,
+     because integrity fails any key repeated across picked, rejected, and pack records, and the
+     winner's record already carries the keys a later round checks against. The round log lists
+     them, and the agent deletes the losing candidate files so they do not resurface;
+   - it runs `integrity --root` over a staging copy of the pool, `_close/meta/`, and the new
+     pairs.
+   It returns: kept, returned unpicked with reasons, duplicates removed, waivers written, the
+   MBID table, the path list, and the integrity output.
 3. The conductor rules on anything returned, then commits in one Bash call: move the staged pairs
-   into `photos/`, run `integrity`, commit with the Global constraints' form, and check
-   `git show --stat HEAD`; on any failure it resets the new paths and moves the pairs back.
+   into `photos/`, copy `_close/meta/*.json` over `photos/meta/`, run `integrity`, commit with the
+   Global constraints' form, and check `git show --stat HEAD`. On any failure it resets the new
+   paths, moves the pairs back, and restores the meta files with `git checkout -- photos/meta`.
 
 **Acceptance:** `check.mjs integrity` passes on the committed pool; the round log lists the
 committed `source_id`s beside the round's keep documents and the two sets are equal (an empty set
-is valid and logged as zero); `git show --stat HEAD` matches the path list; the round log carries
-the counts, the balance report, and round two's targets (the gaps the report shows).
+is valid and logged as zero); `git show --stat HEAD` matches the path list; an `ArtifactData`
+`list` shows no `test` document; the round log carries the counts, the balance report, and round
+two's targets (the gaps the report shows).
 
 ## Later rounds
 

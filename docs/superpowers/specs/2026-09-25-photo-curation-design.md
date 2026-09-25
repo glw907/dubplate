@@ -209,8 +209,9 @@ overwrites a file it did not write.
 
 A passed or dropped candidate leaves its `source_id`, `origin_id`, `source_sha256`, and a reason
 code in `photos/meta/rejected.json`, so later rounds do not find it again. The reason codes are a
-closed list in `vocab.json`. The starting list is `passed`, `blurred`, `too-small`, `license`, and
-`duplicate`, and the rung plan may extend it. A candidate whose `pack` field is set goes to
+closed list in `vocab.json`. The starting list is `passed`, `blurred`, `too-small`, and `license`,
+and the rung plan may extend it. A duplicate never enters the ledger, because its keys already
+belong to another record; the round log lists it and the losing file is deleted. A candidate whose `pack` field is set goes to
 `photos/meta/pack.json` as a full record without an image, and it ships nothing.
 
 `tools/photos/check.mjs` is the one check, a plain Node script with no dependencies, which

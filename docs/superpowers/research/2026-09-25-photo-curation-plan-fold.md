@@ -42,7 +42,7 @@ STATUS's lane row still says 3.5M; the conductor updates it.
 | PC1 | Folded, merged with PM1: `node --test tools/photos/check.test.mjs` in Global constraints and Task 1's gate. |
 | PC2 | Folded, merged with PM7: Task 1 Interfaces (exit 0, 1, 2; no JSON on 2) and the empty-pool acceptance (`0 of 0`, `short`, exit 1; integrity exit 0). PC2's three-code form taken over PM7's because it separates a crash from a report. |
 | PC3 | Folded, merged with PM5: `balance --json` emits the derivation maps and picked keys; `sheet` adds derived fields and the second-image flag against pool and candidates; a post-MBID duplicate goes back to Geoff unpicked, and no unmade waiver is written (Task 6 close). |
-| PC4 | Folded, merged with PM4: the round, candidate, and choice documents in Task 2's outcome; `closed` written only from the conductor's side; reopening clears it. |
+| PC4 | Folded, merged with PM4: the round, candidate, and choice documents in Task 2's outcome; `closed` written only from the conductor's side. The first fold recorded a reopen path the plan did not carry (verification PV13); the second fold added it: the conductor clears `closed` through `ArtifactData`, and the page accepts changes again. |
 | PC5 | Folded, merged with PM8 per the conductor's ruling: 150-candidate `fixture:` render at desktop and 390px, closed-state refusal, and the `test` round deleted after (Task 2 acceptance). |
 | PC6 | Folded, merged with PD12: agents write a 1600px `preview.webp`; `Space` opens it; it is the encode round close commits (Task 2, Task 4, Task 6). |
 | PC7 | Folded: the candidate record's field list, `source_width`/`source_height`, sibling hash, thumbnail and preview presence, size floor on the source edge, and `pack` iff pack class (Task 1). The fixtures are in the table. |
@@ -117,3 +117,45 @@ PM4's `files` alternative. PM9's prune button is moot under the ruling.
 - Dispatch the `prose-voice-reviewer` read on the five drafts (Task 3).
 - Decide with Geoff whether the Phillips letter goes through Nicky Akehurst.
 - Carry N2 (withdrawn blobs in git history) to the release checklist.
+- Second fold: add the spec erratum PV4 names (`duplicate` drops stay out of `rejected.json`), and
+  rule on PV15 and PV16.
+
+## Second fold
+
+Narrow fold of the verification read
+(`docs/superpowers/research/2026-09-25-photo-curation-plan-fold-verification.md`, findings PV1 to
+PV16) into the plan. Folder: Opus 5.5, 2026-09-25, from `a2aeb1b`. PV1 to PV6 and PV7 to PV14
+are folded as the verification proposes, except PV2, which follows the conductor's ruling. PV15
+and PV16 were outside this fold's scope and stand open for the conductor. Mechanisms rest on the
+verification's probes and on `artifact-capabilities` 0.2.59's `claude.d.ts` and `assets.d.ts`,
+re-read for this fold.
+
+| ID | Disposition |
+|---|---|
+| PV1 | Folded (Task 2 outcome and acceptance). The fallback quotes `claude.d.ts`: a copy of the page on another host has no `window.claude`, and `null` means a platform top-level view or a host that never answers. The fixture store loads only when `window.claude` is absent on `localhost`; a `null` `db` elsewhere shows "Choices can't be saved here" with no grid. The render agent adds a stubbed-`null` case. |
+| PV2 | Folded per the conductor's ruling (Task 2 acceptance, Task 6 round open steps 2 to 4). At the start of the sitting Geoff makes one keep and one pass on the test round (round id `test`, captions "Test, not a real photo", the page header names the round). The conductor confirms both with an `ArtifactData` `list`, deletes every `test` document, confirms none remain, and only then has the round-open agent seed round one, continued through `SendMessage`. A missing test choice stops the round and reopens Task 2. The verification's closed-state press on the live page is not taken; the headless render proves the refusal. The conductor's own one-screen read of the live page is removed, since it had the same missing browser; Geoff's test view and Task 2's screenshots replace it. |
+| PV3 | Folded (Task 6 close steps 2 and 3). The close agent writes `rejected.json`, `pack.json`, and `waivers.json` to `_close/meta/`; the commit call copies them over `photos/meta/`, and its failure path restores them with `git checkout -- photos/meta`. |
+| PV4 | Folded (Task 6 close step 2; Task 1 fixture). `duplicate` drops never enter `rejected.json`; the round log lists them and the close agent deletes the losing candidate files. A new fixture fails integrity on a rejected entry that repeats a picked key. The spec's Storage paragraph lists `duplicate` among the codes a dropped candidate leaves in `rejected.json`, which its own integrity rule forbids; the plan follows the integrity rule, and the conductor owes the spec a one-line erratum. |
+| PV5 | Folded (Task 1 interfaces and fixtures; Task 4 brief). A record is `<id>.json` with `<id>` in the spec's filename form `<source>-<key>`; `candidate` and `sheet` read only that pattern and skip `_`-prefixed directories; raw evidence goes under `<agent>/raw/`; `sheet --out` is `photos/.candidates/_sheet/`. |
+| PV6 | Folded (Task 2 outcome and implementer paragraph; Task 6 round open). The page's layout is written as a comment block at the top of `sorter.html` and in the implementer's report; the artifact URL goes into the round log; every Task 6 dispatch names both. |
+| PV7 | Folded (Task 5): the reader runs `sheet --out` first, and the round-open agent reuses that output unless a re-verification changed a record. |
+| PV8 | Folded (Task 6 round open step 1): about 19 prompts, counted as 12 uploads, 2 test-round batches the PV2 ruling adds, 4 seed batches, and 1 close write. |
+| PV9 | Folded (Task 2 outcome): candidate documents carry each asset's `id` and `url`, and the page renders `"/_blob/" + id`, quoted from `assets.d.ts`. |
+| PV10 | Folded (Task 6 round open step 2): the round-open agent re-encodes every thumbnail and preview into `_open/` with the pinned encode, uploads only its own files, and views a sample. `_open/` is used rather than overwriting in place because the spec says an agent never overwrites a file it did not write. |
+| PV11 | Folded (Task 2 implementer paragraph, replacing "Conductor first"): the implementer loads both skills, checks the roster, and stops with a report if `db` or `assets` is missing. |
+| PV12 | Folded (Task 1 dispatch text): one sentence on the `git add -N --` and `git commit --` form in one Bash call. |
+| PV13 | Folded (Task 2 outcome); the PC4 row above is corrected to say so. |
+| PV14 | Folded (Task 6 close step 2): close copies the keep's `_open/<id>.preview.webp`, the file Geoff judged, to the slug's `.webp` and hashes the copy. |
+| PV15 | Not folded; outside this fold's scope. Open for the conductor: `sleep 0.25` inside the Commons lock. |
+| PV16 | Not folded; outside this fold's scope. Open for the conductor: name `docs/superpowers/research/2026-09-24-identity-photos/` in Tasks 3 and 4, and map spaces and slashes in an archive key to `_`. |
+
+Counts: 16 findings. 14 folded (PV2 per the conductor's ruling, with its closed-state press not
+taken). 2 left open for the conductor (PV15, PV16). The spec erratum from PV4 joins "Left for the
+conductor".
+
+## Conductor close of the second fold
+
+- PV4 spec erratum: applied in the spec's Storage section (`duplicate` removed from the ledger's reason codes; duplicates go to the round log).
+- PV15: folded (plan Global constraints, `sleep 0.25` inside the Commons lock).
+- PV16: folded (plan Global constraints names the research directory and the archive-key normalization).
+- STATUS ceiling, letters prose read, Phillips route (Geoff: via Nicky Akehurst), and N2: done at `a2aeb1b`, `4f50066`, and STATUS.
