@@ -120,6 +120,7 @@ func TestTakeKindLease_Refusals(t *testing.T) {
 	for _, kind := range []string{
 		"",
 		"../store",
+		"/../../escape",
 		"back/up",
 		"back\x00up",
 		"Backup",
@@ -129,6 +130,16 @@ func TestTakeKindLease_Refusals(t *testing.T) {
 		if _, err := h.TakeKindLease(kind); err == nil {
 			t.Errorf("take kind %q: got no error", kind)
 		}
+	}
+
+	// "/../../escape" is the row a dropped kind check would let
+	// through: filepath.Join(leasesDir, "kind-"+kind) cleans it to
+	// the store root's "escape", one level above leases/. The
+	// refusal above must have stopped that file from ever being
+	// created.
+	escapePath := filepath.Join(newLeaf(stateDir).root, "escape")
+	if _, err := os.Stat(escapePath); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("stat %s = %v, want not exist", escapePath, err)
 	}
 
 	l, err := h.TakeKindLease("backup-copy")
