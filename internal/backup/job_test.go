@@ -606,7 +606,9 @@ func TestBackup_Refusals(t *testing.T) {
 // TestBackup_Destinations is the join rows: for name:, name:dir, and
 // name:dir/, the stand-in's argv carries exactly the table's
 // destinations, one stamp across them, the resolved root as the sync's
-// source, and --max-delete equal to the catalog's two tracks.
+// source, and --max-delete equal to the catalog's two tracks. A
+// successful send is followed by the prune's own listing of
+// snapshots/ under the same destination.
 func TestBackup_Destinations(t *testing.T) {
 	tests := []struct {
 		remote string
@@ -627,10 +629,13 @@ func TestBackup_Destinations(t *testing.T) {
 			id, st := runBackup(t, h, tt.remote, lib)
 			wantState(t, st, ops.JobSucceeded, "")
 			argvs := s.invocations(t)
-			if len(argvs) != 2 {
-				t.Fatalf("the stand-in recorded %q, want sync then copyto", argvs)
+			if len(argvs) != 3 {
+				t.Fatalf("the stand-in recorded %q, want sync, copyto, then the prune's listing", argvs)
 			}
-			sync, copyto := argvs[0], argvs[1]
+			sync, copyto, list := argvs[0], argvs[1], argvs[2]
+			if want := []string{"lsjson", tt.prefix + "snapshots"}; !slices.Equal(list, want) {
+				t.Errorf("prune's listing argv = %q, want %q", list, want)
+			}
 			if len(sync) != 7 || sync[0] != "sync" || sync[3] != "--backup-dir" || sync[5] != "--max-delete" {
 				t.Fatalf("sync argv = %q", sync)
 			}

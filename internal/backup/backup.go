@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -46,8 +47,14 @@ type Job struct {
 //
 // Run removes every staging/backup-*.db before it stages its own copy,
 // which only the holder of the backup kind lease may do.
+//
+// Once the send succeeds, Run writes the backup reference and then
+// prunes the remote's snapshots and archive and the local snapshots
+// directory; a skipped or failed prune is folded into the returned
+// text rather than the run's error, since the backup itself landed.
 func (j Job) Run(ctx context.Context, progress func(phase string) error) (string, error) {
-	stamp := store.FormatStamp(time.Now())
+	start := time.Now()
+	stamp := store.FormatStamp(start)
 	if err := progress("checking the library"); err != nil {
 		return "", err
 	}
@@ -103,5 +110,18 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 		"-M",
 		"--metadata-set", "run_id="+j.RunID,
 		"--metadata-set", "sync_completed="+synced)
-	return "", err
+	if err != nil {
+		return "", err
+	}
+
+	if err := j.Store.WriteBackupRef(stamp, j.Remote); err != nil {
+		return "", fail("reference-failed", "%v", err)
+	}
+
+	if err := progress("pruning old snapshots"); err != nil {
+		return "", err
+	}
+	localDir := filepath.Join(filepath.Dir(filepath.Dir(stage)), "snapshots")
+	p := prune{bin: bin, remote: remote, stamp: stamp, localDir: localDir, start: start}
+	return p.run(ctx, j.Logger), nil
 }
