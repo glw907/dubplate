@@ -244,3 +244,88 @@ None was refused whole. Two major findings had a part refused:
 - **U-M3's "most concurrent streams" measure.** The direct stream path is stateless, so the
   measure needs a new per-stream tracker. Distinct addresses per credential and the byte meter
   already show a shared credential. The rest of U-M3 folded.
+
+## Second fold
+
+Target: the spec's revision 2 (`08c812f`) to revision 3. Input:
+`2026-09-25-group-scale-principles-fold-verification.md` (prefixes B, M, and m; 1 blocker, 3
+majors, 14 minors), plus Geoff's rulings of 2026-09-25. The blocker and every major folded.
+Minors folded where cheap, and m10, m11, and m14 folded because they touch website copy.
+
+### Owner rulings taken since revision 2
+
+- **Ruling 1, ruled yes.** A member keeping the whole library on their own devices is intended
+  use. The meter counts it, the admin sees it, and nothing refuses it.
+- **Ruling 2, ruled as its consequence.** A member may check out any collection they can see.
+- **Ruling 3, ruled by Geoff's Navidrome answer.** A read-only check found zero shares in
+  production and sharing at its default (on). Geoff: "I'm not worried about Navidrome now.
+  We'll fix it when we switch it over to dubplate." Sharing and downloads stay at Navidrome's
+  defaults until the switch to dubplate's own streamer, as an accepted residual. The fold
+  reads "the switch" as 0.8, when dubplate's streamer replaces Navidrome, per the conductor's
+  brief. The other reading, rung 16's cutover to dubplate-server with Navidrome still serving
+  audio, would move the fix earlier; Geoff can correct it at his read.
+- **Shares kept, bounded (direction change).** Casual one-off sharing is an important feature,
+  so 0.8 keeps OpenSubsonic shares, bounded so a link is useless as a distribution tool. Geoff
+  approved folding "bounded shares" into the spec, with the exact limits set by research that
+  runs after this fold. Revision 3 replaces every "drop shares" passage with a placeholder
+  section, "Bounded shares (design pending research)", that lists the candidate bounds. Row
+  A4 becomes "Shares bounded", with its fixture set by the follow-up. The route inventory
+  admits the share link's route as the one public row that serves audio or art. The is/isn't
+  copy names a link to one album as intended use and a public library as refused.
+
+### Dispositions
+
+| ID | Sev | Disposition |
+|---|---|---|
+| B1 | blocker | Folded in part. The facts are stated in "Before 0.8": the 0.63.2 default of `true` (`conf/configuration.go:797`), no key or `ND_ENABLESHARING` in the repo, the tunnel forwarding `/share/*`, and zero shares on 2026-09-25. The false "sets `EnableSharing = false` explicitly" line is gone. The is/isn't copy becomes true by scope: it is website copy for 0.8 onward and publishes when 0.8 ships. The fix's pin, gate leg, and deploy are not taken, because ruling 3 accepts the residual until the switch. |
+| M1 | major | Folded, moved to 0.8. "Before 0.8" quotes Navidrome's precedence line and states that any sharing check reads the effective value. A13 becomes the escape hatch's `doctor` row on `getUser`'s `shareRole`, with a fixture whose file says off and whose environment says on, so a file-only check fails. Ruling 3's "Off" option, which had the same shape, is gone with the ruling. |
+| M2 | major | Folded. Two rules replace the contradiction. Sources: the first of release, sibling releases, and artist that yields a counted link, with artist links labeled. Order: a host of `bandcamp.com` (or a subdomain) or the artist's `official homepage` host first, then `purchase for mail-order`, then other `purchase for download`, ties by URL. Allowed types named per entity. A14's fixture adds the Bandcamp-host and homepage-host links and the three source cases. |
+| M3 | major | Folded. Ruling 5's member-page sentence now discloses the play history whoever runs the server can read, in the verification's wording. The body points to that sentence. The "everything named" option drops "not what you play". |
+| m1 | minor | Folded. Distinct tracks are defined over the trailing 24 hours per credential, a member's count is the union over the member's credentials, and a nonzero-offset Range request adds bytes and no track. A6's fixture and pass condition name each case. |
+| m2 | minor | Folded. Refused `download` kinds answer error 50, with the OpenSubsonic definitions of 50 and 70 quoted and the reason stated. A5 updated. |
+| m3 | minor | Folded. The address source is `serve.ClientIP`; the count shows only in trusted-proxy mode, with a `doctor` row otherwise. A7 covers both modes. |
+| m4 | minor | Folded. A fourth auth class, delegated, holds the fallthrough row; A2 names it. |
+| m5 | minor | Moot. Geoff ruled ruling 3 directly. |
+| m6 | minor | Folded. A7 covers the distinct-address count, new row A15 covers `musicBrainzId`, and A13 covers the sharing `doctor` row. |
+| m7 | minor | Folded here. U-M3's refusal of a concurrent-streams measure stands on signal against cost, not on statelessness. The meter's response wrapper is where a counter would sit, so the build cost is small. The signal is weak: a member's phone and laptop streaming at once is ordinary, so the number needs its own threshold and wording, and distinct addresses plus the byte meter already surface a shared credential. |
+| m8 | minor | Folded. Ruling 2 is recorded as ruled, as a consequence of ruling 1. Its number stays, because the body and this record cite rulings by number. |
+| m9 | minor | Folded. The notice default is half the library or 1,000 tracks, whichever is larger. The evidence is arithmetic: 24 hours of nonstop play at about four minutes a track is about 360 tracks. The repo records no founding-library track count, so the floor carries the case. The spec states that a whole-library sync on a library under 2,000 tracks can pass without an email and still shows in the volume view. |
+| m10 | minor | Folded. "The admin can see how much music is downloaded", true under every ruling 5 option. |
+| m11 | minor | Folded. "Album pages will link to places to buy the music, where MusicBrainz knows one." |
+| m12 | minor | Folded. "Every credited artist carried a buy or stream link, and how many carry a purchase link is unmeasured." |
+| m13 | minor | Folded. "Symfonium retries, and its docs tell the user to switch off the download endpoint." |
+| m14 | minor | Folded. "What they said about where it came from"; the section publishes at 0.8, so "From 0.8" left the copy; the 122-character line is rewrapped. |
+
+### Owed errata, revised
+
+This supersedes items 1 to 7, 9, and 10 of "Owed errata" above where they differ. The rest
+stand.
+
+- Item 1 (streamer spec): the "Shares" erratum becomes "bound shares, per the follow-up". The
+  share section, slice 6's name, share management, the launch list, and hook 15's rows stay
+  until the follow-up names its changes. The item also records error 50 for refused
+  `download` kinds and the escape hatch's `doctor` row on `shareRole` (A13). Its other
+  changes stand.
+- Item 2 (configuration homes): the reserved share rows and the projector's share tests stay.
+  The decline of sharing outside the roster gains the bounded-share exception. The checkout
+  half becomes one line saying the meter counts checkout, since ruling 2 confirms the spec's
+  scope.
+- Item 3 (rung 6 spec): withdrawn. Its reserved share rows stay.
+- Item 7 (CLAUDE.md "Refused features"): "no public sharing" becomes "no public library";
+  bounded shares are allowed.
+- Item 4 (build spec): the `/share/*` bypass is live until 0.8, a residual the owner accepted.
+  Any later sharing check reads the effective value. Nothing routes a pin to rung 12. The
+  "Out of scope" additions stand, with "public sharing" replaced by "a public library".
+- Items 5 and 6 (organizer spec, `ROADMAP.md`): withdrawn. Ruling 2 confirms their checkout
+  scope as written.
+- Items 9 and 10 (the Navidrome pins and gate legs): withdrawn. No code lane owes a Navidrome
+  change.
+
+### Counts
+
+- Findings: 18 (1 blocker, 3 majors, 14 minors).
+- Folded wholly: 16 (M1 to M3, and every minor but m5).
+- Folded in part: 1 (B1; its pin-and-deploy fix superseded by ruling 3).
+- Moot by owner ruling: 1 (m5).
+- Refused: 0.
+- Rulings: 1 to 3 ruled; 4 to 7 open.

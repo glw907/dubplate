@@ -1,8 +1,11 @@
 # What dubplate is for, and what it isn't
 
-Design spec. Revision 2, 2026-09-25. Status: **awaiting Geoff's read.** Revision 1 (`1d6bc6a`)
-went through four review lenses (contract, mechanics, misuse, consistency) and an early prose
-read. The fold record is `docs/superpowers/research/2026-09-25-group-scale-principles-fold.md`.
+Design spec. Revision 3, 2026-09-25. Status: **awaiting Geoff's read; rulings 1 to 3 ruled.**
+Revision 1 (`1d6bc6a`) went through four review lenses (contract, mechanics, misuse,
+consistency) and an early prose read. Revision 2 (`08c812f`) went through a fold verification
+read, and revision 3 folds that read and Geoff's rulings of 2026-09-25. The fold record,
+including its "Second fold" section, is
+`docs/superpowers/research/2026-09-25-group-scale-principles-fold.md`.
 
 Owner intent (Geoff, 2026-09-25): "I would like dubplate to be a tool for groups of family and
 friends to share purchased music. I don't want it to be an easy way for stolen music to be
@@ -18,23 +21,26 @@ mechanisms are this spec's decisions, except the questions listed under "Rulings
 dubplate is a music server for a small group of people who know each other, such as a family
 or a few close friends. Each member adds music they bought or own. dubplate tags it, organizes
 it into one shared library, and streams that library to every member's phone and computer. An
-admin adds each member, and nothing plays without a login. dubplate can't get music from the
-internet, so the library holds only what members bring. dubplate is self-hosted, so these
+admin adds each member, and nothing plays without a login except a bounded share link a member
+sends. dubplate can't get music from the internet, so the library holds only what members
+bring. dubplate is self-hosted, so these
 choices shape the product the project ships. They aren't an enforcement system, and the
 operator of a server can change the code.
 
 ## Versions this spec speaks to
 
 - **The launch (0.x).** The greenfield ladder ends in a 0.x pre-release that the group uses.
-  Navidrome still serves the audio in this period.
+  Navidrome still serves the audio in this period, with the residuals that "Before 0.8" lists.
 - **0.8.** dubplate's own streamer replaces Navidrome. Most mechanisms below land here.
 - **0.9.** A local client paired with the server. Its scope isn't specified yet.
 - **1.0.** Polish and more audio formats.
 
 ## dubplate is, and dubplate isn't
 
-This section is written so the website can use it nearly as it stands. Every line is true of
-the product as decided. Lines about later releases say so.
+This section is website copy for dubplate from 0.8, the first release that serves audio
+itself. Every line is true of the product as decided from that release. The website publishes
+it when 0.8 ships. Until then the server runs Navidrome, and "Before 0.8" lists where the
+running server differs. A line about a feature that isn't built yet says so.
 
 **dubplate is:**
 
@@ -43,22 +49,25 @@ the product as decided. Lines about later releases say so.
 - A place to pool music you bought or own: lossless (FLAC) downloads from stores such as
   Bandcamp or Qobuz, rips of your own CDs and records, and music given to you as a gift, such
   as a CD or a gifted download.
-- A private server. An admin adds each member, and everything on it needs a login.
+- A private server. An admin adds each member, and the library needs a login.
+- A way to send a friend one album. A member can share a link to one album or song, and the
+  link is limited so it can't stand in for the library.
 - A tidy library. dubplate looks up every album in MusicBrainz, the open music encyclopedia,
   and files it in a consistent layout.
-- A record of who added each album and where it came from.
-- Built to point you toward buying music. Album pages will link to places to buy each album.
+- A record of who added each album and what they said about where it came from.
+- Built to point you toward buying music. Album pages will link to places to buy the music,
+  where MusicBrainz knows one.
 
 **dubplate isn't:**
 
 - A way to get music from the internet. It has no search-and-download feature, and it
   connects to no torrent, Usenet, or Soulseek network.
-- A public music site. It has no public links, no listening without a login, and no way to let
-  anyone outside the group in.
+- A public music site. It has no public library, no link that opens the whole collection, and
+  no way to let anyone outside the group browse it.
 - A network of servers. One dubplate server doesn't connect to another.
-- A way to hand a library to strangers. From 0.8, dubplate has no download of an artist's
-  catalog, a playlist, or the whole library in one piece. Members' devices can keep music for
-  offline listening, and the admin can see how much each member's devices take.
+- A way to hand a library to strangers. dubplate has no download of an artist's catalog, a
+  playlist, or the whole library in one piece. Members' devices can keep the whole library
+  for offline listening, and the admin can see how much music is downloaded.
 - Legal advice. Whether you may share music with your household or friends depends on your
   country and on the terms of the store you bought it from.
 
@@ -110,17 +119,22 @@ The default number is ruling 4.
   raises the cap or passes an explicit list of members to bring. A partial import would orphan
   the skipped members' stars, playlists, and history.
 
-**Nothing is reachable without a login.** dubplate has no public share link, no anonymous
-stream, and no public collection. A collection is either visible to the group or private, and
-the configuration homes spec declines sharing outside the roster (Geoff, 2026-09-11), because
-the roster is the trust boundary. The unauthenticated surface is a checked-in table, not
-prose: a route-inventory test builds the real serve shell, compares every registered route
-against the table's auth class (public, session, or admin), and fails on any route the table
-doesn't name. Today the public rows are the login flow, the web app's static assets, and the
-branding, font, and operator CSS routes. `dubplate init`'s first-run page on an unconfigured
-server joins at 0.8. At 0.8 the table extends to every OpenSubsonic endpoint, and only
-`getOpenSubsonicExtensions` answers without credentials. None of the public rows serves audio,
-art, or catalog data.
+**Nothing is reachable without a login except a bounded share.** dubplate has no anonymous
+stream of the library and no public collection. A collection is either visible to the group
+or private, and the roster is the trust boundary. The one exception is a share link a member
+creates, bounded as "Bounded shares" describes. The unauthenticated surface is a checked-in
+table, not prose: a route-inventory test builds the real serve shell, compares every
+registered route against the table's auth class, and fails on any route the table doesn't
+name. The classes
+are public, session, admin, and delegated. A delegated route hands authentication to another
+server. Its one row is the shell's fallthrough (`Shell.SetFallthrough`), which from rung 12
+forwards `/rest/*` to Navidrome under Navidrome's own passwords, and "Before 0.8" covers what
+that route serves. Today the public rows are the login flow, the web app's static assets, and
+the branding, font, and operator CSS routes. `dubplate init`'s first-run page on an
+unconfigured server joins at 0.8. At 0.8 the table extends to every OpenSubsonic endpoint, and
+only `getOpenSubsonicExtensions` answers without credentials. The share link's route joins
+the public rows at 0.8, and it is the only public row that serves audio or art. No public row
+serves catalog data.
 
 The OpenSubsonic API calls a playlist "public" when every user on the server can see it. On
 dubplate every user is a member, so a public playlist is visible to the group and no further.
@@ -129,8 +143,8 @@ dubplate every user is a member, so a public playlist is visible to the group an
 another dubplate server. The configuration homes spec's attach verbs connect a member's own
 laptop to a server, under a device credential bound to that member. A member who holds
 profiles for two servers can still copy albums out of one and contribute them to the other by
-hand. That relay is bounded by the checkout rule (ruling 2), by intake's per-album checks on
-the receiving server, and by that server's admin.
+hand. The sending server's meter counts the copy. Intake's per-album checks on the receiving
+server and that server's admin bound the rest.
 
 **Every credential belongs to a member.** The 0.8 streamer has each member mint a named app
 password for each device from a device page, shown once and revocable alone
@@ -150,9 +164,31 @@ a one-step revoke ("Profiles in the TUI"). This spec adds three things.
   owner, kind, creation time, last use, and the number of distinct addresses it was used from
   in the last seven days. A credential pasted into several people's phones shows up there. The
   number is a prompt for the admin to ask, never a verdict, because a phone's address changes
-  often.
+  often. The address comes from `serve.ClientIP`, which returns the real client address only
+  in trusted-proxy mode. In the default mode it returns the connecting peer, which behind the
+  tunnel is the tunnel itself. So the list shows the count only in trusted-proxy mode, and a
+  `doctor` row names the gap otherwise.
 - **A one-step admin revoke** of any one credential, beside the roster-level revoke that the
   valid-after epoch already provides. A revoked credential's next request answers error 40.
+
+## Bounded shares (design pending research)
+
+Casual one-off sharing is an important feature (Geoff, 2026-09-25). A member who sends a
+friend a link to one album is using dubplate as intended. A permanent public link to the
+library isn't. So 0.8 keeps OpenSubsonic shares, bounded so that a link is useless as a
+distribution tool. Research that follows this revision sets the exact bounds, and the next
+revision folds them in. The candidate bounds are:
+
+- One item per share: one album or one song.
+- Stream-only, in a lossy format, with no download.
+- An expiry on every link.
+- A cap on plays per link.
+- A pause when a link draws more distinct listeners than a friend's household would.
+- A cap on live links per member.
+- Links that can't be found: no index, no listing, and no guessable token.
+- Attribution on the share page, naming the member who shared it, with buy links first.
+- Server-side clamping, so a share a client creates takes the same bounds as one the web app
+  creates.
 
 ## dubplate never fetches music
 
@@ -186,29 +222,36 @@ admin edits the source answer.
 
 **No single request returns more than an album.** From 0.8, `download` accepts a song id or an
 album id. A folder-view directory that holds exactly one album counts as that album. Every
-other id kind answers error 70: an artist, a playlist, a folder-view directory above the album
-level, and a music folder. The streamer spec currently lets `download` return artist and
-playlist zips. This spec narrows it, as listed under "Conflicts with existing specs". An
-artist zip can span most of a library, and a playlist can hold any selection.
+other id kind answers error 50, which the OpenSubsonic error list defines as "User is not
+authorized for the given operation.", with a message that names the song-or-album rule. The
+refused kinds are an artist, a playlist, a folder-view directory above the album level, and a
+music folder. Error 70 ("The requested data was not found.") would be untrue for an id that
+exists, and error 50 is what Navidrome answers when downloads are off. The streamer spec
+currently lets `download` return artist and playlist zips. This spec narrows it, as listed
+under "Conflicts with existing specs". An artist zip can span most of a library, and a
+playlist can hold any selection.
 
 **Offline listening is intended use.** The group listens on phones, and phones keep music for
 offline play. Stock clients do this one track at a time. Tempus fetches each track through
 `download` or `stream`, Symfonium through `download`, and DSub through `stream`. Symfonium's
-automatic offline cache copies every track in the library after each sync. A per-track fetch for an offline cache can't be
-told apart from a script copying the library. So dubplate refuses neither, and it counts both.
-Whether a member's own devices holding the whole library is intended use is ruling 1.
+automatic offline cache copies every track in the library after each sync. A per-track fetch
+for an offline cache can't be told apart from a script copying the library. So dubplate
+refuses neither, and it counts both. A member's own devices holding the whole library is
+intended use (ruling 1, ruled).
 
 **A meter counts everything served.** Every `stream` and `download` response is counted
 against the member and the credential that authenticated it, in bytes sent and distinct tracks,
-over a rolling window. Revision 1's per-member album download limit is dropped. It counted
+over the trailing 24 hours. Revision 1's per-member album download limit is dropped. It counted
 album zips, which no offline-sync client uses, so it would have stopped almost no one and
 landed only on an honest member.
 
 - The meter is store-backed, so a restart doesn't reset its window.
 - Bytes are the bytes written per response, including a partial (206) response and an aborted
   stream.
-- A stream start is counted once per credential, track, and window. A Range continuation adds
-  bytes only.
+- A credential's distinct tracks are the tracks with any byte served to it in the trailing 24
+  hours. A member's distinct tracks are the union over the member's credentials, so two devices
+  syncing the same track count it once. A request with a nonzero Range offset adds bytes to
+  the credential's byte count and records no new track.
 - The credential id comes from authentication, never from the client's `c` parameter, which a
   client asserts and two phones running one app share.
 
@@ -217,12 +260,16 @@ pass a threshold, the admin gets one email naming the member and the credentials
 it, through the same notify path the configuration homes spec uses for sensitive changes.
 Nothing is refused. The threshold is a setting whose default sits well above a heavy honest
 day. The default is ruling 4. The notice fires once per crossing, not once per request.
+Because ruling 1 makes a whole-library sync intended use, the notice words it as expected
+("Ana's devices synced most of the library today") and asks the admin to confirm the
+credentials are hers.
 
 **The admin sees volume.** The admin's volume view shows bytes and distinct tracks served per
 member and per credential. Whether it names members, and which measures it shows, is ruling 5.
 The view shows counts and names no track or album. Play history, which the streamer keeps for
 recently played and most played, does record songs per member. An admin with shell or backup
-access can read it. Each member's own page says so in plain words.
+access can read it. Each member's own page says so in plain words, in the sentence ruling 5
+gives.
 
 **Backup and restore stay with the operator.** Restore is a command-line verb that runs
 offline under the store's exclusive lock, and no HTTP route reaches it
@@ -230,27 +277,43 @@ offline under the store's exclusive lock, and no HTTP route reaches it
 command line, or over HTTP only behind rung 14's admin authorizer, and it writes to the remote
 the operator configured. No response returns a backup's contents to the caller.
 
-**Checkout follows ruling 1.** The configuration homes spec's checkout verb takes a read-only
-offline copy of a server collection onto a member's laptop, and the group library is one such
-collection. Checkout is served bytes under a device credential, so the meter counts it like any
-other. Which collections a member may check out is ruling 2. The local client that carries
+**A member may check out any collection they can see.** The configuration homes spec's
+checkout verb takes a read-only offline copy of a server collection onto a member's laptop,
+and the group library is one such collection. A checkout is the laptop's version of a phone's
+offline cache, so it follows ruling 1 (ruling 2, ruled). Checkout is served bytes under a
+device credential, so the meter counts it like any other. The local client that carries
 checkout isn't scheduled yet.
 
 ## Before 0.8
 
 From launch until 0.8 replaces it, and afterward whenever Navidrome is the escape hatch,
 Navidrome serves the audio. dubplate's sign-on gates the web app, and `/rest/*` authenticates
-through Navidrome's own passwords. The principles hold in this period as follows.
+through Navidrome's own passwords. In this period the running server differs from the
+is/isn't copy in three ways.
 
-- **Sharing is pinned off.** Navidrome's public share links are off by default, and nothing
-  keeps them off today. The Navidrome configuration sets `EnableSharing = false` explicitly,
-  with a gate leg that fails if the key is absent or true. Rung 12's driver carries the pin in
-  its provisioning and proves it with a `doctor` row. The build spec's `/share/*` bypass is
-  inert while the pin holds.
-- **Downloads are ruling 3.** Navidrome's `download` returns artist and playlist zips while
-  downloads are enabled, which is its default.
+- **Sharing is on, at Navidrome's default.** Navidrome 0.63.2, the version `compose.yaml`
+  pins, defaults `EnableSharing` to `true` (`conf/configuration.go:797`). The repo sets
+  neither the key in `config/navidrome.toml` nor `ND_ENABLESHARING` in the container's
+  environment. The tunnel forwards every path, `/share/*` included, to Navidrome. So a member
+  can create a public share link that serves audio without a login. A read-only check on
+  2026-09-25 found zero shares in production.
+- **Downloads are on, at Navidrome's default.** Navidrome 0.63.2 defaults `EnableDownloads` to
+  `true` (`conf/configuration.go:758`), and its `download` returns artist and playlist zips.
 - **Credentials and volume aren't covered.** Navidrome has one Subsonic password per user, no
-  credential cap, and no meter. These arrive at 0.8.
+  credential cap, and no meter.
+
+The owner accepted the first two as residuals until the switch to dubplate's own streamer.
+Geoff, 2026-09-25: "I'm not worried about Navidrome now. We'll fix it when we switch it over to
+dubplate." No pin, gate leg, or deploy is owed for this period. The website publishes the
+is/isn't copy at 0.8, so it never describes this period.
+
+At 0.8 dubplate's streamer serves shares only under the bounds that "Bounded shares" sets
+(row A4). One rule governs any check on sharing from then on, including a check on Navidrome
+while it stays the escape hatch. The check reads the effective value, never a configuration
+file alone. Navidrome's configuration docs give the precedence as "environment variables,
+command line arguments, configuration file", so a check that reads `navidrome.toml` passes
+while `ND_ENABLESHARING` turns sharing back on. The escape hatch's `doctor` row reads `shareRole`
+from Navidrome's `getUser`, which Navidrome sets from `EnableSharing` (row A13).
 
 ## Money points toward buying
 
@@ -260,18 +323,25 @@ in the web app. The web app has album pages from rung 7
 (`2026-09-24-visual-identity-design.md`, "Open for rung 7"), so the release that first renders
 buy links is ruling 7.
 
-- **Where the links come from, in order.** The admitted release's own links come first. Most
-  physical releases carry none, because stores link the digital release. A sampled 3 of 28
-  releases carried a buy or stream link, while every credited artist carried one. So the next
-  source is sibling releases in the same release group, through one browse call under the
-  shared MusicBrainz rate limiter. The last source is the artist's own store and Bandcamp
-  links, labeled as the artist's rather than this album's.
-- **Which links render.** Only purchase types render: "purchase for download", "purchase for
-  mail-order", and the artist's own store or Bandcamp page. Streaming-service links don't
-  render, because the section's purpose is buying. Every link must be `https`.
-- **What order they appear in.** The artist's own store and Bandcamp come first, then physical
-  copies by mail order, then other download stores. The artist-direct store pays the artist
-  the most.
+- **Which links count.** Only purchase types count. From a release, those are `purchase for
+  download` and `purchase for mail-order`. From an artist, they are `bandcamp`, `purchase for
+  download`, and `purchase for mail-order`. Streaming-service links don't count, because the
+  section's purpose is buying. Every link must be `https`.
+- **Where the links come from.** dubplate takes the first source that yields at least one
+  link that counts, in this order: the admitted release, its sibling releases in the same
+  release group, then the artist. Artist links render only when the release and its siblings
+  yield none. Most physical
+  releases carry no links, because stores link the digital release. A sampled 3 of 28 releases
+  carried a buy or stream link. Every credited artist carried a buy or stream link, and how
+  many carry a purchase link is unmeasured. Sibling releases come through one browse call
+  under the shared MusicBrainz rate limiter. Links from the artist carry the label "the
+  artist's", since they aren't this album's.
+- **What order they appear in.** MusicBrainz has no type for the artist's own store, so the
+  order uses the link's host. A link whose host is `bandcamp.com` or one of its subdomains, or
+  equals the host of the artist's `official homepage` link when MusicBrainz records one,
+  comes first. dubplate reads that homepage link whichever source yields. Then come
+  `purchase for mail-order` links, then the other `purchase for download` links. Links in the
+  same group sort by URL. A store the artist runs pays the artist the most.
 - **Staleness.** Links are captured at admission and can go stale. The pass that builds the
   feature sets the refresh cadence.
 
@@ -324,7 +394,8 @@ rung 9.
 
 **A hard download limit.** Stock clients fill offline caches one track at a time, so a limit on
 album downloads binds almost no one. A limit on per-track fetches breaks the offline listening
-the product exists for, and Symfonium's documented response is to retry or to switch endpoints.
+the product exists for. Symfonium retries, and its docs tell the user to switch off the
+download endpoint.
 The meter and the admin notice make a bulk copy visible within a day at no cost to an honest
 member.
 
@@ -359,21 +430,23 @@ Status values:
 - **planned**: a ratified spec schedules it to a rung or release.
 - **designed, unscheduled**: a ratified spec designs it, and nothing schedules it.
 - **new**: this spec introduces it.
+- **residual**: a gap the owner accepted for a stated period.
 
 | Mechanism | Lands in | Status |
 |---|---|---|
 | Invite-only, admin-added membership; no self-signup | Rung 5 roster (`TestRosterWrites_AdminInvariantAndGrant`, `TestAddMember_ActorAndChannelRefusals`, `TestRequireAdmin_RefusalsMatchNotFound`) | proven; the absence of a signup route waits on the route inventory |
 | Roster in the store | Rung 6d `member import` | planned |
 | Member cap on every add channel; preflight Navidrome import | Rung 14 settings; the roster's add path | new |
-| Route inventory with an auth class per route | The next rung that registers a route | new |
+| Route inventory with an auth class per route, the fallthrough classed as delegated | The next rung that registers a route | new |
 | Login required for audio, art, and catalog data | Rung 5 gates the web app; 0.8 API surface | specified for 0.8 |
-| No public share links; share endpoints refused at 0.8 | 0.8 slice 6 | new (amends the streamer spec) |
-| Navidrome sharing pinned off, with a gate leg | Navidrome configuration now; rung 12 driver | new |
+| Shares kept at 0.8, bounded so a link can't distribute a library | 0.8 slice 6; bounds set by the follow-up research | new (amends the streamer spec; design pending) |
+| Navidrome sharing and downloads left at their defaults before 0.8 | Residual the owner accepted, 2026-09-25 | residual |
+| Any sharing check reads the effective value; escape-hatch `doctor` row on `shareRole` | 0.8 | new |
 | Group-visible as the visibility ceiling | Configuration homes spec; rung 14 API | specified |
 | No federation between servers | Build spec "Out of scope"; contributor guide | new (records a refusal) |
 | App password per device, revocable alone | 0.8 slice 6 | planned |
 | Credential cap per member, with the revoke list at the refusal | 0.8 slice 6 | new |
-| Admin credential list with distinct addresses and one-step revoke | 0.8 slice 6; rung 14 admin API | new |
+| Admin credential list with distinct addresses (trusted-proxy mode) and one-step revoke | 0.8 slice 6; rung 14 admin API | new |
 | Device credentials for the local client, counted by the cap | Configuration homes spec | designed, unscheduled |
 | No fetching, no fetch integrations or hook recipes | Build spec "Out of scope"; CLAUDE.md; contributor guide | new (records a refusal) |
 | `download` limited to a song or an album | 0.8 API surface | new (amends the streamer spec) |
@@ -389,7 +462,7 @@ Status values:
 | Album notes, by the `added_by` member or an admin | 0.8 group features | planned |
 | Source shown beside `added_by` | Rung 7 album page; 0.8 `notes` | new |
 | `musicBrainzId` filled in album responses | 0.8 API surface | new |
-| Buy links with fallback order, purchase types, `https` only | The first web album page to render them (ruling 7) | new |
+| Buy links: first source that yields, host-based order, purchase types, `https` only | The first web album page to render them (ruling 7) | new |
 | Wishlist, merged with Requests; web only | `IDEAS.md` | new (idea) |
 | ListenBrainz and Last.fm scrobbling | After 0.8, the streamer spec's "2.1 list" | planned |
 | "dubplate is, dubplate isn't" and the legal note | README; website | new |
@@ -403,19 +476,20 @@ can pass on an empty fixture. A rung plan cites rows by number.
 | # | Mechanism | Fixture | Passes when | Fails when |
 |---|---|---|---|---|
 | A1 | Member cap | Roster at N-1 with cap N, on each of `member add`, the add-member page, `member import`, and `dubplate import navidrome`; an empty roster for the bootstrap; an over-cap roster at load | The Nth add lands; the next is refused naming the setting and offboarding; the bootstrap lands; the over-cap roster loads with a `doctor` row; an import over the cap writes nothing | The check is removed from any one channel |
-| A2 | Route inventory | The real serve shell, every registered route | Every route matches its table row and auth class; an unauthenticated request is refused on every non-public row | A route is added without a row, or an auth wrapper is dropped |
+| A2 | Route inventory | The real serve shell, every registered route, the fallthrough set | Every route matches its table row and auth class (public, session, admin, or delegated); an unauthenticated request is refused on every session and admin row; the fallthrough is the only delegated row | A route is added without a row, or an auth wrapper is dropped |
 | A3 | OpenSubsonic auth | Every implemented endpoint, no credentials | Only `getOpenSubsonicExtensions` answers; every other endpoint answers error 10 or 40 | Any other endpoint returns data |
-| A4 | Shares absent | The four share endpoints; `getUser` | `createShare`, `updateShare`, and `deleteShare` answer error 50; `getShares` answers error 50 or, if the study rung requires it, an empty list; `shareRole` is false for every user; no share route is mounted | Any returns success |
-| A5 | Download scope | One id of every kind the catalog mints | A song and an album answer; a one-album folder directory answers as its album; every other kind answers error 70 | Any other kind returns a body |
-| A6 | Meter and notice | Two members, three credentials (two on one client name), one aborted Range stream, and one member at threshold minus one then plus one; a restart between reads | Counts and bytes are exact per credential; the notice fires once, naming the member and credentials; nothing is refused; the restart changes nothing | Two credentials merge, the notice fires twice or not at all, or the window resets |
-| A7 | Credential cap and revoke | Mixed kinds at the cap, including an app password minted before the revoke | Minting is refused at the cap with the revoke list; the revoked credential's next request answers error 40 | A kind escapes the count, or the revoke lags |
+| A4 | Shares bounded | Set by the follow-up research | Every bound the follow-up adopts holds on a share created by the web app and on one created by a client | Any adopted bound is missing on either path |
+| A5 | Download scope | One id of every kind the catalog mints | A song and an album answer; a one-album folder directory answers as its album; every other kind answers error 50 with the song-or-album message | Any other kind returns a body |
+| A6 | Meter and notice | Two members, three credentials (two on one client name), one track served to two of one member's credentials, one aborted stream and its nonzero-offset Range continuation, and one member at threshold minus one then plus one; a restart between reads | Per credential, distinct tracks and bytes match the trailing-24-hour rule; the continuation adds bytes and no track; the shared track counts once for the member; the notice fires once, naming the member and credentials; nothing is refused; the restart changes nothing | Two credentials merge, the continuation counts a track, the notice fires twice or not at all, or the window resets |
+| A7 | Credential cap, admin list, and revoke | Mixed kinds at the cap, including an app password minted before the revoke; one credential used from three client addresses in trusted-proxy mode, and the same requests in the default mode | Minting is refused at the cap with the revoke list; the admin list shows three addresses in trusted-proxy mode, no count and a `doctor` row in the default mode; the revoked credential's next request answers error 40 | A kind escapes the count, the default mode shows a count, or the revoke lags |
 | A8 | Volume view | The A6 fixture | The response decodes under `DisallowUnknownFields` into a struct with no entity-id field, and shows the measures ruling 5 names | A track or album id appears |
 | A9 | Source answer | A submission without a source, and one per channel in the channel table | If ruling 6 says required, the missing answer is refused in reject wording; each channel stores the table's value | A missing answer is admitted under "required", or a channel stores another value |
 | A10 | `added_by` per channel | One album per channel in the channel table | Each stores the table's value; a client-supplied value is ignored | Any channel stores a client value or resets on hand-over |
 | A11 | Restore not over HTTP | The route inventory and the ops HTTP projection | No route or ops verb reaches restore | One does |
 | A12 | Backup contents never returned | An HTTP backup under the admin authorizer | The response carries a handle and status only | Any snapshot bytes are in the body |
-| A13 | Navidrome sharing pinned | The Navidrome configuration | `EnableSharing = false` is present | The key is absent or true |
-| A14 | Buy links | One link of each allowed type, one streaming link, one `http` link, one `javascript:` link, and a release with no links whose release group and artist have them | Only the allowed `https` links render, in the stated order, with the fallback labeled | Another link renders, or the fallback is missing or unlabeled |
+| A13 | Escape-hatch sharing check (0.8) | A Navidrome fake whose configuration file sets sharing off while its environment sets `ND_ENABLESHARING=true`, so `getUser` reports `shareRole` true; and one reporting false | The `doctor` row flags the first and passes the second | The check reads the configuration file, or the first passes |
+| A14 | Buy links | A release with one link of each release purchase type, a `purchase for download` link on a Bandcamp host, one on the artist's `official homepage` host, one streaming link, one `http` link, and one `javascript:` link; a release with no links whose siblings have them; a release whose siblings have none and whose artist has them | Only counted `https` links render; the Bandcamp-host and homepage-host links sort first, then mail order, then other download stores; the first source that yields is the only one shown; artist links carry the artist's label | Another link renders, a host-matched link sorts after another, two sources mix, or artist links are unlabeled |
+| A15 | `musicBrainzId` in album responses | An admitted album with a known release id | `getAlbum` and `getAlbumInfo2` carry that id in `musicBrainzId` | The field is empty or carries another id |
 
 ## Conflicts with existing specs
 
@@ -425,15 +499,10 @@ its own document once Geoff approves this spec. This spec edits none of them.
 1. **Shares.** The streamer spec's "Shares" section ships four share endpoints at launch, with
    a public token path that serves audio. The configuration homes spec (ratified
    2026-09-23) declines sharing outside the roster and reserves share rows only "if sharing
-   ever ships". The streamer spec's revisions 2.2 (2026-09-12) through 2.4 (2026-09-24) left
-   the section standing. The erratum drops shares from 0.8, per row A4, and touches every passage
-   that names them:
-   - the streamer spec's "Shares" section, the slice 6 name ("Identity, app passwords, and
-     shares"), the "Web surface" section's share management, revision 2's item 12, the API
-     surface's launch list, and hook 15's reserved share rows;
-   - the configuration homes spec's reserved share rows, its rung 6 routing list, and
-     `createShare` and "shares re-checked at fetch time" in the projector's test list;
-   - the rung 6 spec's line that reserves share rows.
+   ever ships". The streamer spec's erratum is: bound shares, per the follow-up. The
+   configuration homes spec's decline of sharing outside the roster gains the same exception,
+   and its reserved share rows and the rung 6 spec's reserved rows stay. The follow-up names
+   every passage its bounds touch.
 2. **Download scope.** The streamer spec's "API surface" section has `download` return album,
    artist, or playlist zips, the playlist zip with an `.m3u8`. The erratum limits it per row
    A5. The "Digital audio players" section names `download` as the server's contribution to
@@ -454,12 +523,13 @@ its own document once Geoff approves this spec. This spec edits none of them.
    and `getAlbumInfo2`, and the source line in `notes`.
 7. **Checkout.** The configuration homes spec's "Check out" verb lets a member take an offline
    copy of any server collection they can see, and the organizer spec's 2026-09-12 erratum and
-   `ROADMAP.md` schedule it with the TUI. The erratum records ruling 2's answer.
+   `ROADMAP.md` schedule it with the TUI. Ruling 2 confirms that scope, so none of the three
+   changes. The configuration homes spec gains one line: the meter counts checkout.
 8. **Navidrome sharing.** The build spec's trust-boundary requirements name a `/share/*`
-   bypass. The erratum records it as inert while the driver pins sharing off, and routes the
-   pin and its `doctor` row to rung 12.
+   bypass. The erratum records it as live until 0.8, a residual the owner accepted, and
+   records that any later sharing check reads the effective value (row A13).
 9. **Refusals in the build spec.** The build spec's "Out of scope" section gains the refused
-   features: fetching music, fetch integrations, federation, and public sharing.
+   features: fetching music, fetch integrations, federation, and a public library.
 10. **CLAUDE.md.** The project instructions gain a short "Refused features" block, because
     implementer dispatches and plan reviewers read that file and never read this spec.
 11. **`IDEAS.md`.** The Requests entry absorbs the wishlist, with its purchase claim and its
@@ -471,44 +541,49 @@ as lyrics. This spec's refusal of music acquisition rests on the product's purpo
 
 ## Rulings for Geoff
 
-1. **Is a member's own devices holding the whole library intended use?** Recommendation: yes.
-   A phone holding the group's library is ordinary use, and Symfonium's automatic offline
-   cache is how the leading client provides it.
-   - Yes: the admin notice words a whole-library sync as expected ("Ana's new phone synced the
-     library") and asks the admin to confirm the credential is hers. The website copy says
-     members' devices can keep the library for offline listening.
-   - No: nothing more is refused, because a cache fetch can't be told from playback. The
-     notice words the same event as unusual, and the copy says offline listening covers what
-     a member plays.
-2. **Which collections may a member check out?** Recommendation: follow ruling 1.
-   - Any collection they can see, counted by the meter. This matches a yes on ruling 1,
-     because a checkout is the laptop's version of a phone's offline cache.
-   - Only collections they own, plus the copies that hand-over and seize already leave behind.
-     This matches a no on ruling 1.
-3. **Navidrome downloads before 0.8.** Recommendation: leave them on and state the residual.
-   The launch group is the founding group, the window closes at 0.8, and some clients' offline
-   sync uses `download`.
-   - On: nothing changes, and the "Before 0.8" section names artist and playlist zips as the
-     residual.
-   - Off: the Navidrome configuration sets `EnableDownloads = false` with a gate leg. Members
-     keep streaming. Clients that sync through `download` lose offline sync until 0.8.
+Rulings 1 to 3 are ruled (Geoff, 2026-09-25), and the body follows them. Rulings 4 to 7 are
+open. The numbers stay fixed, because the body and the fold record cite them.
+
+### Ruled
+
+1. **A member's own devices holding the whole library is intended use.** Ruled yes. The meter
+   counts it and the admin sees it, and nothing refuses it. The admin notice words a
+   whole-library sync as expected, and the website copy says members' devices can keep the
+   whole library for offline listening.
+2. **A member may check out any collection they can see.** Ruled as a consequence of ruling
+   1, since a checkout is the laptop's version of a phone's offline cache. The meter counts
+   it. The configuration homes spec already says this.
+3. **Navidrome sharing and downloads before 0.8 stay at Navidrome's defaults.** Ruled by
+   Geoff's answer on sharing: "I'm not worried about Navidrome now. We'll fix it when we switch
+   it over to dubplate." Both stay on as residuals the owner accepted, and "Before 0.8" states
+   them. No pin or gate leg is owed. At 0.8 the streamer bounds shares (row A4), and any
+   sharing check reads the effective value (row A13).
+
+### Open
+
 4. **The defaults.** Recommendation: a member cap of 20, a credential cap of 10 per member,
-   and a volume notice when a member's distinct tracks served in a rolling 24 hours pass half
-   the library's tracks. Twenty covers an extended family or a wide circle of friends and
-   stays below any number that reads as an audience. Ten covers a member's phone, tablet,
-   laptops, and a car or speaker. Half the library in a day is well above any listening day,
-   and a first full sync still reaches it, which ruling 1 words. Each is a setting the admin
-   can change, per member where it applies.
+   and a volume notice when a member's distinct tracks in a rolling 24 hours pass half the
+   library's tracks or 1,000 tracks, whichever is larger. Twenty covers an extended family or
+   a wide circle of friends and stays below any number that reads as an audience. Ten covers a
+   member's phone, tablet, laptops, and a car or speaker. For the notice, a member playing
+   music nonstop for 24 hours at about four minutes a track hears about 360 tracks, so 1,000
+   distinct tracks in a day means devices fetching the library, not a person listening. The
+   floor keeps a new server with a few hundred tracks from sending a notice on an ordinary
+   day. On a library under 2,000 tracks, a whole-library sync can pass unnoticed by email, and
+   the volume view still shows it. Each default is a setting the admin can change, per member
+   where it applies.
 5. **What the volume view names.** Recommendation: name members and credentials on bytes and
    distinct tracks served, show stream counts only as group totals, and show no time-of-day
-   breakdown. Each member's page says: "The admin can see how much data your devices download,
-   not what you play." Only bytes and distinct tracks answer the view's one question, which
-   is unusual copying. Per-person stream counts over time read as a listening log inside a
-   family.
+   breakdown. Only bytes and distinct tracks answer the view's one question, which is unusual
+   copying. Per-person stream counts over time read as a listening log inside a family. Each
+   member's page says: "In the app, the admin sees how much data your devices download, not
+   what you play. The server keeps a history of what you play for your recently played and
+   most played lists, and whoever runs the server can read it."
    - The recommendation builds per-member and per-credential byte and track columns, plus
      group-total stream counts.
    - Exceptions only: group totals by default, naming a member only when the notice fires.
-   - Everything named: stream counts, bytes, and tracks per member and credential.
+   - Everything named: stream counts, bytes, and tracks per member and credential. The
+     member-page sentence then drops "not what you play".
 6. **Is the source question required?** Recommendation: required, with "Other" accepting an
    optional note. A skippable question lets the norm fade exactly when it matters, and the
    per-album override keeps a mixed batch honest.
@@ -516,9 +591,9 @@ as lyrics. This spec's refusal of music acquisition rests on the product's purpo
    - Optional: intake stores "unrecorded" for a missing answer.
 7. **When buy links ship.** The web app has album pages from rung 7, before launch.
    Recommendation: rung 7, if a rung 7 plan task can absorb it without growing the pass.
-   - Rung 7: the album page renders buy links, and the uploader captures the optional store
-     link from the source question, which becomes the album's first buy link. Rung 9 captures
-     the MusicBrainz links at admission as a new forward hook.
+   - Rung 7: the album page renders buy links. The uploader captures the optional store link
+     from the source question, and that link renders first, ahead of the MusicBrainz source.
+     Rung 9 captures the MusicBrainz links at admission as a new forward hook.
    - A later release: that release renders the links and captures them for albums already
      admitted. The uploader still captures the store link at rung 7, because upload is the
      only moment it exists.
