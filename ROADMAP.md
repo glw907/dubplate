@@ -141,8 +141,10 @@ gate-enforced import boundary now (`go list -deps` shows no `github.com/glw907/d
 and publishes only after a release has proven it. The evidence is in
 `docs/superpowers/research/2026-09-25-give-back-survey.md` and
 `2026-09-25-streamer-prior-art-survey.md`.
-- **OpenSubsonic protocol layer** (decided): wire types generated from the Apache-2.0 OpenAPI
-  file, a request-parsing handler over a backend interface, a client, and a conformance checker.
+- **OpenSubsonic protocol layer** (decided): hand-written wire types, validated against the
+  Apache-2.0 OpenAPI file (conductor reading, 2026-09-25, reversible: the prior-art survey found
+  `oapi-codegen` output unfit for production types and `ogen` failing on the full spec, and the
+  streamer spec already hand-rolls the dual encoding), a request-parsing handler over a backend interface, a client, and a conformance checker.
   Built with 0.8 and published after 0.8 ships. Clean-room record: behavior cites the OpenSubsonic
   spec or observation, never GPL source.
 - **Matcher** (a beets autotag scoring port, MIT with beets' and `lap`'s notices), together with
