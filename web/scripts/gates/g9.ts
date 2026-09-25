@@ -22,9 +22,9 @@ import {
   type DeclNode,
   declMap,
   type ExceptionMarker,
-  layerBaseChildren,
   pluginBlocksNamed,
   selectorHasDataTheme,
+  singleLayerBaseChildren,
   type RuleNode
 } from './g2.ts';
 
@@ -200,9 +200,9 @@ function readPaletteBlock(file: string, composed: string): DeclNode[] | null {
   return pluginBlocksNamed(text).get(composed)?.declarations ?? null;
 }
 
-function readInkRules(): RuleNode[] {
+function readInkRules(violations: string[]): RuleNode[] {
   const text = readFileSync(`${THEMES_DIR}/inks.css`, 'utf8');
-  return layerBaseChildren(text).filter((n): n is RuleNode => n.kind === 'rule');
+  return singleLayerBaseChildren('inks.css', text, violations).filter((n): n is RuleNode => n.kind === 'rule');
 }
 
 const PALETTE_FILES: Record<string, string> = {
@@ -212,7 +212,7 @@ const PALETTE_FILES: Record<string, string> = {
 
 export function run(): string[] {
   const violations: string[] = [];
-  const inkRules = readInkRules();
+  const inkRules = readInkRules(violations);
 
   for (const composed of COMPOSED_NAMES) {
     const declarations = readPaletteBlock(PALETTE_FILES[composed], composed);

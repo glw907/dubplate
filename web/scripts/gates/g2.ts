@@ -328,7 +328,7 @@ export function selectorHasDataTheme(selector: string, name: string): boolean {
 }
 
 /** Splits a selector list at top-level commas, ignoring commas nested inside `[]` or `()`. */
-function splitSelectorList(selector: string): string[] {
+export function splitSelectorList(selector: string): string[] {
   const parts: string[] = [];
   let depth = 0;
   let current = '';
@@ -401,20 +401,37 @@ export function pluginBlocksNamed(text: string): Map<string, PluginNode> {
   return byName;
 }
 
+/** Names a top-level node for a violation message: its selector, at-rule name, or `@plugin` prelude. */
+function describeTopLevelNode(node: Node): string {
+  if (node.kind === 'rule') return `rule "${node.selector}"`;
+  if (node.kind === 'plugin') return `@plugin "${node.prelude}"`;
+  return node.prelude ? `at-rule "${node.name} ${node.prelude}"` : `at-rule "${node.name}"`;
+}
+
 /**
- * Every child across every top-level `@layer base` block in `text`, not
- * just the first. A file split across two `@layer base { ... }`
- * statements is valid CSS (the layer's contents concatenate), so reading
- * only the first block silently drops whatever a later one declares.
+ * `inks.css` and `system.css` must each hold exactly one top-level node,
+ * an `@layer base` at-rule: nothing else, and not split across two
+ * `@layer base` blocks (concatenating two is valid CSS but defeats the
+ * "one authored home" shape this checker relies on to read children).
+ * Pushes a violation naming `file` and every top-level node found when
+ * that shape does not hold, and returns the single block's children
+ * (empty when the shape is wrong, so callers see no phantom names).
  */
-export function layerBaseChildren(text: string): Node[] {
-  const out: Node[] = [];
-  for (const node of scanNodes(text, 0, text.length)) {
-    if (node.kind === 'at-rule' && node.name === '@layer' && node.prelude === 'base') {
-      out.push(...node.children);
+export function singleLayerBaseChildren(file: string, text: string, violations: string[]): Node[] {
+  const nodes = scanNodes(text, 0, text.length);
+  const isSingleLayerBase = (node: Node): node is AtRuleNode =>
+    node.kind === 'at-rule' && node.name === '@layer' && node.prelude === 'base';
+  if (nodes.length === 1 && isSingleLayerBase(nodes[0])) {
+    return nodes[0].children;
+  }
+  if (nodes.length === 0) {
+    violations.push(`g2: ${file}: no top-level @layer base block found`);
+  } else {
+    for (const node of nodes) {
+      violations.push(`g2: ${file}: unexpected top-level ${describeTopLevelNode(node)}, want exactly one @layer base block`);
     }
   }
-  return out;
+  return [];
 }
 
 function checkCompleteness(
@@ -556,7 +573,9 @@ export function run(): string[] {
 
   // ---- inks.css: one ink block per composed theme, inside `@layer base`.
   const inkDecls = new Map<string, DeclNode[]>();
-  const inkRules = layerBaseChildren(files.inks).filter((n): n is RuleNode => n.kind === 'rule');
+  const inkRules = singleLayerBaseChildren('inks.css', files.inks, violations).filter(
+    (n): n is RuleNode => n.kind === 'rule'
+  );
   for (const composed of COMPOSED_NAMES) {
     const rule = inkRules.find((r) => selectorHasDataTheme(r.selector, composed));
     if (!rule) {
@@ -570,7 +589,7 @@ export function run(): string[] {
   }
 
   // ---- system.css: the unconditional branch and the dark-media branch.
-  const sysChildren = layerBaseChildren(files.system);
+  const sysChildren = singleLayerBaseChildren('system.css', files.system, violations);
   const sysRules = sysChildren.filter((n): n is RuleNode => n.kind === 'rule');
   const sysMedia = sysChildren.filter((n): n is AtRuleNode => n.kind === 'at-rule' && n.name === '@media');
 

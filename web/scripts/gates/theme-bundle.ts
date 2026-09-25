@@ -29,6 +29,7 @@ import {
   scanNodes,
   selectorHasDataTheme,
   selectorIsExactlyDataTheme,
+  splitSelectorList,
   STRUCTURAL_NAMES,
   SYSTEM_NAME
 } from './g2.ts';
@@ -167,40 +168,72 @@ function checkStampedValues(
 const THEME_TOKEN_NAMES = new Set<string>([...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES]);
 /** A `[data-theme=dubplate-*]` compound, quoted or not: the only selector shape a theme-token rule may confine itself to. */
 const DUBPLATE_THEME_COMPOUND = /\[data-theme=(?:"dubplate-[\w-]+"|dubplate-[\w-]+)\]/;
+/** DaisyUI's stock `light`/`dark` theme compound, quoted or not. */
+const STOCK_DATA_THEME = /\[data-theme=(?:"(?:light|dark)"|light|dark)\]/;
+/** DaisyUI's `theme-controller` checkbox machinery for its own stock `light`/`dark` themes. */
+const STOCK_THEME_CONTROLLER = /input\.theme-controller\[value=(?:"?light"?)\]|\[value=(?:"?dark"?)\]/;
 
 /**
- * True for a selector list holding nothing but a bare `:root` and/or
- * `html`: the shape a hand-authored global override takes (the review's
- * own probe, `:root{--color-primary:#0000ff}`). `:host` and any
- * pseudo-class (`:has(...)`, `:where(...)`) are excluded on purpose:
- * Tailwind's own `:root,:host{--font-sans:...}` reset and DaisyUI's own
- * `:root:has(input.theme-controller...)` stock-theme machinery both use
- * this shape legitimately and are not the hazard this check targets.
+ * True for a bare `:root` and/or `html` selector part: the shape a
+ * hand-authored global override takes (the review's own probe,
+ * `:root{--color-primary:#0000ff}`). `:host` is excluded on purpose:
+ * Tailwind's own `:root,:host{--font-sans:...}` preflight reset uses
+ * this shape legitimately (verified in the built bundle, `@layer
+ * theme`, ahead of `@layer base` in Tailwind's own layer order, so it
+ * can never win the cascade over a stamped theme regardless of source
+ * order) and is not the hazard this check targets.
  */
-function isBareRootSelector(selector: string): boolean {
-  const parts = selector.split(',').map((p) => p.trim());
-  return parts.length > 0 && parts.every((p) => p === ':root' || p === 'html');
+function isBareRootPart(part: string): boolean {
+  return part === ':root' || part === 'html';
 }
 
 /**
- * Fails a bare `:root`/`html` rule that sets a theme-stampable name (it
- * wins the cascade over every stamped theme silently), and fails a rule
- * that carries a `[data-theme=dubplate-*]` compound but sits outside
- * `@layer base`.
+ * True for a selector part that confines a theme-token rule to a real
+ * theme: a `[data-theme=dubplate-*]` compound, DaisyUI's own stock
+ * `[data-theme=light]`/`[data-theme=dark]` compound, or DaisyUI's
+ * `theme-controller` checkbox machinery for those stock themes. `:host`
+ * rides along with `:root` in Tailwind's preflight reset, never alone.
+ */
+function isConfinedPart(part: string): boolean {
+  return (
+    DUBPLATE_THEME_COMPOUND.test(part) ||
+    part === ':where(:root)' ||
+    part === ':host' ||
+    STOCK_DATA_THEME.test(part) ||
+    STOCK_THEME_CONTROLLER.test(part)
+  );
+}
+
+/**
+ * Fails a rule that sets a theme-stampable name unless every
+ * comma-separated part of its selector either confines it to a real
+ * theme (`isConfinedPart`) or is a bare `:root`/`html` riding alongside
+ * at least one confined or `:host` part (Tailwind's preflight shape).
+ * A rule whose every part is bare `:root`/`html` and nothing else (no
+ * `:host`, no confined part) is the classic global-override hazard and
+ * always fails, regardless of `@layer`. A rule that does carry a
+ * confining part but sits outside `@layer base` also fails: it competes
+ * with our own `@layer base` theme rules by source order instead of by
+ * a settled layer order.
  */
 function checkNameConfinement(nodes: Node[], insideLayerBase: boolean, violations: string[]): void {
   for (const node of nodes) {
     if (node.kind === 'rule') {
       const names = node.declarations.map((d) => d.name).filter((n) => THEME_TOKEN_NAMES.has(n));
       if (names.length === 0) continue;
-      if (isBareRootSelector(node.selector)) {
+      const parts = splitSelectorList(node.selector);
+      const confinedParts = parts.filter((p) => isConfinedPart(p));
+      const looseParts = parts.filter((p) => !isConfinedPart(p) && !isBareRootPart(p));
+      if (confinedParts.length === 0 && parts.every((p) => isBareRootPart(p))) {
         violations.push(
           `theme-bundle: rule "${node.selector}" sets ${names.join(', ')} with no [data-theme=dubplate-*] compound at all`
         );
-      } else if (DUBPLATE_THEME_COMPOUND.test(node.selector) && !insideLayerBase) {
+      } else if (looseParts.length > 0) {
         violations.push(
-          `theme-bundle: rule "${node.selector}" sets ${names.join(', ')} outside @layer base`
+          `theme-bundle: rule "${node.selector}" sets ${names.join(', ')} through unconfined selector part(s) ${looseParts.join(', ')}`
         );
+      } else if (confinedParts.some((p) => DUBPLATE_THEME_COMPOUND.test(p)) && !insideLayerBase) {
+        violations.push(`theme-bundle: rule "${node.selector}" sets ${names.join(', ')} outside @layer base`);
       }
     } else if (node.kind === 'at-rule') {
       const nextInside = insideLayerBase || (node.name === '@layer' && node.prelude === 'base');
