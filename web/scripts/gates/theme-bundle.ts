@@ -189,10 +189,11 @@ function isBareRootPart(part: string): boolean {
 
 /**
  * True for a selector part that confines a theme-token rule to a real
- * theme: a `[data-theme=dubplate-*]` compound, DaisyUI's own stock
- * `[data-theme=light]`/`[data-theme=dark]` compound, or DaisyUI's
- * `theme-controller` checkbox machinery for those stock themes. `:host`
- * rides along with `:root` in Tailwind's preflight reset, never alone.
+ * theme: a `[data-theme=dubplate-*]` compound, `:where(:root)`, a bare
+ * `:host`, DaisyUI's own stock `[data-theme=light]`/`[data-theme=dark]`
+ * compound, or DaisyUI's `theme-controller` checkbox machinery for
+ * those stock themes. `checkNameConfinement` handles Tailwind's
+ * `:root,:host` preflight reset as its own case, ahead of this check.
  */
 function isConfinedPart(part: string): boolean {
   return (
