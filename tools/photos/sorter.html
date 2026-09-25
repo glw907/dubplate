@@ -1,0 +1,1116 @@
+<!--
+  DATABASE LAYOUT (ArtifactData / the `db` capability)
+  ======================================================
+  One store per artifact, three collections. Field names below are the
+  contract: Task 6's round-open and round-close agents write to this
+  shape, and this page reads and writes nothing else.
+
+  rounds/<roundId>              one document per round
+    id            string   same value as the document id
+    closed        boolean  true once the round stops taking changes.
+                            Always present (never omitted): the open
+                            round is the one with closed === false.
+    balance       object   the balance --json output (check.mjs
+                            `balance`). This page reads only
+                            balance.shares[<family>] = { count,
+                            target_low_pct, target_high_pct } to seed
+                            the count bar, and ignores fields it does
+                            not recognize.
+    Written only by the conductor through ArtifactData. The page has
+    no control that sets `closed`; reopening a round means clearing it
+    through ArtifactData directly.
+
+  candidates/<source_id>        one document per candidate on this round
+    source_id     string   the candidate's source_id, e.g. "commons:12345"
+                            or "fixture:1"; also the document id.
+    title         string   the caption title (the subject line)
+    source_title  string?  the source's own title, verbatim, or null
+    photographer  string?  the maker, as credited
+    credit        string?  the attribution string, or null
+    year          number?  the year the image was made
+    year_precision "exact"|"circa"|"decade"
+    place         { city: string, region: string }?  optional
+    region        string?  the derived region, for the region filter
+    family        "reggae"|"punk"|"hiphop"|"other"    the derived family
+    subject       string[]  facets; subject[0] is the primary subject
+    shot          "live"|"candid"|"posed"|"interior"|"exterior"|"still-life"
+    format        "photograph"|"flyer"|"zine-cover"
+    license       string   a license ID from vocab.json's shipped list
+    license_display string the license's display name
+    size_exception string? the size_exception line, or null when unset
+    second_image  boolean  true when this would be a second image of a
+                            picked artist or landmark (Geoff's keep is
+                            the waiver)
+    flags         string[] any of "personality-rights", "apparent-minor"
+    screen        { score: number, note: string }  sets grid order only
+    thumb         { id: string, url: string }   the 600px thumbnail
+    preview       { id: string, url: string }   the 1600px preview
+    round         string   the round id this candidate belongs to
+    Written only by the conductor through ArtifactData, from `sheet`'s
+    output. The page never writes here. Pack candidates never appear:
+    `sheet` drops them before this collection exists.
+
+  choices/<source_id>            one document per candidate choice
+    source_id     string   same value as the document id
+    round         string   the round id this choice belongs to
+    choice        "keep"|"pass"
+    decided_at    string   an RFC 3339 timestamp
+    Written only by this page, on Geoff's Y / N / tap / Pass button.
+    Keyed by source_id, never by slug, so a sitting can stop and
+    resume on any device: on load the page reads existing choices for
+    the open round and shows them as already decided.
+
+  Images render from "/_blob/" + <thumb|preview>.id (the assets
+  contract's durable pointer), never from the stored `url`, which is
+  only correct for the view that uploaded it. The one exception is the
+  fixture fallback below, which has no real asset store and uses
+  thumb.url / preview.url (a data: URI) directly.
+
+  FIXTURE FALLBACK. When `window.claude` does not exist at all (a
+  local file, another host; this is never true inside the claude.ai
+  viewer, where `window.claude` is always present even if `use()` resolves
+  null) and the page is served from localhost, the page loads
+  testdata/sorter-fixture.json and runs entirely in memory: one round
+  document, a fixed 150-candidate array, and choices held in a Map
+  that never leaves the tab. This is the headless render's path. Any
+  other absence of a working `db` (window.claude present but
+  use("db") resolves null, or not on localhost) shows the "choices
+  can't be saved here" state with no grid, so no sitting can run with
+  its choices saved nowhere.
+-->
+<title>Photo sorter</title>
+<style>
+  :root {
+    --color-base-100: #f4ead3;
+    --color-base-200: #eadcbc;
+    --color-base-300: #dccaa3;
+    --color-base-content: #1f1b16;
+    --color-primary: #c1352b;
+    --color-primary-content: #fff6ea;
+    --color-secondary: #e0a526;
+    --color-secondary-content: #1f1b16;
+    --color-accent: #2f6b3a;
+    --color-accent-content: #f4ead3;
+    --color-neutral: #1f1b16;
+    --color-neutral-content: #f4ead3;
+    --color-error: #a8261d;
+    --color-error-content: #ffffff;
+    --ink-primary: #9d2f26;
+    --ink-accent: #2d6136;
+    --ink-info: #2d5a81;
+    --ink-error: #a4261d;
+    --ink-warning: #754f00;
+    --radius-box: 0.25rem;
+    --radius-field: 0.25rem;
+    --shadow-btn: 2px 2px 0 color-mix(in oklab, var(--color-neutral) 55%, transparent);
+    --shadow-card: 3px 3px 0 color-mix(in oklab, var(--color-neutral) 45%, transparent);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-base-100: #1c1916;
+      --color-base-200: #24201c;
+      --color-base-300: #342e28;
+      --color-base-content: #efe4cc;
+      --color-primary: #c1352b;
+      --color-primary-content: #fff6ea;
+      --color-secondary: #e5ad33;
+      --color-secondary-content: #1c1916;
+      --color-accent: #5a9e66;
+      --color-accent-content: #1c1916;
+      --color-neutral: #110f0d;
+      --color-neutral-content: #efe4cc;
+      --color-error: #e0604f;
+      --color-error-content: #1c1916;
+      --ink-primary: #ec7b6a;
+      --ink-accent: #66a46e;
+      --ink-info: #6d9cc7;
+      --ink-error: #e37866;
+      --ink-warning: #e5ad33;
+      --shadow-btn: 2px 2px 0 rgba(0, 0, 0, 0.65);
+      --shadow-card: 3px 3px 0 rgba(0, 0, 0, 0.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --color-base-100: #1c1916;
+    --color-base-200: #24201c;
+    --color-base-300: #342e28;
+    --color-base-content: #efe4cc;
+    --color-primary: #c1352b;
+    --color-primary-content: #fff6ea;
+    --color-secondary: #e5ad33;
+    --color-secondary-content: #1c1916;
+    --color-accent: #5a9e66;
+    --color-accent-content: #1c1916;
+    --color-neutral: #110f0d;
+    --color-neutral-content: #efe4cc;
+    --color-error: #e0604f;
+    --color-error-content: #1c1916;
+    --ink-primary: #ec7b6a;
+    --ink-accent: #66a46e;
+    --ink-info: #6d9cc7;
+    --ink-error: #e37866;
+    --ink-warning: #e5ad33;
+    --shadow-btn: 2px 2px 0 rgba(0, 0, 0, 0.65);
+    --shadow-card: 3px 3px 0 rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    font-family: "Work Sans", system-ui, sans-serif;
+    padding-inline: 0;
+  }
+  h1, h2, .slab {
+    font-family: "Alfa Slab One", "Work Sans", system-ui, sans-serif;
+    font-weight: 400;
+    text-wrap: balance;
+  }
+  .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ink-primary);
+    outline-offset: 2px;
+  }
+
+  #topbar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--color-neutral);
+    color: var(--color-neutral-content);
+    border-bottom: 2px solid var(--color-neutral);
+  }
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+  .mark {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at center,
+      var(--color-primary) 0 38%,
+      #0b0a09 39% 100%
+    );
+    flex: none;
+  }
+  .topbar-inner h1 {
+    font-size: 1.1rem;
+    margin: 0;
+    flex: none;
+  }
+  .round-badge {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 2px solid var(--color-neutral-content);
+    border-radius: var(--radius-field);
+    padding: 0.15rem 0.5rem;
+  }
+  .round-badge.test { border-color: var(--color-secondary); color: var(--color-secondary); }
+  .spacer { flex: 1; }
+  #save-status {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+    min-height: 1em;
+  }
+
+  #counts {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 1rem 0.75rem;
+    flex-wrap: wrap;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+  }
+  .count-chip { display: flex; align-items: center; gap: 0.4rem; }
+  .count-track {
+    width: 4.5rem;
+    height: 0.5rem;
+    background: color-mix(in oklab, var(--color-neutral-content) 25%, transparent);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .count-fill { height: 100%; background: var(--color-secondary); }
+  .count-band {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: color-mix(in oklab, var(--color-neutral-content) 45%, transparent);
+    width: 2px;
+  }
+
+  #filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--color-base-300);
+  }
+  .filter-group {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .filter-group + .filter-group { margin-left: 0.5rem; }
+  .chip {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 2px solid var(--color-base-content);
+    border-radius: var(--radius-field);
+    background: transparent;
+    color: var(--color-base-content);
+    padding: 0.3rem 0.55rem;
+    min-height: 2rem;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  main#grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.9rem;
+    padding: 1rem;
+    padding-inline: max(1rem, 16px);
+  }
+  .card {
+    border: 2px solid var(--color-base-content);
+    border-radius: var(--radius-box);
+    background: var(--color-base-200);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .card.focused { outline: 2px solid var(--ink-primary); outline-offset: 2px; }
+  .card-thumb-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: var(--color-base-300);
+  }
+  .card-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .card-thumb-wrap button.thumb-btn {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+  .decision-flag {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-field);
+    border: 2px solid;
+  }
+  .decision-flag.keep { background: var(--color-accent); color: var(--color-accent-content); border-color: var(--color-accent); }
+  .decision-flag.pass { background: var(--color-base-100); color: var(--ink-error); border-color: var(--ink-error); }
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.4rem 0.5rem 0;
+  }
+  .badge {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 2px solid var(--ink-warning);
+    color: var(--ink-warning);
+    border-radius: var(--radius-field);
+    padding: 0.1rem 0.35rem;
+    background: transparent;
+  }
+  .badge.flag { border-color: var(--ink-error); color: var(--ink-error); }
+  .card-caption {
+    padding: 0.5rem 0.6rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+  .card-title { font-size: 0.85rem; font-weight: 600; text-wrap: pretty; }
+  .card-meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+  }
+  .card-license {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-info);
+  }
+  .card-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.3rem;
+  }
+  .card-actions button {
+    flex: 1;
+    min-height: 44px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 2px solid var(--color-base-content);
+    border-radius: var(--radius-field);
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    box-shadow: var(--shadow-btn);
+  }
+  .card-actions button:active { transform: translate(2px, 2px); box-shadow: none; }
+  .card-actions button.keep-btn[aria-pressed="true"] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-accent-content);
+  }
+  .card-actions button.pass-btn[aria-pressed="true"] {
+    background: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-error-content);
+  }
+  .card-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #closed-banner {
+    margin: 0 1rem 1rem;
+    padding: 0.6rem 0.8rem;
+    border: 2px solid var(--ink-warning);
+    color: var(--ink-warning);
+    border-radius: var(--radius-box);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+  }
+
+  #no-db-state, #empty-state {
+    margin: 3rem auto;
+    max-width: 26rem;
+    text-align: center;
+    padding: 0 1rem;
+  }
+  #no-db-state h2, #empty-state h2 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+
+  #preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 10, 9, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 20;
+  }
+  .film-frame {
+    background: #0b0a09;
+    padding: 0.6rem;
+    max-width: min(92vw, 900px);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 2px;
+  }
+  .film-frame img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    display: block;
+  }
+  .film-edge {
+    color: color-mix(in oklab, var(--color-secondary) 85%, #0b0a09);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0.2rem 0.15rem;
+    text-wrap: pretty;
+  }
+  #preview-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    min-height: 44px;
+    min-width: 44px;
+    border: 2px solid var(--color-base-100);
+    background: transparent;
+    color: var(--color-base-100);
+    border-radius: var(--radius-field);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+  }
+
+  [hidden] { display: none !important; }
+</style>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+/>
+
+<div id="app">
+  <header id="topbar">
+    <div class="topbar-inner">
+      <div class="mark" aria-hidden="true"></div>
+      <h1>Photo sorter</h1>
+      <span id="round-badge" class="round-badge mono">&nbsp;</span>
+      <div class="spacer"></div>
+      <span id="save-status" role="status" aria-live="polite"></span>
+    </div>
+    <div id="counts" aria-label="Family shares this round"></div>
+  </header>
+
+  <div id="filters" role="group" aria-label="Filter candidates"></div>
+
+  <div id="closed-banner" hidden>
+    This round is closed. Choices are shown but can no longer change.
+  </div>
+
+  <main id="grid" aria-label="Candidates, score order"></main>
+
+  <div id="empty-state" hidden>
+    <h2>No candidates match these filters</h2>
+    <p>Clear a filter chip to see more of the round.</p>
+  </div>
+
+  <div id="no-db-state" hidden>
+    <h2>Choices can&rsquo;t be saved here</h2>
+    <p>
+      This page has no working connection to its database, so nothing typed
+      or tapped here would be kept. Open the published artifact instead of a
+      copy of the file.
+    </p>
+  </div>
+
+  <div id="preview-overlay" hidden>
+    <button id="preview-close" aria-label="Close preview">&times;</button>
+    <div class="film-frame">
+      <img id="preview-img" alt="" />
+      <div class="film-edge">
+        <span id="preview-edge-top"></span>
+        <span id="preview-edge-bottom"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Built from character codes, never typed literally, so the glyph is
+  // right regardless of how this file's bytes get served.
+  var MDOT = String.fromCharCode(0xb7);
+  var MDASH = String.fromCharCode(0x2014);
+  var ELLIPSIS = String.fromCharCode(0x2026);
+  var RSQUO = String.fromCharCode(0x2019);
+
+  var FAMILY_LABEL = { reggae: "Reggae", punk: "Punk", hiphop: "Hip-hop", other: "Everything else" };
+  var SUBJECT_LABEL = {
+    "performers": "Performers",
+    "crowds-and-dancers": "Crowds & dancers",
+    "sound-systems": "Sound systems",
+    "record-stores": "Record stores",
+    "clubs-and-venues": "Clubs & venues",
+    "recording-studios": "Recording studios",
+    "homes-and-label-hq": "Homes & label HQ",
+    "instruments": "Instruments",
+    "record-players-and-hifi": "Record players & hi-fi",
+    "radio-stations": "Radio stations",
+    "pressing-plants-and-cutting-lathes": "Pressing plants & lathes",
+    "streets-and-neighborhoods": "Streets & neighborhoods",
+  };
+  var REGION_LABEL = {
+    "caribbean": "Caribbean",
+    "uk-and-ireland": "UK & Ireland",
+    "north-america": "North America",
+    "africa": "Africa",
+    "latin-america": "Latin America",
+    "europe": "Europe",
+    "middle-east-and-north-africa": "Middle East & North Africa",
+    "asia-and-pacific": "Asia & Pacific",
+  };
+
+  // ---- state ----------------------------------------------------------
+  var state = {
+    round: null, // { id, closed, balance }
+    candidates: [], // full list, score order
+    choices: {}, // source_id -> { choice, decided_at }
+    filters: { family: null, subject: null, region: null },
+    focusIndex: 0,
+    localCounts: {}, // family -> running count, seeded from balance then bumped on keep
+    store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice) }
+  };
+
+  function isLocalhost() {
+    return location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  }
+
+  function setStatus(text) {
+    var el = document.getElementById("save-status");
+    el.textContent = text;
+    if (text) {
+      window.clearTimeout(setStatus._t);
+      setStatus._t = window.setTimeout(function () {
+        el.textContent = "";
+      }, 2000);
+    }
+  }
+
+  function showNoDb() {
+    document.getElementById("no-db-state").hidden = false;
+    document.getElementById("topbar").hidden = true;
+    document.getElementById("filters").hidden = true;
+    document.getElementById("grid").hidden = true;
+  }
+
+  // ---- rendering --------------------------------------------------------
+
+  function imgSrc(obj) {
+    if (!obj) return "";
+    if (state.store && state.store.mode === "fixture") return obj.url;
+    return "/_blob/" + obj.id;
+  }
+
+  function yearLabel(c) {
+    if (c.year == null) return "";
+    if (c.year_precision === "circa") return "c. " + c.year;
+    if (c.year_precision === "decade") return c.year + "s";
+    return String(c.year);
+  }
+
+  function filteredCandidates() {
+    return state.candidates.filter(function (c) {
+      if (state.filters.family && c.family !== state.filters.family) return false;
+      if (state.filters.subject && c.subject.indexOf(state.filters.subject) === -1) return false;
+      if (state.filters.region && c.region !== state.filters.region) return false;
+      return true;
+    });
+  }
+
+  function renderCounts() {
+    var el = document.getElementById("counts");
+    el.innerHTML = "";
+    var families = ["reggae", "punk", "hiphop", "other"];
+    var balance = (state.round && state.round.balance && state.round.balance.shares) || {};
+    families.forEach(function (fam) {
+      var band = balance[fam] || {};
+      var count = state.localCounts[fam] || 0;
+      var total = families.reduce(function (sum, f) {
+        return sum + (state.localCounts[f] || 0);
+      }, 0);
+      var pct = total ? (count / total) * 100 : 0;
+      var wrap = document.createElement("div");
+      wrap.className = "count-chip";
+      var track = document.createElement("div");
+      track.className = "count-track";
+      var fill = document.createElement("div");
+      fill.className = "count-fill";
+      fill.style.width = Math.min(100, pct) + "%";
+      track.appendChild(fill);
+      if (typeof band.target_low_pct === "number") {
+        var lo = document.createElement("div");
+        lo.className = "count-band";
+        lo.style.left = band.target_low_pct + "%";
+        track.appendChild(lo);
+      }
+      if (typeof band.target_high_pct === "number") {
+        var hi = document.createElement("div");
+        hi.className = "count-band";
+        hi.style.left = band.target_high_pct + "%";
+        track.appendChild(hi);
+      }
+      wrap.appendChild(track);
+      var label = document.createElement("span");
+      label.textContent = FAMILY_LABEL[fam] + " " + count;
+      wrap.appendChild(label);
+      el.appendChild(wrap);
+    });
+  }
+
+  function renderFilters() {
+    var el = document.getElementById("filters");
+    el.innerHTML = "";
+    function group(name, options, labels) {
+      var g = document.createElement("div");
+      g.className = "filter-group";
+      g.setAttribute("role", "group");
+      g.setAttribute("aria-label", name);
+      options.forEach(function (opt) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        b.textContent = labels[opt] || opt;
+        var key = name === "Family" ? "family" : name === "Subject" ? "subject" : "region";
+        var pressed = state.filters[key] === opt;
+        b.setAttribute("aria-pressed", pressed ? "true" : "false");
+        b.addEventListener("click", function () {
+          state.filters[key] = state.filters[key] === opt ? null : opt;
+          state.focusIndex = 0;
+          render();
+        });
+        g.appendChild(b);
+      });
+      el.appendChild(g);
+    }
+    group("Family", ["reggae", "punk", "hiphop", "other"], FAMILY_LABEL);
+    group(
+      "Subject",
+      [
+        "performers",
+        "crowds-and-dancers",
+        "sound-systems",
+        "record-stores",
+        "clubs-and-venues",
+        "recording-studios",
+        "homes-and-label-hq",
+        "instruments",
+        "record-players-and-hifi",
+        "radio-stations",
+        "pressing-plants-and-cutting-lathes",
+        "streets-and-neighborhoods",
+      ],
+      SUBJECT_LABEL,
+    );
+    group(
+      "Region",
+      [
+        "caribbean",
+        "uk-and-ireland",
+        "north-america",
+        "africa",
+        "latin-america",
+        "europe",
+        "middle-east-and-north-africa",
+        "asia-and-pacific",
+      ],
+      REGION_LABEL,
+    );
+  }
+
+  function cardFor(candidate, index, list) {
+    var closed = !!(state.round && state.round.closed);
+    var existing = state.choices[candidate.source_id];
+
+    var card = document.createElement("article");
+    card.className = "card";
+    card.dataset.sourceId = candidate.source_id;
+    if (index === state.focusIndex) card.classList.add("focused");
+
+    var thumbWrap = document.createElement("div");
+    thumbWrap.className = "card-thumb-wrap";
+    var img = document.createElement("img");
+    img.src = imgSrc(candidate.thumb);
+    img.alt = "";
+    img.loading = "lazy";
+    thumbWrap.appendChild(img);
+
+    var thumbBtn = document.createElement("button");
+    thumbBtn.type = "button";
+    thumbBtn.className = "thumb-btn";
+    thumbBtn.setAttribute("aria-label", "Open full-size preview of " + candidate.title);
+    thumbBtn.addEventListener("click", function () {
+      state.focusIndex = index;
+      openPreview(candidate);
+    });
+    thumbWrap.appendChild(thumbBtn);
+
+    if (existing) {
+      var flag = document.createElement("span");
+      flag.className = "decision-flag " + existing.choice;
+      flag.textContent = existing.choice === "keep" ? "Kept" : "Passed";
+      thumbWrap.appendChild(flag);
+    }
+    card.appendChild(thumbWrap);
+
+    var badgeRow = document.createElement("div");
+    badgeRow.className = "badge-row";
+    if (candidate.size_exception) {
+      var sb = document.createElement("span");
+      sb.className = "badge";
+      sb.title = candidate.size_exception;
+      sb.textContent = "Size exception";
+      badgeRow.appendChild(sb);
+    }
+    if (candidate.second_image) {
+      var ib = document.createElement("span");
+      ib.className = "badge";
+      ib.textContent = "2nd image";
+      badgeRow.appendChild(ib);
+    }
+    (candidate.flags || []).forEach(function (f) {
+      var fb = document.createElement("span");
+      fb.className = "badge flag";
+      fb.textContent = f === "personality-rights" ? "Personality rights" : "Possible minor";
+      badgeRow.appendChild(fb);
+    });
+    if (badgeRow.children.length) card.appendChild(badgeRow);
+
+    var caption = document.createElement("div");
+    caption.className = "card-caption";
+    var title = document.createElement("div");
+    title.className = "card-title";
+    title.textContent = candidate.title;
+    caption.appendChild(title);
+
+    var metaBits = [];
+    if (candidate.subject && candidate.subject[0]) metaBits.push(SUBJECT_LABEL[candidate.subject[0]] || candidate.subject[0]);
+    if (candidate.place && candidate.place.city) metaBits.push(candidate.place.city);
+    var y = yearLabel(candidate);
+    if (y) metaBits.push(y);
+    var meta = document.createElement("div");
+    meta.className = "card-meta mono";
+    meta.textContent = metaBits.join(" " + MDOT + " ");
+    caption.appendChild(meta);
+
+    var license = document.createElement("div");
+    license.className = "card-license";
+    license.textContent = candidate.license_display || candidate.license;
+    caption.appendChild(license);
+
+    var actions = document.createElement("div");
+    actions.className = "card-actions";
+    var keepBtn = document.createElement("button");
+    keepBtn.type = "button";
+    keepBtn.className = "keep-btn";
+    keepBtn.textContent = "Keep (Y)";
+    keepBtn.setAttribute("aria-pressed", existing && existing.choice === "keep" ? "true" : "false");
+    keepBtn.disabled = closed;
+    keepBtn.addEventListener("click", function () {
+      state.focusIndex = index;
+      decide(candidate, "keep");
+    });
+    var passBtn = document.createElement("button");
+    passBtn.type = "button";
+    passBtn.className = "pass-btn";
+    passBtn.textContent = "Pass (N)";
+    passBtn.setAttribute("aria-pressed", existing && existing.choice === "pass" ? "true" : "false");
+    passBtn.disabled = closed;
+    passBtn.addEventListener("click", function () {
+      state.focusIndex = index;
+      decide(candidate, "pass");
+    });
+    actions.appendChild(keepBtn);
+    actions.appendChild(passBtn);
+    caption.appendChild(actions);
+
+    card.appendChild(caption);
+    return card;
+  }
+
+  function render() {
+    renderCounts();
+    renderFilters();
+    var badge = document.getElementById("round-badge");
+    if (state.round) {
+      badge.textContent = state.round.id;
+      badge.classList.toggle("test", state.round.id === "test" || state.round.id === "fixture");
+    }
+    document.getElementById("closed-banner").hidden = !(state.round && state.round.closed);
+
+    var list = filteredCandidates();
+    if (state.focusIndex >= list.length) state.focusIndex = Math.max(0, list.length - 1);
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    var emptyState = document.getElementById("empty-state");
+    if (!list.length) {
+      emptyState.hidden = false;
+      return;
+    }
+    emptyState.hidden = true;
+    list.forEach(function (c, i) {
+      grid.appendChild(cardFor(c, i, list));
+    });
+  }
+
+  // ---- decisions ----------------------------------------------------
+
+  function decide(candidate, choice) {
+    if (state.round && state.round.closed) return;
+    var wasKept = state.choices[candidate.source_id] && state.choices[candidate.source_id].choice === "keep";
+    setStatus("Saving" + ELLIPSIS);
+    state.store
+      .writeChoice(candidate, choice)
+      .then(function () {
+        state.choices[candidate.source_id] = { choice: choice, decided_at: new Date().toISOString() };
+        if (choice === "keep" && !wasKept) {
+          state.localCounts[candidate.family] = (state.localCounts[candidate.family] || 0) + 1;
+        }
+        if (choice !== "keep" && wasKept) {
+          state.localCounts[candidate.family] = Math.max(0, (state.localCounts[candidate.family] || 0) - 1);
+        }
+        setStatus("Saved");
+        render();
+      })
+      .catch(function (err) {
+        setStatus("Couldn" + RSQUO + "t save " + MDASH + " try again");
+        console.error("dubplate photo sorter: write failed", err);
+      });
+  }
+
+  // ---- preview --------------------------------------------------------
+
+  function openPreview(candidate) {
+    var overlay = document.getElementById("preview-overlay");
+    var img = document.getElementById("preview-img");
+    img.src = imgSrc(candidate.preview);
+    img.alt = candidate.title;
+    var artistBit = candidate.photographer && candidate.photographer !== "Unknown" ? candidate.photographer : "";
+    document.getElementById("preview-edge-top").textContent = [candidate.title, artistBit, yearLabel(candidate)]
+      .filter(Boolean)
+      .join(" " + MDASH + " ");
+    document.getElementById("preview-edge-bottom").textContent = [candidate.photographer, candidate.license_display]
+      .filter(Boolean)
+      .join(" " + MDOT + " ");
+    overlay.hidden = false;
+    document.getElementById("preview-close").focus();
+  }
+
+  function closePreview() {
+    document.getElementById("preview-overlay").hidden = true;
+  }
+
+  document.getElementById("preview-close").addEventListener("click", closePreview);
+  document.getElementById("preview-overlay").addEventListener("click", function (e) {
+    if (e.target.id === "preview-overlay") closePreview();
+  });
+
+  // ---- keyboard ---------------------------------------------------------
+
+  document.addEventListener("keydown", function (e) {
+    if (!document.getElementById("preview-overlay").hidden) {
+      if (e.key === "Escape" || e.key === " ") {
+        e.preventDefault();
+        closePreview();
+      }
+      return;
+    }
+    var list = filteredCandidates();
+    if (!list.length) return;
+    var cols = gridColumnCount();
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      state.focusIndex = Math.min(list.length - 1, state.focusIndex + 1);
+      render();
+      scrollFocusIntoView();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      state.focusIndex = Math.max(0, state.focusIndex - 1);
+      render();
+      scrollFocusIntoView();
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      state.focusIndex = Math.min(list.length - 1, state.focusIndex + cols);
+      render();
+      scrollFocusIntoView();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      state.focusIndex = Math.max(0, state.focusIndex - cols);
+      render();
+      scrollFocusIntoView();
+    } else if (e.key === "y" || e.key === "Y") {
+      e.preventDefault();
+      var kc = list[state.focusIndex];
+      if (kc) decide(kc, "keep");
+    } else if (e.key === "n" || e.key === "N") {
+      e.preventDefault();
+      var pc = list[state.focusIndex];
+      if (pc) decide(pc, "pass");
+    } else if (e.key === " ") {
+      e.preventDefault();
+      var sc = list[state.focusIndex];
+      if (sc) openPreview(sc);
+    }
+  });
+
+  function gridColumnCount() {
+    var grid = document.getElementById("grid");
+    var style = window.getComputedStyle(grid);
+    var cols = style.gridTemplateColumns.split(" ").length;
+    return cols || 1;
+  }
+
+  function scrollFocusIntoView() {
+    var el = document.querySelector(".card.focused");
+    if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  // ---- stores -----------------------------------------------------------
+
+  function initRealStore(db) {
+    state.store = {
+      mode: "real",
+      writeChoice: function (candidate, choice) {
+        return db.doc("choices/" + candidate.source_id).set({
+          source_id: candidate.source_id,
+          round: state.round.id,
+          choice: choice,
+          decided_at: new Date().toISOString(),
+        });
+      },
+    };
+
+    db.collection("rounds")
+      .where("closed", "==", false)
+      .limit(1)
+      .onSnapshot(
+        function (snap) {
+          if (snap.empty) {
+            document.getElementById("grid").hidden = true;
+            document.getElementById("filters").hidden = true;
+            document.getElementById("empty-state").hidden = false;
+            document.getElementById("empty-state").querySelector("h2").textContent = "No round is open";
+            return;
+          }
+          var doc = snap.docs[0];
+          var data = doc.data();
+          state.round = { id: doc.id, closed: !!data.closed, balance: data.balance || {} };
+          state.localCounts = {};
+          var shares = (data.balance && data.balance.shares) || {};
+          Object.keys(shares).forEach(function (fam) {
+            state.localCounts[fam] = shares[fam].count || 0;
+          });
+          subscribeCandidatesAndChoices(db, doc.id);
+          render();
+        },
+        function (err) {
+          console.error("dubplate photo sorter: rounds subscription failed", err);
+          showNoDb();
+        },
+      );
+  }
+
+  function subscribeCandidatesAndChoices(db, roundId) {
+    db.collection("candidates")
+      .where("round", "==", roundId)
+      .onSnapshot(
+        function (snap) {
+          state.candidates = snap.docs
+            .map(function (d) {
+              return d.data();
+            })
+            .sort(function (a, b) {
+              return (b.screen && b.screen.score ? b.screen.score : 0) - (a.screen && a.screen.score ? a.screen.score : 0);
+            });
+          render();
+        },
+        function (err) {
+          console.error("dubplate photo sorter: candidates subscription failed", err);
+        },
+      );
+    db.collection("choices")
+      .where("round", "==", roundId)
+      .onSnapshot(
+        function (snap) {
+          var choices = {};
+          snap.docs.forEach(function (d) {
+            var data = d.data();
+            choices[data.source_id] = { choice: data.choice, decided_at: data.decided_at };
+          });
+          state.choices = choices;
+          render();
+        },
+        function (err) {
+          console.error("dubplate photo sorter: choices subscription failed", err);
+        },
+      );
+  }
+
+  function initFixtureStore() {
+    return fetch("testdata/sorter-fixture.json")
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (fixture) {
+        state.round = fixture.round;
+        state.candidates = fixture.candidates;
+        state.localCounts = {};
+        var shares = (fixture.round.balance && fixture.round.balance.shares) || {};
+        Object.keys(shares).forEach(function (fam) {
+          state.localCounts[fam] = shares[fam].count || 0;
+        });
+        var choicesMap = {};
+        state.store = {
+          mode: "fixture",
+          writeChoice: function (candidate, choice) {
+            return new Promise(function (resolve) {
+              choicesMap[candidate.source_id] = { choice: choice, decided_at: new Date().toISOString() };
+              resolve();
+            });
+          },
+        };
+        state.choices = choicesMap;
+        render();
+        // Test-only hook: the render harness flips a fixture round closed
+        // without a second fixture file. Never wired to any real store.
+        window.__fixtureSetClosed = function (closed) {
+          state.round.closed = closed;
+          render();
+        };
+      });
+  }
+
+  function boot() {
+    if (typeof window.claude !== "undefined" && window.claude && typeof window.claude.use === "function") {
+      window.claude
+        .use("db")
+        .then(function (db) {
+          if (!db) {
+            showNoDb();
+            return;
+          }
+          initRealStore(db);
+        })
+        .catch(function (err) {
+          console.error("dubplate photo sorter: use(db) failed", err);
+          showNoDb();
+        });
+    } else if (isLocalhost()) {
+      initFixtureStore().catch(function (err) {
+        console.error("dubplate photo sorter: fixture load failed", err);
+        showNoDb();
+      });
+    } else {
+      showNoDb();
+    }
+  }
+
+  boot();
+})();
+</script>
