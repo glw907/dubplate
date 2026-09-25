@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -1171,5 +1172,44 @@ func TestRequestLink_ClientChargedBeforeBodyParses(t *testing.T) {
 	second := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
 	if got := outcomeOf(t, second); got != outcomeRateLimited {
 		t.Errorf("second request outcome = %q, want %q: the malformed body should already have charged the client's one token", got, outcomeRateLimited)
+	}
+}
+
+// TestReadForm proves the shared body path enforces the cap its caller
+// passes, not a value of its own: a body of exactly the cap parses, one
+// byte more is refused as too large, and a body that does not decode is
+// refused as malformed. Each refusal answers the request itself.
+func TestReadForm(t *testing.T) {
+	const bodyCap = 64
+	atCap := "a=" + strings.Repeat("x", bodyCap-len("a="))
+	tests := []struct {
+		name        string
+		body        string
+		wantOK      bool
+		wantStatus  int
+		wantOutcome string
+	}{
+		{name: "exactly the cap", body: atCap, wantOK: true},
+		{name: "one byte over the cap", body: atCap + "x", wantStatus: http.StatusRequestEntityTooLarge, wantOutcome: outcomeTooLarge},
+		{name: "an escape that does not decode", body: "a=%zz", wantStatus: http.StatusBadRequest, wantOutcome: outcomeMalformed},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := post("/", peerIPPort, tt.body)
+			ok := readForm(w, r, bodyCap, slog.New(slog.NewTextHandler(io.Discard, nil)))
+			if ok != tt.wantOK {
+				t.Fatalf("readForm() = %v, want %v", ok, tt.wantOK)
+			}
+			if tt.wantOK {
+				if got := r.PostForm.Get("a"); got != atCap[len("a="):] {
+					t.Errorf("PostForm a = %q, want the body's value", got)
+				}
+				return
+			}
+			if w.Code != tt.wantStatus || outcomeOf(t, w) != tt.wantOutcome {
+				t.Errorf("readForm answered %d %s, want %d %s", w.Code, w.Body, tt.wantStatus, tt.wantOutcome)
+			}
+		})
 	}
 }

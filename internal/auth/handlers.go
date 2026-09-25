@@ -196,7 +196,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
-	if !h.readForm(w, r, log) {
+	if !readForm(w, r, h.cfg.BodyCap, log) {
 		return
 	}
 	// The normalizer's error can quote its input, so it is dropped
@@ -341,7 +341,7 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
-	if !h.readForm(w, r, log) {
+	if !readForm(w, r, h.cfg.BodyCap, log) {
 		return
 	}
 
@@ -380,7 +380,7 @@ func (h *handlers) consume(now time.Time, token string) (string, Session, error)
 // not do.
 func (h *handlers) signOut(w http.ResponseWriter, r *http.Request) {
 	log := h.cfg.Logger.With("client_ip", h.cfg.ClientIP(r))
-	if !h.readForm(w, r, log) {
+	if !readForm(w, r, h.cfg.BodyCap, log) {
 		return
 	}
 	http.SetCookie(w, ClearSessionCookie())
@@ -388,12 +388,12 @@ func (h *handlers) signOut(w http.ResponseWriter, r *http.Request) {
 	writeAnswer(w, http.StatusOK, answer{Outcome: outcomeSignedOut})
 }
 
-// readForm caps r's body at the configured limit and parses it,
-// answering the request itself and reporting false when either step
-// refuses. The cap is installed before the parser runs, so an oversized
-// body is refused having been read no further than the cap.
-func (h *handlers) readForm(w http.ResponseWriter, r *http.Request, log *slog.Logger) bool {
-	r.Body = http.MaxBytesReader(w, r.Body, h.cfg.BodyCap)
+// readForm caps r's body at bodyCap and parses it, answering the
+// request itself and reporting false when either step refuses. The cap
+// is installed before the parser runs, so an oversized body is refused
+// having been read no further than the cap.
+func readForm(w http.ResponseWriter, r *http.Request, bodyCap int64, log *slog.Logger) bool {
+	r.Body = http.MaxBytesReader(w, r.Body, bodyCap)
 	err := r.ParseForm()
 	if err == nil {
 		return true
@@ -408,14 +408,24 @@ func (h *handlers) readForm(w http.ResponseWriter, r *http.Request, log *slog.Lo
 	return false
 }
 
-// writeAnswer writes a as the response with status. Every auth
-// response is no-store: one carries a session cookie, and none is a
-// document a cache should replay.
+// writeAnswer writes a as the response with status.
 func writeAnswer(w http.ResponseWriter, status int, a answer) {
+	writeJSON(w, status, a)
+}
+
+// writeJSON writes v as a JSON response with status.
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	writeJSONHeader(w, status)
+	// A failed write means the client has gone, and there is no one
+	// left to answer.
+	_ = json.NewEncoder(w).Encode(v)
+}
+
+// writeJSONHeader writes a JSON response's header with status and no
+// body. Every auth response is no-store: one carries a session cookie,
+// another the roster, and none is a document a cache should replay.
+func writeJSONHeader(w http.ResponseWriter, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	// A failed write means the client has gone, and there is no one
-	// left to answer.
-	_ = json.NewEncoder(w).Encode(a)
 }
