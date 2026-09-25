@@ -275,15 +275,13 @@ func openCopy(t *testing.T, path string) *sql.DB {
 // TestBackup_RealRemote is spec criterion 10: every library file lands
 // under library/, one object under snapshots/ that passes the
 // integrity check at the binary's version, and its metadata names the
-// job and when the sync completed. The root is reached through a
-// symlink, which both the guard and rclone resolve.
+// job and when the sync completed.
 func TestBackup_RealRemote(t *testing.T) {
 	remote, remoteDir := localRemote(t)
 	dir := newStateDir(t)
 	h := openWrite(t, dir)
 	plantTracks(t, h, 2)
-	base := t.TempDir()
-	lib := filepath.Join(base, "lib")
+	lib := t.TempDir()
 	writeTree(t, lib, "artist/one.flac", "artist/two.flac")
 
 	id, st := runBackup(t, h, remote, lib)

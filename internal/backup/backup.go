@@ -20,8 +20,8 @@ type Job struct {
 	// rclone inherits it.
 	Lease *store.KindLease
 
-	// Instance is the caller's instance lease's, which names the run's
-	// store copy in staging/.
+	// Instance is the name of the caller's instance lease, which names
+	// the run's store copy in staging/.
 	Instance string
 
 	// RunID names the run in the snapshot's metadata.
