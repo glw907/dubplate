@@ -40,28 +40,116 @@ func RewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
 	}
 }
 
-// BuildDocumentVariants rewrites raw once per entry in palettes and
+// VariantConfig is what [BuildDocumentVariants] rewrites a document
+// with. Every attribute value it carries is escaped with
+// html.EscapeString as it is written, so a quote, an angle bracket, or
+// an ampersand in an operator's value cannot leave its attribute.
+type VariantConfig struct {
+	// Placeholder is the token the build left on <html data-theme>.
+	Placeholder string
+
+	// Match names the theme group; each palette's composed theme name
+	// is Match+"-"+palette.
+	Match string
+
+	// Palettes names one variant each.
+	Palettes []string
+
+	// TierHrefs are the stylesheet links that follow the build's own,
+	// in order.
+	TierHrefs []string
+
+	// SiteName is the content of the dubplate-site-name meta every
+	// variant carries.
+	SiteName string
+
+	// Robots is the content of the robots meta every variant carries,
+	// or "" for none.
+	Robots string
+
+	// ThemeColors holds each palette's theme-color metas. A palette
+	// with no entry carries none.
+	ThemeColors map[string][]ThemeColor
+
+	// Icons are the icon links every variant carries, in order.
+	Icons []Icon
+}
+
+// ThemeColor is one theme color: the color, and the color scheme it
+// applies under, "light" or "dark", or "" when it applies whatever the
+// device prefers. As a theme-color meta, a color with a scheme carries
+// a prefers-color-scheme media query.
+type ThemeColor struct {
+	Scheme string
+	Color  string
+}
+
+// Icon is one <link rel="icon">: its href, its MIME type, and its
+// sizes attribute, "" to omit it.
+type Icon struct {
+	Href  string
+	Type  string
+	Sizes string
+}
+
+// BuildDocumentVariants rewrites raw once per entry in cfg.Palettes and
 // returns one body per palette. The rewrite makes two edits and no
-// other: it inserts one <link rel="stylesheet"> per entry of tierHrefs,
-// in order, directly after the last stylesheet link the build wrote,
-// and substitutes placeholder with match+"-"+palette (the composed
-// theme name). Anchoring on the last link keeps every tier after all of
-// the bundle's own CSS however many stylesheets a page links, so a
-// tier declaration wins every tie of equal specificity by document
-// order. A document with no stylesheet link is refused, naming it,
+// other. It substitutes cfg.Placeholder with the composed theme name,
+// and it inserts the head block directly after the last stylesheet
+// link the build wrote: one <link rel="stylesheet"> per tier href, the
+// site-name meta, the robots meta when cfg.Robots is set, the
+// palette's own theme-color metas, and the icon links, in that order.
+// Anchoring on the last link keeps every tier after all of the
+// bundle's own CSS however many stylesheets a page links, so a tier
+// declaration wins every tie of equal specificity by document order,
+// and it keeps every insertion in the head and outside every script
+// body. A document with no stylesheet link is refused, naming it,
 // since the tiers would then have nothing to follow.
 //
 // The variants are computed once, at startup; [NewDocument] never
 // touches raw again, so no request byte can reach a served document.
 // name identifies the document in a returned error.
-func BuildDocumentVariants(name string, raw []byte, placeholder, match string, palettes, tierHrefs []string) (map[string][]byte, error) {
-	linked, err := insertTierLinks(name, raw, tierHrefs)
+func BuildDocumentVariants(name string, raw []byte, cfg VariantConfig) (map[string][]byte, error) {
+	anchor, err := headAnchor(name, raw)
 	if err != nil {
 		return nil, err
 	}
-	variants := make(map[string][]byte, len(palettes))
-	for _, palette := range palettes {
-		body, err := RewriteDocument(name, linked, placeholder, match+"-"+palette)
+
+	var shared bytes.Buffer
+	for _, href := range cfg.TierHrefs {
+		fmt.Fprintf(&shared, `<link href="%s" rel="stylesheet">`, html.EscapeString(href))
+	}
+	fmt.Fprintf(&shared, `<meta name="dubplate-site-name" content="%s">`, html.EscapeString(cfg.SiteName))
+	if cfg.Robots != "" {
+		fmt.Fprintf(&shared, `<meta name="robots" content="%s">`, html.EscapeString(cfg.Robots))
+	}
+	var icons bytes.Buffer
+	for _, icon := range cfg.Icons {
+		fmt.Fprintf(&icons, `<link rel="icon" href="%s" type="%s"`, html.EscapeString(icon.Href), html.EscapeString(icon.Type))
+		if icon.Sizes != "" {
+			fmt.Fprintf(&icons, ` sizes="%s"`, html.EscapeString(icon.Sizes))
+		}
+		icons.WriteString(">")
+	}
+
+	variants := make(map[string][]byte, len(cfg.Palettes))
+	for _, palette := range cfg.Palettes {
+		var head bytes.Buffer
+		head.Write(shared.Bytes())
+		for _, tc := range cfg.ThemeColors[palette] {
+			head.WriteString(`<meta name="theme-color"`)
+			if tc.Scheme != "" {
+				fmt.Fprintf(&head, ` media="(prefers-color-scheme: %s)"`, html.EscapeString(tc.Scheme))
+			}
+			fmt.Fprintf(&head, ` content="%s">`, html.EscapeString(tc.Color))
+		}
+		head.Write(icons.Bytes())
+
+		doc := make([]byte, 0, len(raw)+head.Len())
+		doc = append(doc, raw[:anchor]...)
+		doc = append(doc, head.Bytes()...)
+		doc = append(doc, raw[anchor:]...)
+		body, err := RewriteDocument(name, doc, cfg.Placeholder, cfg.Match+"-"+palette)
 		if err != nil {
 			return nil, err
 		}
@@ -70,9 +158,9 @@ func BuildDocumentVariants(name string, raw []byte, placeholder, match string, p
 	return variants, nil
 }
 
-// insertTierLinks returns raw with a stylesheet link per href inserted
-// directly after the end of raw's last stylesheet link tag.
-func insertTierLinks(name string, raw []byte, hrefs []string) ([]byte, error) {
+// headAnchor returns the offset just past the end of raw's last
+// stylesheet link tag.
+func headAnchor(name string, raw []byte) (int, error) {
 	anchor := -1
 	for _, loc := range linkTagRE.FindAllIndex(raw, -1) {
 		if isStylesheetLink(raw[loc[0]:loc[1]]) {
@@ -80,17 +168,9 @@ func insertTierLinks(name string, raw []byte, hrefs []string) ([]byte, error) {
 		}
 	}
 	if anchor < 0 {
-		return nil, fmt.Errorf("serve: document %q: no stylesheet link to place the tier links after", name)
+		return 0, fmt.Errorf("serve: document %q: no stylesheet link to place the tier links after", name)
 	}
-
-	var links bytes.Buffer
-	for _, href := range hrefs {
-		fmt.Fprintf(&links, `<link href="%s" rel="stylesheet">`, html.EscapeString(href))
-	}
-	out := make([]byte, 0, len(raw)+links.Len())
-	out = append(out, raw[:anchor]...)
-	out = append(out, links.Bytes()...)
-	return append(out, raw[anchor:]...), nil
+	return anchor, nil
 }
 
 // NewStylesheet returns an http.Handler serving GET and HEAD only,
@@ -307,4 +387,43 @@ func ThemeSelectors(css []byte) map[string]struct{} {
 		names[string(name)] = struct{}{}
 	}
 	return names
+}
+
+// cssRuleRE matches one innermost CSS rule, capturing its selector
+// text and its declaration block. Neither capture may hold a brace, so
+// a rule nested inside an at-rule is matched on its own selector, never
+// on the at-rule's prelude.
+var cssRuleRE = regexp.MustCompile(`([^{}]*)\{([^{}]*)\}`)
+
+// neutralDeclRE and colorSchemeDeclRE find one declaration inside a
+// rule's block. The leading anchor keeps a longer name ending in the
+// same letters from matching, and the name's own ":" keeps
+// --color-neutral-content from matching as --color-neutral.
+var (
+	neutralDeclRE     = regexp.MustCompile(`(?:^|;)\s*--color-neutral\s*:\s*([^;]*)`)
+	colorSchemeDeclRE = regexp.MustCompile(`(?:^|;)\s*color-scheme\s*:\s*([^;]*)`)
+)
+
+// ThemeNeutrals returns, for every theme name css declares a
+// [data-theme=<name>] rule for, the --color-neutral value of each such
+// rule that declares one, paired with the color-scheme the same rule
+// declares ("" when it declares none). A rule whose selector names
+// several themes counts for each. The values are returned as css
+// writes them, trimmed of surrounding space, and are not validated.
+func ThemeNeutrals(css []byte) map[string][]ThemeColor {
+	neutrals := make(map[string][]ThemeColor)
+	for _, rule := range cssRuleRE.FindAllSubmatch(css, -1) {
+		neutral := neutralDeclRE.FindSubmatch(rule[2])
+		if neutral == nil {
+			continue
+		}
+		tc := ThemeColor{Color: string(bytes.TrimSpace(neutral[1]))}
+		if scheme := colorSchemeDeclRE.FindSubmatch(rule[2]); scheme != nil {
+			tc.Scheme = string(bytes.TrimSpace(scheme[1]))
+		}
+		for name := range ThemeSelectors(rule[1]) {
+			neutrals[name] = append(neutrals[name], tc)
+		}
+	}
+	return neutrals
 }

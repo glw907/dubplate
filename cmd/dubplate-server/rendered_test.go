@@ -90,6 +90,14 @@ var renderedManifest = []renderedRow{
 	{id: "g10/structural/dubplate-label"},
 	{id: "g10/structural/dubplate-label-night"},
 	{id: "g10/light-control"},
+	{id: "head/theme-color/system/light"},
+	{id: "head/theme-color/system/dark"},
+	{id: "head/theme-color/cookie-label"},
+	{id: "head/theme-color/cookie-label-night"},
+	{id: "head/icon/login"},
+	{id: "head/icon/login-link"},
+	{id: "head/icon/client-navigation"},
+	{id: "head/no-favicon-ico"},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two

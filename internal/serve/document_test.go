@@ -90,14 +90,19 @@ func TestRewriteDocument(t *testing.T) {
 
 func TestBuildDocumentVariants(t *testing.T) {
 	raw := []byte(`<html data-theme="TOKEN"><link href="./a.css" rel="stylesheet">`)
-	variants, err := BuildDocumentVariants("doc.html", raw, "TOKEN", "dubplate", []string{"label", "label-night", "system"}, nil)
+	variants, err := BuildDocumentVariants("doc.html", raw, VariantConfig{
+		Placeholder: "TOKEN",
+		Match:       "dubplate",
+		Palettes:    []string{"label", "label-night", "system"},
+		SiteName:    "Group",
+	})
 	if err != nil {
 		t.Fatalf("BuildDocumentVariants: %v", err)
 	}
 	want := map[string]string{
-		"label":       `<html data-theme="dubplate-label"><link href="./a.css" rel="stylesheet">`,
-		"label-night": `<html data-theme="dubplate-label-night"><link href="./a.css" rel="stylesheet">`,
-		"system":      `<html data-theme="dubplate-system"><link href="./a.css" rel="stylesheet">`,
+		"label":       `<html data-theme="dubplate-label"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group">`,
+		"label-night": `<html data-theme="dubplate-label-night"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group">`,
+		"system":      `<html data-theme="dubplate-system"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group">`,
 	}
 	if len(variants) != len(want) {
 		t.Fatalf("BuildDocumentVariants: got %d variants, want %d", len(variants), len(want))
@@ -111,7 +116,7 @@ func TestBuildDocumentVariants(t *testing.T) {
 
 func TestBuildDocumentVariants_PropagatesRewriteError(t *testing.T) {
 	raw := []byte(`<link href="./a.css" rel="stylesheet">no token here`)
-	if _, err := BuildDocumentVariants("doc.html", raw, "TOKEN", "dubplate", []string{"label"}, nil); err == nil {
+	if _, err := BuildDocumentVariants("doc.html", raw, VariantConfig{Placeholder: "TOKEN", Match: "dubplate", Palettes: []string{"label"}}); err == nil {
 		t.Fatal("BuildDocumentVariants: got nil error, want the missing-placeholder refusal")
 	}
 }
@@ -140,30 +145,36 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 			name:  "one stylesheet link",
 			raw:   `<html data-theme="T"><head><link href="./_app/0.css" rel="stylesheet">` + "\n" + `</head><body><script>x</script></body></html>`,
 			tiers: tiers,
-			want:  `<html data-theme="dubplate-label"><head><link href="./_app/0.css" rel="stylesheet"><link href="./branding.css" rel="stylesheet"><link href="./operator.css" rel="stylesheet">` + "\n" + `</head><body><script>x</script></body></html>`,
+			want:  `<html data-theme="dubplate-label"><head><link href="./_app/0.css" rel="stylesheet"><link href="./branding.css" rel="stylesheet"><link href="./operator.css" rel="stylesheet"><meta name="dubplate-site-name" content="S">` + "\n" + `</head><body><script>x</script></body></html>`,
 		},
 		{
 			name:  "two stylesheet links, a modulepreload between them",
 			raw:   `<html data-theme="T"><head><link href="./_app/0.css" rel="stylesheet"><link href="./_app/n.js" rel="modulepreload"><link href="./_app/2.css" rel="stylesheet"></head></html>`,
 			tiers: tiers,
-			want:  `<html data-theme="dubplate-label"><head><link href="./_app/0.css" rel="stylesheet"><link href="./_app/n.js" rel="modulepreload"><link href="./_app/2.css" rel="stylesheet"><link href="./branding.css" rel="stylesheet"><link href="./operator.css" rel="stylesheet"></head></html>`,
+			want:  `<html data-theme="dubplate-label"><head><link href="./_app/0.css" rel="stylesheet"><link href="./_app/n.js" rel="modulepreload"><link href="./_app/2.css" rel="stylesheet"><link href="./branding.css" rel="stylesheet"><link href="./operator.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></head></html>`,
 		},
 		{
 			name:  "rel before href, one tier",
 			raw:   `<html data-theme="T"><link rel="stylesheet" href="./_app/0.css"></html>`,
 			tiers: []string{"../branding.css"},
-			want:  `<html data-theme="dubplate-label"><link rel="stylesheet" href="./_app/0.css"><link href="../branding.css" rel="stylesheet"></html>`,
+			want:  `<html data-theme="dubplate-label"><link rel="stylesheet" href="./_app/0.css"><link href="../branding.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></html>`,
 		},
 		{
 			name:  "an href is escaped as an attribute value",
 			raw:   `<html data-theme="T"><link href="./_app/0.css" rel="stylesheet"></html>`,
 			tiers: []string{`./a"b&c.css`},
-			want:  `<html data-theme="dubplate-label"><link href="./_app/0.css" rel="stylesheet"><link href="./a&#34;b&amp;c.css" rel="stylesheet"></html>`,
+			want:  `<html data-theme="dubplate-label"><link href="./_app/0.css" rel="stylesheet"><link href="./a&#34;b&amp;c.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></html>`,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			variants, err := BuildDocumentVariants("members.html", []byte(tt.raw), "T", "dubplate", []string{"label"}, tt.tiers)
+			variants, err := BuildDocumentVariants("members.html", []byte(tt.raw), VariantConfig{
+				Placeholder: "T",
+				Match:       "dubplate",
+				Palettes:    []string{"label"},
+				TierHrefs:   tt.tiers,
+				SiteName:    "S",
+			})
 			if tt.wantErrHas != "" {
 				if err == nil {
 					t.Fatalf("BuildDocumentVariants: got nil error, want one containing %q", tt.wantErrHas)
@@ -178,6 +189,111 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 			}
 			if got := string(variants["label"]); got != tt.want {
 				t.Errorf("variant = %q\nwant      %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestBuildDocumentVariants_Head writes every variant's whole expected
+// body out, so a head element missing, doubled, reordered, left
+// unescaped, or carried into the wrong palette fails the comparison.
+// The system palette carries the media pair, label one unconditional
+// meta, and label-night none, the three shapes a caller can hand in.
+func TestBuildDocumentVariants_Head(t *testing.T) {
+	raw := `<html data-theme="T"><head><link href="./0.css" rel="stylesheet"></head><body><script>s</script></body></html>`
+	cfg := VariantConfig{
+		Placeholder: "T",
+		Match:       "dubplate",
+		Palettes:    []string{"label", "label-night", "system"},
+		TierHrefs:   []string{"./branding.css"},
+		SiteName:    `A "B" <C> & D`,
+		Robots:      "noindex, nofollow",
+		ThemeColors: map[string][]ThemeColor{
+			"label":  {{Color: "#1f1b16"}},
+			"system": {{Scheme: "light", Color: "#1f1b16"}, {Scheme: "dark", Color: "#110f0d"}},
+		},
+		Icons: []Icon{
+			{Href: "/p/favicon.svg", Type: "image/svg+xml"},
+			{Href: "/p/favicon.png", Type: "image/png", Sizes: "32x32"},
+		},
+	}
+	shared := `<link href="./branding.css" rel="stylesheet">` +
+		`<meta name="dubplate-site-name" content="A &#34;B&#34; &lt;C&gt; &amp; D">` +
+		`<meta name="robots" content="noindex, nofollow">`
+	icons := `<link rel="icon" href="/p/favicon.svg" type="image/svg+xml">` +
+		`<link rel="icon" href="/p/favicon.png" type="image/png" sizes="32x32">`
+	body := func(theme, colors string) string {
+		return `<html data-theme="` + theme + `"><head><link href="./0.css" rel="stylesheet">` + shared + colors + icons +
+			`</head><body><script>s</script></body></html>`
+	}
+	want := map[string]string{
+		"label":       body("dubplate-label", `<meta name="theme-color" content="#1f1b16">`),
+		"label-night": body("dubplate-label-night", ""),
+		"system": body("dubplate-system",
+			`<meta name="theme-color" media="(prefers-color-scheme: light)" content="#1f1b16">`+
+				`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#110f0d">`),
+	}
+
+	variants, err := BuildDocumentVariants("login.html", []byte(raw), cfg)
+	if err != nil {
+		t.Fatalf("BuildDocumentVariants: %v", err)
+	}
+	if len(variants) != len(want) {
+		t.Fatalf("BuildDocumentVariants: got %d variants, want %d", len(variants), len(want))
+	}
+	for palette, wantBody := range want {
+		if got := string(variants[palette]); got != wantBody {
+			t.Errorf("variants[%q] =\n%s\nwant\n%s", palette, got, wantBody)
+		}
+	}
+}
+
+func TestThemeNeutrals(t *testing.T) {
+	tests := []struct {
+		name string
+		css  string
+		want map[string][]ThemeColor
+	}{
+		{
+			name: "one rule with its scheme",
+			css:  `[data-theme=dubplate-label]{color-scheme:light;--color-neutral:#1f1b16;--color-neutral-content:#fff}`,
+			want: map[string][]ThemeColor{"dubplate-label": {{Scheme: "light", Color: "#1f1b16"}}},
+		},
+		{
+			name: "a media branch is read on its own selector",
+			css: `[data-theme="dubplate-system"]{color-scheme: light; --color-neutral: #1f1b16}` +
+				`@media (prefers-color-scheme:dark){[data-theme="dubplate-system"]{color-scheme:dark;--color-neutral:#110f0d}}`,
+			want: map[string][]ThemeColor{"dubplate-system": {
+				{Scheme: "light", Color: "#1f1b16"},
+				{Scheme: "dark", Color: "#110f0d"},
+			}},
+		},
+		{
+			name: "a rule with no color-scheme",
+			css:  `[data-theme=x]{--color-neutral:oklch(20% 0 0)}`,
+			want: map[string][]ThemeColor{"x": {{Color: "oklch(20% 0 0)"}}},
+		},
+		{
+			name: "neutral-content alone is not the neutral",
+			css:  `[data-theme=x]{color-scheme:dark;--color-neutral-content:#fff}`,
+			want: map[string][]ThemeColor{},
+		},
+		{
+			name: "a rule naming no theme",
+			css:  `:root{--color-neutral:#000}`,
+			want: map[string][]ThemeColor{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ThemeNeutrals([]byte(tt.css))
+			if len(got) != len(tt.want) {
+				t.Fatalf("ThemeNeutrals = %v, want %v", got, tt.want)
+			}
+			for name, want := range tt.want {
+				if !slices.Equal(got[name], want) {
+					t.Errorf("ThemeNeutrals[%q] = %v, want %v", name, got[name], want)
+				}
 			}
 		})
 	}

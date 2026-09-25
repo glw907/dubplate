@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"maps"
 	"net/http"
 	"os"
@@ -28,6 +29,25 @@ import (
 // fontsRouteName is the embedded faces' subtree name, beside the four
 // [newWebRoutes] names in serve.go.
 const fontsRouteName = "fonts"
+
+// The mark's subtree names: the favicon in its two forms, and the
+// directory holding the mark's three detail levels.
+const (
+	faviconSVGRouteName = "favicon.svg"
+	faviconPNGRouteName = "favicon.png"
+	markRouteName       = "mark"
+)
+
+// authRobots is the robots meta the two sign-in documents carry, so a
+// search engine neither lists a sign-in page nor follows a link out of
+// one (W7.15).
+const authRobots = "noindex, nofollow"
+
+// bundleNeutralRE is the shape a bundle's own --color-neutral must
+// have before it enters a theme-color meta. The bundle is this
+// server's own build, so a value outside it is a build defect to
+// refuse, never an operator value to pass through.
+var bundleNeutralRE = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
 
 // themePlaceholder is the token app.html carries on <html data-theme>,
 // substituted once per stampable palette at serve startup. It must
@@ -67,12 +87,13 @@ const (
 )
 
 // webDocument is one document the web routes serve: its path inside
-// the build tree, the path under the owned prefix it answers at, and
-// its Cache-Control value.
+// the build tree, the path under the owned prefix it answers at, its
+// Cache-Control value, and whether it carries the robots meta.
 type webDocument struct {
 	name         string
 	route        string
 	cacheControl string
+	noIndex      bool
 }
 
 // webDocuments is every document the build emits and the server
@@ -82,8 +103,8 @@ type webDocument struct {
 // sign-in token. The members document is no-store because it answers
 // only behind the admin gate, as the roster API it reads from does.
 var webDocuments = []webDocument{
-	{name: loginDocumentName, route: "/" + loginRouteName, cacheControl: "no-cache"},
-	{name: loginLinkDocumentName, route: "/" + loginRouteName + "/link", cacheControl: "no-store"},
+	{name: loginDocumentName, route: "/" + loginRouteName, cacheControl: "no-cache", noIndex: true},
+	{name: loginLinkDocumentName, route: "/" + loginRouteName + "/link", cacheControl: "no-store", noIndex: true},
 	{name: membersDocumentName, route: "/" + membersRouteName, cacheControl: "no-store"},
 }
 
@@ -154,6 +175,7 @@ type webRoutes struct {
 	members  http.Handler
 	assets   http.Handler
 	fonts    http.Handler
+	icons    http.Handler
 	branding http.Handler
 	operator http.Handler
 }
@@ -165,6 +187,9 @@ func (wr webRoutes) register(shell *serve.Shell) {
 	shell.Register(loginRouteName, serve.LogRequests(shell.Logger(), wr.login))
 	shell.Register(assetsRouteName, wr.assets)
 	shell.Register(fontsRouteName, wr.fonts)
+	shell.Register(faviconSVGRouteName, wr.icons)
+	shell.Register(faviconPNGRouteName, wr.icons)
+	shell.Register(markRouteName, wr.icons)
 	shell.Register(brandingRouteName, wr.branding)
 	if wr.operator != nil {
 		shell.Register(operatorCSSRouteName, wr.operator)
@@ -178,19 +203,24 @@ func (wr webRoutes) register(shell *serve.Shell) {
 // bundle's own extracted [data-theme=<name>] selectors, renders
 // DUBPLATE_BRANDING into the branding stylesheet, reads the file
 // DUBPLATE_OPERATOR_CSS_FILE names, rewrites the documents into one
-// variant per stampable palette with the tier links in place, and
-// returns the routes. It returns before any listener opens, so a
-// document with an inline script its CSP does not hash, in the build
-// or in any rewritten variant, a bad theme or branding value, a
-// refused operator file, or a missing build refuses startup rather
-// than the first request. private names the files the operator CSS
-// path must not resolve to.
-func newWebRoutes(environ []string, prefix serve.Prefix, private privateFiles) (webRoutes, error) {
+// variant per stampable palette with the tier links and the head
+// metas in place, and returns the routes. It returns before any
+// listener opens, so a document with an inline script its CSP does not
+// hash, in the build or in any rewritten variant, a bad theme or
+// branding value, a bundle theme with no usable neutral, a refused
+// operator file, or a missing build refuses startup rather than the
+// first request.
+//
+// siteName enters every document as the dubplate-site-name meta.
+// private names the files the operator CSS path must not resolve to.
+// logger takes the one record written when a branding neutral leaves
+// the documents without a theme-color meta.
+func newWebRoutes(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger) (webRoutes, error) {
 	buildFS, err := fs.Sub(web.Assets, "build")
 	if err != nil {
 		return webRoutes{}, fmt.Errorf("web: %w", err)
 	}
-	return newWebRoutesFromFS(environ, prefix, private, buildFS)
+	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, buildFS)
 }
 
 // newWebRoutesFromFS is [newWebRoutes]'s logic, parameterized on
@@ -198,7 +228,7 @@ func newWebRoutes(environ []string, prefix serve.Prefix, private privateFiles) (
 // state a bad or missing build can be in is a fixture this file's own
 // tests build as an fstest.MapFS, since web.Assets is fixed to
 // whatever bundle this binary was compiled against.
-func newWebRoutesFromFS(environ []string, prefix serve.Prefix, private privateFiles, buildFS fs.FS) (webRoutes, error) {
+func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger, buildFS fs.FS) (webRoutes, error) {
 	placeholderOnly, err := isPlaceholderOnly(buildFS)
 	if err != nil {
 		return webRoutes{}, fmt.Errorf("web: %w", err)
@@ -238,18 +268,22 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, private privateFi
 		return webRoutes{}, fmt.Errorf("%s: %q: must match %s", themePaletteThreshold.Key, palette, themePaletteGrammarRE)
 	}
 
-	selectors, err := extractThemeSelectors(buildFS, docs...)
+	themes, err := extractThemes(buildFS, docs...)
 	if err != nil {
 		return webRoutes{}, err
 	}
 
 	composed := match + "-" + palette
-	if _, ok := selectors[composed]; !ok {
+	if _, ok := themes.selectors[composed]; !ok {
 		return webRoutes{}, fmt.Errorf("%s: %q: no theme selector named %q in the built bundle", themePaletteThreshold.Key, palette, composed)
 	}
-	palettes := stampablePalettes(selectors, match)
+	palettes := stampablePalettes(themes.selectors, match)
 
-	branding, err := resolveBranding(environ)
+	branding, brandNeutral, err := resolveBranding(environ)
+	if err != nil {
+		return webRoutes{}, err
+	}
+	colors, err := themeColors(themes.neutrals, match, palettes, brandNeutral, logger)
 	if err != nil {
 		return webRoutes{}, err
 	}
@@ -258,10 +292,25 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, private privateFi
 		return webRoutes{}, err
 	}
 
+	icons := []serve.Icon{
+		{Href: prefix.String() + "/" + faviconSVGRouteName, Type: "image/svg+xml"},
+		{Href: prefix.String() + "/" + faviconPNGRouteName, Type: "image/png", Sizes: "32x32"},
+	}
 	documents := make(map[string]http.Handler, len(webDocuments))
 	for i, d := range webDocuments {
-		variants, err := serve.BuildDocumentVariants(d.name, docs[i].raw, themePlaceholder, match, palettes,
-			tierHrefs(d.name, hasOperatorCSS))
+		cfg := serve.VariantConfig{
+			Placeholder: themePlaceholder,
+			Match:       match,
+			Palettes:    palettes,
+			TierHrefs:   tierHrefs(d.name, hasOperatorCSS),
+			SiteName:    siteName,
+			ThemeColors: colors,
+			Icons:       icons,
+		}
+		if d.noIndex {
+			cfg.Robots = authRobots
+		}
+		variants, err := serve.BuildDocumentVariants(d.name, docs[i].raw, cfg)
 		if err != nil {
 			return webRoutes{}, err
 		}
@@ -292,11 +341,16 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, private privateFi
 	if err != nil {
 		return webRoutes{}, err
 	}
+	iconsRoute, err := newIconsRoute(buildFS, prefix)
+	if err != nil {
+		return webRoutes{}, err
+	}
 	routes := webRoutes{
 		login:    login,
 		members:  members,
 		assets:   serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
 		fonts:    fontsRoute,
+		icons:    iconsRoute,
 		branding: stylesheetRoute(prefix, brandingRouteName, branding),
 	}
 	if hasOperatorCSS {
@@ -329,95 +383,228 @@ func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler 
 	})
 }
 
-// fontFace is one embedded font file the fonts route serves: its
-// bytes and its strong ETag, both computed once at startup so no
+// staticFile is one embedded file served at an exact path: its bytes,
+// its Content-Type, and its strong ETag, all fixed at startup so no
 // request byte reaches them.
-type fontFace struct {
-	data []byte
-	etag string
+type staticFile struct {
+	data        []byte
+	contentType string
+	etag        string
 }
 
-// newFontsRoute returns an http.Handler serving GET and HEAD only, at
-// exactly routePrefix followed by a separator and the name of a
-// .woff2 file fontsFS holds at its root. Every other path under it --
-// routePrefix itself, a directory (fontsFS's own "licenses/"), a
-// top-level file that is not a .woff2 (FONTS.md), a trailing slash,
-// and a name fontsFS does not hold -- answers [serve.Terminator]'s
-// 404, with no directory listing. It refuses when fontsFS holds no
-// .woff2 file, the same shape [isPlaceholderOnly] refuses on for the
-// whole bundle.
-//
-// Content-Type is always "font/woff2", set on w before
-// [http.ServeContent] runs so no host mime table can override it (Go's
-// built-in extension table carries no ".woff2" entry, and its fallback
-// reads host files that differ between the workstation and the box).
-// The ETag is a strong SHA-256 hash of the file's own bytes: "If the
-// caller has set w's ETag header formatted per RFC 7232, section 2.3,
-// ServeContent uses it to handle requests using If-Match,
-// If-None-Match, or If-Range" (go doc net/http.ServeContent), so a
-// matching If-None-Match answers 304 even though every response
-// carries a zero modtime.
-func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
-	entries, err := fs.ReadDir(fontsFS, ".")
-	if err != nil {
-		return nil, fmt.Errorf("web: fonts: %w", err)
-	}
-	faces := make(map[string]fontFace, len(entries))
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".woff2") {
-			continue
-		}
-		data, err := fs.ReadFile(fontsFS, entry.Name())
-		if err != nil {
-			return nil, fmt.Errorf("web: fonts: %q: %w", entry.Name(), err)
-		}
-		sum := sha256.Sum256(data)
-		faces[entry.Name()] = fontFace{data: data, etag: `"` + hex.EncodeToString(sum[:]) + `"`}
-	}
-	if len(faces) == 0 {
-		return nil, errors.New("web: fonts: no .woff2 file embedded under web/build/fonts/")
-	}
+// newStaticFile returns data as a staticFile of contentType, its ETag
+// a strong SHA-256 hash of data.
+func newStaticFile(data []byte, contentType string) staticFile {
+	sum := sha256.Sum256(data)
+	return staticFile{data: data, contentType: contentType, etag: `"` + hex.EncodeToString(sum[:]) + `"`}
+}
 
+// newStaticFiles returns an http.Handler serving GET and HEAD only, at
+// exactly the request paths files holds, and answering
+// [serve.Terminator]'s 404 on every other path, with no directory
+// listing. Every file is served no-cache, since its name stays put
+// across builds while its bytes may not.
+//
+// Content-Type is set on w before [http.ServeContent] runs, so no host
+// mime table can override it (Go's built-in extension table carries no
+// ".woff2" entry, and its fallback reads host files that differ
+// between the workstation and the box). The ETag lets a revalidation
+// answer 304: "If the caller has set w's ETag header formatted per RFC
+// 7232, section 2.3, ServeContent uses it to handle requests using
+// If-Match, If-None-Match, or If-Range" (go doc
+// net/http.ServeContent), which holds even though every response
+// carries a zero modtime.
+func newStaticFiles(files map[string]staticFile) http.Handler {
 	terminator := serve.Terminator()
-	prefixSlash := routePrefix + "/"
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			w.Header().Set("Allow", "GET, HEAD")
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
-		if !strings.HasPrefix(r.URL.Path, prefixSlash) {
-			terminator.ServeHTTP(w, r)
-			return
-		}
-		name := strings.TrimPrefix(r.URL.Path, prefixSlash)
-		face, ok := faces[name]
+		file, ok := files[r.URL.Path]
 		if !ok {
 			terminator.ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("Content-Type", "font/woff2")
+		w.Header().Set("Content-Type", file.contentType)
 		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("ETag", face.etag)
-		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(face.data))
-	}), nil
+		w.Header().Set("ETag", file.etag)
+		http.ServeContent(w, r, path.Base(r.URL.Path), time.Time{}, bytes.NewReader(file.data))
+	})
+}
+
+// newFontsRoute returns a [newStaticFiles] handler serving, as
+// font/woff2, every .woff2 file fontsFS holds at its root, each at
+// exactly routePrefix followed by a separator and its name. Every
+// other path under it -- routePrefix itself, a directory (fontsFS's
+// own "licenses/"), a top-level file that is not a .woff2 (FONTS.md),
+// a trailing slash, and a name fontsFS does not hold -- answers
+// [serve.Terminator]'s 404. It refuses when fontsFS holds no .woff2
+// file, the same shape [isPlaceholderOnly] refuses on for the whole
+// bundle.
+func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
+	faces, err := readStaticDir(fontsFS, ".", ".woff2", "font/woff2", routePrefix)
+	if err != nil {
+		return nil, fmt.Errorf("web: fonts: %w", err)
+	}
+	if len(faces) == 0 {
+		return nil, errors.New("web: fonts: no .woff2 file embedded under web/build/fonts/")
+	}
+	return newStaticFiles(faces), nil
+}
+
+// newIconsRoute returns a [newStaticFiles] handler serving the mark:
+// the favicon as <prefix>/favicon.svg and <prefix>/favicon.png, the
+// two files the documents' icon links name, and every .svg file under
+// the build's mark/ directory as <prefix>/mark/<name>. It refuses when
+// either favicon or every mark file is missing, since a document would
+// then link a file the server cannot answer.
+func newIconsRoute(buildFS fs.FS, prefix serve.Prefix) (http.Handler, error) {
+	files, err := readStaticDir(buildFS, markRouteName, ".svg", "image/svg+xml", prefix.String()+"/"+markRouteName)
+	if err != nil {
+		return nil, fmt.Errorf("web: mark: %w", err)
+	}
+	if len(files) == 0 {
+		return nil, errors.New("web: mark: no .svg file embedded under web/build/mark/")
+	}
+	for _, favicon := range []struct{ name, contentType string }{
+		{faviconSVGRouteName, "image/svg+xml"},
+		{faviconPNGRouteName, "image/png"},
+	} {
+		data, err := fs.ReadFile(buildFS, favicon.name)
+		if err != nil {
+			return nil, fmt.Errorf("web: favicon: %w", err)
+		}
+		files[prefix.String()+"/"+favicon.name] = newStaticFile(data, favicon.contentType)
+	}
+	return newStaticFiles(files), nil
+}
+
+// readStaticDir returns every regular file directly under dir in fsys
+// whose name ends in suffix, as a staticFile of contentType keyed by
+// routePrefix followed by a separator and its name. Subdirectories are
+// skipped.
+func readStaticDir(fsys fs.FS, dir, suffix, contentType, routePrefix string) (map[string]staticFile, error) {
+	entries, err := fs.ReadDir(fsys, dir)
+	if err != nil {
+		return nil, err
+	}
+	files := make(map[string]staticFile, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), suffix) {
+			continue
+		}
+		data, err := fs.ReadFile(fsys, path.Join(dir, entry.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("%q: %w", entry.Name(), err)
+		}
+		files[routePrefix+"/"+entry.Name()] = newStaticFile(data, contentType)
+	}
+	return files, nil
 }
 
 // resolveBranding renders DUBPLATE_BRANDING into the branding
-// stylesheet, empty when the key is unset, empty, or "none".
-func resolveBranding(environ []string) ([]byte, error) {
+// stylesheet, empty when the key is unset, empty, or "none", and
+// returns the value it declares for --color-neutral, "" when it
+// declares none.
+func resolveBranding(environ []string) ([]byte, string, error) {
 	decls, err := config.ParseString(environ, brandingThreshold)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if decls == notConfigured {
 		decls = ""
 	}
 	css, err := serve.BrandingStylesheet(decls)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", brandingThreshold.Key, err)
+		return nil, "", fmt.Errorf("%s: %w", brandingThreshold.Key, err)
 	}
-	return css, nil
+	return css, brandingNeutral(decls), nil
+}
+
+// brandingNeutral returns the value decls declares for
+// --color-neutral, or "" when it declares none. decls must already
+// have passed [serve.BrandingStylesheet], which fixes every
+// declaration's shape and admits each name once.
+func brandingNeutral(decls string) string {
+	for decl := range strings.SplitSeq(decls, ";") {
+		name, value, _ := strings.Cut(decl, ":")
+		if strings.TrimSpace(name) == "--color-neutral" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
+// themeColors returns each palette's theme-color metas. Each palette
+// takes its composed theme's own --color-neutral from neutrals, as
+// [paletteThemeColors] reads it, so a bundle theme with no usable
+// neutral refuses startup whatever the branding says.
+//
+// A branding neutral flattens every palette, since the branding
+// stylesheet overrides the variable in every theme, so it replaces
+// them all with one meta at its value. The branding grammar admits a
+// color as a hex literal or as a color function, and only a hex
+// literal begins with "#". A color function leaves every document with
+// no theme-color meta and writes one record to logger: the meta then
+// carries no operator value outside a hex grammar, and a configuration
+// the branding grammar admits still starts.
+func themeColors(neutrals map[string][]serve.ThemeColor, match string, palettes []string, brandNeutral string, logger *slog.Logger) (map[string][]serve.ThemeColor, error) {
+	colors := make(map[string][]serve.ThemeColor, len(palettes))
+	for _, palette := range palettes {
+		theme := match + "-" + palette
+		tcs, err := paletteThemeColors(theme, neutrals[theme])
+		if err != nil {
+			return nil, err
+		}
+		colors[palette] = tcs
+	}
+	switch {
+	case brandNeutral == "":
+		return colors, nil
+	case strings.HasPrefix(brandNeutral, "#"):
+		for _, palette := range palettes {
+			colors[palette] = []serve.ThemeColor{{Color: brandNeutral}}
+		}
+		return colors, nil
+	default:
+		logger.Warn("web: DUBPLATE_BRANDING sets --color-neutral to a color function, so no document carries a theme-color meta; declare it as a hex color to keep one")
+		return nil, nil
+	}
+}
+
+// paletteThemeColors returns the theme-color metas for theme, from the
+// --color-neutral values its rules declare. Every value must match
+// bundleNeutralRE. One distinct value is one unconditional meta; one
+// value under the light scheme and a different one under the dark is
+// the media pair. Anything else refuses, naming the theme but never
+// the value: no value at all, or values the two schemes cannot tell
+// apart.
+func paletteThemeColors(theme string, declared []serve.ThemeColor) ([]serve.ThemeColor, error) {
+	if len(declared) == 0 {
+		return nil, fmt.Errorf("web: theme %q: the built bundle declares no --color-neutral for it", theme)
+	}
+	byScheme := make(map[string]string, len(declared))
+	for _, tc := range declared {
+		if !bundleNeutralRE.MatchString(tc.Color) {
+			return nil, fmt.Errorf("web: theme %q: its --color-neutral is not a #rgb or #rrggbb color", theme)
+		}
+		if prior, ok := byScheme[tc.Scheme]; ok && prior != tc.Color {
+			return nil, fmt.Errorf("web: theme %q: it declares two --color-neutral values under one color scheme", theme)
+		}
+		byScheme[tc.Scheme] = tc.Color
+	}
+	distinct := slices.Compact(slices.Sorted(maps.Values(byScheme)))
+	if len(distinct) == 1 {
+		return []serve.ThemeColor{{Color: distinct[0]}}, nil
+	}
+	light, hasLight := byScheme["light"]
+	dark, hasDark := byScheme["dark"]
+	if len(byScheme) != 2 || !hasLight || !hasDark {
+		return nil, fmt.Errorf("web: theme %q: its --color-neutral values differ under color schemes other than light and dark", theme)
+	}
+	return []serve.ThemeColor{{Scheme: "light", Color: light}, {Scheme: "dark", Color: dark}}, nil
 }
 
 // resolveOperatorCSS reads the file DUBPLATE_OPERATOR_CSS_FILE names,
@@ -562,11 +749,19 @@ type namedDocument struct {
 	raw  []byte
 }
 
-// extractThemeSelectors returns the union of every [data-theme=<name>]
-// selector name declared in the stylesheets docs link to, each href
-// resolved relative to its own document's path inside buildFS
-// (R-5cii12).
-func extractThemeSelectors(buildFS fs.FS, docs ...namedDocument) (map[string]struct{}, error) {
+// bundleThemes is what the built bundle's stylesheets declare about
+// its themes: every [data-theme=<name>] selector name, and each named
+// theme's --color-neutral declarations as [serve.ThemeNeutrals] reads
+// them.
+type bundleThemes struct {
+	selectors map[string]struct{}
+	neutrals  map[string][]serve.ThemeColor
+}
+
+// extractThemes reads the stylesheets docs link to, each href resolved
+// relative to its own document's path inside buildFS (R-5cii12), and
+// returns the union of what they declare about the bundle's themes.
+func extractThemes(buildFS fs.FS, docs ...namedDocument) (bundleThemes, error) {
 	cssPaths := make(map[string]struct{})
 	for _, doc := range docs {
 		for _, href := range serve.StylesheetHrefs(doc.raw) {
@@ -574,20 +769,26 @@ func extractThemeSelectors(buildFS fs.FS, docs ...namedDocument) (map[string]str
 		}
 	}
 	if len(cssPaths) == 0 {
-		return nil, fmt.Errorf("web: document %q: no stylesheet link found", docs[0].path)
+		return bundleThemes{}, fmt.Errorf("web: document %q: no stylesheet link found", docs[0].path)
 	}
 
-	selectors := make(map[string]struct{})
-	for cssPath := range cssPaths {
+	themes := bundleThemes{
+		selectors: make(map[string]struct{}),
+		neutrals:  make(map[string][]serve.ThemeColor),
+	}
+	for _, cssPath := range slices.Sorted(maps.Keys(cssPaths)) {
 		data, err := fs.ReadFile(buildFS, cssPath)
 		if err != nil {
-			return nil, fmt.Errorf("web: stylesheet %q: %w", cssPath, err)
+			return bundleThemes{}, fmt.Errorf("web: stylesheet %q: %w", cssPath, err)
 		}
 		for name := range serve.ThemeSelectors(data) {
-			selectors[name] = struct{}{}
+			themes.selectors[name] = struct{}{}
+		}
+		for name, tcs := range serve.ThemeNeutrals(data) {
+			themes.neutrals[name] = append(themes.neutrals[name], tcs...)
 		}
 	}
-	return selectors, nil
+	return themes, nil
 }
 
 // resolveStylesheetPath resolves href, a document-relative path a

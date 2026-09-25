@@ -1345,7 +1345,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	routes, err := newWebRoutesFromFS(environ, prefix, privateFiles{}, buildFS)
+	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 	if err != nil {
 		return nil, err
 	}

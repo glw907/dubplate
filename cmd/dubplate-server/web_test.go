@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"html"
 	"io/fs"
 	"log/slog"
 	"mime"
@@ -28,7 +29,16 @@ import (
 // build carries, in both quoted and unquoted form, mirroring the real
 // bundle's own shape (internal/serve/document_test.go's ThemeSelectors
 // cases already prove the extraction handles both).
-const fixtureThemeCSS = `[data-theme=dubplate-label]{--color-base-100:#fff}[data-theme="dubplate-label-night"]{--color-base-100:#000}[data-theme=dubplate-system]{--color-base-100:#fff}`
+// Each also declares a --color-neutral under its color scheme, as
+// every real composed theme does, the system theme's dark value inside
+// its media branch.
+const fixtureThemeCSS = `[data-theme=dubplate-label]{color-scheme:light;--color-base-100:#fff;--color-neutral:#111}` +
+	`[data-theme="dubplate-label-night"]{color-scheme:dark;--color-base-100:#000;--color-neutral:#222}` +
+	`[data-theme=dubplate-system]{color-scheme:light;--color-base-100:#fff;--color-neutral:#111}` +
+	`@media (prefers-color-scheme:dark){[data-theme=dubplate-system]{color-scheme:dark;--color-neutral:#222}}`
+
+// fixtureSiteName is the site name every web route test builds with.
+const fixtureSiteName = "Fixture Group"
 
 // fixtureCSPMeta is the CSP meta every fixture document carries: a
 // script-src with no hash, which a document holding no inline script
@@ -57,6 +67,9 @@ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.M
 		"_app/entry/start.js":    &fstest.MapFile{Data: []byte("// entry")},
 		"login/nested/other.txt": &fstest.MapFile{Data: []byte("unrelated")},
 		"fonts/fixture.woff2":    &fstest.MapFile{Data: []byte("fixture woff2 bytes")},
+		"favicon.svg":            &fstest.MapFile{Data: []byte("<svg/>")},
+		"favicon.png":            &fstest.MapFile{Data: []byte("fixture png bytes")},
+		"mark/mark-small.svg":    &fstest.MapFile{Data: []byte("<svg/>")},
 	}
 }
 
@@ -162,6 +175,25 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 			wantErrHas: `no theme selector named "dubplate-gruvbox"`,
 		},
 		{
+			name: "favicon.png missing",
+			buildFS: func() fstest.MapFS {
+				m := newFixtureBuildFS(1, 1)
+				delete(m, "favicon.png")
+				return m
+			}(),
+			wantErrHas: `web: favicon: open favicon.png`,
+		},
+		{
+			name: "no mark file",
+			buildFS: func() fstest.MapFS {
+				m := newFixtureBuildFS(1, 1)
+				delete(m, "mark/mark-small.svg")
+				m["mark/README"] = &fstest.MapFile{Data: []byte("not a mark")}
+				return m
+			}(),
+			wantErrHas: "web: mark: no .svg file",
+		},
+		{
 			name:       "palette value a prefix of a real name",
 			buildFS:    newFixtureBuildFS(1, 1),
 			environ:    []string{"DUBPLATE_THEME_PALETTE=label-n"},
@@ -170,7 +202,7 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := newWebRoutesFromFS(tt.environ, prefix, privateFiles{}, tt.buildFS)
+			_, err := newWebRoutesFromFS(tt.environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), tt.buildFS)
 			if err == nil {
 				t.Fatalf("newWebRoutesFromFS: got nil error, want one containing %q", tt.wantErrHas)
 			}
@@ -187,7 +219,7 @@ func TestNewWebRoutesFromFS_EmptyKeysResolveToDefaults(t *testing.T) {
 
 	routes, err := newWebRoutesFromFS(
 		[]string{"DUBPLATE_THEME_MATCH=", "DUBPLATE_THEME_PALETTE="},
-		prefix, privateFiles{}, buildFS,
+		prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS,
 	)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS: %v", err)
@@ -213,7 +245,7 @@ func TestNewWebRoutesFromFS_AcceptedPaletteValues(t *testing.T) {
 
 	for _, palette := range []string{"label", "label-night", "system"} {
 		t.Run(palette, func(t *testing.T) {
-			routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=" + palette}, prefix, privateFiles{}, buildFS)
+			routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=" + palette}, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 			if err != nil {
 				t.Fatalf("newWebRoutesFromFS: %v", err)
 			}
@@ -234,7 +266,7 @@ func TestNewWebRoutesFromFS_AcceptedPaletteValues(t *testing.T) {
 func TestNewWebRoutesFromFS_LoginRouting(t *testing.T) {
 	prefix := webTestPrefix(t)
 	buildFS := newFixtureBuildFS(1, 1)
-	routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=label"}, prefix, privateFiles{}, buildFS)
+	routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=label"}, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS: %v", err)
 	}
@@ -298,11 +330,14 @@ func extractScriptBodies(doc []byte) []string {
 // TestNewWebRoutes_RewriteChangesOnlyTheToken proves the rewrite's
 // whole edit against the real embedded bundle, both documents and
 // every stampable palette, with an operator CSS file configured so
-// both tier links are inserted: the served body, with the two tier
-// links removed and the composed name swapped back for
-// [themePlaceholder], is byte-equal to the embedded original, and every
-// inline <script> body served is byte-identical to the original's, in
-// the same order.
+// both tier links are inserted: the served body, with the head block
+// (the two tier links, the site-name and robots metas, the palette's
+// theme-color metas, and the icon links, written out below) removed
+// and the composed name swapped back for [themePlaceholder], is
+// byte-equal to the embedded original, and every inline <script> body
+// served is byte-identical to the original's, in the same order. The
+// theme-color values are the visual identity spec's neutrals: #1f1b16
+// for light and #110f0d for dark.
 func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 	prefix := webTestPrefix(t)
 
@@ -311,7 +346,7 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 		t.Fatalf("fs.Sub: %v", err)
 	}
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	routes, err := newWebRoutes(environ, prefix, privateFiles{})
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
@@ -333,6 +368,12 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 		},
 	}
 
+	themeColorMetas := map[string]string{
+		"label":       `<meta name="theme-color" content="#1f1b16">`,
+		"label-night": `<meta name="theme-color" content="#110f0d">`,
+		"system": `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#1f1b16">` +
+			`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#110f0d">`,
+	}
 	for _, doc := range documents {
 		original, err := fs.ReadFile(buildFS, doc.name)
 		if err != nil {
@@ -354,14 +395,18 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 				}
 				served := rec.Body.Bytes()
 
-				if n := bytes.Count(served, []byte(doc.tiers)); n != 1 {
-					t.Fatalf("%s served for %q carries the tier links %d times, want 1", doc.name, palette, n)
+				head := doc.tiers + `<meta name="dubplate-site-name" content="Fixture Group">` +
+					`<meta name="robots" content="noindex, nofollow">` + themeColorMetas[palette] +
+					`<link rel="icon" href="/dubplate/favicon.svg" type="image/svg+xml">` +
+					`<link rel="icon" href="/dubplate/favicon.png" type="image/png" sizes="32x32">`
+				if n := bytes.Count(served, []byte(head)); n != 1 {
+					t.Fatalf("%s served for %q carries the head block %d times, want 1:\n%s", doc.name, palette, n, served)
 				}
 				composed := acceptedThemeMatch + "-" + palette
-				restored := bytes.Replace(served, []byte(doc.tiers), nil, 1)
+				restored := bytes.Replace(served, []byte(head), nil, 1)
 				restored = bytes.Replace(restored, []byte(composed), []byte(themePlaceholder), 1)
 				if !bytes.Equal(restored, original) {
-					t.Errorf("%s served for %q, with the tier links removed and %q swapped back for the placeholder, is not byte-equal to the embedded original", doc.name, palette, composed)
+					t.Errorf("%s served for %q, with the head block removed and %q swapped back for the placeholder, is not byte-equal to the embedded original", doc.name, palette, composed)
 				}
 
 				gotScripts := extractScriptBodies(served)
@@ -387,7 +432,7 @@ func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) 
 	t.Helper()
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
-	routes, err := newWebRoutes(environ, prefix, privateFiles{})
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newWebRoutes(%v): %v", environ, err)
 	}
@@ -428,14 +473,14 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fs.ReadFile(%q): %v", loginLinkDocumentName, err)
 	}
-	selectors, err := extractThemeSelectors(buildFS,
+	themes, err := extractThemes(buildFS,
 		namedDocument{path: loginDocumentName, raw: loginRaw},
 		namedDocument{path: loginLinkDocumentName, raw: linkRaw},
 	)
 	if err != nil {
-		t.Fatalf("extractThemeSelectors: %v", err)
+		t.Fatalf("extractThemes: %v", err)
 	}
-	gotPalettes := stampablePalettes(selectors, acceptedThemeMatch)
+	gotPalettes := stampablePalettes(themes.selectors, acceptedThemeMatch)
 	wantPalettes := []string{"label", "label-night", "system"}
 	if !slices.Equal(gotPalettes, wantPalettes) {
 		t.Fatalf("stampablePalettes(real bundle) = %v, want %v", gotPalettes, wantPalettes)
@@ -588,7 +633,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 	}
 
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	routes, err := newWebRoutes(environ, prefix, privateFiles{})
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
@@ -660,6 +705,9 @@ func TestNewServeShell_RegistersWebRoutes(t *testing.T) {
 		{path: "/dubplate/fonts/WorkSans-Variable.woff2", want: http.StatusOK},
 		{path: "/dubplate/fonts/IBMPlexMono-Regular.woff2", want: http.StatusOK},
 		{path: "/dubplate/fonts/FONTS.md", want: http.StatusNotFound},
+		{path: "/dubplate/favicon.svg", want: http.StatusOK},
+		{path: "/dubplate/favicon.png", want: http.StatusOK},
+		{path: "/dubplate/mark/mark-large.svg", want: http.StatusOK},
 		// The operator key defaults to "none", so nothing is mounted.
 		{path: "/dubplate/operator.css", want: http.StatusNotFound},
 	}
@@ -670,6 +718,14 @@ func TestNewServeShell_RegistersWebRoutes(t *testing.T) {
 		if rec.Code != tt.want {
 			t.Errorf("GET %s: status %d, want %d", tt.path, rec.Code, tt.want)
 		}
+	}
+
+	// The shell passes the configuration's own site name, baseEnviron's
+	// DUBPLATE_SITE_NAME, into the documents.
+	rec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dubplate/login", nil))
+	if want := `<meta name="dubplate-site-name" content="Test Family">`; strings.Count(rec.Body.String(), want) != 1 {
+		t.Errorf("GET /dubplate/login: body carries %q %d times, want 1", want, strings.Count(rec.Body.String(), want))
 	}
 }
 
@@ -709,7 +765,7 @@ func symlinkFixture(t *testing.T, target, link string) string {
 func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Handler {
 	t.Helper()
 	prefix := webTestPrefix(t)
-	routes, err := newWebRoutesFromFS(environ, prefix, privateFiles{}, buildFS)
+	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS(%v): %v", environ, err)
 	}
@@ -762,7 +818,7 @@ func TestNewWebRoutesFromFS_BrandingRefusals(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := []string{"DUBPLATE_BRANDING=--color-base-100: #ffffff; " + tt.bad}
-			_, err := newWebRoutesFromFS(environ, prefix, privateFiles{}, newFixtureBuildFS(1, 1))
+			_, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), newFixtureBuildFS(1, 1))
 			if err == nil {
 				t.Fatal("newWebRoutesFromFS: got nil error, want the branding refusal")
 			}
@@ -935,7 +991,7 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var private privateFiles
 			path := tt.path(t, &private)
-			_, err := newWebRoutesFromFS([]string{"DUBPLATE_OPERATOR_CSS_FILE=" + path}, prefix, private, newFixtureBuildFS(1, 1))
+			_, err := newWebRoutesFromFS([]string{"DUBPLATE_OPERATOR_CSS_FILE=" + path}, prefix, fixtureSiteName, private, discardTestLogger(), newFixtureBuildFS(1, 1))
 			if err == nil {
 				t.Fatalf("newWebRoutesFromFS: got nil error, want one containing %q", tt.wantErrHas)
 			}
@@ -1205,7 +1261,7 @@ func TestNewWebRoutesFromFS_NoFontFilesRefusesStartup(t *testing.T) {
 	delete(buildFS, "fonts/fixture.woff2")
 	buildFS["fonts/FONTS.md"] = &fstest.MapFile{Data: []byte("# manifest")}
 
-	_, err := newWebRoutesFromFS(nil, webTestPrefix(t), privateFiles{}, buildFS)
+	_, err := newWebRoutesFromFS(nil, webTestPrefix(t), fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 	if err == nil {
 		t.Fatal("newWebRoutesFromFS: got nil error, want the no-.woff2-file refusal")
 	}
@@ -1244,7 +1300,7 @@ func TestNewWebRoutes_TierLinkOrder(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		routes, err := newWebRoutes(tt.environ, prefix, privateFiles{})
+		routes, err := newWebRoutes(tt.environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
 		if err != nil {
 			t.Fatalf("%s: newWebRoutes: %v", tt.name, err)
 		}
@@ -1278,7 +1334,7 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 
 	noLink := newFixtureBuildFS(1, 1)
 	noLink["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/entry/start.js" rel="modulepreload"></head></html>`)}
-	if _, err := newWebRoutesFromFS(nil, prefix, privateFiles{}, noLink); err == nil || !strings.Contains(err.Error(), `document "login.html": no stylesheet link`) {
+	if _, err := newWebRoutesFromFS(nil, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), noLink); err == nil || !strings.Contains(err.Error(), `document "login.html": no stylesheet link`) {
 		t.Errorf("no stylesheet link: error = %v, want one naming login.html", err)
 	}
 
@@ -1322,7 +1378,7 @@ func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 				t.Fatalf("fixture: the build's own document fails DocumentCSP: %v", err)
 			}
 
-			_, err := newWebRoutesFromFS(nil, prefix, privateFiles{}, buildFS)
+			_, err := newWebRoutesFromFS(nil, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 			if err == nil {
 				t.Fatal("newWebRoutesFromFS: got nil error, want the variant's CSP refusal")
 			}
@@ -1374,5 +1430,359 @@ func TestRoutes_EveryPageHasAUniqueTitle(t *testing.T) {
 	}
 	if len(titles) < 4 {
 		t.Errorf("found %d titled routes, want the three pages and the error page", len(titles))
+	}
+}
+
+// realBuildMapFS copies the real embedded build tree into a fresh
+// fstest.MapFS, so a test can edit one file of the real bundle and
+// build the routes over the result.
+func realBuildMapFS(t *testing.T) fstest.MapFS {
+	t.Helper()
+	buildFS, err := fs.Sub(web.Assets, "build")
+	if err != nil {
+		t.Fatalf("fs.Sub: %v", err)
+	}
+	out := fstest.MapFS{}
+	err = fs.WalkDir(buildFS, ".", func(name string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		data, err := fs.ReadFile(buildFS, name)
+		if err != nil {
+			return err
+		}
+		out[name] = &fstest.MapFile{Data: data}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("copy the embedded build: %v", err)
+	}
+	return out
+}
+
+// editBundleCSS rewrites the one stylesheet the real bundle's login
+// document links with edit, failing t unless the edit changed it.
+func editBundleCSS(t *testing.T, buildFS fstest.MapFS, edit func(string) string) {
+	t.Helper()
+	hrefs := serve.StylesheetHrefs(buildFS[loginDocumentName].Data)
+	if len(hrefs) != 1 {
+		t.Fatalf("the built login document links %d stylesheets, want 1: %v", len(hrefs), hrefs)
+	}
+	name := resolveStylesheetPath(loginDocumentName, hrefs[0])
+	file, ok := buildFS[name]
+	if !ok {
+		t.Fatalf("the built bundle holds no %q", name)
+	}
+	edited := edit(string(file.Data))
+	if edited == string(file.Data) {
+		t.Fatalf("the edit left %q unchanged; the row proves nothing", name)
+	}
+	buildFS[name] = &fstest.MapFile{Data: []byte(edited)}
+}
+
+// themeColorMetaRE finds every theme-color meta in a served document.
+var themeColorMetaRE = regexp.MustCompile(`<meta name="theme-color"[^>]*>`)
+
+// servedVariant answers GET path through handler with the theme cookie
+// set to palette and returns the body, failing t on any status but 200.
+func servedVariant(t *testing.T, handler http.Handler, path, palette string) string {
+	t.Helper()
+	r := httptest.NewRequest(http.MethodGet, path, nil)
+	r.Header.Set("Cookie", serve.ThemeCookieName+"="+palette)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, r)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET %s as %q: status = %d, want 200", path, palette, rec.Code)
+	}
+	return rec.Body.String()
+}
+
+// TestNewWebRoutes_ThemeColorStates is the theme-color state table
+// over the real built bundle. The expected neutrals are the visual
+// identity spec's: #1f1b16 for light and #110f0d for dark, as a media
+// pair under the system stamp and one value under a pinned palette.
+// Each bundle-defect row edits the real stylesheet; each branding row
+// sets DUBPLATE_BRANDING. A refusal must name the theme and never the
+// value.
+func TestNewWebRoutes_ThemeColorStates(t *testing.T) {
+	light := `<meta name="theme-color" content="#1f1b16">`
+	dark := `<meta name="theme-color" content="#110f0d">`
+	pair := []string{
+		`<meta name="theme-color" media="(prefers-color-scheme: light)" content="#1f1b16">`,
+		`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#110f0d">`,
+	}
+	every := func(metas ...string) map[string][]string {
+		return map[string][]string{"label": metas, "label-night": metas, "system": metas}
+	}
+
+	tests := []struct {
+		name        string
+		editCSS     func(string) string
+		branding    string
+		want        map[string][]string
+		wantErrHas  string
+		wantErrNot  string
+		wantLogLine string
+	}{
+		{
+			name: "bundle neutral present",
+			want: map[string][]string{"label": {light}, "label-night": {dark}, "system": pair},
+		},
+		{
+			name: "bundle neutral absent for a stampable palette",
+			editCSS: func(css string) string {
+				return strings.ReplaceAll(css, "--color-neutral:#110f0d", "--color-unrelated:#110f0d")
+			},
+			wantErrHas: `theme "dubplate-label-night": the built bundle declares no --color-neutral`,
+		},
+		{
+			name: "bundle neutral outside the hex grammar",
+			editCSS: func(css string) string {
+				return strings.ReplaceAll(css, "--color-neutral:#1f1b16", "--color-neutral:oklch(20% 0 0)")
+			},
+			wantErrHas: `theme "dubplate-label": its --color-neutral is not a #rgb or #rrggbb color`,
+			wantErrNot: "oklch",
+		},
+		{
+			name: "bundle declares two neutrals under one scheme",
+			editCSS: func(css string) string {
+				return css + `[data-theme=dubplate-label]{color-scheme:light;--color-neutral:#123456}`
+			},
+			wantErrHas: `theme "dubplate-label": it declares two --color-neutral values under one color scheme`,
+		},
+		{
+			name: "bundle neutral under no scheme beside a light one",
+			editCSS: func(css string) string {
+				return css + `[data-theme=dubplate-label]{--color-neutral:#123456}`
+			},
+			wantErrHas: `theme "dubplate-label": its --color-neutral values differ under color schemes other than light and dark`,
+		},
+		{
+			name:     "branding neutral, six-digit hex",
+			branding: "--color-neutral: #1f1b16",
+			want:     every(`<meta name="theme-color" content="#1f1b16">`),
+		},
+		{
+			name:     "branding neutral, eight-digit hex",
+			branding: "--color-neutral: #1f1b16ff",
+			want:     every(`<meta name="theme-color" content="#1f1b16ff">`),
+		},
+		{
+			name:        "branding neutral, a color function",
+			branding:    "--color-neutral: oklch(20% 0 0)",
+			want:        every(),
+			wantLogLine: "DUBPLATE_BRANDING sets --color-neutral to a color function, so no document carries a theme-color meta",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buildFS := realBuildMapFS(t)
+			if tt.editCSS != nil {
+				editBundleCSS(t, buildFS, tt.editCSS)
+			}
+			var environ []string
+			if tt.branding != "" {
+				environ = []string{"DUBPLATE_BRANDING=" + tt.branding}
+			}
+			var logs bytes.Buffer
+			logger := slog.New(slog.NewTextHandler(&logs, nil))
+			routes, err := newWebRoutesFromFS(environ, webTestPrefix(t), fixtureSiteName, privateFiles{}, logger, buildFS)
+			if tt.wantErrHas != "" {
+				if err == nil {
+					t.Fatalf("newWebRoutesFromFS: got nil error, want one containing %q", tt.wantErrHas)
+				}
+				if !strings.Contains(err.Error(), tt.wantErrHas) {
+					t.Fatalf("newWebRoutesFromFS error = %q, want it to contain %q", err, tt.wantErrHas)
+				}
+				if tt.wantErrNot != "" && strings.Contains(err.Error(), tt.wantErrNot) {
+					t.Fatalf("newWebRoutesFromFS error = %q carries the value %q", err, tt.wantErrNot)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("newWebRoutesFromFS: %v", err)
+			}
+
+			for _, doc := range []struct {
+				path    string
+				handler http.Handler
+			}{
+				{"/dubplate/login", routes.login},
+				{"/dubplate/login/link", routes.login},
+				{"/dubplate/members", routes.members},
+			} {
+				for palette, want := range tt.want {
+					body := servedVariant(t, doc.handler, doc.path, palette)
+					if got := themeColorMetaRE.FindAllString(body, -1); !slices.Equal(got, want) {
+						t.Errorf("%s as %q: theme-color metas = %q, want %q", doc.path, palette, got, want)
+					}
+				}
+			}
+
+			lines := strings.Count(logs.String(), "theme-color")
+			switch {
+			case tt.wantLogLine == "" && lines != 0:
+				t.Errorf("startup logged a theme-color record, want none:\n%s", logs.String())
+			case tt.wantLogLine != "" && (lines != 1 || !strings.Contains(logs.String(), tt.wantLogLine)):
+				t.Errorf("startup log = %q, want exactly one record containing %q", logs.String(), tt.wantLogLine)
+			}
+		})
+	}
+}
+
+// siteNameMetaRE captures the dubplate-site-name meta's content as
+// served, escaped.
+var siteNameMetaRE = regexp.MustCompile(`<meta name="dubplate-site-name" content="([^"]*)"`)
+
+// TestNewWebRoutes_SiteNameMeta proves the site name enters every
+// variant of every document as exactly one meta whose content, read
+// back through html.UnescapeString, is the configured name: go doc
+// html.UnescapeString states "UnescapeString(EscapeString(s)) == s
+// always holds". The markup row carries a quote, an angle bracket, and
+// an ampersand; unescaped, its quote would end the attribute early and
+// the read-back would stop short of the name.
+func TestNewWebRoutes_SiteNameMeta(t *testing.T) {
+	tests := []struct {
+		name     string
+		siteName string
+		wantRaw  string
+	}{
+		{name: "plain text", siteName: "Fixture Group", wantRaw: "Fixture Group"},
+		{name: "markup characters", siteName: `The "Shed" <Crew> & Co`, wantRaw: "The &#34;Shed&#34; &lt;Crew&gt; &amp; Co"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			routes, err := newWebRoutesFromFS(nil, webTestPrefix(t), tt.siteName, privateFiles{}, discardTestLogger(), realBuildMapFS(t))
+			if err != nil {
+				t.Fatalf("newWebRoutesFromFS: %v", err)
+			}
+			for _, doc := range []struct {
+				path    string
+				handler http.Handler
+			}{
+				{"/dubplate/login", routes.login},
+				{"/dubplate/login/link", routes.login},
+				{"/dubplate/members", routes.members},
+			} {
+				for _, palette := range []string{"label", "label-night", "system"} {
+					body := servedVariant(t, doc.handler, doc.path, palette)
+					if n := strings.Count(body, `<meta name="dubplate-site-name"`); n != 1 {
+						t.Fatalf("%s as %q carries %d site-name metas, want 1", doc.path, palette, n)
+					}
+					m := siteNameMetaRE.FindStringSubmatch(body)
+					if m == nil {
+						t.Fatalf("%s as %q: no well-formed site-name meta in %q", doc.path, palette, body)
+					}
+					if m[1] != tt.wantRaw {
+						t.Errorf("%s as %q: content attribute = %q, want %q", doc.path, palette, m[1], tt.wantRaw)
+					}
+					if got := html.UnescapeString(m[1]); got != tt.siteName {
+						t.Errorf("%s as %q: content read back = %q, want %q", doc.path, palette, got, tt.siteName)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestNewWebRoutes_RobotsMeta proves the two sign-in documents carry
+// the robots meta exactly once in every variant (W7.15: "Both auth
+// pages carry noindex, nofollow") and the members document carries
+// none.
+func TestNewWebRoutes_RobotsMeta(t *testing.T) {
+	routes, err := newWebRoutesFromFS(nil, webTestPrefix(t), fixtureSiteName, privateFiles{}, discardTestLogger(), realBuildMapFS(t))
+	if err != nil {
+		t.Fatalf("newWebRoutesFromFS: %v", err)
+	}
+	tests := []struct {
+		path    string
+		handler http.Handler
+		want    int
+	}{
+		{"/dubplate/login", routes.login, 1},
+		{"/dubplate/login/link", routes.login, 1},
+		{"/dubplate/members", routes.members, 0},
+	}
+	for _, tt := range tests {
+		for _, palette := range []string{"label", "label-night", "system"} {
+			body := servedVariant(t, tt.handler, tt.path, palette)
+			if n := strings.Count(body, `<meta name="robots" content="noindex, nofollow">`); n != tt.want {
+				t.Errorf("%s as %q carries the robots meta %d times, want %d", tt.path, palette, n, tt.want)
+			}
+			if tt.want == 0 && strings.Contains(body, `name="robots"`) {
+				t.Errorf("%s as %q carries a robots meta, want none", tt.path, palette)
+			}
+		}
+	}
+}
+
+// TestIconsRoute proves the mark's five files answer at their exact
+// paths over the real bundle, each with the bytes of the checked-in
+// file under web/static/, its own Content-Type, Cache-Control:
+// no-cache, and a strong ETag that answers a matching If-None-Match
+// with 304, and that every other shape under the three subtrees
+// answers 404.
+func TestIconsRoute(t *testing.T) {
+	handler := newWebShellHandler(t, nil, realBuildMapFS(t))
+
+	files := []struct {
+		path        string
+		static      string
+		contentType string
+	}{
+		{"/dubplate/favicon.svg", "favicon.svg", "image/svg+xml"},
+		{"/dubplate/favicon.png", "favicon.png", "image/png"},
+		{"/dubplate/mark/mark-large.svg", "mark/mark-large.svg", "image/svg+xml"},
+		{"/dubplate/mark/mark-medium.svg", "mark/mark-medium.svg", "image/svg+xml"},
+		{"/dubplate/mark/mark-small.svg", "mark/mark-small.svg", "image/svg+xml"},
+	}
+	for _, f := range files {
+		t.Run(f.path, func(t *testing.T) {
+			want, err := os.ReadFile(filepath.Join("..", "..", "web", "static", f.static))
+			if err != nil {
+				t.Fatalf("read the checked-in file: %v", err)
+			}
+			rec := serveRequest(handler, http.MethodGet, f.path)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("GET %s: status = %d, want 200", f.path, rec.Code)
+			}
+			if !bytes.Equal(rec.Body.Bytes(), want) {
+				t.Errorf("GET %s: body differs from web/static/%s", f.path, f.static)
+			}
+			if got := rec.Header().Get("Content-Type"); got != f.contentType {
+				t.Errorf("Content-Type = %q, want %q", got, f.contentType)
+			}
+			if got := rec.Header().Get("Cache-Control"); got != "no-cache" {
+				t.Errorf("Cache-Control = %q, want %q", got, "no-cache")
+			}
+			wantETag := fontsFaceETag(want)
+			if got := rec.Header().Get("ETag"); got != wantETag {
+				t.Errorf("ETag = %q, want %q", got, wantETag)
+			}
+			r := httptest.NewRequest(http.MethodGet, f.path, nil)
+			r.Header.Set("If-None-Match", wantETag)
+			revalidate := httptest.NewRecorder()
+			handler.ServeHTTP(revalidate, r)
+			if revalidate.Code != http.StatusNotModified {
+				t.Errorf("GET %s with a matching If-None-Match: status = %d, want 304", f.path, revalidate.Code)
+			}
+		})
+	}
+
+	for _, path := range []string{
+		"/dubplate/mark",
+		"/dubplate/mark/",
+		"/dubplate/mark/mark-tiny.svg",
+		"/dubplate/mark/mark-small.svg/",
+		"/dubplate/favicon.svg/",
+		"/dubplate/favicon.png/x",
+		"/favicon.ico",
+	} {
+		if rec := serveRequest(handler, http.MethodGet, path); rec.Code != http.StatusNotFound {
+			t.Errorf("GET %s: status = %d, want 404", path, rec.Code)
+		}
+	}
+	if rec := serveRequest(handler, http.MethodPost, "/dubplate/favicon.svg"); rec.Code != http.StatusMethodNotAllowed {
+		t.Errorf("POST /dubplate/favicon.svg: status = %d, want 405", rec.Code)
 	}
 }

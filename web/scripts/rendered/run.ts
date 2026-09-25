@@ -173,12 +173,7 @@ async function open(
   const visit: Visit = { url, page, consoleErrors: [], violations: [], expectedBlock: null };
   page.on('console', (msg) => {
     if (msg.type() !== 'error') return;
-    const source = msg.location().url;
-    // A document that declares no icon makes Chromium probe the
-    // origin's /favicon.ico, outside the owned prefix, where the shell
-    // answers 404. That probe is the browser's, not the page's.
-    if (source === new URL('/favicon.ico', url).href) return;
-    visit.consoleErrors.push(`${msg.text()} (${source})`);
+    visit.consoleErrors.push(`${msg.text()} (${msg.location().url})`);
   });
   page.on('pageerror', (err) => visit.consoleErrors.push(err.message));
   visits.push(visit);
@@ -230,6 +225,25 @@ async function requestLog(url: string): Promise<LoggedRequest[]> {
   const response = await fetch(url);
   if (!response.ok) throw new Refusal(`the request log answered ${response.status}`);
   return (await response.json()) as LoggedRequest[];
+}
+
+/**
+ * The records logged from index `from` on, polled until one satisfies
+ * `until` or `timeoutMs` passes. A browser fetches an icon on its own
+ * schedule after the page loads, so no page event marks the moment.
+ */
+async function logSince(
+  url: string,
+  from: number,
+  until: (r: LoggedRequest) => boolean,
+  timeoutMs: number
+): Promise<LoggedRequest[]> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const records = (await requestLog(url)).slice(from);
+    if (records.some(until) || Date.now() >= deadline) return records;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 }
 
 /** A served document's own stylesheet links (R-5ciii6): matches the Go
@@ -692,6 +706,233 @@ function refuseUnclean(): void {
   }
 }
 
+/** How long a row waits for the browser's own icon fetch. */
+const ICON_TIMEOUT_MS = 5_000;
+
+/**
+ * The owned prefix's paths, from the base URL the test hands in: every
+ * request must stay under `prefix`, and the icon links the server
+ * inserts name `icons`.
+ */
+function prefixPaths(base: string): { prefix: string; icons: string[] } {
+  return {
+    prefix: new URL(base).pathname,
+    icons: ['favicon.svg', 'favicon.png'].map((name) => new URL(name, base).pathname)
+  };
+}
+
+function describe(records: LoggedRequest[]): string {
+  return JSON.stringify(records.map((r) => `${r.method} ${r.path}`));
+}
+
+interface ThemeColorMeta {
+  media: string | null;
+  content: string;
+}
+
+async function themeColorMetas(page: Page): Promise<ThemeColorMeta[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')].map((m) => ({
+      media: m.getAttribute('media'),
+      content: m.content
+    }))
+  );
+}
+
+/**
+ * The theme-color metas. The expected colors are the visual
+ * identity spec's neutrals, quoted from
+ * docs/superpowers/specs/2026-09-24-visual-identity-design.md (:128-131):
+ * "`#1f1b16` for light and `#110f0d` for dark, as a `media` pair when
+ * following the system, and as one value matching the stamped palette
+ * when the cookie overrides it."
+ */
+const THEME_COLOR = { light: '#1f1b16', dark: '#110f0d' } as const;
+
+/**
+ * The `system` stamp's pair switches with the emulated preference: one
+ * page, read under light and then dark, the active meta being the one
+ * whose media query matches. A pinned palette carries one meta with no
+ * media query.
+ */
+async function themeColorRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const context = await browser.newContext({ colorScheme: 'light' });
+  try {
+    const { visit, body } = await open(context, new URL('login', endpoints.base).href, 'load');
+    const stamp = stampOf(body);
+    const metas = await themeColorMetas(visit.page);
+    const fixture = stamp === 'dubplate-system' && metas.length === 2 && metas.every((m) => m.media !== null);
+    for (const scheme of ['light', 'dark'] as const) {
+      const id = `head/theme-color/system/${scheme}`;
+      if (!fixture) {
+        report({ id, fixture, property: false, detail: `served stamp ${stamp}; metas ${JSON.stringify(metas)}` });
+        continue;
+      }
+      await visit.page.emulateMedia({ colorScheme: scheme });
+      const active = await visit.page.evaluate(() =>
+        [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')]
+          .filter((m) => !m.media || matchMedia(m.media).matches)
+          .map((m) => m.content)
+      );
+      report({
+        id,
+        fixture,
+        property: active.length === 1 && active[0] === THEME_COLOR[scheme],
+        detail: `active theme-color ${JSON.stringify(active)} (want ["${THEME_COLOR[scheme]}"]); metas ${JSON.stringify(metas)}`
+      });
+    }
+  } finally {
+    await context.close();
+  }
+
+  const host = new URL(endpoints.base).hostname;
+  for (const cookie of ['label', 'label-night'] as const) {
+    const id = `head/theme-color/cookie-${cookie}`;
+    const want = cookie === 'label' ? THEME_COLOR.light : THEME_COLOR.dark;
+    const pinned = await browser.newContext();
+    try {
+      await pinned.addCookies([{ name: THEME_COOKIE, value: cookie, domain: host, path: '/', secure: true }]);
+      const { visit, body } = await open(pinned, new URL('login', endpoints.base).href, 'load');
+      const stamp = stampOf(body);
+      const fixture = stamp === `dubplate-${cookie}`;
+      const metas = await themeColorMetas(visit.page);
+      report({
+        id,
+        fixture,
+        property: fixture && metas.length === 1 && metas[0].media === null && metas[0].content === want,
+        detail: `served stamp ${stamp}; metas ${JSON.stringify(metas)} (want one, no media, ${want})`
+      });
+    } finally {
+      await pinned.close();
+    }
+  }
+}
+
+/**
+ * Every served page makes the browser fetch its icon from inside the
+ * owned prefix, and nothing it loads leaves the prefix. The fixture
+ * state is the page's own document request in the same stretch of the
+ * log, so the row judges the requests that page caused.
+ */
+async function iconRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const paths = prefixPaths(endpoints.base);
+  for (const served of PAGES) {
+    const id = `head/icon/${served.name}`;
+    const from = (await requestLog(endpoints.requestLog)).length;
+    const context = await browser.newContext();
+    try {
+      await openBooted(context, endpoints.base, served);
+      const records = await logSince(endpoints.requestLog, from, (r) => paths.icons.includes(r.path), ICON_TIMEOUT_MS);
+      const documentPath = new URL(served.path, endpoints.base).pathname;
+      const fixture = records.some((r) => r.path === documentPath);
+      const icons = records.filter((r) => paths.icons.includes(r.path));
+      const outside = records.filter((r) => !r.path.startsWith(paths.prefix));
+      report({
+        id,
+        fixture,
+        property: icons.length > 0 && outside.length === 0,
+        detail: `icon requests ${describe(icons)}; outside ${paths.prefix}: ${describe(outside)}; all ${describe(records)}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/** The members stub's declared identity, the client navigation's target. */
+const MEMBERS_HEADING = 'Members';
+
+/** How long the navigation row watches for a request outside the prefix. */
+const NAVIGATION_WATCH_MS = 3_000;
+
+/** An icon link as the server writes it into a served document. */
+const ICON_LINK_RE = /<link rel="icon" href="([^"]*)"/g;
+
+/**
+ * After a same-document navigation Chromium re-resolves a depth-relative
+ * icon link against the new URL and fetches it from there, outside the
+ * prefix (probed 2026-09-25 with a bare `history.pushState`). SvelteKit's
+ * router rewrites every icon link to its absolute URL when it starts
+ * (`@sveltejs/kit` 2.70.3, `src/runtime/client/client.js`, "fix
+ * link[rel=icon]"), so in a hydrated page the fetch after a navigation
+ * cannot show the defect; the served bytes are read as well, and every
+ * icon href there must already start with the prefix. The row loads the
+ * `login/link` stub, injects a link to `../members`, and clicks it. The
+ * fixture state proves the navigation stayed client-side: no document
+ * request for `members` reached the server, and the address ends in
+ * `/members`.
+ */
+async function clientNavigationRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'head/icon/client-navigation';
+  const paths = prefixPaths(endpoints.base);
+  const context = await browser.newContext();
+  try {
+    const servedHrefs = [
+      ...(await (await context.request.get(new URL(PAGES[1].path, endpoints.base).href)).text()).matchAll(
+        ICON_LINK_RE
+      )
+    ].map((m) => m[1]);
+    const before = (await requestLog(endpoints.requestLog)).length;
+    const visit = await openBooted(context, endpoints.base, PAGES[1]);
+    await logSince(endpoints.requestLog, before, (r) => paths.icons.includes(r.path), ICON_TIMEOUT_MS);
+
+    const from = (await requestLog(endpoints.requestLog)).length;
+    await visit.page.evaluate(() => {
+      const a = document.createElement('a');
+      a.href = '../members';
+      a.id = 'rendered-client-navigation';
+      a.textContent = 'members';
+      document.querySelector('main')?.append(a);
+    });
+    await visit.page.click('#rendered-client-navigation');
+    const heading = visit.page.getByRole('heading', { level: 1, name: MEMBERS_HEADING, exact: true });
+    const arrived = await heading
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const records = await logSince(
+      endpoints.requestLog,
+      from,
+      (r) => !r.path.startsWith(paths.prefix),
+      NAVIGATION_WATCH_MS
+    );
+    const pathname = await visit.page.evaluate(() => location.pathname);
+    const membersPath = new URL('members', endpoints.base).pathname;
+    const documentRequested = records.some((r) => r.path === membersPath);
+    const fixture = arrived && !documentRequested && pathname.endsWith('/members');
+    const outside = records.filter((r) => !r.path.startsWith(paths.prefix));
+    const hrefsInPrefix = servedHrefs.length > 0 && servedHrefs.every((h) => h.startsWith(paths.prefix));
+    report({
+      id,
+      fixture,
+      property: fixture && hrefsInPrefix && outside.length === 0,
+      detail: `served icon hrefs ${JSON.stringify(servedHrefs)}; members heading shown ${arrived}; location.pathname ${pathname}; document request for ${membersPath} ${documentRequested}; outside ${paths.prefix} after the click: ${describe(outside)}; all ${describe(records)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * Chromium probes the origin's `/favicon.ico` only when a document
+ * declares no icon, so a probe anywhere in the run means some page lost
+ * its icon links. The fixture state is at least one icon fetch in the
+ * log, which proves this browser fetches icons at all.
+ */
+async function noFaviconProbeRow(endpoints: Endpoints): Promise<void> {
+  const id = 'head/no-favicon-ico';
+  const paths = prefixPaths(endpoints.base);
+  const records = await requestLog(endpoints.requestLog);
+  const icons = records.filter((r) => paths.icons.includes(r.path));
+  const probes = records.filter((r) => r.path === '/favicon.ico');
+  report({
+    id,
+    fixture: icons.length > 0,
+    property: probes.length === 0,
+    detail: `${icons.length} icon request(s) in the run; /favicon.ico requests ${describe(probes)}`
+  });
+}
+
 async function main(): Promise<void> {
   const endpoints: Endpoints = {
     base: requiredEnv('DUBPLATE_RENDERED_BASE_URL'),
@@ -708,6 +949,10 @@ async function main(): Promise<void> {
     await g10Rows(browser, endpoints);
     await cspCleanRows(browser, endpoints);
     await violationListenerRow(browser, endpoints);
+    await themeColorRows(browser, endpoints);
+    await iconRows(browser, endpoints);
+    await clientNavigationRow(browser, endpoints);
+    await noFaviconProbeRow(endpoints);
     refuseUnclean();
   } finally {
     await browser.close();

@@ -35,7 +35,7 @@ tidy-check:
 # then runs svelte-check and the static web gates (no server-only file,
 # no hardcoded color, no external origin, font delivery, theme
 # variable completeness, theme contrast, and the built bundle's
-# stamped theme values). It builds the bundle twice and fails unless
+# stamped theme values, and no root-absolute URL). It builds the bundle twice and fails unless
 # the two build trees match file for file, so the build is
 # reproducible. `check` runs it first because the Go tests that read
 # the embedded bundle need it current before `go test` runs; the
@@ -95,12 +95,13 @@ web:
 	(cd web && node scripts/gates/g4.ts); \
 	(cd web && node scripts/gates/g2.ts); \
 	(cd web && node scripts/gates/g9.ts); \
-	(cd web && node scripts/gates/theme-bundle.ts)
+	(cd web && node scripts/gates/theme-bundle.ts); \
+	(cd web && node scripts/gates/root-absolute.ts)
 
 # RENDERED_TIMEOUT bounds the rendered test binary. It is explicit
 # because go test's ten-minute default would bind long before a stuck
 # browser is noticed, and it stays at least twice the leg's measured
-# wall time (about 7s for the test, 11s with its compile).
+# wall time (about 17s for the test, 20s with its compile).
 RENDERED_TIMEOUT := 3m
 
 # web-rendered is the rendered leg: cmd/dubplate-server's
