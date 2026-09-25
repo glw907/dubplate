@@ -263,7 +263,34 @@
     background: color-mix(in oklab, var(--color-neutral-content) 45%, transparent);
     width: 2px;
   }
+  @media (max-width: 480px) {
+    #counts { gap: 0.5rem; padding: 0.4rem 0.75rem 0.55rem; flex-wrap: nowrap; overflow-x: auto; }
+    .count-chip { flex: none; }
+    .count-track { width: 2.75rem; }
+  }
 
+  .filters-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 2px solid var(--color-base-300);
+    background: var(--color-base-200);
+    color: var(--color-base-content);
+    padding: 0.6rem 1rem;
+    min-height: 44px;
+  }
+  .filters-toggle::after {
+    content: "\25BE";
+    margin-left: auto;
+    transition: transform 0.15s ease;
+  }
+  .filters-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
   #filters {
     display: flex;
     gap: 0.5rem;
@@ -293,10 +320,14 @@
     border-color: var(--color-primary);
     color: var(--color-primary-content);
   }
+  @media (max-width: 480px) {
+    .filters-toggle { display: flex; }
+    #filters.collapsed { display: none; }
+  }
 
   main#grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 0.75rem;
     padding: 1rem;
     padding-inline: max(1rem, 16px);
@@ -511,7 +542,16 @@
     <div id="counts" aria-label="Family shares this round"></div>
   </header>
 
-  <div id="filters" role="group" aria-label="Filter candidates"></div>
+  <button
+    id="filters-toggle"
+    class="filters-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="filters"
+  >
+    Filters
+  </button>
+  <div id="filters" class="collapsed" role="group" aria-label="Filter candidates"></div>
 
   <div id="closed-banner" hidden>
     This round is closed. Choices are shown but can no longer change.
@@ -565,6 +605,7 @@
     candidates: [], // full list of the current round, score order
     choices: {}, // source_id -> { choice, decided_at }
     filters: { family: null, subject: null, region: null },
+    filtersOpen: false, // narrow widths only; the toggle below #topbar controls it
     focusIndex: 0,
     store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice) }
   };
@@ -761,6 +802,18 @@
     group("family", "Family", Object.keys(vocabFamilies()), familyLabel);
     group("subject", "Subject", Object.keys(vocabSubjects()), subjectLabel);
     group("region", "Region", Object.keys(vocabRegions()), regionLabel);
+    el.classList.toggle("collapsed", !state.filtersOpen);
+  }
+
+  // Narrow-width-only toggle above #filters; always shown, but display:none
+  // above the 480px breakpoint (CSS), where the filter rows stay open.
+  function renderFiltersToggle() {
+    var btn = document.getElementById("filters-toggle");
+    var activeCount = ["family", "subject", "region"].filter(function (key) {
+      return !!state.filters[key];
+    }).length;
+    btn.textContent = activeCount ? "Filters (" + activeCount + ")" : "Filters";
+    btn.setAttribute("aria-expanded", state.filtersOpen ? "true" : "false");
   }
 
   function cardFor(candidate, index) {
@@ -879,6 +932,7 @@
     if (!state.round) return;
     renderCounts();
     renderFilters();
+    renderFiltersToggle();
     var badge = document.getElementById("round-badge");
     badge.textContent = roundLabel(state.round.id);
     badge.classList.toggle("test", state.round.id === "test" || state.round.id === "fixture");
@@ -970,6 +1024,11 @@
   function closePreview() {
     document.getElementById("preview-overlay").hidden = true;
   }
+
+  document.getElementById("filters-toggle").addEventListener("click", function () {
+    state.filtersOpen = !state.filtersOpen;
+    render();
+  });
 
   document.getElementById("preview-close").addEventListener("click", closePreview);
   document.getElementById("preview-overlay").addEventListener("click", function (e) {
