@@ -36,7 +36,7 @@ Beets 2.14.1 is adopted and closed (`367564c`, `422efcd`, simplifier clean). 5c-
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-ii since 2026-09-24; Segment A green, Segment B in flight |
-| 2 | worktree `.claude/worktrees/lane-2-6a`, branch `lane-2-6a` | CLOSED; 6a merged at `8736528`; worktree to be removed, then opens on 6b-i |
+| 2 | none (worktree `lane-2-6a` and its branch removed after the merge) | CLOSED; 6a merged at `8736528`; opens on 6b-i after its rulings |
 
 ## Open items (carried)
 
