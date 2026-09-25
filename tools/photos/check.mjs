@@ -104,35 +104,25 @@ function normalizeName(name) {
   return name.trim().toLowerCase().replace(/^the\s+/, '').trim();
 }
 
-// The identity keys a picked/candidate artist carries: an MBID-based key
-// when one exists, and always a name-based key. Matching on either lets a
+// The identity keys a picked/candidate artist or landmark carries: an
+// ID-based key when one exists (mbid for an artist, wikidata_id for a
+// landmark), and always a name-based key. Matching on either lets a
 // candidate that only has a name still collide with a picked record that
-// carries the same artist's MusicBrainz ID, and vice versa.
-function artistIdentities(artist) {
+// carries the same subject's external ID, and vice versa.
+function subjectIdentities(subject, idField, idPrefix) {
   const ids = [];
-  if (artist.mbid) ids.push(`mbid:${artist.mbid}`);
-  ids.push(`name:${normalizeName(artist.name)}`);
+  if (subject[idField]) ids.push(`${idPrefix}:${subject[idField]}`);
+  ids.push(`name:${normalizeName(subject.name)}`);
   return ids;
 }
 
-function landmarkIdentities(landmark) {
-  const ids = [];
-  if (landmark.wikidata_id) ids.push(`wikidata:${landmark.wikidata_id}`);
-  ids.push(`name:${normalizeName(landmark.name)}`);
-  return ids;
-}
-
-// Two artists are the same artist when both carry an MBID and it matches,
-// or when at least one lacks an MBID and their normalized names match.
-// Two different MBIDs never collide on name alone: an ID, once present on
-// both sides, is the tie-breaker, not a hint (Pool size and balance).
-function artistsMatch(a, b) {
-  if (a.mbid && b.mbid) return a.mbid === b.mbid;
-  return normalizeName(a.name) === normalizeName(b.name);
-}
-
-function landmarksMatch(a, b) {
-  if (a.wikidata_id && b.wikidata_id) return a.wikidata_id === b.wikidata_id;
+// Two subjects (artists or landmarks) are the same subject when both carry
+// the named ID field and it matches, or when at least one lacks that field
+// and their normalized names match. Two different IDs never collide on
+// name alone: an ID, once present on both sides, is the tie-breaker, not a
+// hint (Pool size and balance).
+function subjectsMatch(a, b, idField) {
+  if (a[idField] && b[idField]) return a[idField] === b[idField];
   return normalizeName(a.name) === normalizeName(b.name);
 }
 
@@ -470,22 +460,22 @@ function runIntegrity(root) {
   // identity key.
   const artistCollisions = groupCollisions(
     artistEntries.map((e) => ({ owner: e.file, subject: e.artist })),
-    artistsMatch,
+    (a, b) => subjectsMatch(a, b, 'mbid'),
   );
   for (const { file, artist } of artistEntries) {
     const others = artistCollisions.get(file);
     if (!others || others.size === 0 || isGroupLeader(file, others)) continue;
-    if (artistIdentities(artist).some((k) => hasWaiver(waivers, 'artist', k))) continue;
+    if (subjectIdentities(artist, 'mbid', 'mbid').some((k) => hasWaiver(waivers, 'artist', k))) continue;
     errors.push({ file, rule: 'artist-cap', message: `a second image of artist ${normalizeName(artist.name)} needs a waiver` });
   }
   const landmarkCollisions = groupCollisions(
     landmarkEntries.map((e) => ({ owner: e.file, subject: e.landmark })),
-    landmarksMatch,
+    (a, b) => subjectsMatch(a, b, 'wikidata_id'),
   );
   for (const { file, landmark } of landmarkEntries) {
     const others = landmarkCollisions.get(file);
     if (!others || others.size === 0 || isGroupLeader(file, others)) continue;
-    if (landmarkIdentities(landmark).some((k) => hasWaiver(waivers, 'landmark', k))) continue;
+    if (subjectIdentities(landmark, 'wikidata_id', 'wikidata').some((k) => hasWaiver(waivers, 'landmark', k))) continue;
     errors.push({ file, rule: 'landmark-cap', message: `a second image of landmark ${normalizeName(landmark.name)} needs a waiver` });
   }
 
@@ -922,8 +912,8 @@ function runSheet(root, outDir) {
     for (const artist of record.artists || []) artistEntries.push({ owner: id, subject: artist });
     if (record.place && record.place.landmark) landmarkEntries.push({ owner: id, subject: record.place.landmark });
   }
-  const artistCollisions = groupCollisions(artistEntries, artistsMatch);
-  const landmarkCollisions = groupCollisions(landmarkEntries, landmarksMatch);
+  const artistCollisions = groupCollisions(artistEntries, (a, b) => subjectsMatch(a, b, 'mbid'));
+  const landmarkCollisions = groupCollisions(landmarkEntries, (a, b) => subjectsMatch(a, b, 'wikidata_id'));
 
   const docs = kept.map(({ id, record, agent }) => {
     const artistHit = artistCollisions.get(id);
