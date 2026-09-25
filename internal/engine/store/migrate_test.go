@@ -60,9 +60,11 @@ func withSecond(src fstest.MapFS, name, body string) fstest.MapFS {
 	return out
 }
 
-// defaultOpts keeps backup on, so no prune runs unless a row asks.
+// defaultOpts keeps production's default, backup off, so a migration
+// prunes to keep. A row that needs no prune sets opts.backup = true by
+// name.
 func defaultOpts() migrateOptions {
-	return migrateOptions{busyTimeout: migrateBusy, backup: true, keep: 2}
+	return migrateOptions{busyTimeout: migrateBusy, keep: 2}
 }
 
 // newMigrateStore makes a leaf under a fresh state directory with a
