@@ -39,11 +39,14 @@ var ErrInvalidAddress = errors.New("identity: invalid address")
 // "a,b"@example.com parses to a,b@example.com, which it then refuses;
 // such an address is refused here, before any credential can name it,
 // rather than accepted once and refused by every later step. The
-// result also carries no control character and no rune in the Unicode
+// result also carries no control character; no rune in the Unicode
 // format, space-separator, line-separator, or paragraph-separator
-// categories: a quoted local part can carry a byte-order mark or a
-// bidi override that renders differently from how it compares, and
-// every such rune is refused rather than enumerated one at a time.
+// categories; no rune in the derived Default_Ignorable_Code_Point set
+// ([isDefaultIgnorableCodePoint]); and no U+2800 (braille pattern
+// blank): a quoted local part can carry a byte-order mark, a bidi
+// override, or an invisible filler that renders differently from how
+// it compares, and every such rune is refused rather than enumerated
+// one at a time.
 func NormalizeAddress(value string) (string, error) {
 	if len(value) > MaxAddressLength {
 		return "", fmt.Errorf("%w: exceeds %d bytes", ErrInvalidAddress, MaxAddressLength)
@@ -53,7 +56,7 @@ func NormalizeAddress(value string) (string, error) {
 		return "", err
 	}
 	if strings.ContainsFunc(normalized, addressRefusesRune) {
-		return "", fmt.Errorf("%w: carries a control character or invisible character", ErrInvalidAddress)
+		return "", fmt.Errorf("%w: carries a control character or invisible character (%s)", ErrInvalidAddress, invisibleRune(normalized))
 	}
 	if again, err := parseLower(normalized); err != nil || again != normalized {
 		return "", fmt.Errorf("%w: normalized form does not parse to itself", ErrInvalidAddress)
@@ -62,13 +65,69 @@ func NormalizeAddress(value string) (string, error) {
 }
 
 // addressRefusesRune reports whether an address refuses r: every
-// control character plus every rune in the Unicode Cf (format), Zs
-// (space separator), Zl (line separator), or Zp (paragraph separator)
-// categories. The ordinary space (U+0020, in Zs) is already refused by
+// control character, every rune in the Unicode Cf (format), Zs (space
+// separator), Zl (line separator), or Zp (paragraph separator)
+// categories, every rune in the derived Default_Ignorable_Code_Point
+// set ([isDefaultIgnorableCodePoint]), and U+2800 (braille pattern
+// blank). The ordinary space (U+0020, in Zs) is already refused by
 // this rule, so it changes nothing that the byte-range check it
 // replaces did not already refuse.
 func addressRefusesRune(r rune) bool {
-	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
+	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp) ||
+		isDefaultIgnorableCodePoint(r) || r == brailleBlankRune
+}
+
+// brailleBlankRune is U+2800, braille pattern blank: category So (a
+// visible symbol), so it is not in the derived Default_Ignorable_Code_Point
+// set, but a cell rendered as no dots is indistinguishable from
+// whitespace, so an address refuses it by name.
+const brailleBlankRune = '⠀'
+
+// isDefaultIgnorableCodePoint reports whether r is in Unicode's derived
+// Default_Ignorable_Code_Point set, computed from the formula
+// DerivedCoreProperties.txt (Unicode 17.0.0) states: "Generated from
+// Other_Default_Ignorable_Code_Point + Cf (Format characters) +
+// Variation_Selector - White_Space - FFF9..FFFB (Interlinear annotation
+// format characters) - 13430..13440 (Egyptian hieroglyph format
+// characters) - Prepended_Concatenation_Mark". The standard library
+// exposes every input the formula names (identity_test.go pins the
+// derived set's size against the file's own "Total code points: 4174"
+// and unicode.Version, so a toolchain move to a later Unicode version
+// fails loudly rather than silently widening or narrowing the set).
+func isDefaultIgnorableCodePoint(r rune) bool {
+	if !unicode.Is(unicode.Other_Default_Ignorable_Code_Point, r) &&
+		!unicode.Is(unicode.Cf, r) &&
+		!unicode.Is(unicode.Variation_Selector, r) {
+		return false
+	}
+	if unicode.Is(unicode.White_Space, r) {
+		return false
+	}
+	if r >= 0xFFF9 && r <= 0xFFFB {
+		return false
+	}
+	if r >= 0x13430 && r <= 0x13440 {
+		return false
+	}
+	if unicode.Is(unicode.Prepended_Concatenation_Mark, r) {
+		return false
+	}
+	return true
+}
+
+// invisibleRune returns the first rune in value that addressRefusesRune
+// flags, formatted as its code point ("U+XXXX"), so a refusal can name
+// what it refused without quoting value itself. It returns "" when no
+// rune in value is refused, which never happens on the caller's own
+// path: NormalizeAddress calls it only after confirming
+// strings.ContainsFunc(value, addressRefusesRune).
+func invisibleRune(value string) string {
+	for _, r := range value {
+		if addressRefusesRune(r) {
+			return fmt.Sprintf("U+%04X", r)
+		}
+	}
+	return ""
 }
 
 func parseLower(value string) (string, error) {

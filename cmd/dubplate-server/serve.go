@@ -43,6 +43,10 @@ const (
 	signOutRouteName     = "sign-out"
 )
 
+// rosterRouteName is the roster API's subtree name: the admin gate and
+// its POST/GET/HEAD surface.
+const rosterRouteName = "roster"
+
 // serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
 // are the rung 5a serve shell's own three keys, declared in this file
 // rather than internal/config (R-C, following rung 4's
@@ -241,10 +245,7 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 		return nil, nil, err
 	}
 
-	// No handler here consumes the seam; a later page and its unit are
-	// its first readers, so it is built and held only to prove it
-	// constructs against this rung's resolved values.
-	_ = auth.NewMagicLinkSeam(roster, epoch,
+	seam := auth.NewMagicLinkSeam(roster, epoch,
 		[]byte(cfg.IdentitySourceValue(sessionSecretKey)),
 		[]byte(cfg.IdentitySourceValue(sessionSecretPreviousKey)),
 		authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
@@ -259,8 +260,40 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 	shell.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
 	shell.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
 
+	adminConfig := auth.AdminConfig{
+		Seam:     seam,
+		Roster:   roster,
+		ClientIP: clientIP,
+		Now:      time.Now,
+		Logger:   shell.Logger(),
+		BodyCap:  int64(authCfg.authRequestBodyCap),
+	}
+	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
+
 	done := startNonceSweep(ctx, nonces, shell.Logger())
 	return shell, done, nil
+}
+
+// exactPath wraps next, answering [serve.Terminator]'s own 404 to any
+// request whose r.URL.Path is not exactly want. [serve.Shell.Register]
+// mounts both the subtree name and everything under name+"/" to the
+// same handler (internal/serve/serve.go:94-96), and the shell
+// dispatches through its mux's own Handler method, which leaves
+// r.Pattern unset, so a mounted handler cannot otherwise tell its own
+// exact path from a deeper one. The roster API needs the distinction:
+// a request to <prefix>/roster/roster must answer the terminator's 404,
+// never the member list, and the terminator's 404 this wrap answers is
+// byte-equal to the admin gate's own refusal, so a non-admin sees the
+// same answer on either side of it.
+func exactPath(want string, next http.Handler) http.Handler {
+	terminator := serve.Terminator()
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != want {
+			terminator.ServeHTTP(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // authHandlersConfig builds the [auth.HandlersConfig] newServeShell

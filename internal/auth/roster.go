@@ -620,11 +620,11 @@ func validateWriteCandidate(candidate Member) (Member, error) {
 // an audit record's actor, and returns actor in the form the record
 // names it. An unrecognized channel refuses outright. A cookie carries
 // a login over the network, so its actor must normalize as a login
-// address, and the record names the normalized address. The command
-// line names an operating-system user, which is no address, so its
-// actor need only be non-empty and free of every rune an address
-// refuses, the ordinary space included, and the record names it as
-// given.
+// address through [identity.NormalizeAddress], and the record names
+// the normalized address. The command line names an operating-system
+// user, which is no address, so its actor need only be non-empty and
+// free of every rune [actorRefusesRune] names, the ordinary space
+// included, and the record names it as given.
 func validateActor(actor string, channel identity.Channel) (string, error) {
 	switch channel {
 	case identity.ChannelCookie:
@@ -643,9 +643,14 @@ func validateActor(actor string, channel identity.Channel) (string, error) {
 	}
 }
 
-// actorRefusesRune reports whether a command-line actor refuses r: the
-// same set [identity.NormalizeAddress] refuses, every control character
-// and every rune in the Unicode Cf, Zs, Zl, or Zp categories.
+// actorRefusesRune reports whether a command-line actor refuses r:
+// every control character and every rune in the Unicode Cf, Zs, Zl, or
+// Zp categories. A command-line actor names an operating-system user,
+// never a login address, so it carries none of [identity.NormalizeAddress]'s
+// address-shape rules, including its derived Default_Ignorable_Code_Point
+// refusal: the audit record still names every address that rule
+// reaches, because a cookie actor already passes through
+// [identity.NormalizeAddress] before it reaches this package.
 func actorRefusesRune(r rune) bool {
 	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
 }

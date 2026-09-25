@@ -630,6 +630,135 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 	}
 }
 
+// defaultIgnorableRoster is the same ten code points
+// internal/identity's TestNormalizeAddress_DefaultIgnorableRefused
+// pins, checked here against the roster's own two write paths: the
+// loader and AddMember on both channels. The three preExisting rows
+// were already refused, before the derived-set refusal existed, by the
+// loader's and AddMember's shared reliance on identity.NormalizeAddress,
+// which already refused the whole Cf category; they are labelled
+// regressions rather than proofs of the derived set's own reach.
+var defaultIgnorableRoster = []struct {
+	name        string
+	r           rune
+	preExisting bool
+}{
+	{name: "Hangul filler U+115F", r: 'ᅟ'},
+	{name: "Hangul jungseong filler U+1160", r: 'ᅠ'},
+	{name: "Hangul filler U+3164", r: 'ㅤ'},
+	{name: "halfwidth Hangul filler U+FFA0", r: 'ﾠ'},
+	{name: "combining grapheme joiner U+034F", r: '͏'},
+	{name: "variation selector 16 U+FE0F", r: '️'},
+	{name: "zero width space U+200B", r: '​', preExisting: true},
+	{name: "soft hyphen U+00AD", r: '­', preExisting: true},
+	{name: "tag digit one U+E0001", r: '\U000E0001', preExisting: true},
+	{name: "braille pattern blank U+2800", r: '⠀'},
+}
+
+// defaultIgnorableAddress returns a quoted-local-part address carrying
+// r between two letters, the same shape TestOpenRoster_ValidationRows
+// uses for its own invisible-rune rows.
+func defaultIgnorableAddress(r rune) string {
+	return "\"a" + string(r) + "b\"@example.com"
+}
+
+// TestOpenRoster_DefaultIgnorableAddressRefused proves the derived-set
+// refusal at the roster loader: each of the ten code points, embedded
+// in an address, refuses the whole roster at load. Fixture state: the
+// same address with no code point loads a one-member roster, so the
+// refusal below is the code point's and not the quoting.
+func TestOpenRoster_DefaultIgnorableAddressRefused(t *testing.T) {
+	plainPath := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"ab@example.com","display_name":"A"}]}`)
+	if _, err := OpenRoster(plainPath); err != nil {
+		t.Fatalf("OpenRoster(plain fixture) = %v, want nil", err)
+	}
+
+	for _, tt := range defaultIgnorableRoster {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := json.Marshal(struct {
+				SchemaVersion int            `json:"schema_version"`
+				Members       []memberRecord `json:"members"`
+			}{SchemaVersion: 1, Members: []memberRecord{{Address: defaultIgnorableAddress(tt.r), DisplayName: "A"}}})
+			if err != nil {
+				t.Fatalf("json.Marshal fixture: %v", err)
+			}
+			path := writeRosterFile(t, string(body))
+			_, err = OpenRoster(path)
+			if err == nil {
+				t.Fatalf("OpenRoster() error = nil, want a refusal")
+			}
+			if !errors.Is(err, ErrRosterRecordInvalid) {
+				t.Errorf("OpenRoster() error = %v, want it to wrap ErrRosterRecordInvalid", err)
+			}
+			if !errors.Is(err, errInvalidMemberAddress) {
+				t.Errorf("OpenRoster() error = %v, want it to wrap errInvalidMemberAddress", err)
+			}
+		})
+	}
+}
+
+// TestAddMember_DefaultIgnorableAddressRefused proves the derived-set
+// refusal at AddMember, on both channels: a new member's address
+// carrying one of the ten code points is refused and changes no byte on
+// disk. Fixture state: the same address with no code point is accepted
+// by AddMember on the cookie channel, proved once, so the refusal below
+// is the code point's.
+func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	plainPath := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true}]}`)
+	plainRoster, err := OpenRoster(plainPath)
+	if err != nil {
+		t.Fatalf("OpenRoster: %v", err)
+	}
+	plainCandidate := Member{Address: "ab@example.com", DisplayName: "A", StreamerUsername: "a"}
+	if err := plainRoster.AddMember(t.Context(), plainCandidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
+		t.Fatalf("AddMember(plain fixture) = %v, want nil", err)
+	}
+
+	for _, tt := range defaultIgnorableRoster {
+		for _, channel := range []identity.Channel{identity.ChannelCookie, identity.ChannelCommandLine} {
+			t.Run(tt.name+"/"+channel.String(), func(t *testing.T) {
+				path := writeRosterFile(t, `{"schema_version":1,"members":[]}`)
+				before, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatalf("read fixture before AddMember: %v", err)
+				}
+				roster, err := OpenRoster(path)
+				if err != nil {
+					t.Fatalf("OpenRoster: %v", err)
+				}
+
+				candidate := Member{Address: defaultIgnorableAddress(tt.r), DisplayName: "A", StreamerUsername: "a"}
+				var actor string
+				if channel == identity.ChannelCommandLine {
+					actor = "operator"
+				} else {
+					actor = "admin@example.com"
+				}
+				err = roster.AddMember(t.Context(), candidate, actor, channel, "198.51.100.7", logger)
+				if err == nil {
+					t.Fatalf("AddMember() error = nil, want a refusal")
+				}
+				if !errors.Is(err, ErrRosterRecordInvalid) {
+					t.Errorf("AddMember() error = %v, want it to wrap ErrRosterRecordInvalid", err)
+				}
+				if !errors.Is(err, errInvalidMemberAddress) {
+					t.Errorf("AddMember() error = %v, want it to wrap errInvalidMemberAddress", err)
+				}
+
+				after, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatalf("read fixture after AddMember: %v", err)
+				}
+				if !bytes.Equal(before, after) {
+					t.Errorf("AddMember() on a refused address changed the file: before %q, after %q", before, after)
+				}
+			})
+		}
+	}
+}
+
 // TestIsASCIIPrintable is a direct table-driven test of the helper
 // TestOpenRoster_ValidationRows exercises indirectly.
 func TestIsASCIIPrintable(t *testing.T) {

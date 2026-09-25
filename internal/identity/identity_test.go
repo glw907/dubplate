@@ -2,8 +2,10 @@ package identity
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
+	"unicode"
 )
 
 // normalizeCase is one row of the normalizer's corpus. reason, when
@@ -187,6 +189,104 @@ func TestNormalizeAddressIsAFixedPoint(t *testing.T) {
 				t.Errorf("NormalizeAddress(%q) = %q, and again = %q", tt.input, once, twice)
 			}
 		})
+	}
+}
+
+// defaultIgnorableRow is one code point this file's Default_Ignorable_Code_Point
+// table checks: an address carrying it is refused, the same address
+// without it is accepted, and the refusal names the code point rather
+// than the address.
+type defaultIgnorableRow struct {
+	name string
+	r    rune
+	// preExisting notes that the rune was already refused by the
+	// unconditional Cf rule addressRefusesRune carried before the
+	// derived-set refusal existed: the row proves no regression rather
+	// than the derived set's own reach.
+	preExisting bool
+}
+
+// defaultIgnorableRows is the derivation's four named examples (the
+// Hangul fillers), CGJ and VS16 (two further examples the derivation's
+// own review probed), the three Cf runes already refused before the
+// derived-set refusal existed, and U+2800, refused by name rather than
+// by the derived formula.
+func defaultIgnorableRows() []defaultIgnorableRow {
+	return []defaultIgnorableRow{
+		{name: "Hangul filler U+115F", r: 'ᅟ'},
+		{name: "Hangul jungseong filler U+1160", r: 'ᅠ'},
+		{name: "Hangul filler U+3164", r: 'ㅤ'},
+		{name: "halfwidth Hangul filler U+FFA0", r: 'ﾠ'},
+		{name: "combining grapheme joiner U+034F", r: '͏'},
+		{name: "variation selector 16 U+FE0F", r: '️'},
+		{name: "zero width space U+200B", r: '​', preExisting: true},
+		{name: "soft hyphen U+00AD", r: '­', preExisting: true},
+		{name: "tag digit one U+E0001", r: '\U000E0001', preExisting: true},
+		{name: "braille pattern blank U+2800", r: '⠀'},
+	}
+}
+
+// TestNormalizeAddress_DefaultIgnorableRefused proves that each of the
+// ten code points, embedded in an otherwise valid quoted local part, is
+// refused, while the same address without the code point is accepted,
+// so the refusal is the code point's and not the quoting. The three
+// preExisting rows were already refused by the unconditional Cf rule
+// addressRefusesRune carried before the derived-set refusal existed and
+// are labelled regressions rather than proofs of the derived set's own
+// reach; the other seven pass only once isDefaultIgnorableCodePoint or
+// the U+2800 rule exists.
+func TestNormalizeAddress_DefaultIgnorableRefused(t *testing.T) {
+	for _, tt := range defaultIgnorableRows() {
+		t.Run(tt.name, func(t *testing.T) {
+			plain := `"ab"@example.com`
+			if _, err := NormalizeAddress(plain); err != nil {
+				t.Fatalf("NormalizeAddress(%q) (fixture without the code point): %v", plain, err)
+			}
+
+			carrying := "\"a" + string(tt.r) + "b\"@example.com"
+			_, err := NormalizeAddress(carrying)
+			if err == nil {
+				t.Fatalf("NormalizeAddress(%q) = nil error, want a refusal", carrying)
+			}
+			if !errors.Is(err, ErrInvalidAddress) {
+				t.Errorf("NormalizeAddress(%q) error = %v, want it to wrap ErrInvalidAddress", carrying, err)
+			}
+			want := fmt.Sprintf("U+%04X", tt.r)
+			if !strings.Contains(err.Error(), want) {
+				t.Errorf("NormalizeAddress(%q) error = %q, want it to name %q", carrying, err.Error(), want)
+			}
+			if strings.Contains(err.Error(), carrying) {
+				t.Errorf("NormalizeAddress(%q) error = %q, want it to not contain the address", carrying, err.Error())
+			}
+		})
+	}
+}
+
+// TestDefaultIgnorableDerivedSetSize pins the derivation against the
+// toolchain's own tables: unicode.Version names the Unicode version the
+// formula was measured against, and the derived set's size (4174) is
+// DerivedCoreProperties.txt's own "Total code points: 4174" for
+// Default_Ignorable_Code_Point (Unicode 17.0.0, read 2026-09-24). A
+// toolchain move to a later Unicode version fails the version row
+// rather than silently rederiving against a table nobody reread, and
+// an over-refusing formula (for example, dropping the
+// Prepended_Concatenation_Mark subtraction, which would additionally
+// count U+0600 through U+0605) fails the size row.
+func TestDefaultIgnorableDerivedSetSize(t *testing.T) {
+	const wantVersion = "17.0.0"
+	if unicode.Version != wantVersion {
+		t.Fatalf("unicode.Version = %q, want %q (the table this test's count was derived against); a toolchain move needs DerivedCoreProperties.txt reread", unicode.Version, wantVersion)
+	}
+
+	const wantSize = 4174
+	count := 0
+	for r := rune(0); r <= unicode.MaxRune; r++ {
+		if isDefaultIgnorableCodePoint(r) {
+			count++
+		}
+	}
+	if count != wantSize {
+		t.Errorf("derived Default_Ignorable_Code_Point set size = %d, want %d", count, wantSize)
 	}
 }
 

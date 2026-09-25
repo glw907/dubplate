@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -580,5 +581,454 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 
 	if gotPaths[0] != gotPaths[1] {
 		t.Errorf("minted link path = %q for %q and %q for %q, want the same path for both origin forms", gotPaths[0], origins[0], gotPaths[1], origins[1])
+	}
+}
+
+// rosterAdminAddress and rosterMemberAddress are the two fixture
+// members [rosterAPIEnviron] seeds: one admin, one not.
+const (
+	rosterAdminAddress  = "admin@example.com"
+	rosterMemberAddress = "member@example.com"
+)
+
+// rosterAPIEnviron returns serveAuthEnviron with DUBPLATE_ROSTER_FILE
+// replaced by a fixture roster holding one admin (with a
+// streamer_username, so a GET has every field shape to answer) and one
+// non-admin, and returns the roster's path alongside for a test that
+// reads it directly.
+func rosterAPIEnviron(t *testing.T) ([]string, string) {
+	t.Helper()
+	rosterPath := filepath.Join(t.TempDir(), "roster.json")
+	const members = `{"schema_version":1,"members":[
+		{"address":"` + rosterAdminAddress + `","display_name":"Group Admin","streamer_username":"groupadmin","admin":true},
+		{"address":"` + rosterMemberAddress + `","display_name":"Member","admin":false}
+	]}`
+	if err := os.WriteFile(rosterPath, []byte(members), 0o600); err != nil {
+		t.Fatalf("write fixture roster: %v", err)
+	}
+	return replaceKey(serveAuthEnviron(t), "DUBPLATE_ROSTER_FILE", rosterPath), rosterPath
+}
+
+// environValue returns the value environ names name under, or "" when
+// no entry names it.
+func environValue(environ []string, name string) string {
+	for _, kv := range environ {
+		n, v, _ := strings.Cut(kv, "=")
+		if n == name {
+			return v
+		}
+	}
+	return ""
+}
+
+// mintServeSession mints a session cookie value for address, signed
+// under environ's own DUBPLATE_SESSION_SECRET and the production
+// lifetime and absolute cap [resolveAuthConfig] resolves from environ,
+// issued at issued: the same construction path [newServeShell]'s own
+// seam verifies against, so a test session is one a real login would
+// have minted.
+func mintServeSession(t *testing.T, environ []string, address string, issued time.Time) string {
+	t.Helper()
+	authCfg, err := resolveAuthConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveAuthConfig: %v", err)
+	}
+	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
+	value, _, err := auth.MintSession([]byte(secret), address, issued, authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
+	if err != nil {
+		t.Fatalf("auth.MintSession(%s): %v", address, err)
+	}
+	return value
+}
+
+// sessionRequest builds a request to target carrying session as its
+// cookie, sfs as Sec-Fetch-Site when non-empty, and body as a
+// urlencoded form when non-empty.
+func sessionRequest(method, target, session, sfs, body string) *http.Request {
+	r := httptest.NewRequest(method, target, strings.NewReader(body))
+	if body != "" {
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+	if sfs != "" {
+		r.Header.Set("Sec-Fetch-Site", sfs)
+	}
+	if session != "" {
+		r.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: session})
+	}
+	return r
+}
+
+// headersEqualButDate reports whether a and b carry the same header
+// set once each header named "Date" is dropped from both: the wire
+// server, never [httptest.ResponseRecorder], is what stamps a
+// response's own Date, but the comparison drops it anyway so this
+// helper reads the same under either.
+func headersEqualButDate(a, b http.Header) bool {
+	ac, bc := a.Clone(), b.Clone()
+	ac.Del("Date")
+	bc.Del("Date")
+	if len(ac) != len(bc) {
+		return false
+	}
+	for k, v := range ac {
+		if !slices.Equal(v, bc[k]) {
+			return false
+		}
+	}
+	return true
+}
+
+// wantNotFoundBody is the body [http.NotFound] writes, [serve.Terminator]'s
+// own answer and the admin gate's refusal alike.
+const wantNotFoundBody = "404 page not found\n"
+
+// TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied proves the
+// roster API sits behind the shell's own origin check like every other
+// state-changing route: a POST carrying neither Origin nor
+// Sec-Fetch-Site is refused before it ever reaches the admin gate, and
+// the roster file is unchanged.
+func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
+	environ, rosterPath := rosterAPIEnviron(t)
+	shell, _, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+
+	before, err := os.ReadFile(rosterPath)
+	if err != nil {
+		t.Fatalf("read fixture before request: %v", err)
+	}
+
+	req := sessionRequest(http.MethodPost, prefix.String()+"/roster", session, "", validPost)
+	rec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Errorf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusForbidden)
+	}
+
+	after, err := os.ReadFile(rosterPath)
+	if err != nil {
+		t.Fatalf("read fixture after request: %v", err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Errorf("roster file changed: before %q, after %q", before, after)
+	}
+}
+
+// validPost is a form every field check accepts for a new member,
+// [internal/auth]'s own fixture body (admin_test.go), restated here so
+// this file's tests need no cross-package export.
+const validPost = "address=new%40example.com&display_name=New+Member&streamer_username=newmember"
+
+// captureDefaultLogger swaps slog.Default() for a logger writing JSON
+// lines to the returned buffer, restoring the prior default when t
+// ends. [newServeShell] builds every shell through [serve.NewShell]
+// with a nil logger, which falls back to slog.Default
+// (internal/serve/serve.go:43-48), so this is the seam this package has
+// to read a shell's own log line without widening newServeShell's own
+// signature.
+func captureDefaultLogger(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	prior := slog.Default()
+	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
+	t.Cleanup(func() { slog.SetDefault(prior) })
+	return &buf
+}
+
+// TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits proves the
+// same POST, carrying Sec-Fetch-Site: same-origin, reaches the admin
+// gate, adds the member, and writes one audit record naming the actor
+// and the cookie channel: the outcome mapping and the audit record's
+// own shape are internal/auth's own proof (admin_test.go); this test
+// proves the shell's composition reaches them at all.
+func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
+	environ, rosterPath := rosterAPIEnviron(t)
+	// [serve.NewShell] reads slog.Default() once, at construction, into
+	// its own stored field, so the capture must be in place before the
+	// shell (and the AdminConfig.Logger it hands the roster API) is
+	// built, not merely before the request.
+	logs := captureDefaultLogger(t)
+	shell, _, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+
+	req := sessionRequest(http.MethodPost, prefix.String()+"/roster", session, "same-origin", validPost)
+	rec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusCreated)
+	}
+
+	after, err := os.ReadFile(rosterPath)
+	if err != nil {
+		t.Fatalf("read fixture after request: %v", err)
+	}
+	if !strings.Contains(string(after), "new@example.com") {
+		t.Errorf("roster file after the POST does not name the new member: %s", after)
+	}
+
+	auditCount := strings.Count(logs.String(), `"msg":"roster member added"`)
+	if auditCount != 1 {
+		t.Errorf("audit records for \"roster member added\" = %d, want exactly 1; log = %s", auditCount, logs.String())
+	}
+	if !strings.Contains(logs.String(), `"actor":"`+rosterAdminAddress+`"`) {
+		t.Errorf("audit record does not name the actor %q: %s", rosterAdminAddress, logs.String())
+	}
+	if !strings.Contains(logs.String(), `"channel":"cookie"`) {
+		t.Errorf("audit record does not name the cookie channel: %s", logs.String())
+	}
+}
+
+// TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath
+// proves that a non-admin's GET and POST to the roster route answer
+// exactly what the same requests to an unregistered owned path answer:
+// same status, same body, every header equal but Date, and no
+// Set-Cookie on either side. The POSTs carry Sec-Fetch-Site:
+// same-origin so both reach the gate and the terminator rather than the
+// origin check. It then proves the same route answers an admin's GET
+// with the roster list, so the 404s above are the non-admin's and not
+// the path's.
+func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing.T) {
+	environ, _ := rosterAPIEnviron(t)
+	shell, _, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	nonAdminSession := mintServeSession(t, environ, rosterMemberAddress, time.Now())
+	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+	handler := shell.Handler()
+
+	rosterPath := prefix.String() + "/roster"
+	unknownPath := prefix.String() + "/no-such-subtree"
+
+	run := func(method, target, sfs, body string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, sessionRequest(method, target, nonAdminSession, sfs, body))
+		return rec
+	}
+
+	getRoster := run(http.MethodGet, rosterPath, "", "")
+	getUnknown := run(http.MethodGet, unknownPath, "", "")
+	if getRoster.Code != getUnknown.Code {
+		t.Errorf("GET status: roster = %d, unknown = %d, want equal", getRoster.Code, getUnknown.Code)
+	}
+	if getRoster.Body.String() != getUnknown.Body.String() {
+		t.Errorf("GET body: roster = %q, unknown = %q, want equal", getRoster.Body.String(), getUnknown.Body.String())
+	}
+	if !headersEqualButDate(getRoster.Header(), getUnknown.Header()) {
+		t.Errorf("GET headers differ (Date excepted): roster = %v, unknown = %v", getRoster.Header(), getUnknown.Header())
+	}
+	if getRoster.Header().Get("Set-Cookie") != "" || getUnknown.Header().Get("Set-Cookie") != "" {
+		t.Errorf("GET carries Set-Cookie: roster = %q, unknown = %q, want neither", getRoster.Header().Get("Set-Cookie"), getUnknown.Header().Get("Set-Cookie"))
+	}
+
+	postRoster := run(http.MethodPost, rosterPath, "same-origin", validPost)
+	postUnknown := run(http.MethodPost, unknownPath, "same-origin", validPost)
+	if postRoster.Code != postUnknown.Code {
+		t.Errorf("POST status: roster = %d, unknown = %d, want equal", postRoster.Code, postUnknown.Code)
+	}
+	if postRoster.Body.String() != postUnknown.Body.String() {
+		t.Errorf("POST body: roster = %q, unknown = %q, want equal", postRoster.Body.String(), postUnknown.Body.String())
+	}
+	if !headersEqualButDate(postRoster.Header(), postUnknown.Header()) {
+		t.Errorf("POST headers differ (Date excepted): roster = %v, unknown = %v", postRoster.Header(), postUnknown.Header())
+	}
+	if postRoster.Header().Get("Set-Cookie") != "" || postUnknown.Header().Get("Set-Cookie") != "" {
+		t.Errorf("POST carries Set-Cookie: roster = %q, unknown = %q, want neither", postRoster.Header().Get("Set-Cookie"), postUnknown.Header().Get("Set-Cookie"))
+	}
+
+	adminGetRec := httptest.NewRecorder()
+	handler.ServeHTTP(adminGetRec, sessionRequest(http.MethodGet, rosterPath, adminSession, "", ""))
+	if adminGetRec.Code != http.StatusOK {
+		t.Fatalf("admin GET status = %d, body = %s, want %d", adminGetRec.Code, adminGetRec.Body.String(), http.StatusOK)
+	}
+	if !strings.Contains(adminGetRec.Body.String(), rosterAdminAddress) {
+		t.Errorf("admin GET body = %s, want it to name %q", adminGetRec.Body.String(), rosterAdminAddress)
+	}
+}
+
+// TestNewServeShell_RosterExactPathOnly proves that only the exact
+// path answers the roster API, and every deeper path,
+// trailing-slash forms included, answers the terminator's own 404.
+// Fixture state: the same admin's GET to the exact path answers the
+// list in this same test, so the 404s below are the path's and not the
+// session's.
+func TestNewServeShell_RosterExactPathOnly(t *testing.T) {
+	environ, _ := rosterAPIEnviron(t)
+	shell, _, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+	handler := shell.Handler()
+
+	get := func(path string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, sessionRequest(http.MethodGet, path, adminSession, "", ""))
+		return rec
+	}
+
+	list := get(prefix.String() + "/roster")
+	if list.Code != http.StatusOK {
+		t.Fatalf("admin GET %s status = %d, body = %s, want %d", "/roster", list.Code, list.Body.String(), http.StatusOK)
+	}
+
+	for _, deeper := range []string{"/roster/x", "/roster/", "/roster/roster"} {
+		t.Run(deeper, func(t *testing.T) {
+			rec := get(prefix.String() + deeper)
+			if rec.Code != http.StatusNotFound {
+				t.Errorf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusNotFound)
+			}
+			if rec.Body.String() != wantNotFoundBody {
+				t.Errorf("body = %q, want %q", rec.Body.String(), wantNotFoundBody)
+			}
+		})
+	}
+}
+
+// TestNewServeShell_RosterAndMemberVerbShareReload proves "member list
+// reads what the API wrote, and the API reads what the verb wrote".
+// Fixture state: the shell's own roster (and the [*auth.Roster] the
+// admin gate holds) is opened, by [buildServeShell], before the verb's
+// first write, and the verb's own [addMember] call opens its roster
+// after the API's write has already landed, so each side's answer can
+// only be explained by a reload rather than by both having opened the
+// file at the same instant.
+func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
+	environ, rosterPath := rosterAPIEnviron(t)
+	shell, _, err := buildServeShell(t, environ) // the shell's roster, opened first
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+
+	apiBody := "address=api-added%40example.com&display_name=API+Added&streamer_username=apiadded"
+	apiReq := sessionRequest(http.MethodPost, prefix.String()+"/roster", adminSession, "same-origin", apiBody)
+	apiRec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(apiRec, apiReq)
+	if apiRec.Code != http.StatusCreated {
+		t.Fatalf("API POST status = %d, body = %s, want %d", apiRec.Code, apiRec.Body.String(), http.StatusCreated)
+	}
+
+	// addMember opens its own *auth.Roster from rosterPath, strictly
+	// after the API's write above.
+	verbCandidate := auth.Member{Address: "verb-added@example.com", DisplayName: "Verb Added", StreamerUsername: "verbadded"}
+	if err := addMember(t.Context(), rosterPath, verbCandidate, "operator", discardTestLogger()); err != nil {
+		t.Fatalf("addMember: %v", err)
+	}
+
+	// "member list" reads what the API wrote: a fresh open, after both
+	// writes, must see the API's own addition.
+	listRoster, err := auth.OpenRoster(rosterPath)
+	if err != nil {
+		t.Fatalf("auth.OpenRoster: %v", err)
+	}
+	members, err := listRoster.List()
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	var listOut bytes.Buffer
+	if err := printMemberList(&listOut, members); err != nil {
+		t.Fatalf("printMemberList: %v", err)
+	}
+	if !strings.Contains(listOut.String(), "api-added@example.com") {
+		t.Errorf("member list output does not name the API's addition: %s", listOut.String())
+	}
+
+	// The API reads what the verb wrote: the shell's own roster, opened
+	// before either write, must reload and see the verb's addition.
+	getRec := httptest.NewRecorder()
+	shell.Handler().ServeHTTP(getRec, sessionRequest(http.MethodGet, prefix.String()+"/roster", adminSession, "", ""))
+	if getRec.Code != http.StatusOK {
+		t.Fatalf("API GET status = %d, body = %s, want %d", getRec.Code, getRec.Body.String(), http.StatusOK)
+	}
+	if !strings.Contains(getRec.Body.String(), "verb-added@example.com") {
+		t.Errorf("API GET body does not name the verb's addition: %s", getRec.Body.String())
+	}
+}
+
+// defaultIgnorableRoutingRows is the same ten code points
+// internal/identity's TestNormalizeAddress_DefaultIgnorableRefused and
+// internal/auth's TestOpenRoster_DefaultIgnorableAddressRefused pin,
+// checked here at request-link, reached through the whole shell
+// composition.
+var defaultIgnorableRoutingRows = []struct {
+	name string
+	r    rune
+}{
+	{"Hangul filler U+115F", 'ᅟ'},
+	{"Hangul jungseong filler U+1160", 'ᅠ'},
+	{"Hangul filler U+3164", 'ㅤ'},
+	{"halfwidth Hangul filler U+FFA0", 'ﾠ'},
+	{"combining grapheme joiner U+034F", '͏'},
+	{"variation selector 16 U+FE0F", '️'},
+	{"zero width space U+200B", '​'},
+	{"soft hyphen U+00AD", '­'},
+	{"tag digit one U+E0001", '\U000E0001'},
+	{"braille pattern blank U+2800", '⠀'},
+}
+
+// TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress proves
+// the derived-set refusal at request-link: an address carrying one of
+// the ten code points answers 400 invalid_address after
+// allowLinkClient has already charged the client (handlers.go:194-208),
+// reached through shell.Handler() rather than the handler called
+// directly.
+func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
+	environ := serveAuthEnviron(t)
+	shell, _, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+	handler := shell.Handler()
+
+	for _, tt := range defaultIgnorableRoutingRows {
+		t.Run(tt.name, func(t *testing.T) {
+			address := "\"a" + string(tt.r) + "b\"@example.com"
+			body := "address=" + url.QueryEscape(address)
+			rec := authRoutePOST(handler, prefix.String()+"/"+requestLinkRouteName, body)
+			if rec.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusBadRequest)
+			}
+			var got struct {
+				Outcome string `json:"outcome"`
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+				t.Fatalf("json.Unmarshal(%s): %v", rec.Body.String(), err)
+			}
+			if got.Outcome != "invalid_address" {
+				t.Errorf("outcome = %q, want %q", got.Outcome, "invalid_address")
+			}
+		})
 	}
 }
