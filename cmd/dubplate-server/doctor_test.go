@@ -12,6 +12,12 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 )
 
+// storeRowLines is the store row's fixed contribution to doctor's
+// line-count assertions: it prints exactly one line regardless of
+// state, unlike reg's own declared families, so a count built from reg
+// alone must add it explicitly.
+const storeRowLines = 1
+
 func TestDoctorCmd(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -187,9 +193,9 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	integrationCount := len(reg.IntegrationClasses())
 	thresholdCount := len(reg.Thresholds())
 	sourceCount := len(reg.IdentitySources())
-	// +1 is the store row: it prints unconditionally, for every state
-	// row, so it is not one of reg's own declared families.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + 1
+	// storeRowLines is the store row: it prints unconditionally, so it
+	// is not one of reg's own declared families.
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines
 	if len(lines) != wantTotal {
 		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + 1 store)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
@@ -533,10 +539,10 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 		t.Errorf("stdout has %d line(s) starting with %q, want exactly 1: one line per source, not per key", matches, "magic-link")
 	}
 
-	// +1 is the store row: it prints unconditionally, for every state
-	// row, and doctorEnviron's roster names an admin, so no
-	// roster row adds a second.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 1
+	// storeRowLines is the store row: it prints unconditionally, and
+	// doctorEnviron's roster names an admin, so no roster row adds a
+	// second.
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}

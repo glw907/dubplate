@@ -20,9 +20,10 @@ import (
 // in "%-32s %s" form and one block per family in that order, deriving
 // every row from reg so no rung hard-codes a count. That table is the
 // command's human output; on an unsatisfied wall RunE returns a single
-// short error, leaving main as the sole stderr writer. Exit status
-// follows [config.Load]'s own verdict on environ: 0 when the owned
-// wall is satisfied, 1 otherwise.
+// short error, leaving main as the sole stderr writer. Exit status is 1
+// when [config.Load] refuses environ, the roster row fails to open or
+// names no admin, or the store row reports a failing state; 0
+// otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "doctor",
@@ -101,8 +102,8 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			}
 
 			// The store row runs the inspect mode after every other
-			// row, always printing exactly one line, absent included
-			// row: a store the doctor run cannot vouch for is as
+			// row, always printing exactly one line, absent state
+			// included: a store the doctor run cannot vouch for is as
 			// reportable as a missing config key.
 			storeStatus, storeFailed := storeRow(cmd.Context(), environ)
 			if err := printRow(stdout, "store", storeStatus); err != nil {

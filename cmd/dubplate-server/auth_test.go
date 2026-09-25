@@ -98,8 +98,9 @@ func TestRegisterAuthConfig_RetiresAuthAndIdentityReservedClass(t *testing.T) {
 // DUBPLATE_IDENTITY_SOURCE unset, Execute returns a non-nil error and
 // stdout carries the selector's own "missing" row.
 func TestDoctorCmd_UnsetSelectorExitsNonzero(t *testing.T) {
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(baseEnviron(), productionRegistry(), &stdout, &stderr)
+	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
 	cmd.SetOut(&stdout)
 
 	if err := cmd.Execute(); err == nil {
@@ -540,7 +541,8 @@ func TestValidateMagicLinkSource_ExpiryBelowFloorNamesKeyNotValue(t *testing.T) 
 // "key invalid", nothing else), the same key-only discipline the
 // nonce-retention-vs-expiry relation already relies on.
 func TestDoctorCmd_MagicLinkExpiryBelowFloorNamesKeyNotValue(t *testing.T) {
-	environ := dropKey(authEnviron(t), "DUBPLATE_MAGIC_LINK_EXPIRY")
+	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+	environ = dropKey(environ, "DUBPLATE_MAGIC_LINK_EXPIRY")
 	environ = append(environ, "DUBPLATE_MAGIC_LINK_EXPIRY=59s")
 
 	var stdout, stderr bytes.Buffer

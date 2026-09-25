@@ -127,6 +127,25 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 	})
 }
 
+// TestStoreRow_BusyTimeoutUnparseable proves storeRow's parseErr
+// branch: an unparseable DUBPLATE_STORE_BUSY_TIMEOUT reports "not
+// checked" and fails the row without ever opening the state directory,
+// distinct from TestStoreBusyTimeout_ParseFailure's proof that
+// storeBusyTimeout itself sets parseErr rather than rangeErr.
+func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
+	environ := []string{
+		"DUBPLATE_STATE_DIR=" + t.TempDir(),
+		"DUBPLATE_STORE_BUSY_TIMEOUT=not-a-duration",
+	}
+	status, failed := storeRow(context.Background(), environ)
+	if status != "not checked" {
+		t.Errorf("storeRow() status = %q, want %q", status, "not checked")
+	}
+	if !failed {
+		t.Errorf("storeRow() failed = false, want true")
+	}
+}
+
 // TestStoreRow_StateDirUnset proves the "not checked" row a missing
 // DUBPLATE_STATE_DIR reports, with no failure of its own (the owned
 // wall row already reports the missing key).
