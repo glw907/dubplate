@@ -21,9 +21,11 @@
  *   from the spec fails even when it still passes contrast.
  *
  * `label`'s `--color-secondary` and `label-night`'s `--color-neutral`
- * are fill-only (`FILL_ONLY_EXCLUSIONS` below): never rendered as
- * text, so excluded from the direct-text check by name, and confirmed
- * present rather than measured.
+ * are fill-only (`FILL_ONLY_EXCLUSIONS` below, VI :108): excluded from
+ * the direct-text floor by name, but each still must carry a
+ * `contrast-exception` marker reading "fill only, never rendered as
+ * text" (W2.6), which G9 checks against the measured ratio without
+ * gating the floor.
  */
 import { readFileSync } from 'node:fs';
 import { fail, isMainModule } from './lib.ts';
@@ -86,13 +88,25 @@ const DL_R2_6_DIRECT_TEXT_COLORS = [
 ];
 
 /**
- * The two fills VI marks fill-only, never measured as direct text
- * (visual identity spec :108, W2.6's marker): "never text, never a
- * focus or selector indicator".
+ * The two fills VI marks fill-only (visual identity spec :108): never
+ * measured against the direct-text floor, but each still carries a
+ * `contrast-exception` marker, the same text as its own file
+ * (`fill only, never rendered as text`), that G9 requires and checks.
  */
 const FILL_ONLY_EXCLUSIONS: { composed: string; name: string; reason: string }[] = [
-  { composed: 'dubplate-label', name: '--color-secondary', reason: 'fill-only, never rendered as text' },
-  { composed: 'dubplate-label-night', name: '--color-neutral', reason: 'fill-only, never rendered as text' }
+  { composed: 'dubplate-label', name: '--color-secondary', reason: 'fill only, never rendered as text' },
+  { composed: 'dubplate-label-night', name: '--color-neutral', reason: 'fill only, never rendered as text' }
+];
+
+/**
+ * VI :108's fill-only pair, transcribed independently of
+ * `FILL_ONLY_EXCLUSIONS` so an entry added, renamed, or dropped there
+ * is caught rather than silently trusted, the same discipline as
+ * `DL_R2_6_DIRECT_TEXT_COLORS` above.
+ */
+const VI_FILL_ONLY: { composed: string; name: string }[] = [
+  { composed: 'dubplate-label', name: '--color-secondary' },
+  { composed: 'dubplate-label-night', name: '--color-neutral' }
 ];
 
 function isFillOnly(composed: string, name: string): boolean {
@@ -273,6 +287,53 @@ function checkFloor(
   return ratio;
 }
 
+/**
+ * Checks a fill-only color's required `contrast-exception` marker
+ * (VI :108, W2.6): the marker must be present and name `variable`, and
+ * its recorded ratio must match the measured one. Unlike `checkFloor`,
+ * the floor itself is never gated here, since a fill-only color is
+ * deliberately allowed to fall below it.
+ */
+function checkFillOnlyMarker(
+  where: string,
+  variable: string,
+  text: string,
+  base: string,
+  marker: ExceptionMarker | null,
+  reason: string,
+  violations: string[],
+  reportLines: string[]
+): void {
+  const textLum = relativeLuminance(text);
+  const baseLum = relativeLuminance(base);
+  if (textLum === null) {
+    violations.push(`g9: ${where}: ${variable}'s value "${text}" is not a parseable color`);
+  }
+  if (baseLum === null) {
+    violations.push(`g9: ${where}: ${variable}'s base value "${base}" is not a parseable color`);
+  }
+  if (textLum === null || baseLum === null) return;
+  if (!marker) {
+    violations.push(
+      `g9: ${where}: ${variable} is fill-only and must carry a contrast-exception marker (VI :108, W2.6)`
+    );
+    return;
+  }
+  if (marker.variable !== variable) {
+    violations.push(`g9: ${where}: the marker above ${variable} names ${marker.variable} instead`);
+  }
+  const lighter = Math.max(textLum, baseLum);
+  const darker = Math.min(textLum, baseLum);
+  const ratio = (lighter + 0.05) / (darker + 0.05);
+  const recorded = Number(marker.ratio);
+  if (Math.abs(recorded - ratio) >= RATIO_TOLERANCE) {
+    violations.push(
+      `g9: ${where}: ${variable}'s marker records ${formatRatio(recorded)}, measured ${formatRatio(ratio)}`
+    );
+  }
+  reportLines.push(`g9: ${where}: ${variable} excluded from the direct-text check (${reason}), marker ${formatRatio(ratio)}`);
+}
+
 function readPaletteBlock(file: string, composed: string): DeclNode[] | null {
   const text = readFileSync(`${THEMES_DIR}/${file}`, 'utf8');
   return pluginBlocksNamed(text).get(composed)?.declarations ?? null;
@@ -289,22 +350,16 @@ const PALETTE_FILES: Record<string, string> = {
 };
 
 /**
- * The closed list's size, per composed theme: every `-content` pair
- * (1 base each), `--color-base-content` (3 bases), every direct-text
- * color minus that theme's fill-only exclusions (1 base each), and
- * every ink (3 bases each). Sized off `DL_R2_6_DIRECT_TEXT_COLORS`, not
- * `DIRECT_TEXT_COLORS`, so a deletion from the latter cannot shrink
- * this count to match and pass silently.
+ * The closed list's size, per composed theme (DL R2.6, R-5ciii3): 8
+ * `-content` pairs + 3 `--color-base-content` rows + 7 direct-text
+ * colors (the eighth, per theme, is fill-only and carries a marker
+ * instead) + 5 inks x 3 bases = 33, times 2 composed themes = 66.
+ * Pinned to the literal rather than derived from `CONTENT_PAIRS`,
+ * `BASES`, `DL_R2_6_DIRECT_TEXT_COLORS`, `VI_FILL_ONLY`, or
+ * `INK_NAMES`, so a deletion from any of them is caught instead of
+ * silently shrinking this count to match.
  */
-const EXPECTED_MEASURED_PAIRS = COMPOSED_NAMES.reduce(
-  (sum, composed) =>
-    sum +
-    CONTENT_PAIRS.length +
-    BASES.length +
-    (DL_R2_6_DIRECT_TEXT_COLORS.length - FILL_ONLY_EXCLUSIONS.filter((e) => e.composed === composed).length) +
-    INK_NAMES.length * BASES.length,
-  0
-);
+const EXPECTED_MEASURED_PAIRS = 66;
 
 export interface Report {
   violations: string[];
@@ -324,6 +379,20 @@ export function run(): Report {
   for (const name of DIRECT_TEXT_COLORS) {
     if (!DL_R2_6_DIRECT_TEXT_COLORS.includes(name)) {
       violations.push(`g9: DIRECT_TEXT_COLORS names ${name}, which DL R2.6's closed list does not`);
+    }
+  }
+  for (const pinned of VI_FILL_ONLY) {
+    if (!FILL_ONLY_EXCLUSIONS.some((e) => e.composed === pinned.composed && e.name === pinned.name)) {
+      violations.push(
+        `g9: FILL_ONLY_EXCLUSIONS is missing ${pinned.composed} ${pinned.name}, which VI :108 names as fill-only`
+      );
+    }
+  }
+  for (const exclusion of FILL_ONLY_EXCLUSIONS) {
+    if (!VI_FILL_ONLY.some((p) => p.composed === exclusion.composed && p.name === exclusion.name)) {
+      violations.push(
+        `g9: FILL_ONLY_EXCLUSIONS names ${exclusion.composed} ${exclusion.name}, which VI :108's closed list does not`
+      );
     }
   }
 
@@ -389,7 +458,7 @@ export function run(): Report {
       }
       if (isFillOnly(composed, name)) {
         const exclusion = FILL_ONLY_EXCLUSIONS.find((e) => e.composed === composed && e.name === name)!;
-        lines.push(`g9: ${composed}: ${name} excluded from the direct-text check (${exclusion.reason})`);
+        checkFillOnlyMarker(composed, name, decl.value, base100, decl.marker, exclusion.reason, violations, lines);
         continue;
       }
       checkFloor(composed, name, decl.value, base100, decl.marker, true, violations, lines);

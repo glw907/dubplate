@@ -1,8 +1,8 @@
 /*
  * The surface tokens: a fourth layer, beside the inks and outside the
  * palette block's 21 names, that carries the print-surface values
- * component CSS reaches by name rather than by a literal (DL R2.1,
- * G2's parity rows, G9's a11y rows do not measure this layer; none of
+ * component CSS reaches by name rather than by a literal (DL R2.1;
+ * G2's parity rows cover it; G9 does not measure it, since none of
  * these values are text). Values are pinned in the visual identity
  * spec (docs/superpowers/specs/2026-09-24-visual-identity-design.md:200-206,
  * :330-331). Literal colors live here because G1 exempts `lib/themes/`
