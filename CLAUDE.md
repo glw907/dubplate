@@ -139,7 +139,9 @@ ruff (`check` and `format
 --check`) over every tracked `*.py` (the oracle shim and its derivation
 siblings under `internal/harness/oracle/`, that package's FLAC template
 generator, tagio's golden-FLAC generator under
-`internal/engine/tagio/testdata/`, and `tools/unidecode-table/generate.py`),
+`internal/engine/tagio/testdata/`, the matcher's featuring-golden generator
+`internal/engine/matcher/testdata/gen_featuring_golden.py`, and
+`tools/unidecode-table/generate.py`),
 gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
@@ -202,7 +204,8 @@ today and gate at the comment-cleanup task.
   `source ~/.local/secrets`). The tunnel is remote-managed:
   `config/cloudflared-tunnel-config.json` is the record of what gets PUT to
   the API, not a file compose reads. See `.claude/instructions/api-access.md`.
-- **Python** (`internal/harness/oracle/*.py`, `tools/unidecode-table/generate.py`):
+- **Python** (`internal/harness/oracle/*.py`, `internal/engine/matcher/testdata/gen_featuring_golden.py`,
+  `tools/unidecode-table/generate.py`):
   invoke the `python-conventions` skill BEFORE writing any Python. Python
   stays confined to workstation-only derivation and generation tooling;
   nothing Python ships to the box. The oracle shim drives pinned beets
