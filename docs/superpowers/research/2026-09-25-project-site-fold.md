@@ -152,3 +152,58 @@ Also folded at the conductor's direction:
 Owed routing added by this fold: the rung 7 plan also receives the pack name-only credit need and
 the picked-image export class; the ROADMAP `project-site` entry, at approval, carries the two
 merge-triggered generator lanes.
+
+## Prose fold
+
+Target: revision 2.1 (`44f94c9`) to revision 2.2. Input: the prose and facts review,
+`docs/superpowers/research/2026-09-25-project-site-prose-review.md` (B1, W1 to W8, S1 to S11).
+Each finding was checked against the spec and its sources before folding. Totals: 20 findings,
+20 folded, 0 refused, and no new owner fork. No open ruling's options or recommendation changed.
+
+Facts verified for B1, on 2026-09-25 against `53f9dc3`:
+
+- `web/package.json` has no `dependencies` key. All twelve packages, Svelte, SvelteKit, daisyUI,
+  and Tailwind among them, are `devDependencies`.
+- `go.mod` has four direct requirements and thirteen indirect ones.
+- `go version -m` on a Linux build of `./cmd/dubplate-server` lists 14 `dep` modules, indirect
+  ones included (`github.com/spf13/pflag`, `modernc.org/libc`, `golang.org/x/crypto`,
+  `github.com/google/uuid`, `github.com/dustin/go-humanize`).
+- `go list -deps -f '{{with .Module}}{{.Path}}{{end}}' ./cmd/dubplate-server` lists the same 14
+  without a build. With `GOOS=windows` it adds `github.com/inconshreveable/mousetrap`, so the
+  linked set is per target.
+- `go list -m all` lists 38 modules besides the main one, 24 of which the Linux binary never links
+  (`golang.org/x/tools`, `modernc.org/ccgo/v4`, and others). It over-reports, so it isn't the input.
+- The bundler is rolldown (Vite 8). Its `PluginContext` declares `getModuleIds():
+  IterableIterator<string>`, "Get all module ids in the current module graph"
+  (`web/node_modules/rolldown/dist/shared/define-config-C7HCoqY8.d.mts`). Tailwind and daisyUI
+  enter through `@import 'tailwindcss'` and `@plugin "daisyui"` in `web/src/app.css`, not through
+  a JS import, so the generator also reads those directives.
+
+| Finding | Disposition | Where |
+|---|---|---|
+| B1 | Folded by widening. The credits guide names the notable projects and the font faces by hand, and the credits leg checks only the faces. A new generated third-party notices list covers every module the binary links, per release target from `go list -deps`, and every package the web bundle ships, from rolldown's `getModuleIds()` plus the stylesheet's `@import` and `@plugin` packages, each with its license text. The regenerate leg keeps it current. The "can't ship uncredited" claim and the `tus-js-client` sentence are gone. Reason for widening over narrowing: MIT and BSD notices must travel with a shipped binary, so the list is owed at 0.8 anyway, and the regenerate leg already exists. | Credits; What each check proves |
+| W1 | Folded. dubplate's gate names four legs, one paragraph each: export (paths exist, plus the leak check over every exported file), regenerate, guide, and credits. | What each check proves |
+| W2 | Folded. The kinds list is six items and names the fonts with `FONTS.md` and the OFL texts, and the changelog at `CHANGELOG.md` in the dubplate repo root (none exists yet; the path is the spec's call). | Keeping the site in step |
+| W3 | Folded. The site repo starts private and opens only if dubplate's source opens (ruling 11, option b), stated as a condition, not a ruling. | Where the site lives |
+| W4 | Folded. Verified against ROADMAP's header: `packaging` follows the TUI and the local binary, which follow the server build's launch. Ruling 11's context sentence is corrected; its options and recommendation are unchanged. | Open ruling 11 |
+| W5 | Folded. The repeated binary-name paragraph is deleted, and its `init` and `upgrade` sentence joins the command reference paragraph. The guide leg reads a command span by the root command's name or a binary name on the planned-names list, which carries the 0.8 name. Ruling 11 says "0.8's `upgrade` command". | Generated pages; What each check proves; Open ruling 11 |
+| W6 | Folded. The photo-credits paragraph splits into the picked-photo paragraph and the pack paragraph, and "no second list" appears once. | Credits |
+| W7 | Folded. Page titles in running prose are quoted and carry a noun ("The "Set up a server" guide"). | Pages |
+| W8 | Folded. The placeholder is site-side. An owed generator lane declares the page's class in the export manifest, and the next sync replaces the site's placeholder. | Phase A; Sequence |
+| S1 | Folded. Verified in `web/src/lib/themes/inks.css` (no `--ink-success`) and the identity spec's ink table: the adapter maps success onto `--ink-accent`. | Keeping the site in step |
+| S2 | Folded in "What each check proves", not in ruling 3's text, since the owner rulings keep Geoff's wording. | What each check proves |
+| S3 | Folded. A 0.x tag of the release shape is a release tag; Phase B requires the 0.8 tag. | What each check proves |
+| S4 | Folded. "no exported enumerator" (verified: `_salvage/internal/reject/reject.go` has the unexported `codeToReason` map). | Generated pages |
+| S5 | Folded. The source is cited as the streamer spec's "License" section, which says implementers "never copy or transliterate GPL code" of Navidrome and gonic. It's the ratified record, so it's cited in place of `CLAUDE.md`. | Credits |
+| S6 | Folded. | What each check proves |
+| S7 | Folded. | The cairn trial |
+| S8 | Folded. | Open ruling 10 |
+| S9 | Folded as ordering only. Rulings 12 and 13 now list options before the recommendation, as ruling 11 does. No wording changed. | Open rulings 12 and 13 |
+| S10 | Folded. The sentence splits, and the second says the photo curation spec governs where the two specs differ. | Out of scope |
+| S11 | Folded. The "exported from the same commit" clause is cut, since the sync exports every path from one commit. | Keeping the site in step |
+
+Also folded at the conductor's direction: the group-scale principles spec is ratified (its header
+reads "Revision 3, 2026-09-25. Status: ratified (Geoff, 2026-09-25)"). The is/isn't and
+legal-note move no longer waits on ratification, so it leaves the Phase B preconditions and joins
+the Phase A done list, landing in Phase A's dubplate lane with the other guides. The principles
+spec itself is not edited by this fold.
