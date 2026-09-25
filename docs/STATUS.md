@@ -29,8 +29,10 @@ errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus h
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | CLOSED on 5c-ii; free for the next code lane |
-| 2 | worktree `lane-2-6b-i` | CLOSED; merged at `6f2c3e0` |
+| 1 | main tree (master) | OPEN: matcher word-boundary pass (window 2, 2026-09-25); ceiling 2.75M, flag 2.2M; then 5c-iii segments |
+| 2 | worktree `lane-2-6b-ii-a` (branch `lane-2-6b-ii-a`, cut at `f6c8edb`) | OPEN: 6b-ii-a (window 2, 2026-09-25); ceiling 3.90M, flag 3.12M |
+
+Window 2 spend against the 11M cap: 0 at launch. AC online at launch; `npm ci` done in the worktree.
 
 ## Open items (carried)
 

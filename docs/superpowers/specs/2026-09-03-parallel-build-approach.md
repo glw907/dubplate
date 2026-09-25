@@ -228,6 +228,8 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 | `cmd/dubplate-server/main.go`, `doctor.go`, `doctor_test.go` while 6b-i and 5c-ii both run | rung 1's skeleton; 6b-i Task 6 adds a registration line, an `AddCommand` entry, and main's exit branch, and Task 7 adds doctor's backup rows; 5c-ii Task 5 adds `registerWebConfig`; a textual conflict keeps both in landing order, and the second lander's rebase is non-fast-forward, so the merge ritual's re-review runs (conductor ruling, 2026-09-24, at the 6b-i lane launch) | every rung adding a verb |
 | `internal/config/keys.go`, the "backup targets" reserved class | rung 1b's contract; 6b-i Task 6 removes the reserved class as a retirement, on rung 5's precedent (`799419a`); no lane declares keys there (conductor ruling, 2026-09-24, at the 6b-i lane launch) | every later rung |
 | `cmd/dubplate-server/backup.go` (new) | rung 6, pass 6b-i (conductor ruling, 2026-09-24, at the 6b-i lane launch) | 6b-ii |
+| `internal/ops`, `internal/ops/opshttp` (new) during 6b-ii-a | rung 6, pass 6b-ii-a Tasks 1 to 3 in lane 2; `internal/identity` is read only (conductor ruling, 2026-09-25, at the 6b-ii-a lane launch) | 6b-ii-b, rung 12 mounts the projection |
+| `internal/engine/matcher`, `internal/harness/conform` floors, `corpus/` during the matcher word-boundary pass | rung 3's lane, the matcher pass in lane 1 (main tree); disjoint from 6b-ii-a's files, so no shared file (conductor ruling, 2026-09-25, at the window 2 lane launch) | rung 4's shadow, rung 15's re-run |
 
 **Rejected alternatives.**
 
