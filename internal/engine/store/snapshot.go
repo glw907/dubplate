@@ -359,9 +359,16 @@ func (h *Handle) RemoveBackupStages() error {
 // The reference is what tells a lost database from a store never
 // made once a backup has deleted every local copy: serve refuses to
 // create a store beside one, naming the stamp to restore.
+//
+// It refuses a remote containing a newline, a carriage return, or a
+// NUL, since the reference's body is line-oriented and any of those
+// would corrupt it or a later parse of it.
 func (h *Handle) WriteBackupRef(stamp, remote string) error {
 	if _, err := ParseStamp(stamp); err != nil {
 		return fmt.Errorf("write backup reference: %w", err)
+	}
+	if strings.ContainsAny(remote, "\n\r\x00") {
+		return fmt.Errorf("write backup reference: remote %q contains a newline, a carriage return, or a NUL", remote)
 	}
 	name := backupPrefix + stamp + backupRefSuffix
 	path := filepath.Join(h.leaf.snapshotsDir, name)

@@ -20,6 +20,10 @@ var ErrLeaseBusy = errors.New("lease busy")
 // kindLeasePrefix frames a kind lease's file name in leases/.
 const kindLeasePrefix = "kind-"
 
+// maxKindLen bounds a kind lease's name so a caller cannot join an
+// arbitrarily long string into leases/.
+const maxKindLen = 64
+
 // LeaseState is what [Handle.TryLease] found for another instance's
 // lease.
 type LeaseState int
@@ -137,6 +141,23 @@ func validInstance(s string) bool {
 	return err == nil && len(s) == 2*idLen && s == strings.ToLower(s)
 }
 
+// validKind reports whether s is a shape TakeKindLease names a lease
+// with: one to [maxKindLen] lowercase ASCII letters, digits, and
+// hyphens, so no kind read from a caller can name a path outside
+// leases/.
+func validKind(s string) bool {
+	if s == "" || len(s) > maxKindLen {
+		return false
+	}
+	for _, r := range s {
+		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '-' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 // A KindLease is an exclusive flock(2) on leases/kind-<kind>, which
 // admits one job of a kind at a time across every process, held from
 // [Handle.TakeKindLease] until [KindLease.Release].
@@ -157,6 +178,9 @@ type KindLease struct {
 // live holder: a child that inherited the lock holds it after the
 // acquirer exits, and on some filesystems /proc/locks names no one.
 func (h *Handle) TakeKindLease(kind string) (*KindLease, error) {
+	if !validKind(kind) {
+		return nil, fmt.Errorf("take kind lease: kind %q is not lowercase ASCII letters, digits, and hyphens", kind)
+	}
 	path := filepath.Join(h.leaf.leasesDir, kindLeasePrefix+kind)
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, lockFilePerm)
 	if err != nil {
@@ -214,5 +238,9 @@ func leaseBusyError(path string) error {
 	if len(pids) == 0 {
 		return fmt.Errorf("lease %s: held by another process: %w", path, ErrLeaseBusy)
 	}
-	return fmt.Errorf("lease %s: acquired by pid %s: %w", path, strings.Join(pids, ", "), ErrLeaseBusy)
+	noun := "pid"
+	if len(pids) > 1 {
+		noun = "pids"
+	}
+	return fmt.Errorf("lease %s: acquired by %s %s: %w", path, noun, strings.Join(pids, ", "), ErrLeaseBusy)
 }

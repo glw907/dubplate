@@ -664,3 +664,26 @@ func TestWriteBackupRef(t *testing.T) {
 		t.Errorf("snapshots after a refused stamp = %q, want %q", got, want)
 	}
 }
+
+// TestWriteBackupRef_RemoteRefusals: a remote that would corrupt the
+// reference's line-oriented body is refused before anything is
+// written, and a remote free of those bytes is still accepted.
+func TestWriteBackupRef_RemoteRefusals(t *testing.T) {
+	h := writeHandle(t, currentStore(t))
+	for _, remote := range []string{
+		"crypt:a\nremote bogus",
+		"crypt:a\rb",
+		"crypt:a\x00b",
+	} {
+		if err := h.WriteBackupRef("20260924T120000.000000Z", remote); err == nil {
+			t.Errorf("write reference with remote %q: got no error", remote)
+		}
+		if got := listDir(t, h.leaf.snapshotsDir); len(got) != 0 {
+			t.Errorf("snapshots after a refused remote %q = %q, want empty", remote, got)
+		}
+	}
+
+	if err := h.WriteBackupRef("20260924T120000.000000Z", "crypt:remote-a"); err != nil {
+		t.Fatalf("write reference with a plain remote: %v", err)
+	}
+}

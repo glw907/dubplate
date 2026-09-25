@@ -110,6 +110,36 @@ func TestKindLease_TwoHandles(t *testing.T) {
 	}
 }
 
+// TestTakeKindLease_Refusals: a kind that is not lowercase ASCII
+// letters, digits, and hyphens is refused before any path is built
+// from it, so it can never join outside leases/. A shape the rule
+// admits still takes the lease.
+func TestTakeKindLease_Refusals(t *testing.T) {
+	stateDir := currentStore(t)
+	h := writeHandle(t, stateDir)
+	for _, kind := range []string{
+		"",
+		"../store",
+		"back/up",
+		"back\x00up",
+		"Backup",
+		"back up",
+		strings.Repeat("a", maxKindLen+1),
+	} {
+		if _, err := h.TakeKindLease(kind); err == nil {
+			t.Errorf("take kind %q: got no error", kind)
+		}
+	}
+
+	l, err := h.TakeKindLease("backup-copy")
+	if err != nil {
+		t.Fatalf("take kind %q: %v", "backup-copy", err)
+	}
+	if err := l.Release(); err != nil {
+		t.Fatalf("release: %v", err)
+	}
+}
+
 // TestTryLease_DeadOwner: an owner that closed its lease without
 // removing it (a process that died) reads free once, which removes the
 // file, and absent after that.
