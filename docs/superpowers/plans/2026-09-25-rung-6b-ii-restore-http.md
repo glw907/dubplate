@@ -1,37 +1,37 @@
 # Rung 6, Pass 6b-ii (The Projection and Restore) Implementation Plan
 
-Status: **reviewed; awaiting owner approval (Rulings 1-9).** Revision 3, 2026-09-25. Three lenses
+Status: **reviewed; awaiting owner approval (Rulings 1-9).** Revision 4, 2026-09-25. Three lenses
 reviewed revision 1 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-review-contract.md`,
 `-mechanics.md`, and `-risk.md`), and an independent read verified revision 2's fold
-(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold-verification.md`). The fold record
-(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold.md`) carries one disposition per
-finding of both rounds; its "Fold 2" section covers the verification read. Fold 2 splits Task 5
-into 5A and 5B. Nine rulings for Geoff are open ("Rulings awaiting owner"). Ruling 1 recommends
-splitting the pass, and both answers are executable as written.
+(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold-verification.md`). A prose review read
+revision 3 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-prose-review.md`). The fold record
+(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold.md`) carries one disposition per finding
+of all three rounds; its "Fold 2" section covers the verification read, and its "Prose fold" section
+covers the prose review. Fold 2 splits Task 5 into 5A and 5B. Nine rulings for Geoff are open
+("Rulings awaiting owner"). Ruling 1 recommends splitting the pass, and both answers are executable
+as written.
 
 Sources: the ratified rung 6 spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`,
 revision 2.2 with errata E1 to E11); its fold record
 (`docs/superpowers/research/2026-09-23-rung-6-spec-fold-record.md`); the approved 6b-i plan
-(`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`, revision 2.2) and 6b-i's close
-drafts (`docs/superpowers/research/handoffs/draft-HISTORY-6b-i.md` and `draft-STATUS-6b-i.md`, in
-the lane 2 worktree); the approved 6a plan's R-6a7 and its handoff
-(`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`, `docs/HISTORY.md`'s 6a entry);
-the 2.0 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, "Forward hooks"
-and "Prior art"); the configuration homes spec
+(`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`, revision 2.2) and 6b-i's entry in
+`docs/HISTORY.md` (closed 2026-09-25, recorded at `f24c77b`); the approved 6a plan's R-6a7 and its
+handoff (`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`, `docs/HISTORY.md`'s 6a
+entry); the 2.0 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, "Forward
+hooks" and "Prior art"); the configuration homes spec
 (`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`); and rung 5's admin gate as
 shipped on master (`internal/auth/admin.go`, `internal/identity/identity.go`,
 `internal/serve/origin.go`).
 
-**Code pointers are resolved against two trees, and Task 0 re-resolves both.** Every pointer into
-`internal/ops`, `internal/ops/local`, `internal/backup`, `internal/engine/store`,
-`internal/atomicfile`, and `cmd/dubplate-server/backup.go` is read in the lane 2 worktree
-(`.claude/worktrees/lane-2-6b-i`, branch `lane-2-6b-i`) at `33ceff5`, because 6b-i is finished but
-not yet merged and that tree is what merges. The fold re-read the pointers it relies on at the
-worktree's `6f2c3e0` (6b-i's close drafts on top of `33ceff5`). Every pointer into `internal/auth`,
-`internal/identity`, and `internal/serve` is read on master at `f0eec0d`. 5c-ii is committing in
-the main tree while this plan is drafted, so those master pointers are the likeliest to move.
-`cmd/dubplate-server/main.go` changes at 6b-i's merge, since both lanes add a registration line, so
-this plan cites it by symbol (`newProductionRegistry`, `newRootCmd`'s `AddCommand` block, `main`'s
+**Code pointers were resolved against two commits, and Task 0 re-resolves them on master.** Every
+pointer into `internal/ops`, `internal/ops/local`, `internal/backup`, `internal/engine/store`,
+`internal/atomicfile`, and `cmd/dubplate-server/backup.go` was read at `33ceff5` in 6b-i's
+worktree, before its rebase. 6b-i merged to master at `6f2c3e0`, and those paths are byte-identical
+between `33ceff5` and `6f2c3e0` and unchanged on master since. Every pointer into `internal/auth`,
+`internal/identity`, and `internal/serve` was read on master at `f0eec0d`. Since then only
+`internal/serve`'s `csp.go` and `document.go` changed, and this plan cites neither.
+`cmd/dubplate-server/main.go` changed at 6b-i's merge and may change again, so this plan cites it
+by symbol (`newProductionRegistry`, `newRootCmd`'s `AddCommand` block, `main`'s
 `exitCodeErr` branch), never by line.
 
 **What this pass is.** Pass 6b-ii builds the two deliverables the spec's pass table assigns it
@@ -58,8 +58,9 @@ any of these stops and reports.
 > `dubplate-implementer`. The conductor consumes structured reports and never reads a diff, a test
 > log, or a gate transcript inline. Subagents never dispatch agents, so `code-simplifier` is the
 > conductor's dispatch. The conductor owns `docs/STATUS.md`, `docs/HISTORY.md`, `ROADMAP.md`, the
-> lane registry, and the contested-surface rows. **This pass runs in lane 2, a fresh git worktree
-> cut from master after 6b-i merges, beside lane 1 in the main tree.** The live-executor check is
+> lane registry, and the contested-surface rows. **This pass runs as the next code lane, in a
+> fresh git worktree cut from master.** The lane registry shows both code lanes closed
+> (`docs/STATUS.md`), so the conductor records whichever lane it opens. The live-executor check is
 > the lane registry, never `pgrep -f Projects/dubplate`.
 
 ---
@@ -70,13 +71,14 @@ Nine yes-or-no questions. The spec's fourteen rulings, 6a's four, and 6b-i's fou
 reopened. Approving this plan also approves the spec deviations listed after the rulings.
 
 **1. Does 6b-ii run as one pass under a 10.30M execution ceiling?** Recommendation: **no, split
-it.** Reason: the spec priced 6b-ii at five tasks and 4.4M (spec `:1139`). Revision 1 needed eight
-build tasks to keep each at four deliverables or fewer, fold 1 added a ninth (Task 4C) and rows to
-Tasks 3, 4A, 5, and 6, and fold 2 splits Task 5 into 5A and 5B. That is five task splits against
-the spec's count (2 and 3; 4A, 4B, and 4C; 5A and 5B; 5B and 6). The workstation's sizing rule
-makes a third task split the point where a pass split is overdue. The two halves share no file, and each has its own review class: the security
-read for the projection, the targeted data-loss read for restore. As one pass, the
-data-destructive half runs last, under the conductor's heaviest context, where the 80% flag lands.
+it.** Reason: the spec priced 6b-ii at five tasks and 4.4M (spec `:1139`). The plan now carries
+ten build tasks (1, 2, 3, 4A, 4B, 4C, 5A, 5B, 6, and 7), five past the spec's count. Revision 1
+needed eight to keep each task at four deliverables or fewer. Fold 1 added a ninth (Task 4C) and
+rows to Tasks 3, 4A, 5, and 6, and fold 2 split Task 5 into 5A and 5B. The workstation's sizing
+rule makes a third task split the point where a pass split is overdue. The two halves share no
+file, and each has its own review class: the security read for the projection, the targeted
+data-loss read for restore. As one pass, the data-destructive half runs last, under the
+conductor's heaviest context, where the 80% flag lands.
 Revision 1 recommended yes; the risk lens's split recommendation and the fold's growth change it.
 What each answer builds:
 
@@ -98,7 +100,7 @@ classifies a seam method's error as `canceled` when the caller's `ctx.Err()` is
 `context.Canceled` at the method's return (R-6bii5). The contract case becomes "a request whose
 context is canceled while it waits for the write pool's one connection in this process." A wait on
 another process's write lock also classifies as `canceled`, but only after the full busy timeout,
-since SQLite's busy handler ignores the context (`internal/engine/store/write.go:51-53`; measured
+since SQLite's busy handler ignores the context (`internal/engine/store/write.go:52-54`; measured
 by the mechanics lens at 5.013 s for a 5 s timeout). No drops `canceled` from the vocabulary as a
 spec deviation, leaving six sentinels, and the contract suite's per-sentinel rule counts six.
 
@@ -119,13 +121,16 @@ the absence of a job record instead.
 **4. Does the `restore` verb exit with the codes below?** 0 restored (or resumed to completion), 1
 refused or failed, 75 the store lock is held by another process, and 130 interrupted by a signal,
 with the intent record left for `restore --resume`. Recommendation: yes. Reason: 1 and 130 carry
-`backup`'s meanings (6b-i Ruling 3, `cmd/dubplate-server/backup.go:67-74`). `backup`'s 75 means a
-busy kind lease ("a backup is already running," `backup.go:101`), and a timed-out store-lock wait
-there exits 1. Restore takes its lock non-blocking, so its 75 carries the same "try again later"
-meaning for its own lock, and an operator reads one table for both verbs. What each answer builds:
-yes fixes the four codes in the verb's help and adds no new branch to `main`, which already honors
-`exitCodeErr`. No exits 1 on every failure, and the help text says to check for a restore-intent
-record after an interrupt.
+`backup`'s meanings (6b-i Ruling 3, `cmd/dubplate-server/backup.go:67-74`). `backup` also exits 69
+when backup integration is disabled (`backup.go:72`, help at `:100`) and 75 when a backup is
+already running (`backup.go:101`), and a timed-out store-lock wait there exits 1. Restore takes
+its lock non-blocking, so its 75 carries the same "try again later" meaning for its own lock.
+Restore has no 69: a `--snapshot` restore with backup integration disabled exits 1 (R-6bii9's
+source table). The two tables therefore differ in one row, the disabled integration. If you want
+the tables identical, rule that row separately: restore then exits 69 on a disabled integration.
+What each answer builds: yes fixes the four codes in the verb's help and adds no new branch to
+`main`, which already honors `exitCodeErr`. No exits 1 on every failure, and the help text says to
+check for a restore-intent record after an interrupt.
 
 **5. After a restore, does the backup reference follow the restored state?** With
 `--snapshot <stamp>`, the reference is rewritten to name that stamp and the remote. With
@@ -144,34 +149,34 @@ pre-restore backup stamp, which the operator had rejected.
 **6. With `--library --into-nonempty`, does restore keep every local file the copy replaces, by
 moving it into a sibling directory `<root>.restore-displaced-<stamp>` through `rclone copy
 --backup-dir`?** Recommendation: yes. Reason: plain `rclone copy` never deletes ("Doesn't delete
-files from the destination," `rclone copy --help`, v1.74.3), but it replaces any destination file
-that differs, "testing by size and modification time or MD5SUM," whichever side is newer. A FLAC
-retagged or uploaded after the last backup is then overwritten and lost, and the reconciliation
-report cannot name it, since the path has both a row and a file. `--backup-dir` is listed in
-`rclone help flags`'s Sync group as "Make backups into hierarchy based in DIR"; `rclone copy
---help` does not list it, so the fold probed it (v1.74.3, local backend, fold record "Probes"): a
-differing destination file moved into the backup directory, an identical file and a local-only
-file stayed untouched, and a backup directory inside the destination was refused with "destination
-and parameter to --backup-dir mustn't overlap." What each answer builds: yes, with
+files from the destination," `rclone copy --help`, v1.74.3). It transfers every file that is not
+identical, "testing by size and modification time or MD5SUM," so it replaces a differing local
+file even when the local copy is newer. A FLAC retagged or uploaded after the last backup is then
+overwritten and lost. The reconciliation report cannot name it, since the path has both a row and
+a file. `rclone copy --help` does not list `--backup-dir`. `rclone help flags` lists it in the Sync
+group as "Make backups into hierarchy based in DIR." The fold probed it (v1.74.3, local backend,
+fold record "Probes"). A differing destination file moved into the backup directory. An identical
+file and a local-only file stayed untouched. A backup directory inside the destination was refused
+with "destination and parameter to --backup-dir mustn't overlap." What each answer builds: yes, with
 `--into-nonempty` only, creates the displaced directory at 0700 before the copy (a creation failure
 refuses before any rclone call), passes `--backup-dir`, names the directory and its file count in
 the report, and removes it only when it is empty after the copy. A resume accepts the directory
-its own interrupted run created (R-6bii11). No runs plain `rclone copy`, as revision 1 drafted. Two other answers exist:
-`--ignore-existing` ("Skip all files that exist on destination") keeps every local file and never
-restores the backup's version of it, and `--update` ("Skip files that are newer on the
-destination") keeps only local files newer than the backup's.
+its own interrupted run created (R-6bii11). No runs plain `rclone copy`, and a differing local
+file is overwritten and lost. Instead of yes or no, you may name `--ignore-existing` ("Skip all
+files that exist on destination"), which keeps every local file and never restores the backup's
+version, or `--update` ("Skip files that are newer on the destination"), which keeps only local
+files newer than the backup's. Either changes Task 6's differing-file row.
 
-**7. Does restore treat an unmounted mount point as a declared gap, printing before the copy
-whether the resolved library root is itself a mount point, with a runbook line owed to rung 16?**
-Recommendation: yes. Reason: an unmounted mount point is an existing, usually empty directory, so
-neither the absent-root nor the non-empty refusal fires, and `rclone copy` fills the filesystem
-underneath. Every refusal rule found either fires on the default layout (an empty root on its
-parent's device is also every same-filesystem library's first restore) or misses mounts that
-`/etc/fstab` does not list (systemd `.mount` units, cloud-init mounts). What each answer builds:
-yes prints the resolved root, whether its device differs from its parent directory's (a mount
-point) or not, and the free space the library check read, and strikes revision 1's claim that the
-case is refused. No refuses an empty root on its parent's device unless a new flag names it, a
-spec deviation that fires on every default layout's first restore.
+**7. Should restore accept an empty library root on its parent's filesystem (possibly an unmounted
+mount point), print whether the root is a mount point, and leave the check to a runbook line owed to
+rung 16?** Recommendation: yes. Reason: an unmounted mount point is an existing, usually empty
+directory, so neither the absent-root nor the non-empty refusal fires, and `rclone copy` fills the
+filesystem underneath. Every refusal rule found either fires on the default layout (an empty root on
+its parent's device is also every same-filesystem library's first restore) or misses mounts that
+`/etc/fstab` does not list (systemd `.mount` units, cloud-init mounts). What each answer builds: yes
+prints the resolved root, whether it is a mount point, and the free space the library check read. No
+refuses an empty root on its parent's device unless `--root-not-a-mount` is given, a spec deviation
+that fires on every default layout's first restore.
 
 **8. Does step 6's emptiness check ignore a `lost+found` directory at the library root?**
 Recommendation: yes. Reason: "There is normally a lost+found directory in the root directory of
@@ -180,8 +185,8 @@ non-empty, and its first restore would need `--into-nonempty`, the flag that dis
 What each answer builds: yes skips one directory entry named `lost+found` in the check, with a
 state row. No counts it, and such a root needs `--into-nonempty`.
 
-**9. Does 6b-ii leave a record that `restore --resume` refuses to a runbook procedure owed to rung
-16, rather than a `restore --abandon` verb?** Recommendation: yes. Reason: the fold removes every
+**9. When `restore --resume` refuses a record, is the way out a runbook procedure owed to rung 16,
+rather than a new `restore --abandon` flag?** Recommendation: yes. Reason: the fold removes every
 reachable unresumable state it found (a fresh-box swap, a cross-device rename, a discard before the
 record, a version verdict made by another binary), so what remains is damage from outside the
 flow. Every refusal already lists each file the record names and whether it exists. What each answer
@@ -249,17 +254,17 @@ Read these before Task 1, in this order.
    lock" and "Three open modes" (`:227-310`), "The ops seam" (`:533-605`), "The restore verb"
    (`:674-714`), the privileged-field table (`:926-937`), and 6b-ii's thirteen criteria
    (`:1035-1060`). Line numbers are as read at `f0eec0d`; Task 0 re-reads them.
-2. **6b-i's handoff** (`draft-HISTORY-6b-i.md`, "The 6b-i to 6b-ii handoff," items 1 to 7) and its
-   plan's R-6bi2, R-6bi4, R-6bi5, R-6bi6, R-6bi12, R-6bi14, and R-6bi16.
+2. **6b-i's handoff** (`docs/HISTORY.md`'s 6b-i entry, "The 6b-i to 6b-ii handoff," items 1 to 7)
+   and its plan's R-6bi2, R-6bi4, R-6bi5, R-6bi6, R-6bi12, R-6bi14, and R-6bi16.
 3. **6a's R-6a7** (the intent record is presence only at 6a, and 6b-ii refines it) and 6a handoff
    items 5 and 6 (`docs/HISTORY.md`, the 6a entry): a `VACUUM INTO` copy is a rollback-journal
    database, and an interrupted file-backed connection is discarded by the driver.
-4. **The code as it merges**: `internal/ops/{ops,errors,catalog}.go`,
+4. **The code on master**: `internal/ops/{ops,errors,catalog}.go`,
    `internal/ops/local/{local,jobs,recovery}.go`, `internal/engine/store/{open,leaf,lock,lease,
-   snapshot,stamp,conn,inspect,write,migrate}.go`, `internal/backup/{backup,rclone,remote,guard,prune}.go`,
-   `internal/atomicfile/atomicfile.go`, and `cmd/dubplate-server/backup.go`, all in the worktree;
-   `internal/auth/admin.go`, `internal/identity/identity.go`, and `internal/serve/origin.go` on
-   master.
+   snapshot,stamp,conn,inspect,write,migrate}.go`,
+   `internal/backup/{backup,rclone,remote,guard,prune}.go`, `internal/atomicfile/atomicfile.go`,
+   `cmd/dubplate-server/backup.go`, `internal/auth/admin.go`, `internal/identity/identity.go`, and
+   `internal/serve/origin.go`.
 5. **This plan's quoted behaviors.** Each is quoted from `go doc` at `go1.27.1 linux/amd64`, the Go
    toolchain's source (`$(go env GOROOT)/src/net/http/server.go`), rclone v1.74.3's installed help
    (`rclone <command> --help`, `rclone help flags`), sqlite.org (read 2026-09-25), or a probe
@@ -293,12 +298,13 @@ switch to DELETE on the only connection (R-6bii8).
 
 ## Token ceiling: 10.30M execution as one pass, or 3.90M and 7.53M split (Ruling 1)
 
-The basis is 6b-i's recorded spend (`draft-HISTORY-6b-i.md`, "Both budgets"): about 5.4M through
-the simplifier round for nine build tasks and Task 0, so about 0.46M per `opus` task with its fix
-rounds, and about 0.75M a task for the verb segment (Tasks 6 and 7 there, two fix rounds). 6b-i's
-close is not yet recorded; its 6a-based estimate of 0.92M plus 0.1M per extra architecture read is
-used. Planning, this fold included, is recorded against the rung and outside these ceilings, as
-6a's and 6b-i's Ruling 1 set.
+The basis is 6b-i's recorded spend (`docs/HISTORY.md`'s 6b-i entry, "Both budgets"): about 5.4M
+through the simplifier round for nine build tasks and Task 0, so about 0.46M per `opus` task with
+its fix rounds, and about 0.75M a task for the verb segment (Tasks 6 and 7 there, two fix rounds).
+6b-i's close recorded about 0.39M after Task 8 (the merge ritual, the merged-range review, and three
+architecture reads). This plan keeps its higher 6a-based estimate of 0.92M plus 0.1M per extra
+architecture read. Planning, this fold included, is recorded against the rung and outside these
+ceilings, as 6a's and 6b-i's Ruling 1 set.
 
 **Fold 1's growth, priced.** Task 4C is new (`opus` with a re-executed child: 0.51M). The fold's
 rows add about 0.05M each to Tasks 3, 4A, 5, and 6 and about 0.03M and 0.04M to Tasks 1 and 2.
@@ -356,10 +362,10 @@ On Ruling 2's no, Task 1 carries three.
 
 ## Global constraints
 
-- **Lane 2, a fresh git worktree.** The conductor cuts it from master after 6b-i merges, before
-  Task 0, and writes the lane registry row. Every task, gate, and commit runs inside it. After
-  lane 1's 5c-ii lands on master, the worktree's first rebase needs `npm ci --prefix web` before
-  its in-tree gate (6b-i's global constraints).
+- **A fresh git worktree, the next code lane.** The conductor cuts it from master before Task 0
+  and writes the lane registry row. Every task, gate, and commit runs inside it. 5c-ii is on
+  master, so the fresh worktree needs `npm ci --prefix web` before its first gate (6b-i's global
+  constraints).
 - **No deploy.** No task runs `scripts/deploy.sh`, not even `--check`, and no task opens ssh to
   the box.
 - **Package territory, stated as a wall.** This pass creates `internal/ops/opshttp` (every file
@@ -426,8 +432,8 @@ On Ruling 2's no, Task 1 carries three.
 | A job's `cancel_requested` over HTTP | The cancel operation, after the authorizer admits the caller at the operation's privilege. | A denied request reaches no seam method (criterion 2). |
 | The restore-intent record | `restore` under the exclusive lock (write, each state change, removal); serve mode under the exclusive lock (removal of a `reconcile-pending` record only, after its report lands). | Write mode, serve's shared path, and inspect only read it, and write mode and serve re-read it after winning the lock (R-6bii7); a new restore refuses beside it; `backup` and every `member` verb refuse beside it. |
 | The database file at `db/dubplate.db` | Serve mode's create and migrations (6a); restore's swap, under the exclusive lock, with an intent record naming both files. | Write mode never creates or replaces it. |
-| A pre-restore copy (`snapshots/pre-restore-<stamp>.db`) | Restore's swap, by renaming the current database; deletion by 6b-i's post-backup local prune and ruling 7 (`internal/backup/prune.go:168-200`). | No other path names it. |
-| A discarded store (`snapshots/discarded-<stamp>.db`, `-wal`, `-shm`) | Restore's swap with `--discard-current`, under the exclusive lock, after the record names all three (deviation D8). | Nothing deletes them: 6b-i's local prune matches only pre-migration and pre-restore names (`isLocalCopyName`, `prune.go:204-222`). |
+| A pre-restore copy (`snapshots/pre-restore-<stamp>.db`) | Restore's swap, by renaming the current database; deletion by 6b-i's post-backup local prune and spec ruling 7 (`internal/backup/prune.go:168-200`). | No other path names it. |
+| A discarded store (`snapshots/discarded-<stamp>.db`, `-wal`, `-shm`) | Restore's swap with `--discard-current`, under the exclusive lock, after the record names all three (deviation D8). | Nothing deletes them: 6b-i's local prune matches only pre-migration and pre-restore names (`isLocalCopyName`, `prune.go:202-220`). |
 | Restore's staging files (`staging/restore-<stamp>.db`, rclone's `.partial` beside it, and a verified stage's `-wal` and `-shm`) | Restore under the exclusive lock, which clears `staging/` of every entry when no intent record exists (R-6bii6). | Serve's cleanup (R-6a7) and a backup's stage removal (`staging/backup-*.db` only) are the other two removers; neither runs beside an intent record. |
 | The reconciliation report (`restore-report-<stamp>.txt` in the leaf, 0600) | Restore's final step, or serve mode's `reconcile-pending` path, through the store (R-6bii7), with `atomicfile.WriteStream`. | Nothing else writes it; nothing deletes it at 6b-ii. |
 | The backup reference after a restore | Restore, on Ruling 5's yes, with `--snapshot` only, through the restore session's reference write, which shares `WriteBackupRef`'s body (R-6bii6). On Ruling 5's no, the session has no reference write. | 6b-i's channels otherwise (`snapshot.go:353-397`). |
@@ -515,29 +521,41 @@ and `NotFoundHandler()`), and every answer here carries the JSON error shape.
 Error answers carry `{"error": {"code": "<code>", "reason": "<reason>"}}`. The status per code:
 `invalid_request` 400, `forbidden` 403 (Ruling 3), `not_found` 404, `conflict` 409, `unavailable`
 503, `canceled` 503 (Ruling 2), and `internal` 500. On Ruling 2's no, the table has no `canceled`
-row. On Ruling 3's no, `forbidden` answers exactly what `http.NotFound` answers, with no JSON
-body, and the constructor's table check treats that entry as a status like any other. An
-`internal` answer carries no reason: the
-underlying error is logged with the operation name and never written to the body, since a store
-error can name a path. A coded answer's reason is `(*ops.Error).Reason` read through
-`errors.As`, never `err.Error()`, because a wrapper around a coded error may add a path. A non-POST
-answers 405 with `Allow: POST` and code `invalid_request`. An
-unknown name answers 404 with `not_found`. Request refusals, all `invalid_request` and all decided
-before any authorizer call: a `Content-Type` whose media type is not `application/json`
-(`mime.ParseMediaType`, as `internal/auth/admin.go:237-241` does), a body over the cap, an empty
-body, a body that is not one JSON object, trailing data after the object, and any query string.
-"One JSON object" is decided by the first token being the delimiter `{`: the mechanics lens
-measured go1.27.1's `Decoder.Decode` of `null` into a struct answering the zero request with a nil
-error, so a `null` body would otherwise start a backup. Trailing data is decided by a following
-`Decoder.Token` returning `io.EOF` (measured by the same lens). A duplicated key keeps its last
-value (measured), which changes nothing here, since no request field is privileged. Unknown
-object keys are ignored, as spec `:540-541` requires; `encoding/json`'s `Unmarshal`
-documents that "object keys which don't have a corresponding struct field are ignored (see
-Decoder.DisallowUnknownFields for an alternative)" and that it accepts "a case-insensitive match",
-so `{"ACTOR": ...}` is ignored the same way. The body cap is a named unexported constant, 4 KiB,
-applied with `http.MaxBytesReader`, which "returns a non-nil error of type *MaxBytesError for a
-Read beyond the limit": a 4096-byte body is read and a 4097-byte body is refused. A handle is
-validated by `ops.ParseHandle` (`internal/ops/ops.go:52-60`).
+row. On Ruling 3's no, `forbidden` answers exactly what `http.NotFound` answers, with no JSON body,
+and the constructor's table check treats that entry as a status like any other. An `internal`
+answer carries no reason: the underlying error is logged with the operation name and never written
+to the body, since a store error can name a path. A coded answer's reason is `(*ops.Error).Reason`
+read through `errors.As`, never `err.Error()`, because a wrapper around a coded error may add a
+path. A non-POST answers 405 with `Allow: POST` and code `invalid_request`. An unknown name answers
+404 with `not_found`.
+
+Six request refusals answer `invalid_request`, and each is decided before any authorizer call:
+
+- a `Content-Type` whose media type is not `application/json` (`mime.ParseMediaType`, as
+  `internal/auth/admin.go:237-241` does);
+- a body over the cap;
+- an empty body;
+- a body that is not one JSON object;
+- trailing data after the object;
+- any query string.
+
+The decoding rules:
+
+- "One JSON object" is decided by the first token being the delimiter `{`. The mechanics lens
+  measured go1.27.1's `Decoder.Decode` of `null` into a struct answering the zero request with a
+  nil error, so a `null` body would otherwise start a backup.
+- Trailing data is decided by a following `Decoder.Token` returning `io.EOF` (measured by the same
+  lens).
+- A duplicated key keeps its last value (measured), which changes nothing here, since no request
+  field is privileged.
+- Unknown object keys are ignored, as spec `:540-541` requires. `encoding/json`'s `Unmarshal`
+  documents that "object keys which don't have a corresponding struct field are ignored (see
+  Decoder.DisallowUnknownFields for an alternative)" and that it accepts "a case-insensitive
+  match", so `{"ACTOR": ...}` is ignored the same way.
+- The body cap is a named unexported constant, 4 KiB, applied with `http.MaxBytesReader`, which
+  "returns a non-nil error of type *MaxBytesError for a Read beyond the limit": a 4096-byte body is
+  read and a 4097-byte body is refused.
+- A handle is validated by `ops.ParseHandle` (`internal/ops/ops.go:52-60`).
 
 ### R-6bii5: the `internal` and `canceled` sentinels, one classifier, and the code set
 
@@ -569,7 +587,7 @@ wrapping never touches a job's terminal state.
 
 The in-process wait that does honor the context is the write pool's one connection:
 `Handle.Update`'s "ctx ... bounds the wait for the write pool's one connection inside this
-process" (`internal/engine/store/write.go:50-52`). `database/sql`'s connection request, at go1.27.1
+process" (`internal/engine/store/write.go:51-52`). `database/sql`'s connection request, at go1.27.1
 (`$(go env GOROOT)/src/database/sql/sql.go:1370-1375`), selects on `case <-ctx.Done():` and returns
 the context's error. The mechanics lens measured it: a waiter canceled at 200 ms returned `context
 canceled` at 200 ms. The contract case uses that wait.
@@ -583,16 +601,15 @@ measured that string through `QueryRowContext`.
 
 ### R-6bii6: restore's package split, the session, and its staging rule
 
-The store exports one restore session, opened under the exclusive lock, whose methods are the
-leaf operations of spec steps 1 to 5, the reference write (Ruling 5's yes only), the
-reconciliation handle, and the
-report write of step 7: take the lock, create the leaf when absent, clear staging, stage a local
-file, verify a staged file, quiesce the current store, write and advance the intent record, swap in two calls (R-6bii8),
-write the backup reference, open a read handle on the restored store, write the report, and remove
-the record. It also hands out close-on-exec duplicates of the exclusive lock's descriptor, as the
-kind lease does (`internal/engine/store/lease.go:220`, `lock.go:176-194`). `internal/backup` owns
-the flow's order, the step hook, the fetch, the library copy, and the reconciliation (deviation
-D3).
+The store exports one restore session, opened under the exclusive lock, whose methods are the leaf
+operations of spec steps 1 to 5, the reference write (Ruling 5's yes only), the reconciliation
+handle, and the report write of step 7: take the lock, create the leaf when absent, clear staging,
+stage a local file, verify a staged file, quiesce the current store, write and advance the intent
+record, swap in two calls (R-6bii8), write the backup reference, open a read handle on the restored
+store, write the report, and remove the record. It also hands out close-on-exec duplicates of the
+exclusive lock's descriptor, as the kind lease does (`internal/engine/store/lease.go:220`,
+`lock.go:176-194`). `internal/backup` owns the flow's order, the step hook, the fetch, the library
+copy, and the reconciliation (deviation D3).
 
 **The session open's refusals, before any stage exists.** The uid check (spec `:248-252`); the
 leaf's creation when absent, under 6a's E9 state-directory owner rule (`leaf.go:70-99`); the lock,
@@ -690,14 +707,18 @@ the removal would leave `staging/` non-empty after the swap. In `reconcile`, the
 applies. The recorded version is kept for the report and the refusal text only.
 
 **The completion tuple.** A restore or a resume has finished only when all of these hold, and every
-test in which one finishes asserts them all: `db/dubplate.db` holds the incoming snapshot's rows;
-`snapshots/pre-restore-<stamp>.db` holds the prior store's rows (when a current store existed
-and `--discard-current` did not apply), with no `-wal` or `-shm` beside it; with
-`--discard-current`, `snapshots/discarded-<stamp>.db` exists, each `-wal` or `-shm` the fixture
-planted sits beside it under the discarded name, and none of the planted files remains in `db/`;
-`staging/` is empty; the report file exists at 0600, or the
-record is `reconcile-pending`; the record is gone, or is `reconcile-pending`; and the backup
-reference follows Ruling 5.
+test in which one finishes asserts them all:
+
+- `db/dubplate.db` holds the incoming snapshot's rows.
+- `snapshots/pre-restore-<stamp>.db` holds the prior store's rows, with no `-wal` or `-shm` beside
+  it, when a current store existed and `--discard-current` did not apply.
+- With `--discard-current`, `snapshots/discarded-<stamp>.db` exists, each `-wal` or `-shm` the
+  fixture planted sits beside it under the discarded name, and none of the planted files remains
+  in `db/`.
+- `staging/` is empty.
+- The report file exists at 0600, or the record is `reconcile-pending`.
+- The record is gone, or is `reconcile-pending`.
+- The backup reference follows Ruling 5.
 
 Every mode meets these record states too, each with its report:
 
@@ -760,7 +781,7 @@ touches.
 the discard. Step 5's first renames then move `db/dubplate.db`, `-wal`, and `-shm`, each when
 present and in that order, to `snapshots/discarded-<stamp>.db`, `-wal`, and `-shm`. The names are
 distinct from `pre-restore-*`, so step 5 never collides with them, 6b-i's local prune never deletes
-them (`isLocalCopyName` matches only pre-migration and pre-restore names, `prune.go:204-222`), and
+them (`isLocalCopyName` matches only pre-migration and pre-restore names, `prune.go:202-220`), and
 serve's lost-database guard never suggests restoring an unopenable file. Nothing opens the leaf in
 the window, since the record already exists.
 
@@ -788,7 +809,7 @@ crash inside step 5 finds one of these, keyed first on what the record owes:
 | a pre-restore copy | present | present | absent | the fsyncs; the swap had finished |
 | no copy (no current store) | absent | none owed | present | the rename, then the fsyncs |
 | no copy (no current store) | present | none owed | absent | the fsyncs; the swap had finished |
-| a discard | any of the three files still in `db/` | any subset moved | present | move each file still in `db/`, then the rename and the fsyncs |
+| a discard | none, some, or all of the three files still in `db/` | the rest moved | present | move each file still in `db/`, then the rename and the fsyncs |
 | a discard | present | the database moved | absent | the fsyncs; the swap had finished |
 | any | any other combination | | | refused, naming every file the record names, whether each exists, and the manual procedure (Ruling 9) |
 
@@ -834,8 +855,8 @@ strings.
 | `--snapshot <stamp>` | the stamp does not parse | refused before any rclone call, naming the stamp and the layout |
 | `--snapshot <stamp>` | no such object in the `snapshots/` listing | refused before any `copyto`, naming the remote path |
 | `--snapshot latest` | `snapshots/` empty or absent | refused, naming the remote path |
-| `--snapshot <stamp>` | not the latest, without `--older` | refused, naming the latest stamp and `--older` (ruling 11) |
-| `--older` | with `--library` | refused before any rclone call (ruling 11) |
+| `--snapshot <stamp>` | not the latest, without `--older` | refused, naming the latest stamp and `--older` (spec ruling 11) |
+| `--older` | with `--library` | refused before any rclone call (spec ruling 11) |
 | `--snapshot` | backup integration off, or the remote invalid | refused, naming `DUBPLATE_BACKUP_ENABLED` or the parse error |
 | `--snapshot` | the configured remote differs from the one the backup reference names | proceeds, with a printed warning naming both remotes (the one wrong-archive signal before 6d's store identity) |
 | either | the fetch fails (rclone nonzero) | refused, naming rclone's exit and last stderr line; the stage removed; no record written |
@@ -847,7 +868,7 @@ strings.
 | `--from-file` | the path is absent, a directory, or unreadable | refused, naming the path |
 | `--from-file` | a `-wal` or `-journal` file exists beside it | refused, naming it (deviation D4) |
 | `--from-file` | the path is the live database, or inside `staging/` | refused, naming the path |
-| either | a snapshot from another dubplate store | **not detectable at 6b-ii**; the store identity is 6d's forward item (`draft-STATUS-6b-i.md`); a declared gap |
+| either | a snapshot from another dubplate store | **not detectable at 6b-ii**; the store identity is 6d's forward item (`docs/STATUS.md`, "To 6d"); a declared gap |
 
 The verification reuses the store's copy verifier (`verifyCopy`, `snapshot.go:113-151`) with a new
 parameter that accepts any version at or below the binary's, since an older snapshot is valid
@@ -941,7 +962,7 @@ state write sits at a step boundary, after the step's work, so a canceled step n
 The stage removal after a failed or canceled fetch is a file operation that takes no context. The
 verb runs the uid check before anything (spec `:248-252`), and the lock is taken non-blocking: a
 held lock exits 75, naming the holders as `busyError` renders them (`lock.go:105-111`), which is how
-criterion 5's refusal reads. It prints ruling 12's instruction last: mint new values for
+criterion 5's refusal reads. It prints spec ruling 12's instruction last: mint new values for
 `DUBPLATE_SESSION_SECRET` and `DUBPLATE_MAGIC_LINK_SECRET` and leave both `_PREVIOUS` keys unset,
 so every outstanding session and link fails (the four names are registered at
 `cmd/dubplate-server/auth.go:48-59` on master). The instruction names the keys and never an estate
@@ -983,7 +1004,7 @@ Task 6 pins a refusal is struck, and the case is a declared gap in "Not verified
 
 ## Task 0: The staleness pre-task
 
-Model: `opus`, fresh context, dispatched by the conductor after 6b-i merges and the lane 2
+Model: `opus`, fresh context, dispatched by the conductor after the lane's
 worktree is cut. **Its output is blockers with evidence, not fixes.** It writes no code and edits
 no file. It grades a moved pointer by content: content that survives at any offset or under a new
 name is a note naming the new site, and content that is gone is a blocker.
@@ -999,14 +1020,15 @@ name is a note naming the new site, and content that is gone is a blocker.
    `checkIntent`, `clearStaging`, `verifyCopy`, `checkFreeSpace`, `syncDir`, `WriteBackupRef`,
    `KindLease.DupFiles`, `transport`, and `prune.list`, and the fold's additions: `OpenWrite`'s
    `acquireShared` path, `OpenServe`'s shared path, `checkLedger`, `classifyErr`, `isLocalCopyName`,
-   `besideCopy`, `checkOwner`, and `Handle.Update`'s wait contract (`write.go:50-53`).
+   `besideCopy`, `checkOwner`, and `Handle.Update`'s wait contract (`write.go:51-54`).
 3. **Does `internal/ops/opshttp` not exist, and does no file declare `ErrForbidden`,
    `ErrInternal`, or a restore verb?**
 4. **Is `ErrCanceled` still raised nowhere in production code?** Report `git grep -n
    'NewCanceledError\|ErrCanceled' -- '*.go' ':!*_test.go'`. A production raise changes Ruling 2's
    premise.
-5. **Has lane 1 touched `internal/identity`'s `Identity`, `Channel`, or `Valid`?** 5c-ii writes
-   `internal/identity` (6b-i R-6bi1). A changed field or channel set is a blocker for Task 1.
+5. **Has any commit since `f0eec0d` touched `internal/identity`'s `Identity`, `Channel`, or
+   `Valid`?** Another code lane may write `internal/identity`, as 5c-ii did (6b-i R-6bi1). A changed
+   field or channel set is a blocker for Task 1.
 6. **Does `internal/identity` still import no other internal package?** Deviation D6 rests on it.
 
 **Notes, not blockers:**
@@ -1595,7 +1617,7 @@ Model: `opus`. Depends on Task 5A. **Neutral on 2.0 hooks.**
 | after step 3 (a current store present) | absent | proceeds; the store, left in DELETE mode, reads WAL after the open | refuses: no record |
 | after step 4 | `swap` | refuses naming `--resume` | completes the swap |
 | between step 5's two calls | `swap` | refuses | the third combination row (the second rename, then the fsyncs) |
-| between step 5's two calls, with `--discard-current` | `swap` | refuses | the first discard row, then completes with the discard's completion tuple |
+| between step 5's two calls, with `--discard-current` | `swap` | refuses | the first discard row with every file already moved: the rename, then the fsyncs, then the discard's completion tuple |
 | after step 5, before the reference write | `swap` | refuses | the fsyncs, the reference, the next state |
 | after the reference write | `swap` | refuses | completes; one reference names the restored stamp |
 | after step 4, 5's first call, or 5, on a fresh leaf (no current store) | `swap` | refuses | the matching no-copy row, then completes |
@@ -1732,8 +1754,8 @@ Model: `opus`. Depends on Tasks 5B and 6. **Neutral on 2.0 hooks.**
 - **Signals** (R-6bii12): SIGINT, SIGTERM, and SIGHUP cancel, leave the record at its last written
   state, and exit 130.
 - **The output**: the free-space lines with the `sizeless` count, the remote-mismatch warning, the
-  mount-point line (Ruling 7's yes), the reconciliation summary, the report file's path, and ruling
-  12's rotation instruction.
+  mount-point line (Ruling 7's yes), the reconciliation summary, the report file's path, and spec
+  ruling 12's rotation instruction.
 
 **States each check meets, and its report:**
 
@@ -1845,7 +1867,7 @@ surface.
 7. Spec criterion 12: Task 6.
 8. Spec criterion 13: Task 4B (the `--from-file` stage), Task 4C (the swapped-in file), and Task 5B
    (the `--snapshot` path), the uid half declared a reviewer-read.
-9. Every state row has a named test: R-6bii7's three tables, R-6bii8's combination table, R-6bii9's
+9. Every state row has a named test: R-6bii7's two tables, R-6bii8's combination table, R-6bii9's
    source table, R-6bii11's report table, and the state tables of Tasks 1, 2, 3, 4A, 4B, 4C, 5A,
    5B, 6, and 7.
 10. `internal/ops/opshttp` imports only `internal/ops` and `internal/identity` among internal
@@ -1874,11 +1896,11 @@ launches.
 | --- | --- | --- | --- |
 | `internal/ops`, `internal/ops/local`, `internal/backup`, `internal/engine/store` | rung 6 | Tasks 1, 4A to 6 (5A and 5B included) | none |
 | `internal/ops/opshttp` (new) | rung 6 | Tasks 2, 3 | none |
-| `internal/identity` | rung 5 | read only; imported by `internal/ops` | lane 1 may edit it; Task 0 item 5 |
-| `cmd/dubplate-server/main.go` | rung 1 | Task 7: one `AddCommand` entry | lane 1 edits `newProductionRegistry`; a textual conflict keeps both in landing order, and the second lander's rebase is non-fast-forward |
+| `internal/identity` | rung 5 | read only; imported by `internal/ops` | whichever code lane opens beside this one may edit it; Task 0 item 5 |
+| `cmd/dubplate-server/main.go` | rung 1 | Task 7: one `AddCommand` entry | another code lane may edit `newProductionRegistry`; a textual conflict keeps both in landing order, and the second lander's rebase is non-fast-forward |
 | `cmd/dubplate-server/store.go`, `restore.go` (new) | rung 6 | Tasks 4A, 7 | none |
 | `cmd/dubplate-server/doctor.go`, `check.go` | rung 1's skeleton | untouched | none |
-| `scripts/check.sh`, `Makefile`, `web/` | rung 5 | untouched | after 5c-ii merges, the rebase needs `npm ci --prefix web` |
+| `scripts/check.sh`, `Makefile`, `web/` | rung 5 | untouched | 5c-ii is on master, so the fresh worktree needs `npm ci --prefix web` before its first gate |
 | The state directory layout | rung 4 | the leaf gains `restore-intent` (format), `restore-report-<stamp>.txt`, and `snapshots/discarded-<stamp>.db` with its siblings | 6d grants the leaf on the box |
 | The library root's parent | the operator's layout | on Ruling 6's yes, restore creates `<root>.restore-displaced-<stamp>` beside the root | 6d grants the path on the box |
 | `docs/` ledgers | conductor | Task 8 drafts only | every lane |
@@ -1890,7 +1912,7 @@ launches.
 Not tasks; no implementer performs them.
 
 1. Before Task 0: confirm 6b-i merged and its architecture reads' findings are routed; record the
-   planning spend against the rung; cut the lane 2 worktree from master; write the lane registry
+   planning spend against the rung; cut the lane's worktree from master; write the lane registry
    row and the contested-surface rows; arm the runaway guard; check AC power.
 2. Before Task 1: rule Task 0's blockers and record Rulings 1 to 9.
 3. At segment A's boundary (after Task 3): STATUS; re-derive the ceiling. On Ruling 1's no, 6b-ii-a
@@ -1949,9 +1971,10 @@ and a measurement there that contradicts this plan's probes needs a ruling befor
 on it.
 
 **Models.** `sonnet` for Tasks 1 and 8. **`opus` for Tasks 2 to 7, dispatched as
-`claude-opus-5-5`, unconditionally**: Task 2 is the security surface; Task 3 carries cross-process
-cases a single-process test passes; Tasks 4A, 4B, 4C, 5A, 5B, and 6 are the data-destructive path; Task
-7 carries signals and exit codes whose 6b-i analog took two fix rounds. Task 0 runs at `opus` in
+`claude-opus-5-5`, unconditionally**: Task 2 is the security surface; Task 3 carries
+cross-process cases a single-process test passes; Tasks 4A, 4B, 4C, 5A, 5B, and 6 are the
+data-destructive path; Task 7 carries signals and exit codes whose 6b-i analog took two fix
+rounds. Task 0 runs at `opus` in
 fresh context.
 
 **Dependencies, stated exactly:**
@@ -1961,8 +1984,8 @@ fresh context.
 - Task 0 → Task 4A → Task 4B → Task 4C → Task 5A → Task 5B → Task 6 → Task 7.
 - Tasks 0 to 7 and the simplifier round → Task 8.
 - **Independent by files:** Tasks 1 to 3 of Tasks 4A to 7. They still run sequentially, because
-  one tree runs one executor and the module gate runs over `./...`, and lane 1 holds the other
-  code lane.
+  one tree runs one executor and the module gate runs over `./...`. The other code lane is free, so
+  the conductor may give it to whichever rung opens next.
 
 **Budget:** the execution ceilings and 80% flags in "Token ceiling" (Ruling 1), planning recorded
 separately, STATUS at each boundary, spend scored at close against the ceiling and against zero
@@ -2013,7 +2036,10 @@ is required.
 
 Fold 1 settled four of revision 1's items by measurement or quote: the `-shm` question (R-6bii8),
 the mode `copyto` writes (R-6bii9), the closed `*sql.DB` error (R-6bii5), and the blocking job body
-(Task 3). What remains:
+(Task 3). The prose fold settled two more against master at `3df0fd0`. The master pointers into
+`internal/auth`, `internal/identity`, and `internal/serve` hold: only `internal/serve`'s `csp.go`
+and `document.go` moved since `f0eec0d`, and this plan cites neither. 6b-i's close spend is
+recorded at `f24c77b` (about 0.39M after Task 8). What remains:
 
 - Whether `IntegrationValue` returns the remote while the backup class is disabled; Task 0 item 7.
 - Whether a restored snapshot came from this store rather than another; undetectable until 6d's
@@ -2027,6 +2053,3 @@ the mode `copyto` writes (R-6bii9), the closed `*sql.DB` error (R-6bii5), and th
   filesystem. The fold probed `copy --backup-dir` across two tmpfs mounts and found the displaced
   file copied across; Task 6 re-runs that probe, and a mount-point root's displaced directory
   costs free space on the parent's filesystem that the library check does not count.
-- The master pointers into `internal/auth`, `internal/identity`, and `internal/serve`, which lane
-  1 is editing while this plan is drafted.
-- 6b-i's close spend, which the ceiling's close-side figure estimates from 6a's actual.

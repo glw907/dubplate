@@ -257,3 +257,27 @@ one task's rate of 0.51M. Task 6's displaced-directory rows add 0.03M.
 That is 38 deliverables. Tasks 1, 2, 4A, 7, and 8 carry four each, and Tasks 3, 4B, 4C, 5A, 5B,
 and 6 carry three each. Ruling 1 now counts five task splits against the spec's task count, and
 its recommendation to split the pass is unchanged.
+
+## Prose fold
+
+The prose review (`2026-09-25-rung-6b-ii-plan-prose-review.md`, over revision 3 at `3df0fd0`)
+raised 1 blocker, 7 warnings, and 4 suggestions. Each was checked against the repo before it was
+applied. The plan is now revision 4, and `tellgrader --register docs` reports 0 findings on it. No
+task scope, ceiling, or ruling's substance changed.
+
+| Finding | Disposition |
+| --- | --- |
+| 1 (blocker) | **Folded.** Verified: `backup.go:72` declares exit 69, and its help lists 69 at `:100` and 75 at `:101`. Ruling 4's reason now says that `backup` also exits 69 (disabled) and 75 (a backup already running), that restore has no 69, and that the disabled-integration row differs between the verbs. The optional "rule that row separately" offer is added. |
+| 2 | **Folded as proposed.** The first discard row now reads "none, some, or all of the three files still in `db/`", with "the rest moved", so a crash with every file already moved matches it rather than the refusing row. Task 5B's discard crash row names that state: the rename, the fsyncs, then the discard's completion tuple. |
+| 3 | **Folded, with one correction.** STATUS's lane registry shows both lanes closed, and `git worktree list` shows only the main tree. The sources, the pointer paragraph, primary input 4, the ceiling basis, the lane constraint, the agentic-workers note, Task 0's launch line and item 5, the conductor's action 1, the contested-surface rows, the dependency note, and "Not verified" were updated. **Corrected:** master does not contain `33ceff5`, because 6b-i was rebased before its merge. The pointer paragraph says instead that the cited paths are byte-identical between `33ceff5` and `6f2c3e0` and unchanged on master since (checked with `git diff`). The `internal/auth`, `internal/identity`, and `internal/serve` pointers were checked the same way: only `internal/serve`'s `csp.go` and `document.go` moved since `f0eec0d`, and the plan cites neither. Both "Not verified" bullets are settled and removed. |
+| 4 | **Folded.** Exit gate item 9 reads "R-6bii7's two tables", matching `:676`, `:704`, and Task 4A. |
+| 5 | **Folded.** The spec's rulings read "spec ruling 7", "spec ruling 11" (twice), and "spec ruling 12" (twice). |
+| 6 | **Folded as proposed.** Ruling 9's question is rewritten, and `--abandon` is called a flag, matching Task 7B. |
+| 7 | **Folded as proposed.** Verified against the installed rclone v1.74.3: `rclone copy --help` carries both quotes and does not list `--backup-dir`; `rclone help flags` lists it under "flag group Sync". The "whichever side is newer" gloss is replaced, the long sentence is split, and the close names the two alternatives as answers instead of yes or no, each changing Task 6's differing-file row (revision 4 `:1700`). |
+| 8 | **Folded as proposed.** Ruling 7 is one question. Its "no" names `--root-not-a-mount`, the flag R-6bii11 and Task 7 already carry, and the "strikes revision 1's claim" clause is dropped (R-6bii11 still records it). |
+| 9 | **Folded.** Ruling 1 states the ten build tasks, five past the spec's count. |
+| 10 | **Folded.** Verified: `write.go:51-52` is the pool wait, `:52-54` the busy timeout, and `isLocalCopyName` is `prune.go:202-220`. Ruling 2, R-6bii5, Task 0 item 2 (`:51-54`, the whole wait contract), the privileged-field row, and R-6bii8 now cite those ranges. |
+| 11 | **Folded.** R-6bii4's error paragraph is split into the status per code, the six request refusals as a list, and the decoding rules as a list. The completion tuple is a bullet list. No rule was added or dropped. |
+| 12 | **Folded.** The spliced lines are rewrapped, along with the paragraphs this fold edited. |
+
+Refused: none.
