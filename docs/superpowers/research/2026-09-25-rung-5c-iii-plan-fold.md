@@ -234,3 +234,57 @@ paste-ready:
 Carried to rung 7, not an erratum yet: `label-night`'s placeholder opacity, which VI `:332`
 leaves at DaisyUI's default (4.38:1 on base-100, risk lens), is a VI value question for Geoff;
 and W4.10's 44px promotion, which W4.10 already reserves for rung 7.
+
+## Fold 2
+
+Input: the verification read
+(`docs/superpowers/research/2026-09-25-rung-5c-iii-plan-fold-verification.md`, `bbba7a8`; 0
+blockers, 2 majors, 9 minors) against revision 2 (`0aeb644`). The fold produces revision 3.
+It reopens nothing else and changes no ruling's substance. All ten rulings stay yes/no with
+their recommendations, and no task passes four deliverables.
+
+### Verified before acting
+
+- **Contrast figures,** recomputed as sRGB relative luminance per WCAG 2.2, with the palette
+  values from VI `:68-89`: `#9d2f26` on `#1f1b16` is 2.338:1; on `#f4ead3` it is 6.121:1.
+  `#f4ead3` on `#1f1b16` is 14.313:1. `#ec7b6a` on `#1c1916` is 6.340:1, on `#1f1b16` 6.202:1,
+  and on `#110f0d` 6.929:1. Mustard is `#e0a526` on `#1f1b16` at 7.810:1, `#e0a526` on `#110f0d`
+  at 8.725:1, `#e5ad33` on `#1f1b16` at 8.443:1, and `#e5ad33` on `#110f0d` at 9.433:1.
+  Revision 2's Ruling 7 "no" figure, "6.93:1 on `#1f1b16`", paired the wrong bar: 6.93:1 is
+  `label-night`'s bar, and `label`'s bar measures 6.20:1.
+- **The registry path,** read in `playwright-core@1.63.0` at
+  `scratchpad/pw/node_modules/playwright-core`. `coreBundle.js:33120` reads
+  `PLAYWRIGHT_BROWSERS_PATH` inside the `registryDirectory` initializer. `:33180` throws
+  ``Executable doesn't exist at ${e}`` with the install box. `:39930` throws "Failed to launch
+  ${this._name} because executable doesn't exist at ${executablePath}". `types/types.d.ts`
+  documents `launch()`'s `executablePath` at `:25418-25422`. Probe `pw/missing.mjs` ran
+  `chromium.launch({ channel: 'chromium' })` with `PLAYWRIGHT_BROWSERS_PATH` set to an empty
+  scratch directory. It exited 1 with `browserType.launch: Executable doesn't exist at
+  <dir>/chromium-1243/chrome-linux64/chrome`.
+- **The head insertion surface,** read at `internal/serve/document.go:57-71`:
+  `insertTierLinks` runs once before the per-palette loop. The document names are at
+  `cmd/dubplate-server/web.go:57-58`.
+- **The VI lines:** "Dark theme" is VI `:131`, and "The login page has no toggle" is `:132`.
+
+### Dispositions
+
+| Finding | Disposition | Where |
+| --- | --- | --- |
+| V-M1 (halo geometry, sample side) | Folded. The Ruling 7 question names a halo that spreads past the ring. Its "yes" names `box-shadow: 0 0 0 6px var(--color-base-100)` beneath the 2px outline at its 2px offset, so `base-100` borders the ring on both sides. Task 5's focus row samples one pixel inside the ring and one outside, both at 3:1 or better. Under yes, both header samples read the halo, at 6.12:1 on `label` and 6.34:1 on `label-night`. Under no, both read the bar, at 6.20:1 and 6.93:1. Revision 2's "6.93:1 on `#1f1b16`" is corrected, and the mustard figure is stated as 7.81:1 or better. Task 9's header row now reads "its two samples clear 3:1 in the header". Fold 1's claim that "the header rows fail without the ruling's treatment" now holds, because the row takes the outer sample. | Ruling 7; Task 5 acceptance; Task 9 acceptance |
+| V-M2 (missing-browser path) | Folded. The resident row sets `PLAYWRIGHT_BROWSERS_PATH` to an empty temporary directory, and the probe output is quoted. The script maps a message containing `Executable doesn't exist at` (`coreBundle.js:33180`), and any other launch error exits nonzero with its own message. The `executablePath` override is dropped and kept only as the rejected proof. Its cite is re-anchored to `launch()`'s option at `types.d.ts:25418-25422`. | R-5ciii4 "It gates" and "Two refusals"; Task 3a acceptance |
+| Minor 1 (mutation 5) | Folded. Mutation 5 writes `../favicon.svg` in the `login/link.html` variants and names the client-navigation row. | Task 4 mutation 5 |
+| Minor 2 (SVG or PNG) | Folded by the row, not by a probe. The row accepts at least one icon request on either inserted prefix-absolute path and none outside the prefix. Mutation 4 still fails it, because no request lands on either path. | Task 4 acceptance |
+| Minor 3 (Ruling 7 "no") | Folded. The header redefines `--ink-primary` in its own scope, so the inherited color assertion holds. No header text reads the ink, because every header foreground takes `--color-neutral-content`. | Ruling 7 |
+| Minor 4 (Ruling 9 "no") | Folded. Under the rename, the comparison admits the `name` table as a fourth expected difference, and `FONTS.md` records the rename command. | Ruling 9 |
+| Minor 5 (Ruling 4 "no") | Folded. The keyline lands in Task 5's printed surface, read on the injected `btn-primary` over both grounds. Task 8 adds a row on the login primary when it sits on either ground. No deliverable is added. | Ruling 4 |
+| Minor 6 (45 vs 90) | Folded. The count is 90 sheet cells: fifteen states at 320, 768, and 2560 in both schemes. With 60 native cells, that makes 150. | Task 10 acceptance |
+| Minor 7 (Ruling 1 "no" vs action 4) | Folded. Action 4 opens "under Ruling 1's yes", and under no its reviews run once, at action 8. | Conductor's action 4 |
+| Minor 8 (sequential seam) | Folded. Task 6's handoff names `rendered_test.go`, `run.ts`, `Makefile`, and `components.css` with their state at the close, and Ruling 1's reason says the seam is sequential. | Task 6 outcomes; Ruling 1 |
+| Minor 9, "Task 8's split" | Folded. The 5c-iii ceiling note cites Task 5's split alone. | Token ceiling |
+| Minor 9, VI cites | Folded. `:132` becomes `:131` in Task 7, and `:133` becomes `:132` in Task 8. | Tasks 7, 8 |
+| Minor 9, Task 3a density | No change. The verifier confirms the count holds at three. A pre-named split would add a declaration for a task that is not over its count. | none |
+| Question 3, per-variant insertion | Folded. Task 4's Files line records that `theme-color` needs a per-variant insertion inside the palette loop, with a widened signature. It also records that the robots meta keys on `login.html` and `login/link.html`. | Task 4 Files |
+| Question 3, W9.1's halo condition | No change. The verifier leaves the adoption of W9.1's mechanism on a neutral ground to Geoff, and Ruling 7 already puts it to him. | Ruling 7 |
+
+Refused: none. The only item left unchanged is Task 3a's density, which the verification read
+recorded as a count that holds, not as a defect.
