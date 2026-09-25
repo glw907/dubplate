@@ -156,8 +156,14 @@ and publishes only after a release has proven it. The evidence is in
   (CC BY-NC-SA) first, and rewrite the README for strangers.
 - Declined: a standalone MusicBrainz client (`musicbrainzws2` covers it), `atomicfile`, the
   store's migrations, and the replay stub.
-- **Owner decision owed before any distribution of dubplate itself:** the repo is MIT-labeled
-  and the server binary embeds the GPL-derived table (see the survey's facts; not legal advice).
+- **dubplate stays MIT (Geoff, 2026-09-25; path 1):** the binary stops embedding the
+  Unidecode-derived table. It carries a pinned checksum of the Unidecode 1.4.0 package instead;
+  at setup it downloads that package, verifies it, and builds the table into the state directory
+  with the generator's extraction logic ported to Go, with an offline path from a local file and
+  a `doctor` row. The table stays byte-identical, so conformance is unchanged. The matcher reads
+  it through the same `func(rune) (string, bool)` seam the published library needs. A small pass,
+  due before the first release strangers can install (with `packaging`), plus a lawyer's
+  confirmation of the distribution reading before that release.
 
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): group accounts
