@@ -285,6 +285,29 @@ func TestFontFaceSrcsResolveUnderFonts(t *testing.T) {
 		t.Fatal(`the built bundle carries no @font-face src; run "npm run build" in web/`)
 	}
 
+	// A face silently dropped from the build leaves the remaining
+	// faces' srcs all resolving cleanly, so the per-src subtests below
+	// cannot catch it: this set comparison asserts every FONTS.md file
+	// is referenced by exactly one built @font-face src, and nothing
+	// else.
+	resolvedNames := make(map[string]bool, len(faces))
+	for _, f := range faces {
+		resolved := resolveStylesheetPath(f.cssPath, f.src)
+		if rel, ok := strings.CutPrefix(resolved, "fonts/"); ok {
+			resolvedNames[rel] = true
+		}
+	}
+	for name := range manifest {
+		if !resolvedNames[name] {
+			t.Errorf("static/fonts/FONTS.md names %q but no built @font-face src resolves to it", name)
+		}
+	}
+	for name := range resolvedNames {
+		if !manifest[name] {
+			t.Errorf("a built @font-face src resolves to %q but static/fonts/FONTS.md names no such file", name)
+		}
+	}
+
 	for _, f := range faces {
 		resolved := resolveStylesheetPath(f.cssPath, f.src)
 		t.Run(resolved, func(t *testing.T) {

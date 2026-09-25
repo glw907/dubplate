@@ -4,8 +4,8 @@
 }
 
 /*
- * The three embedded faces (R-5ciii1): independent of the theme data
- * below, since a `@font-face` rule declares no custom property.
+ * The three embedded faces: independent of the theme data below,
+ * since a `@font-face` rule declares no custom property.
  */
 @import './lib/themes/fonts.css';
 
