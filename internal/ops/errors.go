@@ -18,9 +18,9 @@ const (
 	CodeCanceled       Code = "canceled"
 )
 
-// The sentinels 6b-i raises. A caller matches one with [errors.Is].
-// [ErrForbidden] and [ErrInternal] are declared where they are first
-// raised, not here.
+// The sentinels this package raises. A caller matches one with
+// [errors.Is]. [ErrForbidden] and [ErrInternal] are declared where
+// they are first raised, not here.
 var (
 	ErrUnavailable    = errors.New("unavailable")
 	ErrNotFound       = errors.New("not found")

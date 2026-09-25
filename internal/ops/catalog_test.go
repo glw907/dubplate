@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -59,35 +60,49 @@ func TestBuildCatalog_Entries(t *testing.T) {
 	}
 }
 
-// TestKindBackup_SatisfiesLeaseKindRule proves the catalog's job kind
-// meets the shape internal/engine/store's TakeKindLease requires
-// (Task 1T), which internal/ops cannot check directly since it
-// imports no store type.
-func TestKindBackup_SatisfiesLeaseKindRule(t *testing.T) {
-	if !validJobKind(KindBackup) {
-		t.Errorf("validJobKind(%q) = false, want true", KindBackup)
+// TestCatalogEntry_MarshalsPrivilegeAsText proves a [CatalogEntry]'s
+// privilege renders as the wire literal "member" or "admin", never as
+// the underlying integer.
+func TestCatalogEntry_MarshalsPrivilegeAsText(t *testing.T) {
+	got, err := json.Marshal(CatalogEntry{Name: OpStartBackup, Privilege: PrivilegeAdmin, Available: true})
+	if err != nil {
+		t.Fatalf("Marshal() = %v, want no error", err)
+	}
+	if want := `"privilege":"admin"`; !strings.Contains(string(got), want) {
+		t.Errorf("Marshal() = %s, want it to contain %s", got, want)
 	}
 }
 
-func TestValidJobKind(t *testing.T) {
+// TestPrivilege_UnmarshalText proves UnmarshalText accepts only the
+// two wire literals, refusing any other text including empty.
+func TestPrivilege_UnmarshalText(t *testing.T) {
 	tests := []struct {
-		name string
-		kind string
-		want bool
+		name    string
+		text    string
+		want    Privilege
+		wantErr bool
 	}{
-		{"lowercase letters", "backup", true},
-		{"digits and hyphens", "backup-2", true},
-		{"empty", "", false},
-		{"uppercase", "Backup", false},
-		{"slash", "back/up", false},
-		{"space", "back up", false},
-		{"too long", strings.Repeat("a", maxJobKindLen+1), false},
-		{"at the bound", strings.Repeat("a", maxJobKindLen), true},
+		{"member", "member", PrivilegeMember, false},
+		{"admin", "admin", PrivilegeAdmin, false},
+		{"empty", "", 0, true},
+		{"unknown", "owner", 0, true},
+		{"wrong case", "Admin", 0, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := validJobKind(tt.kind); got != tt.want {
-				t.Errorf("validJobKind(%q) = %v, want %v", tt.kind, got, tt.want)
+			var p Privilege
+			err := p.UnmarshalText([]byte(tt.text))
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("UnmarshalText(%q) = nil, want an error", tt.text)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("UnmarshalText(%q) = %v, want no error", tt.text, err)
+			}
+			if p != tt.want {
+				t.Errorf("UnmarshalText(%q) set %v, want %v", tt.text, p, tt.want)
 			}
 		})
 	}

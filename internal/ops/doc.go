@@ -5,7 +5,7 @@
 //
 // [Seam] takes the acting identity as a parameter of every method,
 // never as a field of a request type, so a caller can never widen its
-// own privilege by shaping a request body. An [Actor] built at 6b-i
+// own privilege by shaping a request body. An [Actor] built here
 // names a local operator only; a network caller's kind lands with the
 // projection that first verifies one.
 //

@@ -13,9 +13,9 @@ const localActorPrefix = "local"
 
 // An Actor identifies who invoked an operation, verified before the
 // call reaches [Seam]: never a field a request type carries, so no
-// request body can widen its own privilege (R-6bi4). 6b-i builds the
-// local kind only, from an operating-system username; 6b-ii adds the
-// kind a verified network identity asserts.
+// request body can widen its own privilege. This package builds the
+// local kind only, from an operating-system username; a later kind
+// carries the identity a verified network caller asserts.
 type Actor struct {
 	wire string
 }
@@ -37,8 +37,8 @@ func (a Actor) String() string { return a.wire }
 
 // handleLen is a job [Handle]'s wire length: 32 lowercase hex
 // characters, the hex encoding of 16 random bytes. internal/ops
-// imports no store type (Global constraints), so the length is
-// restated here rather than referenced.
+// imports no store type, so the length is restated here rather than
+// referenced.
 const handleLen = 32
 
 // A Handle identifies a job: an opaque value rendered as 32 lowercase
@@ -97,9 +97,9 @@ type JobStatus struct {
 }
 
 // A StartBackupRequest starts a backup job. It carries no fields:
-// backup is 6b-i's only kind, and the acting identity is
-// [Seam.StartBackup]'s actor parameter, never a request field (spec
-// criterion 2).
+// backup is the only kind this package declares, and the acting
+// identity is [Seam.StartBackup]'s actor parameter, never a request
+// field.
 type StartBackupRequest struct{}
 
 // A StartBackupResponse names the job [Seam.StartBackup] started.
@@ -137,10 +137,10 @@ type CatalogResponse struct {
 	Operations []CatalogEntry `json:"operations"`
 }
 
-// A Seam is what a caller reaches R-6bi5's four operations through:
-// the vocabulary an HTTP projection and a CLI verb alike bind to a
-// runner. Every method takes the acting identity as its own parameter
-// (R-6bi4), never as a request field, and returns an error wrapping
+// A Seam is what a caller reaches the four operations through: the
+// vocabulary an HTTP projection and a CLI verb alike bind to a
+// runner. Every method takes the acting identity as its own
+// parameter, never as a request field, and returns an error wrapping
 // one of this package's sentinels when it cannot answer.
 type Seam interface {
 	// StartBackup starts a backup job and returns its handle. It
