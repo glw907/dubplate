@@ -1,31 +1,38 @@
 # Rung 5, Pass 5c-iii (Fonts, the Identity's Component Layer, the Rendered Gates, and the Three Real Pages) Implementation Plan
 
-Status: **revision 3, 2026-09-25: reviewed, fold 2; awaiting prose review.** The three
-`spec-plan-review` lenses (contract, mechanics, risk; `f0e3c00`) are folded, one disposition
-per finding, in `docs/superpowers/research/2026-09-25-rung-5c-iii-plan-fold.md`. The
-verification read (`2026-09-25-rung-5c-iii-plan-fold-verification.md`, `bbba7a8`) is folded
-in the same record's "Fold 2" section. The prose review is still owed. No ruling below is
-answered.
+Status: **revision 4, 2026-09-25: reviewed; awaiting owner approval (Rulings 1-10).** The
+three `spec-plan-review` lenses (contract, mechanics, risk; `f0e3c00`) are folded, one
+disposition per finding, in `docs/superpowers/research/2026-09-25-rung-5c-iii-plan-fold.md`.
+The verification read (`2026-09-25-rung-5c-iii-plan-fold-verification.md`, `bbba7a8`) is
+folded in the same record's "Fold 2" section. The prose review
+(`2026-09-25-rung-5c-iii-plan-prose-review.md`) is folded in its "Prose fold" section. No
+ruling below is answered.
 
-Sources: the 5c-ii close (`docs/HISTORY.md`, top entry, drafted in
-`docs/superpowers/research/handoffs/draft-HISTORY-5c-ii.md`), whose "What stayed open",
-"Declared coverage gaps", and "The 5c-iii handoff" sections are this pass's scope; the 5c-ii
-plan (`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`, revision
-2.4), whose R-5cii2 (the relative base), R-5cii7 (the CSP builder), R-5cii8 (cache
-directives), R-5cii15 (where each DL gate lands), R-5cii19 (the members route is public, the
-API is the boundary), R-5cii21 (exact paths), and R-5cii22 (the theme stamp and cookie) this
-pass builds on; the three 5c-ii reviews
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-review-{svelte,security,a11y}.md`); the
-visual identity spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
-revision 1.2, `782d864`, VI below), the look every page builds to; the design-language
-standard (`docs/superpowers/specs/2026-09-07-design-language-standard.md`, DL below); the web
-surface standard (`docs/superpowers/specs/2026-09-12-web-surface-standard.md`, revision 2.1,
-W below); the rung 5 spec (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`), "The
-pages" (`:1413-1466`), "Consumption" (`:1051-1080`), and "The post-login destination"
-(`:1268-1273`); the 5c-i plan's page outline
-(`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md:2494-2511`); and the 2.0
-streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`), "Forward hooks"
-(`:450`) and "Prior art" (`:522`). Code pointers were resolved at `b9e281b`.
+Sources. Code pointers were resolved at `b9e281b`.
+
+- The 5c-ii close (`docs/HISTORY.md`, top entry, drafted in
+  `docs/superpowers/research/handoffs/draft-HISTORY-5c-ii.md`). Its "What stayed open",
+  "Declared coverage gaps", and "The 5c-iii handoff" sections are this pass's scope.
+- The 5c-ii plan (`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
+  revision 2.4). This pass builds on its R-5cii2 (the relative base), R-5cii7 (the CSP
+  builder), R-5cii8 (cache directives), R-5cii15 (where each DL gate lands), R-5cii19 (the
+  members route is public, the API is the boundary), R-5cii21 (exact paths), and R-5cii22 (the
+  theme stamp and cookie).
+- The three 5c-ii reviews
+  (`docs/superpowers/research/2026-09-24-rung-5c-ii-review-{svelte,security,a11y}.md`).
+- The visual identity spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
+  revision 1.2, `782d864`, VI below), the look every page builds to.
+- The design-language standard (`docs/superpowers/specs/2026-09-07-design-language-standard.md`,
+  DL below).
+- The web surface standard (`docs/superpowers/specs/2026-09-12-web-surface-standard.md`,
+  revision 2.1, W below).
+- The rung 5 spec (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`): "The pages"
+  (`:1413-1466`), "Consumption" (`:1051-1080`), and "The post-login destination"
+  (`:1268-1273`).
+- The 5c-i plan's page outline
+  (`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md:2494-2511`).
+- The 2.0 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`): "Forward
+  hooks" (`:450`) and "Prior art" (`:522`).
 
 **Owner rulings in force.** dubplate carries its own visual identity and matches no streamer
 (Geoff, 2026-09-24): no reference screenshots, no visual-fidelity chain. VI is the look (Geoff,
@@ -34,16 +41,20 @@ habit. Every user-path page is rendered and read before Geoff sees it
 (`see-it-before-geoff-tests-it`).
 
 **What this pass is.** 5c-ii shipped the delivery path with three structural stubs. This pass
-makes the stubs real and proves them in a browser. It lands the three ruled faces as embedded
-woff2 files with G4 and G5; VI revision 1.2's theme data (five inks, the surface tokens) with
-per-surface contrast rows; the rendered leg of the gate (Playwright against the real Go shell),
-carrying G7's computed half, G10, and the first-paint proof per preference and cookie; the
-document head (the `theme-color` metas, the site name, the robots meta on the two auth
-documents, the mark and favicon); VI's component
-layer (the one focus rule, the ink utilities, the printed surface, the refinement rules); the
-string deck with its register gate and W12.3's AI-tells rule; the login page, the consumption
-interstitial, and the add-member page with the signed-in header and its theme toggle; and the
-render-and-read at W4.1's five viewports in both schemes.
+makes the stubs real and proves them in a browser. It lands six things:
+
+1. The three ruled faces as embedded woff2 files, with G4 and G5.
+2. VI revision 1.2's theme data (five inks, the surface tokens), with per-surface contrast
+   rows.
+3. The rendered leg of the gate: Playwright against the real Go shell, carrying G7's computed
+   half, G10, and the first-paint proof per preference and cookie.
+4. The document head: the `theme-color` metas, the site name, the robots meta on the two auth
+   documents, the mark's SVG files, and the favicon.
+5. VI's component layer: the one focus rule, the ink utilities, the printed surface, and the
+   refinement rules.
+6. 5c-iv's work: the string deck with its register gate and W12.3's AI-tells rule; the login
+   page, the consumption interstitial, and the add-member page with the signed-in header and
+   its theme toggle; and the render-and-read at W4.1's five viewports in both schemes.
 
 **What this pass is not.** No period photograph and no photo pipeline (Ruling 3). No album
 surface, so no sleeve, sleeve grain, record rim, no-art sleeve, or Permanent Marker face
@@ -76,16 +87,16 @@ and are not reopened.
 close, Task 6) and 5c-iv (Tasks 7 through 11), under ceilings of 10.8M and 8.5M?**
 Recommendation: yes.
 
-**Reason:** the scope is ten build tasks plus two closes, past the brief's eight-task line.
-The cut sits after Task 5, where the Files change from shared infrastructure (fonts, theme
-data, the rendered harness, the document head, the component CSS) to the pages that consume
-it. The seam is sequential, not file-disjoint: four files cross it, and Task 6's handoff names
-them. Each half gets its own pass-end review: the infrastructure is read before three pages
-build on it, the argument 5c-ii's own split made. Neither half exports ahead of a caller:
-every Task 1 through 5 surface is exercised by the rendered harness, against the 5c-ii stubs
-or against controls the harness injects into a hydrated stub (Task 5). The site name is the
-exception: its first reader is Task 8's login heading, so Task 4 proves the meta by Go rows
-alone and Task 8 carries the rendered heading row.
+**Reason:** the scope is ten build tasks plus two closes. The cut sits after Task 5, where the
+Files change from shared infrastructure (fonts, theme data, the rendered harness, the document
+head, the component CSS) to the pages that consume it. The seam is sequential, not
+file-disjoint: four files cross it, and Task 6's handoff names them. Each half gets its own
+pass-end review: the infrastructure is read before three pages build on it, the argument 5c-ii's
+own split made. Neither half exports ahead of a caller: every Task 1 through 5 surface is
+exercised by the rendered harness, against the 5c-ii stubs or against controls the harness
+injects into a hydrated stub (Task 5). The site name is the exception: its first reader is Task
+8's login heading, so Task 4 proves the meta by Go rows alone and Task 8 carries the rendered
+heading row. The `Mark` component is built with its first caller, Task 8's login page.
 
 **What yes builds:** Tasks 1 through 6 as 5c-iii, closed by Task 6. 5c-iv executes Tasks 7
 through 11 of this same plan after a just-in-time refresh at 5c-iii's close (one
@@ -100,17 +111,17 @@ Recommendation: yes.
 
 **Reason:** W12.4 names Playwright as the rendered driver, and W12.6 rules that "Playwright
 drives its own downloaded Chromium rather than the workstation's layered `chromium-browser`".
-5c-ii's owner-touchpoint list makes any web dependency beyond R-5cii16's pins a question.
-Evidence, measured 2026-09-25: `npm view playwright version` answers `1.63.0` (published
-2026-09-04; 1.60 through 1.63 landed monthly); `playwright-core@1.63.0`'s `package.json`
-declares `"license": "Apache-2.0"` and `"engines": {"node": ">=20"}`; its `browsers.json` pins
-`chromium` revision `1243` (`browserVersion` `153.0.8010.12`), and both `chromium-1243` and
-`chromium_headless_shell-1243` are already present in `~/.cache/ms-playwright/`; the package
-has no install scripts, so `npm ci` downloads no browser; npm counted 69,104,951 downloads in
-the week ending 2026-09-21. The harness launches with `channel: 'chromium'` (R-5ciii4), which
-runs Playwright's own downloaded Chromium, so W12.6 holds. The package is the library only;
-`@playwright/test`'s runner is declined because the harness is one script driven from a Go
-test (R-5ciii4), and a second runner is a second config to keep in step.
+5c-ii's owner-touchpoint list makes any web dependency beyond R-5cii16's pins a question. The
+evidence was measured on 2026-09-25. `npm view playwright version` answers `1.63.0`, published
+2026-09-04, and 1.60 through 1.63 landed monthly. `playwright-core@1.63.0`'s `package.json`
+declares `"license": "Apache-2.0"` and `"engines": {"node": ">=20"}`. Its `browsers.json` pins
+`chromium` revision `1243` (`browserVersion` `153.0.8010.12`). Both `chromium-1243` and
+`chromium_headless_shell-1243` are already present in `~/.cache/ms-playwright/`. The package has
+no install scripts, so `npm ci` downloads no browser. npm counted 69,104,951 downloads in the
+week ending 2026-09-21. The harness launches with `channel: 'chromium'` (R-5ciii4), which runs
+Playwright's own downloaded Chromium, so W12.6 holds. The package is the library only;
+`@playwright/test`'s runner is declined because the harness is one script driven from a Go test
+(R-5ciii4), and a second runner is a second config to keep in step.
 
 **What yes builds:** Task 3a as written. **What no builds:** the rendered leg cannot exist as a
 gate, since W12.1 forbids a skipped check; G7's computed half, G10, the first-paint proof,
@@ -135,9 +146,7 @@ names one shipped photo and its license for Task 8 to carry with its film-edge c
 
 **4. Does VI's reading of WCAG 1.4.11 stand: a `label-night` primary button on `base-200` or
 `base-300` is identified by its label text, so it takes no `--ink-primary` keyline?**
-Recommendation: yes. The contract lens notes this is a conformance reading the quoted W3C text
-settles on evidence; it stays here as a ruling because VI (`:117-121`) asked for it to be
-confirmed before 5c-iii builds.
+Recommendation: yes; the quoted W3C text settles it, and VI asked for the ruling.
 
 **Reason:** VI (`:117-121`) asked the 5c-ii accessibility review to confirm or refute the
 reading; the review measured the fills (2.94:1 on `base-200`, 2.43:1 on `base-300`) and left
@@ -146,7 +155,7 @@ the reading open. The W3C's Understanding document for SC 1.4.11 (WCAG 2.2, fetc
 boundary indicating the hit area. If a control has visible content (such as text or a
 sufficiently contrasting icon), which helps users identify the presence of the control, then a
 border or other indication of the overall boundary of the hit area is not required, as is
-therefore not subject to non-text contrast requirements." A primary button's text measures
+[sic] therefore not subject to non-text contrast requirements." A primary button's text measures
 5.15:1 on the fill (VI `:119`). The reading fails only for an icon-only primary control, and
 this pass ships none: the theme toggle is a ghost `swap` whose icons take
 `--color-neutral-content` on the neutral header bar (14.31:1 on `label`, 15.15:1 on
@@ -180,10 +189,11 @@ component CSS and the fourth woff2 file) with a fixture-only render, and a pre-n
 **6. Is the 5c reservation raised: 5c-iii and 5c-iv together project about 14.8M of execution
 (8.30M and 6.50M) against 5c-ii's provisional 5.0M for this scope?** Recommendation: yes.
 
-**Reason:** CLAUDE.md's ceiling rule re-derives from the last actual. 5c-ii projected 7.0M and
-closed at about 9.2M over eight tasks, about 1.15M per task once its review folds (about
-1.18M), simplifier, close, and architecture reads are amortized ("Token ceiling"). 5c-ii's
-provisional 5.0M assumed six tasks at 0.725M. This scope is twelve tasks with the first
+**Reason:** the ceiling re-derives from the last actual, as 5c-ii's did (5c-ii plan, "Token
+ceiling"). 5c-ii projected 7.0M and closed at about 9.2M over eight tasks, about 1.15M per
+task once its review folds (about 1.18M), simplifier, close, and architecture reads are
+amortized ("Token ceiling"). 5c-ii's provisional 5.0M assumed six tasks at 0.725M (4.35M) plus
+adders. This scope is twelve tasks with the first
 browser tooling, after the fold split Task 3 and added 5c-iv's refresh read. Rung 5's
 reservation moves from about 41M to about 51M.
 
@@ -191,9 +201,10 @@ reservation moves from about 41M to about 51M.
 the old figure; the render-and-read (Task 10) and the AI-tells rule would be the first
 candidates, and each is a ratified obligation, so the cut takes an erratum.
 
-**7. Does the signed-in header's focus ring clear 3:1 through W9.1's page-colored halo: a
-`base-100` halo beneath the `--ink-primary` outline that spreads past the ring on the neutral
-bar, so VI's "one focus-ring color" stays literally true?** Recommendation: yes.
+**7. Does the signed-in header's focus ring take W9.1's page-colored halo (a `base-100` halo
+under the `--ink-primary` outline, spreading past the ring), so one ring color clears 3:1 on
+the neutral bar and VI's "one focus-ring color" (`:5`) stays literally true?**
+Recommendation: yes.
 
 **Reason:** VI puts the header on neutral ("Neutral is the header bar", `:109`). On `label`,
 `--ink-primary` `#9d2f26` against neutral `#1f1b16` measures 2.34:1 (risk lens), and with a
@@ -201,10 +212,12 @@ bar, so VI's "one focus-ring color" stays literally true?** Recommendation: yes.
 floor the W3C Understanding document for SC 1.4.11 states ("the visual focus indicator for a
 component must have sufficient contrast against the adjacent background when the component is
 focused"). VI's "clears the 3:1 focus-appearance floor on every surface" (`:114`) measured the
-three bases only. On `label-night` the same ring measures 6.93:1. W9.1 supplies the mechanism:
-"Where a tinted ground shares the ring's hue, a page-colored halo sits under the ring."
+three bases only. On `label-night` the same ring measures 6.93:1. W9.1 prescribes a
+page-colored halo where a ground shares the ring's hue ("Where a tinted ground shares the
+ring's hue, a page-colored halo sits under the ring"). The bar fails on luminance instead, and
+the same halo fixes it.
 
-**What yes builds:** Task 9 scopes the halo to the header's controls as
+**What yes builds:** Task 9 scopes the halo to the header controls' `:focus-visible` state as
 `box-shadow: 0 0 0 6px var(--color-base-100)` under the 2px outline at its 2px offset. The
 halo fills the offset gap, lies under the ring, and extends 2px past the ring's outer edge, so
 `base-100` is the ring's neighbor on both sides and the bar never touches it. Task 5's focus
@@ -216,9 +229,10 @@ the bar at 2.34:1, so the header rows fail. **What no builds:** a header-scoped 
 redefines `--ink-primary` in its own scope, so the inherited row's color assertion holds
 unchanged (every header foreground takes `--color-neutral-content`, so no header text reads
 the ink). Both samples then read the bar: 6.20:1 on `label`'s `#1f1b16` and 6.93:1 on
-`label-night`'s `#110f0d`. Geoff may name the mustard secondary instead (7.81:1 or better on
-either bar). Either way VI takes an erratum that the ring color is one per surface class, not
-one everywhere.
+`label-night`'s `#110f0d`. The header-scoped value lives in `web/src/lib/themes/inks.css`,
+since G1 refuses a literal outside `lib/themes/` (`web/scripts/gates/g1.ts:11`), and Task 9's
+Files gain that file. VI takes an erratum: the ring color is one per surface class, not one
+everywhere.
 
 **8. Do W4.10's two tiers stand in this pass (the rendered rule fails below 24px on the
 activation region and reports below 44px as advisory), with VI's "Header nav links and the theme
@@ -235,9 +249,9 @@ exceptions and the square test, seeded with a 20px control; Task 9's 44px row on
 controls. **What no builds:** 44 becomes the error tier now, a declared deviation from W4.10's
 ruled tiers, and every control on every page must clear it.
 
-**9. Does a WOFF2 that drops the source's 8-byte empty `DSIG` stub and sets `head` flags bit 11
-count as "unchanged except for WOFF compression" (OFL FAQ 2.2.1) for Alfa Slab One's Reserved
-Font Name?** Recommendation: yes.
+**9. Does a WOFF2 that drops the source's 8-byte empty `DSIG` stub and sets `head` flags bit 11,
+and so rewrites `checkSumAdjustment`, count as "unchanged except for WOFF compression" (OFL FAQ
+2.2.1) for Alfa Slab One's Reserved Font Name?** Recommendation: yes.
 
 **Reason:** the mechanics lens measured it (`mech/ft/cmp.py`): fontTools' WOFF2 encoder drops
 `DSIG` unconditionally (`ttLib/woff2.py:218-219`: "always drop DSIG table, since the encoding
@@ -292,7 +306,7 @@ Approving this plan approves these. The close drafts each erratum (Tasks 6 and 1
   theme."** Rung 5 now ships two composed themes (VI ruling 8), so the render-and-read
   (Task 10) covers both schemes.
 - **The rung 5 spec's add-member "admin checkbox" (`:1438`).** R-5c13 (5c-i) already refuses an
-  `admin` field on the web channel and the API enforces it (`internal/auth/admin.go:27`,
+  `admin` field on the web channel and the API enforces it (`internal/auth/admin.go:43`,
   `outcomeAdminNotGrantable`); the page ships no admin control. This is the 5c-i outline's
   reading (`2026-09-23-rung-5c-pages-member-verb.md:2501-2503`), recorded here so the spec
   line takes its erratum.
@@ -440,21 +454,21 @@ two, every other task four), plus each Task 0's report. None passes four.
   small and needs the main tree, then this pass).
 - **No deploy.** No task runs `scripts/deploy.sh`, not even `--check`, and no task ssh's to
   the box.
-- **Package territory, stated as a wall.** This pass writes: the `web/` tree (`src/`,
-  `static/`, `scripts/`, `svelte.config.js`, `package.json`, `package-lock.json`);
-  `internal/serve` (`document.go`, `csp.go` only if a directive test needs it, and their
-  tests); `cmd/dubplate-server` (`web.go`, `web_test.go`, `serve.go` for the site-name,
-  prefix, and route wiring, `serve_test.go`, and the new build-tagged `rendered_test.go`);
-  `web/embed.go`'s test file; `Makefile`; `scripts/check.sh`; `CLAUDE.md`'s gate paragraph;
-  `.gitignore`. **It writes nothing under `internal/config`, `internal/auth`,
-  `internal/identity`, `internal/engine`, `internal/notify`, `internal/harness`,
-  `internal/atomicfile`, `systemd/`, `env/`, `config/`, `corpus/`, `tools/`, or `_salvage/`,**
-  and no `docs/` file outside the close drafts. A task that believes it needs one stops and
-  reports.
+- **Package territory, stated as a wall.** This pass writes: the `web/` tree (`src/`, `static/`,
+  `scripts/`, `svelte.config.js`, `package.json`, `package-lock.json`); `internal/serve`
+  (`document.go`, `csp.go` only if a directive test needs it, and their tests);
+  `cmd/dubplate-server` (`web.go`, `web_test.go`, `serve.go` for the site-name, prefix, and
+  route wiring, `serve_test.go`, and the new build-tagged `rendered_test.go`); `web/embed.go`'s
+  test file; `Makefile`; `scripts/check.sh`; `CLAUDE.md`'s gate paragraph; `.gitignore`;
+  `.gitleaks.toml`, only if a binary face trips it (Task 1). **It writes nothing under
+  `internal/config`, `internal/auth`, `internal/identity`, `internal/engine`, `internal/notify`,
+  `internal/harness`, `internal/atomicfile`, `systemd/`, `env/`, `config/`, `corpus/`, `tools/`,
+  or `_salvage/`,** and no `docs/` file outside the close drafts. A task that believes it needs
+  one stops and reports.
 - **No new Go module dependency.** `go.mod` and `go.sum` stay byte-identical.
 - **The web dependency set is R-5cii16's pins plus `playwright@1.63.0` under Ruling 2.** The
-  pins as committed: `daisyui` is `5.7.46` (`web/package.json`), not the plan's `5.7.45`; Task
-  0 records the drift. No ESLint, Prettier, `@playwright/test`, Fontsource, or font package
+  pins as committed: `daisyui` is `5.7.46` (`web/package.json`), not the 5c-ii plan's `5.7.45`;
+  Task 0 records the drift. No ESLint, Prettier, `@playwright/test`, Fontsource, or font package
   enters `package.json`; the IBM Plex file is taken from its npm tarball once, by hand
   (R-5ciii1), and the package is not a dependency.
 - **Server-only SvelteKit files are forbidden**, as 5c-ii's check gates.
@@ -575,7 +589,7 @@ it moves the license texts and the manifest out of the embedded tree and needs a
 G4 erratum.
 
 **Caching.** R-5cii8 already classes the fonts `no-cache`. `serve.NewAssets` serves through
-`http.ServeContent` with a zero `modtime` (`internal/serve/document.go:229`) and no `ETag`, so a
+`http.ServeContent` with a zero `modtime` (`internal/serve/document.go:230`) and no `ETag`, so a
 `no-cache` revalidation has nothing to compare and refetches every byte. `go doc
 net/http.ServeContent`: "If the caller has set w's ETag header formatted per RFC 7232, section
 2.3, ServeContent uses it to handle requests using If-Match, If-None-Match, or If-Range." The
@@ -610,24 +624,24 @@ two match blocks and `system.css`'s two branches in one commit, so G2's parity r
   (`:100-106`): `--ink-primary`, `--ink-accent` (success text uses it; VI "also success"),
   `--ink-info`, `--ink-error`, `--ink-warning`. `label`: `#9d2f26`, `#2d6136`, `#2d5a81`,
   `#a4261d`, `#754f00`. `label-night`: `#ec7b6a`, `#66a46e`, `#6d9cc7`, `#e37866`, `#e5ad33`
-  (the last two may be written `var(--color-info)` and `var(--color-warning)`, since they equal
-  the fill; W2.7's "The ink defaults to the fill").
+  (the info and warning inks, `#6d9cc7` and `#e5ad33`, may be written `var(--color-info)` and
+  `var(--color-warning)`, since each equals its fill; W2.7's "The ink defaults to the fill").
 - **Surface tokens**, a fourth layer beside the inks and like them outside the DaisyUI blocks
   (so DL R2.1's 21 names hold), in a new `web/src/lib/themes/surface.css` under `@layer base`,
-  one rule per composed theme and both `system.css` branches: the shadow color and strengths
-  (VI `:204-206`: neutral at 55% and 45% on `label`; black at 65% and 60% on `label-night`),
-  the `label-night` keylines (VI `:330`: `#706a5f` for base-surface objects, black for
-  color-filled ones), the selection ground (VI `:331`), and the placeholder opacity (VI `:332`,
-  62% on `label`). Literal colors live here because G1 exempts `lib/themes/` alone
-  (`web/scripts/gates/g1.ts:11`). The implementer names the set; the names are a closed list
-  G2 checks per rule.
+  one rule per composed theme and both `system.css` branches: the shadow color and strengths (VI
+  `:204-206`: neutral at 55% and 45% on `label`; black at 65% and 60% on `label-night`), the
+  `label-night` keylines (VI `:330`: `#706a5f` for base-surface objects, black for color-filled
+  ones), and the selection ground (VI `:331`). The placeholder opacity (VI `:332`) waits for
+  rung 7: no page in this plan carries a `placeholder` attribute. Literal colors live here
+  because G1 exempts `lib/themes/` alone (`web/scripts/gates/g1.ts:11`). The implementer names
+  the set; the names are a closed list G2 checks per rule.
 - **A11y W4 closes as gate rows.** G9 measures a closed list against its grounds. Every ink
   against `base-100`, `base-200`, and `base-300` of its own theme (VI: "every ink passes 4.5:1
   on base-100, base-200, and base-300, so no component needs to know which surface it sits
   on"). `base-content` against the same three bases. Each `*-content` color against its own
   fill only (`primary`, `secondary`, `accent`, `neutral`, `info`, `success`, `warning`,
   `error`; VI: "Every fill and its content color pass 4.5:1 in both palettes"). The fills
-  themselves are never measured as text, and the two VI marks fill-only (`label` secondary,
+  themselves are never measured as text, and the two colors VI marks fill-only (`label` secondary,
   `label-night` neutral, VI `:108`, W2.6's marker) are named in the script as excluded with
   that reason. A second G9 row pins the ten ink values against VI's table, quoted into the
   script with its source line, so an ink that drifts from VI fails even when it still passes
@@ -703,22 +717,28 @@ W12.4: "Driven by Playwright against `dubplate-server serve` already answering".
   grows the matrix sets it to at least twice its measured wall time and reports both. `make
   check` runs the target after `test`. `scripts/check.sh`'s full form always runs it (W12.6:
   the pass-end gate, and "a per-task gate only for a task that moves rendered paint or touches
-  `web/`"). `--scope-changed` never calls `make check` (`scripts/check.sh:295-308` runs `make
-  vet lint tidy-check` and a hand-listed `go test`), so Task 3a wires the leg into that branch
-  explicitly: it runs when the change set touches `web/`, `internal/serve/`, `internal/auth/`,
+  `web/`"). `--scope-changed` calls `make check` only when the change set touches
+  `internal/harness/`, `internal/engine/`, or `corpus/` (`scripts/check.sh:210-221`).
+  Otherwise it runs `make vet lint tidy-check` and `go test` over every package but the
+  conform suite (`:296-308`), so Task 3a wires the leg into that branch explicitly: it runs
+  when the change set touches `web/`, `internal/serve/`, `internal/auth/`,
   `internal/identity/`, or `cmd/dubplate-server/{web,serve,auth,rendered_test}.go` and their
   tests, and prints the scope line either way. `--reduced` skips it and says so.
-- **It gates, never skips (W12.1).** Each of these exits nonzero with a message naming the
-  state: the browser does not launch (the script maps a launch error whose message contains
-  `Executable doesn't exist at` to the hint `npx --prefix web playwright install chromium`;
-  `playwright-core@1.63.0` throws that message from its browser registry,
-  `lib/coreBundle.js:33180`, and any other launch error exits nonzero with its own message); the
-  server not answering; a page answering outside 2xx; a page whose final URL differs from the
-  one requested (W12.1's redirect trap); a page that settles without its declared identity (its
-  `h1` text) within the timeout, the un-booted-page shape, judged after hydration, since `ssr =
-  false` leaves the prerendered body empty until the client boots; the served `version.json`
-  differing from the build's; any `securitypolicyviolation` event or console error on any page;
-  and any manifest ID missing, extra, or reported without its fixture state.
+- **It gates, never skips (W12.1).** Each of these states exits nonzero with a message naming
+  it:
+  - The browser does not launch. The script maps a launch error whose message contains
+    `Executable doesn't exist at` to the hint `npx --prefix web playwright install chromium`.
+    `playwright-core@1.63.0` throws that message from its browser registry
+    (`lib/coreBundle.js:33180`). Any other launch error exits nonzero with its own message.
+  - The server does not answer.
+  - A page answers outside 2xx.
+  - A page's final URL differs from the one requested (W12.1's redirect trap).
+  - A page settles without its declared identity (its `h1` text) within the timeout: the
+    un-booted-page shape. It is judged after hydration, since `ssr = false` leaves the
+    prerendered body empty until the client boots.
+  - The served `version.json` differs from the build's.
+  - Any page raises a `securitypolicyviolation` event or a console error.
+  - A manifest ID is missing, extra, or reported without its fixture state.
 - **Two refusals stay resident in the gate as negative rows**, so they cannot rot: the test runs
   the script once more with `PLAYWRIGHT_BROWSERS_PATH` set to an empty temporary directory the
   test creates, and asserts a nonzero exit carrying the install hint. The registry reads that
@@ -933,7 +953,7 @@ blocker.
    `cmd/dubplate-server/serve.go:42-62,243,289-311,374`,
    `internal/auth/handlers.go:20-21,52-62,157-164`, `internal/auth/admin.go:25-46`,
    `internal/auth/limit.go:37-42`, `internal/auth/token.go:55,64,118,172`, `Makefile:42-87`,
-   `scripts/check.sh:1-60,295-308`.
+   `scripts/check.sh:1-60,209-221,296-313`.
 3. **Every pin**: `npm view <pkg> version` for each R-5cii16 package, `playwright`, and
    `@ibm/plex-mono`; PyPI's newest `fonttools`; the `google/fonts` commits R-5ciii1 names still
    carry the named files. Report every newer version; a newer minor or patch is taken through
@@ -1058,8 +1078,8 @@ Model: `sonnet`. Depends on Task 1 (the family names).
 **Named mutations:**
 1. Set `label`'s `--ink-primary` to `#c1352b` (the fill) → the `base-300` row fails (VI: the
    fill is why the ink exists).
-2. Set `label`'s `--ink-warning` to `#765000` (the draft's value, still above 4.5:1 on
-   `base-100`) → the pinned-value row fails.
+2. Set `label`'s `--ink-warning` to `#744e00` (4.60:1 on `base-300`, so every contrast row
+   still passes) → the pinned-value row fails alone.
 3. Drop `--ink-info` from `system.css`'s dark branch → the parity row names it.
 4. Move a surface token into a `daisyui/theme` block → G2's 21-name count fails.
 
@@ -1097,17 +1117,22 @@ check that passes vacuously when built quickly, and the harness composes the rea
   5c-iii" for DaisyUI's `data:` noise texture (svelte W4, a11y S7).
 
 **Acceptance criteria:**
-- Each refusal fails by name, the real tree passing first: the `web-rendered` target with the
-  build tag misspelled in a scratch copy (no `TestRendered` pass event); the resident
-  missing-browser row (`PLAYWRIGHT_BROWSERS_PATH` at an empty temporary directory); a stub with
-  its `h1` removed in a scratch build (the identity refusal, judged after hydration); a served
-  `version.json` that differs from the build's (seeded by building the test binary with `go test
-  -c -tags rendered`, then editing `web/build/_app/version.json`, then running the binary, since
-  the embed and the file are otherwise the same bytes); the resident injected off-origin `<img>`
-  (a runtime `img-src` violation); a page whose final URL differs from the requested one (the
-  task names a request the shell redirects, or seeds one in a scratch copy); a row removed from
-  the script (the manifest names the missing ID), a row added to the script only (the manifest
-  names the extra ID), and a row reported without its fixture-state result.
+- Each refusal fails by name, the real tree passing first:
+  - The `web-rendered` target with the build tag misspelled in a scratch copy (no
+    `TestRendered` pass event).
+  - The resident missing-browser row (`PLAYWRIGHT_BROWSERS_PATH` at an empty temporary
+    directory).
+  - A stub with its `h1` removed in a scratch build (the identity refusal, judged after
+    hydration).
+  - A served `version.json` that differs from the build's. The seed builds the test binary
+    with `go test -c -tags rendered`, edits `web/build/_app/version.json`, then runs the
+    binary, since the embed and the file are otherwise the same bytes.
+  - The resident injected off-origin `<img>` (a runtime `img-src` violation).
+  - A page whose final URL differs from the requested one. The task names a request the shell
+    redirects, or seeds one in a scratch copy.
+  - A row removed from the script (the manifest names the missing ID).
+  - A row added to the script only (the manifest names the extra ID).
+  - A row reported without its fixture-state result.
 - A deliberately unhashed inline script in a scratch build is a separate row labeled
   "startup refuses": `serve.DocumentCSP` refuses it at `newServeShell` before any page loads
   (`internal/serve/csp.go`: "DocumentCSP hashes every inline script in doc and refuses when
@@ -1117,7 +1142,7 @@ check that passes vacuously when built quickly, and the harness composes the rea
 - The `web` target's second-build comparison passes on the real tree and fails with
   `kit.version.name` unset.
 - `--scope-changed` runs the leg for a change set touching `web/` and prints its skip line for
-  one touching only `internal/engine/`; the report pastes both scope lines.
+  one touching only `internal/atomicfile/`; the report pastes both scope lines.
 - The report pastes the matched `TestRendered` pass event, the manifest's row count, its link
   request and consumption counts against the fixture limits, the gate's wall time before and
   after the leg, the second build's added time, the gate's peak memory, and the `-timeout`
@@ -1186,8 +1211,8 @@ values enter markup (R-5ciii5), the class Task 6 of 5c-ii upshifted for.
 **Files:**
 - Create: `web/static/favicon.svg`, `web/static/favicon.png` (32px),
   `web/static/mark/mark-{large,medium,small}.svg` (copied from
-  `docs/superpowers/specs/2026-09-24-visual-identity/`, unmodified), a `Mark` component under
-  `web/src/lib/components/`, `web/scripts/gates/root-absolute.ts`
+  `docs/superpowers/specs/2026-09-24-visual-identity/`, unmodified),
+  `web/scripts/gates/root-absolute.ts`
 - Modify: `internal/serve/document.go` and its test (the head insertions ride
   `BuildDocumentVariants`; today its only insertion is `insertTierLinks`, applied once before
   the per-palette loop, `document.go:57-71`, and `theme-color` differs per palette, so the task
@@ -1205,12 +1230,11 @@ values enter markup (R-5ciii5), the class Task 6 of 5c-ii upshifted for.
   variant; `noindex, nofollow` in every variant of the `login` and `login/link` documents only.
 - **The mark and icon links (VI "The mark"):** the three SVGs served as static files, the
   favicon `mark-small.svg` with a 32px PNG rendered once by `rsvg-convert` (installed, 2.63.2;
-  the command in the task report), the prefix-absolute icon links the Go rewrite inserts, and
-  Go routes answering their exact paths `no-cache` with a strong ETag; a `Mark` component that
-  picks the SVG by rendered size (56px and up large, 21 to 55 medium, 20 and below small)
-  through kit's `asset()`, with empty `alt`, the wordmark text beside it carrying the name. G1
-  does not scan `web/static/` (`g1.ts:10`), where the mark's fixed brand colors live; the mark
-  SVGs carry no `<text>`, font, or external reference (mechanics lens).
+  the command in the task report), the prefix-absolute icon links the Go rewrite inserts, and Go
+  routes answering their exact paths `no-cache` with a strong ETag. The `Mark` component that
+  picks among the three SVGs is built with its first caller, in Task 8. G1 does not scan
+  `web/static/` (`g1.ts:10`), where the mark's fixed brand colors live; the mark SVGs carry no
+  `<text>`, font, or external reference (mechanics lens).
 - **The root-absolute gate (R-5ciii6)** in the `web` target, over `web/src` markup and
   TypeScript and the built stylesheets.
 
@@ -1305,13 +1329,12 @@ without being unlayered (tier 3's operator file must keep the last word, DL R4.4
   controls carry a 2px `base-content` border and inputs a faint inset shadow; badges are
   squared outlines in IBM Plex Mono, uppercase, `.08em` tracking; the `label-night` keylines;
   the three radius values.
-- **The refinement rules this pass's pages use (VI `:320-334`):** `.display` at line-height
-  1.1 with `text-wrap: balance`; `text-wrap: pretty` on paragraphs and alert text; the three
-  mono sizes and two trackings as utilities; the label rule under page titles (a 3px line over
-  a 1px line); `::selection`; the `label` placeholder opacity; hover states and pointer
-  cursors on header links; motion stops under `prefers-reduced-motion: reduce`. Rules for
-  surfaces no page renders (tabs, tracklists, the film edge, the catalog line) wait for rung 7,
-  with the rest of Ruling 5's list.
+- **The refinement rules this pass's pages use (VI `:320-334`):** `.display` at line-height 1.1
+  with `text-wrap: balance`; `text-wrap: pretty` on paragraphs and alert text; the three mono
+  sizes and two trackings as utilities; the label rule under page titles (a 3px line over a 1px
+  line); `::selection`; hover states and pointer cursors on header links; motion stops under
+  `prefers-reduced-motion: reduce`. Rules for surfaces no page renders (tabs, tracklists, the
+  film edge, the catalog line) wait for rung 7, with the rest of Ruling 5's list.
 
 **Acceptance criteria (rendered rows, both schemes):**
 - **The focus row covers every tabbable element on every served page**, enumerated by DOM query,
@@ -1364,19 +1387,30 @@ and the pass-end reviews with their fold.
 `docs/superpowers/research/handoffs/draft-HISTORY-5c-iii.md`,
 `docs/superpowers/research/handoffs/draft-STATUS-5c-iii.md`
 
-**Outcomes:** the HISTORY draft (per task with commit ids; the gate evidence including the
-rendered leg's wall time and the build's peak memory under the heavy lane; the resolutions and
-rulings; the review dispositions; the declared gaps; both budgets; "what a later pass would be
-wrong to rediscover"); the errata owed, paste-ready, from this plan's deviations and the fold
-record's "Errata owed" list (the third split in the rung 5 spec's 5c row and W section 15; DL
-R5.5; W4.1's both-schemes line; the rung 5 spec's admin checkbox; VI `:141`'s and `:152`'s
-clause number; VI `:149`'s Permanent Marker license; VI `:114`'s focus-floor claim per Ruling 7;
-VI `:128-131` per Ruling 10; R-5cii8's members row; R-5cii22's cookie lifetime); the 5c-iv
-handoff (what Tasks 7 through 10 build on; the four files that cross the Ruling 1 cut,
-`cmd/dubplate-server/rendered_test.go`, `web/scripts/rendered/run.ts`, `Makefile`, and
-`web/src/lib/styles/components.css`, each with its state at the close; and every 5c-iii review
-fold that touches a surface they consume, as the input to conductor's action 5's refresh read);
-the STATUS draft under 60 lines.
+**Outcomes:**
+- **The HISTORY draft:** per task with commit ids; the gate evidence, including the rendered
+  leg's wall time and the build's peak memory under the heavy lane; the resolutions and
+  rulings; the review dispositions; the declared gaps; both budgets; and "what a later pass
+  would be wrong to rediscover".
+- **The errata owed, paste-ready,** from this plan's deviations and the fold record's "Errata
+  owed" list:
+  - the third split in the rung 5 spec's 5c row and W section 15;
+  - DL R5.5;
+  - W4.1's both-schemes line;
+  - the rung 5 spec's admin checkbox;
+  - VI `:141`'s and `:152`'s clause number;
+  - VI `:149`'s Permanent Marker license;
+  - VI `:114`'s focus-floor claim per Ruling 7, and under its no, the ring color per surface
+    class;
+  - VI `:128-131` per Ruling 10;
+  - R-5cii8's members row;
+  - R-5cii22's cookie lifetime.
+- **The 5c-iv handoff:** what Tasks 7 through 10 build on. It names the four files that cross
+  the Ruling 1 cut (`cmd/dubplate-server/rendered_test.go`, `web/scripts/rendered/run.ts`,
+  `Makefile`, and `web/src/lib/styles/components.css`), each with its state at the close. It
+  lists every 5c-iii review fold that touches a surface they consume, as the input to
+  conductor's action 5's refresh read.
+- **The STATUS draft,** under 60 lines.
 
 **Acceptance criteria:** every count produced by a command the report pastes; every commit id
 resolves; `bash scripts/check.sh` green as a formality.
@@ -1400,22 +1434,27 @@ Model: `sonnet`.
 
 **Outcomes:**
 - **The deck** (rung 5 spec `:1452-1460`): every user-facing string of the three pages, the
-  error page, and the signed-in header, as named constants: the login subline ("Sign in with
-  your email. We'll send you a link.", VI `:304-305`, with curly apostrophes per VI `:326`);
-  one line per request-link outcome (`sent`, `requested`, `unknown` with its admin contact and
-  `unknown` with none, `rate_limited`, `invalid_address`, `too_large`, `malformed`, `failed`,
-  `handlers.go:52-62`), the cross-origin 403, and a network failure; the sent moment's text
-  and its escape hatch back to the form (W6.11, W7.15); the interstitial's statement, its
-  control, and one line per consume outcome (`signed_in`, `refused`, `rate_limited`,
-  `too_large`, `malformed`, `failed`); the sign-out control and outcome, which never claims
-  revocation (the 5b-ii bound, `2026-09-23-rung-5c-pages-member-verb.md:2495-2497`); the
-  add-member form's labels and hints and one specific line per roster outcome
-  (`admin.go:35-46`); the roster list's empty state (W7.1, W7.2) and its plural-aware count
-  (W8.4); the error page's two sentences; the toggle's accessible name, "Dark theme" (VI
-  `:131`); and every page `<title>`, one per page and state where the state changes it (W7.14),
-  in VI's "Sign in" register, replacing the stubs' "Log in" and "Confirm login". The signed-in
-  state is the honest terminal state the spec names for no streamer (`spec:1270-1273`): a plain
-  confirmation, no destination.
+  error page, and the signed-in header, as named constants:
+  - the login subline ("Sign in with your email. We'll send you a link.", VI `:304-305`, with
+    curly apostrophes per VI `:326`);
+  - one line per request-link outcome (`sent`, `requested`, `unknown` with its admin contact
+    and `unknown` with none, `rate_limited`, `invalid_address`, `too_large`, `malformed`,
+    `failed`; `handlers.go:52-62`), the cross-origin 403, and a network failure;
+  - the sent moment's text and its escape hatch back to the form (W6.11, W7.15);
+  - the interstitial's statement, its control, and one line per consume outcome (`signed_in`,
+    `refused`, `rate_limited`, `too_large`, `malformed`, `failed`);
+  - the sign-out control and outcome, which never claims revocation (the 5b-ii bound,
+    `2026-09-23-rung-5c-pages-member-verb.md:2495-2497`);
+  - the add-member form's labels and hints, and one specific line per roster outcome
+    (`admin.go:35-46`);
+  - the roster list's empty state (W7.1, W7.2) and its plural-aware count (W8.4);
+  - the error page's two sentences;
+  - the toggle's accessible name, "Dark theme" (VI `:131`);
+  - every page `<title>`, one per page and state where the state changes it (W7.14), in VI's
+    "Sign in" register, replacing the stubs' "Log in" and "Confirm login".
+
+  The signed-in state is the honest terminal state the spec names for no streamer
+  (`spec:1270-1273`): a plain confirmation, no destination.
 - **The coverage test:** every outcome value the handlers answer has a deck line, asserted by a
   test that reads the Go outcome constants' values from `internal/auth/handlers.go` and
   `admin.go` and compares them with the deck's keys. So a parser that matches nothing cannot
@@ -1452,13 +1491,14 @@ rule, the register input).
 ## Task 8: The login page, the consumption interstitial, and the error page
 
 Model: `sonnet`. Depends on Task 7. **Independent of Task 9 by files except the manifest and
-`run.ts`.**
+`run.ts`**; Task 9's header reads the `Mark` component this task creates.
 
 **Files:**
 - Modify: `web/src/routes/login/+page.svelte`, `web/src/routes/login/link/+page.svelte`,
   `web/src/routes/+error.svelte`, `cmd/dubplate-server/rendered_test.go` (the fixture site
   name, the manifest IDs), `web/scripts/rendered/run.ts`
-- Create: a small API helper under `web/src/lib/` (R-5ciii6) if Task 7 did not
+- Create: a `Mark` component under `web/src/lib/components/`; a small API helper under
+  `web/src/lib/` (R-5ciii6) if Task 7 did not
 
 **Outcomes:**
 - **The login page** (rung 5 spec `:1415-1433`; VI `:258-261` under Ruling 3; W6.11, W7.14,
@@ -1471,7 +1511,9 @@ Model: `sonnet`. Depends on Task 7. **Independent of Task 9 by files except the 
   to the form carrying the typed address; when it unmounts the focused form, focus moves
   deliberately (W7.16). The `<title>` follows the state (W7.14). The admin contact renders as
   Svelte text only. The server's copy stays authoritative over `validator`. No theme toggle
-  (VI `:132`).
+  (VI `:132`). The `Mark` component, built here for its first caller, picks among Task 4's
+  three SVGs by rendered size (56px and up large, 21 to 55 medium, 20 and below small) through
+  kit's `asset()`, with empty `alt`; the wordmark text beside it carries the name.
 - **The interstitial** (rung 5 spec "Consumption"; security I2): on mount it reads `t` from
   `location`, then **before any other work** replaces the history entry with the same URL less
   its query. Kit's `$app/navigation` `replaceState` stores `page.url.href` (the token URL) in
@@ -1548,21 +1590,23 @@ assertively; plain status announces politely.
 
 **2.0 hook: neutral** (the device page will live in this app, VI and S20 `:390-396`; nothing
 here builds for it). **Pre-named split:** the error page and its rows move to their own task
-after this one. **Deliverable count: 4** (login, interstitial, error page, the rendered rows).
+after this one. **Deliverable count: 4** (login with the `Mark` component, interstitial, error
+page, the rendered rows).
 
 ---
 
 ## Task 9: The add-member page, the signed-in header, and the theme toggle
 
-Model: `sonnet`. Depends on Task 7. **Independent of Task 8 by files except the manifest and
-`run.ts`.**
+Model: `sonnet`. Depends on Task 7, and on Task 8 for the `Mark` component. **Otherwise
+independent of Task 8 by files except the manifest and `run.ts`.**
 
 **Files:**
 - Create: a `SiteHeader` component (mark, wordmark, nav, toggle, sign-out) under
   `web/src/lib/components/`
 - Modify: `web/src/routes/members/+page.svelte`, `web/src/lib/styles/components.css` (the
   header's focus treatment), `cmd/dubplate-server/rendered_test.go` (the member sign-in, the
-  manifest IDs), `web/scripts/rendered/run.ts`
+  manifest IDs), `web/scripts/rendered/run.ts`, and under Ruling 7's no,
+  `web/src/lib/themes/inks.css` (the header-scoped `--ink-primary`)
 
 **Outcomes:**
 - **The signed-in header (VI `:131-136`):** a neutral bar with the `Mark` and wordmark, and at
@@ -1696,8 +1740,9 @@ errata (the rung 5 spec's 5c row closed; W section 15's rendered and AI-tells li
 landed; any erratum the refresh read or the reviews added), and the handoff to 5d (the
 `deploy.sh` clean-build row now includes the rendered leg's absence on the box, since nothing
 Node or Playwright ships) and to rung 7 (Ruling 5's four items, the photo column under Ruling
-3, W12.4's remaining rules, W4.10's 44px promotion question, and `label-night`'s placeholder
-opacity, which VI `:332` leaves at DaisyUI's default of 4.38:1 on base-100 per the risk lens).
+3, W12.4's remaining rules, W4.10's 44px promotion question, and both palettes' placeholder
+opacity: VI `:332`'s 62% on `label`, which no 5c page consumes, and `label-night`'s, which VI
+leaves at DaisyUI's default of 4.38:1 on base-100 per the risk lens).
 **Deliverable count: 4.**
 
 ---
@@ -1721,8 +1766,8 @@ proving task.
 7. `theme-color` follows the stamp and branding; the site name is escaped; the auth documents
    carry `noindex, nofollow`; no request leaves the prefix, including after a client
    navigation, and none goes to `/favicon.ico`; no root-absolute URL ships (Task 4).
-8. Every tabbable element on every served page shows the `--ink-primary` ring at 2px offset
-   2px, at 3:1 or better against its adjacent pixels (Tasks 5 and 9).
+8. Every tabbable element on every served page shows the 2px `--ink-primary` ring at a 2px
+   offset, at 3:1 or better against its adjacent pixels (Tasks 5 and 9).
 9. The interstitial drops the token before any request, keeps it out of every request, and
    spends it only on a click (Task 8).
 10. The toggle writes a persistent cookie, the meta follows, and the next render stamps it; a
@@ -1737,8 +1782,8 @@ proving task.
 
 **Deferred, by name:** the photo column and error-page photos (Ruling 3); the sleeve, grain,
 rim, no-art sleeve, and Permanent Marker (Ruling 5); VI's "Open for rung 7" list; W12.4's
-remaining rendered rules; W11.8's dev fixture; W4.10's 44px promotion (Ruling 8);
-`label-night`'s placeholder opacity.
+remaining rendered rules; W11.8's dev fixture; W4.10's 44px promotion (Ruling 8); both
+palettes' placeholder opacity.
 
 ---
 
@@ -1824,8 +1869,8 @@ Task 3a (the harness's refusal set) and Task 4 (operator text into markup). Task
   runs one executor.
 - Tasks 1 through 5, the simplifier, and the reviews → Task 6.
 - Task 6 → the refresh read → 5c-iv's Task 0 → Task 7.
-- Task 7 → Task 8 and Task 7 → Task 9. **Tasks 8 and 9 are independent by files except the
-  manifest and `run.ts`.**
+- Task 7 → Task 8 → Task 9. **Tasks 8 and 9 are independent by files except the manifest,
+  `run.ts`, and the `Mark` component Task 8 creates and Task 9's header reads.**
 - Tasks 8 and 9 → Task 10 → the reviews → Task 11.
 
 **Where this pass splits further, if it must:** at the Task 4 / Task 5 boundary, if segment

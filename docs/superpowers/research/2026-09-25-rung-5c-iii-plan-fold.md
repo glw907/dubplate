@@ -222,6 +222,9 @@ paste-ready:
 - **VI `:114`:** "clears the 3:1 focus-appearance floor on every surface" was measured on the
   three bases only; on the `label` neutral header bar the ring measures 2.34:1. The erratum's
   wording follows Ruling 7.
+- **VI `:5` and `:112-115` (under Ruling 7's no):** the focus-ring color is one per surface
+  class, not one everywhere. The neutral header bar takes `label-night`'s `#ec7b6a` under both
+  themes, declared in `web/src/lib/themes/inks.css`. Added by the prose fold.
 - **VI `:128-131`:** the `theme-color` rule under a functional-color branding neutral, worded
   per Ruling 10.
 - **DL R5.5:** "four woff2 files", with no family count (revision 1's declared deviation).
@@ -288,3 +291,61 @@ their recommendations, and no task passes four deliverables.
 
 Refused: none. The only item left unchanged is Task 3a's density, which the verification read
 recorded as a count that holds, not as a defect.
+
+## Prose fold
+
+Input: the prose review (`docs/superpowers/research/2026-09-25-rung-5c-iii-plan-prose-review.md`;
+3 blockers, 5 warnings, 9 suggestions) against revision 3 (`28c983e`). The fold produces
+revision 4, status "reviewed; awaiting owner approval (Rulings 1-10)". It changes no ruling's
+substance, no ceiling, and no task's scope beyond W1.
+
+### Verified before acting
+
+- **`scripts/check.sh` (B2).** `derive_conform_affected` (`:209-221`) sets `conform_affected`
+  when any changed file sits under `internal/harness/`, `internal/engine/`, or `corpus/`. Only
+  then does `scope_conform` stay `full`. The `skipped` branch (`:296-308`) runs `make vet lint
+  tidy-check` and `go test` over every package but the conform suite. The `full` branch
+  (`:309-313`) runs `make check`, which runs `web-rendered`. So an engine-only change set does
+  run the leg. Fold 1's "Verified before acting" line ("`--scope-changed` branch never calls
+  `make check`") was wrong, and this fold corrects the plan rather than that record.
+- **VI lines (B1, B3).** VI `:108-109` marks `label` secondary `#e0a526` fill-only, "never text,
+  never a focus or selector indicator", and `:113` repeats the ban for focus. The `label-night`
+  table (`:81-93`) gives info `#6d9cc7`, warning `#e5ad33`, and error `#e0604f`; the ink table
+  (`:102-106`) gives the error ink `#e37866`. G1 exempts only `lib/themes/`
+  (`web/scripts/gates/g1.ts:11`).
+- **Contrast, recomputed** with the WCAG 2.2 sRGB relative-luminance formula: `#ec7b6a` on
+  `#1f1b16` 6.202:1 and on `#110f0d` 6.929:1; `#e0a526` on `#1f1b16` 7.810:1; `#9d2f26` on
+  `#1f1b16` 2.338:1 and on `#f4ead3` 6.121:1; `#ec7b6a` on `#1c1916` 6.340:1; `#765000` on
+  `base-300` `#dccaa3` 4.462:1; `#744e00` on `#dccaa3` 4.597:1, on `#eadcbc` 5.459:1, and on
+  `#f4ead3` 6.199:1.
+- **Pointers.** `outcomeAdminNotGrantable` is `internal/auth/admin.go:43`. `http.ServeContent`
+  is `internal/serve/document.go:230`. `web/package.json` pins `daisyui` `5.7.46`. The 5c-ii
+  plan's provisional 5.0M is "six tasks at 0.725M (4.35M)" plus adders (`:425-426`), and its
+  ceiling is re-derived under "Token ceiling" (`:371-373`). No "eight-task line" exists in any
+  brief the plan names.
+- **The W3C quote.** The Understanding document for SC 1.4.11, fetched 2026-09-25, reads "as is
+  therefore not subject", so the `[sic]` marks the source's text.
+
+### Dispositions
+
+| Finding | Disposition | Where |
+| --- | --- | --- |
+| B1 (mustard focus option) | Folded. The mustard option is dropped: VI rules `label` secondary never a focus indicator. The "no" answer now places the header-scoped `#ec7b6a` in `web/src/lib/themes/inks.css` because G1 refuses a literal elsewhere, and Task 9's Files gain that file under the no. The VI erratum (ring color per surface class) joins "Errata owed" and Task 6's errata list. | Ruling 7; Task 9 Files; Task 6 outcomes; Errata owed |
+| B2 (`--scope-changed` premise) | Folded. R-5ciii4 "Where it runs" states that `--scope-changed` calls `make check` only for a harness, engine, or corpus change, and otherwise runs the narrowed branch the leg is wired into. Task 3a's skip-line change set is `internal/atomicfile/`, which neither trigger set covers. Task 0's pointer becomes `scripts/check.sh:1-60,209-221,296-313`. | R-5ciii4; Task 3a acceptance; Task 0 item 2 |
+| B3 (wrong inks) | Folded. The ink-equals-fill note names info `#6d9cc7` and warning `#e5ad33`. | R-5ciii3 |
+| W1 (surfaces before a caller) | Folded by the move. The `Mark` component leaves Task 4 (its SVGs, favicon, icon links, and routes stay) and enters Task 8's Files, inside the login deliverable, so Task 8 stays at four. Task 9 now depends on Task 8 for `Mark`, and the dependency list says so. The placeholder opacity leaves both R-5ciii3's surface tokens and Task 5's refinement rules, since no page in the plan carries a `placeholder` attribute. Task 11's handoff and the exit gate's deferred list carry "both palettes' placeholder opacity" to rung 7. | Ruling 1 reason; "What this pass is"; R-5ciii3; Tasks 4, 5, 8, 9, 11; the exit gate; Execution model |
+| W2 (Ruling 7 reads as a measurement) | Folded. The question is the reviewer's rewrite, citing VI `:5`. The halo is scoped to the header controls' `:focus-visible` state. The W9.1 sentence says W9.1 prescribes the halo for a shared hue, and the bar fails on luminance instead. | Ruling 7 |
+| W3 (unresolvable attributions) | Folded. Ruling 6 cites the 5c-ii plan's "Token ceiling" instead of CLAUDE.md. Ruling 1 drops "the brief's eight-task line". | Rulings 1 and 6 |
+| W4 (mutation not isolated) | Folded. Task 2's mutation 2 uses `#744e00`, which passes every contrast row, so the pinned-value row fails alone. | Task 2 mutation 2 |
+| W5 (catalog sentences) | Folded. Sources, "What this pass is", R-5ciii4's "It gates", Task 3a's refusal criterion, Task 6's outcomes, and Task 7's deck are lists. Ruling 2's evidence carries one fact per sentence. | Those sections |
+| S: Ruling 9 third edit | Folded. The question names "and so rewrites `checkSumAdjustment`". | Ruling 9 |
+| S: Ruling 4 recommendation | Folded with the reviewer's wording. | Ruling 4 |
+| S: Ruling 6 figure | Folded: "six tasks at 0.725M (4.35M) plus adders". | Ruling 6 |
+| S: pointers | Folded: `admin.go:43`, `document.go:230`. | Deviations; R-5ciii1 |
+| S: wording | Folded: "the 5c-ii plan's `5.7.45`"; "the two colors VI marks fill-only"; the exit gate's "2px `--ink-primary` ring at a 2px offset". | Global constraints; R-5ciii3; exit gate item 8 |
+| S: `.gitleaks.toml` against the wall | Folded by adding it to the wall's write list, scoped to Task 1's condition. | Global constraints |
+| S: `[sic]` | Folded after fetching the W3C text. | Ruling 4 |
+| S: Ruling 8's "no" (optional) | Refused. The "no" already names its one build, 44px as the error tier for every control. A second "no" reading would add a fork Geoff did not raise. | none |
+
+Refused: one optional suggestion (Ruling 8's "no"). tellgrader `--register docs` after the
+fold: one finding, the intentional slop seed in Task 7's mutation 2.
