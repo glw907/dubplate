@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -15,12 +17,17 @@ import (
 	"slices"
 	"strings"
 	"syscall"
+	"time"
 	"unicode/utf8"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/web"
 )
+
+// fontsRouteName is the embedded faces' subtree name, beside the four
+// [newWebRoutes] names in serve.go.
+const fontsRouteName = "fonts"
 
 // themePlaceholder is the token app.html carries on <html data-theme>,
 // substituted once per stampable palette at serve startup. It must
@@ -146,6 +153,7 @@ type webRoutes struct {
 	login    http.Handler
 	members  http.Handler
 	assets   http.Handler
+	fonts    http.Handler
 	branding http.Handler
 	operator http.Handler
 }
@@ -156,6 +164,7 @@ type webRoutes struct {
 func (wr webRoutes) register(shell *serve.Shell) {
 	shell.Register(loginRouteName, serve.LogRequests(shell.Logger(), wr.login))
 	shell.Register(assetsRouteName, wr.assets)
+	shell.Register(fontsRouteName, wr.fonts)
 	shell.Register(brandingRouteName, wr.branding)
 	if wr.operator != nil {
 		shell.Register(operatorCSSRouteName, wr.operator)
@@ -275,10 +284,19 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, private privateFi
 	if err != nil {
 		return webRoutes{}, fmt.Errorf("web: %w", err)
 	}
+	fontsFS, err := fs.Sub(buildFS, "fonts")
+	if err != nil {
+		return webRoutes{}, fmt.Errorf("web: %w", err)
+	}
+	fontsRoute, err := newFontsRoute(fontsFS, prefix.String()+"/"+fontsRouteName)
+	if err != nil {
+		return webRoutes{}, err
+	}
 	routes := webRoutes{
 		login:    login,
 		members:  members,
 		assets:   serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
+		fonts:    fontsRoute,
 		branding: stylesheetRoute(prefix, brandingRouteName, branding),
 	}
 	if hasOperatorCSS {
@@ -309,6 +327,80 @@ func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler 
 	return newExactPathRoutes(map[string]http.Handler{
 		prefix.String() + "/" + name: serve.NewStylesheet(css),
 	})
+}
+
+// fontFace is one embedded font file the fonts route serves: its
+// bytes and its strong ETag, both computed once at startup so no
+// request byte reaches them.
+type fontFace struct {
+	data []byte
+	etag string
+}
+
+// newFontsRoute returns an http.Handler serving GET and HEAD only, at
+// exactly routePrefix followed by a separator and the name of a
+// .woff2 file fontsFS holds at its root. Every other path under it --
+// routePrefix itself, a directory (fontsFS's own "licenses/"), a
+// top-level file that is not a .woff2 (FONTS.md), a trailing slash,
+// and a name fontsFS does not hold -- answers [serve.Terminator]'s
+// 404, with no directory listing. It refuses when fontsFS holds no
+// .woff2 file, the same shape [isPlaceholderOnly] refuses on for the
+// whole bundle.
+//
+// Content-Type is always "font/woff2", set on w before
+// [http.ServeContent] runs so no host mime table can override it (Go's
+// built-in extension table carries no ".woff2" entry, and its fallback
+// reads host files that differ between the workstation and the box).
+// The ETag is a strong SHA-256 hash of the file's own bytes: "If the
+// caller has set w's ETag header formatted per RFC 7232, section 2.3,
+// ServeContent uses it to handle requests using If-Match,
+// If-None-Match, or If-Range" (go doc net/http.ServeContent), so a
+// matching If-None-Match answers 304 even though every response
+// carries a zero modtime.
+func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
+	entries, err := fs.ReadDir(fontsFS, ".")
+	if err != nil {
+		return nil, fmt.Errorf("web: fonts: %w", err)
+	}
+	faces := make(map[string]fontFace, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".woff2") {
+			continue
+		}
+		data, err := fs.ReadFile(fontsFS, entry.Name())
+		if err != nil {
+			return nil, fmt.Errorf("web: fonts: %q: %w", entry.Name(), err)
+		}
+		sum := sha256.Sum256(data)
+		faces[entry.Name()] = fontFace{data: data, etag: `"` + hex.EncodeToString(sum[:]) + `"`}
+	}
+	if len(faces) == 0 {
+		return nil, errors.New("web: fonts: no .woff2 file embedded under web/build/fonts/")
+	}
+
+	terminator := serve.Terminator()
+	prefixSlash := routePrefix + "/"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			w.Header().Set("Allow", "GET, HEAD")
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+		if !strings.HasPrefix(r.URL.Path, prefixSlash) {
+			terminator.ServeHTTP(w, r)
+			return
+		}
+		name := strings.TrimPrefix(r.URL.Path, prefixSlash)
+		face, ok := faces[name]
+		if !ok {
+			terminator.ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "font/woff2")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("ETag", face.etag)
+		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(face.data))
+	}), nil
 }
 
 // resolveBranding renders DUBPLATE_BRANDING into the branding

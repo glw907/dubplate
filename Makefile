@@ -33,12 +33,11 @@ tidy-check:
 # The web legs run today: `web` requires Node and npm, refuses a stale
 # or drifted `npm ci --prefix web`, builds the SvelteKit static bundle,
 # then runs svelte-check and the static web gates (no server-only file,
-# no hardcoded color, no external origin, theme variable completeness,
-# theme contrast, and the built bundle's stamped theme values). The
-# rendered (browser) gates are not yet part of this leg. `check` runs
-# it first because the Go
-# tests that read the embedded bundle need it current before `go test`
-# runs.
+# no hardcoded color, no external origin, font delivery, theme
+# variable completeness, theme contrast, and the built bundle's
+# stamped theme values). The rendered (browser) gates are not yet part
+# of this leg. `check` runs it first because the Go tests that read
+# the embedded bundle need it current before `go test` runs.
 web:
 	set -e; \
 	if ! command -v node >/dev/null 2>&1; then \
@@ -80,6 +79,7 @@ web:
 	(cd web && node scripts/gates/server-files.ts); \
 	(cd web && node scripts/gates/g1.ts); \
 	(cd web && node scripts/gates/g3.ts); \
+	(cd web && node scripts/gates/g4.ts); \
 	(cd web && node scripts/gates/g2.ts); \
 	(cd web && node scripts/gates/g9.ts); \
 	(cd web && node scripts/gates/theme-bundle.ts)

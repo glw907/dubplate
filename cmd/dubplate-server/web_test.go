@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"io/fs"
 	"log/slog"
+	"mime"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -54,6 +56,7 @@ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.M
 		"_app/assets/0.css":      &fstest.MapFile{Data: []byte(fixtureThemeCSS)},
 		"_app/entry/start.js":    &fstest.MapFile{Data: []byte("// entry")},
 		"login/nested/other.txt": &fstest.MapFile{Data: []byte("unrelated")},
+		"fonts/fixture.woff2":    &fstest.MapFile{Data: []byte("fixture woff2 bytes")},
 	}
 }
 
@@ -653,6 +656,10 @@ func TestNewServeShell_RegistersWebRoutes(t *testing.T) {
 		{path: "/dubplate/login", want: http.StatusOK},
 		{path: "/dubplate/login/link", want: http.StatusOK},
 		{path: "/dubplate/branding.css", want: http.StatusOK},
+		{path: "/dubplate/fonts/AlfaSlabOne-Regular.woff2", want: http.StatusOK},
+		{path: "/dubplate/fonts/WorkSans-Variable.woff2", want: http.StatusOK},
+		{path: "/dubplate/fonts/IBMPlexMono-Regular.woff2", want: http.StatusOK},
+		{path: "/dubplate/fonts/FONTS.md", want: http.StatusNotFound},
 		// The operator key defaults to "none", so nothing is mounted.
 		{path: "/dubplate/operator.css", want: http.StatusNotFound},
 	}
@@ -1068,6 +1075,142 @@ func TestStylesheetRoutes_ExactPaths(t *testing.T) {
 				t.Errorf("%s %s: Allow = %q, want %q", tt.method, tt.path, got, tt.wantAllow)
 			}
 		})
+	}
+}
+
+// fontsFixtureBuildFS extends newFixtureBuildFS's own build tree with
+// two named faces, a manifest, and a license text, so the fonts
+// route's every state has something to answer: a served face, a
+// sibling face, a directory, a top-level non-.woff2 file, and a name
+// it holds none of.
+func fontsFixtureBuildFS() fstest.MapFS {
+	buildFS := newFixtureBuildFS(1, 1)
+	delete(buildFS, "fonts/fixture.woff2")
+	buildFS["fonts/a.woff2"] = &fstest.MapFile{Data: []byte("face-a-bytes")}
+	buildFS["fonts/b.woff2"] = &fstest.MapFile{Data: []byte("face-b-bytes")}
+	buildFS["fonts/FONTS.md"] = &fstest.MapFile{Data: []byte("# manifest")}
+	buildFS["fonts/licenses/a-OFL.txt"] = &fstest.MapFile{Data: []byte("license text")}
+	return buildFS
+}
+
+// fontsFaceETag returns the strong ETag [newFontsRoute] computes for
+// data: a quoted hex SHA-256, independent of that function's own
+// hashing so a change to one cannot go unnoticed by the other.
+func fontsFaceETag(data []byte) string {
+	sum := sha256.Sum256(data)
+	return `"` + hex.EncodeToString(sum[:]) + `"`
+}
+
+// TestFontsRoute_States is the fonts route's own state table: each
+// served face, every 404 shape (a directory, a license text,
+// FONTS.md, a missing name, a trailing slash, and the bare subtree
+// with no name), and the 405.
+func TestFontsRoute_States(t *testing.T) {
+	handler := newWebShellHandler(t, nil, fontsFixtureBuildFS())
+
+	tests := []struct {
+		name      string
+		method    string
+		path      string
+		wantCode  int
+		wantBody  string
+		wantAllow string
+	}{
+		{name: "GET a face", method: http.MethodGet, path: "/dubplate/fonts/a.woff2", wantCode: http.StatusOK, wantBody: "face-a-bytes"},
+		{name: "GET the sibling face", method: http.MethodGet, path: "/dubplate/fonts/b.woff2", wantCode: http.StatusOK, wantBody: "face-b-bytes"},
+		{name: "HEAD a face", method: http.MethodHead, path: "/dubplate/fonts/a.woff2", wantCode: http.StatusOK},
+		{name: "a missing name", method: http.MethodGet, path: "/dubplate/fonts/c.woff2", wantCode: http.StatusNotFound, wantBody: "404 page not found\n"},
+		{name: "FONTS.md", method: http.MethodGet, path: "/dubplate/fonts/FONTS.md", wantCode: http.StatusNotFound, wantBody: "404 page not found\n"},
+		{name: "a license text", method: http.MethodGet, path: "/dubplate/fonts/licenses/a-OFL.txt", wantCode: http.StatusNotFound, wantBody: "404 page not found\n"},
+		{name: "the licenses directory itself", method: http.MethodGet, path: "/dubplate/fonts/licenses", wantCode: http.StatusNotFound, wantBody: "404 page not found\n"},
+		{name: "a trailing slash", method: http.MethodGet, path: "/dubplate/fonts/a.woff2/", wantCode: http.StatusNotFound, wantBody: "404 page not found\n"},
+		{name: "the bare subtree, no name", method: http.MethodGet, path: "/dubplate/fonts", wantCode: http.StatusNotFound, wantBody: "404 page not found\n"},
+		{name: "POST", method: http.MethodPost, path: "/dubplate/fonts/a.woff2", wantCode: http.StatusMethodNotAllowed, wantAllow: "GET, HEAD"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := serveRequest(handler, tt.method, tt.path)
+			if rec.Code != tt.wantCode {
+				t.Fatalf("%s %s: status = %d, want %d", tt.method, tt.path, rec.Code, tt.wantCode)
+			}
+			if tt.wantBody != "" && rec.Body.String() != tt.wantBody {
+				t.Errorf("%s %s: body = %q, want %q", tt.method, tt.path, rec.Body.String(), tt.wantBody)
+			}
+			if got := rec.Header().Get("Allow"); got != tt.wantAllow {
+				t.Errorf("%s %s: Allow = %q, want %q", tt.method, tt.path, got, tt.wantAllow)
+			}
+		})
+	}
+}
+
+// TestFontsRoute_Headers proves a served face carries three headers:
+// an explicit Content-Type, Cache-Control: no-cache, and a strong
+// ETag matching the file's own SHA-256, and that a matching
+// If-None-Match answers 304 (go doc net/http.ServeContent).
+func TestFontsRoute_Headers(t *testing.T) {
+	buildFS := fontsFixtureBuildFS()
+	handler := newWebShellHandler(t, nil, buildFS)
+	wantETag := fontsFaceETag(buildFS["fonts/a.woff2"].Data)
+
+	rec := serveRequest(handler, http.MethodGet, "/dubplate/fonts/a.woff2")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET a.woff2: status = %d, want 200", rec.Code)
+	}
+	if got := rec.Header().Get("Content-Type"); got != "font/woff2" {
+		t.Errorf("Content-Type = %q, want %q", got, "font/woff2")
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-cache" {
+		t.Errorf("Cache-Control = %q, want %q", got, "no-cache")
+	}
+	if got := rec.Header().Get("ETag"); got != wantETag {
+		t.Errorf("ETag = %q, want %q", got, wantETag)
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/dubplate/fonts/a.woff2", nil)
+	r.Header.Set("Sec-Fetch-Site", "same-origin")
+	r.Header.Set("If-None-Match", wantETag)
+	revalidate := httptest.NewRecorder()
+	handler.ServeHTTP(revalidate, r)
+	if revalidate.Code != http.StatusNotModified {
+		t.Errorf("GET a.woff2 with a matching If-None-Match: status = %d, want %d", revalidate.Code, http.StatusNotModified)
+	}
+}
+
+// TestFontsRoute_ContentTypeIgnoresHostMimeTable proves the served
+// Content-Type comes from the route itself, never from the host's own
+// extension table: [mime.AddExtensionType] seeds ".woff2" to a wrong
+// value first, and the seed is asserted in force before the request
+// runs.
+func TestFontsRoute_ContentTypeIgnoresHostMimeTable(t *testing.T) {
+	if err := mime.AddExtensionType(".woff2", "application/x-seeded"); err != nil {
+		t.Fatalf("mime.AddExtensionType: %v", err)
+	}
+	if got := mime.TypeByExtension(".woff2"); got != "application/x-seeded" {
+		t.Fatalf("mime.TypeByExtension(%q) = %q, want the seed in force before the request", ".woff2", got)
+	}
+
+	handler := newWebShellHandler(t, nil, fontsFixtureBuildFS())
+	rec := serveRequest(handler, http.MethodGet, "/dubplate/fonts/a.woff2")
+	if got := rec.Header().Get("Content-Type"); got != "font/woff2" {
+		t.Errorf("Content-Type = %q, want %q even with a seeded host mapping in force", got, "font/woff2")
+	}
+}
+
+// TestNewWebRoutesFromFS_NoFontFilesRefusesStartup proves a build
+// tree carrying no .woff2 file under "fonts/" refuses startup, the
+// same shape a placeholder-only build refuses on, rather than
+// registering a fonts route that answers every path with 404.
+func TestNewWebRoutesFromFS_NoFontFilesRefusesStartup(t *testing.T) {
+	buildFS := newFixtureBuildFS(1, 1)
+	delete(buildFS, "fonts/fixture.woff2")
+	buildFS["fonts/FONTS.md"] = &fstest.MapFile{Data: []byte("# manifest")}
+
+	_, err := newWebRoutesFromFS(nil, webTestPrefix(t), privateFiles{}, buildFS)
+	if err == nil {
+		t.Fatal("newWebRoutesFromFS: got nil error, want the no-.woff2-file refusal")
+	}
+	if !strings.Contains(err.Error(), "no .woff2 file") {
+		t.Errorf("newWebRoutesFromFS error = %q, want it to mention the missing .woff2 file", err.Error())
 	}
 }
 

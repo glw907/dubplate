@@ -196,3 +196,108 @@ func TestAssets_PlaceholderCommitted(t *testing.T) {
 		t.Fatalf("build/placeholder.txt: %v", err)
 	}
 }
+
+// fontFaceRE finds every `@font-face { ... }` block in a built
+// stylesheet; srcURLRE then finds every `url(...)` inside one matched
+// block's own bytes, a scanner independent of internal/serve's and
+// cmd/dubplate-server's own extractors (both read `<link>` elements,
+// never a stylesheet's own `@font-face` rules).
+var (
+	fontFaceRE = regexp.MustCompile(`@font-face\s*\{[^}]*\}`)
+	srcURLRE   = regexp.MustCompile(`url\(\s*['"]?([^'")]*)['"]?\s*\)`)
+)
+
+// fontFaceSrcs returns every `url(...)` value inside every
+// `@font-face` rule in css, quotes stripped.
+func fontFaceSrcs(css string) []string {
+	var out []string
+	for _, block := range fontFaceRE.FindAllString(css, -1) {
+		for _, m := range srcURLRE.FindAllStringSubmatch(block, -1) {
+			out = append(out, m[1])
+		}
+	}
+	return out
+}
+
+// manifestFileRE matches a FONTS.md "- File:" line and captures the
+// backtick-quoted name that follows (web/scripts/gates/g4.ts's own
+// parser, restated independently: a Go test and a Node gate sharing
+// one regex could share one blind spot).
+var manifestFileRE = regexp.MustCompile("(?m)^- File: `([^`]+)`")
+
+// manifestFontFiles returns every file name web/static/fonts/FONTS.md
+// names.
+func manifestFontFiles(t *testing.T) map[string]bool {
+	t.Helper()
+	data, err := os.ReadFile("static/fonts/FONTS.md")
+	if err != nil {
+		t.Fatalf("os.ReadFile(static/fonts/FONTS.md): %v", err)
+	}
+	names := make(map[string]bool)
+	for _, m := range manifestFileRE.FindAllStringSubmatch(string(data), -1) {
+		names[m[1]] = true
+	}
+	if len(names) == 0 {
+		t.Fatal("static/fonts/FONTS.md names no file")
+	}
+	return names
+}
+
+// TestFontFaceSrcsResolveUnderFonts is G5 (DL section 6): every
+// `@font-face src` in the built bundle resolves, relative to its own
+// stylesheet's path inside the embedded tree, to a file the tree
+// holds under "fonts/" and web/static/fonts/FONTS.md names. It
+// asserts a nonzero face count first, so an empty iteration (a
+// placeholder-only build, or every `@font-face` rule silently
+// dropped) fails by name rather than passing on nothing.
+func TestFontFaceSrcsResolveUnderFonts(t *testing.T) {
+	buildFS, err := fs.Sub(Assets, "build")
+	if err != nil {
+		t.Fatalf("fs.Sub: %v", err)
+	}
+	manifest := manifestFontFiles(t)
+
+	type found struct {
+		cssPath string
+		src     string
+	}
+	var faces []found
+	err = fs.WalkDir(buildFS, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(p, ".css") {
+			return nil
+		}
+		data, err := fs.ReadFile(buildFS, p)
+		if err != nil {
+			return err
+		}
+		for _, src := range fontFaceSrcs(string(data)) {
+			faces = append(faces, found{cssPath: p, src: src})
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("fs.WalkDir: %v", err)
+	}
+	if len(faces) == 0 {
+		t.Fatal(`the built bundle carries no @font-face src; run "npm run build" in web/`)
+	}
+
+	for _, f := range faces {
+		resolved := resolveStylesheetPath(f.cssPath, f.src)
+		t.Run(resolved, func(t *testing.T) {
+			if _, err := fs.Stat(buildFS, resolved); err != nil {
+				t.Fatalf("%s (from %s's src %q): %v", resolved, f.cssPath, f.src, err)
+			}
+			rel, ok := strings.CutPrefix(resolved, "fonts/")
+			if !ok {
+				t.Fatalf("%s (from %s's src %q) does not land under fonts/", resolved, f.cssPath, f.src)
+			}
+			if !manifest[rel] {
+				t.Fatalf("%s: no FONTS.md row names %q", resolved, rel)
+			}
+		})
+	}
+}

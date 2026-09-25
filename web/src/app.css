@@ -4,6 +4,12 @@
 }
 
 /*
+ * The three embedded faces (R-5ciii1): independent of the theme data
+ * below, since a `@font-face` rule declares no custom property.
+ */
+@import './lib/themes/fonts.css';
+
+/*
  * The `dubplate` theme as data: the match axis before the palettes, so
  * each composed theme's effective `color-scheme` is its palette's,
  * never the match block's own `normal` default; the inks after both,
