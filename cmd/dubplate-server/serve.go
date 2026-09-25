@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -46,6 +47,10 @@ const (
 // rosterRouteName is the roster API's subtree name: the admin gate and
 // its POST/GET/HEAD surface.
 const rosterRouteName = "roster"
+
+// membersRouteName is the add-member document's subtree name, served
+// to verified admins only.
+const membersRouteName = "members"
 
 // The web subtree names [newWebRoutes] builds routers for: the login
 // documents, the embedded bundle's hashed assets, and the two tier
@@ -183,7 +188,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			shell, _, err := newServeShell(cmd.Context(), environ, prefix, cfg, authCfg)
+			shell, _, err := newServeShell(cmd.Context(), environ, prefix, cfg, authCfg, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -209,6 +214,16 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // path, so every mount stays behind the origin check's cookie-carrying
 // protection.
 //
+// Every record the shell and its handlers write goes to logger.
+//
+// The shell sends Strict-Transport-Security only when the public URL
+// is https on a host that is not loopback; see [sendsHSTS].
+//
+// The members document is mounted behind [auth.RequireAdmin], outside
+// its own method and path checks, so a non-admin meets the gate's 404
+// whatever the method or the path, and only a verified admin ever
+// meets a 405.
+//
 // It starts the nonce sweep's interval driver bound to ctx and returns
 // the channel the driver's goroutine closes on return, so a caller
 // (this file's own test) can prove the driver stops when ctx is
@@ -225,10 +240,13 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // force, so proxyConfig's zero value governs both the strip and every
 // handler's ClientIP: PeerAddress is the client address until a later
 // rung configures otherwise.
-func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, cfg *config.Config, authCfg authConfig) (*serve.Shell, <-chan struct{}, error) {
+func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
 	var proxyConfig serve.TrustedProxyConfig
 	strip := serve.NewStrip("", auth.SessionCookieName, proxyConfig, serve.FrontExemption{})
-	shell := serve.NewShell(prefix, strip, nil)
+	shell := serve.NewShell(prefix, strip, logger)
+	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
+		shell.EnableHSTS()
+	}
 
 	store, err := auth.Open(cfg.StateDir)
 	if err != nil {
@@ -287,9 +305,26 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, c
 		return nil, nil, err
 	}
 	webRoutes.register(shell)
+	shell.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
 
 	done := startNonceSweep(ctx, nonces, shell.Logger())
 	return shell, done, nil
+}
+
+// sendsHSTS reports whether the shell sends Strict-Transport-Security
+// for publicURL, the URL browsers reach the server at: only when it is
+// https on a host [isLoopbackHost] does not match. The request's own
+// scheme is no input, since the server speaks plain HTTP to whatever
+// fronts it. A loopback host is excluded because RFC 6797 section 8.3
+// matches a known HSTS host by name alone, so one response from
+// https://localhost would force https on every localhost port in that
+// browser for a year.
+func sendsHSTS(publicURL string) bool {
+	u, err := url.Parse(publicURL)
+	if err != nil {
+		return false
+	}
+	return u.Scheme == "https" && !isLoopbackHost(u.Hostname())
 }
 
 // exactPath wraps next, answering [serve.Terminator]'s own 404 to any

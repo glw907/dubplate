@@ -3,23 +3,31 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/web"
 )
 
 // discardTestLogger returns a logger this file's tests can pass
@@ -44,16 +52,25 @@ func replaceKey(environ []string, name, value string) []string {
 
 // buildServeShell resolves environ through the production registry and
 // [newServeShell]'s own three inputs, so a test exercises the verb's
-// real construction path rather than a restatement of it.
+// real construction path rather than a restatement of it. The shell
+// logs to slog.Default, as the serve verb's does.
 func buildServeShell(t *testing.T, environ []string) (*serve.Shell, <-chan struct{}, error) {
 	t.Helper()
-	return buildServeShellWithContext(t, t.Context(), environ)
+	return buildServeShellWithContext(t, t.Context(), environ, slog.Default())
+}
+
+// buildServeShellWithLogger is [buildServeShell] with the shell's
+// logger supplied, so a test reads every record the shell and its
+// handlers write without swapping slog.Default.
+func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
+	t.Helper()
+	return buildServeShellWithContext(t, t.Context(), environ, logger)
 }
 
 // buildServeShellWithContext is [buildServeShell] with the caller's own
 // context, for a test that must control when the sweep driver's context
 // is canceled rather than relying on t.Context()'s own lifetime.
-func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []string) (*serve.Shell, <-chan struct{}, error) {
+func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []string, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
 	t.Helper()
 	cfg, err := config.Load(environ, productionRegistry())
 	if err != nil {
@@ -67,7 +84,7 @@ func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []str
 	if err != nil {
 		t.Fatalf("resolveAuthConfig: %v", err)
 	}
-	return newServeShell(ctx, environ, prefix, cfg, authCfg)
+	return newServeShell(ctx, environ, prefix, cfg, authCfg, logger)
 }
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
@@ -538,7 +555,7 @@ func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
 // waiting on the channel newServeShell returns.
 func TestNewServeShell_SweepDriverStopsWithTheGivenContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
-	_, done, err := buildServeShellWithContext(t, ctx, serveAuthEnviron(t))
+	_, done, err := buildServeShellWithContext(t, ctx, serveAuthEnviron(t), discardTestLogger())
 	if err != nil {
 		t.Fatalf("buildServeShellWithContext() error = %v, want nil", err)
 	}
@@ -586,7 +603,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveAuthConfig: %v", err)
 			}
-			shell, _, err := newServeShell(t.Context(), environ, prefix, cfg, authCfg)
+			shell, _, err := newServeShell(t.Context(), environ, prefix, cfg, authCfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
@@ -1099,6 +1116,597 @@ func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 			}
 			if got.Outcome != "invalid_address" {
 				t.Errorf("outcome = %q, want %q", got.Outcome, "invalid_address")
+			}
+		})
+	}
+}
+
+func TestSendsHSTS(t *testing.T) {
+	tests := []struct {
+		publicURL string
+		want      bool
+	}{
+		{publicURL: "https://dubplate.example.test", want: true},
+		{publicURL: "https://dubplate.example.test/", want: true},
+		{publicURL: "https://192.0.2.10", want: true},
+		{publicURL: "http://localhost", want: false},
+		{publicURL: "https://localhost", want: false},
+		{publicURL: "https://localhost:8443", want: false},
+		{publicURL: "https://127.0.0.1", want: false},
+		{publicURL: "https://[::1]", want: false},
+		{publicURL: "http://127.0.0.1:8080", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.publicURL, func(t *testing.T) {
+			if got := sendsHSTS(tt.publicURL); got != tt.want {
+				t.Errorf("sendsHSTS(%q) = %v, want %v", tt.publicURL, got, tt.want)
+			}
+		})
+	}
+}
+
+// firstImmutableAsset returns the path, relative to the build's _app
+// directory, of one content-hashed file the real bundle carries.
+func firstImmutableAsset(t *testing.T) string {
+	t.Helper()
+	var found string
+	err := fs.WalkDir(web.Assets, "build/_app/immutable", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if found == "" && !d.IsDir() {
+			found = strings.TrimPrefix(p, "build/_app/")
+		}
+		return nil
+	})
+	if err != nil || found == "" {
+		t.Fatalf("no file under build/_app/immutable (err %v); run `npm run build` in web/", err)
+	}
+	return found
+}
+
+// TestNewServeShell_HeaderStepOnEveryResponse proves every response
+// class the shell answers carries nosniff and Referrer-Policy:
+// no-referrer, and carries HSTS exactly when the public URL is https on
+// a host that is not loopback. It proves in the same rows that only a
+// document carries a CSP or Vary: Cookie, and each class's
+// Cache-Control: a 404 and a refusal that is not JSON set none, which
+// is what keeps the gate's 404 equal to the terminator's.
+//
+// Fixture state: all three public URLs, so HSTS's presence and both
+// absences are each proved, and an admin session, so the JSON row is
+// the roster API's real answer.
+func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
+	asset := firstImmutableAsset(t)
+	type row struct {
+		name     string
+		method   string
+		target   string
+		admin    bool
+		status   int
+		cache    string
+		document bool
+	}
+	rows := []row{
+		{name: "document", method: http.MethodGet, target: "/dubplate/login", status: http.StatusOK, cache: "no-cache", document: true},
+		{name: "asset", method: http.MethodGet, target: "/dubplate/_app/" + asset, status: http.StatusOK, cache: "public, max-age=31536000, immutable"},
+		{name: "stylesheet", method: http.MethodGet, target: "/dubplate/branding.css", status: http.StatusOK, cache: "no-cache"},
+		{name: "JSON answer", method: http.MethodGet, target: "/dubplate/roster", admin: true, status: http.StatusOK, cache: "no-store"},
+		{name: "normalization 400", method: http.MethodGet, target: "/dubplate/login/../login", status: http.StatusBadRequest},
+		{name: "origin 403", method: http.MethodPost, target: "/dubplate/request-link", status: http.StatusForbidden},
+		{name: "echo method 405", method: http.MethodTrace, target: "/dubplate/login", status: http.StatusMethodNotAllowed},
+		{name: "terminator 404", method: http.MethodGet, target: "/dubplate/no-such-subtree", status: http.StatusNotFound},
+		{name: "gate 404", method: http.MethodGet, target: "/dubplate/members", status: http.StatusNotFound},
+		{name: "outside the prefix 404", method: http.MethodGet, target: "/elsewhere", status: http.StatusNotFound},
+	}
+	configs := []struct {
+		publicURL string
+		wantHSTS  string
+	}{
+		{publicURL: "https://dubplate.example.test", wantHSTS: "max-age=31536000"},
+		{publicURL: "http://localhost"},
+		{publicURL: "https://localhost"},
+	}
+	for _, c := range configs {
+		environ, _ := rosterAPIEnviron(t)
+		environ = replaceKey(environ, "DUBPLATE_PUBLIC_URL", c.publicURL)
+		shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+		if err != nil {
+			t.Fatalf("%s: buildServeShell: %v", c.publicURL, err)
+		}
+		handler := shell.Handler()
+		adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+
+		for _, rr := range rows {
+			t.Run(c.publicURL+"/"+rr.name, func(t *testing.T) {
+				session := ""
+				if rr.admin {
+					session = adminSession
+				}
+				rec := httptest.NewRecorder()
+				handler.ServeHTTP(rec, sessionRequest(rr.method, rr.target, session, "", ""))
+				if rec.Code != rr.status {
+					t.Fatalf("status = %d, want %d", rec.Code, rr.status)
+				}
+				h := rec.Header()
+				if got := h.Get("X-Content-Type-Options"); got != "nosniff" {
+					t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
+				}
+				if got := h.Get("Referrer-Policy"); got != "no-referrer" {
+					t.Errorf("Referrer-Policy = %q, want no-referrer", got)
+				}
+				if got := h.Get("Strict-Transport-Security"); got != c.wantHSTS {
+					t.Errorf("Strict-Transport-Security = %q, want %q", got, c.wantHSTS)
+				}
+				if got := h.Get("Cache-Control"); got != rr.cache {
+					t.Errorf("Cache-Control = %q, want %q", got, rr.cache)
+				}
+				hasCSP := h.Get("Content-Security-Policy") != ""
+				if hasCSP != rr.document {
+					t.Errorf("Content-Security-Policy present = %v, want %v", hasCSP, rr.document)
+				}
+				wantVary := []string(nil)
+				if rr.document {
+					wantVary = []string{"Cookie"}
+				}
+				if got := h.Values("Vary"); !slices.Equal(got, wantVary) {
+					t.Errorf("Vary = %q, want %q", got, wantVary)
+				}
+			})
+		}
+	}
+}
+
+// servedDocuments maps each document the build must emit to the path
+// under the default prefix that serves it.
+var servedDocuments = map[string]string{
+	"login.html":      "/dubplate/login",
+	"login/link.html": "/dubplate/login/link",
+	"members.html":    "/dubplate/members",
+}
+
+// checkDocumentSet reports a failure unless buildFS's documents are
+// exactly the three the routes serve. It runs first in each document
+// check, so a check cannot pass over an empty set.
+func checkDocumentSet(buildFS fs.FS) string {
+	var got []string
+	err := fs.WalkDir(buildFS, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(p, ".html") {
+			got = append(got, p)
+		}
+		return nil
+	})
+	if err != nil {
+		return "walk the build: " + err.Error()
+	}
+	slices.Sort(got)
+	want := slices.Sorted(maps.Keys(servedDocuments))
+	if !slices.Equal(got, want) {
+		return fmt.Sprintf("the build's documents are %v, want %v; a tree with none holds only the placeholder, so run `npm run build` in web/", got, want)
+	}
+	return ""
+}
+
+// webFSHandler builds a shell over the routes newWebRoutesFromFS builds
+// from buildFS, with the members document mounted with no gate, since
+// these checks read the document rather than the gate.
+func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
+	prefix, err := serve.NewPrefix("/dubplate")
+	if err != nil {
+		return nil, err
+	}
+	routes, err := newWebRoutesFromFS(environ, prefix, buildFS)
+	if err != nil {
+		return nil, err
+	}
+	shell := serve.NewShell(prefix, serve.NewStrip("", "", serve.TrustedProxyConfig{}, serve.FrontExemption{}), discardTestLogger())
+	routes.register(shell)
+	shell.Register(membersRouteName, routes.members)
+	return shell.Handler(), nil
+}
+
+// scanInlineScripts returns the body of every script element in doc,
+// attributed or not. It shares nothing with the server's own
+// extractor: it searches an ASCII-lowercased copy of doc for the open
+// tag, the end of that tag, and the close tag by plain byte search, so
+// one blind spot cannot hide a script from both.
+func scanInlineScripts(doc []byte) [][]byte {
+	lower := make([]byte, len(doc))
+	for i, b := range doc {
+		if 'A' <= b && b <= 'Z' {
+			b += 'a' - 'A'
+		}
+		lower[i] = b
+	}
+	var bodies [][]byte
+	pos := 0
+	for {
+		open := bytes.Index(lower[pos:], []byte("<script"))
+		if open < 0 {
+			return bodies
+		}
+		tagEnd := bytes.IndexByte(lower[pos+open:], '>')
+		if tagEnd < 0 {
+			return bodies
+		}
+		start := pos + open + tagEnd + 1
+		end := bytes.Index(lower[start:], []byte("</script"))
+		if end < 0 {
+			return append(bodies, doc[start:])
+		}
+		bodies = append(bodies, doc[start:start+end])
+		pos = start + end
+	}
+}
+
+// cspDirectives parses a Content-Security-Policy value into its
+// directives' sources, keyed by directive name.
+func cspDirectives(policy string) map[string][]string {
+	directives := make(map[string][]string)
+	for part := range strings.SplitSeq(policy, ";") {
+		fields := strings.Fields(part)
+		if len(fields) > 0 {
+			directives[fields[0]] = fields[1:]
+		}
+	}
+	return directives
+}
+
+// checkServedCSP runs the design language's G6 over the documents
+// served from buildFS and returns every failure. For each document the
+// header must carry the directive set by name and value, and script-src
+// must carry a sha256 source for every inline script body, hashed
+// here, with no 'unsafe-inline'.
+func checkServedCSP(buildFS fs.FS) []string {
+	if failure := checkDocumentSet(buildFS); failure != "" {
+		return []string{failure}
+	}
+	handler, err := webFSHandler(nil, buildFS)
+	if err != nil {
+		return []string{"build the routes: " + err.Error()}
+	}
+	wantFixed := map[string][]string{
+		"default-src":     {"'self'"},
+		"style-src":       {"'self'", "'unsafe-inline'"},
+		"frame-ancestors": {"'none'"},
+		"base-uri":        {"'none'"},
+		"object-src":      {"'none'"},
+		"form-action":     {"'self'"},
+	}
+	var failures []string
+	for _, name := range slices.Sorted(maps.Keys(servedDocuments)) {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, servedDocuments[name], nil))
+		if rec.Code != http.StatusOK {
+			failures = append(failures, fmt.Sprintf("%s: status %d, want 200", name, rec.Code))
+			continue
+		}
+		directives := cspDirectives(rec.Header().Get("Content-Security-Policy"))
+		for directive, want := range wantFixed {
+			if got := directives[directive]; !slices.Equal(got, want) {
+				failures = append(failures, fmt.Sprintf("%s: %s = %q, want %q", name, directive, got, want))
+			}
+		}
+		if _, ok := directives["font-src"]; ok {
+			failures = append(failures, name+": carries font-src, want none")
+		}
+		scriptSrc := directives["script-src"]
+		if len(scriptSrc) == 0 || scriptSrc[0] != "'self'" {
+			failures = append(failures, fmt.Sprintf("%s: script-src = %q, want 'self' first", name, scriptSrc))
+		}
+		if slices.Contains(scriptSrc, "'unsafe-inline'") {
+			failures = append(failures, name+": script-src carries 'unsafe-inline'")
+		}
+		bodies := scanInlineScripts(rec.Body.Bytes())
+		if len(bodies) == 0 {
+			failures = append(failures, name+": no inline script, want the build's bootstrap")
+		}
+		for _, body := range bodies {
+			sum := sha256.Sum256(body)
+			source := "'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'"
+			if !slices.Contains(scriptSrc, source) {
+				failures = append(failures, fmt.Sprintf("%s: inline script %s is not in script-src %q", name, source, scriptSrc))
+			}
+		}
+	}
+	return failures
+}
+
+// placeholderOnlyBuild is the build tree a checkout that has never run
+// the web build embeds.
+func placeholderOnlyBuild() fstest.MapFS {
+	return fstest.MapFS{"placeholder.txt": &fstest.MapFile{Data: []byte("placeholder")}}
+}
+
+func TestServedDocuments_CSPCoversEveryInlineScript(t *testing.T) {
+	buildFS, err := fs.Sub(web.Assets, "build")
+	if err != nil {
+		t.Fatalf("fs.Sub: %v", err)
+	}
+	for _, failure := range checkServedCSP(buildFS) {
+		t.Error(failure)
+	}
+}
+
+func TestServedDocuments_ChecksFailOnThePlaceholderOnlyBuild(t *testing.T) {
+	checks := map[string]func(fs.FS) []string{
+		"CSP":             checkServedCSP,
+		"tiers and cache": func(buildFS fs.FS) []string { return checkServedTiersAndCache(t, buildFS) },
+	}
+	for name, check := range checks {
+		t.Run(name, func(t *testing.T) {
+			failures := check(placeholderOnlyBuild())
+			if len(failures) == 0 || !strings.Contains(failures[0], "npm run build") {
+				t.Errorf("failures = %q, want the first to name the missing build", failures)
+			}
+		})
+	}
+}
+
+// stylesheetLinkRE matches a stylesheet link as the build and the tier
+// rewrite both write it, href before rel.
+var stylesheetLinkRE = regexp.MustCompile(`<link href="([^"]*)" rel="stylesheet">`)
+
+// checkServedTiersAndCache runs the design language's G7, its link
+// order and cache half, over the documents served from buildFS with an
+// operator file configured, and returns every failure: each document
+// links the bundle's stylesheets, then branding.css, then
+// operator.css; each carries its Cache-Control and Vary: Cookie; and a
+// hashed asset, the version file, both tier stylesheets, and a 404
+// each carry their own Cache-Control and no Vary.
+func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
+	t.Helper()
+	if failure := checkDocumentSet(buildFS); failure != "" {
+		return []string{failure}
+	}
+	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
+	handler, err := webFSHandler(environ, buildFS)
+	if err != nil {
+		return []string{"build the routes: " + err.Error()}
+	}
+	get := func(target string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, target, nil))
+		return rec
+	}
+
+	wantCache := map[string]string{
+		"login.html":      "no-cache",
+		"login/link.html": "no-store",
+		"members.html":    "private, no-cache",
+	}
+	var failures []string
+	var bundleStylesheet string
+	for _, name := range slices.Sorted(maps.Keys(servedDocuments)) {
+		target := servedDocuments[name]
+		rec := get(target)
+		if rec.Code != http.StatusOK {
+			failures = append(failures, fmt.Sprintf("%s: status %d, want 200", name, rec.Code))
+			continue
+		}
+		var hrefs []string
+		for _, m := range stylesheetLinkRE.FindAllSubmatch(rec.Body.Bytes(), -1) {
+			hrefs = append(hrefs, string(m[1]))
+		}
+		root := "./"
+		if strings.Contains(name, "/") {
+			root = "../"
+		}
+		wantTier := []string{root + "branding.css", root + "operator.css"}
+		if len(hrefs) <= len(wantTier) || !slices.Equal(hrefs[len(hrefs)-len(wantTier):], wantTier) {
+			failures = append(failures, fmt.Sprintf("%s: stylesheet links %q, want the bundle's then %q", name, hrefs, wantTier))
+		} else {
+			for _, href := range hrefs[:len(hrefs)-len(wantTier)] {
+				if !strings.HasPrefix(href, root+"_app/immutable/") {
+					failures = append(failures, fmt.Sprintf("%s: stylesheet %q precedes the tier links but is not the bundle's", name, href))
+				}
+			}
+			if name == "login.html" {
+				bundleStylesheet = strings.TrimPrefix(hrefs[0], root)
+			}
+		}
+		if got := rec.Header().Get("Cache-Control"); got != wantCache[name] {
+			failures = append(failures, fmt.Sprintf("%s: Cache-Control %q, want %q", name, got, wantCache[name]))
+		}
+		if got := rec.Header().Values("Vary"); !slices.Equal(got, []string{"Cookie"}) {
+			failures = append(failures, fmt.Sprintf("%s: Vary %q, want Cookie", name, got))
+		}
+	}
+	if bundleStylesheet == "" {
+		return append(failures, "login.html: no bundle stylesheet to read an immutable asset through")
+	}
+
+	others := []struct {
+		target, cache string
+		status        int
+	}{
+		{target: "/dubplate/" + bundleStylesheet, cache: "public, max-age=31536000, immutable", status: http.StatusOK},
+		{target: "/dubplate/_app/version.json", cache: "no-cache", status: http.StatusOK},
+		{target: "/dubplate/branding.css", cache: "no-cache", status: http.StatusOK},
+		{target: "/dubplate/operator.css", cache: "no-cache", status: http.StatusOK},
+		{target: "/dubplate/no-such-subtree", status: http.StatusNotFound},
+	}
+	for _, o := range others {
+		rec := get(o.target)
+		if rec.Code != o.status {
+			failures = append(failures, fmt.Sprintf("%s: status %d, want %d", o.target, rec.Code, o.status))
+		}
+		if got := rec.Header().Get("Cache-Control"); got != o.cache {
+			failures = append(failures, fmt.Sprintf("%s: Cache-Control %q, want %q", o.target, got, o.cache))
+		}
+		if got := rec.Header().Values("Vary"); len(got) != 0 {
+			failures = append(failures, fmt.Sprintf("%s: Vary %q, want none", o.target, got))
+		}
+	}
+	return failures
+}
+
+func TestServedDocuments_TierOrderAndCache(t *testing.T) {
+	buildFS, err := fs.Sub(web.Assets, "build")
+	if err != nil {
+		t.Fatalf("fs.Sub: %v", err)
+	}
+	for _, failure := range checkServedTiersAndCache(t, buildFS) {
+		t.Error(failure)
+	}
+}
+
+// TestNewServeShell_MembersRoute proves the members document is gated
+// ahead of its own method and path checks. A verified non-admin's GET
+// and POST answer exactly what an unregistered owned path answers,
+// with no Set-Cookie. A verified admin's GET answers the stamped
+// document, an admin's POST answers 405, and an admin's request to a
+// deeper path answers the terminator's 404.
+//
+// Fixture state: the POSTs carry Sec-Fetch-Site: same-origin, so each
+// passes the origin check and reaches the gate, the terminator, or the
+// method check.
+func TestNewServeShell_MembersRoute(t *testing.T) {
+	environ, _ := rosterAPIEnviron(t)
+	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	if err != nil {
+		t.Fatalf("buildServeShell: %v", err)
+	}
+	handler := shell.Handler()
+	nonAdmin := mintServeSession(t, environ, rosterMemberAddress, time.Now())
+	admin := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+	run := func(method, target, session, sfs string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, sessionRequest(method, target, session, sfs, ""))
+		return rec
+	}
+
+	for _, method := range []string{http.MethodGet, http.MethodPost} {
+		t.Run("non-admin "+method, func(t *testing.T) {
+			members := run(method, "/dubplate/members", nonAdmin, "same-origin")
+			unknown := run(method, "/dubplate/no-such-subtree", nonAdmin, "same-origin")
+			if members.Code != unknown.Code || members.Code != http.StatusNotFound {
+				t.Errorf("status: members = %d, unknown = %d, want both 404", members.Code, unknown.Code)
+			}
+			if members.Body.String() != unknown.Body.String() {
+				t.Errorf("body: members = %q, unknown = %q, want equal", members.Body.String(), unknown.Body.String())
+			}
+			if !headersEqualButDate(members.Header(), unknown.Header()) {
+				t.Errorf("headers differ (Date excepted): members = %v, unknown = %v", members.Header(), unknown.Header())
+			}
+			if got := members.Header().Values("Set-Cookie"); len(got) != 0 {
+				t.Errorf("Set-Cookie = %q, want none", got)
+			}
+		})
+	}
+
+	t.Run("admin GET", func(t *testing.T) {
+		rec := run(http.MethodGet, "/dubplate/members", admin, "")
+		if rec.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200", rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), `data-theme="dubplate-system"`) {
+			t.Errorf("body does not carry the stamped theme: %s", rec.Body.String())
+		}
+		if got := rec.Header().Get("Cache-Control"); got != "private, no-cache" {
+			t.Errorf("Cache-Control = %q, want %q", got, "private, no-cache")
+		}
+		if rec.Header().Get("Content-Security-Policy") == "" {
+			t.Error("the members document carries no CSP")
+		}
+	})
+
+	t.Run("admin POST", func(t *testing.T) {
+		rec := run(http.MethodPost, "/dubplate/members", admin, "same-origin")
+		if rec.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("status = %d, want 405", rec.Code)
+		}
+		if got := rec.Header().Get("Allow"); got != "GET, HEAD" {
+			t.Errorf("Allow = %q, want %q", got, "GET, HEAD")
+		}
+	})
+
+	for _, target := range []string{"/dubplate/members/", "/dubplate/members/x"} {
+		t.Run("admin GET "+target, func(t *testing.T) {
+			rec := run(http.MethodGet, target, admin, "")
+			unknown := run(http.MethodGet, "/dubplate/no-such-subtree", admin, "")
+			if rec.Code != http.StatusNotFound || rec.Body.String() != unknown.Body.String() {
+				t.Errorf("status %d body %q, want the terminator's 404 %q", rec.Code, rec.Body.String(), unknown.Body.String())
+			}
+		})
+	}
+}
+
+// TestNewServeShell_MintedLinkNeverLogsItsToken proves a link built
+// through auth.LinkURL answers the login/link document with no-store,
+// which binds the link's path to the document route, and that across
+// that request, a trailing-slash GET, a POST, and a request
+// normalization refuses, each carrying the token in its query, no
+// record the shell's logger receives contains the token.
+//
+// Fixture state: every request leaves at least one record in the
+// captured log, so "no line contains the token" reads real lines.
+func TestNewServeShell_MintedLinkNeverLogsItsToken(t *testing.T) {
+	const token = "qz81-minted-fixture-token"
+	environ := serveAuthEnviron(t)
+	var logs bytes.Buffer
+	shell, _, err := buildServeShellWithLogger(t, environ, slog.New(slog.NewJSONHandler(&logs, nil)))
+	if err != nil {
+		t.Fatalf("buildServeShell: %v", err)
+	}
+	handler := shell.Handler()
+
+	link, err := auth.LinkURL(environValue(environ, "DUBPLATE_PUBLIC_URL"), "/dubplate", token)
+	if err != nil {
+		t.Fatalf("auth.LinkURL: %v", err)
+	}
+	u, err := url.Parse(link)
+	if err != nil {
+		t.Fatalf("parse minted link: %v", err)
+	}
+	if u.Query().Get("t") != token {
+		t.Fatalf("minted link %q does not carry the token as t", link)
+	}
+
+	plain := httptest.NewRecorder()
+	handler.ServeHTTP(plain, httptest.NewRequest(http.MethodGet, "/dubplate/login/link", nil))
+	login := httptest.NewRecorder()
+	handler.ServeHTTP(login, httptest.NewRequest(http.MethodGet, "/dubplate/login", nil))
+
+	query := "?" + u.RawQuery
+	tests := []struct {
+		name   string
+		method string
+		target string
+		status int
+	}{
+		{name: "the minted link", method: http.MethodGet, target: u.Path + query, status: http.StatusOK},
+		{name: "trailing slash", method: http.MethodGet, target: "/dubplate/login/link/" + query, status: http.StatusNotFound},
+		{name: "POST", method: http.MethodPost, target: "/dubplate/login/link" + query, status: http.StatusMethodNotAllowed},
+		{name: "refused by normalization", method: http.MethodGet, target: "/dubplate/login/./link" + query, status: http.StatusBadRequest},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logs.Reset()
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, sessionRequest(tt.method, tt.target, "", "same-origin", ""))
+			if rec.Code != tt.status {
+				t.Fatalf("status = %d, want %d", rec.Code, tt.status)
+			}
+			if tt.status == http.StatusOK {
+				if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+					t.Errorf("Cache-Control = %q, want no-store", got)
+				}
+				if rec.Body.String() != plain.Body.String() || rec.Body.String() == login.Body.String() {
+					t.Error("the minted link did not answer the login/link document")
+				}
+			}
+			lines := strings.Split(strings.TrimSpace(logs.String()), "\n")
+			if logs.Len() == 0 {
+				t.Fatal("the request left no log record, so the token check would read nothing")
+			}
+			for _, line := range lines {
+				if strings.Contains(line, token) {
+					t.Errorf("log line carries the token: %s", line)
+				}
 			}
 		})
 	}

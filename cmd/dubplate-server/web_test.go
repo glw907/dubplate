@@ -25,20 +25,29 @@ import (
 // cases already prove the extraction handles both).
 const fixtureThemeCSS = `[data-theme=dubplate-label]{--color-base-100:#fff}[data-theme="dubplate-label-night"]{--color-base-100:#000}[data-theme=dubplate-system]{--color-base-100:#fff}`
 
+// fixtureCSPMeta is the CSP meta every fixture document carries: a
+// script-src with no hash, which a document holding no inline script
+// satisfies.
+const fixtureCSPMeta = `<meta http-equiv="content-security-policy" content="script-src 'self'">`
+
 // newFixtureBuildFS returns a build tree fstest.MapFS shaped like the
 // real SvelteKit output this task rewrites: a login document, a
-// login/link document, each carrying placeholder once on its
-// data-theme attribute and a stylesheet link resolved relative to its
-// own path, and the linked CSS itself.
+// login/link document, and a members document, each carrying a CSP
+// meta, the placeholder on its data-theme attribute, and a stylesheet
+// link resolved relative to its own path, and the linked CSS itself.
+// The two counts set how often the login and login/link documents
+// carry the placeholder; the members document carries it once.
 func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.MapFS {
 	token := func(n int) string {
 		return strings.Repeat(themePlaceholder, n)
 	}
-	loginDoc := `<html data-theme="` + token(loginPlaceholderCount) + `"><head><link href="./_app/assets/0.css" rel="stylesheet"></head></html>`
-	linkDoc := `<html data-theme="` + token(linkPlaceholderCount) + `"><head><link href="../_app/assets/0.css" rel="stylesheet"></head></html>`
+	loginDoc := `<html data-theme="` + token(loginPlaceholderCount) + `"><head>` + fixtureCSPMeta + `<link href="./_app/assets/0.css" rel="stylesheet"></head></html>`
+	linkDoc := `<html data-theme="` + token(linkPlaceholderCount) + `"><head>` + fixtureCSPMeta + `<link href="../_app/assets/0.css" rel="stylesheet"></head></html>`
+	membersDoc := `<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/assets/0.css" rel="stylesheet"></head></html>`
 	return fstest.MapFS{
 		"login.html":             &fstest.MapFile{Data: []byte(loginDoc)},
 		"login/link.html":        &fstest.MapFile{Data: []byte(linkDoc)},
+		"members.html":           &fstest.MapFile{Data: []byte(membersDoc)},
 		"_app/assets/0.css":      &fstest.MapFile{Data: []byte(fixtureThemeCSS)},
 		"_app/entry/start.js":    &fstest.MapFile{Data: []byte("// entry")},
 		"login/nested/other.txt": &fstest.MapFile{Data: []byte("unrelated")},
@@ -74,9 +83,31 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 			wantErrHas: `"login.html"`,
 		},
 		{
-			name:       "login/link.html missing",
-			buildFS:    fstest.MapFS{"login.html": &fstest.MapFile{Data: []byte("x")}},
+			name: "login/link.html missing",
+			buildFS: func() fstest.MapFS {
+				m := newFixtureBuildFS(1, 1)
+				delete(m, "login/link.html")
+				return m
+			}(),
 			wantErrHas: `"login/link.html"`,
+		},
+		{
+			name: "members.html missing",
+			buildFS: func() fstest.MapFS {
+				m := newFixtureBuildFS(1, 1)
+				delete(m, "members.html")
+				return m
+			}(),
+			wantErrHas: `"members.html"`,
+		},
+		{
+			name: "members.html holding an inline script its CSP meta does not hash",
+			buildFS: func() fstest.MapFS {
+				m := newFixtureBuildFS(1, 1)
+				m["members.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/assets/0.css" rel="stylesheet"></head><body><script>boot();</script></body></html>`)}
+				return m
+			}(),
+			wantErrHas: `document "members.html": an inline script's hash is not in the CSP meta's script-src`,
 		},
 		{
 			name:       "placeholder absent from login.html",
@@ -483,13 +514,21 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 			if set := rec.Header().Values("Set-Cookie"); len(set) != 0 {
 				t.Errorf("Set-Cookie = %v, want none", set)
 			}
-			// The shell's own logger writes only on refusal
-			// (internal/serve/serve.go's logRefusal), so a 200 row
-			// leaves it untouched; any content at all, not merely
-			// the cookie header as a substring, is the row logging
-			// something it must not.
-			if logBuf.Len() != 0 {
-				t.Errorf("shell log buffer is not empty: %s", logBuf.String())
+			// The shell's logger holds one document-request record
+			// per request this row sent, and each must be exactly
+			// that record: any other content, not merely the cookie
+			// header as a substring, is the row logging something it
+			// must not.
+			const wantRecord = `level=INFO msg="serve: document request" method=GET path=/dubplate/login status=200`
+			lines := strings.Split(strings.TrimSuffix(logBuf.String(), "\n"), "\n")
+			if len(lines) != 2 {
+				t.Errorf("shell log holds %d lines, want 2 (one per request): %s", len(lines), logBuf.String())
+			}
+			for _, line := range lines {
+				_, record, _ := strings.Cut(line, " ")
+				if record != wantRecord {
+					t.Errorf("shell log line = %q, want its record to be exactly %q", line, wantRecord)
+				}
 			}
 			// NewDocument reads no logger, so nothing on this path
 			// should reach slog.Default either; a mutant that logs
@@ -1020,13 +1059,13 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 	prefix := webTestPrefix(t)
 
 	noLink := newFixtureBuildFS(1, 1)
-	noLink["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head><link href="./_app/entry/start.js" rel="modulepreload"></head></html>`)}
+	noLink["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/entry/start.js" rel="modulepreload"></head></html>`)}
 	if _, err := newWebRoutesFromFS(nil, prefix, noLink); err == nil || !strings.Contains(err.Error(), `document "login.html": no stylesheet link`) {
 		t.Errorf("no stylesheet link: error = %v, want one naming login.html", err)
 	}
 
 	twoLinks := newFixtureBuildFS(1, 1)
-	twoLinks["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head><link href="./_app/assets/0.css" rel="stylesheet"><link href="./_app/assets/2.css" rel="stylesheet"></head></html>`)}
+	twoLinks["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/assets/0.css" rel="stylesheet"><link href="./_app/assets/2.css" rel="stylesheet"></head></html>`)}
 	twoLinks["_app/assets/2.css"] = &fstest.MapFile{Data: []byte("p{}")}
 	handler := newWebShellHandler(t, nil, twoLinks)
 	hrefs := serve.StylesheetHrefs(serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes())

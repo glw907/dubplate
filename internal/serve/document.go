@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
@@ -93,39 +94,86 @@ func insertTierLinks(name string, raw []byte, hrefs []string) ([]byte, error) {
 
 // NewStylesheet returns an http.Handler serving GET and HEAD only,
 // answering body as text/css. body is fixed when the handler is built,
-// so the response reads nothing from the request.
+// so the response reads nothing from the request. The response is
+// no-cache, since the stylesheet's content changes at a restart while
+// its name does not.
 func NewStylesheet(body []byte) http.Handler {
 	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(body)
 	}))
 }
 
+// DocumentConfig is what [NewDocument] serves a document from.
+type DocumentConfig struct {
+	// Variants holds one rewritten body per stampable palette, as
+	// [BuildDocumentVariants] returns them.
+	Variants map[string][]byte
+
+	// DefaultPalette names the variant a request without a usable theme
+	// cookie is answered with. It must be a key of Variants.
+	DefaultPalette string
+
+	// CacheControl is the document's Cache-Control value.
+	CacheControl string
+
+	// CSP is the document's Content-Security-Policy value, as
+	// [DocumentCSP] builds it.
+	CSP string
+}
+
 // NewDocument returns an http.Handler serving GET and HEAD only,
 // answering the variant named by the [ThemeCookieName] cookie when its
-// value is an exact key of variants, and variants[defaultPalette]
-// otherwise. defaultPalette must be a key of variants: that pairing is
-// the caller's own startup wiring, never a per-request condition, so a
-// mismatch panics rather than serving an empty body.
+// value is an exact key of cfg.Variants, and the default variant
+// otherwise. cfg.DefaultPalette must be a key of cfg.Variants: that
+// pairing is the caller's own startup wiring, never a per-request
+// condition, so a mismatch panics rather than serving an empty body.
+//
+// A served document carries cfg.CacheControl, cfg.CSP, and Vary:
+// Cookie, since the variant depends on the theme cookie and a shared
+// cache must not answer one visitor with another's. A 405 carries
+// none of them.
 //
 // The handler writes no Set-Cookie, on any of these paths, and logs
 // nothing about the cookie's value: every response is byte-identical
 // to one of the bodies [BuildDocumentVariants] computed at startup, so
 // no request byte reaches a served document.
-func NewDocument(variants map[string][]byte, defaultPalette string) http.Handler {
-	if _, ok := variants[defaultPalette]; !ok {
-		panic(fmt.Sprintf("serve: NewDocument: default palette %q has no variant", defaultPalette))
+func NewDocument(cfg DocumentConfig) http.Handler {
+	if _, ok := cfg.Variants[cfg.DefaultPalette]; !ok {
+		panic(fmt.Sprintf("serve: NewDocument: default palette %q has no variant", cfg.DefaultPalette))
 	}
 	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		palette := defaultPalette
+		palette := cfg.DefaultPalette
 		if cookie, err := r.Cookie(ThemeCookieName); err == nil {
-			if _, ok := variants[cookie.Value]; ok {
+			if _, ok := cfg.Variants[cookie.Value]; ok {
 				palette = cookie.Value
 			}
 		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write(variants[palette])
+		h := w.Header()
+		h.Set("Content-Type", "text/html; charset=utf-8")
+		h.Set("Cache-Control", cfg.CacheControl)
+		h.Set("Content-Security-Policy", cfg.CSP)
+		h.Set("Vary", "Cookie")
+		_, _ = w.Write(cfg.Variants[palette])
 	}))
+}
+
+// LogRequests wraps next, writing one record to logger for each
+// request once next has answered it: the method, the status, and the
+// path. The path is bounded as the shell's refusal record bounds it,
+// and the query string is never logged, since a document's URL may
+// carry a sign-in token there.
+func LogRequests(logger *slog.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capture := &statusCapture{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(capture, r)
+		logger.Info("serve: document request",
+			"method", r.Method,
+			"path", boundedPath(r.URL.Path),
+			"status", capture.status,
+		)
+	})
 }
 
 // NewAssets returns an http.Handler serving GET and HEAD only, looking
@@ -137,6 +185,11 @@ func NewDocument(variants map[string][]byte, defaultPalette string) http.Handler
 // a path naming no file -- answers [Terminator]'s 404, with no
 // directory listing and no redirect, unlike [http.FileServerFS]
 // (R-5cii21).
+//
+// A file under root's immutable directory is served public and
+// immutable for a year: the build names each one by its content's
+// hash, so a name never changes content. Every other file keeps a
+// stable name across builds and is served no-cache.
 func NewAssets(root fs.FS, routePrefix string) http.Handler {
 	terminator := Terminator()
 	prefixSlash := routePrefix + "/"
@@ -151,6 +204,11 @@ func NewAssets(root fs.FS, routePrefix string) http.Handler {
 			terminator.ServeHTTP(w, r)
 			return
 		}
+		cacheControl := "no-cache"
+		if strings.HasPrefix(name, "immutable/") {
+			cacheControl = "public, max-age=31536000, immutable"
+		}
+		w.Header().Set("Cache-Control", cacheControl)
 		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
 	}))
 }

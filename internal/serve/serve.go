@@ -31,6 +31,8 @@ type Shell struct {
 	fallthroughHandler http.Handler
 	fallthroughSet     bool
 
+	hsts bool
+
 	// handlerBuilt records that Handler has composed the root chain,
 	// after which the mux is live and a further registration would
 	// never be reached by an already-serving binary.
@@ -143,13 +145,16 @@ func (s *Shell) SetFallthrough(h http.Handler) {
 	s.fallthroughSet = true
 }
 
-// Handler composes five steps, in this order, each wrapping the next,
-// and returns the root http.Handler: the ingress strip, path
-// normalization, the echo-method refusal, the origin check, and prefix
-// routing with its fallthrough. doc.go states the order and the
-// extension point's contract; this method builds it. The order is a
+// Handler composes six steps, in this order, each wrapping the next,
+// and returns the root http.Handler: the security headers, the ingress
+// strip, path normalization, the echo-method refusal, the origin check,
+// and prefix routing with its fallthrough. doc.go states the order and
+// the extension point's contract; this method builds it. The order is a
 // property of this composition, never a mux feature: no step here is
 // registered as a route.
+//
+// The security headers are outermost, so every response carries them,
+// a refusal by any later step included.
 //
 // The origin check sits between normalization and prefix routing, so
 // it judges only a path normalization has admitted and covers every
@@ -169,7 +174,7 @@ func (s *Shell) Handler() http.Handler {
 	guarded := refuseEchoMethods(protected)
 	normalized := Normalize(guarded)
 	stripped := s.strip.Wrap(normalized)
-	return s.logRefusal(stripped)
+	return securityHeaders(s.hsts, s.logRefusal(stripped))
 }
 
 // Logger returns the logger the shell writes its refusal record to,

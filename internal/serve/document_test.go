@@ -2,6 +2,7 @@ package serve
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -196,6 +197,9 @@ func TestNewStylesheet(t *testing.T) {
 			if got := rec.Header().Get("Content-Type"); got != "text/css; charset=utf-8" {
 				t.Errorf("Content-Type = %q, want %q", got, "text/css; charset=utf-8")
 			}
+			if got := rec.Header().Get("Cache-Control"); got != "no-cache" {
+				t.Errorf("Cache-Control = %q, want %q", got, "no-cache")
+			}
 			if !bytes.Equal(rec.Body.Bytes(), body) {
 				t.Errorf("body = %q, want %q", rec.Body.Bytes(), body)
 			}
@@ -210,6 +214,9 @@ func TestNewStylesheet(t *testing.T) {
 			}
 			if got := rec.Header().Get("Allow"); got != "GET, HEAD" {
 				t.Errorf("Allow = %q, want %q", got, "GET, HEAD")
+			}
+			if got := rec.Header().Get("Cache-Control"); got != "" {
+				t.Errorf("405 Cache-Control = %q, want none", got)
 			}
 		})
 	}
@@ -335,7 +342,7 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defaultLogs.Reset()
-			handler := NewDocument(documentVariantFixture(), tt.defaultPalette)
+			handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: tt.defaultPalette})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			if tt.cookieHeader != "" {
 				r.Header.Set("Cookie", tt.cookieHeader)
@@ -374,7 +381,7 @@ func TestNewDocument_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := NewDocument(documentVariantFixture(), "system")
+			handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "system"})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			r.Header.Set("Cookie", tt.value)
 			rec := httptest.NewRecorder()
@@ -390,7 +397,7 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 	tests := []string{http.MethodPost, http.MethodPut, http.MethodDelete}
 	for _, method := range tests {
 		t.Run(method, func(t *testing.T) {
-			handler := NewDocument(documentVariantFixture(), "system")
+			handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "system"})
 			r := httptest.NewRequest(method, "/login", nil)
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, r)
@@ -410,7 +417,7 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 // net/http's own server, not this handler, that discards a written
 // body for a HEAD request while still reporting Content-Length.
 func TestNewDocument_HEADWritesNoBody(t *testing.T) {
-	handler := NewDocument(documentVariantFixture(), "system")
+	handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "system"})
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
@@ -434,13 +441,87 @@ func TestNewDocument_HEADWritesNoBody(t *testing.T) {
 	}
 }
 
+// TestNewDocument_ResponseHeaders proves a served document carries the
+// configured Cache-Control and CSP beside Vary: Cookie, on GET and
+// HEAD, and that a 405 carries none of the three: a refusal is no
+// document, so it caches and varies like any other refusal.
+func TestNewDocument_ResponseHeaders(t *testing.T) {
+	const csp = "default-src 'self'; script-src 'self'"
+	handler := NewDocument(DocumentConfig{
+		Variants:       documentVariantFixture(),
+		DefaultPalette: "system",
+		CacheControl:   "private, no-cache",
+		CSP:            csp,
+	})
+	tests := []struct {
+		method    string
+		wantCache string
+		wantCSP   string
+		wantVary  string
+	}{
+		{method: http.MethodGet, wantCache: "private, no-cache", wantCSP: csp, wantVary: "Cookie"},
+		{method: http.MethodHead, wantCache: "private, no-cache", wantCSP: csp, wantVary: "Cookie"},
+		{method: http.MethodPost},
+	}
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, httptest.NewRequest(tt.method, "/members", nil))
+			h := rec.Header()
+			if got := h.Get("Cache-Control"); got != tt.wantCache {
+				t.Errorf("Cache-Control = %q, want %q", got, tt.wantCache)
+			}
+			if got := h.Get("Content-Security-Policy"); got != tt.wantCSP {
+				t.Errorf("Content-Security-Policy = %q, want %q", got, tt.wantCSP)
+			}
+			if got := h.Values("Vary"); !slices.Equal(got, nonEmpty(tt.wantVary)) {
+				t.Errorf("Vary = %q, want %q", got, nonEmpty(tt.wantVary))
+			}
+		})
+	}
+}
+
+// nonEmpty returns []string{v}, or nil when v is empty, so a header's
+// Values compare against a single expected value or its absence.
+func nonEmpty(v string) []string {
+	if v == "" {
+		return nil
+	}
+	return []string{v}
+}
+
+// TestLogRequests proves the record names the method, the path, and
+// the status the wrapped handler wrote, and that a query string never
+// reaches it, whatever it carries.
+func TestLogRequests(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&buf, nil))
+	const token = "qz81-fixture-token"
+	handler := LogRequests(logger, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	}))
+
+	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/dubplate/login/link?t="+token, nil))
+
+	var rec map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &rec); err != nil {
+		t.Fatalf("log = %q, want one JSON record: %v", buf.String(), err)
+	}
+	if rec["method"] != http.MethodPost || rec["path"] != "/dubplate/login/link" || rec["status"] != float64(http.StatusTeapot) {
+		t.Errorf("record = %v, want method POST, path /dubplate/login/link, status 418", rec)
+	}
+	if strings.Contains(buf.String(), token) {
+		t.Errorf("log carries the query's token: %s", buf.String())
+	}
+}
+
 func TestNewDocument_PanicsOnMissingDefaultVariant(t *testing.T) {
 	defer func() {
 		if recover() == nil {
 			t.Fatal("NewDocument: want a panic when defaultPalette has no variant")
 		}
 	}()
-	NewDocument(documentVariantFixture(), "gruvbox")
+	NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "gruvbox"})
 }
 
 func newAssetsRoot() fstest.MapFS {
@@ -456,9 +537,10 @@ func TestNewAssets(t *testing.T) {
 		path       string
 		wantStatus int
 		wantBody   string
+		wantCache  string
 	}{
-		{name: "an embedded file", path: "/dubplate/_app/immutable/app.js", wantStatus: http.StatusOK, wantBody: "console.log(1)"},
-		{name: "another embedded file", path: "/dubplate/_app/version.json", wantStatus: http.StatusOK, wantBody: `{"version":"1"}`},
+		{name: "an embedded file", path: "/dubplate/_app/immutable/app.js", wantStatus: http.StatusOK, wantBody: "console.log(1)", wantCache: "public, max-age=31536000, immutable"},
+		{name: "another embedded file", path: "/dubplate/_app/version.json", wantStatus: http.StatusOK, wantBody: `{"version":"1"}`, wantCache: "no-cache"},
 		{name: "the bare route prefix", path: "/dubplate/_app", wantStatus: http.StatusNotFound},
 		{name: "a directory path", path: "/dubplate/_app/immutable/", wantStatus: http.StatusNotFound},
 		{name: "a missing file", path: "/dubplate/_app/nope.js", wantStatus: http.StatusNotFound},
@@ -474,6 +556,9 @@ func TestNewAssets(t *testing.T) {
 			}
 			if tt.wantBody != "" && rec.Body.String() != tt.wantBody {
 				t.Errorf("body = %q, want %q", rec.Body.String(), tt.wantBody)
+			}
+			if got := rec.Header().Get("Cache-Control"); got != tt.wantCache {
+				t.Errorf("Cache-Control = %q, want %q", got, tt.wantCache)
 			}
 		})
 	}

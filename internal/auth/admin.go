@@ -78,7 +78,7 @@ type AdminConfig struct {
 // "members" field. The API answers every path it is mounted on, so the
 // mount confines it to the one path it serves.
 func NewRosterAPI(cfg AdminConfig) http.Handler {
-	return requireAdmin(cfg, &rosterAPI{cfg: cfg, writeWait: rosterAPIWriteWait})
+	return RequireAdmin(cfg, &rosterAPI{cfg: cfg, writeWait: rosterAPIWriteWait})
 }
 
 // adminKey is the context key under which the gate passes the
@@ -95,9 +95,12 @@ func verifiedAdmin(ctx context.Context) (identity.Identity, bool) {
 	return v.Identity, true
 }
 
-// requireAdmin admits a request to next only when its session verifies
+// RequireAdmin admits a request to next only when its session verifies
 // through cfg.Seam as a valid identity holding the admin flag. Every
-// other request answers http.NotFound and carries no cookie.
+// other request answers exactly what [http.NotFound] answers and
+// carries no cookie, so a gated path tells a non-admin nothing an
+// unregistered path would not. next decides every method and path
+// check itself, and those answers reach verified admins only.
 //
 // The session is refreshed only when Sec-Fetch-Site is exactly
 // same-origin: the shell's cross-origin check always admits a GET, so
@@ -106,7 +109,7 @@ func verifiedAdmin(ctx context.Context) (identity.Identity, bool) {
 // refreshed cookie is set only once the admin check has passed; setting
 // it earlier would put a Set-Cookie on a non-admin's 404 that an
 // unregistered path never carries.
-func requireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
+func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		now := cfg.Now()
 		sameOrigin := r.Header.Get("Sec-Fetch-Site") == "same-origin"

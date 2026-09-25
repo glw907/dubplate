@@ -266,7 +266,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 
 			handlers := map[string]http.Handler{"roster API": NewRosterAPI(cfg)}
 			next := &recordingHandler{}
-			handlers["gate"] = requireAdmin(cfg, next)
+			handlers["gate"] = RequireAdmin(cfg, next)
 			for name, h := range handlers {
 				got := responseOf(serveOne(h, r.Clone(t.Context())))
 				if !reflect.DeepEqual(got, want) {

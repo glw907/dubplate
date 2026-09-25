@@ -4,11 +4,18 @@
 //
 // # Composition order
 //
-// [Shell.Handler] composes five steps, in this order, each wrapping the
+// [Shell.Handler] composes six steps, in this order, each wrapping the
 // next. The order is a property of the chain, never a feature of the
 // mux: no step is registered as a route, and no test in this package
 // proves the order by reading the chain's construction.
 //
+//  0. The security headers (securityHeaders). X-Content-Type-Options:
+//     nosniff, Referrer-Policy: no-referrer, and, once
+//     [Shell.EnableHSTS] is called, Strict-Transport-Security. The
+//     step wraps everything, so a refusal by any later step, a 404
+//     included, carries them. A document's Content-Security-Policy is
+//     not among them: it is per document, set by the handler that
+//     serves it ([DocumentCSP]).
 //  1. The ingress strip ([Strip.Wrap]). It wraps everything, so no
 //     route is reachable with an identity header, a forwarded-address
 //     header, or a Connection-listed header still attached.

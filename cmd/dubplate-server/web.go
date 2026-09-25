@@ -48,12 +48,34 @@ const notConfigured = "none"
 // a large file refuses startup rather than loading it into memory.
 const operatorCSSMaxBytes = 256 << 10
 
-// The build tree's two document paths the login route serves, relative
-// to the embedded build root.
+// The build tree's three document paths, relative to the embedded
+// build root.
 const (
 	loginDocumentName     = "login.html"
 	loginLinkDocumentName = "login/link.html"
+	membersDocumentName   = "members.html"
 )
+
+// webDocument is one document the web routes serve: its path inside
+// the build tree, the path under the owned prefix it answers at, and
+// its Cache-Control value.
+type webDocument struct {
+	name         string
+	route        string
+	cacheControl string
+}
+
+// webDocuments is every document the build emits and the server
+// serves. A document is no-cache by default: the stamp and the tier
+// links are fixed at startup, so a cache may keep it and revalidate.
+// The consumption document is no-store because its URL carried a
+// sign-in token. The members document is private because it answers
+// per requester, behind the admin gate.
+var webDocuments = []webDocument{
+	{name: loginDocumentName, route: "/" + loginRouteName, cacheControl: "no-cache"},
+	{name: loginLinkDocumentName, route: "/" + loginRouteName + "/link", cacheControl: "no-store"},
+	{name: membersDocumentName, route: "/" + membersRouteName, cacheControl: "private, no-cache"},
+}
 
 // themeMatchThreshold is DUBPLATE_THEME_MATCH: the theme axis naming
 // which group of themes the server presents. Rung 5 ships one group,
@@ -105,17 +127,22 @@ func registerWebConfig(reg *config.Registry) {
 
 // webRoutes are the http.Handlers newServeShell mounts under the
 // shell's owned prefix. operator is nil when no operator CSS file is
-// configured, which leaves its path to the terminator's 404.
+// configured, which leaves its path to the terminator's 404. members
+// is the members document with no gate of its own, so it is never
+// mounted except behind [auth.RequireAdmin].
 type webRoutes struct {
 	login    http.Handler
+	members  http.Handler
 	assets   http.Handler
 	branding http.Handler
 	operator http.Handler
 }
 
-// register mounts wr's routes on shell under their subtree names.
+// register mounts wr's public routes on shell under their subtree
+// names, the login documents logged through the shell's own logger.
+// It leaves members to the caller, which alone holds the admin gate.
 func (wr webRoutes) register(shell *serve.Shell) {
-	shell.Register(loginRouteName, wr.login)
+	shell.Register(loginRouteName, serve.LogRequests(shell.Logger(), wr.login))
 	shell.Register(assetsRouteName, wr.assets)
 	shell.Register(brandingRouteName, wr.branding)
 	if wr.operator != nil {
@@ -124,15 +151,17 @@ func (wr webRoutes) register(shell *serve.Shell) {
 }
 
 // newWebRoutes reads web.Assets, refuses on a placeholder-only
-// embedded tree naming `npm run build`, resolves and validates
+// embedded tree naming `npm run build`, builds each document's CSP
+// header from its own CSP meta, resolves and validates
 // DUBPLATE_THEME_MATCH and DUBPLATE_THEME_PALETTE against the built
 // bundle's own extracted [data-theme=<name>] selectors, renders
 // DUBPLATE_BRANDING into the branding stylesheet, reads the file
-// DUBPLATE_OPERATOR_CSS_FILE names, rewrites the login documents into
-// one variant per stampable palette with the tier links in place, and
-// returns the routes. It returns before any listener opens, so a bad
-// theme or branding value, a refused operator file, or a missing build
-// refuses startup rather than the first request.
+// DUBPLATE_OPERATOR_CSS_FILE names, rewrites the documents into one
+// variant per stampable palette with the tier links in place, and
+// returns the routes. It returns before any listener opens, so a
+// document with an inline script its CSP does not hash, a bad theme or
+// branding value, a refused operator file, or a missing build refuses
+// startup rather than the first request.
 func newWebRoutes(environ []string, prefix serve.Prefix) (webRoutes, error) {
 	buildFS, err := fs.Sub(web.Assets, "build")
 	if err != nil {
@@ -155,13 +184,19 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 		return webRoutes{}, errors.New("web: the embedded build tree holds only the placeholder; run `npm run build` in web/")
 	}
 
-	loginRaw, err := fs.ReadFile(buildFS, loginDocumentName)
-	if err != nil {
-		return webRoutes{}, fmt.Errorf("web: document %q: %w", loginDocumentName, err)
-	}
-	linkRaw, err := fs.ReadFile(buildFS, loginLinkDocumentName)
-	if err != nil {
-		return webRoutes{}, fmt.Errorf("web: document %q: %w", loginLinkDocumentName, err)
+	docs := make([]namedDocument, len(webDocuments))
+	csps := make([]string, len(webDocuments))
+	for i, d := range webDocuments {
+		raw, err := fs.ReadFile(buildFS, d.name)
+		if err != nil {
+			return webRoutes{}, fmt.Errorf("web: document %q: %w", d.name, err)
+		}
+		csp, err := serve.DocumentCSP(d.name, raw)
+		if err != nil {
+			return webRoutes{}, err
+		}
+		docs[i] = namedDocument{path: d.name, raw: raw}
+		csps[i] = csp
 	}
 
 	match, err := config.ParseString(environ, themeMatchThreshold)
@@ -180,10 +215,7 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 		return webRoutes{}, fmt.Errorf("%s: %q: must match %s", themePaletteThreshold.Key, palette, themePaletteGrammarRE)
 	}
 
-	selectors, err := extractThemeSelectors(buildFS,
-		namedDocument{path: loginDocumentName, raw: loginRaw},
-		namedDocument{path: loginLinkDocumentName, raw: linkRaw},
-	)
+	selectors, err := extractThemeSelectors(buildFS, docs...)
 	if err != nil {
 		return webRoutes{}, err
 	}
@@ -203,21 +235,24 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 		return webRoutes{}, err
 	}
 
-	loginVariants, err := serve.BuildDocumentVariants(loginDocumentName, loginRaw, themePlaceholder, match, palettes,
-		tierHrefs(loginDocumentName, hasOperatorCSS))
-	if err != nil {
-		return webRoutes{}, err
+	documents := make(map[string]http.Handler, len(webDocuments))
+	for i, d := range webDocuments {
+		variants, err := serve.BuildDocumentVariants(d.name, docs[i].raw, themePlaceholder, match, palettes,
+			tierHrefs(d.name, hasOperatorCSS))
+		if err != nil {
+			return webRoutes{}, err
+		}
+		documents[prefix.String()+d.route] = serve.NewDocument(serve.DocumentConfig{
+			Variants:       variants,
+			DefaultPalette: palette,
+			CacheControl:   d.cacheControl,
+			CSP:            csps[i],
+		})
 	}
-	linkVariants, err := serve.BuildDocumentVariants(loginLinkDocumentName, linkRaw, themePlaceholder, match, palettes,
-		tierHrefs(loginLinkDocumentName, hasOperatorCSS))
-	if err != nil {
-		return webRoutes{}, err
-	}
-
-	login := newExactPathRoutes(map[string]http.Handler{
-		prefix.String() + "/login":      serve.NewDocument(loginVariants, palette),
-		prefix.String() + "/login/link": serve.NewDocument(linkVariants, palette),
-	})
+	membersPath := prefix.String() + "/" + membersRouteName
+	members := newExactPathRoutes(map[string]http.Handler{membersPath: documents[membersPath]})
+	delete(documents, membersPath)
+	login := newExactPathRoutes(documents)
 
 	assetsFS, err := fs.Sub(buildFS, "_app")
 	if err != nil {
@@ -225,6 +260,7 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 	}
 	routes := webRoutes{
 		login:    login,
+		members:  members,
 		assets:   serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
 		branding: stylesheetRoute(prefix, brandingRouteName, branding),
 	}
