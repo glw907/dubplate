@@ -198,3 +198,62 @@ The fold ran these probes itself. The mechanics lens's probes are cited from its
   `errDBClosed` and its `case <-ctx.Done():` connection wait (`sql.go:1318`, `:1320-1331`, and
   `:1370-1375`); `net/http`'s `Request.Context` doc; and `mklost+found(8)`: "There is normally a
   lost+found directory in the root directory of each file system."
+
+## Fold 2
+
+Input: the verification read of revision 2
+(`2026-09-25-rung-6b-ii-plan-fold-verification.md`, committed at `f21c417`): 0 blockers, 2
+majors, and 10 minors. Each finding was checked against the plan and against the code on master
+before it was folded. The fold is narrow: no ruling's substance changed, and all nine stay yes/no
+with their recommendations. The result is revision 3, status "reviewed; awaiting owner approval
+(Rulings 1-9)."
+
+### Checks made before folding
+
+- M1: Spec `:278-285` declares exactly three test seams, the step hook among them as "an
+  unexported function variable called between flow steps." Fold 1 already refused a fourth seam
+  for R-M4. A hook variable in `internal/backup` cannot fire inside one `store` method, so the
+  finding holds.
+- M2: Ruling 6 and R-6bii11 derived the displaced directory's name from the record's stamp and
+  said only "created at 0700 before the copy." A resumed step 6 names the same path, so an
+  `os.Mkdir` on resume fails with `EEXIST`. The finding holds.
+- m1: `waitLock` logs the holders on its first busy attempt (`open.go:312-313` on master), and
+  `acquireBounded` (`lock.go:63-78`) logs nothing. Confirmed.
+- m2: `prune.list` (`prune.go:248`) and `runRclone` (`prune.go:282-294`) call
+  `exec.CommandContext` directly with no `SysProcAttr`, `Cancel`, or `WaitDelay`, while
+  `transport.run` (`rclone.go:51-72`) sets all three. `git grep` finds three launch sites in
+  `internal/backup`. Confirmed.
+- m3: `TestImportsStandardLibraryOnly` is at `internal/ops/ops_test.go:185`, and
+  `errors.go:21-23` links `[ErrForbidden]` and `[ErrInternal]`, which do not exist. Confirmed.
+
+### Dispositions
+
+| Finding | Disposition |
+| --- | --- |
+| M1 | **Folded as proposed.** R-6bii8 gains "Step 5 is two session calls": the first holds the pre-restore rename, the discard's moves, or nothing on a fresh leaf; the second holds the incoming rename and the fsyncs. The flow in `internal/backup` calls the hook between them, so the seams stay three. D3, R-6bii6's method list, Task 4C's swap outcome, and Task 5B's flow outcome and crash rows say the same. Task 5B's in-between crash row now names the third combination row; revision 2 named the second, which is the `-wal` refusal. A discard crash row between the two calls was added. |
+| M2 | **Folded.** R-6bii11 gains "The displaced directory" with three rules. `--backup-dir` applies with `--into-nonempty` only, since without it every file in the root came from the restore's own copy. A first run creates the directory with `os.Mkdir` at 0700 and refuses on any failure, `EEXIST` included. A resume accepts an existing directory only when `os.Lstat` shows a directory, the caller's uid, and mode 0700. The directory is removed by `os.Remove` only when it holds no entry, and never recursively. The pre-creation cites the verification read's probe (rclone v1.74.3 creates a missing backup directory at 0755 under umask 022). Ruling 6's "what yes builds" sentence and the privileged-field row were aligned without changing the question. Task 6 gains four rows (the hand-built interrupted `--into-nonempty` resume, a wrong-state displaced path, the empty-directory removal, and a first run beside an existing path) and mutations 6 and 7. Review focus 9 names the kept files. |
+| m1 | **Folded.** Task 4A's fixture paragraph: the serve rows wait for the holders log line through a recording logger. The write-mode row waits a settle delay, and the task reports mutation 5's kill rate across repeated runs; any survival makes it a reviewer-read. |
+| m2 | **Folded, into Task 5A.** R-6bii6 now states the architecture read's fix: `transport.run` takes a stdout writer, `prune` holds a transport, and `runRclone` is deleted. R-6bii9's listing and R-6bii10's `rclone size --json` name the transport. Task 5A carries the launch path as a deliverable, a canceled-listing row, mutation 3, and a `git grep` criterion finding one launch site. Task 7 gains the SIGTERM-during-listing row (exit 130). |
+| m3 | **Folded.** Task 1 names both edits for the diff-reviewer: `TestImportsStandardLibraryOnly` admits `internal/identity` alone, and the `errors.go:21-23` doc links are rewritten. The sentinel-list collapse is routed to the architecture cleanup pass. The global constraint and exit gate 14 now say that the `Codes` and classifier caller is unmounted projection code, which no binary reaches until rung 14. |
+| m4 | **Folded.** The completion tuple gains the discard case: `snapshots/discarded-<stamp>.db` exists, each planted `-wal` or `-shm` sits beside it under the discarded name, and none remains in `db/`. The pre-restore clause now excludes `--discard-current`. |
+| m5 | **Folded.** R-6bii7: resume reads the staged file's version through the session's verify-then-remove method. Task 5B gains a criterion (no `-wal` or `-shm` in `staging/` after such a resume) and mutation 6. |
+| m6 | **Folded.** The reference write, and the move of `WriteBackupRef`'s body into a shared function, are built on Ruling 5's yes only, in R-6bii6, the privileged-field row, Task 4B's files, its handles outcome, and its row. Task 5B states what its rows become on the no. |
+| m7 | **Folded.** Ruling 2's no: Task 1 deletes `ErrCanceled`, `CodeCanceled`, and `NewCanceledError`; the tables count six; the classifier's `context.Canceled` row answers `internal`; the seam boundary outcome, rows, and mutation go; Task 1 carries three deliverables. R-6bii4 drops the `canceled` status, and Task 3 drops its row. Ruling 3's no: R-6bii4, Task 2's authorizer rows, and Task 3's HTTP leg answer what `http.NotFound` answers, and Task 3's mutation 3 is reversed. Ruling 7's no: R-6bii11 names the flag `--root-not-a-mount` (only with `--library`, checked once, skipped on resume), Task 6's same-device row refuses without it, and Task 7's flags carry it into criterion 12's empty-root fixture. |
+| m8 | **Folded.** Exit gate item 10 is 6b-ii-a's alone. Item 14 applies to both halves, each over its own exports, as item 9 does over each half's tasks. Task 8's draft files are suffixed `-6b-ii-a` and `-6b-ii-b` on a split. |
+| m9 | **Folded in part.** Task 7's signal-then-resume row names the `PATH` switch: the blocking stand-in first for the interrupted run, the real rclone first for the resume. Task 8's runbook lines name the `.partial` files a SIGKILLed library copy leaves, which the report lists as files without a row. **Refused:** clearing `*.partial` under the root on a `library` resume. It deletes files under the library root, which the privileged-field table rules out, to save one manual step after a SIGKILL. |
+| m10 | **Folded by a task split.** Task 5, with m2 absorbed, carried six outcomes. It splits into 5A (the one launch path, the listing with its rules, the fetch: three deliverables) and 5B (the flow with the hook, resume, the reference rewrite: three). The dependency chain, segments C and B2, the exit gate, review focus, the models paragraph, and the hooks table are updated. |
+
+### Ceilings after fold 2
+
+Task 5A is priced at 0.51M and Task 5B at 0.56M, against revision 2's single 0.56M, which adds
+one task's rate of 0.51M. Task 6's displaced-directory rows add 0.03M.
+
+- **One pass (Ruling 1 yes):** projection 7.76M; flag 7.76M + 0.48M = **8.24M**; ceiling 8.24M /
+  0.8 = **10.30M** (was 9.63M).
+- **Split (Ruling 1 no):** 6b-ii-a is unchanged at **3.90M** (flag 3.12M). 6b-ii-b's projection
+  is 5.54M; flag 5.54M + 0.48M = **6.02M**; ceiling 6.02M / 0.8 = 7.525M, so **7.53M** (was
+  6.85M). Together 11.43M, about 1.1M above the one-pass ceiling, as before.
+
+That is 38 deliverables. Tasks 1, 2, 4A, 7, and 8 carry four each, and Tasks 3, 4B, 4C, 5A, 5B,
+and 6 carry three each. Ruling 1 now counts five task splits against the spec's task count, and
+its recommendation to split the pass is unchanged.

@@ -1,11 +1,13 @@
 # Rung 6, Pass 6b-ii (The Projection and Restore) Implementation Plan
 
-Status: **reviewed, fold 1; awaiting verification.** Revision 2, 2026-09-25. Three lenses reviewed
-revision 1 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-review-contract.md`,
-`-mechanics.md`, and `-risk.md`); the fold record
+Status: **reviewed; awaiting owner approval (Rulings 1-9).** Revision 3, 2026-09-25. Three lenses
+reviewed revision 1 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-review-contract.md`,
+`-mechanics.md`, and `-risk.md`), and an independent read verified revision 2's fold
+(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold-verification.md`). The fold record
 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold.md`) carries one disposition per
-finding. Nine rulings for Geoff are open ("Rulings awaiting owner"). Ruling 1 now
-recommends splitting the pass, and both answers are executable as written.
+finding of both rounds; its "Fold 2" section covers the verification read. Fold 2 splits Task 5
+into 5A and 5B. Nine rulings for Geoff are open ("Rulings awaiting owner"). Ruling 1 recommends
+splitting the pass, and both answers are executable as written.
 
 Sources: the ratified rung 6 spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`,
 revision 2.2 with errata E1 to E11); its fold record
@@ -67,20 +69,21 @@ any of these stops and reports.
 Nine yes-or-no questions. The spec's fourteen rulings, 6a's four, and 6b-i's four stand and are not
 reopened. Approving this plan also approves the spec deviations listed after the rulings.
 
-**1. Does 6b-ii run as one pass under a 9.63M execution ceiling?** Recommendation: **no, split
+**1. Does 6b-ii run as one pass under a 10.30M execution ceiling?** Recommendation: **no, split
 it.** Reason: the spec priced 6b-ii at five tasks and 4.4M (spec `:1139`). Revision 1 needed eight
-build tasks to keep each at four deliverables or fewer, and the fold adds a ninth (Task 4C) and
-rows to Tasks 3, 4A, 5, and 6. That is four task splits against the spec's count (2 and 3; 4A, 4B,
-and 4C; 5 and 6). The workstation's sizing rule makes a third task split the point where a pass
-split is overdue. The two halves share no file, and each has its own review class: the security
+build tasks to keep each at four deliverables or fewer, fold 1 added a ninth (Task 4C) and rows to
+Tasks 3, 4A, 5, and 6, and fold 2 splits Task 5 into 5A and 5B. That is five task splits against
+the spec's count (2 and 3; 4A, 4B, and 4C; 5A and 5B; 5B and 6). The workstation's sizing rule
+makes a third task split the point where a pass split is overdue. The two halves share no file, and each has its own review class: the security
 read for the projection, the targeted data-loss read for restore. As one pass, the
 data-destructive half runs last, under the conductor's heaviest context, where the 80% flag lands.
 Revision 1 recommended yes; the risk lens's split recommendation and the fold's growth change it.
 What each answer builds:
 
-- **Yes:** one pass, one close, ceiling 9.63M, flag 7.70M, the four segments of "Execution model."
+- **Yes:** one pass, one close, ceiling 10.30M, flag 8.24M, the four segments of "Execution
+  model."
 - **No:** **6b-ii-a** (Task 0, Tasks 1 to 3, and a close; ceiling 3.90M, flag 3.12M), then
-  **6b-ii-b** (a fresh Task 0, Tasks 4A to 7, and a close; ceiling 6.85M, flag 5.48M). The
+  **6b-ii-b** (a fresh Task 0, Tasks 4A to 7, and a close; ceiling 7.53M, flag 6.02M). The
   second Task 0, close, and merge cost about 1.1M more in total. "Token ceiling" carries both
   derivations, and "Execution model" names each half's segments and close.
 
@@ -149,10 +152,11 @@ report cannot name it, since the path has both a row and a file. `--backup-dir` 
 --help` does not list it, so the fold probed it (v1.74.3, local backend, fold record "Probes"): a
 differing destination file moved into the backup directory, an identical file and a local-only
 file stayed untouched, and a backup directory inside the destination was refused with "destination
-and parameter to --backup-dir mustn't overlap." What each answer builds: yes creates the displaced
-directory at 0700 before the copy (a creation failure refuses before any rclone call), passes
-`--backup-dir`, names the directory and its file count in the report, and removes it when the copy
-displaced nothing. No runs plain `rclone copy`, as revision 1 drafted. Two other answers exist:
+and parameter to --backup-dir mustn't overlap." What each answer builds: yes, with
+`--into-nonempty` only, creates the displaced directory at 0700 before the copy (a creation failure
+refuses before any rclone call), passes `--backup-dir`, names the directory and its file count in
+the report, and removes it only when it is empty after the copy. A resume accepts the directory
+its own interrupted run created (R-6bii11). No runs plain `rclone copy`, as revision 1 drafted. Two other answers exist:
 `--ignore-existing` ("Skip all files that exist on destination") keeps every local file and never
 restores the backup's version of it, and `--update` ("Skip files that are newer on the
 destination") keeps only local files newer than the backup's.
@@ -207,7 +211,8 @@ of the spec says.
   the swap, the reference write, and the report file); `internal/backup` owns the fetch, the
   library copy, the reconciliation, the step hook, and the order of the steps. The spec's package
   table puts "restore" in `internal/backup` (`:204`), and `internal/backup` cannot reach the leaf's
-  unexported paths.
+  unexported paths. The session exposes step 5 as two calls, so the flow calls its one step hook
+  between the two renames and the spec's three test seams stay three (R-6bii8).
 - **D4 (R-6bii9).** A `--from-file` source whose `-wal` or `-journal` sibling exists is refused.
   The spec lists no such state; a byte copy of a database beside a live WAL or a hot rollback
   journal is the torn copy 2.0 hook 10 forbids (spec `:619-620`).
@@ -216,7 +221,7 @@ of the spec says.
   `restore --resume` for every state but `reconcile-pending`, which names "start serve".
 - **D6 (R-6bii2).** `internal/ops/opshttp` imports `internal/identity` beside `internal/ops`, for
   the mount's channel type. The spec's table (`:203`) names `ops` alone.
-- **D7 (Task 5).** Criterion 7's "a crash ... after each flow step leaves the intent record"
+- **D7 (Task 5B).** Criterion 7's "a crash ... after each flow step leaves the intent record"
   (`:1047-1048`) holds from step 4 on. The record is written at step 4, so a crash after step 1, 2,
   or 3 leaves none: the current store is untouched or in rollback-journal mode, and a write-mode
   open proceeds and restores WAL through its DSN.
@@ -286,7 +291,7 @@ switch to DELETE on the only connection (R-6bii8).
 
 ---
 
-## Token ceiling: 9.63M execution as one pass, or 3.90M and 6.85M split (Ruling 1)
+## Token ceiling: 10.30M execution as one pass, or 3.90M and 7.53M split (Ruling 1)
 
 The basis is 6b-i's recorded spend (`draft-HISTORY-6b-i.md`, "Both budgets"): about 5.4M through
 the simplifier round for nine build tasks and Task 0, so about 0.46M per `opus` task with its fix
@@ -300,14 +305,20 @@ rows add about 0.05M each to Tasks 3, 4A, 5, and 6 and about 0.03M and 0.04M to 
 The restore fix reserve rises from 0.40M to 0.60M, since 6b-i's verb segment alone took two fix
 rounds and the fold added crash rows to the data-destructive path.
 
+**Fold 2's growth, priced.** Task 5 splits into 5A (`opus`, the one rclone launch path and the
+fetch: 0.46M + 0.05M) and 5B (`opus` with a re-executed child, the flow, resume, and the
+reference: 0.51M + 0.05M), which adds one task's rate, 0.51M. Task 6 gains the displaced
+directory's resume rows (0.03M). Task 7's listing-signal row and Task 1's two named edits ride
+their tasks' rates.
+
 **One pass (Ruling 1 yes).**
 
 1. Task 0 at `opus`, at 6b-i's actual: **0.11M**.
 2. Task 1 (`sonnet`): 0.30M + 0.03M = **0.33M**.
 3. Task 2 (`opus`): 0.46M + 0.04M = **0.50M**.
 4. Task 3 (`opus`, a re-executed child): 0.51M + 0.05M = **0.56M**.
-5. Tasks 4A (0.46M + 0.05M), 4B (0.51M), 4C (0.51M), 5 (0.51M + 0.05M), and 6 (0.46M + 0.05M):
-   **2.60M**.
+5. Tasks 4A (0.46M + 0.05M), 4B (0.51M), 4C (0.51M), 5A (0.46M + 0.05M), 5B (0.51M + 0.05M),
+   and 6 (0.46M + 0.05M + 0.03M): **3.14M**.
 6. Task 7, the verb, at the 6b-i verb segment's rate: **0.75M**.
 7. Fix rounds beyond that rate: **0.60M**.
 8. The close side: the simplifier round with its review (0.35M), Task 8 (0.13M), the merge ritual
@@ -316,10 +327,10 @@ rounds and the fold added crash rows to the data-destructive path.
    `internal/backup`, `cmd/dubplate-server`: 0.60M), the spec's targeted `opus` read of the
    data-loss paths (0.30M, spec `:1166-1168`), and `web-auth-security-reviewer` over the
    projection (0.28M): **1.77M**.
-9. **The projection is 7.22M.**
+9. **The projection is 7.76M.**
 
-In one line: 7.22M projection + 0.48M (one task) = 7.70M flag target; 7.70M / 0.8 = 9.625M, so a
-**9.63M** ceiling with its 80% flag at **7.70M**.
+In one line: 7.76M projection + 0.48M (one task) = 8.24M flag target; 8.24M / 0.8 = 10.30M, so a
+**10.30M** ceiling with its 80% flag at **8.24M**.
 
 **Split (Ruling 1 no).** Each half re-prices the shared close items at its own share.
 
@@ -327,18 +338,19 @@ In one line: 7.22M projection + 0.48M (one task) = 7.70M flag target; 7.70M / 0.
   reserve of 0.15M, and a close of 0.99M (the simplifier round 0.20M, its Task 8 0.10M, the merge
   0.11M, three architecture reads 0.30M, and the security review 0.28M). Projection 2.64M; flag
   2.64M + 0.48M = **3.12M**; ceiling 3.12M / 0.8 = **3.90M**.
-- **6b-ii-b, restore:** a fresh Task 0 0.11M, Tasks 4A to 6 2.60M, Task 7 0.75M, a fix reserve of
+- **6b-ii-b, restore:** a fresh Task 0 0.11M, Tasks 4A to 6 3.14M, Task 7 0.75M, a fix reserve of
   0.45M, and a close of 1.09M (the simplifier round 0.25M, its Task 8 0.13M, the merge 0.11M,
-  three architecture reads 0.30M, and the targeted data-loss read 0.30M). Projection 5.00M; flag
-  5.00M + 0.48M = **5.48M**; ceiling 5.48M / 0.8 = **6.85M**.
-- Together 10.75M against one pass's 9.63M: about 1.1M more, for the second Task 0, a second
+  three architecture reads 0.30M, and the targeted data-loss read 0.30M). Projection 5.54M; flag
+  5.54M + 0.48M = **6.02M**; ceiling 6.02M / 0.8 = 7.525M, so **7.53M**.
+- Together 11.43M against one pass's 10.30M: about 1.1M more, for the second Task 0, a second
   close, and a second merge. Ruling 9's "no" adds about 0.5M to 6b-ii-b (Task 7B).
 
 Checkpoint: STATUS at every segment boundary and at the close. Every task reports its spend, its
 mutation outcomes, and its measured gate wall time.
 
-Deliverable count: thirty-six across Tasks 1 to 8, plus Task 0's report. Tasks 1, 2, 4A, 5, 7, and
-8 carry four each (24); Tasks 3, 4B, 4C, and 6 carry three each (12). No task passes four.
+Deliverable count: thirty-eight across Tasks 1 to 8, plus Task 0's report. Tasks 1, 2, 4A, 7, and
+8 carry four each (20); Tasks 3, 4B, 4C, 5A, 5B, and 6 carry three each (18). No task passes four.
+On Ruling 2's no, Task 1 carries three.
 
 ---
 
@@ -353,7 +365,7 @@ Deliverable count: thirty-six across Tasks 1 to 8, plus Task 0's report. Tasks 1
 - **Package territory, stated as a wall.** This pass creates `internal/ops/opshttp` (every file
   and its tests). It edits `internal/ops` (Task 1), `internal/ops/local` (Task 1: the catalog's
   privilege source and the seam boundary's cancel classification), `internal/engine/store`
-  (Tasks 4A, 4B, and 4C), and `internal/backup` (Tasks 5 and 6). It creates
+  (Tasks 4A, 4B, and 4C), and `internal/backup` (Tasks 5A, 5B, and 6). It creates
   `cmd/dubplate-server/restore.go` and its test, and edits `main.go` (one `AddCommand` entry)
   and `store.go` (the restore-in-progress row's reason, Task 4A). **It writes nothing under
   `internal/auth`, `internal/identity`, `internal/serve`, `internal/config`,
@@ -380,8 +392,9 @@ Deliverable count: thirty-six across Tasks 1 to 8, plus Task 0's report. Tasks 1
   everything in `opshttp` (unexported by construction, spec `:595-596`), the network actor's
   constructor (its first production caller is rung 14's authorizer), `ServeOptions.Reconcile` and
   `backup.Reconcile` (first production caller 6d's `serve`), and serve mode's open, already
-  6b-i's named exception. `ops.Codes` is not an exception: the projection's status table is its
-  production caller (R-6bii5).
+  6b-i's named exception. `ops.Codes` and the classifier have a caller outside `ops` in the
+  projection's non-test code (R-6bii5), but that code is unmounted, so no binary reaches either
+  until rung 14. Exit gate 14 says so rather than claiming reachability.
 - **Every restore test names its fixture's crash, partial-write, concurrent-process, and
   wrong-archive state**, and each state's report is asserted by text, never by "an error
   occurred". A crash is a real process death: the step hook exits a re-executed test binary (spec
@@ -417,8 +430,8 @@ Deliverable count: thirty-six across Tasks 1 to 8, plus Task 0's report. Tasks 1
 | A discarded store (`snapshots/discarded-<stamp>.db`, `-wal`, `-shm`) | Restore's swap with `--discard-current`, under the exclusive lock, after the record names all three (deviation D8). | Nothing deletes them: 6b-i's local prune matches only pre-migration and pre-restore names (`isLocalCopyName`, `prune.go:204-222`). |
 | Restore's staging files (`staging/restore-<stamp>.db`, rclone's `.partial` beside it, and a verified stage's `-wal` and `-shm`) | Restore under the exclusive lock, which clears `staging/` of every entry when no intent record exists (R-6bii6). | Serve's cleanup (R-6a7) and a backup's stage removal (`staging/backup-*.db` only) are the other two removers; neither runs beside an intent record. |
 | The reconciliation report (`restore-report-<stamp>.txt` in the leaf, 0600) | Restore's final step, or serve mode's `reconcile-pending` path, through the store (R-6bii7), with `atomicfile.WriteStream`. | Nothing else writes it; nothing deletes it at 6b-ii. |
-| The backup reference after a restore | Restore, on Ruling 5's yes, with `--snapshot` only, through the restore session's reference write, which shares `WriteBackupRef`'s body (R-6bii6). | 6b-i's channels otherwise (`snapshot.go:353-397`). |
-| The library root's contents | `restore --library` through `rclone copy`, into a root that exists; refused into a non-empty root without `--into-nonempty`. | Restore never creates the library root and never deletes a file under it; on Ruling 6's yes, a replaced file moves to the displaced directory. |
+| The backup reference after a restore | Restore, on Ruling 5's yes, with `--snapshot` only, through the restore session's reference write, which shares `WriteBackupRef`'s body (R-6bii6). On Ruling 5's no, the session has no reference write. | 6b-i's channels otherwise (`snapshot.go:353-397`). |
+| The library root's contents | `restore --library` through `rclone copy`, into a root that exists; refused into a non-empty root without `--into-nonempty`. | Restore never creates the library root and never deletes a file under it; on Ruling 6's yes, with `--into-nonempty`, a replaced file moves to the displaced directory, which restore removes only when it is empty (R-6bii11). |
 | The remote a restore reads | `DUBPLATE_BACKUP_REMOTE` through the backup integration class, parsed by `backup.ParseRemote` (`internal/backup/remote.go:21-35`). | No flag names a remote; restore reads the one the backups wrote to, and warns when it differs from the remote the backup reference names. |
 
 ---
@@ -501,7 +514,10 @@ and `NotFoundHandler()`), and every answer here carries the JSON error shape.
 
 Error answers carry `{"error": {"code": "<code>", "reason": "<reason>"}}`. The status per code:
 `invalid_request` 400, `forbidden` 403 (Ruling 3), `not_found` 404, `conflict` 409, `unavailable`
-503, `canceled` 503 (Ruling 2), and `internal` 500. An `internal` answer carries no reason: the
+503, `canceled` 503 (Ruling 2), and `internal` 500. On Ruling 2's no, the table has no `canceled`
+row. On Ruling 3's no, `forbidden` answers exactly what `http.NotFound` answers, with no JSON
+body, and the constructor's table check treats that entry as a status like any other. An
+`internal` answer carries no reason: the
 underlying error is logged with the operation name and never written to the body, since a store
 error can name a path. A coded answer's reason is `(*ops.Error).Reason` read through
 `errors.As`, never `err.Error()`, because a wrapper around a coded error may add a path. A non-POST
@@ -568,9 +584,10 @@ measured that string through `QueryRowContext`.
 ### R-6bii6: restore's package split, the session, and its staging rule
 
 The store exports one restore session, opened under the exclusive lock, whose methods are the
-leaf operations of spec steps 1 to 5, the reference write, the reconciliation handle, and the
+leaf operations of spec steps 1 to 5, the reference write (Ruling 5's yes only), the
+reconciliation handle, and the
 report write of step 7: take the lock, create the leaf when absent, clear staging, stage a local
-file, verify a staged file, quiesce the current store, write and advance the intent record, swap,
+file, verify a staged file, quiesce the current store, write and advance the intent record, swap in two calls (R-6bii8),
 write the backup reference, open a read handle on the restored store, write the report, and remove
 the record. It also hands out close-on-exec duplicates of the exclusive lock's descriptor, as the
 kind lease does (`internal/engine/store/lease.go:220`, `lock.go:176-194`). `internal/backup` owns
@@ -594,9 +611,10 @@ as the mechanics lens quotes it: "An attempt to lock the file using one of these
 may be denied by a lock that the calling process has already placed via another file descriptor."
 So the session never calls `OpenWrite` or anything that takes the store lock. It opens a read
 handle on the restored store that holds no lock of its own (the session's lock covers it), at the
-binary's version only, and the reference write is a session method. `WriteBackupRef`'s body and
-earlier-reference prune move into one unexported leaf-level function that both
-`(*Handle).WriteBackupRef` and the session call, so the two cannot drift.
+binary's version only. On Ruling 5's yes, the reference write is a session method, and
+`WriteBackupRef`'s body and earlier-reference prune move into one unexported leaf-level function
+that both `(*Handle).WriteBackupRef` and the session call, so the two cannot drift. On Ruling 5's
+no, neither the method nor the move exists, since the method would be an export with no caller.
 
 The transport generalizes to any source of inherited descriptors, so a restore's rclone child
 inherits the exclusive store lock the way a backup's inherits the kind lease and shared lock
@@ -604,6 +622,16 @@ inherits the exclusive store lock the way a backup's inherits the kind lease and
 out until it exits, the property 6b-i R-6bi12 established for backup. The mechanics lens confirmed
 the inheritance: the store lock is `flock`, not `fcntl` (`lock.go:88`), and flock(2) says that
 "duplicate file descriptors (created by, for example, fork(2) or dup(2)) refer to the same lock."
+
+The transport also becomes the package's one rclone launch path, as 6b-i's `internal/backup`
+architecture read directs (`2026-09-25-rung-6b-i-architecture-reads.md`). Today `prune.list`
+(`prune.go:248-278`) and `runRclone` (`prune.go:280-294`) call `exec.CommandContext` directly,
+with no process group, no SIGINT-then-`WaitDelay` cancel, and no inherited descriptors, though
+`internal/backup/doc.go` promises all three for rclone. So `transport.run` takes a stdout writer,
+`prune` holds a transport, and `runRclone` is deleted. Restore's `snapshots/` listing and its
+`rclone size --json` then run under the same cancel as its `copyto` and `copy`, and a SIGTERM
+during either exits 130 (Ruling 4), where the direct launch would kill rclone and return an error
+that does not wrap `ctx.Err()`.
 
 **Restore's staging rule** (6b-i handoff item 5): a restore that holds the exclusive lock and finds
 no intent record removes every entry in `staging/`, as serve's cleanup does
@@ -655,13 +683,19 @@ non-blocking, so it never waits through a restore.
 **Resume re-derives every version verdict from the running binary** (deviation D10), because an
 operator may change binaries between a crash and `--resume`. In `swap`, before any rename, the
 staged file (or, after the swap, `db/`'s store) must be at or below the running binary's version,
-else resume refuses naming both versions and the binary that wrote the record. In `reconcile`, the
-table's third row applies. The recorded version is kept for the report and the refusal text only.
+else resume refuses naming both versions and the binary that wrote the record. Resume reads the
+staged file's version through the same session method that verifies a stage and then removes its
+`-wal` and `-shm` (R-6bii6), since an inspect-DSN open creates both, and a re-check that skipped
+the removal would leave `staging/` non-empty after the swap. In `reconcile`, the table's third row
+applies. The recorded version is kept for the report and the refusal text only.
 
 **The completion tuple.** A restore or a resume has finished only when all of these hold, and every
 test in which one finishes asserts them all: `db/dubplate.db` holds the incoming snapshot's rows;
-`snapshots/pre-restore-<stamp>.db` holds the prior store's rows (when a current store existed),
-with no `-wal` or `-shm` beside it; `staging/` is empty; the report file exists at 0600, or the
+`snapshots/pre-restore-<stamp>.db` holds the prior store's rows (when a current store existed
+and `--discard-current` did not apply), with no `-wal` or `-shm` beside it; with
+`--discard-current`, `snapshots/discarded-<stamp>.db` exists, each `-wal` or `-shm` the fixture
+planted sits beside it under the discarded name, and none of the planted files remains in `db/`;
+`staging/` is empty; the report file exists at 0600, or the
 record is `reconcile-pending`; the record is gone, or is `reconcile-pending`; and the backup
 reference follows Ruling 5.
 
@@ -735,9 +769,16 @@ the discard), then the staged file to `db/dubplate.db`, then fsyncs `snapshots/`
 `staging/` through the existing helper (`snapshot.go:175-188`). `os.Rename` "replaces" an existing
 non-directory `newpath`, and fails across devices, which the session open's device check rules out
 (R-6bii6). The pre-restore name uses `store.PreRestorePrefix` and the stamp layout, which `isCopy`
-already recognizes (`open.go:33`, `:503-506`). The step hook has a named point between the two
-renames, beside its points between steps. Resume after a crash inside step 5 finds one of these,
-keyed first on what the record owes:
+already recognizes (`open.go:33`, `:503-506`).
+
+**Step 5 is two session calls.** The first renames the current database to its pre-restore name,
+runs the discard's moves, or does nothing when no current store exists. The second renames the
+staged file into `db/` and runs the fsyncs. The flow in `internal/backup` calls the step hook
+between the two calls, so the hook stays the spec's one unexported function variable in
+`internal/backup` (spec `:283-284`), and the store gains no hook of its own, which would be a
+fourth test seam. The store's tests reach the in-between states through R-6bii8's hand-built
+combination fixtures; Task 5B's crash row reaches them through a real process death. Resume after a
+crash inside step 5 finds one of these, keyed first on what the record owes:
 
 | Record owes | Current at `db/` | Pre-restore or discarded copy | Incoming in `staging/` | Resume's action |
 | --- | --- | --- | --- | --- |
@@ -760,7 +801,8 @@ proves it on the swapped-in file.
 
 `--snapshot <stamp>` reads `snapshots/<stamp>.db` from the remote; `--snapshot latest` lists
 `snapshots/` and takes the greatest stamp that parses through `store.ParseStamp`
-(`stamp.go:31`), reusing 6b-i's listing, which reads a missing directory as empty
+(`stamp.go:31`), reusing 6b-i's listing, launched through the transport (R-6bii6), which reads a
+missing directory as empty
 (`internal/backup/prune.go:248`; rclone's `lsjson` exits 3 on one, 6b-i R-6bi15). Every
 `--snapshot` restore lists `snapshots/` first, and "no such object" is decided from that listing,
 before any `copyto`: the mechanics lens measured `copyto` of a missing object retrying three times,
@@ -819,7 +861,8 @@ Step 1's check (spec `:690`) counts the staged store only. The swap renames with
 which the session open's device check guarantees (R-6bii6), so the pre-restore copy costs no space.
 The size is the remote object's `Size` from the `snapshots/` listing, or the local file's `os.Stat`
 size, plus the WAL bound the store already adds (`snapshot.go:156-172`). With `--library`, it also
-counts the remote tree's bytes from `rclone size --json` against the library root's filesystem.
+counts the remote tree's bytes from `rclone size --json`, launched through the transport with its
+stdout captured (R-6bii6), against the library root's filesystem.
 rclone's help says "Some backends do not always provide file sizes ... and count them in as empty
 files in the output of the size command," so the library check is a floor. The mechanics lens
 measured the JSON as `{"count":2,"bytes":20004096,"sizeless":0}`, so the verb prints the
@@ -838,15 +881,33 @@ yes, one directory entry named `lost+found` does not count. The emptiness check 
 the record enters `library`. A resume in `library` re-resolves the root, refuses when it is absent
 or differs from the recorded root, and skips the emptiness check (deviation D9), since a copy the
 restore itself interrupted leaves the root non-empty. The copy is `rclone copy <remote>/library
-<root>` under the transport with the exclusive lock inherited, and on Ruling 6's yes it adds
-`--backup-dir <root>.restore-displaced-<stamp>`, a sibling of the resolved root, created at 0700
-before the copy.
+<root>` under the transport with the exclusive lock inherited.
+
+**The displaced directory** (Ruling 6's yes). `--backup-dir <root>.restore-displaced-<stamp>`, a
+sibling of the resolved root, applies only with `--into-nonempty`: without that flag the root was
+empty when the record entered `library`, so every file in it came from this restore's own copy,
+and a resumed copy has no operator file to displace. Three rules keep the directory safe across a
+resume, since its stamp comes from the record and a resumed step 6 names the same path:
+
+- A first run creates the directory with `os.Mkdir` at 0700 before the copy, and any failure,
+  `EEXIST` included, refuses before any rclone call. The pre-creation does real work: the
+  verification read probed rclone v1.74.3 creating a missing backup directory at 0755 under umask
+  022 (`2026-09-25-rung-6b-ii-plan-fold-verification.md`, section 3).
+- A resume in `library` accepts the path when it already exists, after an `os.Lstat` shows a
+  directory (never a symlink), owned by the caller's uid, at mode 0700. Any other state refuses,
+  naming the path and what it found. An absent directory is created as on a first run.
+- After the copy completes, the directory is removed by `os.Remove` only when it holds no entry.
+  A directory that holds files is kept and named in the report with its file count, whichever run
+  displaced them. Nothing ever removes it recursively.
 
 **An unmounted mount point is a declared gap** (Ruling 7's yes). It is an existing, usually empty
 directory, so neither refusal fires, and the copy fills the filesystem underneath. Before the copy
 the verb prints the resolved root, whether its device differs from its parent directory's (it is a
 mount point) or not, and the free space the library check read. Task 8 owes rung 16 the runbook
-line "mount the library volume before a library restore."
+line "mount the library volume before a library restore." On Ruling 7's no, step 6 refuses an
+empty root on its parent's device unless `--root-not-a-mount` is given, naming that flag. The flag
+is valid only with `--library`. The check runs once, beside the emptiness check, and a resume in
+`library` skips it for the same reason (deviation D9).
 
 The reconciliation (step 7) reads every track's collection `root_path` and `rel_path` through a
 read-pool query (the store exports a multi-row read beside `Handle.QueryRow`) on the session's
@@ -906,14 +967,14 @@ These are the input classes most likely to bite, each pinned by a test in the ta
    Expected: the writer refuses, naming `restore --resume`. Pinned in Task 4A.
 6. **A process killed at every restore step, on a leaf with and without a current store.**
    Expected: from step 4 on, a record every writing open honors and a resume that reaches the
-   completion tuple; before step 4, a usable current store. Pinned in Tasks 4C and 5.
+   completion tuple; before step 4, a usable current store. Pinned in Tasks 4C and 5B.
 7. **A snapshot that is wrong for this store in any detectable way, or a binary changed between a
    crash and `--resume`.** Expected: refused before the record is written, or refused by resume
-   naming both versions. Pinned in Tasks 4B, 4C, and 5.
+   naming both versions. Pinned in Tasks 4B, 4C, 5A, and 5B.
 8. **An older snapshot restored under a newer binary.** Expected: no writer but serve proceeds
    until serve has migrated and reconciled. Pinned in Task 4A.
 9. **A restore interrupted during the library copy.** Expected: `--resume` finishes the copy into
-   the root it partly filled. Pinned in Task 6.
+   the root it partly filled, and keeps every file the first run displaced. Pinned in Task 6.
 
 A library root that is an unmounted mount point is not refused (Ruling 7); revision 1's claim that
 Task 6 pins a refusal is struck, and the case is a declared gap in "Not verified."
@@ -956,7 +1017,7 @@ name is a note naming the new site, and content that is gone is a blocker.
 8. Report the master pointers into `internal/auth/admin.go`, `internal/serve/origin.go`, and
    `cmd/dubplate-server/auth.go:48-59` (the four secret names) at HEAD.
 9. Report the spec pointers this plan cites.
-10. Report `rclone version`; a version other than v1.74.3 is a note, and Tasks 5 and 6 re-run
+10. Report `rclone version`; a version other than v1.74.3 is a note, and Tasks 5A and 6 re-run
     the probes this plan cites against it (`lsjson` exit 3, `copyto`'s mode and SIGINT cleanup,
     `size --json`'s shape, and, on Ruling 6's yes, `copy --backup-dir`).
 11. Report the conductor's recorded outcome of Rulings 1 to 9.
@@ -993,6 +1054,19 @@ read); otherwise neutral.
 - **The seam boundary's `canceled` classification**, on Ruling 2's yes: each `Runner` seam method
   wraps its error as `canceled` when the caller's `ctx.Err()` is `context.Canceled` at return
   (R-6bii5).
+
+Two edits the diff-reviewer should expect, both from 6b-i's `internal/ops` architecture read
+(`2026-09-25-rung-6b-i-architecture-reads.md`). `TestImportsStandardLibraryOnly`
+(`internal/ops/ops_test.go:185`) says it "lands with 6b-ii": it becomes a test that admits
+`internal/identity` as the one internal import and still fails on any other. The doc comment at
+`internal/ops/errors.go:21-23` links `[ErrForbidden]` and `[ErrInternal]`, which do not exist yet,
+so it is rewritten once they do. The same read's collapse of the sentinel list, now written four
+times, into a self-coding sentinel type goes to the architecture cleanup pass, not here.
+
+**On Ruling 2's no**, this task drops `canceled` from `internal/ops`: `ErrCanceled`,
+`CodeCanceled`, and `NewCanceledError` are deleted, the per-sentinel table and `Codes` cover six
+literal codes, the classifier's `context.Canceled` row answers `internal`, and the seam boundary
+outcome, its three rows, and mutation 4 do not exist. The task then carries three deliverables.
 
 **States each check meets, and its report:**
 
@@ -1114,6 +1188,9 @@ seam** (the constructor takes the mount's channel, which rung 14's cookie and be
 7. Encode `err.Error()` for a coded error → the wrapped-path row fails.
 8. Drop the first-token check → the `null` row dispatches.
 
+**On Ruling 3's no**, the four authorizer rows answer exactly what `http.NotFound` answers (404,
+its plain-text body) with no seam call. The mutations are unchanged.
+
 **Prior art:** RFC 9457 (Problem Details for HTTP APIs) is consulted for the error body and
 declined: its `type` member is a URI, and the seam's seven codes are the whole vocabulary a client
 branches on, so a problem document adds a URI space nothing resolves. `go-chi/chi` is declined as
@@ -1178,8 +1255,14 @@ stand-in, and the re-executed child of criterion 4 inherits the same `PATH`.
 
 1. Delete the `internal` case → the guard fails, naming `internal`.
 2. Add an eighth sentinel to `ops` with no contract case → the guard fails, naming it.
-3. Map `forbidden` to 404 in the projection → both legs disagree and the case fails.
+3. Map `forbidden` to 404 in the projection → both legs disagree and the case fails. On Ruling
+   3's no, 404 is the intended answer, so the mutation is the reverse: answer 403 with the JSON
+   body → the forbidden case's 404 assertion fails.
 4. Let the layer call through on denial → the `forbidden` row's `jobs` count is 1.
+
+On Ruling 2's no, the `canceled` row does not exist and the guard counts six codes. On Ruling 3's
+no, the HTTP leg of both `forbidden` rows asserts `http.NotFound`'s answer and the zero `jobs`
+count, while the in-process leg still asserts `forbidden`.
 
 **Prior art:** none.
 
@@ -1232,9 +1315,14 @@ hooks** (hook 7's migration runner is reused, not changed).
 
 The lock-wait fixture is the mechanics lens's probe, made a gate test: the child takes `LOCK_EX`
 on `store.lock`, signals readiness, and waits; the parent starts the open in a goroutine and waits
-until the open is past `stat` (the test asserts it has not returned); the child then writes the
-record through the record's own writer and exits, releasing the lock. The test asserts the refusal
-text.
+until the open is past `stat`; the child then writes the record through the record's own writer
+and exits, releasing the lock. The test asserts the refusal text. "Past `stat`" needs a real
+signal, since an open that has not reached `stat` would refuse on the pre-lock read and pass the
+row under mutation 5. The serve rows have one: `waitLock` logs the holders on its first busy
+attempt (`open.go:312-313`), so they pass a recording logger and wait for that line. Write mode's
+`acquireBounded` (`lock.go:63-78`) logs nothing, so the write-mode row waits a settle delay
+instead, and the task reports mutation 5's kill rate across repeated `-count` runs. If the
+mutation survives any run, the row is named a reviewer-read.
 
 **Acceptance criteria:**
 
@@ -1277,8 +1365,8 @@ restore consumes its output).
 **Files:**
 - Create: `internal/engine/store/restore.go` and its test, with a re-executed child for the
   lock-holder fixtures
-- Modify: `internal/engine/store/snapshot.go` (the verifier's version parameter; `WriteBackupRef`'s
-  body moved into the shared leaf-level function) and its test
+- Modify: `internal/engine/store/snapshot.go` (the verifier's version parameter; on Ruling 5's
+  yes, `WriteBackupRef`'s body moved into the shared leaf-level function) and its test
 
 **Outcomes:**
 
@@ -1292,8 +1380,9 @@ restore consumes its output).
   ledger check, the removal of a verified stage's `-wal` and `-shm`, and the wrong-archive rows of
   R-6bii9 that the store can decide.
 - **The session's handles** (R-6bii6): close-on-exec duplicates of the exclusive lock's descriptor
-  for a transfer child, the lockless read handle on the restored store, and the reference write
-  sharing `WriteBackupRef`'s body.
+  for a transfer child, the lockless read handle on the restored store, and, on Ruling 5's yes
+  only, the reference write sharing `WriteBackupRef`'s body. On Ruling 5's no, the reference write
+  and its row do not exist, since the method would be an export with no caller (exit gate 14).
 
 **States each check meets, and its report:**
 
@@ -1313,7 +1402,7 @@ restore consumes its output).
 | Stage | each wrong-archive row R-6bii9 gives the store (truncated, zero-byte, unmarked, newer, ledger mismatch) | refused with that row's report, before any record |
 | Verifier | backup's call with a copy one version below the binary's | refused, exact equality kept |
 | Read handle | opened on the restored store while the session holds `LOCK_EX` | reads without waiting on the lock |
-| Reference write | twice, with two stamps | one reference, naming the second stamp |
+| Reference write (Ruling 5 yes) | twice, with two stamps | one reference, naming the second stamp |
 
 The device row's test asserts first that the two directories' devices differ and fails, naming
 both, when they do not; the fold measured `/tmp` and `/dev/shm` on this workstation as separate
@@ -1358,8 +1447,10 @@ Model: `opus`. Depends on Task 4B. **Neutral on 2.0 hooks.**
 
 - **The quiesce** (R-6bii8): step 3 with its three refusals (a nonzero busy column, an
   `SQLITE_BUSY` from the switch, a mode other than `delete`) and the leftover-file net.
-- **The swap and the discard** (R-6bii8, deviation D8): step 5's renames and fsyncs, the discard's
-  moves after the record, and the step hook's named point between the two renames.
+- **The swap and the discard** (R-6bii8, deviation D8): step 5 as two session calls, the first
+  holding the pre-restore rename or the discard's moves after the record, the second holding the
+  incoming rename and the fsyncs. The store declares no hook; Task 5B's flow calls the hook
+  between the two calls, and this task's combination rows stay hand-built fixtures.
 - **Resume's combination rule**: R-6bii8's table, keyed on what the record owes, with the version
   re-check that opens every `swap` resume (R-6bii7).
 
@@ -1414,41 +1505,100 @@ Model: `opus`. Depends on Task 4B. **Neutral on 2.0 hooks.**
 
 ---
 
-## Task 5: `internal/backup`: the restore flow, the fetch, the step hook, and resume
+## Task 5A: `internal/backup`: the one rclone launch path and the fetch
 
 Model: `opus`. Depends on Task 4C. **Neutral on 2.0 hooks.**
+
+Fold 2 split revision 2's Task 5 here, because absorbing the architecture read's launch fix took
+it past four deliverables (verification m2 and m10). 5A is the remote side; 5B is the flow.
+
+**Files:**
+- Create: `internal/backup/fetch.go` and its test
+- Modify: `internal/backup/rclone.go` (the transport takes a stdout writer and any source of
+  inherited descriptors, R-6bii6), `prune.go` (`prune` holds a transport, `list` launches through
+  it, `runRclone` is deleted, and the listing is shared with the fetch), and their tests
+
+**Outcomes:**
+
+- **The one launch path** (R-6bii6): `transport.run` with a stdout writer and any source of
+  inherited descriptors; `prune.list`, `deletefile`, and `purge` launched through it; `runRclone`
+  deleted. 6b-i's backup and prune tests pass unchanged, which is the proof that backup's behavior
+  did not move.
+- **The listing and its rules** (R-6bii9, R-6bii10): the `snapshots/` listing first, `latest`
+  resolution, the absent-object and `--older` rules, the remote-mismatch warning, the object's
+  `Size` for the store's free-space check, and `rclone size --json` for the library's.
+- **The fetch** (R-6bii9): `copyto` into the stage path with no stage pre-created, the chmod to
+  0600, and the stage's removal after a failed or canceled fetch.
+
+**States each check meets, and its report:** R-6bii9's table rows the listing and the fetch decide,
+R-6bii10's rows, and:
+
+| Check | State | Report |
+| --- | --- | --- |
+| Listing | canceled while the blocking stand-in runs | the stand-in records one SIGINT to its own process group; the error wraps `ctx.Err()` |
+| Listing | names out of order, one name that does not parse as a stamp | `latest` is the greatest parsed stamp; the unparseable name is ignored |
+| Fetch | a stage rclone leaves at 0644 under umask 022 | 0600 per `os.Stat` before any open |
+| Size | an object whose `Size` is -1 | the store check skipped, with a printed line naming the object |
+| Size | the measured `{"count":2,"bytes":20004096,"sizeless":0}` shape | the floor and the `sizeless` count parsed |
+
+**Acceptance criteria:**
+
+- Spec criterion 9's remote half: an absent stamp, `latest` on an empty remote, and an older stamp
+  without `--older` are each refused against a real `rclone` `local` remote; the refusal names
+  the remote path or the latest stamp, and the absent-stamp refusal makes no `copyto` call.
+- `git grep -n 'exec.Command' -- internal/backup ':!*_test.go'` finds one launch site, in
+  `rclone.go`.
+- Gate green, with the new tests' wall time.
+
+**Named mutations this task reports:**
+
+1. Resolve `latest` by listing order instead of parsed stamp → the out-of-order row picks the wrong
+   one.
+2. Build a destination by string concatenation → the empty-path remote row (`name:`) fetches from
+   `name:/snapshots` and fails.
+3. Launch the listing with a bare `exec.CommandContext` again → the canceled-listing row records no
+   SIGINT, and its error does not wrap `ctx.Err()`.
+4. Skip the stage chmod → the 0644 row fails.
+
+**Prior art:** rclone as a probed subprocess, adopted (spec).
+
+**Deliverable count: 3** (the launch path, the listing and its rules, the fetch).
+
+---
+
+## Task 5B: `internal/backup`: the restore flow, the step hook, resume, and the reference
+
+Model: `opus`. Depends on Task 5A. **Neutral on 2.0 hooks.**
 
 **Files:**
 - Create: `internal/backup/restore.go` and its test, with a re-executed child for the step-hook
   crashes
-- Modify: `internal/backup/rclone.go` (the transport takes any source of inherited descriptors,
-  R-6bii6), `prune.go` (the listing is shared with the fetch's `latest` resolution and its
-  absent-object decision), and their tests
 
 **Outcomes:**
 
-- **The flow**: spec steps 1 to 8's order, with the step hook, an unexported function variable
-  called after each step and between step 5's two renames (spec `:283-284`), and the record
-  advanced at each boundary R-6bii7 names.
-- **The fetch** (R-6bii9): the `snapshots/` listing first, `latest` resolution, the absent-object
-  and `--older` rules, `copyto` into the stage path with no stage pre-created, the chmod, the
-  remote-mismatch warning, and the size read for R-6bii10.
-- **Resume**: reads the record, re-derives each version verdict from the running binary, and
-  finishes from its state, never re-fetching after step 4.
+- **The flow**: spec steps 1 to 8's order, with the step hook, an unexported function variable in
+  `internal/backup` called after each step and between the session's two step 5 calls (R-6bii8,
+  spec `:283-284`), and the record advanced at each boundary R-6bii7 names.
+- **Resume**: reads the record, re-derives each version verdict from the running binary through
+  the verify-then-remove session method (R-6bii7), and finishes from its state, never re-fetching
+  after step 4.
 - **The reference rewrite** on Ruling 5's yes: after the swap and before the record leaves `swap`,
-  through the session's reference write, redone by every resume from `swap`.
+  through the session's reference write, redone by every resume from `swap`. On Ruling 5's no,
+  this outcome and the two reference crash rows do not exist, the "after step 5" row completes to
+  the next state, and the task carries two deliverables.
 
-**States each check meets, and its report:** R-6bii9's table rows the fetch decides, and:
+**States each check meets, and its report:**
 
 | Crash point (step hook exits the child) | Record after | Write-mode open | `--resume` |
 | --- | --- | --- | --- |
 | after step 1 or 2 (a current store present) | absent | proceeds (the stage is a leftover) | refuses: no record; a new restore clears staging |
 | after step 3 (a current store present) | absent | proceeds; the store, left in DELETE mode, reads WAL after the open | refuses: no record |
 | after step 4 | `swap` | refuses naming `--resume` | completes the swap |
-| between step 5's two renames | `swap` | refuses | the second combination row |
+| between step 5's two calls | `swap` | refuses | the third combination row (the second rename, then the fsyncs) |
+| between step 5's two calls, with `--discard-current` | `swap` | refuses | the first discard row, then completes with the discard's completion tuple |
 | after step 5, before the reference write | `swap` | refuses | the fsyncs, the reference, the next state |
 | after the reference write | `swap` | refuses | completes; one reference names the restored stamp |
-| after step 4, 5's rename, or 5, on a fresh leaf (no current store) | `swap` | refuses | the matching no-copy row, then completes |
+| after step 4, 5's first call, or 5, on a fresh leaf (no current store) | `swap` | refuses | the matching no-copy row, then completes |
 | after step 4, then a binary whose version is below the staged file's | `swap` | refuses | refuses, naming both versions |
 | after step 5 with `--library` | `library` | refuses | re-runs the copy |
 | after step 6 (or 5 without `--library`) | `reconcile` or `reconcile-pending` | refuses | completes, or names "start serve" |
@@ -1467,39 +1617,36 @@ Each row in which `--resume` completes asserts R-6bii7's completion tuple.
 - Spec criterion 8: a crash after step 4, then a write-mode open, leaves `staging/`'s incoming
   file in place (listed by name), and `--resume` completes the swap. **Fixture state:** a current
   store with rows, a verified stage, the `swap` record.
-- Spec criterion 9's remote half: an absent stamp, `latest` on an empty remote, and an older stamp
-  without `--older` are each refused against a real `rclone` `local` remote; the refusal names
-  the remote path or the latest stamp, and the absent-stamp refusal makes no `copyto` call.
 - Spec criterion 13 on the `--snapshot` path: a restore through real rclone under umask 022 leaves
   `db/dubplate.db` at 0600 per `os.Stat`. Mutation: skip the chmod, and the mode reads 0644, as
   the mechanics lens measured.
+- `staging/` holds no `-wal` or `-shm` after a `swap` resume whose version re-check opened the
+  stage.
 - Gate green, with the new tests' wall time.
 
 **Named mutations this task reports:**
 
 1. Advance the record before the swap's fsyncs → report whether the step-5 crash row still resumes,
    or name it reviewer-read.
-2. Resolve `latest` by listing order instead of parsed stamp → a fixture with out-of-order names
-   picks the wrong one.
-3. Let resume re-fetch after step 4 → the resume row records an rclone call on the stand-in.
-4. Build a destination by string concatenation → the empty-path remote row (`name:`) fetches from
-   `name:/snapshots` and fails.
-5. Trust the recorded version on resume → the newer-binary `reconcile` row reconciles an
+2. Let resume re-fetch after step 4 → the resume row records an rclone call on the stand-in.
+3. Trust the recorded version on resume → the newer-binary `reconcile` row reconciles an
    unmigrated store.
-6. Skip the chmod on the `--snapshot` path → the criterion 13 row reads 0644.
-7. Swap before verifying → R-6bii9's truncated-file row reaches a `swap` record. The flow, not
-   the store, owns the order of verify and swap, so this mutation is Task 5's.
+4. Skip the chmod on the `--snapshot` path → the criterion 13 row reads 0644.
+5. Swap before verifying → R-6bii9's truncated-file row reaches a `swap` record. The flow, not
+   the store, owns the order of verify and swap, so this mutation is Task 5B's.
+6. Re-check the version on resume by a plain inspect open → the `staging/` criterion finds a
+   `-wal` or `-shm`.
 
-**Prior art:** rclone as a probed subprocess, adopted (spec). The salvage restore
-(`_salvage/internal/backup`, spec prior art row) is read for its flow order only; nothing imported.
+**Prior art:** the salvage restore (`_salvage/internal/backup`, spec prior art row) is read for
+its flow order only; nothing imported.
 
-**Deliverable count: 4** (the flow with the hook, the fetch, resume, the reference rewrite).
+**Deliverable count: 3** (the flow with the hook, resume, the reference rewrite).
 
 ---
 
 ## Task 6: `internal/backup`: the library half and the reconciliation report
 
-Model: `opus`. Depends on Task 5. **Neutral on 2.0 hooks.**
+Model: `opus`. Depends on Task 5B. **Neutral on 2.0 hooks.**
 
 **Files:**
 - Create: `internal/backup/reconcile.go` and its test
@@ -1510,7 +1657,8 @@ Model: `opus`. Depends on Task 5. **Neutral on 2.0 hooks.**
 - **Step 6** (R-6bii11): the remote `library/` presence check, the root's resolution, the
   absent-root and non-empty refusals (with Ruling 8's `lost+found` exemption on yes), the
   mount-point line (Ruling 7's yes), `rclone copy` under the transport (with Ruling 6's
-  `--backup-dir` on yes), and resume's re-resolution without the emptiness check (deviation D9).
+  `--backup-dir` on yes, with `--into-nonempty` only, under R-6bii11's three displaced-directory
+  rules), and resume's re-resolution without the emptiness check (deviation D9).
 - **The reconciliation** (R-6bii11) as an exported function over a handle and a root, returning
   a report with its rendered text: the join, the `Lstat`, and the walk.
 - **The report's two renders**: the file body (every entry) and the stdout summary (counts and
@@ -1523,7 +1671,7 @@ Model: `opus`. Depends on Task 5. **Neutral on 2.0 hooks.**
 | Remote | no `library/` under the remote, with `--library` | refused, naming the remote path; no size or copy call |
 | Library root | absent | refused, naming the path; no rclone call |
 | Library root | a symlink to an empty directory | resolved, then copied into |
-| Library root | an empty directory on its parent's device | copied into; the printed line says it is not a mount point (Ruling 7 yes) |
+| Library root | an empty directory on its parent's device | copied into; the printed line says it is not a mount point (Ruling 7 yes). On Ruling 7's no: refused naming `--root-not-a-mount`, and copied into with it |
 | Library root | holding only `lost+found` | copied into on Ruling 8's yes; refused naming the flag on no |
 | Library root | non-empty, no `--into-nonempty` | refused, naming the flag; no rclone call |
 | Library root | non-empty, with `--into-nonempty`, a local-only file | copied; the local-only file kept and reported as a file without a row |
@@ -1531,6 +1679,10 @@ Model: `opus`. Depends on Task 5. **Neutral on 2.0 hooks.**
 | Copy | rclone fails | the record stays `library`; the verb exits 1 naming rclone's exit |
 | Resume | a stand-in that wrote one file of two was SIGKILLed, the record `library` | `--resume` skips the emptiness check, completes the copy, and the tree matches the remote by relative path and bytes |
 | Resume | the recorded root now absent, or resolving elsewhere | refused, naming the recorded and the current root |
+| Resume, `--into-nonempty` (Ruling 6 yes) | a hand-built interrupted state: the record `library` with `--into-nonempty`, the displaced directory at 0700 holding one displaced file, the root holding one of the remote's two files and one differing local file | `--resume` accepts the directory, completes the copy with real rclone, keeps the first run's displaced file, adds the second, and the report names the directory with a count of 2 |
+| Resume, `--into-nonempty` (Ruling 6 yes) | the displaced path exists as a symlink, a file, at 0755, or under another uid | refused, naming the path and what was found; no rclone call |
+| Displaced directory (Ruling 6 yes) | `--into-nonempty`, every local file identical to the remote's or local-only | removed after the copy; the report names none |
+| Displaced directory (Ruling 6 yes) | a first run whose path already exists | refused before any rclone call, naming the path |
 
 **Acceptance criteria:**
 
@@ -1552,6 +1704,10 @@ Model: `opus`. Depends on Task 5. **Neutral on 2.0 hooks.**
    misreported.
 4. Re-run the emptiness check on resume → the resume row refuses its own partial tree.
 5. On Ruling 6's yes, drop `--backup-dir` → the differing-file row finds no displaced copy.
+6. On Ruling 6's yes, create the displaced directory with `os.Mkdir` on resume too → the
+   `--into-nonempty` resume row refuses its own directory.
+7. On Ruling 6's yes, remove the displaced directory with `os.RemoveAll` → the resume row loses
+   the first run's displaced file.
 
 **Deliverable count: 3** (step 6 with its resume, the reconciliation, the renders).
 
@@ -1559,7 +1715,7 @@ Model: `opus`. Depends on Task 5. **Neutral on 2.0 hooks.**
 
 ## Task 7: The `restore` verb
 
-Model: `opus`. Depends on Tasks 5 and 6. **Neutral on 2.0 hooks.**
+Model: `opus`. Depends on Tasks 5B and 6. **Neutral on 2.0 hooks.**
 
 **Files:**
 - Create: `cmd/dubplate-server/restore.go` and its test
@@ -1569,7 +1725,9 @@ Model: `opus`. Depends on Tasks 5 and 6. **Neutral on 2.0 hooks.**
 
 - **The flags** (spec `:676-686`) with their mutual exclusions: exactly one of `--snapshot`,
   `--from-file`, or `--resume`; `--older` only with `--snapshot`; `--library` never with
-  `--older` or `--from-file`; `--into-nonempty` only with `--library`.
+  `--older` or `--from-file`; `--into-nonempty` only with `--library`. On Ruling 7's no, the flags
+  add `--root-not-a-mount`, only with `--library` (R-6bii11), and spec criterion 12's end-to-end
+  empty-root fixture passes it, since the test's root sits on its parent's device.
 - **The exit codes** (Ruling 4) through the existing `exitCodeErr` path.
 - **Signals** (R-6bii12): SIGINT, SIGTERM, and SIGHUP cancel, leave the record at its last written
   state, and exit 130.
@@ -1587,7 +1745,8 @@ Model: `opus`. Depends on Tasks 5 and 6. **Neutral on 2.0 hooks.**
 | Lock | held | exit 75, naming the holders |
 | Record | present, with `--snapshot` | exit 1, naming `restore --resume` |
 | Signal | SIGINT during the library copy | exit 130; record `library`; rclone ended |
-| Signal, then resume | SIGINT during the library copy, then `restore --resume` | exit 0; the tree matches the remote |
+| Signal | SIGTERM during the `snapshots/` listing, the stand-in blocking | exit 130; no record; `staging/` empty; the stand-in recorded one SIGINT from the transport |
+| Signal, then resume | SIGINT during the library copy with the blocking stand-in first on `PATH`, then `restore --resume` with `PATH` switched to put the real rclone first | exit 0; the tree matches the remote |
 | Success | reconcile path | exit 0; the summary, the report path, the rotation instruction |
 | Success | `reconcile-pending` path | exit 0; "start serve to finish the restore"; the rotation instruction |
 
@@ -1622,10 +1781,14 @@ state rows), `opus`, depending on Task 7, with its own four deliverables and abo
 
 Model: `sonnet`. Depends on Tasks 0 to 7 and the simplifier round. On Ruling 1's no, each half
 runs its own Task 8 over its own tasks, and 6b-ii-a's handoff names 6b-ii-b as the next pass.
+Each half writes drafts suffixed with its own name, so the second half never overwrites the
+first's.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-6b-ii.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-6b-ii.md`
+- Create: `docs/superpowers/research/handoffs/draft-STATUS-6b-ii.md` (on a split,
+  `draft-STATUS-6b-ii-a.md` or `draft-STATUS-6b-ii-b.md`)
+- Create: `docs/superpowers/research/handoffs/draft-HISTORY-6b-ii.md` (on a split,
+  `draft-HISTORY-6b-ii-a.md` or `draft-HISTORY-6b-ii-b.md`)
 
 **Outcomes:**
 
@@ -1651,7 +1814,11 @@ runs its own Task 8 over its own tasks, and 6b-ii-a's handoff names 6b-ii-b as t
   successful backup deletes the local pre-restore copy (`pruneLocal`, `prune.go:168-200`), which
   closes the local undo window; mount the library volume before a library restore (Ruling 7); an
   interrupted restore is finished with `restore --resume`, or by starting serve when the verb said
-  so; and, on Ruling 9's yes, the manual procedure for a record resume refuses.
+  so; on Ruling 6's yes, the displaced directory beside the root, which nothing removes while it
+  holds files; a real rclone killed by SIGKILL during the library copy leaves
+  `<name>.<hex>.partial` files under the root, which the report lists as files without a row and
+  the operator removes by hand; and, on Ruling 9's yes, the manual procedure for a record resume
+  refuses.
 
 **Acceptance criteria:** every count in the drafts was produced by a command the report pastes;
 every commit id resolves; the STATUS draft is at most 60 lines. Gate green as a formality.
@@ -1664,21 +1831,23 @@ STATUS draft).
 ## The exit gate
 
 The gate green in the worktree and again on master after the merge, plus every assertion below.
-On Ruling 1's no, 6b-ii-a's gate is items 1, 9, 12, and 13 over its own tasks, and 6b-ii-b's is
-the rest.
+On Ruling 1's no, 6b-ii-a's gate is items 1, 10, 12, and 13, with items 9 and 14 over its own
+tasks and exports; 6b-ii-b's is items 2 to 8, 11, 12, and 13, with items 9 and 14 over its own
+tasks and exports. Item 10 is 6b-ii-a's alone, since the import walls it checks are that half's
+surface.
 
 1. Spec criteria 1 to 4: Task 3 (with Task 2's rows).
 2. Spec criterion 5: Tasks 4B and 7.
 3. Spec criteria 6 and 10: Task 4C.
-4. Spec criteria 7 and 8: Task 5, with criterion 7 as deviation D7 states it.
-5. Spec criterion 9: Tasks 4B, 4C, and 5.
+4. Spec criteria 7 and 8: Task 5B, with criterion 7 as deviation D7 states it.
+5. Spec criterion 9: Tasks 4B, 4C, and 5A.
 6. Spec criterion 11: Task 4A.
 7. Spec criterion 12: Task 6.
-8. Spec criterion 13: Task 4B (the `--from-file` stage), Task 4C (the swapped-in file), and Task 5
+8. Spec criterion 13: Task 4B (the `--from-file` stage), Task 4C (the swapped-in file), and Task 5B
    (the `--snapshot` path), the uid half declared a reviewer-read.
 9. Every state row has a named test: R-6bii7's three tables, R-6bii8's combination table, R-6bii9's
-   source table, R-6bii11's report table, and the state tables of Tasks 1, 2, 3, 4A, 4B, 4C, 5, 6,
-   and 7.
+   source table, R-6bii11's report table, and the state tables of Tasks 1, 2, 3, 4A, 4B, 4C, 5A,
+   5B, 6, and 7.
 10. `internal/ops/opshttp` imports only `internal/ops` and `internal/identity` among internal
     packages; `internal/ops` imports only `internal/identity`.
 11. `internal/engine/store` imports no `net/http`.
@@ -1690,7 +1859,9 @@ the rest.
     outside its own package, pasted, since the exported-unused leg passes a symbol referenced from
     any non-test file in its own package. The named exceptions are exactly these: the network
     actor's constructor (rung 14), `ServeOptions.Reconcile` and `backup.Reconcile` (6d), and serve
-    mode's open (6b-i's exception, unchanged).
+    mode's open (6b-i's exception, unchanged). `ops.Codes` and the classifier are listed with their
+    caller in `opshttp`'s non-test code and the note that no binary reaches it until rung 14 mounts
+    the projection; the gate does not claim they are reachable.
 
 ---
 
@@ -1701,7 +1872,7 @@ launches.
 
 | Surface | Owner | 6b-ii's position | Contention |
 | --- | --- | --- | --- |
-| `internal/ops`, `internal/ops/local`, `internal/backup`, `internal/engine/store` | rung 6 | Tasks 1, 4A to 6 | none |
+| `internal/ops`, `internal/ops/local`, `internal/backup`, `internal/engine/store` | rung 6 | Tasks 1, 4A to 6 (5A and 5B included) | none |
 | `internal/ops/opshttp` (new) | rung 6 | Tasks 2, 3 | none |
 | `internal/identity` | rung 5 | read only; imported by `internal/ops` | lane 1 may edit it; Task 0 item 5 |
 | `cmd/dubplate-server/main.go` | rung 1 | Task 7: one `AddCommand` entry | lane 1 edits `newProductionRegistry`; a textual conflict keeps both in landing order, and the second lander's rebase is non-fast-forward |
@@ -1760,7 +1931,7 @@ conductor's decision. Every reviewer dispatch asks for correctness gaps ranked b
 | --- | --- | --- |
 | **A** | 0, 1, 2, 3 | STATUS; re-derive |
 | **B** | 4A, 4B, 4C | STATUS; re-derive |
-| **C** | 5, 6 | STATUS; re-derive |
+| **C** | 5A, 5B, 6 | STATUS; re-derive |
 | **D** | 7, then the simplifier round, the fan-out, Task 8 | the close drafts, the merge ritual, the architecture reads, the ledger fold |
 
 **Split (Ruling 1 no):**
@@ -1770,16 +1941,16 @@ conductor's decision. Every reviewer dispatch asks for correctness gaps ranked b
 | 6b-ii-a | **A1** | 0, 1, 2, 3 | STATUS; re-derive |
 | 6b-ii-a | **A2** | the simplifier round, the security review, Task 8 | the merge ritual, three architecture reads, the ledger fold |
 | 6b-ii-b | **B1** | 0, 4A, 4B, 4C | STATUS; re-derive |
-| 6b-ii-b | **B2** | 5, 6 | STATUS; re-derive |
+| 6b-ii-b | **B2** | 5A, 5B, 6 | STATUS; re-derive |
 | 6b-ii-b | **B3** | 7, then the simplifier round, the targeted data-loss read, Task 8 | the merge ritual, three architecture reads, the ledger fold |
 
 Segment B (or B1) closes after Task 4C because 4A to 4C are the pass's first data-destructive code,
-and a measurement there that contradicts this plan's probes needs a ruling before Task 5 builds on
-it.
+and a measurement there that contradicts this plan's probes needs a ruling before Task 5A builds
+on it.
 
 **Models.** `sonnet` for Tasks 1 and 8. **`opus` for Tasks 2 to 7, dispatched as
 `claude-opus-5-5`, unconditionally**: Task 2 is the security surface; Task 3 carries cross-process
-cases a single-process test passes; Tasks 4A, 4B, 4C, 5, and 6 are the data-destructive path; Task
+cases a single-process test passes; Tasks 4A, 4B, 4C, 5A, 5B, and 6 are the data-destructive path; Task
 7 carries signals and exit codes whose 6b-i analog took two fix rounds. Task 0 runs at `opus` in
 fresh context.
 
@@ -1787,7 +1958,7 @@ fresh context.
 
 - Task 0 first; its blockers are ruled before Task 1.
 - Task 1 → Task 2 → Task 3.
-- Task 0 → Task 4A → Task 4B → Task 4C → Task 5 → Task 6 → Task 7.
+- Task 0 → Task 4A → Task 4B → Task 4C → Task 5A → Task 5B → Task 6 → Task 7.
 - Tasks 0 to 7 and the simplifier round → Task 8.
 - **Independent by files:** Tasks 1 to 3 of Tasks 4A to 7. They still run sequentially, because
   one tree runs one executor and the module gate runs over `./...`, and lane 1 holds the other
@@ -1810,7 +1981,7 @@ full.
 | 2 | Lands hook 9's projection half (the seam a later projector joins is now reachable over HTTP) and hook 15's mount-channel parameter. |
 | 3 | Neutral. |
 | 4A, 4B, 4C | Neutral: hook 7's runner is reused unchanged; hook 10 is backup's, and restore consumes its copies. |
-| 5, 6 | Neutral. The spec's "the streamer's state lives under the existing state directory, so backup covers it" (2.0 spec, "Cutover and operations") is rung 12's to add to the restore set, recorded in Task 8's handoff. |
+| 5A, 5B, 6 | Neutral. The spec's "the streamer's state lives under the existing state directory, so backup covers it" (2.0 spec, "Cutover and operations") is rung 12's to add to the restore set, recorded in Task 8's handoff. |
 | 7 | Neutral. |
 
 No new hook was discovered.
