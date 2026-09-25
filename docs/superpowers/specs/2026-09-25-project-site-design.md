@@ -1,6 +1,6 @@
 # The dubplate project site
 
-Design spec. Revision 2, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
+Design spec. Revision 2.1, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
 Geoff's read.** Four owner rulings stay open (see "Open rulings"). Revision 1 (`e91f528`) went
 through five review lenses (contract, drift, consistency, mechanics, prior art) under
 `docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold record is
@@ -8,6 +8,9 @@ through five review lenses (contract, drift, consistency, mechanics, prior art) 
 
 Revision 2 changelog: folds the five reviews, defines what the sync reads and what each gate
 proves, and adds the Credits, Get help, and Bring your library pages (owner rulings 8 and 9).
+
+Revision 2.1 changelog: folds the fold verification (V1 to V11): planned names in the guide leg,
+owners for the late generators, open ruling 11 split three ways, and the exported photos.
 
 dubplate needs a public home where a stranger learns what it is, decides whether it fits their
 group, and sets up a server. This spec fixes who the site serves, where it lives, which pages it
@@ -48,9 +51,10 @@ dubplate fits their group at all. Every page names which of these readers it ser
 ## Where the site lives
 
 The site is a standard cairn site in its own repo, `~/Projects/dubplate-site`. It's created with
-`npx create-cairn-site` and deployed to Cloudflare the way cairn's docs describe. Keeping it out
-of the dubplate repo means cairn's publish flow, which commits edits to the site repo's main
-branch, never touches dubplate's tree or its lanes.
+`npx create-cairn-site` and deployed to Cloudflare the way cairn's docs describe. The site repo is
+private, and whether it opens follows open ruling 11. Keeping it out of the dubplate repo means
+cairn's publish flow, which commits edits to the site repo's main branch, never touches dubplate's
+tree or its lanes.
 
 ## Pages
 
@@ -80,8 +84,9 @@ The "is" and "isn't" lines and the legal note live today in the group-scale prin
 (`2026-09-25-group-scale-principles-design.md`, "dubplate is, and dubplate isn't" and "A legal
 note"). Its landing table routes both to the website. They change when a ruling changes, such as
 the share link's week and month, so their source moves into `docs/guide/`, and the principles
-spec points at it. The move happens in Phase A, once the principles spec is ratified. After the
-move, no second copy of the lines remains in the principles spec.
+spec points at it. The move is a Phase B precondition, since it waits on the principles spec's
+ratification. After the move, no second copy of the lines remains in the principles spec. The
+README, which the principles spec's landing table also names, links to the guide and holds no copy.
 
 Set up a server opens with "What you need", a linkable first section that Home and the is/isn't
 page both link to. It lists the VPS, the domain, the SMTP provider, the backup remote, and
@@ -124,14 +129,14 @@ measured against (greenfield build spec, "The relationship with beets outlives t
 beets also ran the group's imports on the interim estate. It credits Navidrome as an inspiration
 and as the server the group ran before 0.8. It says Navidrome and gonic are studied for behavior
 and never copied, as the streamer spec's prior-art table requires. It then names the other
-projects the tagged release builds on or learned from, drawn from that table's adopted rows and
-from `go.mod`. At revision 2 that set includes the OpenSubsonic specification, MusicBrainz,
-Picard's tag-mapping tables, Python Unidecode (the source of the transliteration table), the Go
-modules `go.mod` requires directly (cobra, go-mail, `golang.org/x/time`, and modernc SQLite), the
-web stack (SvelteKit, Svelte, DaisyUI, and Tailwind), and the three OFL fonts named in
-`web/static/fonts/FONTS.md`. The page credits each project with its license, checked when the
-page is written. dubplate's gate fails when a direct requirement in `go.mod` or a face in
-`FONTS.md` goes unnamed in the guide, so a new dependency can't ship uncredited.
+projects the tagged release builds on or learned from: the adopted rows of that table, the data
+services the server queries (MusicBrainz, whose client is `internal/engine/musicbrainz`), the
+source of derived data (Python Unidecode, per ROADMAP `give-back`), and every entry the credits
+leg checks. The page credits each project with its license, checked when the page is written.
+dubplate's gate fails when a direct requirement in `go.mod`, a runtime dependency in
+`web/package.json`, or a face in `web/static/fonts/FONTS.md` goes unnamed in the guide, so a new
+Go module, bundled web package, or font can't ship uncredited. The web leg has nothing to check
+until rung 7 adds `tus-js-client`.
 
 The photo credits are generated. The photo curation spec gives every picked photo a record under
 `photos/` with the photographer, the licensor's requested credit, the source title, the license,
@@ -139,14 +144,22 @@ and the source URL, and it assigns the CREDITS generator to rung 7 (photo curati
 scope"). The site's photo credits are that generator's output, vendored through the export
 manifest. The site never keeps a second list. The site shows only picked photos from dubplate's
 pool, served at their slug, so every photo on the site has a credit by construction. A record with
-`status: pack` never reaches the site, because the pack holds NC and dubplate-only grants. A
-photographer who grants a license by letter lands as a picked record like any other, so their
-credit appears the same way. Until rung 7 lands the generator, the site carries no photos.
+`status: pack` never reaches the site as an image, because the pack holds NC and dubplate-only
+grants. A photographer who grants a shipped license class by letter lands as a picked record like
+any other, so their credit appears the same way. A pack grantor also lets dubplate use licensed
+photos (owner ruling 9), so once the pack ships, the generator's output carries a name-only line
+for each record in `pack.json`, built from its `photographer` and `credit` fields, with no image.
+The credit then comes from the same records as the pack, and the site keeps no second list. Rung
+7's plan receives that need beside the CREDITS path. Until rung 7 lands the generator, the site
+carries no photos.
 
 ## Keeping the site in step with dubplate
 
-dubplate owns three kinds of file the site shows: the theme tokens, the guides, and the generated
-references with the photo credits. dubplate lists every exported path in one export manifest.
+dubplate owns four kinds of file the site shows: the theme tokens, the guides, the generated
+references with the photo credits, and the picked photos. The picked `.webp` files join the
+manifest as a class when rung 7 lands the CREDITS generator, exported from the same commit as its
+output, so an image and its credit can't disagree. dubplate lists every exported path in one
+export manifest.
 The manifest settles which files travel, in a place dubplate's own gate can check.
 
 The theme files that travel are all seven in `web/src/lib/themes/`: `dubplate.css` (radius,
@@ -171,12 +184,15 @@ dubplate checkout. The dubplate repo is private, so the site's build never fetch
 ### What each check proves
 
 The sync reads only git objects. It resolves the ref to a commit and exports the manifest's paths
-from that commit, never from the working tree, so a dirty or wrong checkout can't leak in. It
-accepts any commit in Phase A, since no dubplate release tag exists yet, and records whether the
-ref is a release tag. It refuses a lightweight tag, and it refuses when the lock already names the
-same tag at a different commit. It stages the export and swaps it in whole, writing the lock last,
-so an interrupted sync leaves the old tree and the old lock together. The lock, `dubplate.lock.json`,
-records the ref, the commit, whether it is a release, and each file's SHA-256. The vendored files
+from that commit, never from the working tree, so a dirty or wrong checkout can't leak in. A
+release tag is an annotated tag named `v<major>.<minor>.<patch>` with no pre-release suffix, and
+the release checklist cuts tags to that shape. The sync accepts any commit in Phase A, since no
+dubplate release tag exists yet, and records whether the ref is a release tag. It refuses a
+lightweight tag, and it refuses when the lock already names the same tag at a different commit. It
+stages the export and swaps it in whole, writing the lock last, so an interrupted sync leaves the
+old tree and the old lock together. The lock, `dubplate.lock.json`, records the ref, the commit,
+whether it is a release, the classes the manifest declares at that commit, and each file's
+SHA-256. The vendored files
 and the lock are committed to the site repo.
 
 The site's lock check proves that the vendored tree is exactly what a sync wrote. It fails when
@@ -194,9 +210,18 @@ dubplate's gate proves that what it exports is current and true to the code at e
 Every manifest path exists. The generated pages are committed, and a gate leg regenerates them and
 fails on any diff, so no commit carries a stale reference. A guide leg fails when a command, flag,
 or config key named in code formatting in `docs/guide/` is absent from the command tree or the
-key registry, which the generators already walk. The same leg fails on the box's address, the
-group's hostnames, an email address outside an allow-list, or a workstation home path in any
-exported file.
+key registry, which the generators already walk. It reads a code span as a command when it starts
+with the server binary's name, as a flag by its `--name` shape, and as a key by the env wall's
+`DUBPLATE_` prefix or the store-homed key shape, which the Phase A plan quotes from
+`internal/config`. The guides are drafts against the planned 0.8 surface, so the leg also reads a
+dubplate-owned planned-names list, kept beside the export manifest and not exported. Each entry
+names the rung that lands it. A planned name passes while it is absent, and the leg fails on an
+entry whose name now exists, so every code-formatted name is either real or listed. The list is
+empty at the 0.8 release tag. The same leg fails on an IPv4 literal outside the RFC 5737
+documentation ranges, a hostname or an email address outside an allow-list of example and
+upstream domains, or a workstation home path in any exported file. It names no site value
+itself, since a deny-list of the box's address would be one more site-specific value outside
+`internal/config`.
 The credits check in "Credits" is the fourth leg.
 
 Every vendored and generated page shows "Describes dubplate `<ref>`" from the lock, and a page
@@ -207,8 +232,8 @@ the new tag. Until that tool exists, dubplate's release checklist carries the st
 A dubplate lane creates that checklist.
 
 The site describes one version, the latest release. An operator on an older release reads the
-changelog's upgrade notes, which cover every version, and once the source is public (open ruling
-11) the site links to the guides at each earlier tag.
+changelog's upgrade notes, which cover every version. If the source opens (open ruling 11), the
+site links to the guides at each earlier tag. Until then it carries no earlier-version links.
 
 Drift runs one way only. When the site needs a token dubplate lacks, the token is added in
 dubplate first, and the site picks it up at the next sync.
@@ -284,12 +309,20 @@ is done when:
 - The rendered pages meet WCAG AA contrast in both themes, checked by the site's gate over its
   built CSS, since the site's own markup doesn't follow dubplate's ink rule.
 - The trial record is committed, and its findings are filed through `engine-consult`.
-- The is/isn't lines and the legal note have moved into `docs/guide/`, once the principles spec is
-  ratified.
+- dubplate's changelog exists with its entry format, and the release checklist exists.
+- The site gate's comparison-date check exists and is proven able to fail.
+
+The reject and configuration generators land after rungs 7 and 14, which Phase A may precede. The
+ROADMAP `project-site` entry carries two owed dubplate lanes, each triggered by a merge: the reject
+generator when rung 7 merges and the configuration generator when rung 14 merges. Each lane adds
+its generator's regenerate-and-diff coverage and replaces the placeholder. If Phase A runs after
+either rung, its own lane builds that generator.
 
 Phase B publishes the site. Its preconditions are these:
 
-- 0.8 has shipped, and the lock names the 0.8 release tag.
+- 0.8 has shipped, and the lock names the 0.8 release tag. The planned-names list is empty.
+- The is/isn't lines and the legal note have moved into `docs/guide/`, after the principles spec
+  is ratified.
 - A stranger can get the software, as open ruling 11 decides.
 - The give-back path 1 pass has landed, and the lawyer's confirmation of the distribution reading
   is recorded (ROADMAP, `give-back`). The public setup guide is that release's front door.
@@ -306,23 +339,44 @@ Phase B publishes the site. Its preconditions are these:
 These continue the owner rulings' numbering.
 
 10. **The domain.** It's `dubplate.dev` or `dubplate.studio`. Cloudflare Registrar sells both at
-    standard tier, `.dev` at $12.20 a year and `.studio` at $31.20 a year (authoritative check,
-    2026-09-25). Due before Phase B registers it, and the purchase is confirmed with Geoff then.
+    standard tier, `.dev` at $12.20 a year and `.studio` at $31.20 a year for registration and
+    renewal. The source is the Registrar's domain-check API
+    (`POST /accounts/{account_id}/registrar/domain-check`), run by the conductor on 2026-09-25,
+    which returned both as registrable. Due before Phase B registers it, and the purchase is
+    confirmed with Geoff then.
 11. **How a stranger gets the software at 0.8.** The dubplate repo is private today, and no
-    ratified document owns opening it. ROADMAP's `oss-pair` covers only the uploader and the
-    pings Worker. ROADMAP sequences `packaging` after the organizer, which runs after launch, so
-    waiting on `packaging` would move Phase B past 0.8. Recommendation: (a), because 0.8's
+    ratified document owns opening it. The channel and the source are separate decisions. 0.8's
     `dubplate upgrade` already downloads a release and verifies it against a signed release
-    manifest (streamer spec, "Hosting and setup").
-    - (a) 0.8 ships its own minimal public channel: the public source and the signed release
-      binaries `upgrade` needs. `packaging` keeps the richer installers. Phase B stays at 0.8,
-      and ROADMAP records the channel in `streamer-0-8`.
-    - (b) Phase B waits for `packaging`. The site publishes after 0.8, and owner ruling 5 is
+    manifest (streamer spec, "Hosting and setup"), which is evidence for public binaries, not for
+    public source. Opening the source is irreversible: a published repo and its history can't be
+    withdrawn. ROADMAP sequences `packaging` after the organizer, which runs after launch, so
+    waiting on `packaging` moves Phase B past 0.8.
+    - (a) Public signed release binaries only at 0.8, and the source stays private. Get help's
+      security contact is the only channel, and the site carries no earlier-version links. The
+      About page still names the MIT license and says the source isn't public yet. ROADMAP
+      records the channel in `streamer-0-8`.
+    - (b) Public binaries and public source at 0.8. This adds two costs. The first is the
+      maintainership decision that ROADMAP's `oss-pair` makes a precondition for publishing even
+      the smaller uploader and pings pair. The second is a pre-publication scrub, since tracked
+      files carry production specifics (`CLAUDE.md` names the box's address). A public issue
+      tracker and the earlier-version links follow.
+    - (c) Phase B waits for `packaging`. The site publishes after 0.8, and owner ruling 5 is
       amended.
+
+    Recommendation: (a). It keeps Phase B at 0.8, which ruling 5 fixed, and `upgrade` already
+    needs the signed binaries. It defers the one irreversible step until the maintainership
+    decision `oss-pair` calls for has been made, and (a) can still become (b) later while (b) can
+    never become (a). Its cost is a tension with the principles spec, which says dubplate's
+    "source carries an MIT license" and that "Anyone with the source can remove any limit this
+    spec describes." Those lines read naturally only once the source is reachable. Give-back's
+    modules publish after 0.8 as separate repositories under either option. Both obligations
+    `give-back` names before the first release strangers can install (path 1 and the lawyer's
+    confirmation) apply under (a) and (b) alike.
 12. **A community channel at 0.8.** Get help always carries a security contact, and a public issue
-    tracker follows the source when it opens. The fork is whether dubplate also opens a community
-    channel, such as a forum or chat, which costs Geoff's time to tend. Recommendation: no at 0.8;
-    Get help says support is best-effort through the issue tracker.
+    tracker follows the source if it opens (ruling 11, option b). The fork is whether dubplate
+    also opens a community channel, such as a forum or chat, which costs Geoff's time to tend.
+    Recommendation: no at 0.8; Get help says support is best-effort through the issue tracker, or
+    through the security contact alone under ruling 11's option (a).
     - Yes: Get help names the channel, and someone tends it.
     - No: the issue tracker and the security contact are the only channels.
 13. **A "Coming later" list.** A reader with an MP3 library needs to know that other formats are

@@ -113,3 +113,42 @@ the comparison page's Navidrome entry keeps one sentence of lineage and links th
   at a stable path the export manifest can list.
 - **ROADMAP (action at approval).** Open a `project-site` entry under Planned, triggered by the
   close of cairn's docs reset and the publication of `create-cairn-site`.
+
+## Second fold
+
+Target: revision 2 (`73b429f`) to revision 2.1. Input: the fold verification,
+`docs/superpowers/research/2026-09-25-project-site-fold-verification.md` (V1 to V11). Each
+finding was checked against the spec and its sources before folding. Totals: 11 findings, 11
+folded, 0 refused, and no new owner fork.
+
+| Finding | Disposition | Where |
+|---|---|---|
+| V1 | Folded. The guide leg reads a dubplate-owned planned-names list, kept beside the export manifest and not exported, with the rung for each entry. A planned name passes while absent, and a stale entry fails. The list is empty at the 0.8 tag, which joins the Phase B preconditions. One clause says how the leg tells a command, flag, or key span from other code spans (binary-name prefix, `--name` shape, and the `DUBPLATE_` prefix or the store-homed key shape quoted from `internal/config` by the Phase A plan). | What each check proves; Phase B |
+| V2 | Folded. The ROADMAP `project-site` entry carries two owed dubplate lanes, triggered by the rung 7 and rung 14 merges, each adding its generator's regenerate-and-diff coverage. Phase A builds either generator itself if it runs after that rung. | Sequence |
+| V3 | Folded. Open ruling 11 splits into (a) public signed binaries only, source private; (b) binaries and public source; and (c) wait for `packaging`, amending ruling 5. It states that opening the source is irreversible and names (b)'s costs: the `oss-pair` maintainership precondition and a pre-publication scrub (`CLAUDE.md` names the box's address). Recommendation (a), reasoned from ruling 5, `oss-pair`, `packaging`'s sequence, and `give-back`, with the principles spec's MIT line named as its cost. Not ruled. Ruling 12 and the earlier-version links now say what happens under each option. | Open rulings 11 and 12; What each check proves |
+| V4 | Folded. The lock records the classes the manifest declares at the locked commit, so the empty-class check has an input. | What each check proves |
+| V5 | Folded. A release tag is an annotated tag named `v<major>.<minor>.<patch>` with no pre-release suffix, and the release checklist cuts tags to that shape. | What each check proves |
+| V6 | Folded. The picked `.webp` files are a fourth exported kind, joining the manifest when rung 7 lands the CREDITS generator, from the same commit as its output. | Keeping the site in step |
+| V7 | Folded, decided in the spec. A letter grant under a shipped class credits as a picked record. A pack grantor gets a name-only line generated from its `pack.json` record's `photographer` and `credit` fields, with no image, once the pack ships. Reason: ruling 9 covers anyone who lets dubplate use licensed photos, and the curation spec keeps a pack candidate as "a full record without an image" (`2026-09-25-photo-curation-design.md:213-214`), so the credit comes from the same records with no second list. The need routes to rung 7's plan. | Credits |
+| V8 | Folded. The credits leg also checks `web/package.json`'s runtime dependencies, which cost nothing until rung 7 adds `tus-js-client`. The claim narrows to "a new Go module, bundled web package, or font". Unidecode, fetched at setup under give-back path 1, is named by rule instead of gated. | Credits |
+| V9 | Folded. The leak leg fails on IPv4 literals outside the RFC 5737 documentation ranges and on hostnames and email addresses outside an allow-list of example and upstream domains, so it names no site value itself. The site repo is stated as private, with opening it following ruling 11. The verifier's "read literal deny entries from secrets" alternative is not taken, since the pattern forms cover the named leaks. | What each check proves; Where the site lives |
+| V10 | Folded. The is/isn't and legal-note move is a Phase B precondition, and the README links to the guide and holds no copy. | Pages; Phase B |
+| V11 | Folded. The Phase A done list gains the changelog with its entry format, the release checklist, and the proven comparison-date check. | Phase A |
+
+Also folded at the conductor's direction:
+
+- **Credited set.** The hand list at revision 2 lines 128-132 is trimmed to beets and Navidrome by
+  name, plus a pointer to the classes the guide covers: the prior-art table's adopted rows, the
+  data services the server queries, the source of derived data, and the gate-checked set. A hand
+  list goes stale on the next `go.mod` change.
+- **MusicBrainz.** Verified in use: the client lives in `internal/engine/musicbrainz` (and
+  `internal/harness/mbrequest`). It isn't a prior-art row, so the spec now credits it as a data
+  service the server queries, citing that package, instead of implying the table supplies it.
+- **Domain prices.** Ruling 10 cites its source: Cloudflare Registrar's domain-check API
+  (`POST /accounts/{account_id}/registrar/domain-check`), run by the conductor on 2026-09-25,
+  which returned `dubplate.studio` registrable at standard tier for $31.20 registration and
+  renewal, and `dubplate.dev` for $12.20.
+
+Owed routing added by this fold: the rung 7 plan also receives the pack name-only credit need and
+the picked-image export class; the ROADMAP `project-site` entry, at approval, carries the two
+merge-triggered generator lanes.
