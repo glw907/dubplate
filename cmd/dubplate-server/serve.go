@@ -47,12 +47,14 @@ const (
 // its POST/GET/HEAD surface.
 const rosterRouteName = "roster"
 
-// loginRouteName and assetsRouteName are the web subtree names
-// [newWebRoutes] builds routers for: the login documents and the
-// embedded bundle's hashed assets.
+// The web subtree names [newWebRoutes] builds routers for: the login
+// documents, the embedded bundle's hashed assets, and the two tier
+// stylesheets that follow the bundle's own.
 const (
-	loginRouteName  = "login"
-	assetsRouteName = "_app"
+	loginRouteName       = "login"
+	assetsRouteName      = "_app"
+	brandingRouteName    = "branding.css"
+	operatorCSSRouteName = "operator.css"
 )
 
 // serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
@@ -197,11 +199,11 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // opens the auth store, the nonce and epoch stores, and the roster,
 // builds the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
-// prefix, alongside the login and _app web routes [newWebRoutes]
-// builds from environ. It returns before any listener opens, so a
-// caller refuses a missing roster file, an unopenable store, an
-// unparseable mail port, or a bad theme value without ever accepting a
-// connection.
+// prefix, alongside the web routes [newWebRoutes] builds from environ.
+// It returns before any listener opens, so a caller refuses a missing
+// roster file, an unopenable store, an unparseable mail port, a bad
+// theme or branding value, or a refused operator CSS file without ever
+// accepting a connection.
 //
 // It registers no bearer bypass: rung 5 has no bearer-authenticated
 // path, so every mount stays behind the origin check's cookie-carrying
@@ -284,8 +286,7 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, c
 	if err != nil {
 		return nil, nil, err
 	}
-	shell.Register(loginRouteName, webRoutes.login)
-	shell.Register(assetsRouteName, webRoutes.assets)
+	webRoutes.register(shell)
 
 	done := startNonceSweep(ctx, nonces, shell.Logger())
 	return shell, done, nil

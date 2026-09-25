@@ -3,6 +3,7 @@ package serve
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"io/fs"
 	"net/http"
 	"regexp"
@@ -37,22 +38,67 @@ func RewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
 	}
 }
 
-// BuildDocumentVariants rewrites raw once per entry in palettes,
-// substituting placeholder with match+"-"+palette (the composed
-// theme name), and returns one body per palette. The variants are
-// computed once, at startup; [NewDocument] never touches raw again, so
-// no request byte can reach a served document. name identifies the
-// document in a returned error.
-func BuildDocumentVariants(name string, raw []byte, placeholder, match string, palettes []string) (map[string][]byte, error) {
+// BuildDocumentVariants rewrites raw once per entry in palettes and
+// returns one body per palette. The rewrite makes two edits and no
+// other: it inserts one <link rel="stylesheet"> per entry of tierHrefs,
+// in order, directly after the last stylesheet link the build wrote,
+// and substitutes placeholder with match+"-"+palette (the composed
+// theme name). Anchoring on the last link keeps every tier after all of
+// the bundle's own CSS however many stylesheets a page links, so a
+// tier declaration wins every tie of equal specificity by document
+// order. A document with no stylesheet link is refused, naming it,
+// since the tiers would then have nothing to follow.
+//
+// The variants are computed once, at startup; [NewDocument] never
+// touches raw again, so no request byte can reach a served document.
+// name identifies the document in a returned error.
+func BuildDocumentVariants(name string, raw []byte, placeholder, match string, palettes, tierHrefs []string) (map[string][]byte, error) {
+	linked, err := insertTierLinks(name, raw, tierHrefs)
+	if err != nil {
+		return nil, err
+	}
 	variants := make(map[string][]byte, len(palettes))
 	for _, palette := range palettes {
-		body, err := RewriteDocument(name, raw, placeholder, match+"-"+palette)
+		body, err := RewriteDocument(name, linked, placeholder, match+"-"+palette)
 		if err != nil {
 			return nil, err
 		}
 		variants[palette] = body
 	}
 	return variants, nil
+}
+
+// insertTierLinks returns raw with a stylesheet link per href inserted
+// directly after the end of raw's last stylesheet link tag.
+func insertTierLinks(name string, raw []byte, hrefs []string) ([]byte, error) {
+	anchor := -1
+	for _, loc := range linkTagRE.FindAllIndex(raw, -1) {
+		if isStylesheetLink(raw[loc[0]:loc[1]]) {
+			anchor = loc[1]
+		}
+	}
+	if anchor < 0 {
+		return nil, fmt.Errorf("serve: document %q: no stylesheet link to place the tier links after", name)
+	}
+
+	var links bytes.Buffer
+	for _, href := range hrefs {
+		fmt.Fprintf(&links, `<link href="%s" rel="stylesheet">`, html.EscapeString(href))
+	}
+	out := make([]byte, 0, len(raw)+links.Len())
+	out = append(out, raw[:anchor]...)
+	out = append(out, links.Bytes()...)
+	return append(out, raw[anchor:]...), nil
+}
+
+// NewStylesheet returns an http.Handler serving GET and HEAD only,
+// answering body as text/css. body is fixed when the handler is built,
+// so the response reads nothing from the request.
+func NewStylesheet(body []byte) http.Handler {
+	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		_, _ = w.Write(body)
+	}))
 }
 
 // NewDocument returns an http.Handler serving GET and HEAD only,
@@ -144,8 +190,7 @@ var (
 func StylesheetHrefs(doc []byte) []string {
 	var hrefs []string
 	for _, tag := range linkTagRE.FindAll(doc, -1) {
-		rel := relAttrRE.FindSubmatch(tag)
-		if rel == nil || string(rel[1]) != "stylesheet" {
+		if !isStylesheetLink(tag) {
 			continue
 		}
 		href := hrefAttrRE.FindSubmatch(tag)
@@ -155,6 +200,13 @@ func StylesheetHrefs(doc []byte) []string {
 		hrefs = append(hrefs, string(href[1]))
 	}
 	return hrefs
+}
+
+// isStylesheetLink reports whether tag, one <link> opening tag, carries
+// rel="stylesheet".
+func isStylesheetLink(tag []byte) bool {
+	rel := relAttrRE.FindSubmatch(tag)
+	return rel != nil && string(rel[1]) == "stylesheet"
 }
 
 // dataThemeSelectorRE matches one [data-theme=<name>] compound

@@ -423,6 +423,62 @@ func TestNewServeShell_MissingRosterRefusesBeforeConstruction(t *testing.T) {
 	}
 }
 
+// TestNewServeShell_OperatorCSSRefusesTheRosterFile proves the operator
+// CSS rule on the serve verb's own construction path: the key pointed
+// at the roster file this environment serves from refuses startup,
+// naming the key and the ".css" rule, and neither the path nor a byte
+// of the roster reaches the error. A shell that admitted any path
+// would build and publish the roster at <prefix>/operator.css.
+func TestNewServeShell_OperatorCSSRefusesTheRosterFile(t *testing.T) {
+	environ := serveAuthEnviron(t)
+	rosterPath := valueOf(t, environ, "DUBPLATE_ROSTER_FILE")
+	roster, err := os.ReadFile(rosterPath)
+	if err != nil {
+		t.Fatalf("read roster fixture: %v", err)
+	}
+	environ = replaceKey(environ, "DUBPLATE_OPERATOR_CSS_FILE", rosterPath)
+
+	shell, _, err := buildServeShell(t, environ)
+	if err == nil {
+		rec := httptest.NewRecorder()
+		shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dubplate/operator.css", nil))
+		t.Fatalf("buildServeShell: got nil error, want the operator CSS refusal; GET operator.css answers %d, serving the roster's bytes: %v",
+			rec.Code, bytes.Equal(rec.Body.Bytes(), roster))
+	}
+	if want := `DUBPLATE_OPERATOR_CSS_FILE: the path must end in ".css"`; err.Error() != want {
+		t.Errorf("error = %q, want %q", err.Error(), want)
+	}
+	if strings.Contains(err.Error(), rosterPath) || strings.Contains(err.Error(), string(roster)) {
+		t.Errorf("error = %q echoes the roster path or its bytes", err.Error())
+	}
+}
+
+// TestNewServeShell_BrandingRefusesStartup proves a refused branding
+// value stops the serve verb's own construction, naming the key.
+func TestNewServeShell_BrandingRefusesStartup(t *testing.T) {
+	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_BRANDING", "--color-base-100: #ffffff; --color-primary: #fff}")
+	_, _, err := buildServeShell(t, environ)
+	if err == nil {
+		t.Fatal("buildServeShell: got nil error, want the branding refusal")
+	}
+	if !strings.HasPrefix(err.Error(), "DUBPLATE_BRANDING: ") || strings.Contains(err.Error(), "#fff}") {
+		t.Errorf("error = %q, want it to name DUBPLATE_BRANDING and not echo the value", err.Error())
+	}
+}
+
+// valueOf returns the value environ carries for name, failing t when
+// it carries none.
+func valueOf(t *testing.T, environ []string, name string) string {
+	t.Helper()
+	for _, kv := range environ {
+		if n, v, _ := strings.Cut(kv, "="); n == name {
+			return v
+		}
+	}
+	t.Fatalf("environ carries no %s", name)
+	return ""
+}
+
 // TestNewServeShell_StateChangingFallthroughRequestIsDenied proves no
 // bypass pattern is registered: a cookie-carrying POST outside the
 // owned prefix, carrying neither Sec-Fetch-Site nor Origin, is refused

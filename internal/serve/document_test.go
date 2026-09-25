@@ -88,15 +88,15 @@ func TestRewriteDocument(t *testing.T) {
 }
 
 func TestBuildDocumentVariants(t *testing.T) {
-	raw := []byte(`<html data-theme="TOKEN">`)
-	variants, err := BuildDocumentVariants("doc.html", raw, "TOKEN", "dubplate", []string{"label", "label-night", "system"})
+	raw := []byte(`<html data-theme="TOKEN"><link href="./a.css" rel="stylesheet">`)
+	variants, err := BuildDocumentVariants("doc.html", raw, "TOKEN", "dubplate", []string{"label", "label-night", "system"}, nil)
 	if err != nil {
 		t.Fatalf("BuildDocumentVariants: %v", err)
 	}
 	want := map[string]string{
-		"label":       `<html data-theme="dubplate-label">`,
-		"label-night": `<html data-theme="dubplate-label-night">`,
-		"system":      `<html data-theme="dubplate-system">`,
+		"label":       `<html data-theme="dubplate-label"><link href="./a.css" rel="stylesheet">`,
+		"label-night": `<html data-theme="dubplate-label-night"><link href="./a.css" rel="stylesheet">`,
+		"system":      `<html data-theme="dubplate-system"><link href="./a.css" rel="stylesheet">`,
 	}
 	if len(variants) != len(want) {
 		t.Fatalf("BuildDocumentVariants: got %d variants, want %d", len(variants), len(want))
@@ -109,9 +109,109 @@ func TestBuildDocumentVariants(t *testing.T) {
 }
 
 func TestBuildDocumentVariants_PropagatesRewriteError(t *testing.T) {
-	raw := []byte(`no token here`)
-	if _, err := BuildDocumentVariants("doc.html", raw, "TOKEN", "dubplate", []string{"label"}); err == nil {
+	raw := []byte(`<link href="./a.css" rel="stylesheet">no token here`)
+	if _, err := BuildDocumentVariants("doc.html", raw, "TOKEN", "dubplate", []string{"label"}, nil); err == nil {
 		t.Fatal("BuildDocumentVariants: got nil error, want the missing-placeholder refusal")
+	}
+}
+
+// TestBuildDocumentVariants_TierLinkAnchor covers the three anchor
+// states: no stylesheet link refuses naming the document, and one or
+// several put the tier links directly after the last. The expected
+// bodies are written out whole, so a link landing anywhere else, or any
+// other byte moving, fails the comparison.
+func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
+	tiers := []string{"./branding.css", "./operator.css"}
+	tests := []struct {
+		name       string
+		raw        string
+		tiers      []string
+		want       string
+		wantErrHas string
+	}{
+		{
+			name:       "no stylesheet link",
+			raw:        `<html data-theme="T"><head><link href="./a.js" rel="modulepreload"></head><body></body></html>`,
+			tiers:      tiers,
+			wantErrHas: `document "members.html": no stylesheet link`,
+		},
+		{
+			name:  "one stylesheet link",
+			raw:   `<html data-theme="T"><head><link href="./_app/0.css" rel="stylesheet">` + "\n" + `</head><body><script>x</script></body></html>`,
+			tiers: tiers,
+			want:  `<html data-theme="dubplate-label"><head><link href="./_app/0.css" rel="stylesheet"><link href="./branding.css" rel="stylesheet"><link href="./operator.css" rel="stylesheet">` + "\n" + `</head><body><script>x</script></body></html>`,
+		},
+		{
+			name:  "two stylesheet links, a modulepreload between them",
+			raw:   `<html data-theme="T"><head><link href="./_app/0.css" rel="stylesheet"><link href="./_app/n.js" rel="modulepreload"><link href="./_app/2.css" rel="stylesheet"></head></html>`,
+			tiers: tiers,
+			want:  `<html data-theme="dubplate-label"><head><link href="./_app/0.css" rel="stylesheet"><link href="./_app/n.js" rel="modulepreload"><link href="./_app/2.css" rel="stylesheet"><link href="./branding.css" rel="stylesheet"><link href="./operator.css" rel="stylesheet"></head></html>`,
+		},
+		{
+			name:  "rel before href, one tier",
+			raw:   `<html data-theme="T"><link rel="stylesheet" href="./_app/0.css"></html>`,
+			tiers: []string{"../branding.css"},
+			want:  `<html data-theme="dubplate-label"><link rel="stylesheet" href="./_app/0.css"><link href="../branding.css" rel="stylesheet"></html>`,
+		},
+		{
+			name:  "an href is escaped as an attribute value",
+			raw:   `<html data-theme="T"><link href="./_app/0.css" rel="stylesheet"></html>`,
+			tiers: []string{`./a"b&c.css`},
+			want:  `<html data-theme="dubplate-label"><link href="./_app/0.css" rel="stylesheet"><link href="./a&#34;b&amp;c.css" rel="stylesheet"></html>`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			variants, err := BuildDocumentVariants("members.html", []byte(tt.raw), "T", "dubplate", []string{"label"}, tt.tiers)
+			if tt.wantErrHas != "" {
+				if err == nil {
+					t.Fatalf("BuildDocumentVariants: got nil error, want one containing %q", tt.wantErrHas)
+				}
+				if !strings.Contains(err.Error(), tt.wantErrHas) {
+					t.Fatalf("BuildDocumentVariants error = %q, want it to contain %q", err.Error(), tt.wantErrHas)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("BuildDocumentVariants: %v", err)
+			}
+			if got := string(variants["label"]); got != tt.want {
+				t.Errorf("variant = %q\nwant      %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewStylesheet(t *testing.T) {
+	body := []byte(":root {\n\t--depth: 1;\n}\n")
+	handler := NewStylesheet(body)
+
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		t.Run(method, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, httptest.NewRequest(method, "/branding.css", nil))
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200", rec.Code)
+			}
+			if got := rec.Header().Get("Content-Type"); got != "text/css; charset=utf-8" {
+				t.Errorf("Content-Type = %q, want %q", got, "text/css; charset=utf-8")
+			}
+			if !bytes.Equal(rec.Body.Bytes(), body) {
+				t.Errorf("body = %q, want %q", rec.Body.Bytes(), body)
+			}
+		})
+	}
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodDelete} {
+		t.Run(method, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, httptest.NewRequest(method, "/branding.css", nil))
+			if rec.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("status = %d, want 405", rec.Code)
+			}
+			if got := rec.Header().Get("Allow"); got != "GET, HEAD" {
+				t.Errorf("Allow = %q, want %q", got, "GET, HEAD")
+			}
+		})
 	}
 }
 

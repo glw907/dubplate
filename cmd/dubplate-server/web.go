@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"path"
 	"regexp"
 	"slices"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
@@ -32,8 +36,20 @@ const acceptedThemeMatch = "dubplate"
 // selector-set lookup or an attribute.
 var themePaletteGrammarRE = regexp.MustCompile(`^[a-z0-9-]+$`)
 
-// The build tree's two document paths this task routes, relative to
-// the embedded build root.
+// notConfigured is the value DUBPLATE_BRANDING and
+// DUBPLATE_OPERATOR_CSS_FILE default to, meaning the operator set
+// nothing. The registry refuses an empty string default, so the two
+// optional keys spell "unset" as a word. It cannot shadow a real
+// operator file, because an operator file's path must end in ".css".
+const notConfigured = "none"
+
+// operatorCSSMaxBytes bounds the operator CSS file, 256 KiB: well above
+// any hand-written override, and small enough that a wrong path naming
+// a large file refuses startup rather than loading it into memory.
+const operatorCSSMaxBytes = 256 << 10
+
+// The build tree's two document paths the login route serves, relative
+// to the embedded build root.
 const (
 	loginDocumentName     = "login.html"
 	loginLinkDocumentName = "login/link.html"
@@ -60,23 +76,20 @@ var themePaletteThreshold = config.Threshold{
 }
 
 // brandingThreshold is DUBPLATE_BRANDING: the operator's declaration
-// list, consumed by the branding stylesheet Task 6 adds. Registered
-// here so the wall's four presentation keys register through one call.
+// list, rendered once at startup into the branding stylesheet.
 var brandingThreshold = config.Threshold{
 	Key:     "DUBPLATE_BRANDING",
 	Kind:    config.KindString,
-	Default: "none",
+	Default: notConfigured,
 	Doc:     `"none", or ";"-separated name: value declarations`,
 }
 
 // operatorCSSFileThreshold is DUBPLATE_OPERATOR_CSS_FILE: the
-// operator's own stylesheet path, consumed by the operator CSS route
-// Task 6 adds. Registered here for the same reason as
-// [brandingThreshold].
+// operator's own stylesheet, read once at startup by [readOperatorCSS].
 var operatorCSSFileThreshold = config.Threshold{
 	Key:     "DUBPLATE_OPERATOR_CSS_FILE",
 	Kind:    config.KindString,
-	Default: "none",
+	Default: notConfigured,
 	Doc:     `"none", or a path to a .css file`,
 }
 
@@ -91,20 +104,34 @@ func registerWebConfig(reg *config.Registry) {
 }
 
 // webRoutes are the http.Handlers newServeShell mounts under the
-// shell's owned prefix for this task's two subtrees: "login" and
-// "_app".
+// shell's owned prefix. operator is nil when no operator CSS file is
+// configured, which leaves its path to the terminator's 404.
 type webRoutes struct {
-	login  http.Handler
-	assets http.Handler
+	login    http.Handler
+	assets   http.Handler
+	branding http.Handler
+	operator http.Handler
+}
+
+// register mounts wr's routes on shell under their subtree names.
+func (wr webRoutes) register(shell *serve.Shell) {
+	shell.Register(loginRouteName, wr.login)
+	shell.Register(assetsRouteName, wr.assets)
+	shell.Register(brandingRouteName, wr.branding)
+	if wr.operator != nil {
+		shell.Register(operatorCSSRouteName, wr.operator)
+	}
 }
 
 // newWebRoutes reads web.Assets, refuses on a placeholder-only
 // embedded tree naming `npm run build`, resolves and validates
 // DUBPLATE_THEME_MATCH and DUBPLATE_THEME_PALETTE against the built
-// bundle's own extracted [data-theme=<name>] selectors, rewrites the
-// login documents into one variant per stampable palette, and returns
-// the login subtree's router and the _app asset handler. It returns
-// before any listener opens, so a bad theme value or a missing build
+// bundle's own extracted [data-theme=<name>] selectors, renders
+// DUBPLATE_BRANDING into the branding stylesheet, reads the file
+// DUBPLATE_OPERATOR_CSS_FILE names, rewrites the login documents into
+// one variant per stampable palette with the tier links in place, and
+// returns the routes. It returns before any listener opens, so a bad
+// theme or branding value, a refused operator file, or a missing build
 // refuses startup rather than the first request.
 func newWebRoutes(environ []string, prefix serve.Prefix) (webRoutes, error) {
 	buildFS, err := fs.Sub(web.Assets, "build")
@@ -167,11 +194,22 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 	}
 	palettes := stampablePalettes(selectors, match)
 
-	loginVariants, err := serve.BuildDocumentVariants(loginDocumentName, loginRaw, themePlaceholder, match, palettes)
+	branding, err := resolveBranding(environ)
 	if err != nil {
 		return webRoutes{}, err
 	}
-	linkVariants, err := serve.BuildDocumentVariants(loginLinkDocumentName, linkRaw, themePlaceholder, match, palettes)
+	operatorCSS, hasOperatorCSS, err := resolveOperatorCSS(environ)
+	if err != nil {
+		return webRoutes{}, err
+	}
+
+	loginVariants, err := serve.BuildDocumentVariants(loginDocumentName, loginRaw, themePlaceholder, match, palettes,
+		tierHrefs(loginDocumentName, hasOperatorCSS))
+	if err != nil {
+		return webRoutes{}, err
+	}
+	linkVariants, err := serve.BuildDocumentVariants(loginLinkDocumentName, linkRaw, themePlaceholder, match, palettes,
+		tierHrefs(loginLinkDocumentName, hasOperatorCSS))
 	if err != nil {
 		return webRoutes{}, err
 	}
@@ -185,9 +223,123 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 	if err != nil {
 		return webRoutes{}, fmt.Errorf("web: %w", err)
 	}
-	assets := serve.NewAssets(assetsFS, prefix.String()+"/_app")
+	routes := webRoutes{
+		login:    login,
+		assets:   serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
+		branding: stylesheetRoute(prefix, brandingRouteName, branding),
+	}
+	if hasOperatorCSS {
+		routes.operator = stylesheetRoute(prefix, operatorCSSRouteName, operatorCSS)
+	}
+	return routes, nil
+}
 
-	return webRoutes{login: login, assets: assets}, nil
+// stylesheetRoute serves css at exactly <prefix>/<name> and answers
+// the terminator's 404 everywhere under it.
+func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler {
+	return newExactPathRoutes(map[string]http.Handler{
+		prefix.String() + "/" + name: serve.NewStylesheet(css),
+	})
+}
+
+// resolveBranding renders DUBPLATE_BRANDING into the branding
+// stylesheet, empty when the key is unset, empty, or "none".
+func resolveBranding(environ []string) ([]byte, error) {
+	decls, err := config.ParseString(environ, brandingThreshold)
+	if err != nil {
+		return nil, err
+	}
+	if decls == notConfigured {
+		decls = ""
+	}
+	css, err := serve.BrandingStylesheet(decls)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", brandingThreshold.Key, err)
+	}
+	return css, nil
+}
+
+// resolveOperatorCSS reads the file DUBPLATE_OPERATOR_CSS_FILE names,
+// reporting false when the key is unset, empty, or "none".
+func resolveOperatorCSS(environ []string) ([]byte, bool, error) {
+	path, err := config.ParseString(environ, operatorCSSFileThreshold)
+	if err != nil {
+		return nil, false, err
+	}
+	if path == notConfigured {
+		return nil, false, nil
+	}
+	css, err := readOperatorCSS(path)
+	if err != nil {
+		return nil, false, fmt.Errorf("%s: %w", operatorCSSFileThreshold.Key, err)
+	}
+	return css, true, nil
+}
+
+// readOperatorCSS reads the operator's stylesheet at path. The route
+// that serves it is public, so the file's class is checked before its
+// bytes are kept: a wrong path would otherwise publish whatever the
+// service user can read, the roster or an environment file included.
+// The path must end in ".css", which none of those do, and the content
+// must be UTF-8 text holding no NUL byte and no more than
+// operatorCSSMaxBytes. A returned error names the rule or the reason
+// and never carries the path or any byte of the file.
+func readOperatorCSS(path string) ([]byte, error) {
+	if !strings.HasSuffix(path, ".css") {
+		return nil, errors.New(`the path must end in ".css"`)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
+	}
+	if !info.Mode().IsRegular() {
+		return nil, errors.New("the path is not a regular file")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
+	}
+	defer func() { _ = f.Close() }()
+	css, err := io.ReadAll(io.LimitReader(f, operatorCSSMaxBytes+1))
+	if err != nil {
+		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
+	}
+	switch {
+	case len(css) > operatorCSSMaxBytes:
+		return nil, fmt.Errorf("the file is over %d bytes", operatorCSSMaxBytes)
+	case !utf8.Valid(css):
+		return nil, errors.New("the file is not valid UTF-8")
+	case bytes.IndexByte(css, 0) >= 0:
+		return nil, errors.New("the file holds a NUL byte")
+	}
+	return css, nil
+}
+
+// withoutPath returns the error inside err's *fs.PathError, or err
+// itself when it carries none, so a reported reason ("no such file or
+// directory") keeps its errors.Is identity and drops the path.
+func withoutPath(err error) error {
+	if pathErr, ok := errors.AsType[*fs.PathError](err); ok {
+		return pathErr.Err
+	}
+	return err
+}
+
+// tierHrefs returns the tier links for the document at docPath inside
+// the build tree: the branding stylesheet always, and the operator
+// stylesheet when one is configured. Each href is relative to the
+// document's own URL, as the build's own links are, so the same
+// document resolves them under any prefix.
+func tierHrefs(docPath string, hasOperatorCSS bool) []string {
+	root := "./"
+	if depth := strings.Count(docPath, "/"); depth > 0 {
+		root = strings.Repeat("../", depth)
+	}
+	hrefs := []string{root + brandingRouteName}
+	if hasOperatorCSS {
+		hrefs = append(hrefs, root+operatorCSSRouteName)
+	}
+	return hrefs
 }
 
 // isPlaceholderOnly reports whether buildFS's root directory holds
