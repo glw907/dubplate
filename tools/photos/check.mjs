@@ -7,8 +7,21 @@
 // it. Retires at rung 7, when the Go loader ports both modes' checks.
 
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, existsSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import {
+  readFileSync,
+  readdirSync,
+  existsSync,
+  statSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+} from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// The default root, resolved from this script's own location so the check
+// works the same regardless of the caller's working directory.
+const DEFAULT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'photos');
 
 // The rules a waiver in photos/meta/waivers.json may cover (Pool size and
 // balance). `artist` and `landmark` are checked by integrity; the rest by
@@ -24,9 +37,11 @@ const WAIVER_RULES = new Set([
   'landmark',
 ]);
 
-// Share targets and the plus-or-minus-3pp band (Pool size and balance).
-const FAMILY_SHARES = { reggae: 0.30, punk: 0.20, 'hip-hop': 0.20, other: 0.30 };
-const SHARE_BAND = 0.03;
+// Share targets as integer percentages, so the band check runs in integer
+// arithmetic and a count exactly at the +/-3pp edge never misses on a
+// floating-point rounding artifact (Pool size and balance).
+const FAMILY_SHARE_PCT = { reggae: 30, punk: 20, 'hip-hop': 20, other: 30 };
+const SHARE_BAND_PCT = 3;
 const REGION_CAP = 0.5;
 const POSED_CEILING = 0.15;
 const FLOOR_GRID_FAMILIES = ['reggae', 'punk', 'hip-hop'];
@@ -89,14 +104,57 @@ function normalizeName(name) {
   return name.trim().toLowerCase().replace(/^the\s+/, '').trim();
 }
 
-function artistKey(artist) {
-  if (artist.mbid) return `mbid:${artist.mbid}`;
-  return `name:${normalizeName(artist.name)}`;
+// The identity keys a picked/candidate artist carries: an MBID-based key
+// when one exists, and always a name-based key. Matching on either lets a
+// candidate that only has a name still collide with a picked record that
+// carries the same artist's MusicBrainz ID, and vice versa.
+function artistIdentities(artist) {
+  const ids = [];
+  if (artist.mbid) ids.push(`mbid:${artist.mbid}`);
+  ids.push(`name:${normalizeName(artist.name)}`);
+  return ids;
 }
 
-function landmarkKey(landmark) {
-  if (landmark.wikidata_id) return `wikidata:${landmark.wikidata_id}`;
-  return `name:${normalizeName(landmark.name)}`;
+function landmarkIdentities(landmark) {
+  const ids = [];
+  if (landmark.wikidata_id) ids.push(`wikidata:${landmark.wikidata_id}`);
+  ids.push(`name:${normalizeName(landmark.name)}`);
+  return ids;
+}
+
+// Groups `entries` (each an { owner, subject }) into collision sets: an
+// owner collides with another if they share any identity key `identityFn`
+// returns for their subject. Returns a Map from owner to the Set of other
+// owners it collides with.
+function groupCollisions(entries, identityFn) {
+  const byKey = new Map(); // identity key -> [owner, ...]
+  for (const { owner, subject } of entries) {
+    for (const key of identityFn(subject)) {
+      if (!byKey.has(key)) byKey.set(key, []);
+      byKey.get(key).push(owner);
+    }
+  }
+  const collisions = new Map(); // owner -> Set(other owners)
+  for (const owners of byKey.values()) {
+    if (owners.length < 2) continue;
+    for (const owner of owners) {
+      if (!collisions.has(owner)) collisions.set(owner, new Set());
+      for (const other of owners) {
+        if (other !== owner) collisions.get(owner).add(other);
+      }
+    }
+  }
+  return collisions;
+}
+
+// True when no other owner in `others` sorts before `owner`: the earliest
+// file in a collision group is exempt from the cap (it is the one image;
+// every later file is the second-or-later one that needs a waiver).
+function isGroupLeader(owner, others) {
+  for (const other of others) {
+    if (other < owner) return false;
+  }
+  return true;
 }
 
 // The family comes from the primary scene through vocab.json; a record with
@@ -122,11 +180,61 @@ function hasWaiver(waivers, rule, key) {
   return waivers.some((w) => w.rule === rule && w.key === key);
 }
 
+// A record's identity pairs for dedupe: source_id and origin_id share one
+// key space ("id"), since the same upstream work reached by two routes
+// (a Commons copy and its Flickr original) must collide on either field;
+// source_sha256 is a separate space ("hash").
+function identityPairs(record) {
+  return [
+    ['id', record.source_id],
+    ['id', record.origin_id],
+    ['hash', record.source_sha256],
+  ];
+}
+
+// Applies the public_domain rule to any object carrying a `license` and
+// `public_domain` pair: a record itself, or its `artwork`. `rulePrefix`
+// keeps the two callers' error rules distinct ("" for the record,
+// "artwork-" for its artwork).
+function validatePublicDomain(obj, vocab, file, errors, rulePrefix) {
+  const push = (rule, message) => errors.push({ file, rule: `${rulePrefix}${rule}`, message });
+  if (obj.license === 'LicenseRef-public-domain') {
+    const pd = obj.public_domain;
+    if (!pd) {
+      push('public-domain-required', 'LicenseRef-public-domain requires public_domain');
+      return;
+    }
+    if (!vocab.public_domain_bases.some((b) => b.id === pd.basis)) {
+      push('public-domain-basis', `basis ${JSON.stringify(pd.basis)} is not in vocab.json`);
+    }
+    if (!pd.jurisdiction || typeof pd.jurisdiction !== 'string') {
+      push('public-domain-jurisdiction', 'public_domain requires jurisdiction');
+    }
+    if (!pd.fact || typeof pd.fact !== 'string') {
+      push('public-domain-fact', 'public_domain requires fact');
+    }
+    if (pd.us_status !== vocab.public_domain_us_status) {
+      push('public-domain-us-status', `us_status must be ${JSON.stringify(vocab.public_domain_us_status)}`);
+    }
+  } else if (obj.public_domain) {
+    push('public-domain-forbidden', 'public_domain is set on a non-public-domain license');
+  }
+}
+
+// screen, flags, and pack are candidate-only fields (Storage): a committed
+// record (picked, withdrawn, or a pack.json entry) never carries them.
+function forbidCandidateOnlyFields(record, file, errors) {
+  if (record.screen !== undefined) errors.push({ file, rule: 'screen-forbidden', message: 'screen must be stripped before commit' });
+  if (record.flags !== undefined) errors.push({ file, rule: 'flags-forbidden', message: 'flags must be stripped before commit' });
+  if (record.pack !== undefined) errors.push({ file, rule: 'pack-forbidden', message: 'pack must be stripped before commit' });
+}
+
 // Shared field checks for a picked record and a candidate record: the
 // facets, the license and public-domain rules, the artwork rule, and the
 // size floor. `width`/`height` pick the dimensions to floor-check (a picked
-// record's stored size; a candidate's source size).
-function validateCommonFields(record, vocab, file, errors, { width, height, allowPackLicense = false }) {
+// record's stored size; a candidate's source size; omitted entirely for a
+// withdrawn or pack record, which skips the floor).
+function validateCommonFields(record, vocab, file, errors, { width, height, allowPackLicense = false } = {}) {
   const push = (rule, message) => errors.push({ file, rule, message });
 
   if (!record.title || typeof record.title !== 'string') push('title', 'missing title');
@@ -176,6 +284,15 @@ function validateCommonFields(record, vocab, file, errors, { width, height, allo
     }
   }
 
+  if (!record.year) {
+    push('year', 'missing year');
+  } else {
+    if (!Number.isInteger(record.year.value)) push('year-value', 'year.value must be an integer');
+    if (!vocab.year_precisions.includes(record.year.precision)) {
+      push('year-precision', `precision ${JSON.stringify(record.year.precision)} is not in vocab.json`);
+    }
+  }
+
   // License and public-domain.
   const license = record.license ? licenseById(record.license, vocab) : undefined;
   if (!license) {
@@ -185,33 +302,32 @@ function validateCommonFields(record, vocab, file, errors, { width, height, allo
     // a pack candidate to pack.json instead of committing it (Storage).
     push('license-class', `license ${license.id} is not a shipped class`);
   }
-  if (record.license === 'LicenseRef-public-domain') {
-    if (!record.public_domain) {
-      push('public-domain-required', 'LicenseRef-public-domain requires public_domain');
-    } else if (!vocab.public_domain_bases.some((b) => b.id === record.public_domain.basis)) {
-      push('public-domain-basis', `basis ${JSON.stringify(record.public_domain.basis)} is not in vocab.json`);
-    }
-  } else if (record.public_domain) {
-    push('public-domain-forbidden', 'public_domain is set on a non-public-domain license');
-  }
+  validatePublicDomain(record, vocab, file, errors, '');
 
   // Artwork, required for flyer and zine-cover formats.
   if (record.format === 'flyer' || record.format === 'zine-cover') {
     if (!record.artwork) {
       push('artwork-required', `${record.format} requires artwork`);
     } else {
-      const artworkLicense = record.artwork.license ? licenseById(record.artwork.license, vocab) : undefined;
+      const art = record.artwork;
+      if (!art.artist) push('artwork-artist', 'artwork requires artist');
+      if (!art.credit) push('artwork-credit', 'artwork requires credit');
+      if (!art.source_url) push('artwork-source-url', 'artwork requires source_url');
+      if (!art.verified) push('artwork-verified', 'artwork requires verified');
+      const artworkLicense = art.license ? licenseById(art.license, vocab) : undefined;
       if (!artworkLicense) {
-        push('vocab:license', `artwork license ${JSON.stringify(record.artwork.license)} is not in vocab.json`);
+        push('artwork-vocab-license', `artwork license ${JSON.stringify(art.license)} is not in vocab.json`);
       } else if (artworkLicense.class !== 'shipped') {
         push('artwork-license', `artwork license ${artworkLicense.id} is not a shipped class`);
       }
+      validatePublicDomain(art, vocab, file, errors, 'artwork-');
     }
   } else if (record.artwork) {
     push('artwork-forbidden', 'artwork is set on a format that is not flyer or zine-cover');
   }
 
-  // Size floor, on the dimensions the caller names.
+  // Size floor, on the dimensions the caller names. Omitted (undefined)
+  // for a withdrawn or pack record, which carries no shipped image.
   if (Number.isInteger(width) && Number.isInteger(height)) {
     const edge = longEdge(width, height);
     if (edge < 1000) {
@@ -270,20 +386,20 @@ function runIntegrity(root) {
   }
 
   // Dedupe keys across picked, rejected, and pack records (integrity).
-  const seen = new Map(); // "type:value" -> file
-  const claim = (type, value, file) => {
+  const seen = new Map(); // "kind:value" -> file
+  const claim = (kind, value, file) => {
     if (!value) return;
-    const k = `${type}:${value}`;
+    const k = `${kind}:${value}`;
     const prior = seen.get(k);
     if (prior && prior !== file) {
-      errors.push({ file, rule: 'duplicate-key', message: `${type} ${JSON.stringify(value)} already used by ${prior}` });
+      errors.push({ file, rule: 'duplicate-key', message: `${kind} ${JSON.stringify(value)} already used by ${prior}` });
     } else {
       seen.set(k, file);
     }
   };
 
-  const artistCounts = new Map(); // key -> [files]
-  const landmarkCounts = new Map();
+  const artistEntries = []; // { file, artist }
+  const landmarkEntries = []; // { file, landmark }
 
   for (const [slug, record] of picked) {
     const file = `${slug}.json`;
@@ -299,9 +415,9 @@ function runIntegrity(root) {
       if (webpFiles.has(slug)) {
         errors.push({ file, rule: 'withdrawn-has-image', message: `${slug}.webp still exists` });
       }
-      claim('source_id', record.source_id, file);
-      claim('origin_id', record.origin_id, file);
-      claim('source_sha256', record.source_sha256, file);
+      validateCommonFields(record, vocab, file, errors, {});
+      forbidCandidateOnlyFields(record, file, errors);
+      for (const [kind, value] of identityPairs(record)) claim(kind, value, file);
       continue;
     }
 
@@ -318,23 +434,20 @@ function runIntegrity(root) {
         errors.push({ file, rule: 'hash-mismatch', message: `sha256 ${record.sha256} does not match the file's ${actualHash}` });
       }
     }
+    if (!Number.isInteger(record.width) || !Number.isInteger(record.height)) {
+      errors.push({ file, rule: 'dimensions', message: 'width and height must be integers' });
+    }
+    if (!record.sha256 || !SHA256_RE.test(record.sha256)) {
+      errors.push({ file, rule: 'sha256', message: 'sha256 missing or malformed' });
+    }
 
     validateCommonFields(record, vocab, file, errors, { width: record.width, height: record.height });
+    forbidCandidateOnlyFields(record, file, errors);
 
-    claim('source_id', record.source_id, file);
-    claim('origin_id', record.origin_id, file);
-    claim('source_sha256', record.source_sha256, file);
+    for (const [kind, value] of identityPairs(record)) claim(kind, value, file);
 
-    for (const artist of record.artists || []) {
-      const key = artistKey(artist);
-      if (!artistCounts.has(key)) artistCounts.set(key, []);
-      artistCounts.get(key).push(file);
-    }
-    if (record.place && record.place.landmark) {
-      const key = landmarkKey(record.place.landmark);
-      if (!landmarkCounts.has(key)) landmarkCounts.set(key, []);
-      landmarkCounts.get(key).push(file);
-    }
+    for (const artist of record.artists || []) artistEntries.push({ file, artist });
+    if (record.place && record.place.landmark) landmarkEntries.push({ file, landmark: record.place.landmark });
   }
 
   for (const slug of webpFiles) {
@@ -344,34 +457,51 @@ function runIntegrity(root) {
     }
   }
 
-  for (const [key, files] of artistCounts) {
-    if (files.length > 1 && !hasWaiver(waivers, 'artist', key)) {
-      for (const file of files.slice(1)) {
-        errors.push({ file, rule: 'artist-cap', message: `a second image of artist ${key} needs a waiver` });
-      }
-    }
+  // Artist and landmark caps: the earliest file in a collision group (by
+  // id or by name) is exempt; every later one needs a waiver naming either
+  // identity key.
+  const artistCollisions = groupCollisions(
+    artistEntries.map((e) => ({ owner: e.file, subject: e.artist })),
+    artistIdentities,
+  );
+  for (const { file, artist } of artistEntries) {
+    const others = artistCollisions.get(file);
+    if (!others || others.size === 0 || isGroupLeader(file, others)) continue;
+    if (artistIdentities(artist).some((k) => hasWaiver(waivers, 'artist', k))) continue;
+    errors.push({ file, rule: 'artist-cap', message: `a second image of artist ${normalizeName(artist.name)} needs a waiver` });
   }
-  for (const [key, files] of landmarkCounts) {
-    if (files.length > 1 && !hasWaiver(waivers, 'landmark', key)) {
-      for (const file of files.slice(1)) {
-        errors.push({ file, rule: 'landmark-cap', message: `a second image of landmark ${key} needs a waiver` });
-      }
-    }
+  const landmarkCollisions = groupCollisions(
+    landmarkEntries.map((e) => ({ owner: e.file, subject: e.landmark })),
+    landmarkIdentities,
+  );
+  for (const { file, landmark } of landmarkEntries) {
+    const others = landmarkCollisions.get(file);
+    if (!others || others.size === 0 || isGroupLeader(file, others)) continue;
+    if (landmarkIdentities(landmark).some((k) => hasWaiver(waivers, 'landmark', k))) continue;
+    errors.push({ file, rule: 'landmark-cap', message: `a second image of landmark ${normalizeName(landmark.name)} needs a waiver` });
   }
 
-  for (const entry of rejected) {
-    claim('source_id', entry.source_id, 'rejected.json');
-    claim('origin_id', entry.origin_id, 'rejected.json');
-    claim('source_sha256', entry.source_sha256, 'rejected.json');
-    if (entry.reason && !vocab.reasons.includes(entry.reason)) {
-      errors.push({ file: 'rejected.json', rule: 'vocab:reason', message: `reason ${JSON.stringify(entry.reason)} is not in vocab.json` });
+  rejected.forEach((entry, i) => {
+    const file = `rejected.json#${entry.source_id || i}`;
+    for (const [kind, value] of identityPairs(entry)) claim(kind, value, file);
+    if (!entry.reason) {
+      errors.push({ file, rule: 'reason-required', message: 'rejected entries require reason' });
+    } else if (!vocab.reasons.includes(entry.reason)) {
+      errors.push({ file, rule: 'vocab:reason', message: `reason ${JSON.stringify(entry.reason)} is not in vocab.json` });
     }
-  }
-  for (const entry of pack) {
-    claim('source_id', entry.source_id, 'pack.json');
-    claim('origin_id', entry.origin_id, 'pack.json');
-    claim('source_sha256', entry.source_sha256, 'pack.json');
-  }
+  });
+  pack.forEach((entry, i) => {
+    const file = `pack.json#${entry.source_id || i}`;
+    for (const [kind, value] of identityPairs(entry)) claim(kind, value, file);
+    if (entry.status !== 'pack') {
+      errors.push({ file, rule: 'status', message: `status must be "pack"` });
+    }
+    if (entry.withdrawn !== undefined) {
+      errors.push({ file, rule: 'withdrawn-forbidden', message: 'withdrawn is set on a pack record' });
+    }
+    forbidCandidateOnlyFields(entry, file, errors);
+    validateCommonFields(entry, vocab, file, errors, { allowPackLicense: true });
+  });
 
   return errors;
 }
@@ -398,30 +528,30 @@ function runBalance(root) {
   const total = picked.length;
   const breaches = [];
 
-  // Share bands.
+  // Share bands, in integer percentage arithmetic so a count exactly at the
+  // +/-3pp edge is "ok", never flipped by a floating-point rounding error.
   const shareCounts = { reggae: 0, punk: 0, 'hip-hop': 0, other: 0 };
   for (const record of picked) {
     const family = deriveFamily(record, vocab);
     if (family in shareCounts) shareCounts[family] += 1;
   }
   const shares = {};
-  for (const [family, target] of Object.entries(FAMILY_SHARES)) {
+  for (const [family, targetPct] of Object.entries(FAMILY_SHARE_PCT)) {
     const count = shareCounts[family];
     const share = total > 0 ? count / total : 0;
-    const lo = target - SHARE_BAND;
-    const hi = target + SHARE_BAND;
     let status;
     if (total === 0) status = 'short';
-    else if (share < lo) status = 'short';
-    else if (share > hi) status = 'over';
+    else if (count * 100 < (targetPct - SHARE_BAND_PCT) * total) status = 'short';
+    else if (count * 100 > (targetPct + SHARE_BAND_PCT) * total) status = 'over';
     else status = 'ok';
-    shares[family] = { count, total, share, target, status };
+    shares[family] = { count, total, share, target: targetPct / 100, status };
     if (status !== 'ok' && !hasWaiver(waivers, 'share', family)) {
       breaches.push({ rule: 'share', key: family, status, message: `${family} is ${count} of ${total} (${status})` });
     }
   }
 
-  // Region cap: at most half of records that carry a place.
+  // Region cap: at most half of records that carry a place. Every region in
+  // vocab.json is reported, at 0 of N when the pool has nothing there yet.
   const withPlace = picked.filter((r) => r.place && r.place.country_code);
   const regionCounts = new Map();
   for (const record of withPlace) {
@@ -430,12 +560,13 @@ function runBalance(root) {
     regionCounts.set(region, (regionCounts.get(region) || 0) + 1);
   }
   const regions = {};
-  for (const [region, count] of regionCounts) {
-    const share = count / withPlace.length;
+  for (const regionId of Object.keys(vocab.regions)) {
+    const count = regionCounts.get(regionId) || 0;
+    const share = withPlace.length > 0 ? count / withPlace.length : 0;
     const status = share > REGION_CAP ? 'over' : 'ok';
-    regions[region] = { count, total: withPlace.length, share, status };
-    if (status === 'over' && !hasWaiver(waivers, 'region', region)) {
-      breaches.push({ rule: 'region', key: region, status, message: `${region} is ${count} of ${withPlace.length} (over the region cap)` });
+    regions[regionId] = { count, total: withPlace.length, share, status };
+    if (status === 'over' && !hasWaiver(waivers, 'region', regionId)) {
+      breaches.push({ rule: 'region', key: regionId, status, message: `${regionId} is ${count} of ${withPlace.length} (over the region cap)` });
     }
   }
 
@@ -490,16 +621,23 @@ function runBalance(root) {
   const landmarks = new Map();
   for (const record of picked) {
     for (const artist of record.artists || []) {
-      const key = artistKey(artist);
-      const entry = artists.get(key) || { name: artist.name, mbid: artist.mbid || null, count: 0 };
+      const key = artist.mbid ? `mbid:${artist.mbid}` : `name:${normalizeName(artist.name)}`;
+      const entry = artists.get(key) || {
+        name: artist.name,
+        mbid: artist.mbid || null,
+        normalized_name: normalizeName(artist.name),
+        count: 0,
+      };
       entry.count += 1;
       artists.set(key, entry);
     }
     if (record.place && record.place.landmark) {
-      const key = landmarkKey(record.place.landmark);
+      const landmark = record.place.landmark;
+      const key = landmark.wikidata_id ? `wikidata:${landmark.wikidata_id}` : `name:${normalizeName(landmark.name)}`;
       const entry = landmarks.get(key) || {
-        name: record.place.landmark.name,
-        wikidata_id: record.place.landmark.wikidata_id || null,
+        name: landmark.name,
+        wikidata_id: landmark.wikidata_id || null,
+        normalized_name: normalizeName(landmark.name),
         count: 0,
       };
       entry.count += 1;
@@ -548,8 +686,8 @@ function findSourceFile(dir, id) {
   return undefined;
 }
 
-// Validates one candidate record on disk. Returns a list of errors; an empty
-// list means the record passes.
+// Validates one candidate record on disk. Pushes onto `errors`; an
+// unchanged `errors` length means the record passes.
 function validateCandidateRecord(dir, filename, vocab, errors) {
   const id = filename.slice(0, -'.json'.length);
   if (!CANDIDATE_ID_RE.test(id)) {
@@ -563,6 +701,17 @@ function validateCandidateRecord(dir, filename, vocab, errors) {
     errors.push({ file: filename, rule: 'parse-error', message: err.message });
     return;
   }
+
+  if (record.source_id && record.source_id.replace(/:/g, '-') !== id) {
+    errors.push({ file: filename, rule: 'filename-mismatch', message: `source_id ${JSON.stringify(record.source_id)} does not match the filename` });
+  }
+  // A candidate never carries the picked-only fields round close writes.
+  if (record.status !== undefined) errors.push({ file: filename, rule: 'status-forbidden', message: 'status is set on a candidate record' });
+  if (record.sha256 !== undefined) errors.push({ file: filename, rule: 'sha256-forbidden', message: 'sha256 is set on a candidate record' });
+  if (record.width !== undefined || record.height !== undefined) {
+    errors.push({ file: filename, rule: 'dimensions-forbidden', message: 'width/height are set on a candidate record' });
+  }
+  if (record.withdrawn !== undefined) errors.push({ file: filename, rule: 'withdrawn-forbidden', message: 'withdrawn is set on a candidate record' });
 
   validateCommonFields(record, vocab, filename, errors, {
     width: record.source_width,
@@ -616,30 +765,24 @@ function listCandidateFiles(dir) {
 }
 
 function collectRootKeys(root) {
-  const keys = new Map(); // "type:value" -> source ("picked"|"rejected"|"pack")
-  const claim = (type, value, source) => {
-    if (value) keys.set(`${type}:${value}`, source);
+  const keys = new Map(); // "kind:value" -> source ("picked"|"rejected"|"pack")
+  const claim = (kind, value, source) => {
+    if (value) keys.set(`${kind}:${value}`, source);
   };
   for (const file of scanTopLevel(root, '.json')) {
     try {
       const record = readJSONFile(path.join(root, file));
-      claim('source_id', record.source_id, 'picked');
-      claim('origin_id', record.origin_id, 'picked');
-      claim('source_sha256', record.source_sha256, 'picked');
+      for (const [kind, value] of identityPairs(record)) claim(kind, value, 'picked');
     } catch {
       // integrity reports parse errors on the picked pool itself.
     }
   }
   const errors = [];
   for (const entry of loadMetaArray(root, 'rejected.json', errors)) {
-    claim('source_id', entry.source_id, 'rejected');
-    claim('origin_id', entry.origin_id, 'rejected');
-    claim('source_sha256', entry.source_sha256, 'rejected');
+    for (const [kind, value] of identityPairs(entry)) claim(kind, value, 'rejected');
   }
   for (const entry of loadMetaArray(root, 'pack.json', errors)) {
-    claim('source_id', entry.source_id, 'pack');
-    claim('origin_id', entry.origin_id, 'pack');
-    claim('source_sha256', entry.source_sha256, 'pack');
+    for (const [kind, value] of identityPairs(entry)) claim(kind, value, 'pack');
   }
   return keys;
 }
@@ -654,7 +797,7 @@ function runCandidate(target) {
   const errors = [];
   const filenames = stat.isDirectory() ? listCandidateFiles(dir) : [path.basename(target)];
 
-  const seenHere = new Map(); // "type:value" -> filename, for repeats within this read.
+  const seenHere = new Map(); // "kind:value" -> filename, for repeats within this read.
   const rootKeys = stat.isDirectory() ? collectRootKeys(root) : new Map();
 
   for (const filename of filenames) {
@@ -665,22 +808,18 @@ function runCandidate(target) {
     } catch {
       continue;
     }
-    for (const [type, value] of [
-      ['source_id', record.source_id],
-      ['origin_id', record.origin_id],
-      ['source_sha256', record.source_sha256],
-    ]) {
+    for (const [kind, value] of identityPairs(record)) {
       if (!value) continue;
-      const k = `${type}:${value}`;
+      const k = `${kind}:${value}`;
       const priorHere = seenHere.get(k);
       if (priorHere && priorHere !== filename) {
-        errors.push({ file: filename, rule: 'repeat', message: `${type} ${JSON.stringify(value)} repeats ${priorHere}` });
+        errors.push({ file: filename, rule: 'repeat', message: `${kind} ${JSON.stringify(value)} repeats ${priorHere}` });
       } else {
         seenHere.set(k, filename);
       }
       const rootSource = rootKeys.get(k);
       if (rootSource) {
-        errors.push({ file: filename, rule: 'root-collision', message: `${type} ${JSON.stringify(value)} already in ${rootSource}` });
+        errors.push({ file: filename, rule: 'root-collision', message: `${kind} ${JSON.stringify(value)} already in ${rootSource}` });
       }
     }
   }
@@ -705,7 +844,7 @@ function runSheet(root, outDir) {
 
   const kept = []; // { id, record, agent }
   const dropped = []; // { id, agent, reason: 'duplicate' }
-  const seen = new Map(); // "type:value" -> id, first found wins
+  const seen = new Map(); // "kind:value" -> "agent:id", first found wins
 
   for (const agent of listAgentDirs(candidatesDir)) {
     const agentDir = path.join(candidatesDir, agent);
@@ -720,14 +859,12 @@ function runSheet(root, outDir) {
       if (record.pack) continue; // pack candidates never appear on the sorting page.
 
       let duplicate = false;
-      for (const [type, value] of [
-        ['source_id', record.source_id],
-        ['origin_id', record.origin_id],
-        ['source_sha256', record.source_sha256],
-      ]) {
+      for (const [kind, value] of identityPairs(record)) {
         if (!value) continue;
-        const k = `${type}:${value}`;
-        if (rootKeys.has(k) || (seen.has(k) && seen.get(k) !== id)) {
+        const k = `${kind}:${value}`;
+        // Presence alone means a duplicate: even a coincidentally matching
+        // <agent>:<id> pair from a different agent must not survive twice.
+        if (rootKeys.has(k) || seen.has(k)) {
           duplicate = true;
           break;
         }
@@ -736,59 +873,40 @@ function runSheet(root, outDir) {
         dropped.push({ id, agent, reason: 'duplicate' });
         continue;
       }
-      for (const [type, value] of [
-        ['source_id', record.source_id],
-        ['origin_id', record.origin_id],
-        ['source_sha256', record.source_sha256],
-      ]) {
-        if (value) seen.set(`${type}:${value}`, id);
+      for (const [kind, value] of identityPairs(record)) {
+        if (value) seen.set(`${kind}:${value}`, `${agent}:${id}`);
       }
       kept.push({ id, record, agent });
     }
   }
 
-  // Second-image flags, against the picked pool's dedupe keys and the other
-  // kept candidates' normalized names.
-  const artistOwners = new Map();
-  const landmarkOwners = new Map();
-  for (const { id, record } of kept) {
-    for (const artist of record.artists || []) {
-      const key = artistKey(artist);
-      if (!artistOwners.has(key)) artistOwners.set(key, []);
-      artistOwners.get(key).push(id);
-    }
-    if (record.place && record.place.landmark) {
-      const key = landmarkKey(record.place.landmark);
-      if (!landmarkOwners.has(key)) landmarkOwners.set(key, []);
-      landmarkOwners.get(key).push(id);
-    }
-  }
-
-  const pickedArtistKeys = new Set();
-  const pickedLandmarkKeys = new Set();
+  // Second-image flags, matching a candidate against the picked pool and
+  // the other kept candidates on either identity key (id or name).
+  const artistEntries = [];
+  const landmarkEntries = [];
   for (const file of scanTopLevel(root, '.json')) {
     try {
       const record = readJSONFile(path.join(root, file));
       if (record.status !== 'picked') continue;
-      for (const artist of record.artists || []) pickedArtistKeys.add(artistKey(artist));
-      if (record.place && record.place.landmark) pickedLandmarkKeys.add(landmarkKey(record.place.landmark));
+      for (const artist of record.artists || []) artistEntries.push({ owner: `picked:${file}`, subject: artist });
+      if (record.place && record.place.landmark) {
+        landmarkEntries.push({ owner: `picked:${file}`, subject: record.place.landmark });
+      }
     } catch {
       continue;
     }
   }
+  for (const { id, record } of kept) {
+    for (const artist of record.artists || []) artistEntries.push({ owner: id, subject: artist });
+    if (record.place && record.place.landmark) landmarkEntries.push({ owner: id, subject: record.place.landmark });
+  }
+  const artistCollisions = groupCollisions(artistEntries, artistIdentities);
+  const landmarkCollisions = groupCollisions(landmarkEntries, landmarkIdentities);
 
   const docs = kept.map(({ id, record, agent }) => {
-    const secondImage =
-      (record.artists || []).some((a) => {
-        const key = artistKey(a);
-        return pickedArtistKeys.has(key) || artistOwners.get(key).length > 1;
-      }) ||
-      (record.place && record.place.landmark
-        ? (() => {
-            const key = landmarkKey(record.place.landmark);
-            return pickedLandmarkKeys.has(key) || landmarkOwners.get(key).length > 1;
-          })()
-        : false);
+    const artistHit = artistCollisions.get(id);
+    const landmarkHit = landmarkCollisions.get(id);
+    const secondImage = Boolean((artistHit && artistHit.size > 0) || (landmarkHit && landmarkHit.size > 0));
 
     return {
       id,
@@ -803,6 +921,9 @@ function runSheet(root, outDir) {
 
   docs.sort((a, b) => (b.screen && b.screen.score ? b.screen.score : 0) - (a.screen && a.screen.score ? a.screen.score : 0) || a.id.localeCompare(b.id));
 
+  // Clear a stale prior run's output first: a candidate a later round drops
+  // must not linger in --out as an orphaned document.
+  if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   for (const doc of docs) {
     writeFileSync(path.join(outDir, `${doc.id}.json`), `${JSON.stringify(doc, null, 2)}\n`);
@@ -837,11 +958,11 @@ function main(argv) {
 
   try {
     if (mode === 'integrity') {
-      const errors = runIntegrity(flags.root || 'photos');
+      const errors = runIntegrity(flags.root || DEFAULT_ROOT);
       printErrors(errors);
       process.exit(errors.length === 0 ? 0 : 1);
     } else if (mode === 'balance') {
-      const { report, breaches } = runBalance(flags.root || 'photos');
+      const { report, breaches } = runBalance(flags.root || DEFAULT_ROOT);
       if (flags.json) {
         process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
       } else {
@@ -856,7 +977,7 @@ function main(argv) {
       process.exit(errors.length === 0 ? 0 : 1);
     } else if (mode === 'sheet') {
       if (!flags.out) throw new UnreadableInputError('sheet requires --out');
-      const { docs, dropped } = runSheet(flags.root || 'photos', flags.out);
+      const { docs, dropped } = runSheet(flags.root || DEFAULT_ROOT, flags.out);
       process.stdout.write(`sheet: wrote ${docs.length} candidate(s), dropped ${dropped.length} duplicate(s)\n`);
       for (const d of dropped) process.stdout.write(`${d.id}: duplicate: dropped in favor of an earlier agent's copy\n`);
       process.exit(0);
