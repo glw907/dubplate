@@ -43,3 +43,5 @@ None yet.
 
 - Report a problem, `added_by` with album notes, collaborative playlists, and smart
   playlists: targeted for 2.0 by Geoff, 2026-09-24 (streamer 2.0 spec revision 2.3).
+- HTTPS without Cloudflare, a general Navidrome import, arm64 builds, `dubplate init`, and
+  `dubplate upgrade`: targeted for 2.0 by Geoff, 2026-09-24 (streamer 2.0 spec revision 2.4).

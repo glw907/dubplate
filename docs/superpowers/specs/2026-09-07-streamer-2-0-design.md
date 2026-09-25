@@ -1,6 +1,6 @@
 # dubplate-server 2.0: the built-in streamer
 
-Status: **Ratified 2026-09-07.** Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
+Status: **Ratified 2026-09-07.** Revision 2.4, 2026-09-24 (Geoff's ruling: five hosting and setup features join the 2.0 target, recorded under "Hosting and setup at launch", "Hosting and setup", the widened Navidrome import, forward hooks 18 and 19, and slice 8). Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
 Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`, sequenced after the
 greenfield ladder's launch (rung 17).
 
@@ -118,6 +118,20 @@ and the roster, so it can do both.
 Not targeted for 2.0: the library health report, requests, the weekly new-arrivals email, and group
 listening views. Each builds on data 2.0 already records, so none needs a hook now. They are catalogued in
 `IDEAS.md`.
+
+### Hosting and setup at launch
+
+Ruled by Geoff, 2026-09-24. Five features join the 2.0 target because they make dubplate easier to host than
+Navidrome, which starts from a music folder but leaves the operator the reverse proxy, the certificates, the upgrade,
+and the move off another server. Each is a modest build on seams the ladder already has, and pulling them forward from
+the packaging initiative means 2.0 ships them to the first stranger rather than after.
+
+1. HTTPS without Cloudflare. The server obtains and renews its own certificate.
+2. A general Navidrome import. Anyone switching brings their members, stars, playlists, and play history.
+3. arm64 builds, for Raspberry Pi and NAS hosts.
+4. `dubplate init`. A setup command writes the configuration, mints the secrets, and proves mail works.
+5. `dubplate upgrade`. An upgrade verifies the release, migrates under the pre-migration snapshot, and rolls back on
+   a failed health check.
 
 ### Relation to the current ladder
 
@@ -321,6 +335,37 @@ added by, collection) and the caller's per-user state (starred, play count, last
 history). Clients see a read-only playlist; `updatePlaylist` on one is refused. The web app authors rules. Importing
 Navidrome's `.nsp` files is an open item.
 
+### Hosting and setup
+
+**HTTPS.** The listener is a configured choice: plain HTTP behind a tunnel or proxy, as the estate runs, or TLS
+terminated in the binary with certificates from Let's Encrypt through `golang.org/x/crypto/acme/autocert` (BSD-3). TLS
+mode needs one value, the public hostname, plus ports 80 and 443. It keeps certificates under the state directory, so
+backup covers them. A direct listener has no proxy, so the real-client-IP rule reads the connection address and trusts
+no forwarded header (hook 19). Hosts behind carrier-grade NAT still need a tunnel. The setup guide names Cloudflare
+Tunnel and Tailscale Funnel as equal options, and dubplate depends on neither.
+
+**Navidrome import.** `dubplate import navidrome` reads a stopped Navidrome's SQLite database and its music folder
+mapping. It invites each Navidrome user as a member through the roster's normal add path, which sends a magic link;
+passwords are never carried over. It imports each user's stars, playlists, play counts, and last-played dates, matching
+tracks by the alternate keys (release MBID, then audio key) and never by path. Every track it cannot match is reported
+by name, and nothing is silently merged. The group's own cutover uses this command rather than a harness-only export.
+Reading Navidrome's data carries no license question; its code is still never copied.
+
+**arm64.** The release builds `linux/arm64` beside `linux/amd64`. modernc SQLite is pure Go, so the build needs no
+cross toolchain. The gate builds both, and the client roster's walk runs once against an arm64 host before the flip.
+
+**`dubplate init`.** An interactive command, and a first-run web page for a server started with an empty
+configuration, that asks for the site name, the admin email, the library and state directories, SMTP settings, and the
+listener mode. It sends a test email before it writes anything, mints every secret the chosen integrations need, and
+writes the configuration file atomically. Its questions come from the config registry, each key's description and
+sensitive mark (hook 18), so a key added by a later rung reaches `init` without a second list to maintain.
+
+**`dubplate upgrade`.** It downloads a release, verifies its checksum against the signed release manifest, and stops
+the server. The store takes its pre-migration snapshot (rung 6) before the new binary migrates it. It starts the new
+binary and waits for `doctor` to pass. On a failed check it restores the snapshot and the previous binary together,
+because the store refuses an older binary after a migration. It never runs unattended in 2.0; an automatic schedule
+would be a later ruling.
+
 ### API surface
 
 One handler set on the standard library mux under the owned prefix, answering XML and JSON from the same typed response
@@ -366,8 +411,8 @@ The streamer is one more driver behind rung 12's seam, selected by one configura
 shadow: Navidrome stays the group's server, 2.0 serves the same library on a second hostname, the harness runs on a
 timer against the live box, and the roster walks it. The flip is a configuration change and a deploy in one owner
 sitting. Navidrome's container stays defined but stopped for a named period and is removed at a dated close-out. Starred
-lists and playlists built in Navidrome are imported once through an export the harness reads; differences are reported,
-never silently merged.
+lists, playlists, and play history built in Navidrome are imported once through `dubplate import navidrome` (see
+"Hosting and setup"); differences are reported, never silently merged.
 
 After the flip the box runs the dubplate binary, ffmpeg, cloudflared, and the timers. Provisioning adds ffmpeg and the
 cache directory. The streamer's state lives under the existing state directory, so backup covers it. Doctor gains rows
@@ -394,7 +439,9 @@ interval are set in its own plan, never here.
 6. Identity, app passwords, and shares (M).
 7. Per-user state and group features (L). Splits at its own planning; it carries starred, playlists (collaborative and
    smart), the queue, play history, album notes, and the report page.
-8. Shadow period, flip, and close-out (M). Retires Navidrome and records the post-mortem.
+8. Hosting and setup (M). The TLS listener, `dubplate import navidrome`, the arm64 build, `dubplate init`, and
+   `dubplate upgrade`. The import lands here so the shadow slice can run the group's cutover through it.
+9. Shadow period, flip, and close-out (M). Retires Navidrome and records the post-mortem.
 
 Each slice is a pass with its own plan, ceiling, oracle diff, and roster walk, under the conducting loop in CLAUDE.md.
 Rungs 1 and 2 touch no production surface and may run as a document-and-corpus lane beside the current ladder's later
@@ -465,6 +512,12 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
 17. The uploading member on the submission, rung 7, carried to the album row at rung 9's admission as `added_by`. The
     submission knows its authenticated uploader only at intake; recovering it later means guessing. Only intake sets it.
     Added 2026-09-24 (group features).
+18. A description and a sensitive mark on every registered config key, rung 14. The settings surface is the first
+    consumer of both, and `dubplate init` reads the same declarations, so setup questions are never a hand-kept list.
+    The wall rows and integration-class keys carry neither today. Added 2026-09-24 (hosting and setup).
+19. The listener as a configured choice, rung 12. The proxy-hygiene ingress keeps plain HTTP and a direct TLS listener
+    both possible, and the real-client-IP rule has a direct mode that trusts no forwarded header. Added 2026-09-24
+    (hosting and setup).
 
 ## Prior art
 

@@ -84,6 +84,9 @@ resized on demand from a pipeline-admitted blob; FTS5 trigram search over
 folded text. Group features join the target (Geoff, 2026-09-24; spec revision 2.3):
 report a problem into the decision queue, `added_by` and album notes, collaborative
 playlists, and smart playlists, with forward hooks 16 (rung 13) and 17 (rungs 7 and 9).
+Hosting and setup join too (Geoff, 2026-09-24; revision 2.4): HTTPS without
+Cloudflare, a general Navidrome import, arm64 builds, `dubplate init`, and
+`dubplate upgrade`, with hooks 18 (rung 14) and 19 (rung 12).
 Build shape A: an oracle harness (Navidrome and dubplate
 against one library, responses diffed and adjudicated) and a written
 Navidrome study first, then vertical slices each walked by a named client
@@ -140,7 +143,9 @@ VPS). Opens with a brainstorm; context staged in agent memory (distribution
 model: binary-as-installer vs clone floor; cloud-init generation; existing-box
 bootstrap; pre-setup-VPS option map). **Runs after `dubplate-organizer`**
 (resequenced 2026-09-01, was after `uploader`) so it packages the final
-two-binary shape rather than an intermediate. The `oss-pair` write-up below
+two-binary shape rather than an intermediate. Five setup pieces moved into 2.0
+(2026-09-24): the TLS listener, the Navidrome import, arm64 builds, `dubplate
+init`, and `dubplate upgrade`; packaging builds on them rather than owning them. The `oss-pair` write-up below
 doubles as its demand test.
 Carried option (Geoff, 2026-09-03): evaluate a Wails desktop app as a
 third head on the shared engine: the existing Svelte UI in each OS's
