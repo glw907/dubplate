@@ -1,12 +1,18 @@
 /**
- * G9: contrast, extended for the status inks and their per-surface
- * rows (a11y W4). For each composed theme in `label.css` and
+ * G9: contrast. For each composed theme in `label.css` and
  * `label-night.css`, computes WCAG 2.2 relative luminance in sRGB
- * (converting `oklch()` first) and checks a closed list of pairs:
+ * (converting `oklch()` first) and checks a closed list of pairs
+ * (DL R2.6):
  *
  * - Each `-content` pair against its own fill, at 4.5:1.
  * - `--color-base-content` against each of `--color-base-100`,
  *   `--color-base-200`, and `--color-base-300`, at 4.5:1.
+ * - Each of the eight colors DaisyUI paints as text directly
+ *   (`--color-primary` through `--color-info`) against
+ *   `--color-base-100`, at 4.5:1, unless a `contrast-exception` marker
+ *   directly above the declaration records a lower measured ratio. A
+ *   marker above a pairing that clears the floor is itself a failure: a
+ *   stale exemption cannot survive an edit.
  * - Each ink in `inks.css`, resolved through `var()` against the same
  *   composed theme's own palette and nothing else, against each of
  *   the three bases, at 4.5:1. No ink admits a marker.
@@ -14,12 +20,10 @@
  *   identity spec's ink table (quoted below), so an ink that drifts
  *   from the spec fails even when it still passes contrast.
  *
- * The fills themselves (`--color-primary` and so on) are never
- * measured as text: dubplate's markup reaches a semantic color as
- * text only through its ink. `label`'s `--color-secondary` and
- * `label-night`'s `--color-neutral` are the two fills VI marks
- * fill-only (`FILL_ONLY_EXCLUSIONS` below); every other fill is
- * simply outside this closed list, for the same reason.
+ * `label`'s `--color-secondary` and `label-night`'s `--color-neutral`
+ * are fill-only (`FILL_ONLY_EXCLUSIONS` below): never rendered as
+ * text, so excluded from the direct-text check by name, and confirmed
+ * present rather than measured.
  */
 import { readFileSync } from 'node:fs';
 import { fail, isMainModule } from './lib.ts';
@@ -37,7 +41,7 @@ import {
 
 const THEMES_DIR = 'src/lib/themes';
 
-/** The three grounds every ink and `--color-base-content` must clear (a11y W4). */
+/** The three grounds every ink and `--color-base-content` must clear (DL R2.6). */
 const BASES = ['--color-base-100', '--color-base-200', '--color-base-300'];
 
 /** Every `-content` pair: the content name and its fill. */
@@ -52,15 +56,31 @@ const CONTENT_PAIRS: [string, string][] = [
   ['--color-error-content', '--color-error']
 ];
 
+/** The eight colors DaisyUI paints as text directly rather than through a `-content` token. */
+const DIRECT_TEXT_COLORS = [
+  '--color-primary',
+  '--color-secondary',
+  '--color-accent',
+  '--color-neutral',
+  '--color-info',
+  '--color-success',
+  '--color-warning',
+  '--color-error'
+];
+
 /**
- * The two fills VI marks fill-only, never measured as text (visual
- * identity spec :108, W2.6's marker): "never text, never a focus or
- * selector indicator".
+ * The two fills VI marks fill-only, never measured as direct text
+ * (visual identity spec :108, W2.6's marker): "never text, never a
+ * focus or selector indicator".
  */
 const FILL_ONLY_EXCLUSIONS: { composed: string; name: string; reason: string }[] = [
   { composed: 'dubplate-label', name: '--color-secondary', reason: 'fill-only, never rendered as text' },
   { composed: 'dubplate-label-night', name: '--color-neutral', reason: 'fill-only, never rendered as text' }
 ];
+
+function isFillOnly(composed: string, name: string): boolean {
+  return FILL_ONLY_EXCLUSIONS.some((e) => e.composed === composed && e.name === name);
+}
 
 /**
  * The visual identity spec's ink table, quoted verbatim
@@ -171,6 +191,11 @@ const CITES_THREE_TO_ONE = /\b3(?:\.0+)?:1\b/;
 /** The largest gap between a marker's recorded ratio and the measured one still counted as the same number, absorbing `toFixed(2)` rounding. */
 const RATIO_TOLERANCE = 0.005;
 
+/**
+ * Checks one text/base pairing against `FLOOR`, pushing a violation for
+ * any failure and, on success, a report line to `reportLines`. Returns
+ * the measured ratio, or `null` when either color failed to parse.
+ */
 function checkFloor(
   where: string,
   variable: string,
@@ -178,8 +203,9 @@ function checkFloor(
   base: string,
   rawMarker: ExceptionMarker | null,
   allowMarker: boolean,
-  violations: string[]
-): void {
+  violations: string[],
+  reportLines: string[]
+): number | null {
   let marker = rawMarker;
   if (marker && !allowMarker) {
     violations.push(`g9: ${where}: ${variable} carries an exception marker on a pairing that admits none`);
@@ -193,7 +219,7 @@ function checkFloor(
   if (baseLum === null) {
     violations.push(`g9: ${where}: ${variable}'s base value "${base}" is not a parseable color`);
   }
-  if (textLum === null || baseLum === null) return;
+  if (textLum === null || baseLum === null) return null;
   const lighter = Math.max(textLum, baseLum);
   const darker = Math.min(textLum, baseLum);
   const ratio = (lighter + 0.05) / (darker + 0.05);
@@ -218,13 +244,16 @@ function checkFloor(
         `g9: ${where}: ${variable}'s exception marker is stale, the pair now clears the floor at ${formatRatio(ratio)}`
       );
     }
-    return;
+    reportLines.push(`g9: ${where}: ${variable} = ${formatRatio(ratio)} (exception: ${marker.reason})`);
+    return ratio;
   }
   if (!passes) {
     violations.push(
       `g9: ${where}: ${variable} measures ${formatRatio(ratio)} against ${FLOOR}:1 and carries no exception marker`
     );
   }
+  reportLines.push(`g9: ${where}: ${variable} = ${formatRatio(ratio)}`);
+  return ratio;
 }
 
 function readPaletteBlock(file: string, composed: string): DeclNode[] | null {
@@ -243,17 +272,30 @@ const PALETTE_FILES: Record<string, string> = {
 };
 
 /**
- * R-5ciii3's closed list, per composed theme: every `-content` pair
- * (1 base each), `--color-base-content` (3 bases), and every ink (3
- * bases each). `FILL_ONLY_EXCLUSIONS` sits outside this list on
- * purpose: excluded pairs are never measured, so they never count
- * toward it.
+ * The closed list's size, per composed theme: every `-content` pair
+ * (1 base each), `--color-base-content` (3 bases), every direct-text
+ * color minus that theme's fill-only exclusions (1 base each), and
+ * every ink (3 bases each).
  */
-const EXPECTED_MEASURED_PAIRS =
-  COMPOSED_NAMES.length * (CONTENT_PAIRS.length + BASES.length + INK_NAMES.length * BASES.length);
+const EXPECTED_MEASURED_PAIRS = COMPOSED_NAMES.reduce(
+  (sum, composed) =>
+    sum +
+    CONTENT_PAIRS.length +
+    BASES.length +
+    (DIRECT_TEXT_COLORS.length - FILL_ONLY_EXCLUSIONS.filter((e) => e.composed === composed).length) +
+    INK_NAMES.length * BASES.length,
+  0
+);
 
-export function run(): string[] {
+export interface Report {
+  violations: string[];
+  /** One line per measured pair, one worst-case line per ink, and one line per fill-only exclusion. */
+  lines: string[];
+}
+
+export function run(): Report {
   const violations: string[] = [];
+  const lines: string[] = [];
   const inkRules = readInkRules(violations);
   let measuredPairs = 0;
 
@@ -283,7 +325,7 @@ export function run(): string[] {
         continue;
       }
       // -content pairs are always text: never a place for a contrast-exception marker.
-      checkFloor(composed, contentName, contentDecl.value, fillValue, contentDecl.marker, false, violations);
+      checkFloor(composed, contentName, contentDecl.value, fillValue, contentDecl.marker, false, violations, lines);
       measuredPairs++;
     }
 
@@ -301,19 +343,26 @@ export function run(): string[] {
           baseValue,
           baseContentDecl.marker,
           false,
-          violations
+          violations,
+          lines
         );
         measuredPairs++;
       }
     }
 
-    // The fill-only exclusions are documented, not measured: confirm each still exists
-    // in this theme's palette, so a renamed or dropped fill does not silently drop its
-    // own exclusion out of date.
-    for (const exclusion of FILL_ONLY_EXCLUSIONS.filter((e) => e.composed === composed)) {
-      if (!palette.has(exclusion.name)) {
-        violations.push(`g9: ${composed}: the documented exclusion ${exclusion.name} (${exclusion.reason}) is missing from the palette`);
+    for (const name of DIRECT_TEXT_COLORS) {
+      const decl = declarations.find((d) => d.name === name);
+      if (!decl) {
+        violations.push(`g9: ${composed}: ${name} is missing, contrast cannot be measured`);
+        continue;
       }
+      if (isFillOnly(composed, name)) {
+        const exclusion = FILL_ONLY_EXCLUSIONS.find((e) => e.composed === composed && e.name === name)!;
+        lines.push(`g9: ${composed}: ${name} excluded from the direct-text check (${exclusion.reason})`);
+        continue;
+      }
+      checkFloor(composed, name, decl.value, base100, decl.marker, true, violations, lines);
+      measuredPairs++;
     }
 
     const inkRule = inkRules.find((r) => selectorHasDataTheme(r.selector, composed));
@@ -342,10 +391,15 @@ export function run(): string[] {
           `g9: ${composed}: ${inkName} resolves to "${resolved}", the visual identity spec's ink table pins "${pinned}"`
         );
       }
+      let worst: number | null = null;
       for (const [baseName, baseValue] of bases) {
         if (!baseValue) continue;
-        checkFloor(`${composed} (${baseName})`, inkName, resolved, baseValue, null, false, violations);
+        const ratio = checkFloor(`${composed} (${baseName})`, inkName, resolved, baseValue, null, false, violations, lines);
         measuredPairs++;
+        if (ratio !== null && (worst === null || ratio < worst)) worst = ratio;
+      }
+      if (worst !== null) {
+        lines.push(`g9: ${composed}: ${inkName} worst case ${formatRatio(worst)}`);
       }
     }
   }
@@ -356,14 +410,15 @@ export function run(): string[] {
     );
   }
 
-  return violations;
+  return { violations, lines };
 }
 
 function main(): void {
-  const violations = run();
+  const { violations, lines } = run();
   if (violations.length > 0) {
     fail(`g9: ${violations.length} finding(s):\n${violations.join('\n')}`);
   }
+  process.stdout.write(`${lines.join('\n')}\n`);
   process.stdout.write('g9: passed, every pairing clears its floor or carries a live exception.\n');
 }
 
