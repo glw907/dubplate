@@ -157,7 +157,7 @@ func OpenWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 	}
 	h.version = len(files)
 	h.lock = lock
-	h.leasesDir = l.leasesDir
+	h.leaf = l
 	return h, nil
 }
 
@@ -229,7 +229,7 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 			}
 			h.version = head
 			h.lock = lock
-			h.leasesDir = l.leasesDir
+			h.leaf = l
 			return h, nil
 		}
 		if err == nil && c.kind == dbStore && c.version > head {
@@ -481,23 +481,33 @@ func classifyOpen(ctx context.Context, l leaf, busyTimeout time.Duration, files 
 }
 
 // besideCopy returns kind for a database that is absent or an
-// interrupted create, unless snapshots/ holds a copy, in which case it
-// refuses naming the newest.
+// interrupted create, unless snapshots/ holds a copy or a backup
+// reference, in which case it refuses naming the newest and the
+// restore that brings its store back.
 func (l leaf) besideCopy(kind dbKind) (dbClass, error) {
 	name, err := newestCopy(l.snapshotsDir)
 	if err != nil {
 		return dbClass{}, err
 	}
-	if name != "" {
-		p := filepath.Join(l.snapshotsDir, name)
-		return dbClass{}, refusal(StateRefused, "%s holds no store, but a copy %s exists: restore it with restore --from-file %s", l.dbPath, p, p)
+	if name == "" {
+		return dbClass{kind: kind}, nil
 	}
-	return dbClass{kind: kind}, nil
+	p := filepath.Join(l.snapshotsDir, name)
+	if stamp, ok := parseBackupRefName(name); ok {
+		return dbClass{}, refusal(StateRefused, "%s holds no store, but the backup reference %s exists: restore the backup with restore --snapshot %s", l.dbPath, p, stamp)
+	}
+	return dbClass{}, refusal(StateRefused, "%s holds no store, but a copy %s exists: restore it with restore --from-file %s", l.dbPath, p, p)
+}
+
+// isCopy reports whether name is a pre-migration or pre-restore copy's.
+func isCopy(name string) bool {
+	_, migrated := parsePreMigrateName(name)
+	return migrated || strings.HasPrefix(name, preRestorePrefix) && strings.HasSuffix(name, preMigrateSuffix)
 }
 
 // newestCopy returns the name of the most recently modified
-// pre-migration or pre-restore copy in dir, or "" when dir holds none
-// or does not exist.
+// pre-migration copy, pre-restore copy, or backup reference in dir, or
+// "" when dir holds none or does not exist.
 func newestCopy(dir string) (string, error) {
 	entries, err := os.ReadDir(dir)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -512,9 +522,8 @@ func newestCopy(dir string) (string, error) {
 	)
 	for _, e := range entries {
 		name := e.Name()
-		_, migrated := parsePreMigrateName(name)
-		restored := strings.HasPrefix(name, preRestorePrefix) && strings.HasSuffix(name, preMigrateSuffix)
-		if !e.Type().IsRegular() || !migrated && !restored {
+		_, ref := parseBackupRefName(name)
+		if !e.Type().IsRegular() || !isCopy(name) && !ref {
 			continue
 		}
 		info, err := e.Info()

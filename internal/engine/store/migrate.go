@@ -1,7 +1,6 @@
 package store
 
 import (
-	"bytes"
 	"cmp"
 	"context"
 	"crypto/sha256"
@@ -131,8 +130,9 @@ func migrate(ctx context.Context, h *Handle, l leaf, files []migration, opts mig
 }
 
 // readMigrations reads every file in src's root, in version order,
-// refusing a name that is not a migration file's and a set whose
-// versions do not run from 1 without a gap or a repeat.
+// refusing a name that is not a migration file's, a file whose first
+// line misses the rebuild marker only by trailing whitespace, and a set
+// whose versions do not run from 1 without a gap or a repeat.
 func readMigrations(src fs.FS) ([]migration, error) {
 	entries, err := fs.ReadDir(src, ".")
 	if err != nil {
@@ -152,13 +152,17 @@ func readMigrations(src fs.FS) ([]migration, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read migrations: %w", err)
 		}
+		first, _, _ := strings.Cut(string(body), "\n")
+		if first != rebuildMarker && nearMarker(first) {
+			return nil, fmt.Errorf("read migrations: %s: first line %q is not exactly the rebuild marker %q", e.Name(), first, rebuildMarker)
+		}
 		sum := sha256.Sum256(body)
 		files = append(files, migration{
 			version: v,
 			name:    e.Name(),
 			sum:     hex.EncodeToString(sum[:]),
 			body:    string(body),
-			rebuild: bytes.HasPrefix(body, []byte(rebuildMarker+"\n")),
+			rebuild: first == rebuildMarker,
 		})
 	}
 	// fs.ReadDir sorts by name, and a zero-padded version sorts the
@@ -170,6 +174,14 @@ func readMigrations(src fs.FS) ([]migration, error) {
 		}
 	}
 	return files, nil
+}
+
+// nearMarker reports whether line reads as the rebuild marker once one
+// trailing carriage return and any trailing spaces and tabs are
+// removed. Such a file was meant as a rebuild, but would run as an
+// ordinary one with foreign keys on.
+func nearMarker(line string) bool {
+	return strings.TrimRight(strings.TrimSuffix(line, "\r"), " \t") == rebuildMarker
 }
 
 // checkLedger compares the ledger db holds with files, for a store at

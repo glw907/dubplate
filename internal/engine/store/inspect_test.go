@@ -2,12 +2,15 @@ package store
 
 import (
 	"context"
+	"maps"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strings"
 	"syscall"
 	"testing"
+	"time"
 )
 
 // childActionEnv and childStateDirEnv tell a re-executed test binary
@@ -258,5 +261,137 @@ func TestStateString(t *testing.T) {
 		if got := s.String(); got != name {
 			t.Errorf("State(%d).String() = %q, want %q", int(s), got, name)
 		}
+	}
+}
+
+// insertFinished inserts one terminal job record through h.
+func insertFinished(t *testing.T, h *Handle, kind, state string, finished int64, progress any) {
+	t.Helper()
+	err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
+		_, err := tx.Exec(ctx,
+			"INSERT INTO jobs (id, kind, at, state, owner_instance, actor, progress, updated_at, finished_at) VALUES (?, ?, 1, ?, ?, 'local:test', ?, ?, ?)",
+			NewID(), kind, state, testInstance, progress, finished, finished)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("insert %s %s job: %v", kind, state, err)
+	}
+}
+
+// TestInspect_Facts: a current store reports its newest succeeded job
+// per kind, its -wal size, the free space on its filesystem, and the
+// count and size of its copies, a backup reference not among them.
+// Fixture: a write handle held open, so the -wal holds the inserts.
+func TestInspect_Facts(t *testing.T) {
+	stateDir := currentStore(t)
+	l := newLeaf(stateDir)
+	h := writeHandle(t, stateDir)
+	// 2026-09-24T12:00:00Z and a day later, in microseconds.
+	const older, newest = 1790251200000000, 1790337600000000
+	insertFinished(t, h, "backup", "succeeded", older, "an earlier run")
+	insertFinished(t, h, "backup", "succeeded", newest, "prune skipped: a remote stamp is not older than this run's")
+	insertFinished(t, h, "backup", "failed", newest+1, "a later failure")
+	insertFinished(t, h, "scan", "succeeded", older, nil)
+
+	if err := os.WriteFile(filepath.Join(l.snapshotsDir, "pre-migrate-v1.db"), []byte("five!"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(l.snapshotsDir, "pre-restore-20260101T000000.000000Z.db"), []byte("seven!!"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(l.snapshotsDir, "notes.txt"), []byte("not a copy"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := h.WriteBackupRef("20260925T120000.000000Z", "remote:path"); err != nil {
+		t.Fatalf("WriteBackupRef: %v", err)
+	}
+
+	wal, err := os.Stat(l.dbPath + "-wal")
+	if err != nil || wal.Size() == 0 {
+		t.Fatalf("fixture needs a non-empty -wal: %v", err)
+	}
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+	if r.State != StateCurrent || r.Facts == nil {
+		t.Fatalf("inspect = %v (%s), facts %v, want current with facts", r.State, r.Reason, r.Facts)
+	}
+	f := r.Facts
+	want := map[string]JobSuccess{
+		"backup": {Finished: time.Date(2026, 9, 25, 12, 0, 0, 0, time.UTC), Progress: "prune skipped: a remote stamp is not older than this run's"},
+		"scan":   {Finished: time.Date(2026, 9, 24, 12, 0, 0, 0, time.UTC)},
+	}
+	if !maps.EqualFunc(f.LastSuccess, want, func(a, b JobSuccess) bool {
+		return a.Finished.Equal(b.Finished) && a.Finished.Location() == time.UTC && a.Progress == b.Progress
+	}) {
+		t.Errorf("last success = %v, want %v", f.LastSuccess, want)
+	}
+	if f.WALSize != wal.Size() {
+		t.Errorf("-wal size = %d, want %d", f.WALSize, wal.Size())
+	}
+	if !f.FreeKnown || f.FreeBytes == 0 {
+		t.Errorf("free space = %d (known %v), want a positive known count", f.FreeBytes, f.FreeKnown)
+	}
+	if f.Copies != 2 || f.CopiesSize != 12 {
+		t.Errorf("copies = %d totaling %d bytes, want 2 totaling 12", f.Copies, f.CopiesSize)
+	}
+}
+
+// TestInspect_FactsEdges: a failed statfs reads unknown without
+// failing the inspection, no copy reads 0 and 0, and a store with no
+// succeeded job reports none.
+func TestInspect_FactsEdges(t *testing.T) {
+	stateDir := currentStore(t)
+	l := newLeaf(stateDir)
+	orig := statfsFunc
+	t.Cleanup(func() { statfsFunc = orig })
+	statfsFunc = func(path string, st *syscall.Statfs_t) error {
+		if path == l.root {
+			return syscall.EIO
+		}
+		return orig(path, st)
+	}
+
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+	if r.State != StateCurrent || r.Facts == nil {
+		t.Fatalf("inspect = %v (%s), facts %v, want current with facts", r.State, r.Reason, r.Facts)
+	}
+	if f := *r.Facts; f.FreeKnown || f.FreeBytes != 0 || f.Copies != 0 || f.CopiesSize != 0 || len(f.LastSuccess) != 0 {
+		t.Errorf("facts = %+v, want free space unknown, no copies, and no success", f)
+	}
+}
+
+// TestReadFacts_AbsentWAL: a store with no -wal reads a size of 0.
+// Inspect's own read-only connection creates an empty -wal before the
+// facts are read, so the absent state is met here directly.
+func TestReadFacts_AbsentWAL(t *testing.T) {
+	stateDir := currentStore(t)
+	l := newLeaf(stateDir)
+	// The last close checkpoints the store and leaves a zero-byte -wal,
+	// which no connection now holds.
+	if err := os.Remove(l.dbPath + "-wal"); err != nil {
+		t.Fatalf("remove the empty -wal: %v", err)
+	}
+
+	f, err := readFacts(context.Background(), l, openBusy)
+	if err != nil {
+		t.Fatalf("readFacts: %v", err)
+	}
+	if f.WALSize != 0 {
+		t.Errorf("-wal size = %d, want 0", f.WALSize)
+	}
+}
+
+// TestInspect_NewerStoreHasNoFacts: this binary cannot trust a newer
+// store's schema, so it reads none of its facts.
+func TestInspect_NewerStoreHasNoFacts(t *testing.T) {
+	stateDir := t.TempDir()
+	l := buildStore(t, stateDir, binaryHead)
+	rawExec(t, l.dbPath, futureLedgerRow)
+
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+	if r.State != StateNewer {
+		t.Fatalf("inspect = %v (%s), want newer", r.State, r.Reason)
+	}
+	if r.Facts != nil {
+		t.Errorf("facts = %+v, want none for a newer store", r.Facts)
 	}
 }

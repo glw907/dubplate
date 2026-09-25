@@ -2,7 +2,12 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -105,6 +110,48 @@ type Report struct {
 	// Warning is set when the store is on a FUSE filesystem, which may
 	// span hosts. It does not change State.
 	Warning string
+
+	// Facts is set for an older or current store whose version holds
+	// the jobs table, and nil otherwise: a newer store's schema is not
+	// this binary's to read.
+	Facts *Facts
+}
+
+// jobsVersion is the lowest store version holding the jobs table.
+const jobsVersion = 2
+
+// Facts are the upkeep facts [Inspect] reads beside a store's state.
+// Every size comes from stat(2) or statfs(2), never from opening the
+// database or its -wal.
+type Facts struct {
+	// LastSuccess maps each job kind that has succeeded to its newest
+	// succeeded record.
+	LastSuccess map[string]JobSuccess
+
+	// WALSize is the -wal file's size in bytes, 0 when there is none.
+	WALSize int64
+
+	// FreeBytes is the space available to an unprivileged user on the
+	// leaf's filesystem, valid only when FreeKnown is true: a statfs
+	// failure leaves it unknown rather than failing the inspection.
+	FreeBytes uint64
+	FreeKnown bool
+
+	// Copies counts the pre-migration and pre-restore copies in
+	// snapshots/, and CopiesSize totals their bytes. A backup
+	// reference is not a copy.
+	Copies     int
+	CopiesSize int64
+}
+
+// A JobSuccess is a job kind's newest succeeded record.
+type JobSuccess struct {
+	// Finished is when the job finished, in UTC.
+	Finished time.Time
+
+	// Progress is the record's final progress text, "" when it has
+	// none.
+	Progress string
 }
 
 // Inspect reports the state of the store under opts.StateDir without
@@ -160,7 +207,95 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 	if err != nil {
 		return reportFrom(r, err)
 	}
-	return reportClass(r, l, c, files)
+	r = reportClass(r, l, c, files)
+	if c.kind != dbStore || c.version < jobsVersion || c.version > len(files) {
+		return r
+	}
+	if r.Facts, err = readFacts(ctx, l, opts.BusyTimeout); err != nil {
+		return reportFrom(r, err)
+	}
+	return r
+}
+
+// readFacts reads the upkeep facts of the store in l, whose version
+// holds the jobs table. It queries through the inspect DSN, which
+// opens the database read-only.
+func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration) (*Facts, error) {
+	f := &Facts{}
+	info, err := os.Stat(l.dbPath + "-wal")
+	switch {
+	case err == nil:
+		f.WALSize = info.Size()
+	case !errors.Is(err, fs.ErrNotExist):
+		return nil, refusal(StateRefused, "stat %s-wal: %v", l.dbPath, err)
+	}
+
+	if f.LastSuccess, err = lastSuccesses(ctx, l.dbPath, busyTimeout); err != nil {
+		return nil, err
+	}
+
+	var st syscall.Statfs_t
+	if statfsFunc(l.root, &st) == nil {
+		f.FreeBytes, f.FreeKnown = st.Bavail*uint64(st.Frsize), true
+	}
+
+	entries, err := os.ReadDir(l.snapshotsDir)
+	if err != nil {
+		return nil, refusal(StateRefused, "read %s: %v", l.snapshotsDir, err)
+	}
+	for _, e := range entries {
+		if !e.Type().IsRegular() || !isCopy(e.Name()) {
+			continue
+		}
+		info, err := e.Info()
+		if err != nil {
+			return nil, refusal(StateRefused, "stat %s: %v", filepath.Join(l.snapshotsDir, e.Name()), err)
+		}
+		f.Copies++
+		f.CopiesSize += info.Size()
+	}
+	return f, nil
+}
+
+// lastSuccesses returns each job kind's newest succeeded record in the
+// store at dbPath, breaking a tie in finish time by id.
+func lastSuccesses(ctx context.Context, dbPath string, busyTimeout time.Duration) (_ map[string]JobSuccess, err error) {
+	db, err := sql.Open(sqliteDriverName, inspectDSN(dbPath, busyTimeout))
+	if err != nil {
+		return nil, refusal(StateRefused, "open %s: %v", dbPath, err)
+	}
+	defer func() {
+		if cerr := db.Close(); cerr != nil && err == nil {
+			err = refusal(StateRefused, "close %s: %v", dbPath, cerr)
+		}
+	}()
+
+	rows, err := db.QueryContext(ctx, `SELECT kind, finished_at, progress FROM (
+	SELECT kind, finished_at, progress,
+		row_number() OVER (PARTITION BY kind ORDER BY finished_at DESC, id DESC) AS rank
+	FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
+) WHERE rank = 1`)
+	if err != nil {
+		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	last := make(map[string]JobSuccess)
+	for rows.Next() {
+		var (
+			kind     string
+			finished int64
+			progress sql.NullString
+		)
+		if err := rows.Scan(&kind, &finished, &progress); err != nil {
+			return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+		}
+		last[kind] = JobSuccess{Finished: time.UnixMicro(finished).UTC(), Progress: progress.String}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+	}
+	return last, nil
 }
 
 // reportFrom returns r carrying err's state and text: a refusal

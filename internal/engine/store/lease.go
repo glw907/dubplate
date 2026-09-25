@@ -53,7 +53,7 @@ type InstanceLease struct {
 // locks it exclusively. It never reuses an existing file: a name that
 // already exists is refused.
 func (h *Handle) TakeInstanceLease() (*InstanceLease, error) {
-	return takeInstanceLease(h.leasesDir, hex.EncodeToString(NewID()))
+	return takeInstanceLease(h.leaf.leasesDir, hex.EncodeToString(NewID()))
 }
 
 func takeInstanceLease(dir, instance string) (*InstanceLease, error) {
@@ -98,7 +98,7 @@ func (h *Handle) TryLease(instance string) (LeaseState, error) {
 	if !validInstance(instance) {
 		return 0, fmt.Errorf("try lease: instance %q is not 32 lowercase hex characters", instance)
 	}
-	path := filepath.Join(h.leasesDir, instance)
+	path := filepath.Join(h.leaf.leasesDir, instance)
 	f, err := os.OpenFile(path, os.O_RDWR, 0)
 	if errors.Is(err, fs.ErrNotExist) {
 		return LeaseAbsent, nil
@@ -157,7 +157,7 @@ type KindLease struct {
 // live holder: a child that inherited the lock holds it after the
 // acquirer exits, and on some filesystems /proc/locks names no one.
 func (h *Handle) TakeKindLease(kind string) (*KindLease, error) {
-	path := filepath.Join(h.leasesDir, kindLeasePrefix+kind)
+	path := filepath.Join(h.leaf.leasesDir, kindLeasePrefix+kind)
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, lockFilePerm)
 	if err != nil {
 		return nil, fmt.Errorf("take kind lease: %w", err)

@@ -577,17 +577,38 @@ func TestMigrate_FirstMigrationLeavesWAL(t *testing.T) {
 
 func TestReadMigrations(t *testing.T) {
 	file := &fstest.MapFile{Data: []byte("SELECT 1;\n")}
+	// second returns a set whose file 2 begins with firstLine.
+	second := func(firstLine string) fstest.MapFS {
+		return fstest.MapFS{"0001_a.sql": file, "0002_b.sql": {Data: []byte(firstLine + "\nSELECT 1;\n")}}
+	}
 	tests := []struct {
 		name         string
 		src          fstest.MapFS
 		wantErr      string
 		wantVersions []int
+		wantRebuild  []bool
 	}{
 		{
 			name:         "unpadded versions order by number",
 			src:          fstest.MapFS{"1_a.sql": file, "2_b.sql": file, "10_j.sql": file, "3_c.sql": file, "4_d.sql": file, "5_e.sql": file, "6_f.sql": file, "7_g.sql": file, "8_h.sql": file, "9_i.sql": file},
 			wantVersions: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			wantRebuild:  make([]bool, 10),
 		},
+		{
+			name:         "the exact rebuild marker",
+			src:          second("-- dubplate:foreign-keys-off"),
+			wantVersions: []int{1, 2},
+			wantRebuild:  []bool{false, true},
+		},
+		{
+			name:         "a first line that only begins like the marker",
+			src:          second("-- dubplate:foreign-keys-offline"),
+			wantVersions: []int{1, 2},
+			wantRebuild:  []bool{false, false},
+		},
+		{name: "the marker ending in a carriage return", src: second("-- dubplate:foreign-keys-off\r"), wantErr: "0002_b.sql"},
+		{name: "the marker ending in a space", src: second("-- dubplate:foreign-keys-off "), wantErr: "0002_b.sql"},
+		{name: "the marker ending in a tab and a carriage return", src: second("-- dubplate:foreign-keys-off\t\r"), wantErr: "0002_b.sql"},
 		{name: "a name that is not a migration file", src: fstest.MapFS{"0001_a.sql": file, "notes.txt": file}, wantErr: "notes.txt"},
 		{name: "a gap", src: fstest.MapFS{"0001_a.sql": file, "0003_c.sql": file}, wantErr: "0003_c.sql has version 3, want 2"},
 		{name: "a repeat", src: fstest.MapFS{"0001_a.sql": file, "1_b.sql": file}, wantErr: "version 1, want 2"},
@@ -603,12 +624,19 @@ func TestReadMigrations(t *testing.T) {
 			if err != nil {
 				t.Fatalf("readMigrations: %v", err)
 			}
-			var got []int
+			var (
+				got     []int
+				rebuild []bool
+			)
 			for _, m := range files {
 				got = append(got, m.version)
+				rebuild = append(rebuild, m.rebuild)
 			}
 			if !slices.Equal(got, tt.wantVersions) {
 				t.Errorf("versions = %v, want %v", got, tt.wantVersions)
+			}
+			if !slices.Equal(rebuild, tt.wantRebuild) {
+				t.Errorf("rebuild = %v, want %v", rebuild, tt.wantRebuild)
 			}
 		})
 	}

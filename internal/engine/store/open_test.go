@@ -775,6 +775,38 @@ func TestOpenModes_LostDatabaseBesideCopy(t *testing.T) {
 	}
 }
 
+// TestOpenServe_LostDatabaseBesideBackupRef: once a backup has deleted
+// every local copy, its reference is the leaf's one memory that a store
+// existed, so serve refuses to create a store where the database file
+// has gone, naming the reference and the snapshot to restore, and
+// creates nothing.
+func TestOpenServe_LostDatabaseBesideBackupRef(t *testing.T) {
+	stateDir := currentStore(t)
+	h := writeHandle(t, stateDir)
+	if err := h.WriteBackupRef("20260924T120000.000000Z", "remote:path"); err != nil {
+		t.Fatalf("WriteBackupRef: %v", err)
+	}
+	if err := h.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+	l := newLeaf(stateDir)
+	for _, suffix := range []string{"", "-wal", "-shm"} {
+		if err := os.Remove(l.dbPath + suffix); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			t.Fatal(err)
+		}
+	}
+	if got, want := listDir(t, l.snapshotsDir), []string{"backup-20260924T120000.000000Z.ref"}; !slices.Equal(got, want) {
+		t.Fatalf("snapshots = %q, want only the reference %q", got, want)
+	}
+	before := treeListing(t, l.root)
+
+	_, err := quietServe(t, stateDir)
+	assertErrNames(t, err, filepath.Join(l.snapshotsDir, "backup-20260924T120000.000000Z.ref"), "restore --snapshot 20260924T120000.000000Z")
+	if after := treeListing(t, l.root); !slices.Equal(after, before) {
+		t.Errorf("leaf changed:\nbefore %q\nafter  %q", before, after)
+	}
+}
+
 // TestOpenServe_CreatesAt0600 is spec criterion 16's third part: under
 // a 0022 umask serve's create leaves a complete leaf and a current
 // database at 0600, and a migration's snapshot is 0600 as well.

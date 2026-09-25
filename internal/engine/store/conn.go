@@ -57,9 +57,15 @@ type Handle struct {
 	// life, or nil for a handle opened on a bare file.
 	lock *storeLock
 
-	// leasesDir is the leaf's leases/ directory, where every lease
-	// taken through the handle lives.
-	leasesDir string
+	// busyTimeout is the busy timeout the handle opened with, which
+	// every maintenance connection it opens carries too.
+	busyTimeout time.Duration
+
+	// leaf names the paths of the leaf a mode's open found the store
+	// in: every lease, stage, and backup reference taken through the
+	// handle lives there. It is the zero leaf for a handle opened on a
+	// bare file.
+	leaf leaf
 }
 
 // openHandle opens dbPath's write pool (capped at one connection) and
@@ -80,7 +86,7 @@ func openHandle(dbPath string, busyTimeout time.Duration) (*Handle, error) {
 		return nil, fmt.Errorf("open read pool: %w", err)
 	}
 
-	return &Handle{write: write, read: read, path: dbPath}, nil
+	return &Handle{write: write, read: read, path: dbPath, busyTimeout: busyTimeout}, nil
 }
 
 // Close closes h's write and read pools, then releases the store lock,

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
@@ -12,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/glw907/dubplate/internal/atomicfile"
 )
 
 // preMigratePrefix and preMigrateSuffix frame a pre-migration copy's
@@ -41,7 +45,7 @@ func preMigrateName(v int) string {
 // INTO gives the copy the source connection's pager flags, so its
 // synchronous=FULL makes the copy durable without a sync of its own;
 // the snapshots directory is synced by hand after the rename. The
-// stage is removed on any failure before the rename. The copy ends
+// stage is removed on any failure through the rename. The copy ends
 // with a truncating WAL checkpoint on the store.
 func takeSnapshot(ctx context.Context, l leaf, busyTimeout time.Duration, name string, want int) (err error) {
 	final := filepath.Join(l.snapshotsDir, name)
@@ -71,7 +75,11 @@ func takeSnapshot(ctx context.Context, l leaf, busyTimeout time.Duration, name s
 		return err
 	}
 	if err := os.Rename(staged, final); err != nil {
-		return fmt.Errorf("rename %s into %s: %w", staged, l.snapshotsDir, err)
+		err = fmt.Errorf("rename %s into %s: %w", staged, l.snapshotsDir, err)
+		if rmErr := os.Remove(staged); rmErr != nil {
+			err = errors.Join(err, fmt.Errorf("remove %s: %w", staged, rmErr))
+		}
+		return err
 	}
 	if err := syncDir(l.snapshotsDir); err != nil {
 		return err
@@ -223,4 +231,178 @@ func parsePreMigrateName(name string) (int, bool) {
 		return 0, false
 	}
 	return v, true
+}
+
+// backupPrefix begins the name of a backup copy's stage in staging/
+// and of the backup reference in snapshots/; backupRefSuffix ends the
+// reference's.
+const (
+	backupPrefix    = "backup-"
+	backupRefSuffix = ".ref"
+)
+
+// BackupCopy writes a verified copy of the store to
+// staging/backup-<instance>.db and returns its path. The caller sends
+// the copy and then removes it; the store never keeps one. instance is
+// the caller's instance lease's, which names no other live stage.
+//
+// It refuses before it creates anything when the filesystem lacks room
+// for one copy plus a WAL at its post-checkpoint bound, or when the
+// stage already exists. The copy runs on a maintenance connection by
+// VACUUM INTO, which reads the last committed state without taking the
+// write lock, so a writer in this or any other process keeps
+// committing across it. A copy that fails verification is removed.
+//
+// The copy ends with a truncating WAL checkpoint that does not wait: a
+// checkpoint that waits for a reader blocks every new writer until it
+// gives up. A checkpoint a reader blocks is logged to logger and does
+// not fail the copy.
+func (h *Handle) BackupCopy(ctx context.Context, logger *slog.Logger, instance string) (string, error) {
+	if !validInstance(instance) {
+		return "", fmt.Errorf("backup copy: instance %q is not 32 lowercase hex characters", instance)
+	}
+	staged := filepath.Join(h.leaf.stagingDir, backupPrefix+instance+preMigrateSuffix)
+	if err := h.backupCopy(ctx, logger, staged); err != nil {
+		return "", fmt.Errorf("backup copy %s: %w", staged, err)
+	}
+	return staged, nil
+}
+
+// backupCopy is BackupCopy once staged is named. It removes staged on
+// any failure after it created it, the maintenance connection's close
+// included.
+func (h *Handle) backupCopy(ctx context.Context, logger *slog.Logger, staged string) (err error) {
+	created := false
+	defer func() {
+		if err == nil || !created {
+			return
+		}
+		if rmErr := os.Remove(staged); rmErr != nil {
+			err = errors.Join(err, fmt.Errorf("remove %s: %w", staged, rmErr))
+		}
+	}()
+
+	db, err := openMaintenanceConn(h.path, h.busyTimeout)
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, db.Close()) }()
+
+	if err := checkFreeSpace(ctx, db, h.leaf.stagingDir); err != nil {
+		return err
+	}
+	if err := preCreate(staged); err != nil {
+		return err
+	}
+	created = true
+	if err := copyInto(ctx, db, staged, h.busyTimeout, h.version); err != nil {
+		return err
+	}
+	return checkpointNoWait(ctx, db, logger, h.path)
+}
+
+// checkpointNoWait runs a truncating WAL checkpoint on one of db's
+// connections with that connection's busy timeout at 0.
+// sqlite.org/c3ref/wal_checkpoint_v2.html: a FULL or stronger
+// checkpoint "blocks new database writers while it is pending" while
+// it waits on readers through the busy handler, so with the store's own timeout every writer would
+// stall for up to that long behind a single held reader. With 0, a
+// blocked checkpoint answers busy at once, and that answer is logged.
+func checkpointNoWait(ctx context.Context, db *sql.DB, logger *slog.Logger, path string) (err error) {
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return fmt.Errorf("checkpoint: connect: %w", classifyErr(err))
+	}
+	defer func() { err = errors.Join(err, conn.Close()) }()
+
+	if _, err := conn.ExecContext(ctx, "PRAGMA busy_timeout = 0"); err != nil {
+		return fmt.Errorf("checkpoint: busy timeout off: %w", classifyErr(err))
+	}
+	var busy, walFrames, checkpointed int
+	if err := conn.QueryRowContext(ctx, "PRAGMA wal_checkpoint(TRUNCATE)").Scan(&busy, &walFrames, &checkpointed); err != nil {
+		return fmt.Errorf("checkpoint: %w", classifyErr(err))
+	}
+	if busy != 0 {
+		logger.Warn("store checkpoint blocked by a reader; the WAL stays until a later checkpoint",
+			"store", path, "wal_frames", walFrames, "checkpointed", checkpointed)
+	}
+	return nil
+}
+
+// RemoveBackupStages removes every staging/backup-*.db and leaves every
+// other name in staging/ alone. Only a caller holding the backup kind
+// lease may call it: the lease proves no backup, a transfer that
+// inherited it included, still reads a stage.
+func (h *Handle) RemoveBackupStages() error {
+	entries, err := os.ReadDir(h.leaf.stagingDir)
+	if err != nil {
+		return fmt.Errorf("remove backup stages: %w", err)
+	}
+	for _, e := range entries {
+		name := e.Name()
+		if !strings.HasPrefix(name, backupPrefix) || !strings.HasSuffix(name, preMigrateSuffix) {
+			continue
+		}
+		if err := os.Remove(filepath.Join(h.leaf.stagingDir, name)); err != nil {
+			return fmt.Errorf("remove backup stage: %w", err)
+		}
+	}
+	return nil
+}
+
+// WriteBackupRef records that the backup stamped stamp reached remote,
+// as snapshots/backup-<stamp>.ref, and then removes every earlier
+// reference, so snapshots/ holds one. It refuses a stamp [ParseStamp]
+// refuses, writing nothing. The reference is written durably, its
+// directory synced after the rename.
+//
+// The reference is what tells a lost database from a store never
+// made once a backup has deleted every local copy: serve refuses to
+// create a store beside one, naming the stamp to restore.
+func (h *Handle) WriteBackupRef(stamp, remote string) error {
+	if _, err := ParseStamp(stamp); err != nil {
+		return fmt.Errorf("write backup reference: %w", err)
+	}
+	name := backupPrefix + stamp + backupRefSuffix
+	path := filepath.Join(h.leaf.snapshotsDir, name)
+	body := "stamp " + stamp + "\nremote " + remote + "\n"
+	err := atomicfile.WriteStream(path, 0o600, func(w io.Writer) error {
+		_, err := io.WriteString(w, body)
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("write backup reference: %w", err)
+	}
+
+	entries, err := os.ReadDir(h.leaf.snapshotsDir)
+	if err != nil {
+		return fmt.Errorf("remove earlier backup references: %w", err)
+	}
+	for _, e := range entries {
+		if _, ok := parseBackupRefName(e.Name()); !ok || e.Name() == name {
+			continue
+		}
+		if err := os.Remove(filepath.Join(h.leaf.snapshotsDir, e.Name())); err != nil {
+			return fmt.Errorf("remove earlier backup reference: %w", err)
+		}
+	}
+	return nil
+}
+
+// parseBackupRefName reports the stamp name carries when name is a
+// backup reference's, backup-<stamp>.ref with a stamp [ParseStamp]
+// accepts.
+func parseBackupRefName(name string) (string, bool) {
+	stamp, ok := strings.CutPrefix(name, backupPrefix)
+	if !ok {
+		return "", false
+	}
+	stamp, ok = strings.CutSuffix(stamp, backupRefSuffix)
+	if !ok {
+		return "", false
+	}
+	if _, err := ParseStamp(stamp); err != nil {
+		return "", false
+	}
+	return stamp, true
 }

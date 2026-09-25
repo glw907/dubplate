@@ -16,6 +16,15 @@
 // the owner a job record names is still alive. A kind lease admits one
 // job of a kind at a time across every process.
 //
+// # Backups
+//
+// [Handle.BackupCopy] stages a verified copy of the store for a caller
+// to send elsewhere, and [Handle.WriteBackupRef] then records the send
+// in snapshots/ as backup-<stamp>.ref. Every stamp is written by
+// [FormatStamp] and read by [ParseStamp], the layout's one home. A
+// reference, like a pre-migration copy, keeps serve from creating an
+// empty store where a database file has gone missing.
+//
 // # Migrations
 //
 // A migration is a SQL file named "<version>_<label>.sql", numbered
