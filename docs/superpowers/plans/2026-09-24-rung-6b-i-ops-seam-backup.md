@@ -1,6 +1,6 @@
 # Rung 6, Pass 6b-i (The Ops Seam and Backup) Implementation Plan
 
-Status: **revision 2.2, 2026-09-24; prose folded, awaiting owner approval.**
+Status: **revision 2.2, 2026-09-24; approved by Geoff 2026-09-24: all four rulings yes, no split.**
 Revision 1 (`b36871c`) took three lens reviews (contract C1 to C29,
 mechanics M1 to M14 and F1, risk R1 to R16), folded into revision 2
 (`5782d15`). Revision 2.1 folds the fresh-context verification read (V1 to

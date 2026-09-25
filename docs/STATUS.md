@@ -22,23 +22,23 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 
 ## Next action
 
-1. **6b-i's plan, revision 2.2** (`plans/2026-09-24-rung-6b-i-ops-seam-backup.md`, `874dcf8`),
-   reviewed and folded, awaits Geoff: four rulings plus a split question (recommended no). Lane 2
-   opens on it once ruled. Ceiling 7.4M, flag 5.92M, projection 5.49M.
+1. **6b-i is approved** (Geoff, 2026-09-24: all four rulings yes, no split; revision 2.2,
+   `plans/2026-09-24-rung-6b-i-ops-seam-backup.md`; ceiling 7.4M, flag 5.92M). Lane 2 opens on it
+   in worktree `.claude/worktrees/lane-2-6b-i`; Task 0 first.
 2. **5c-ii runs in lane 1** (revision 2.4, all seven rulings yes; 9.4M ceiling, 7.52M flag; visual
    identity tokens amended in: `label`/`label-night` palettes, `dubplate-system` stamp, the
    `__Host-dubplate_theme` cookie). Segment A closed green (`5637ecb`, `e9f7367`, `7769d25`); Segment
    B (Tasks 3-5) is in flight.
-3. **The Go RE2/Unicode word-boundary ruling is pending with Geoff**
-   (`docs/superpowers/research/2026-09-24-matcher-unicode-word-boundary.md`): RE2's ASCII `\b` against
-   Python's Unicode `\b` gives a tenfold ft false positive on words like "Geschäft:"; pre-existing.
+3. **Matcher word boundary: ruled yes** (Geoff, 2026-09-24): a documented Go translation of beets'
+   featuring row, a parity golden, and a corpus case, as a small matcher pass after the current lanes
+   (`research/2026-09-24-matcher-unicode-word-boundary.md`).
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-ii since 2026-09-24; Segment A green, Segment B in flight |
-| 2 | none (worktree `lane-2-6a` and its branch removed after the merge) | CLOSED; 6a merged at `8736528`; opens on 6b-i after its rulings |
+| 2 | worktree `.claude/worktrees/lane-2-6b-i`, branch `lane-2-6b-i` | OPEN on 6b-i since 2026-09-24; Task 0 first |
 
 ## Open items (carried)
 
