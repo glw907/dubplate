@@ -116,7 +116,8 @@ and the roster, so it can do both.
    expects them.
 
 Not targeted for 2.0: the library health report, requests, the weekly new-arrivals email, and group
-listening views. Each builds on data 2.0 already records, so none needs a hook now.
+listening views. Each builds on data 2.0 already records, so none needs a hook now. They are catalogued in
+`IDEAS.md`.
 
 ### Relation to the current ladder
 

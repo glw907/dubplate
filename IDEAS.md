@@ -1,0 +1,45 @@
+# IDEAS
+
+> Future consideration: features and requests nobody has committed to. Committed work lives
+> in `ROADMAP.md` (initiatives) and `BACKLOG.md` (work items); the 2.0 spec keeps its own
+> 2.1 list. An idea leaves this file when an owner ruling targets it. Record the target and
+> date in the entry and move it to Promoted, so the idea's origin survives. Read on demand,
+> never at session start.
+>
+> Each entry says what the feature is, why a group would want it, what it builds on, and
+> where it came from. Member requests go under Requests with the asker's name and date.
+
+## Ideas
+
+### Library health report
+A report of what the library is missing or has twice: albums short of their MusicBrainz
+tracklist, the same album uploaded by two members, missing art, and mixed audio quality.
+A first version reports; a later one proposes fixes into the decision queue. Builds on
+the matcher, the catalog's audio keys (2.0 hook 1), and the art blob (hook 3). Source:
+the 2026-09-24 differentiator review.
+
+### Requests
+A member asks whether anyone has an album. When another member uploads a match, intake
+closes the request and tells the asker. A single-user streamer has no reason to build it,
+which is why it suits dubplate. Builds on intake's album matching and the notify path.
+Source: the 2026-09-24 differentiator review.
+
+### New-arrivals email
+A weekly email of what the group added, grouped by member, with each album's note (2.0
+group features). It brings people back to the library without any client feature. Builds
+on the SMTP notify path from rung 5 and `added_by` (2.0 hook 17). Source: the 2026-09-24
+differentiator review.
+
+### Group listening views
+"What the group has on repeat" and "a member's favorites," derived from play history.
+Each member needs a switch that keeps their listening out of the group views. Builds on
+play history as events (2.0 hook 4). Source: the 2026-09-24 differentiator review.
+
+## Requests
+
+None yet.
+
+## Promoted
+
+- Report a problem, `added_by` with album notes, collaborative playlists, and smart
+  playlists: targeted for 2.0 by Geoff, 2026-09-24 (streamer 2.0 spec revision 2.3).

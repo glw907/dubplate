@@ -45,6 +45,8 @@ and nothing is exported ahead of a caller.
 
 - `docs/STATUS.md` — read in full at session start; present tense only.
 - `docs/HISTORY.md` — per-pass ledger, read on demand.
+- `IDEAS.md` — future consideration: uncommitted features and member requests,
+  read on demand. An idea moves to Promoted when an owner ruling targets it.
 - `ROADMAP.md` — initiative queue. Current: the greenfield dubplate-server
   build (17-rung ladder) → packaging (specs and plans live in
   `docs/superpowers/`, migrated into the repo at T14; the dotfiles copies

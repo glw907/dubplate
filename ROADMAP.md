@@ -1,6 +1,7 @@
 # ROADMAP
 
-> Strategic initiatives. Managed by `/log-project`. Issues tracked in `BACKLOG.md`.
+> Strategic initiatives. Managed by `/log-project`. Issues tracked in `BACKLOG.md`;
+> uncommitted features and member requests in `IDEAS.md`.
 > Product essence: a group of family or friends building a well-organized
 > library for a shared music server. Sequencing ruling (Geoff, 2026-09-02,
 > supersedes 2026-09-01): the greenfield dubplate-server build is the one
