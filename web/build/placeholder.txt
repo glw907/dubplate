@@ -1,0 +1,4 @@
+adapter-static clears build/ on every run, so this file is Vite's
+static/ copy of the placeholder the build always re-emits into build/.
+See build/placeholder.txt for why a second, separately committed copy
+exists.

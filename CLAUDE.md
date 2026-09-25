@@ -139,9 +139,13 @@ excluded), `docker compose config` (skipped when Docker isn't present),
 a pattern-filtered `systemd-analyze verify`, and the state-dir agreement
 leg (the env template, the shadow unit, and `deploy.sh` name the same
 state directory).
-The `web/` leg rejoins at rung 7, when `web/` is rebuilt against the
-greenfield server. A check either gates or does not exist; never guard
-one with `command -v || skip`. Never commit red. The process-citation leg
+The `web/` leg runs today, first in `make check`'s prerequisite chain:
+Node and npm required and named on failure, a stale or drifted
+`npm ci --prefix web` refused, the SvelteKit static bundle built, then
+`svelte-check` under strict TypeScript and the static web gates (no
+server-only file, no hardcoded color, no external origin). A check
+either gates or does not exist; never guard one with `command -v ||
+skip`. Never commit red. The process-citation leg
 (no rung, task, resolution, or plan-line citation in shipped Go comments)
 and the exported-unused leg (an exported `internal/` symbol whose only
 references are its own file and `_test.go` files) are staged: they warn
@@ -168,7 +172,7 @@ today and gate at the comment-cleanup task.
   `hooks.server.*`, form actions) are forbidden and the gate checks that
   none exists. Clean, idiomatic SvelteKit is the bar, as in the cairn
   family. Invoke `svelte-conventions` and `ts-conventions` before writing
-  components or TS. `tus-js-client` pinned 4.3.x. Node is workstation
+  components or TS. `tus-js-client` pinned 4.3.x, from rung 7. Node is workstation
   build-time only; nothing Node ships to the box. Rung 5's login page is
   the first page built under this rule.
 - **systemd / cloud-init**: invoke the `vps-conventions` skill BEFORE

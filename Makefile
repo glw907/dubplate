@@ -30,9 +30,47 @@ tidy-check:
 	go mod tidy
 	git diff --exit-code -- go.mod go.sum
 
-# The web legs rejoin at rung 7, when web/ is rebuilt against the
-# greenfield server.
-check: vet lint test tidy-check
+# The web legs run today: `web` requires Node and npm, refuses a stale
+# or drifted `npm ci --prefix web`, builds the SvelteKit static bundle,
+# then runs svelte-check and the static web gates (no server-only file,
+# no hardcoded color, no external origin). `check` runs it first
+# because the Go tests that read the embedded bundle need it current
+# before `go test` runs.
+web:
+	set -e; \
+	if ! command -v node >/dev/null 2>&1; then \
+		echo "make web: node not found on PATH; install it via mise (mise use -g node@lts)." >&2; \
+		exit 1; \
+	fi; \
+	if ! command -v npm >/dev/null 2>&1; then \
+		echo "make web: npm not found on PATH; install it via mise (mise use -g node@lts)." >&2; \
+		exit 1; \
+	fi; \
+	node_major="$$(node -p 'process.versions.node.split(".")[0]')"; \
+	if [ "$$node_major" -lt 24 ]; then \
+		echo "make web: node major $$node_major found, 24 or later required." >&2; \
+		exit 1; \
+	fi; \
+	if [ ! -d web/node_modules ]; then \
+		echo "make web: web/node_modules absent; run \`npm ci --prefix web\`." >&2; \
+		exit 1; \
+	fi; \
+	npm_ls_log="$$(mktemp)"; \
+	if ! npm ls --prefix web >"$$npm_ls_log" 2>&1; then \
+		cat "$$npm_ls_log" >&2; \
+		rm -f "$$npm_ls_log"; \
+		echo "make web: npm ls --prefix web found a missing or out-of-range install; run \`npm ci --prefix web\`." >&2; \
+		exit 1; \
+	fi; \
+	rm -f "$$npm_ls_log"; \
+	(cd web && node scripts/gates/install-state.ts); \
+	npm run build --prefix web; \
+	npm run check --prefix web; \
+	(cd web && node scripts/gates/server-files.ts); \
+	(cd web && node scripts/gates/g1.ts); \
+	(cd web && node scripts/gates/g3.ts)
+
+check: web vet lint test tidy-check
 
 # derive runs the oracle-tagged tests, the only ones that launch the
 # real Python shim and so the only ones needing the uv venv
@@ -49,4 +87,4 @@ derive:
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check derive clean
+.PHONY: build build-linux test vet lint install tidy-check check web derive clean

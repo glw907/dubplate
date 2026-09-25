@@ -31,5 +31,15 @@ __pycache__/
 /_salvage/web/dist/*
 !/_salvage/web/dist/placeholder.txt
 
+# web/: node_modules is workstation build-time only, .svelte-kit is
+# kit's generated scratch directory, and build/ is adapter-static's
+# output, cleared on every build. build's placeholder.txt is kept so a
+# fresh checkout's //go:embed directive still compiles before anyone
+# runs `npm run build`.
+/web/node_modules/
+/web/.svelte-kit/
+/web/build/*
+!/web/build/placeholder.txt
+
 # Local brainstorm companion session state; never repo content.
 /.superpowers/

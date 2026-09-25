@@ -2,6 +2,8 @@ module github.com/glw907/dubplate
 
 go 1.27.0
 
+ignore ./web/node_modules
+
 require (
 	github.com/spf13/cobra v1.10.2
 	github.com/wneessen/go-mail v0.8.1

@@ -2,10 +2,12 @@
 set -euo pipefail
 # check.sh: the repo gate. `make check` covers the Go module (vet,
 # golangci-lint, test, tidy-check; it does not build the binary, that
-# is `make build`'s own job); the web leg rejoins at rung 7, when
-# web/ is rebuilt against the greenfield server. shellcheck still
-# covers the scripts that remain (deploy.sh, check.sh itself,
-# vale-comments.sh, provision.sh), ruff covers the oracle shim's
+# is `make build`'s own job) and, first, the `web` target: Node and npm
+# required, a stale or drifted `npm ci --prefix web` refused, the
+# SvelteKit static bundle built, then svelte-check and the static web
+# gates (no server-only file, no hardcoded color, no external origin).
+# Shellcheck still covers the scripts that remain (deploy.sh, check.sh
+# itself, vale-comments.sh, provision.sh), ruff covers the oracle shim's
 # Python, and gitleaks scans the whole tree in the full form (the corpus
 # under corpus/cases/ is the repo's first large data directory, and a
 # check either gates or does not exist). Exits nonzero on any failure so
@@ -275,6 +277,16 @@ run_gitleaks_scoped() {
   return "$rc"
 }
 
+if [ "$mode" = "scope-changed" ]; then
+  # `web` builds the bundle the Go tests read, so it runs ahead of
+  # every narrowed Go target here too, not only inside `make check`'s
+  # own prerequisite.
+  echo "== make web =="
+  if ! make web; then
+    status=1
+  fi
+fi
+
 if [ "$mode" != "reduced" ]; then
   echo "== make check (Go) =="
 fi
@@ -299,6 +311,14 @@ elif [ "$mode" != "reduced" ]; then
 fi
 
 if [ "$mode" = "reduced" ]; then
+  # The comment-only form skips svelte-check and the static web gates
+  # (never a boundary gate), but still rebuilds the bundle, since a
+  # stale build is the one state every form refuses to read from.
+  echo "== npm run build --prefix web =="
+  if ! npm run build --prefix web; then
+    status=1
+  fi
+
   echo "== gofmt, go vet, go test (changed packages) =="
   if [ "${#changed_packages[@]}" -eq 0 ]; then
     echo "check.sh: the change set holds no Go package; the Go legs have nothing to run."
