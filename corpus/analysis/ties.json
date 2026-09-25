@@ -1560,6 +1560,14 @@
       "unique": true
     },
     {
+      "case_id": "strdist-feat-unicode-boundary",
+      "album_id": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+      "optimal_cost": 0,
+      "best_forbidden_cost": 1.25,
+      "difference": 1.25,
+      "unique": true
+    },
+    {
       "case_id": "track-id-matched",
       "album_id": "42a9f6f5-38da-4925-a997-74b3a44b8e04",
       "optimal_cost": 0,

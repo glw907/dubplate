@@ -1,0 +1,473 @@
+{
+  "id": "strdist-feat-unicode-boundary",
+  "input": {
+    "items": [
+      {
+        "album": "Geschäft: Northern Lines",
+        "albumartist": "Marrow Kite",
+        "artist": "Marrow Kite",
+        "length": 204,
+        "mb_albumid": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "title": "Salt Line",
+        "track": 1,
+        "year": 2016
+      },
+      {
+        "album": "Geschäft: Northern Lines",
+        "albumartist": "Marrow Kite",
+        "artist": "Marrow Kite",
+        "length": 197,
+        "mb_albumid": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "title": "Amber Freight",
+        "track": 2,
+        "year": 2016
+      },
+      {
+        "album": "Geschäft: Northern Lines",
+        "albumartist": "Marrow Kite",
+        "artist": "Marrow Kite",
+        "length": 226,
+        "mb_albumid": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "title": "Quiet Works",
+        "track": 3,
+        "year": 2016
+      }
+    ]
+  },
+  "profile": "estate",
+  "eval_date": "2026-09-02",
+  "requests": [
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release/ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001?fmt=json\u0026inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2Bartist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2Bartist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags",
+      "response": "responses/001.json"
+    },
+    {
+      "method": "GET",
+      "path_query": "/ws/2/release?fmt=json\u0026limit=5\u0026query=release%3A%28gesch%C3%A4ft%5C%3A+northern+lines%29+artist%3A%28marrow+kite%29",
+      "response": "responses/002.json"
+    }
+  ],
+  "expected": {
+    "recommendation": "medium",
+    "action": "skip",
+    "echoed_date": "2026-09-02",
+    "config_hash": "75f9a26d158785d969a0382b6af577b2da9bd4680144c53a02c42f8dc5376200",
+    "weights": {
+      "album": 3,
+      "album_id": 5,
+      "albumdisambig": 0.5,
+      "artist": 3,
+      "catalognum": 0.5,
+      "country": 0.5,
+      "data_source": 2,
+      "label": 0.5,
+      "media": 1,
+      "medium": 1,
+      "mediums": 1,
+      "missing_tracks": 0.9,
+      "track_artist": 2,
+      "track_id": 5,
+      "track_index": 1,
+      "track_length": 2,
+      "track_title": 3,
+      "tracks": 2,
+      "unmatched_tracks": 0.6,
+      "year": 1
+    },
+    "thresholds": {
+      "strong_rec_thresh": 0.04,
+      "medium_rec_thresh": 0.25,
+      "rec_gap_thresh": 0.25,
+      "max_rec": {
+        "missing_tracks": "medium",
+        "unmatched_tracks": "medium"
+      }
+    },
+    "candidates": [
+      {
+        "source": "MusicBrainz",
+        "album_id": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "distance": 0.08730158730158731,
+        "penalties": {
+          "album": 0.08730158730158731,
+          "album_id": 0,
+          "artist": 0,
+          "tracks": 0,
+          "year": 0
+        },
+        "tracks": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "assignment": {
+      "0": 0,
+      "1": 1,
+      "2": 2
+    },
+    "extra_items": [],
+    "extra_tracks": [],
+    "applied_fields": {
+      "0": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Geschäft: Ember Wharf",
+        "album_id": null,
+        "albumartist": "Marrow Kite",
+        "albumartist_credit": "Marrow Kite",
+        "albumartist_sort": "Marrow Kite",
+        "albumartists": [
+          "Marrow Kite"
+        ],
+        "albumartists_credit": [
+          "Marrow Kite"
+        ],
+        "albumartists_sort": [
+          "Marrow Kite"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marrow Kite",
+        "artist_credit": "Marrow Kite",
+        "artist_sort": "Marrow Kite",
+        "artists": [
+          "Marrow Kite"
+        ],
+        "artists_credit": [
+          "Marrow Kite"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marrow Kite"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 204,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "mb_albumartistids": [
+          "d50c143d-8b8e-af7f-d53c-4761a67be997"
+        ],
+        "mb_albumid": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "mb_artistid": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "mb_artistids": [
+          "d50c143d-8b8e-af7f-d53c-4761a67be997"
+        ],
+        "mb_releasegroupid": "58b96c1b-b0ec-6d4d-e4a7-0113764e950c",
+        "mb_releasetrackid": "55a51275-e59f-a2ad-fe74-5d9dd06e78f7",
+        "mb_trackid": "e27ba5c2-629a-b402-a4ca-df43f706a9d8",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 4,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Geschäft: Ember Wharf",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Salt Line",
+        "track": 1,
+        "track_alt": "1",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "1": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Geschäft: Ember Wharf",
+        "album_id": null,
+        "albumartist": "Marrow Kite",
+        "albumartist_credit": "Marrow Kite",
+        "albumartist_sort": "Marrow Kite",
+        "albumartists": [
+          "Marrow Kite"
+        ],
+        "albumartists_credit": [
+          "Marrow Kite"
+        ],
+        "albumartists_sort": [
+          "Marrow Kite"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marrow Kite",
+        "artist_credit": "Marrow Kite",
+        "artist_sort": "Marrow Kite",
+        "artists": [
+          "Marrow Kite"
+        ],
+        "artists_credit": [
+          "Marrow Kite"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marrow Kite"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 197,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "mb_albumartistids": [
+          "d50c143d-8b8e-af7f-d53c-4761a67be997"
+        ],
+        "mb_albumid": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "mb_artistid": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "mb_artistids": [
+          "d50c143d-8b8e-af7f-d53c-4761a67be997"
+        ],
+        "mb_releasegroupid": "58b96c1b-b0ec-6d4d-e4a7-0113764e950c",
+        "mb_releasetrackid": "370e7f3e-aec1-d2e4-a051-a19ff4454b24",
+        "mb_trackid": "2b4d838f-1c37-d492-37df-009d5841d419",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 4,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Geschäft: Ember Wharf",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Amber Freight",
+        "track": 2,
+        "track_alt": "2",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      },
+      "2": {
+        "acoustid_fingerprint": "",
+        "acoustid_id": "",
+        "added": 0,
+        "album": "Geschäft: Ember Wharf",
+        "album_id": null,
+        "albumartist": "Marrow Kite",
+        "albumartist_credit": "Marrow Kite",
+        "albumartist_sort": "Marrow Kite",
+        "albumartists": [
+          "Marrow Kite"
+        ],
+        "albumartists_credit": [
+          "Marrow Kite"
+        ],
+        "albumartists_sort": [
+          "Marrow Kite"
+        ],
+        "albumdisambig": "",
+        "albumstatus": "Official",
+        "albumtype": "album",
+        "albumtypes": [
+          "album"
+        ],
+        "arrangers": [],
+        "arrangers_ids": [],
+        "artist": "Marrow Kite",
+        "artist_credit": "Marrow Kite",
+        "artist_sort": "Marrow Kite",
+        "artists": [
+          "Marrow Kite"
+        ],
+        "artists_credit": [
+          "Marrow Kite"
+        ],
+        "artists_ids": [],
+        "artists_sort": [
+          "Marrow Kite"
+        ],
+        "asin": "",
+        "barcode": "",
+        "bitdepth": 0,
+        "bitrate": 0,
+        "bitrate_mode": "",
+        "bpm": 0,
+        "catalognum": "",
+        "channels": 0,
+        "comments": "",
+        "comp": false,
+        "composer_sort": "",
+        "composers": [],
+        "composers_ids": [],
+        "country": "DE",
+        "data_source": "MusicBrainz",
+        "day": 8,
+        "disc": 1,
+        "discogs_albumid": 0,
+        "discogs_artistid": 0,
+        "discogs_labelid": 0,
+        "disctitle": "",
+        "disctotal": 1,
+        "encoder": "",
+        "encoder_info": "",
+        "encoder_settings": "",
+        "format": "",
+        "genres": [],
+        "grouping": "",
+        "id": null,
+        "initial_key": null,
+        "isrc": "",
+        "label": "",
+        "language": "eng",
+        "length": 226,
+        "lyricists": [],
+        "lyricists_ids": [],
+        "lyrics": "",
+        "mb_albumartistid": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "mb_albumartistids": [
+          "d50c143d-8b8e-af7f-d53c-4761a67be997"
+        ],
+        "mb_albumid": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+        "mb_artistid": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "mb_artistids": [
+          "d50c143d-8b8e-af7f-d53c-4761a67be997"
+        ],
+        "mb_releasegroupid": "58b96c1b-b0ec-6d4d-e4a7-0113764e950c",
+        "mb_releasetrackid": "34aebd1e-45c4-ce47-552c-58821bfb8f7a",
+        "mb_trackid": "7ae8eb04-ab4d-33bd-87a9-0b9f89119b76",
+        "mb_workid": "",
+        "media": "CD",
+        "month": 4,
+        "mtime": 0,
+        "original_day": 8,
+        "original_month": 4,
+        "original_year": 2016,
+        "path": "",
+        "r128_album_gain": null,
+        "r128_track_gain": null,
+        "release_group_title": "Geschäft: Ember Wharf",
+        "releasegroupdisambig": "",
+        "remixers": [],
+        "remixers_ids": [],
+        "rg_album_gain": null,
+        "rg_album_peak": null,
+        "rg_track_gain": null,
+        "rg_track_peak": null,
+        "samplerate": 0,
+        "script": "Latn",
+        "style": "",
+        "subtitle": "",
+        "title": "Quiet Works",
+        "track": 3,
+        "track_alt": "3",
+        "trackdisambig": "",
+        "tracktotal": 3,
+        "work": "",
+        "work_disambig": "",
+        "year": 2016
+      }
+    }
+  }
+}

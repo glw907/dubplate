@@ -14,7 +14,7 @@ import (
 // match.distance_weights, equals want key by key, naming the key and
 // both values on any disagreement. This is the M1 defaults
 // cross-check's own half that can fire before tier 1 exists: no
-// committed profile sets a match: key, so every one of the 215
+// committed profile sets a match: key, so every one of the 216
 // committed cases echoes the same twenty shipped defaults, and a
 // transcription error in Tunables' own defaults shows up here
 // immediately rather than waiting on 3d's profile-merge runner.

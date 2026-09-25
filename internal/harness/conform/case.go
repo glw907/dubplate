@@ -21,12 +21,12 @@ import (
 )
 
 // Floors for the whole-corpus sweep, measured off the tree at
-// 2026-09-05. They are floors rather than exact counts because lane E1
+// 2026-09-25. They are floors rather than exact counts because lane E1
 // adds cases: a shrink means a case, a candidate or a comparison went
 // missing, which is the failure worth catching, while growth is the
 // corpus doing its job.
 //
-// AssignmentFloor is the 214 candidate-bearing cases, and it is never
+// AssignmentFloor is the 215 candidate-bearing cases, and it is never
 // compared bare: ruling F's escalation moves the two pinned cases into
 // TiesAwaitingRuling and an owner ruling can move a case into ties
 // excluded, both of which legally shrink the population. The sweep is
@@ -38,11 +38,11 @@ import (
 // same directories, so it is defined from it rather than re-typed.
 const (
 	CaseFloor        = RequestCaseFloor
-	CandidateFloor   = 294
-	DistanceFloor    = 294
-	AssignmentFloor  = 214
-	VerdictFloor     = 215
-	TrackVectorFloor = 294
+	CandidateFloor   = 295
+	DistanceFloor    = 295
+	AssignmentFloor  = 215
+	VerdictFloor     = 216
+	TrackVectorFloor = 295
 )
 
 // DefectFreeFloor is the number of adjudication rows carrying a

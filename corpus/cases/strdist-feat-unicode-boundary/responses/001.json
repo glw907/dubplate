@@ -1,0 +1,151 @@
+{
+  "id": "ubfa0001-1c4d-4a91-9b02-1d5e7a3c0001",
+  "title": "Geschäft: Ember Wharf",
+  "status": "Official",
+  "disambiguation": "",
+  "asin": null,
+  "barcode": null,
+  "country": "DE",
+  "date": "2016-04-08",
+  "quality": "normal",
+  "packaging": null,
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "artist-credit": [
+    {
+      "name": "Marrow Kite",
+      "joinphrase": "",
+      "artist": {
+        "id": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+        "name": "Marrow Kite",
+        "sort-name": "Marrow Kite",
+        "disambiguation": "",
+        "aliases": []
+      }
+    }
+  ],
+  "release-group": {
+    "id": "58b96c1b-b0ec-6d4d-e4a7-0113764e950c",
+    "title": "Geschäft: Ember Wharf",
+    "primary-type": "Album",
+    "secondary-types": [],
+    "first-release-date": "2016-04-08",
+    "disambiguation": "",
+    "aliases": []
+  },
+  "label-info": [],
+  "release-events": [
+    {
+      "date": "2016-04-08",
+      "area": {
+        "id": "818e74b0-6ae9-a771-86be-3c3685ab33cd",
+        "name": "DE",
+        "iso-3166-1-codes": [
+          "DE"
+        ]
+      }
+    }
+  ],
+  "media": [
+    {
+      "position": 1,
+      "format": "CD",
+      "title": "",
+      "track-count": 3,
+      "tracks": [
+        {
+          "id": "55a51275-e59f-a2ad-fe74-5d9dd06e78f7",
+          "position": "1",
+          "number": "1",
+          "title": "",
+          "length": 204000,
+          "artist-credit": null,
+          "recording": {
+            "id": "e27ba5c2-629a-b402-a4ca-df43f706a9d8",
+            "title": "Salt Line",
+            "length": 204000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marrow Kite",
+                "joinphrase": "",
+                "artist": {
+                  "id": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+                  "name": "Marrow Kite",
+                  "sort-name": "Marrow Kite",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "370e7f3e-aec1-d2e4-a051-a19ff4454b24",
+          "position": "2",
+          "number": "2",
+          "title": "",
+          "length": 197000,
+          "artist-credit": null,
+          "recording": {
+            "id": "2b4d838f-1c37-d492-37df-009d5841d419",
+            "title": "Amber Freight",
+            "length": 197000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marrow Kite",
+                "joinphrase": "",
+                "artist": {
+                  "id": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+                  "name": "Marrow Kite",
+                  "sort-name": "Marrow Kite",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "34aebd1e-45c4-ce47-552c-58821bfb8f7a",
+          "position": "3",
+          "number": "3",
+          "title": "",
+          "length": 226000,
+          "artist-credit": null,
+          "recording": {
+            "id": "7ae8eb04-ab4d-33bd-87a9-0b9f89119b76",
+            "title": "Quiet Works",
+            "length": 226000,
+            "disambiguation": "",
+            "video": false,
+            "aliases": [],
+            "isrcs": [],
+            "artist-credit": [
+              {
+                "name": "Marrow Kite",
+                "joinphrase": "",
+                "artist": {
+                  "id": "d50c143d-8b8e-af7f-d53c-4761a67be997",
+                  "name": "Marrow Kite",
+                  "sort-name": "Marrow Kite",
+                  "disambiguation": "",
+                  "aliases": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

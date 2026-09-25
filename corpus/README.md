@@ -229,22 +229,23 @@ lands `strong` never reaches match.py:453 at all.
 
 ### Family 4: string-distance edges
 
-`strdist-*`, 5 cases. `test/autotag/test_distance.py`'s `TestStringDistance`
-(`test_matching_distance`'s equivalence pairs and, for the one shape that
-does not reduce to distance 0, `test_relative_weights`), exercising
-`string_dist` (distance.py:64-119) through the full pipeline rather than
-as a bare Python call: the lower-then-unidecode-then-lower normalization,
-the `SD_END_WORDS` end-of-string article rotation, `SD_REPLACE`'s
-`&`-to-`and` substitution, and the weighted `SD_PATTERNS` passes (`(ep|
-single)` at weight 0.0, `feat`/`ft`/`featuring` at weight 0.1). Every
-case is a 3-track release whose item-side `album` tag is overridden
-(uniformly, on all 3 items) to a string that the pipeline should read as
-equivalent, or in the `feat.` case, merely closer, to the candidate's own
-release title; nothing else about the item set diverges, so the `album`
-penalty is the case's only observable, verified directly against the
-pinned `string_dist` implementation before authoring
+`strdist-*`, 6 cases. Five of the six pair `test/autotag/test_distance.py`'s
+`TestStringDistance` (`test_matching_distance`'s equivalence pairs and,
+for the one shape that does not reduce to distance 0, `test_relative_weights`),
+exercising `string_dist` (distance.py:64-119) through the full pipeline
+rather than as a bare Python call: the lower-then-unidecode-then-lower
+normalization, the `SD_END_WORDS` end-of-string article rotation,
+`SD_REPLACE`'s `&`-to-`and` substitution, and the weighted `SD_PATTERNS`
+passes (`(ep|single)` at weight 0.0, `feat`/`ft`/`featuring` at weight
+0.1). Each of those five is a 3-track release whose item-side `album`
+tag is overridden (uniformly, on all 3 items) to a string that the
+pipeline should read as equivalent, or in the `feat.` case, merely
+closer, to the candidate's own release title; nothing else about the
+item set diverges, so the `album` penalty is the case's only
+observable, verified directly against the pinned `string_dist`
+implementation before authoring
 (`tools/venv/.venv/lib/python3.13/site-packages/beets/autotag/distance.py`)
-rather than assumed. Four of the five pairs are drawn straight from
+rather than assumed. Four of those five pairs are drawn straight from
 `test_matching_distance`'s own parametrize table (`\xe9\xe1\xf1`/`ean`
 generalized to full words, since a single transliterated glyph is a
 harder case to read off a diff than a card the size of an album title)
@@ -253,9 +254,21 @@ verbatim; `feat.` strip is not one of that table's pairs; per
 `SD_PATTERNS`'s own weight column it can only ever *reduce* the base
 distance, not zero it, so its case is modeled on `test_relative_weights`
 instead and its `album` penalty is deliberately left nonzero to make that
-distinction legible from the record alone. No case in this family
-hand-edits a generated response; every shape is expressible through
-`overrides` alone.
+distinction legible from the record alone.
+
+The sixth, `strdist-feat-unicode-boundary`, is not a beets test-suite
+pair at all: it is a no-fire probe of the Go port's own word-boundary
+translation of the featuring row, and its two titles must stay apart
+rather than collapse together. Its candidate `Geschäft: Ember Wharf`
+and item albums `Geschäft: Northern Lines` share only the `Geschäft:`
+prefix, whose trigger character `ä` sits directly before `ft`. Go's
+`\b` is ASCII-only, so an untranslated port reads a word boundary
+between `ä` and `f` and strips everything after `Geschäft` as a
+featuring credit, the same false positive the `adv-ft-*` family probes
+in ASCII; the translated row (and beets itself) reads no boundary
+there and scores the titles' true distance instead. No case in this
+family hand-edits a generated response; every shape is expressible
+through `overrides` alone.
 
 | id | shape | hand-edit |
 | --- | --- | --- |
@@ -264,6 +277,7 @@ hand-edits a generated response; every shape is expressible through
 | `strdist-feat-strip` | candidate album `"Nightbound (feat. Wren Salt)"`; every item's `album` overridden to `"Nightbound"`. The `feat` pattern's weight is 0.1, not 0.0, so stripping it only shrinks the base edit distance rather than erasing it (`test_relative_weights`'s own comparative shape, not `test_matching_distance`'s equality one): `album` reads 0.0091, still comfortably strong (0.0091 < 0.04). | none |
 | `strdist-ampersand` | candidate album `"Ash & Ferrous"`; every item's `album` overridden to `"Ash and Ferrous"`. `SD_REPLACE` folds `&` to `and` on both strings before comparison, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
 | `strdist-diacritic-translit` | candidate album `"Café Méridien"`; every item's `album` overridden to `"Cafe Meridien"`. `unidecode` transliterates the diacritics away before the edit-distance pass, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
+| `strdist-feat-unicode-boundary` | candidate album `"Geschäft: Ember Wharf"`; every item's `album` overridden to `"Geschäft: Northern Lines"`. `ä` sits directly before `ft`, the trigger the featuring row's word-boundary translation must not fire on: `string_dist` reads the titles' true distance rather than collapsing them to `gesch`; `album` reads 0.087302, distance 0.087302, medium, skip. | none |
 
 ### Family 5: single-source `data_source` penalty
 
@@ -1569,12 +1583,13 @@ same as their twins.
 
 ### Corpus totals and byte growth (Task 20, pass close)
 
-`ls corpus/cases | wc -l` is 215, read off the tree rather than
-assembled from any task's own arithmetic: 7 smoke plus 61 structural
-(pass 2b) plus 94 real-catalog primary rows (Tasks 4 through 15) plus
-17 adversarial cases (16 `adv-*`, Tasks 16 and 17, plus Task 18's one
-locale-toggle case) plus 36 stock-config siblings (28 mandatory, Task
-19a, plus 8 supplementary, Task 19b).
+`ls corpus/cases | wc -l` is 216, read off the tree rather than
+assembled from any task's own arithmetic: 7 smoke plus 62 structural
+(61 from pass 2b, plus `strdist-feat-unicode-boundary`, family 4's
+later word-boundary probe) plus 94 real-catalog primary rows (Tasks 4
+through 15) plus 17 adversarial cases (16 `adv-*`, Tasks 16 and 17,
+plus Task 18's one locale-toggle case) plus 36 stock-config siblings
+(28 mandatory, Task 19a, plus 8 supplementary, Task 19b).
 
 The committed corpus held 4.0 MB across 114 response files before this
 pass; it now holds **81.3 MB across 351 response files**, well past
@@ -1604,12 +1619,12 @@ flat per-case average.
 Deferred from 2c's Task 20 to this pass's close (2c's own carry-forward
 note: "the whole-corpus README rewrite happens again at 2d's close,
 once, to add the file-tags section"; this section is the case-inventory
-half of that deferral). Every one of the 215 committed cases already
+half of that deferral). Every one of the 216 committed cases already
 appears in exactly one family, task-batch, or stratum table above (the
 structural stratum's own note states the invariant: no case counts
 itself twice, in one family table, the smoke table, the real-catalog
 stratum's own table, or the adversarial stratum's three case tables).
-This section is a flat, whole-corpus index over the same 215 rows,
+This section is a flat, whole-corpus index over the same 216 rows,
 built for lookup rather than for narrative; it names every case's `id`,
 stratum, and family or axis in one place and does not duplicate the
 per-case prose already written into the sections above.
@@ -1678,7 +1693,7 @@ See the machinery-coverage corpus, "The smoke corpus" above.
 | `various-artists` | machinery smoke | estate | 2026-09-02 |  |
 | `year-penalty` | machinery smoke | estate | 2026-09-02 |  |
 
-### Structural (61)
+### Structural (62)
 
 See pass 2b's 15 shape families, "The structural stratum" above.
 
@@ -1726,6 +1741,7 @@ See pass 2b's 15 shape families, "The structural stratum" above.
 | `strdist-diacritic-translit` | F4 | estate | 2026-09-02 |  |
 | `strdist-ep-strip` | F4 | estate | 2026-09-02 |  |
 | `strdist-feat-strip` | F4 | estate | 2026-09-02 |  |
+| `strdist-feat-unicode-boundary` | F4 | estate | 2026-09-02 |  |
 | `track-id-matched` | F13 | estate | 2026-09-03 |  |
 | `track-id-mismatched` | F13 | estate | 2026-09-03 |  |
 | `track-index-absolute-matches` | F12 | estate | 2026-09-03 |  |
@@ -1914,7 +1930,7 @@ See siblings proving verdict parity against the `stock` profile, "The stock-conf
 | `real-reissue-thriller-25-stock` | mandatory sibling | stock | 2026-09-03 |  |
 | `real-reissue-whats-going-on-2021-stock` | mandatory sibling | stock | 2026-09-03 |  |
 
-`7 + 61 + 94 + 17 + 36 = 215`, matching `ls corpus/cases | wc -l` read
+`7 + 62 + 94 + 17 + 36 = 216`, matching `ls corpus/cases | wc -l` read
 off the tree directly. All twelve `file-tags` marks above are the
 subjects named in "`file_tags.json`, the file-level applied-tag
 ledger" below, cross-referenced here rather than re-derived.

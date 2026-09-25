@@ -241,7 +241,7 @@ func TestAlbumExplicitSearchIDsSkipTheSearchAndTakeNoEarlyReturn(t *testing.T) {
 }
 
 func TestAlbumMatchByIDEarlyBranches(t *testing.T) {
-	// Both branches are corpus-unreachable: all 215 committed cases
+	// Both branches are corpus-unreachable: all 216 committed cases
 	// carry a full mb_albumid consensus (declared gaps 2 and 3). Each
 	// must skip the lookup and go straight to the search.
 	tests := []struct {

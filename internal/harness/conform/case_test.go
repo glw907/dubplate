@@ -283,7 +283,7 @@ func TestWholeCorpusGradesCleanlyInCompatMode(t *testing.T) {
 // extra_items sort key. Its pre-sort order is a Python set order over
 // identity-hashed objects, outside PYTHONHASHSEED's reach, so every
 // committed record is reproducible only while (disc, track, title) is
-// total over that case's extras. It is today, on all 215. The day lane
+// total over that case's extras. It is today, on all 216. The day lane
 // E1 lands a case where it is not, beets' own record stops being
 // reproducible run to run, and this is where that is learned rather
 // than at a flaky gate.

@@ -20,14 +20,14 @@ import (
 // non-site-specific literal per CLAUDE.md's universality rule.
 const gradeUserAgent = "dubplate-conform/0 ( offline-conformance-run )"
 
-// Floors for the request census, measured off the tree at 2026-09-04.
+// Floors for the request census, measured off the tree at 2026-09-25.
 // They are floors rather than exact counts because lane E1 adds cases:
 // a shrink means a case or a request went missing, which is the failure
 // worth catching, while growth is the corpus doing its job.
 const (
-	RequestCaseFloor   = 215
-	RequestLookupFloor = 303
-	RequestSearchFloor = 48
+	RequestCaseFloor   = 216
+	RequestLookupFloor = 304
+	RequestSearchFloor = 55
 )
 
 // searchPathPrefix is the WS/2 path a release search starts with; a
