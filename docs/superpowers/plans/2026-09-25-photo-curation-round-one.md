@@ -341,6 +341,19 @@ People flags: an agent sets `flags` to `personality-rights` when the Commons wik
 personality-rights template (quoted in `verified`), and to `apparent-minor` when an apparent minor
 is in focus. It never drops a candidate for either.
 
+Public-domain routing (conductor, after Task 1's re-review): `flickr_licenses` maps Flickr ids 7
+("No known copyright restrictions"), 8 ("United States Government Work"), and 10 ("Public Domain
+Mark") to null, because none of them is a license. Id 8 becomes `LicenseRef-public-domain` with
+the `us-government-work` basis once federal authorship is confirmed from the source. Ids 7 and 10
+become `LicenseRef-public-domain` only with an independent basis fact recorded in `public_domain`
+and the mark quoted in `verified`. Otherwise the candidate is dropped with reason `license`, never
+`vocab`. A Commons `PD-*` template follows the same rule: the template is evidence, and the basis
+fact must be stated. A term missing from the vocabulary (a country, a scene) is reported as a
+proposed term and the candidate is kept; only the conductor edits `vocab.json`.
+
+Waiver keys for the one-image rules use the check script's spelling: `mbid:<id>`,
+`wikidata:<id>`, or `name:<normalized name>`.
+
 **Acceptance per agent:**
 - Every kept candidate passes `node tools/photos/check.mjs candidate` on the agent's directory.
 - Every drop is in its `drops.json` with keys and a reason code.
