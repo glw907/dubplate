@@ -79,8 +79,9 @@ func newHandler(next ops.Seam, auth authorizer, channel identity.Channel, log *s
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	route, ok := h.routes[strings.TrimPrefix(r.URL.Path, "/")]
-	if !ok {
+	name, ok := strings.CutPrefix(r.URL.Path, "/")
+	route, known := h.routes[name]
+	if !ok || !known {
 		writeError(w, http.StatusNotFound, ops.CodeNotFound, "no such operation")
 		return
 	}
@@ -188,21 +189,33 @@ func validHandle(w http.ResponseWriter, id ops.Handle) bool {
 // wire code and, unless that code is internal, the reason of the first
 // [*ops.Error] in its chain, never the chain's own text: a wrapper
 // around a coded error may name a path, and an internal error may be
-// anything. The whole error goes to the log with the operation's name.
+// anything. A code statuses lacks, such as a zero [ops.Error]'s, answers
+// as internal. The log names the operation with the whole error, except
+// a forbidden one, which it names by its cause from [denialReason]
+// alone: a denial's chain may carry the caller's identity.
 func (h *handler) respond(w http.ResponseWriter, op string, resp any, err error) {
 	if err != nil {
 		code := ops.CodeOf(err)
-		if code == ops.CodeInternal {
-			h.log.Error("ops operation failed", "op", op, "err", err)
-			writeError(w, statuses[code], code, "")
+		status, mapped := statuses[code]
+		switch {
+		case !mapped:
+			h.log.Error("ops error code has no HTTP status", "op", op, "code", code, "err", err)
+			writeError(w, statuses[ops.CodeInternal], ops.CodeInternal, "")
 			return
+		case code == ops.CodeInternal:
+			h.log.Error("ops operation failed", "op", op, "err", err)
+			writeError(w, status, code, "")
+			return
+		case code == ops.CodeForbidden:
+			h.log.Info("ops operation refused", "op", op, "code", code, "reason", denialReason(err))
+		default:
+			h.log.Info("ops operation refused", "op", op, "code", code, "err", err)
 		}
-		h.log.Info("ops operation refused", "op", op, "code", code, "err", err)
 		var reason string
 		if opsErr, ok := errors.AsType[*ops.Error](err); ok {
 			reason = opsErr.Reason
 		}
-		writeError(w, statuses[code], code, reason)
+		writeError(w, status, code, reason)
 		return
 	}
 	data, err := json.Marshal(resp)
@@ -229,8 +242,12 @@ func writeError(w http.ResponseWriter, status int, code ops.Code, reason string)
 	writeBody(w, status, data)
 }
 
+// writeBody sends every answer, so each one, a refusal included, is
+// marked uncacheable: an operation's answer describes state at the
+// moment it ran.
 func writeBody(w http.ResponseWriter, status int, data []byte) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	// The status is already sent, so a failed write has no answer left
 	// to give; the client sees a truncated body.

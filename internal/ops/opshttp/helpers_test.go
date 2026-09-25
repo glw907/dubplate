@@ -95,28 +95,28 @@ func successes() map[string]fakeAnswer {
 	}
 }
 
-// An authCall is one call an authorizer received.
-type authCall struct {
-	op string
-	p  ops.Privilege
-}
-
-// A fakeAuthorizer answers with decide and records each call.
+// A fakeAuthorizer answers with decide and records the operation of
+// each call.
 type fakeAuthorizer struct {
-	decide func(op string, p ops.Privilege) (ops.Actor, error)
-	calls  []authCall
+	decide func(op string) (ops.Actor, ops.Privilege, error)
+	calls  []string
 }
 
-func (a *fakeAuthorizer) authorize(_ context.Context, op string, p ops.Privilege) (ops.Actor, error) {
-	a.calls = append(a.calls, authCall{op: op, p: p})
-	return a.decide(op, p)
+func (a *fakeAuthorizer) authorize(_ context.Context, op string) (ops.Actor, ops.Privilege, error) {
+	a.calls = append(a.calls, op)
+	return a.decide(op)
 }
 
-// admitAnn admits every call as ann.
-func admitAnn() *fakeAuthorizer {
-	return &fakeAuthorizer{decide: func(string, ops.Privilege) (ops.Actor, error) {
-		return ops.NetworkActor(ann), nil
+// grant admits every call as the actor id's network actor, granted p.
+func grant(id identity.Identity, p ops.Privilege) *fakeAuthorizer {
+	return &fakeAuthorizer{decide: func(string) (ops.Actor, ops.Privilege, error) {
+		return ops.NetworkActor(id), p, nil
 	}}
+}
+
+// admitAnn admits every call as ann, granted admin.
+func admitAnn() *fakeAuthorizer {
+	return grant(ann, ops.PrivilegeAdmin)
 }
 
 // A fixture is a handler over a fake seam and authorizer, with its log
@@ -140,9 +140,15 @@ func newFixture(t *testing.T, auth *fakeAuthorizer, answers map[string]fakeAnswe
 }
 
 // do sends one request; an empty contentType sends no Content-Type
-// header at all.
+// header at all. A target with no leading slash, which
+// [httptest.NewRequest] refuses to parse, is set as the request's path
+// after the request is built.
 func (f *fixture) do(method, target, contentType, body string) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(method, target, strings.NewReader(body))
+	relative, ok := strings.CutPrefix(target, "/")
+	req := httptest.NewRequest(method, "/"+relative, strings.NewReader(body))
+	if !ok {
+		req.URL.Path = target
+	}
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
@@ -156,11 +162,14 @@ func (f *fixture) post(op, body string) *httptest.ResponseRecorder {
 }
 
 // errorAnswer decodes rec's JSON error body, failing t when the body is
-// not exactly that shape.
+// not exactly that shape or the answer may be cached.
 func errorAnswer(t *testing.T, rec *httptest.ResponseRecorder) (code ops.Code, reason string, hasReason bool) {
 	t.Helper()
 	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
 		t.Fatalf("Content-Type = %q, want application/json", ct)
+	}
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", cc)
 	}
 	var body map[string]map[string]string
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {

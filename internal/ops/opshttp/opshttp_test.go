@@ -1,6 +1,7 @@
 package opshttp
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -32,6 +33,7 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 		{"root path", http.MethodPost, "/", "application/json", `{}`, http.StatusNotFound, ops.CodeNotFound},
 		{"trailing slash", http.MethodPost, "/start_backup/", "application/json", `{}`, http.StatusNotFound, ops.CodeNotFound},
 		{"subpath", http.MethodPost, "/start_backup/now", "application/json", `{}`, http.StatusNotFound, ops.CodeNotFound},
+		{"no leading slash", http.MethodPost, "start_backup", "application/json", `{}`, http.StatusNotFound, ops.CodeNotFound},
 		{"GET on an unknown name", http.MethodGet, "/restore", "", "", http.StatusNotFound, ops.CodeNotFound},
 		{"query string", http.MethodPost, "/start_backup?actor=local:root", "application/json", `{}`, http.StatusBadRequest, ops.CodeInvalidRequest},
 		{"empty query string", http.MethodPost, "/start_backup?", "application/json", `{}`, http.StatusBadRequest, ops.CodeInvalidRequest},
@@ -139,52 +141,69 @@ func TestServeHTTPPassesTheDecodedRequest(t *testing.T) {
 	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
 		t.Errorf("Content-Type = %q, want application/json", ct)
 	}
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", cc)
+	}
 }
 
+// TestServeHTTPDenials refuses every denial the same way on the wire
+// and logs it by a cause from a closed set. Each row plants an address
+// and a principal where a denial could echo them, in the authorizer's
+// error or in the actor it answered; neither may reach the log.
 func TestServeHTTPDenials(t *testing.T) {
-	const sessionErr = "read session /var/lib/dubplate/sessions/ann: permission denied"
+	const (
+		address   = "planted@example.invalid"
+		principal = "plantedprincipal"
+	)
+	planted := ann
+	planted.Address = address
+	planted.Principal = principal
 	tests := []struct {
-		name    string
-		decide  func(op string, p ops.Privilege) (ops.Actor, error)
-		wantLog string
+		name       string
+		decide     func(op string) (ops.Actor, ops.Privilege, error)
+		wantReason string
 	}{
 		{
-			name: "authorizer denies",
-			decide: func(string, ops.Privilege) (ops.Actor, error) {
-				return ops.Actor{}, ops.NewForbiddenError("ann is not an admin")
+			name: "authorizer answers forbidden",
+			decide: func(string) (ops.Actor, ops.Privilege, error) {
+				return ops.Actor{}, 0, ops.NewForbiddenError(address + " (" + principal + ") is not an admin")
 			},
-			wantLog: "ann is not an admin",
-		},
-		{
-			name: "member-only authorizer on an admin operation",
-			decide: func(_ string, p ops.Privilege) (ops.Actor, error) {
-				if p != ops.PrivilegeMember {
-					return ops.Actor{}, errors.New("member privilege only")
-				}
-				return ops.NetworkActor(ann), nil
-			},
-			wantLog: "member privilege only",
-		},
-		{
-			name: "command-line actor on a cookie mount",
-			decide: func(string, ops.Privilege) (ops.Actor, error) {
-				return ops.LocalActor("root"), nil
-			},
-			wantLog: "local:root",
-		},
-		{
-			name: "zero actor admitted",
-			decide: func(string, ops.Privilege) (ops.Actor, error) {
-				return ops.Actor{}, nil
-			},
-			wantLog: "for a cookie mount",
+			wantReason: "authorizer denied the caller",
 		},
 		{
 			name: "authorizer error",
-			decide: func(string, ops.Privilege) (ops.Actor, error) {
-				return ops.Actor{}, errors.New(sessionErr)
+			decide: func(string) (ops.Actor, ops.Privilege, error) {
+				return ops.Actor{}, 0, errors.New("read session /var/lib/dubplate/sessions/" + address + ": permission denied")
 			},
-			wantLog: sessionErr,
+			wantReason: "authorizer denied the caller",
+		},
+		{
+			name: "member grant on an admin operation",
+			decide: func(string) (ops.Actor, ops.Privilege, error) {
+				return ops.NetworkActor(planted), ops.PrivilegeMember, nil
+			},
+			wantReason: "granted privilege does not reach the operation's",
+		},
+		{
+			name: "zero grant",
+			decide: func(string) (ops.Actor, ops.Privilege, error) {
+				return ops.NetworkActor(planted), 0, nil
+			},
+			wantReason: "granted privilege does not reach the operation's",
+		},
+		{
+			name: "command-line actor on a cookie mount",
+			decide: func(string) (ops.Actor, ops.Privilege, error) {
+				return ops.LocalActor(principal), ops.PrivilegeAdmin, nil
+			},
+			wantReason: "admitted actor's channel differs from the mount's",
+		},
+		{
+			name: "zero actor admitted",
+			decide: func(string) (ops.Actor, ops.Privilege, error) {
+				return ops.Actor{}, ops.PrivilegeAdmin, nil
+			},
+			wantReason: "admitted actor's channel differs from the mount's",
 		},
 	}
 	for _, tt := range tests {
@@ -198,11 +217,16 @@ func TestServeHTTPDenials(t *testing.T) {
 			if code != ops.CodeForbidden || reason != "start_backup requires the admin privilege" {
 				t.Errorf("answer = %q %q, want forbidden %q", code, reason, "start_backup requires the admin privilege")
 			}
-			if strings.Contains(rec.Body.String(), "/var/lib") {
-				t.Errorf("body %q names a path", rec.Body.String())
+			log := f.log.String()
+			for _, want := range []string{"op=start_backup", "code=forbidden", `reason="` + tt.wantReason + `"`} {
+				if !strings.Contains(log, want) {
+					t.Errorf("log %q lacks %q", log, want)
+				}
 			}
-			if !strings.Contains(f.log.String(), tt.wantLog) {
-				t.Errorf("log %q lacks %q", f.log.String(), tt.wantLog)
+			for _, leak := range []string{address, principal, "/var/lib"} {
+				if strings.Contains(log, leak) || strings.Contains(rec.Body.String(), leak) {
+					t.Errorf("log %q or body %q names %q", log, rec.Body.String(), leak)
+				}
 			}
 			if n := len(f.auth.calls); n != 1 {
 				t.Errorf("authorizer calls = %d, want 1", n)
@@ -214,44 +238,49 @@ func TestServeHTTPDenials(t *testing.T) {
 	}
 }
 
-func TestServeHTTPAsksForEachOperationsPrivilege(t *testing.T) {
+// TestServeHTTPAdmitsByGrant runs each operation under an admin grant
+// and a member grant: admin reaches all four, member only the catalog.
+func TestServeHTTPAdmitsByGrant(t *testing.T) {
+	jobBody := `{"job_id":"` + testHandle + `"}`
 	tests := []struct {
-		op   string
-		body string
-		want ops.Privilege
+		op           string
+		body         string
+		memberStatus int
 	}{
-		{ops.OpStartBackup, `{}`, ops.PrivilegeAdmin},
-		{ops.OpJobStatus, `{"job_id":"` + testHandle + `"}`, ops.PrivilegeAdmin},
-		{ops.OpCancelJob, `{"job_id":"` + testHandle + `"}`, ops.PrivilegeAdmin},
-		{ops.OpCatalog, `{}`, ops.PrivilegeMember},
+		{ops.OpStartBackup, `{}`, http.StatusForbidden},
+		{ops.OpJobStatus, jobBody, http.StatusForbidden},
+		{ops.OpCancelJob, jobBody, http.StatusForbidden},
+		{ops.OpCatalog, `{}`, http.StatusOK},
 	}
 	for _, tt := range tests {
-		t.Run(tt.op, func(t *testing.T) {
-			f := newFixture(t, admitAnn(), successes())
-			if rec := f.post(tt.op, tt.body); rec.Code != http.StatusOK {
-				t.Fatalf("status = %d, want 200; body %q", rec.Code, rec.Body.String())
-			}
-			want := []authCall{{op: tt.op, p: tt.want}}
-			if len(f.auth.calls) != 1 || f.auth.calls[0] != want[0] {
-				t.Errorf("authorizer calls = %+v, want %+v", f.auth.calls, want)
-			}
-		})
-	}
-}
-
-func TestServeHTTPMemberOnlyAuthorizerAdmitsTheCatalog(t *testing.T) {
-	memberOnly := &fakeAuthorizer{decide: func(_ string, p ops.Privilege) (ops.Actor, error) {
-		if p != ops.PrivilegeMember {
-			return ops.Actor{}, errors.New("member privilege only")
+		for _, g := range []struct {
+			granted ops.Privilege
+			status  int
+		}{
+			{ops.PrivilegeAdmin, http.StatusOK},
+			{ops.PrivilegeMember, tt.memberStatus},
+		} {
+			t.Run(tt.op+" as "+g.granted.String(), func(t *testing.T) {
+				f := newFixture(t, grant(ann, g.granted), successes())
+				rec := f.post(tt.op, tt.body)
+				if rec.Code != g.status {
+					t.Fatalf("status = %d, want %d; body %q", rec.Code, g.status, rec.Body.String())
+				}
+				if len(f.auth.calls) != 1 || f.auth.calls[0] != tt.op {
+					t.Errorf("authorizer calls = %q, want [%s]", f.auth.calls, tt.op)
+				}
+				wantSeamCalls := 0
+				if g.status == http.StatusOK {
+					wantSeamCalls = 1
+				}
+				if len(f.seam.calls) != wantSeamCalls {
+					t.Fatalf("seam calls = %d, want %d", len(f.seam.calls), wantSeamCalls)
+				}
+				if wantSeamCalls == 1 && f.seam.calls[0].actor.String() != annWire {
+					t.Errorf("seam got %q, want %q", f.seam.calls[0].actor, annWire)
+				}
+			})
 		}
-		return ops.NetworkActor(ann), nil
-	}}
-	f := newFixture(t, memberOnly, successes())
-	if rec := f.post(ops.OpCatalog, `{}`); rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200; body %q", rec.Code, rec.Body.String())
-	}
-	if len(f.seam.calls) != 1 || f.seam.calls[0].actor.String() != annWire {
-		t.Errorf("seam calls = %+v, want one as %s", f.seam.calls, annWire)
 	}
 }
 
@@ -263,17 +292,20 @@ func TestServeHTTPSeamErrors(t *testing.T) {
 		wantStatus int
 		wantCode   ops.Code
 		wantReason string // "" means the body carries no reason key
+		wantLog    string // "" means the log carries the error's own text
 	}{
-		{"unavailable", ops.NewUnavailableError("backup integration is off"), 503, ops.CodeUnavailable, "backup integration is off"},
-		{"not found", ops.NewNotFoundError("no job " + testHandle), 404, ops.CodeNotFound, "no job " + testHandle},
-		{"conflict", ops.NewConflictError("backup job already running"), 409, ops.CodeConflict, "backup job already running"},
-		{"invalid request", ops.NewInvalidRequestError("bad field"), 400, ops.CodeInvalidRequest, "bad field"},
-		{"canceled", ops.NewCanceledError("caller went away"), 503, ops.CodeCanceled, "caller went away"},
-		{"forbidden", ops.NewForbiddenError("not yours"), 403, ops.CodeForbidden, "not yours"},
-		{"coded internal", ops.NewInternalError("store closed at " + path), 500, ops.CodeInternal, ""},
-		{"bare context canceled", fmt.Errorf("wait for the write connection: %w", context.Canceled), 503, ops.CodeCanceled, ""},
-		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewConflictError("backup job already running")), 409, ops.CodeConflict, "backup job already running"},
-		{"uncoded error", fmt.Errorf("open %s: permission denied", path), 500, ops.CodeInternal, ""},
+		{"unavailable", ops.NewUnavailableError("backup integration is off"), 503, ops.CodeUnavailable, "backup integration is off", ""},
+		{"not found", ops.NewNotFoundError("no job " + testHandle), 404, ops.CodeNotFound, "no job " + testHandle, ""},
+		{"conflict", ops.NewConflictError("backup job already running"), 409, ops.CodeConflict, "backup job already running", ""},
+		{"invalid request", ops.NewInvalidRequestError("bad field"), 400, ops.CodeInvalidRequest, "bad field", ""},
+		{"canceled", ops.NewCanceledError("caller went away"), 503, ops.CodeCanceled, "caller went away", ""},
+		{"forbidden", ops.NewForbiddenError("not yours"), 403, ops.CodeForbidden, "not yours", `reason=denied`},
+		{"coded internal", ops.NewInternalError("store closed at " + path), 500, ops.CodeInternal, "", ""},
+		{"bare context canceled", fmt.Errorf("wait for the write connection: %w", context.Canceled), 503, ops.CodeCanceled, "", ""},
+		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewConflictError("backup job already running")), 409, ops.CodeConflict, "backup job already running", ""},
+		{"uncoded error", fmt.Errorf("open %s: permission denied", path), 500, ops.CodeInternal, "", ""},
+		{"zero ops error", &ops.Error{}, 500, ops.CodeInternal, "", `msg="ops error code has no HTTP status" op=start_backup code=""`},
+		{"unregistered code", &ops.Error{Code: "teapot", Reason: "brewing at " + path}, 500, ops.CodeInternal, "", "code=teapot"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -297,8 +329,9 @@ func TestServeHTTPSeamErrors(t *testing.T) {
 			if strings.Contains(rec.Body.String(), path) {
 				t.Errorf("body %q names %s", rec.Body.String(), path)
 			}
-			if !strings.Contains(f.log.String(), tt.err.Error()) {
-				t.Errorf("log %q lacks the error %q", f.log.String(), tt.err.Error())
+			wantLog := cmp.Or(tt.wantLog, tt.err.Error())
+			if !strings.Contains(f.log.String(), wantLog) {
+				t.Errorf("log %q lacks %q", f.log.String(), wantLog)
 			}
 			if !strings.Contains(f.log.String(), "op=start_backup") {
 				t.Errorf("log %q lacks the operation", f.log.String())

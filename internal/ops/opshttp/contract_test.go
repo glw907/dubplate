@@ -195,27 +195,27 @@ func withCaller(ctx context.Context, c caller) context.Context {
 }
 
 // A sessionAuthorizer admits the caller the context carries, as a
-// network actor, to any operation its role reaches: an admin reaches
-// both privileges, a member only the member one. A context with no
-// caller is denied.
+// network actor, granting admin to an admin and member to anyone else;
+// the seam it is wired to decides what each grant reaches. A context
+// with no caller is denied.
 type sessionAuthorizer struct{}
 
-func (sessionAuthorizer) authorize(ctx context.Context, op string, p ops.Privilege) (ops.Actor, error) {
+func (sessionAuthorizer) authorize(ctx context.Context, _ string) (ops.Actor, ops.Privilege, error) {
 	c, ok := ctx.Value(callerKey{}).(caller)
 	if !ok {
-		return ops.Actor{}, errors.New("no verified caller")
+		return ops.Actor{}, 0, errors.New("no verified caller")
 	}
-	if p == ops.PrivilegeAdmin && !c.admin {
-		return ops.Actor{}, fmt.Errorf("%s is not an admin", c.id.Principal)
+	if c.admin {
+		return ops.NetworkActor(c.id), ops.PrivilegeAdmin, nil
 	}
-	return ops.NetworkActor(c.id), nil
+	return ops.NetworkActor(c.id), ops.PrivilegeMember, nil
 }
 
 // A denyAll authorizer denies every caller.
 type denyAll struct{}
 
-func (denyAll) authorize(context.Context, string, ops.Privilege) (ops.Actor, error) {
-	return ops.Actor{}, errors.New("every caller is denied")
+func (denyAll) authorize(context.Context, string) (ops.Actor, ops.Privilege, error) {
+	return ops.Actor{}, 0, errors.New("every caller is denied")
 }
 
 // A setup is what a contract case's fixture needs.
