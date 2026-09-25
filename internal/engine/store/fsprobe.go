@@ -64,7 +64,7 @@ func probeFilesystem(path string) (fsVerdict, int64, error) {
 // probeTarget picks db/ when it exists, else the leaf, else the leaf's
 // parent, since the database's own directory is what WAL depends on
 // and statfs follows a symlinked db/ to its target.
-func probeTarget(l leaf) string {
+func (l leaf) probeTarget() string {
 	if _, err := os.Stat(l.dbDir); err == nil {
 		return l.dbDir
 	}

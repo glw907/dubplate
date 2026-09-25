@@ -163,7 +163,7 @@ func TestInspect_EveryOtherState(t *testing.T) {
 			name: "not a store",
 			setup: func(t *testing.T, stateDir string) {
 				l := newLeaf(stateDir)
-				if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+				if err := l.create(stateDir, os.Geteuid()); err != nil {
 					t.Fatal(err)
 				}
 				precreateFile(t, l.dbPath)

@@ -62,7 +62,7 @@ func newLeaf(stateDir string) leaf {
 // euid is a parameter rather than a syscall.Geteuid() read inside the
 // function, so a test can exercise the mismatch without running as a
 // different real user; every production caller passes os.Geteuid().
-func createLeaf(l leaf, stateDir string, euid int) error {
+func (l leaf) create(stateDir string, euid int) error {
 	info, err := os.Stat(stateDir)
 	if err != nil {
 		return fmt.Errorf("create leaf: stat state directory: %w", err)

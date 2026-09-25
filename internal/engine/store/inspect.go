@@ -129,7 +129,7 @@ func inspect(ctx context.Context, opts InspectOptions, euid int) Report {
 	}
 	r := Report{BinaryVersion: len(files)}
 
-	ls, err := statLeaf(l, euid)
+	ls, err := l.stat(euid)
 	if err != nil {
 		return reportFrom(r, err)
 	}
@@ -137,13 +137,13 @@ func inspect(ctx context.Context, opts InspectOptions, euid int) Report {
 		r.State = StateAbsent
 		return r
 	}
-	r.Warning, err = probeLeaf(l)
+	r.Warning, err = l.probe()
 	if err != nil {
 		return reportFrom(r, err)
 	}
 
 	if !ls.hasLock {
-		c, err := classifyLockless(l)
+		c, err := l.classifyLockless()
 		if err != nil {
 			return reportFrom(r, err)
 		}

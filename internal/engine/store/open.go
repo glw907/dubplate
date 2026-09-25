@@ -104,18 +104,18 @@ func openWrite(ctx context.Context, stateDir string, busyTimeout time.Duration, 
 	if err != nil {
 		return nil, err
 	}
-	ls, err := statLeaf(l, euid)
+	ls, err := l.stat(euid)
 	if err != nil {
 		return nil, err
 	}
 	if !ls.exists {
 		return nil, noStore(l)
 	}
-	if _, err := probeLeaf(l); err != nil {
+	if _, err := l.probe(); err != nil {
 		return nil, err
 	}
 	if !ls.hasLock {
-		c, err := classifyLockless(l)
+		c, err := l.classifyLockless()
 		if err != nil {
 			return nil, err
 		}
@@ -176,16 +176,16 @@ func openServe(ctx context.Context, stateDir string, opts serveOptions, euid int
 		return nil, err
 	}
 	head := len(files)
-	ls, err := statLeaf(l, euid)
+	ls, err := l.stat(euid)
 	if err != nil {
 		return nil, err
 	}
 	if !ls.complete {
-		if err := createLeaf(l, stateDir, euid); err != nil {
+		if err := l.create(stateDir, euid); err != nil {
 			return nil, err
 		}
 	}
-	warning, err := probeLeaf(l)
+	warning, err := l.probe()
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func openServe(ctx context.Context, stateDir string, opts serveOptions, euid int
 // interrupted create of, or migrates the store. It closes every
 // connection it opens.
 func settle(ctx context.Context, l leaf, files []migration, opts serveOptions) (err error) {
-	if err := checkIntent(l); err != nil {
+	if err := l.checkIntent(); err != nil {
 		return err
 	}
 	c, err := classify(ctx, l, opts.busyTimeout, files)
@@ -305,7 +305,7 @@ func waitLock(ctx context.Context, path string, how int, opts serveOptions) (*st
 // shape and its owner against euid, and refuses when a restore-intent
 // record exists. An absent leaf reports exists false and meets no
 // owner check, since there is nothing yet to own.
-func statLeaf(l leaf, euid int) (leafState, error) {
+func (l leaf) stat(euid int) (leafState, error) {
 	info, err := os.Stat(l.root)
 	if errors.Is(err, fs.ErrNotExist) {
 		return leafState{}, nil
@@ -331,11 +331,11 @@ func statLeaf(l leaf, euid int) (leafState, error) {
 			ls.hasLock = ok
 		}
 	}
-	return ls, checkIntent(l)
+	return ls, l.checkIntent()
 }
 
 // checkIntent refuses when l holds a restore-intent record.
-func checkIntent(l leaf) error {
+func (l leaf) checkIntent() error {
 	ok, err := pathExists(l.restoreIntentPath)
 	if err != nil {
 		return err
@@ -348,8 +348,8 @@ func checkIntent(l leaf) error {
 
 // probeLeaf refuses when l sits on a filesystem that spans hosts, and
 // returns a warning for FUSE, which may.
-func probeLeaf(l leaf) (warning string, err error) {
-	target := probeTarget(l)
+func (l leaf) probe() (warning string, err error) {
+	target := l.probeTarget()
 	verdict, magic, err := probeFilesystem(target)
 	if err != nil {
 		return "", refusal(StateRefused, "probe filesystem: %v", err)
@@ -373,7 +373,7 @@ func probeLeaf(l leaf) (warning string, err error) {
 func classify(ctx context.Context, l leaf, busyTimeout time.Duration, files []migration) (dbClass, error) {
 	info, err := os.Stat(l.dbPath)
 	if errors.Is(err, fs.ErrNotExist) {
-		return besideCopy(l, dbAbsent)
+		return l.besideCopy(dbAbsent)
 	}
 	if err != nil {
 		return dbClass{}, refusal(StateRefused, "stat %s: %v", l.dbPath, err)
@@ -390,13 +390,13 @@ func classify(ctx context.Context, l leaf, busyTimeout time.Duration, files []mi
 	if ok {
 		return dbClass{}, refusal(StateNotAStore, "%s is zero bytes beside %s: not a store; no mode changes either file", l.dbPath, wal)
 	}
-	return besideCopy(l, dbInterrupted)
+	return l.besideCopy(dbInterrupted)
 }
 
 // classifyLockless is classify for a leaf with no store.lock, which
 // inspect and write mode never create. It opens nothing it cannot
 // lock, so a database file there is not yet a store.
-func classifyLockless(l leaf) (dbClass, error) {
+func (l leaf) classifyLockless() (dbClass, error) {
 	ok, err := pathExists(l.dbPath)
 	if err != nil {
 		return dbClass{}, err
@@ -404,7 +404,7 @@ func classifyLockless(l leaf) (dbClass, error) {
 	if ok {
 		return dbClass{}, refusal(StateNotAStore, "%s has no lock file %s: start serve to finish creating it", l.dbPath, l.lockPath)
 	}
-	return besideCopy(l, dbAbsent)
+	return l.besideCopy(dbAbsent)
 }
 
 // classifyOpen is classify for a database file that is not empty.
@@ -433,7 +433,7 @@ func classifyOpen(ctx context.Context, l leaf, busyTimeout time.Duration, files 
 
 	switch {
 	case marker == 0 && version == 0 && objects == 0:
-		return besideCopy(l, dbInterrupted)
+		return l.besideCopy(dbInterrupted)
 	case marker == 0:
 		return dbClass{}, refusal(StateNotAStore, "%s is a SQLite database never marked as a dubplate store", l.dbPath)
 	case marker != storeMarker:
@@ -456,7 +456,7 @@ func classifyOpen(ctx context.Context, l leaf, busyTimeout time.Duration, files 
 // besideCopy returns kind for a database that is absent or an
 // interrupted create, unless snapshots/ holds a copy, in which case it
 // refuses naming the newest.
-func besideCopy(l leaf, kind dbKind) (dbClass, error) {
+func (l leaf) besideCopy(kind dbKind) (dbClass, error) {
 	name, err := newestCopy(l.snapshotsDir)
 	if err != nil {
 		return dbClass{}, err

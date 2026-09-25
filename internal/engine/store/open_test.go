@@ -32,7 +32,7 @@ func newLeafDir(t *testing.T) (string, leaf) {
 	t.Helper()
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir, os.Geteuid()); err != nil {
 		t.Fatalf("createLeaf: %v", err)
 	}
 	return stateDir, l
@@ -44,7 +44,7 @@ func newLeafDir(t *testing.T) (string, leaf) {
 func buildStore(t *testing.T, stateDir string, through int) leaf {
 	t.Helper()
 	l := newLeaf(stateDir)
-	if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir, os.Geteuid()); err != nil {
 		t.Fatalf("createLeaf: %v", err)
 	}
 	if err := preCreate(l.dbPath); err != nil {
@@ -220,7 +220,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 			name: "zero-byte file",
 			setup: func(t *testing.T, stateDir string) {
 				l := newLeaf(stateDir)
-				if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+				if err := l.create(stateDir, os.Geteuid()); err != nil {
 					t.Fatal(err)
 				}
 				precreateFile(t, l.dbPath)
@@ -232,7 +232,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 			name: "text file",
 			setup: func(t *testing.T, stateDir string) {
 				l := newLeaf(stateDir)
-				if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+				if err := l.create(stateDir, os.Geteuid()); err != nil {
 					t.Fatal(err)
 				}
 				text := strings.Repeat("this is not a database\n", 200)
@@ -928,7 +928,7 @@ func TestOpenServe_ConversionLost(t *testing.T) {
 			l := newLeaf(stateDir)
 			if tt.through > 0 {
 				buildStore(t, stateDir, tt.through)
-			} else if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+			} else if err := l.create(stateDir, os.Geteuid()); err != nil {
 				t.Fatal(err)
 			}
 			placed := buildStore(t, t.TempDir(), binaryHead).dbPath

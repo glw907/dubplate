@@ -36,10 +36,10 @@ func TestProbeFilesystem(t *testing.T) {
 	// subtest varies.
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	if err := createLeaf(l, stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir, os.Geteuid()); err != nil {
 		t.Fatalf("createLeaf: %v", err)
 	}
-	target := probeTarget(l)
+	target := l.probeTarget()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -81,21 +81,21 @@ func TestProbeTarget(t *testing.T) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
 
-	if got, want := probeTarget(l), stateDir; got != want {
+	if got, want := l.probeTarget(), stateDir; got != want {
 		t.Errorf("probeTarget with no leaf = %q, want the leaf's parent %q", got, want)
 	}
 
 	if err := os.MkdirAll(l.root, leafDirPerm); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := probeTarget(l), l.root; got != want {
+	if got, want := l.probeTarget(), l.root; got != want {
 		t.Errorf("probeTarget with a leaf and no db/ = %q, want the leaf %q", got, want)
 	}
 
 	if err := os.MkdirAll(l.dbDir, leafDirPerm); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := probeTarget(l), l.dbDir; got != want {
+	if got, want := l.probeTarget(), l.dbDir; got != want {
 		t.Errorf("probeTarget with db/ present = %q, want db/ %q", got, want)
 	}
 }

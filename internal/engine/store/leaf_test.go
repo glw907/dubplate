@@ -60,12 +60,12 @@ func TestCreateLeaf_FirstRunAndIdempotentRetry(t *testing.T) {
 	l := newLeaf(stateDir)
 	euid := os.Geteuid()
 
-	if err := createLeaf(l, stateDir, euid); err != nil {
+	if err := l.create(stateDir, euid); err != nil {
 		t.Fatalf("first createLeaf: %v", err)
 	}
 	assertLeafShape(t, l)
 
-	if err := createLeaf(l, stateDir, euid); err != nil {
+	if err := l.create(stateDir, euid); err != nil {
 		t.Fatalf("second createLeaf: %v", err)
 	}
 	assertLeafShape(t, l)
@@ -94,7 +94,7 @@ func TestCreateLeaf_CompletesAPartialCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := createLeaf(l, stateDir, euid); err != nil {
+	if err := l.create(stateDir, euid); err != nil {
 		t.Fatalf("createLeaf over a partial leaf: %v", err)
 	}
 	assertLeafShape(t, l)
@@ -110,7 +110,7 @@ func TestCreateLeaf_OwnerMismatchRefusesAndCreatesNothing(t *testing.T) {
 		t.Skipf("no current user info: %v", err)
 	}
 
-	err = createLeaf(l, stateDir, mismatchEuid)
+	err = l.create(stateDir, mismatchEuid)
 	if err == nil {
 		t.Fatal("createLeaf: want a refusal for a mismatched euid, got nil")
 	}
@@ -134,12 +134,12 @@ func TestCreateLeaf_OwnerCheckRunsOnARetryToo(t *testing.T) {
 	l := newLeaf(stateDir)
 	euid := os.Geteuid()
 
-	if err := createLeaf(l, stateDir, euid); err != nil {
+	if err := l.create(stateDir, euid); err != nil {
 		t.Fatalf("first createLeaf: %v", err)
 	}
 
 	mismatchEuid := euid + 1
-	if err := createLeaf(l, stateDir, mismatchEuid); err == nil {
+	if err := l.create(stateDir, mismatchEuid); err == nil {
 		t.Fatal("createLeaf: want a refusal on retry with a mismatched euid, got nil")
 	}
 }
