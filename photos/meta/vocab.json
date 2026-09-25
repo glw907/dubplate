@@ -1,35 +1,119 @@
 {
   "scenes": {
-    "ska": { "name": "Ska", "family": "reggae" },
-    "rocksteady": { "name": "Rocksteady", "family": "reggae" },
-    "reggae": { "name": "Reggae", "family": "reggae" },
-    "dub": { "name": "Dub", "family": "reggae" },
-    "dancehall": { "name": "Dancehall", "family": "reggae" },
-    "2-tone": { "name": "2 Tone", "family": "reggae" },
-    "lovers-rock": { "name": "Lovers rock", "family": "reggae" },
-    "protopunk": { "name": "Protopunk", "family": "punk" },
-    "punk": { "name": "Punk", "family": "punk" },
-    "hardcore": { "name": "Hardcore", "family": "punk" },
-    "post-punk": { "name": "Post-punk", "family": "punk" },
-    "hip-hop": { "name": "Hip-hop", "family": "hip-hop" },
-    "go-go": { "name": "Go-go", "family": "hip-hop" },
-    "graffiti": { "name": "Graffiti", "family": "hip-hop" },
-    "b-boy": { "name": "B-boy", "family": "hip-hop" },
-    "jazz": { "name": "Jazz", "family": "other" },
-    "blues": { "name": "Blues", "family": "other" },
-    "mod": { "name": "Mod", "family": "other" },
-    "garage": { "name": "Garage", "family": "other" },
-    "rockabilly": { "name": "Rockabilly", "family": "other" },
-    "outsider-artists": { "name": "Outsider artists", "family": "other" },
-    "highlife": { "name": "Highlife", "family": "other" },
-    "afrobeat": { "name": "Afrobeat", "family": "other" },
-    "cumbia": { "name": "Cumbia", "family": "other" }
+    "ska": {
+      "name": "Ska",
+      "family": "reggae"
+    },
+    "rocksteady": {
+      "name": "Rocksteady",
+      "family": "reggae"
+    },
+    "reggae": {
+      "name": "Reggae",
+      "family": "reggae"
+    },
+    "dub": {
+      "name": "Dub",
+      "family": "reggae"
+    },
+    "dancehall": {
+      "name": "Dancehall",
+      "family": "reggae"
+    },
+    "2-tone": {
+      "name": "2 Tone",
+      "family": "reggae"
+    },
+    "lovers-rock": {
+      "name": "Lovers rock",
+      "family": "reggae"
+    },
+    "protopunk": {
+      "name": "Protopunk",
+      "family": "punk"
+    },
+    "punk": {
+      "name": "Punk",
+      "family": "punk"
+    },
+    "hardcore": {
+      "name": "Hardcore",
+      "family": "punk"
+    },
+    "post-punk": {
+      "name": "Post-punk",
+      "family": "punk"
+    },
+    "hip-hop": {
+      "name": "Hip-hop",
+      "family": "hip-hop"
+    },
+    "go-go": {
+      "name": "Go-go",
+      "family": "hip-hop"
+    },
+    "graffiti": {
+      "name": "Graffiti",
+      "family": "hip-hop"
+    },
+    "b-boy": {
+      "name": "B-boy",
+      "family": "hip-hop"
+    },
+    "jazz": {
+      "name": "Jazz",
+      "family": "other"
+    },
+    "blues": {
+      "name": "Blues",
+      "family": "other"
+    },
+    "mod": {
+      "name": "Mod",
+      "family": "other"
+    },
+    "garage": {
+      "name": "Garage",
+      "family": "other"
+    },
+    "rockabilly": {
+      "name": "Rockabilly",
+      "family": "other"
+    },
+    "outsider-artists": {
+      "name": "Outsider artists",
+      "family": "other"
+    },
+    "highlife": {
+      "name": "Highlife",
+      "family": "other"
+    },
+    "afrobeat": {
+      "name": "Afrobeat",
+      "family": "other"
+    },
+    "cumbia": {
+      "name": "Cumbia",
+      "family": "other"
+    }
   },
   "families": {
-    "reggae": { "name": "Reggae", "share": 0.30 },
-    "punk": { "name": "Punk", "share": 0.20 },
-    "hip-hop": { "name": "Hip-hop", "share": 0.20 },
-    "other": { "name": "Everything else", "share": 0.30 }
+    "reggae": {
+      "name": "Reggae",
+      "share": 0.3
+    },
+    "punk": {
+      "name": "Punk",
+      "share": 0.2
+    },
+    "hip-hop": {
+      "name": "Hip-hop",
+      "share": 0.2
+    },
+    "other": {
+      "name": "Everything else",
+      "share": 0.3
+    }
   },
   "subjects": {
     "performers": "Performers",
@@ -52,55 +136,317 @@
     "record-stores",
     "crowds-and-dancers"
   ],
-  "shots": ["live", "candid", "posed", "interior", "exterior", "still-life"],
-  "formats": ["photograph", "flyer", "zine-cover"],
-  "surfaces": ["login", "error", "empty", "gallery"],
+  "shots": [
+    "live",
+    "candid",
+    "posed",
+    "interior",
+    "exterior",
+    "still-life"
+  ],
+  "formats": [
+    "photograph",
+    "flyer",
+    "zine-cover"
+  ],
+  "surfaces": [
+    "login",
+    "error",
+    "empty",
+    "gallery"
+  ],
   "regions": {
     "caribbean": {
       "name": "Caribbean",
-      "country_codes": ["JM", "TT", "BS", "BB", "CU", "DO", "HT", "PR", "BZ", "GY", "SR"]
+      "country_codes": [
+        "AG",
+        "AI",
+        "AW",
+        "BB",
+        "BL",
+        "BQ",
+        "BS",
+        "CU",
+        "CW",
+        "DM",
+        "DO",
+        "GD",
+        "GP",
+        "HT",
+        "JM",
+        "KN",
+        "KY",
+        "LC",
+        "MF",
+        "MQ",
+        "MS",
+        "PR",
+        "SX",
+        "TC",
+        "TT",
+        "VC",
+        "VG",
+        "VI"
+      ]
     },
     "uk-ireland": {
       "name": "UK and Ireland",
-      "country_codes": ["GB", "IE"]
+      "country_codes": [
+        "GB",
+        "GG",
+        "IE",
+        "IM",
+        "JE"
+      ]
     },
     "north-america": {
       "name": "North America",
-      "country_codes": ["US", "CA", "MX"]
+      "country_codes": [
+        "BM",
+        "CA",
+        "GL",
+        "PM",
+        "US"
+      ]
     },
     "africa": {
       "name": "Africa",
       "country_codes": [
-        "NG", "GH", "ZA", "SN", "ET", "KE", "EG", "MA", "DZ", "TN", "CI", "CM",
-        "TZ", "UG", "ZM", "ZW", "MZ", "AO", "CD", "CG"
+        "AO",
+        "BF",
+        "BI",
+        "BJ",
+        "BW",
+        "CD",
+        "CF",
+        "CG",
+        "CI",
+        "CM",
+        "CV",
+        "EH",
+        "ER",
+        "ET",
+        "GA",
+        "GH",
+        "GM",
+        "GN",
+        "GQ",
+        "GW",
+        "IO",
+        "KE",
+        "KM",
+        "LR",
+        "LS",
+        "MG",
+        "ML",
+        "MR",
+        "MU",
+        "MW",
+        "MZ",
+        "NA",
+        "NE",
+        "NG",
+        "RE",
+        "RW",
+        "SC",
+        "SD",
+        "SH",
+        "SL",
+        "SN",
+        "SO",
+        "SS",
+        "ST",
+        "SZ",
+        "TD",
+        "TF",
+        "TG",
+        "TZ",
+        "UG",
+        "YT",
+        "ZA",
+        "ZM",
+        "ZW"
       ]
     },
     "latin-america": {
       "name": "Latin America",
       "country_codes": [
-        "BR", "AR", "CL", "CO", "PE", "VE", "EC", "BO", "PY", "UY", "CR", "PA",
-        "GT", "HN", "SV", "NI"
+        "AR",
+        "BO",
+        "BR",
+        "BV",
+        "BZ",
+        "CL",
+        "CO",
+        "CR",
+        "EC",
+        "FK",
+        "GF",
+        "GS",
+        "GT",
+        "GY",
+        "HN",
+        "MX",
+        "NI",
+        "PA",
+        "PE",
+        "PY",
+        "SR",
+        "SV",
+        "UY",
+        "VE"
       ]
     },
     "europe": {
       "name": "Europe",
       "country_codes": [
-        "DE", "FR", "IT", "ES", "PT", "NL", "BE", "SE", "NO", "DK", "FI", "PL",
-        "CZ", "AT", "CH", "HU", "RO", "BG", "GR", "RS", "HR", "SI", "SK", "UA", "RU"
+        "AD",
+        "AL",
+        "AT",
+        "AX",
+        "BA",
+        "BE",
+        "BG",
+        "BY",
+        "CH",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "ES",
+        "FI",
+        "FO",
+        "FR",
+        "GI",
+        "GR",
+        "HR",
+        "HU",
+        "IS",
+        "IT",
+        "LI",
+        "LT",
+        "LU",
+        "LV",
+        "MC",
+        "MD",
+        "ME",
+        "MK",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "RO",
+        "RS",
+        "RU",
+        "SE",
+        "SI",
+        "SJ",
+        "SK",
+        "SM",
+        "UA",
+        "VA"
       ]
     },
     "mena": {
       "name": "Middle East and North Africa",
-      "country_codes": ["SA", "AE", "QA", "KW", "BH", "OM", "JO", "LB", "IQ", "IR", "IL", "PS", "TR", "LY"]
+      "country_codes": [
+        "AE",
+        "BH",
+        "DJ",
+        "DZ",
+        "EG",
+        "IL",
+        "IQ",
+        "IR",
+        "JO",
+        "KW",
+        "LB",
+        "LY",
+        "MA",
+        "MT",
+        "OM",
+        "PS",
+        "QA",
+        "SA",
+        "SY",
+        "TN",
+        "YE"
+      ]
     },
     "asia-pacific": {
       "name": "Asia and Pacific",
       "country_codes": [
-        "JP", "CN", "KR", "IN", "TH", "VN", "PH", "ID", "MY", "SG", "AU", "NZ",
-        "PK", "BD", "LK"
+        "AF",
+        "AM",
+        "AQ",
+        "AS",
+        "AU",
+        "AZ",
+        "BD",
+        "BN",
+        "BT",
+        "CC",
+        "CK",
+        "CN",
+        "CX",
+        "CY",
+        "FJ",
+        "FM",
+        "GE",
+        "GU",
+        "HK",
+        "HM",
+        "ID",
+        "IN",
+        "JP",
+        "KG",
+        "KH",
+        "KI",
+        "KP",
+        "KR",
+        "KZ",
+        "LA",
+        "LK",
+        "MH",
+        "MM",
+        "MN",
+        "MO",
+        "MP",
+        "MV",
+        "MY",
+        "NC",
+        "NF",
+        "NP",
+        "NR",
+        "NU",
+        "NZ",
+        "PF",
+        "PG",
+        "PH",
+        "PK",
+        "PN",
+        "PW",
+        "SB",
+        "SG",
+        "TH",
+        "TJ",
+        "TK",
+        "TL",
+        "TM",
+        "TO",
+        "TR",
+        "TV",
+        "TW",
+        "UM",
+        "UZ",
+        "VN",
+        "VU",
+        "WF",
+        "WS"
       ]
     }
   },
+  "regions_source": "ISO 3166-1 alpha-2 officially assigned codes and UN M49 region/sub-region/intermediate-region groupings: datasets/country-codes CSV mirror of UN Statistics Division M49 data, https://raw.githubusercontent.com/datasets/country-codes/master/data/country-codes.csv (fetched 2026-09-25); MENA membership: World Bank country metadata API, https://api.worldbank.org/v2/country?format=json&per_page=400, region \"Middle East, North Africa, Afghanistan & Pakistan\" minus Afghanistan and Pakistan (retained in asia-pacific per M49 Southern Asia) (fetched 2026-09-25).",
   "licenses": [
     {
       "id": "LicenseRef-public-domain",
@@ -205,8 +551,31 @@
       "class": "pack"
     }
   ],
-  "flickr_licenses": {},
-  "year_precisions": ["exact", "circa", "decade"],
+  "flickr_licenses": {
+    "0": null,
+    "1": null,
+    "2": null,
+    "3": null,
+    "4": "CC-BY-2.0",
+    "5": "CC-BY-SA-2.0",
+    "6": null,
+    "7": null,
+    "8": null,
+    "9": "CC0-1.0",
+    "10": null,
+    "11": "CC-BY-4.0",
+    "12": "CC-BY-SA-4.0",
+    "13": null,
+    "14": "CC-BY-NC-4.0",
+    "15": null,
+    "16": "CC-BY-NC-ND-4.0"
+  },
+  "flickr_licenses_source": "https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html (fetched 2026-09-25) -- the flickr.com API documentation page's example response, the site's static rendering of the license-models table; a live photo page (e.g. https://www.flickr.com/photos/library_of_congress/2179448298/) renders license names and URLs client-side only and carries no such table in its raw HTML.",
+  "year_precisions": [
+    "exact",
+    "circa",
+    "decade"
+  ],
   "public_domain_us_status": "public domain",
   "public_domain_bases": [
     {
@@ -236,5 +605,8 @@
     "vocab",
     "format"
   ],
-  "people_flags": ["personality-rights", "apparent-minor"]
+  "people_flags": [
+    "personality-rights",
+    "apparent-minor"
+  ]
 }
