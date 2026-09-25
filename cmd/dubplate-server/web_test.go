@@ -1,15 +1,20 @@
 package main
 
 import (
+	"bytes"
+	"io/fs"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
 
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/web"
 )
 
 // fixtureThemeCSS declares the three composed selectors a fixture
@@ -236,6 +241,225 @@ func TestStampablePalettes(t *testing.T) {
 		if got[i] != w {
 			t.Errorf("stampablePalettes[%d] = %q, want %q", i, got[i], w)
 		}
+	}
+}
+
+// scriptBodyRE extracts every inline <script>...</script> body, in
+// document order, independent of internal/serve's own rewrite logic.
+var scriptBodyRE = regexp.MustCompile(`(?is)<script(?:\s[^>]*)?>(.*?)</script>`)
+
+func extractScriptBodies(doc []byte) []string {
+	var bodies []string
+	for _, m := range scriptBodyRE.FindAllSubmatch(doc, -1) {
+		bodies = append(bodies, string(m[1]))
+	}
+	return bodies
+}
+
+// TestNewWebRoutes_RewriteChangesOnlyTheToken proves the rewrite's
+// whole edit against the real embedded bundle, both documents and
+// every stampable palette: the served body, with the composed name
+// swapped back for [themePlaceholder], is byte-equal to the embedded
+// original, and every inline <script> body served is byte-identical to
+// the original's, in the same order.
+func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
+	prefix := webTestPrefix(t)
+
+	buildFS, err := fs.Sub(web.Assets, "build")
+	if err != nil {
+		t.Fatalf("fs.Sub: %v", err)
+	}
+	routes, err := newWebRoutes(nil, prefix)
+	if err != nil {
+		t.Fatalf("newWebRoutes: %v", err)
+	}
+
+	documents := []struct {
+		name string
+		path string
+	}{
+		{name: loginDocumentName, path: prefix.String() + "/login"},
+		{name: loginLinkDocumentName, path: prefix.String() + "/login/link"},
+	}
+
+	for _, doc := range documents {
+		original, err := fs.ReadFile(buildFS, doc.name)
+		if err != nil {
+			t.Fatalf("fs.ReadFile(%q): %v", doc.name, err)
+		}
+		wantScripts := extractScriptBodies(original)
+		if len(wantScripts) == 0 {
+			t.Fatalf("%s carries no inline <script>; the fixture proves nothing", doc.name)
+		}
+
+		for _, palette := range []string{"label", "label-night", "system"} {
+			t.Run(doc.name+"/"+palette, func(t *testing.T) {
+				r := httptest.NewRequest(http.MethodGet, doc.path, nil)
+				r.Header.Set("Cookie", serve.ThemeCookieName+"="+palette)
+				rec := httptest.NewRecorder()
+				routes.login.ServeHTTP(rec, r)
+				if rec.Code != http.StatusOK {
+					t.Fatalf("status = %d, want 200", rec.Code)
+				}
+				served := rec.Body.Bytes()
+
+				composed := acceptedThemeMatch + "-" + palette
+				restored := bytes.Replace(served, []byte(composed), []byte(themePlaceholder), 1)
+				if !bytes.Equal(restored, original) {
+					t.Errorf("%s served for %q, with %q swapped back for the placeholder, is not byte-equal to the embedded original", doc.name, palette, composed)
+				}
+
+				gotScripts := extractScriptBodies(served)
+				if len(gotScripts) != len(wantScripts) {
+					t.Fatalf("%s served for %q carries %d inline scripts, want %d", doc.name, palette, len(gotScripts), len(wantScripts))
+				}
+				for i := range wantScripts {
+					if gotScripts[i] != wantScripts[i] {
+						t.Errorf("%s served for %q script[%d] = %q, want %q", doc.name, palette, i, gotScripts[i], wantScripts[i])
+					}
+				}
+			})
+		}
+	}
+}
+
+// newCapturedWebHandler builds a real [serve.Shell] mounting
+// [newWebRoutes]'s login and _app routes over the real embedded
+// bundle, with logger writing to a fresh, returned buffer, so a test
+// can assert on what the shell logs about a request as well as on the
+// response it answers.
+func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) (http.Handler, *bytes.Buffer) {
+	t.Helper()
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
+	routes, err := newWebRoutes(environ, prefix)
+	if err != nil {
+		t.Fatalf("newWebRoutes(%v): %v", environ, err)
+	}
+	strip := serve.NewStrip("", "", serve.TrustedProxyConfig{}, serve.FrontExemption{})
+	shell := serve.NewShell(prefix, strip, logger)
+	shell.Register(loginRouteName, routes.login)
+	shell.Register(assetsRouteName, routes.assets)
+	return shell.Handler(), &buf
+}
+
+// TestNewWebRoutes_RealBundleThemeStamp proves the stamp deliverable
+// end-to-end against the real built bundle: the extracted stampable
+// set is exactly {label, label-night, system} before any cookie row
+// runs, a no-cookie request (and the empty-match-key resolution path)
+// stamps the operator's default, and every cookie row from the plan's
+// States table stamps its stated composed name, with a body byte-equal
+// to a startup variant, no Set-Cookie, and no log record holding the
+// cookie's value.
+func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
+	prefix := webTestPrefix(t)
+
+	buildFS, err := fs.Sub(web.Assets, "build")
+	if err != nil {
+		t.Fatalf("fs.Sub: %v", err)
+	}
+	loginRaw, err := fs.ReadFile(buildFS, loginDocumentName)
+	if err != nil {
+		t.Fatalf("fs.ReadFile(%q): %v", loginDocumentName, err)
+	}
+	linkRaw, err := fs.ReadFile(buildFS, loginLinkDocumentName)
+	if err != nil {
+		t.Fatalf("fs.ReadFile(%q): %v", loginLinkDocumentName, err)
+	}
+	selectors, err := extractThemeSelectors(buildFS,
+		namedDocument{path: loginDocumentName, raw: loginRaw},
+		namedDocument{path: loginLinkDocumentName, raw: linkRaw},
+	)
+	if err != nil {
+		t.Fatalf("extractThemeSelectors: %v", err)
+	}
+	gotPalettes := stampablePalettes(selectors, acceptedThemeMatch)
+	wantPalettes := []string{"label", "label-night", "system"}
+	if !slices.Equal(gotPalettes, wantPalettes) {
+		t.Fatalf("stampablePalettes(real bundle) = %v, want %v", gotPalettes, wantPalettes)
+	}
+
+	// The no-cookie row, proved under both the unset key and the
+	// empty-string key: R-5cii12's wall convention resolves both to the
+	// same accepted default.
+	for _, environ := range [][]string{nil, {"DUBPLATE_THEME_MATCH="}} {
+		handler, _ := newCapturedWebHandler(t, environ, prefix)
+		r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, r)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("environ %v: status = %d, want 200", environ, rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), `data-theme="dubplate-system"`) {
+			t.Errorf("environ %v: body = %q, want it to carry data-theme=%q", environ, rec.Body.String(), "dubplate-system")
+		}
+	}
+
+	tests := []struct {
+		name         string
+		paletteEnv   string // DUBPLATE_THEME_PALETTE; "" leaves the key unset (default "system")
+		cookieHeader string
+		wantComposed string
+	}{
+		{name: "absent cookie, default keys", wantComposed: "dubplate-system"},
+		{name: "cookie label", cookieHeader: "__Host-dubplate_theme=label", wantComposed: "dubplate-label"},
+		{name: "cookie label-night overrides a palette key pinned to label", paletteEnv: "label", cookieHeader: "__Host-dubplate_theme=label-night", wantComposed: "dubplate-label-night"},
+		{name: "cookie system overrides a palette key pinned to label-night", paletteEnv: "label-night", cookieHeader: "__Host-dubplate_theme=system", wantComposed: "dubplate-system"},
+		{name: "cookie value enclosed in double quotes", cookieHeader: `__Host-dubplate_theme="label"`, wantComposed: "dubplate-label"},
+		{name: "unknown palette falls back to default", cookieHeader: "__Host-dubplate_theme=gruvbox", wantComposed: "dubplate-system"},
+		{name: "a prefix of a real palette never matches", cookieHeader: "__Host-dubplate_theme=label-n", wantComposed: "dubplate-system"},
+		{name: "another case never matches", cookieHeader: "__Host-dubplate_theme=Label", wantComposed: "dubplate-system"},
+		{name: "an interior space never matches", cookieHeader: "__Host-dubplate_theme=label night", wantComposed: "dubplate-system"},
+		{name: "empty value falls back to default", cookieHeader: "__Host-dubplate_theme=", wantComposed: "dubplate-system"},
+		{name: "a backslash byte the parser refuses", cookieHeader: `__Host-dubplate_theme=a\b`, wantComposed: "dubplate-system"},
+		{name: "an interior double quote", cookieHeader: `__Host-dubplate_theme=la"bel`, wantComposed: "dubplate-system"},
+		{name: "a control byte", cookieHeader: "__Host-dubplate_theme=la\x01bel", wantComposed: "dubplate-system"},
+		{name: "a non-ASCII byte", cookieHeader: "__Host-dubplate_theme=la\x80bel", wantComposed: "dubplate-system"},
+		{name: "two cookies of the name: only the first parsed one is read", cookieHeader: "__Host-dubplate_theme=gruvbox; __Host-dubplate_theme=label-night", wantComposed: "dubplate-system"},
+		{name: "the same value under another cookie name is ignored", cookieHeader: "dubplate_theme=label-night", wantComposed: "dubplate-system"},
+		{name: "two cookies, the first unparseable: the second is read", cookieHeader: `__Host-dubplate_theme=a\b; __Host-dubplate_theme=label-night`, wantComposed: "dubplate-label-night"},
+		{name: "a padded value keeps the space inside, so it never matches", cookieHeader: "__Host-dubplate_theme= label", wantComposed: "dubplate-system"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var environ []string
+			if tt.paletteEnv != "" {
+				environ = []string{"DUBPLATE_THEME_PALETTE=" + tt.paletteEnv}
+			}
+			handler, logBuf := newCapturedWebHandler(t, environ, prefix)
+
+			r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
+			if tt.cookieHeader != "" {
+				r.Header.Set("Cookie", tt.cookieHeader)
+			}
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, r)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200", rec.Code)
+			}
+
+			// The startup variant for the row's own composed name: a
+			// request whose cookie is exactly that palette name always
+			// selects the same variant map entry NewDocument answers
+			// this row from.
+			wantPalette := strings.TrimPrefix(tt.wantComposed, "dubplate-")
+			variantReq := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
+			variantReq.Header.Set("Cookie", serve.ThemeCookieName+"="+wantPalette)
+			variantRec := httptest.NewRecorder()
+			handler.ServeHTTP(variantRec, variantReq)
+			if rec.Body.String() != variantRec.Body.String() {
+				t.Errorf("body is not byte-equal to the %q startup variant", tt.wantComposed)
+			}
+			if !strings.Contains(rec.Body.String(), `data-theme="`+tt.wantComposed+`"`) {
+				t.Errorf("body = %q, want it to carry data-theme=%q", rec.Body.String(), tt.wantComposed)
+			}
+			if set := rec.Header().Values("Set-Cookie"); len(set) != 0 {
+				t.Errorf("Set-Cookie = %v, want none", set)
+			}
+			if tt.cookieHeader != "" && strings.Contains(logBuf.String(), tt.cookieHeader) {
+				t.Errorf("log buffer contains the cookie header %q: %s", tt.cookieHeader, logBuf.String())
+			}
+		})
 	}
 }
 
