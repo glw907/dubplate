@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -45,6 +46,16 @@ const (
 	renderedLinkMailCeiling              = 100
 )
 
+// renderedBrandingPrimary and renderedOperatorPrimary are the
+// --color-primary values G7's computed half (R-5ciii8) checks. Neither
+// matches any shipped theme's own declared value (web/src/lib/themes/
+// label.css, label-night.css, and system.css all declare #c1352b), so
+// a passing row proves a real override rather than a coincidence.
+const (
+	renderedBrandingPrimary = "#336699"
+	renderedOperatorPrimary = "#1a2b3c"
+)
+
 // A renderedRow is one row of the manifest: the ID the script must
 // report exactly once, and the link requests and link consumptions the
 // row spends against the fixture's rate limits.
@@ -67,6 +78,18 @@ var renderedManifest = []renderedRow{
 	{id: "csp-clean/login"},
 	{id: "csp-clean/login-link"},
 	{id: "csp-violation-listener/img-src"},
+	{id: "g7/computed/with-branding/label"},
+	{id: "g7/computed/with-branding/label-night"},
+	{id: "g7/computed/with-branding/system-light"},
+	{id: "g7/computed/with-branding/system-dark"},
+	{id: "g7/computed/without-branding/label"},
+	{id: "g7/computed/without-branding/label-night"},
+	{id: "g7/computed/without-branding/system-light"},
+	{id: "g7/computed/without-branding/system-dark"},
+	{id: "g7/computed/operator/label"},
+	{id: "g10/structural/dubplate-label"},
+	{id: "g10/structural/dubplate-label-night"},
+	{id: "g10/light-control"},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two
@@ -193,6 +216,52 @@ func startRenderedServer(t *testing.T) (*httptest.Server, *requestLog, []string)
 	srv.Start()
 	t.Cleanup(srv.Close)
 	return srv, log, environ
+}
+
+// startFixtureServer builds the real serve shell through
+// [newServeShell] on renderedEnviron with overrides applied over it,
+// and serves it on its own loopback port. It is the harness's own
+// mechanism, reused for G7's branding and operator fixtures
+// (R-5ciii8), which need a differently configured server than
+// [startRenderedServer]'s.
+func startFixtureServer(t *testing.T, overrides map[string]string) *httptest.Server {
+	t.Helper()
+	srv := httptest.NewUnstartedServer(nil)
+	environ := renderedEnviron(t, "http://"+srv.Listener.Addr().String())
+	for name, value := range overrides {
+		environ = replaceKey(environ, name, value)
+	}
+	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	if err != nil {
+		t.Fatalf("newServeShell: %v", err)
+	}
+	srv.Config.Handler = shell.Handler()
+	srv.Start()
+	t.Cleanup(srv.Close)
+	return srv
+}
+
+// startBrandingServer serves the fixture environment with
+// DUBPLATE_BRANDING declaring renderedBrandingPrimary: G7's
+// with-branding fixture.
+func startBrandingServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	return startFixtureServer(t, map[string]string{
+		"DUBPLATE_BRANDING": "--color-primary: " + renderedBrandingPrimary,
+	})
+}
+
+// startOperatorServer serves the fixture environment with the same
+// branding as [startBrandingServer] plus an operator CSS file
+// declaring renderedOperatorPrimary for the same name: G7's operator
+// fixture, which proves tier 3 wins over tier 2 (R4.1).
+func startOperatorServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	path := writeOperatorCSS(t, fmt.Appendf(nil, ":root {\n\t--color-primary: %s;\n}\n", renderedOperatorPrimary))
+	return startFixtureServer(t, map[string]string{
+		"DUBPLATE_BRANDING":          "--color-primary: " + renderedBrandingPrimary,
+		"DUBPLATE_OPERATOR_CSS_FILE": path,
+	})
 }
 
 // checkRateBudget fails t unless the manifest's total link requests
@@ -325,9 +394,16 @@ func TestRendered(t *testing.T) {
 	checkServedVersion(t, base, webDir)
 	checkRateBudget(t, environ)
 
+	brandingSrv := startBrandingServer(t)
+	operatorSrv := startOperatorServer(t)
+
 	env := append(os.Environ(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
 		"DUBPLATE_RENDERED_REQUEST_LOG="+logSrv.URL,
+		"DUBPLATE_RENDERED_BRANDING_BASE_URL="+brandingSrv.URL+renderedPrefix+"/",
+		"DUBPLATE_RENDERED_OPERATOR_BASE_URL="+operatorSrv.URL+renderedPrefix+"/",
+		"DUBPLATE_RENDERED_BRANDING_PRIMARY="+renderedBrandingPrimary,
+		"DUBPLATE_RENDERED_OPERATOR_PRIMARY="+renderedOperatorPrimary,
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {
