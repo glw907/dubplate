@@ -15,7 +15,8 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i and 5c-ii, and rung 6's 6a, 6b-i, an
   keys on `IntegrationEnabled`, not `IntegrationValue`'s emptiness.
 
 **Resume prompt:** execute `docs/superpowers/plans/2026-09-25-unattended-window-2.md` (Geoff's grants
-inside: 5c-iii segments continue in lane 1; 6b-ii-b starts in lane 2; 11M cap; read-only box).
+inside: 5c-iii segments continue in lane 1 through its Task 6 close; 6b-ii-b does not start in
+window 2; cap raised to 14.5M, flag 13.4M (Geoff, 2026-09-25, attended); read-only box).
 Read memory `session-2026-09-25-handoff`. Rung 12 owns the roster API's shared origin
 with the Navidrome fallthrough (5c-ii security M2) as a threat-model entry (Geoff, 2026-09-25).
 
@@ -34,7 +35,7 @@ errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus h
 | 1 | main tree (master) | OPEN: 5c-iii Task 0 launched (`6e6fd12`), segment A (Tasks 1, 2) running; ceiling 10.8M |
 | 2 | (free) | CLOSED: 6b-ii-a merged at `6e6fd12`; 6b-ii-b next |
 
-Window 2 spend against the 11M cap: about 4.6M (matcher pass about 1.25M against 2.75M; 6b-ii-a
+Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 4.9M (matcher pass about 1.25M against 2.75M; 6b-ii-a
 about 1.95M against 3.90M, including five merge-side architecture reads split across both passes).
 Attended interactions after approval: 0 for both passes. AC online at launch.
 
