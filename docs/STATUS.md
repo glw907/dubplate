@@ -30,11 +30,12 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
    after its tail ran in autocommit (6b-i); a failed snapshot rename leaves staging occupied; the
    rebuild marker matches exact bytes only; serve's settle loop is unbounded and `logger` unguarded
    (6d); mutation 4 is unobservable and mutation 11 panics inside `checkLedger`'s contract.
-2. **5c-ii runs in lane 1** (approved 2026-09-24, all seven rulings yes; revision 2.2, 9.4M ceiling).
-   Segment A (Tasks 1-2) in flight. **Segment B is held for the visual identity tokens:** Geoff's
-   brainstorm (session dubplate-04, spec `specs/2026-09-24-visual-identity-design.md` pending) ruled
-   `label`/`label-night` themes, Alfa Slab One, Work Sans, IBM Plex Mono. Task 4 authors those tokens
-   in place of Ruling 3's `gruvbox`; fonts stay in 5c-iii.
+2. **5c-ii runs in lane 1** (approved 2026-09-24; now revision 2.4, amended for Geoff's visual
+   identity ruling: `label` and `label-night` palettes, a `dubplate-system` stamp resolved by CSS,
+   the `__Host-dubplate_theme` cookie read in Task 5, the toggle in 5c-iii; tokens pinned in
+   `research/2026-09-24-visual-identity-draft-tokens.md`). Segment A closed green (Tasks 1-2,
+   `5637ecb`, `e9f7367`, `7769d25`; about 1.2M with Task 0; projection 7.0M against the 7.52M
+   flag). Segment B (Tasks 3-5) launches after the 6a merge ritual clears the main tree.
 3. **Beets 2.14.1 adopted and closed** (`367564c`, fix round `422efcd`, simplifier clean): the ft
    compat class retired, six sanctioned empty-search responses, 215 cases re-frozen.
 4. The architecture cleanup pass joins the staged comment-cleanup task
