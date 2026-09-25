@@ -207,8 +207,11 @@ func TestPrune_ClockSkew(t *testing.T) {
 }
 
 // TestPrune_FirstRun is the first-run row: a remote with no archive/
-// and no snapshots/ before the run. The run succeeds and its
-// progress names no prune failure.
+// and no snapshots/ before the run. The run succeeds, and since the
+// prune has nothing to report, the succeeded record's final progress
+// names the run finished rather than repeating the last phase
+// ("pruning old snapshots") that backup.Job.Run reported before the
+// prune ran.
 func TestPrune_FirstRun(t *testing.T) {
 	remote, _ := localRemote(t)
 	h := openWrite(t, newStateDir(t))
@@ -218,8 +221,8 @@ func TestPrune_FirstRun(t *testing.T) {
 
 	_, st := runBackup(t, h, remote, lib)
 	wantState(t, st, ops.JobSucceeded, "")
-	if strings.Contains(st.Phase, "prune failed") {
-		t.Errorf("progress %q names a prune failure on a first run", st.Phase)
+	if st.Phase != "backup finished" {
+		t.Errorf("progress %q, want %q for a clean prune", st.Phase, "backup finished")
 	}
 }
 
@@ -323,5 +326,73 @@ func TestPrune_SendFailureNoReference(t *testing.T) {
 	}
 	if want := []string{"sync", "copyto"}; !slices.Equal(subs, want) {
 		t.Errorf("the stand-in ran %q, want %q; a send failure must run no prune step", subs, want)
+	}
+}
+
+// TestPrune_FewSnapshotsKeepsAll is the states table's "14 or fewer,
+// own included" row for remote snapshots: a remote seeded with 5
+// snapshots stays well under the keep total, so a successful run
+// deletes none of them.
+func TestPrune_FewSnapshotsKeepsAll(t *testing.T) {
+	remote, remoteDir := localRemote(t)
+	now := time.Now()
+	var seeded []string
+	for i := 1; i <= 5; i++ {
+		seeded = append(seeded, store.FormatStamp(now.Add(-time.Duration(i)*time.Hour)))
+	}
+	seedSnapshots(t, remoteDir, seeded)
+
+	h := openWrite(t, newStateDir(t))
+	plantTracks(t, h, 1)
+	lib := t.TempDir()
+	writeTree(t, lib, "a/one.flac")
+
+	_, st := runBackup(t, h, remote, lib)
+	wantState(t, st, ops.JobSucceeded, "")
+
+	got := treeFiles(t, filepath.Join(remoteDir, "snapshots"))
+	if len(got) != len(seeded)+1 {
+		t.Fatalf("snapshots/ holds %d files, want %d (%d seeded + the run's own): %q", len(got), len(seeded)+1, len(seeded), got)
+	}
+	for _, stamp := range seeded {
+		if !slices.Contains(got, stamp+".db") {
+			t.Errorf("snapshots/ lost seeded stamp %s, want every seeded snapshot kept when the total stays at or under the keep count", stamp)
+		}
+	}
+}
+
+// TestPrune_StepFailureLogged is the states table's "any prune step
+// fails" row: a read-only archive directory makes rclone purge fail
+// to delete the seeded marker inside it. The run still ends
+// succeeded, and the failure is logged and folded into the record's
+// final progress rather than failing the job.
+func TestPrune_StepFailureLogged(t *testing.T) {
+	remote, remoteDir := localRemote(t)
+	now := time.Now()
+	oldStamp := store.FormatStamp(now.Add(-100 * 24 * time.Hour))
+	seedArchiveDir(t, remoteDir, oldStamp)
+	archiveDir := filepath.Join(remoteDir, "archive", oldStamp)
+	if err := os.Chmod(archiveDir, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chmod(archiveDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	h := openWrite(t, newStateDir(t))
+	plantTracks(t, h, 1)
+	lib := t.TempDir()
+	writeTree(t, lib, "a/one.flac")
+
+	_, st := runBackup(t, h, remote, lib)
+	wantState(t, st, ops.JobSucceeded, "")
+	if !strings.Contains(st.Phase, "prune failed") {
+		t.Errorf("progress %q does not name the failed prune step", st.Phase)
+	}
+
+	if _, err := os.Stat(filepath.Join(archiveDir, "marker.flac")); err != nil {
+		t.Errorf("marker.flac under the read-only archive directory: %v, want it left in place since the purge could not remove it", err)
 	}
 }

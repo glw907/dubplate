@@ -51,7 +51,10 @@ type Job struct {
 // Once the send succeeds, Run writes the backup reference and then
 // prunes the remote's snapshots and archive and the local snapshots
 // directory; a skipped or failed prune is folded into the returned
-// text rather than the run's error, since the backup itself landed.
+// text rather than the run's error, since the backup itself landed. A
+// clean prune reports no text of its own, so Run's returned text
+// names the run finished instead of repeating the last phase it
+// reported.
 func (j Job) Run(ctx context.Context, progress func(phase string) error) (string, error) {
 	start := time.Now()
 	stamp := store.FormatStamp(start)
@@ -123,5 +126,9 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	}
 	localDir := filepath.Join(filepath.Dir(filepath.Dir(stage)), "snapshots")
 	p := prune{bin: bin, remote: remote, stamp: stamp, localDir: localDir, start: start}
-	return p.run(ctx, j.Logger), nil
+	result := p.run(ctx, j.Logger)
+	if result == "" {
+		result = "backup finished"
+	}
+	return result, nil
 }
