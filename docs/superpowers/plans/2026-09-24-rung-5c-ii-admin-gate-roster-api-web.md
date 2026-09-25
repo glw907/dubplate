@@ -1,6 +1,12 @@
 # Rung 5, Pass 5c-ii (The Admin Gate, the Roster API, and the `web/` Tree Born Gated) Implementation Plan
 
-Status: **revision 2.2, 2026-09-24; approved by Geoff 2026-09-24 with all seven rulings yes.**
+Status: **revision 2.3, 2026-09-24; approved 2.2 amended for Geoff's visual identity ruling (label and label-night).**
+Revision 2.2 was approved by Geoff 2026-09-24 with all seven rulings yes.
+Revision 2.3 changes the theme surface only: Ruling 3's note, the
+privileged-fields theme rows, R-5cii8's document rows, R-5cii12,
+R-5cii15, R-5cii22 (new), Tasks 4, 5, and 8, the exit gate, and the
+ceiling arithmetic. The fold record's "Amendment for the visual identity
+ruling" section lists each change and its reason.
 Revision 1 (`3ebfe3c`) took three lens reviews (`140e3cd`:
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
 `-mechanics.md`, `-risk.md`); revision 2 (`74066b1`) folded them and
@@ -12,7 +18,7 @@ folds the prose review
 P1 through P15). The fold record, one disposition per finding in all
 three folds, is
 `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`.
-Seven rulings for Geoff are open ("Rulings for Geoff").
+The seven rulings are answered ("Rulings for Geoff").
 
 Sources: the approved 5c-i plan
 (`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`,
@@ -47,9 +53,12 @@ gate and the roster API. Task 2 mounts them in the serve shell, proves
 the spec's cross-surface exit rows through the real shell, and closes
 security n5 in the address normalizer. Task 3 births `web/` as a
 SvelteKit static app with its gate leg in the same commit, so no `web/`
-file ever lands ungated. Task 4 authors the one composed theme as data.
-Task 5 lands the embed path and the R4.5 document rewrite's theme stamp
-under a runtime prefix. Task 6 lands the generated branding stylesheet,
+file ever lands ungated. Task 4 authors the theme as data: the
+`dubplate` match block, the `label` and `label-night` palettes composed
+as `dubplate-label` and `dubplate-label-night`, their measured inks, and
+the system-following value `dubplate-system` (R-5cii22). Task 5 lands
+the embed path and the R4.5 document rewrite's theme stamp under a
+runtime prefix, reading the theme cookie W5.10 names. Task 6 lands the generated branding stylesheet,
 the operator CSS file, and the rewrite's two tier links beside the
 routes they point at. Task 7 lands the served header set (CSP, `nosniff`,
 `Referrer-Policy`, and HSTS), the cache rules, and the document routes,
@@ -144,6 +153,21 @@ contrast, so a replacement palette passes the same check.
 
 **What yes builds:** Task 4 as written. **What no builds:** Task 4 waits
 on the mockup session and takes its palette as input.
+
+**Amended by Geoff's visual identity ruling (revision 2.3).** After
+approval, Geoff ruled the look in a live brainstorm (session
+dubplate-04, 2026-09-24). A light `label` palette and a dark
+`label-night` palette replace `gruvbox`. The `dubplate` match block
+takes ruled values. The default follows the system preference, a
+member's toggle overrides it through W5.10's cookie, and `dubplate-label`
+is the fallback when the browser signals no preference. Ruling 3's
+answer stands: Task 4 authors the theme now, without waiting. The values
+come from `docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`
+(committed at `b36871c`). The visual identity spec
+(`docs/superpowers/specs/2026-09-24-visual-identity-design.md`) is
+pending and becomes the source of truth when it lands. Task 4's files
+are replaceable data: a changed value from the spec is a data edit that
+G2 and G9 re-check, never a markup change.
 
 **4. Do `DUBPLATE_BRANDING` and `DUBPLATE_OPERATOR_CSS_FILE` default to
 the literal `none`, meaning "not configured"?** Recommendation: yes.
@@ -246,6 +270,13 @@ Approving this plan approves these. The close drafts the erratum text
   with the fonts and the rendered tooling.
 - R-5cii10: `go.mod` gains one `ignore` directive, and `.gitleaks.toml`
   gains one allowlist path.
+- R-5cii22 (revision 2.3): DL R3.6's "The estate's is
+  `dubplate-gruvbox`" and DL section 3's `palette gruvbox` read as the
+  `label` and `label-night` palettes. W5.10's cookie, which W5.10 lands
+  at rung 7, splits: the Go reader lands in 5c-ii (Task 5) and the
+  toggle that writes it lands in 5c-iii. W5.9's "a system-following pick
+  is a third value the Go layer resolves and stamps" is met as written
+  by `dubplate-system`, so W5.9 takes no erratum.
 - R-5cii20: the spec's embed-path line "Every served response carries
   `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer`
   beside the CSP" (`:1393-1394`) reads as: every served response carries
@@ -278,7 +309,12 @@ Read these before Task 1, in this order.
 5. **The web surface standard**, section 15 (the clauses bound to 5c),
    W3.7 (404s), W5.9 and W5.10 (theme mechanics), W12.6 (where the
    rendered leg runs), and section 19.
-6. **This plan's quoted behaviors.** Every relied-on stdlib, library,
+6. **The visual identity draft tokens**
+   (`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`),
+   in full, before Task 4. The pending visual identity spec supersedes
+   it when it lands; a value that differs is a data edit to Task 4's
+   files (Ruling 3's amendment).
+7. **This plan's quoted behaviors.** Every relied-on stdlib, library,
    RFC, or tool behavior below is quoted from `go doc`, the package
    source, a man page, or a scratch probe run on 2026-09-24 against
    `go1.27.1 linux/amd64`, Node v24.20.0, npm 11.19.0, and the npm
@@ -301,8 +337,10 @@ public: the client router's manifest names `/members` in ungated `_app`
 chunks, R-5cii19. The API is the boundary.) The `web/` tree exists, builds to a static bundle,
 and is gated from its first commit. The Go binary serves each
 prerendered document under any configured prefix, stamped with the
-composed theme and linked to the branding and operator stylesheets in
-tier order. Every response carries the header set, every document
+theme a valid theme cookie picks or, with none, with the operator's
+default, which follows the system preference between `dubplate-label`
+and `dubplate-label-night` with no flash, and linked to the branding and
+operator stylesheets in tier order. Every response carries the header set, every document
 carries a CSP whose script hashes cover its own inline scripts, and
 HSTS follows the configured scheme. What 5c-iii adds is content: the
 fonts, the pages, and the rendered proof.
@@ -356,16 +394,22 @@ ceiling.
    anchor states and the operator path's refusals; Task 7's route-state,
    placeholder-tree, and minted-link rows. About 0.1M each: add
    **0.40M**.
-7. **The projection is 6.75M.**
+7. The visual identity amendment (revision 2.3) adds no task. It adds
+   Task 4's second palette, inks, system rule, and eight G2 and G9 rows
+   (about 0.15M), and Task 5's cookie reader, variants, meta, and ten
+   cookie rows (about 0.10M). Task 7's `Vary` row is inside noise. Add
+   **0.25M**.
+8. **The projection is 7.00M.**
 
-A ceiling of **9.4M** puts the 80% flag at **7.52M**, 0.77M above the
-projection, about one task at the measured rate. The flag then marks a
-real overrun rather than firing on plan. Either pre-named task split
-(Task 3's gates to Task 4, or Task 7's document routes to their own
-task) adds about 0.73M and brings the projection to 7.48M, just under
-the flag; both together cross it, and the conductor asks at that
-boundary under the 80% rule. Re-derive at the segment A and segment B
-boundaries.
+A ceiling of **9.4M** puts the 80% flag at **7.52M**, 0.52M above the
+projection. The flag then marks a real overrun rather than firing on
+plan. The ceiling is unchanged by revision 2.3, but the headroom is
+smaller. Revision 2.2 could absorb one pre-named task split under the
+flag, and revision 2.3 cannot. Each of Task 3's, Task 4's, Task 5's, and
+Task 7's pre-named splits adds about 0.73M, and any one of them brings
+the projection to about 7.73M, past the flag. The conductor then asks at
+that boundary under the 80% rule. Re-derive at the segment A and segment
+B boundaries.
 
 **5c-iii's provisional figure** is about 5.0M of execution: six tasks
 at 0.725M (4.35M), the first rendered tooling (+0.25M), the string
@@ -377,15 +421,21 @@ execution (5.8M, 6.75M, and 5.0M). Planning adds about 4.3M: 5c-i's
 5c-ii's 1.0M plus 1.0M for proposing this split (`:503-505`); and
 5c-iii's 0.8M. That is about 22M against Ruling 6's 18M, which counted
 5c-i's planning the same way (Ruling 1).
+Revision 2.3 routes the theme toggle, the `theme-color` metas, the ink
+utilities, and the rendered first-paint proof to 5c-iii (R-5cii22). The
+toggle was rung 7's before, so 5c-iii grows by about 0.15M, inside
+rounding at this precision. 5c-iii's plan re-derives its figure from
+5c-ii's actual.
 
 **Checkpoint interval:** STATUS at every segment boundary (after Task 2,
 after Task 5, after segment C's reviews, and at the close), at most
 three tasks apart. Every task reports its spend, its mutation outcomes,
 and its measured gate wall time.
 
-**Deliverable count:** thirty-one across Tasks 1 through 8, plus Task
-0's report. Tasks 1, 2, 3, 5, 6, 7, and 8 carry four each; Task 4
-carries three. No task passes four.
+**Deliverable count:** thirty-two across Tasks 1 through 8, plus Task
+0's report. Every task carries four. Task 4 rose from three to four in
+revision 2.3 (the inks), and Task 5's stamp deliverable grew without
+changing its count. No task passes four.
 
 ---
 
@@ -480,7 +530,7 @@ every channel that may set it.
 | `streamer_username` | The roster API (Task 1) and the verb (5c-i), both through `AddMember`. A hand edit. **It becomes a privilege channel at rung 12**, carried there as 5c-i's declared gap 5; rows the API writes now persist into rung 12, so rung 12's check re-validates every existing row's principal, not only new writes (Task 8's gap list). | Nothing else writes the roster. |
 | The refreshed session cookie | The gate, only after the admin check passes, and only for a request whose `Sec-Fetch-Site` is exactly `same-origin` (Task 1). | Every refusal, a verified non-admin included: the gate sets no cookie. The document handlers set no cookie. |
 | The member address set (n5) | `identity.NormalizeAddress` on every channel: login, roster load, `AddMember` (Task 2). | Every channel reads through the one normalizer, so no second address path exists to forget the refusal. |
-| The composed `data-theme` value stamped into a document | `DUBPLATE_THEME_MATCH` and `DUBPLATE_THEME_PALETTE`, validated at serve startup: the palette against `[a-z0-9-]+` first, then the composed name as an exact token against the theme selectors extracted from the built bundle (Task 5, R-5cii12). | Any request component: no route reads a query value, a header, or a cookie for the theme at 5c-ii. W5.10's signed-out cookie is rung 7's and is not built here. |
+| The composed `data-theme` value stamped into a document | Two channels. `DUBPLATE_THEME_MATCH` and `DUBPLATE_THEME_PALETTE` set the operator's default, validated at serve startup: the palette against `[a-z0-9-]+` first, then the composed name as an exact token against the theme selectors extracted from the built bundle (Task 5, R-5cii12). The theme cookie `__Host-dubplate_theme` overrides the default per request, and only when its value is an exact member of the stampable palette set computed at startup from the same extraction (Task 5, R-5cii22). The toggle that writes the cookie is 5c-iii's. | Every other request component: no route reads a query value or a header for the theme. A cookie value outside the stampable set, an unparseable one, or one under another name is ignored as if absent, and is never logged, echoed into markup, or answered with a `Set-Cookie`. The server never writes the theme cookie. The stamp is chosen from variants rewritten once at startup, so no request byte reaches the document. |
 | The branding stylesheet's declarations | `DUBPLATE_BRANDING`, validated at serve startup: names from DL R2.1's set only, values from R-5cii14's grammar (Task 6). | Any request component. A value outside the grammar refuses startup rather than being escaped into place. |
 | The operator CSS file's bytes | The file at `DUBPLATE_OPERATOR_CSS_FILE`, read once at serve startup, only when its path ends in `.css` and its content is UTF-8 with no NUL byte (Task 6, R-5cii13). | Any request-supplied path component: the route serves one in-memory value at one fixed path. |
 | The CSP header's script hashes | The embedded build's own SvelteKit CSP meta, per document, read at serve startup (Task 7). | No configuration key and no request component contributes a source to `script-src`. |
@@ -808,6 +858,14 @@ The salvage handler's `private` fit an authenticated surface (spec,
 | Every JSON answer | `no-store` | The 5b-ii precedent, kept. |
 | Every 404 and every non-JSON refusal | none set | `http.NotFound` sets none, and the gate's 404 must equal it. A JSON refusal (a 400 `malformed`, a 503 `busy`) is a JSON answer and carries `no-store`, as `writeAnswer` sets today (`internal/auth/handlers.go:416`). |
 
+**Every document response also carries `Vary: Cookie` (revision 2.3).**
+The stamp now depends on the theme cookie (R-5cii22), so the same URL
+answers different bytes per visitor. `no-cache` lets a shared cache
+store the document and reuse it after revalidation; `Vary: Cookie`
+keeps a cache from reusing one visitor's stamp for another. No 404 and
+no JSON answer carries it, so the gate's 404 still equals the
+terminator's.
+
 ### R-5cii9: the embed lives in package `web`, and a build re-emits its placeholder
 
 `go doc embed`: "Patterns may not contain '.' or '..' or empty path
@@ -920,7 +978,7 @@ R14 declares the presentation keys in rung 5's own file with
 | Key | Default | Accepted |
 | --- | --- | --- |
 | `DUBPLATE_THEME_MATCH` | `dubplate` | exactly `dubplate` (DL R3.2) |
-| `DUBPLATE_THEME_PALETTE` | `gruvbox` | a value matching `[a-z0-9-]+` whose composed name `<match>-<palette>` exists as a theme selector in the embedded bundle |
+| `DUBPLATE_THEME_PALETTE` | `system` (revision 2.3) | a value matching `[a-z0-9-]+` whose composed name `<match>-<palette>` exists as a theme selector in the embedded bundle: `system`, `label`, or `label-night` in the bundle Task 4 builds |
 | `DUBPLATE_BRANDING` | `none` (Ruling 4) | `none`, or a declaration list under R-5cii14's grammar |
 | `DUBPLATE_OPERATOR_CSS_FILE` | `none` (Ruling 4) | `none`, or a path to a file R-5cii13 admits |
 
@@ -939,17 +997,43 @@ literal `none`; under Ruling 4's "no" they become an integration class's
 convention: `DUBPLATE_THEME_MATCH=` stamps `dubplate`, and a test proves
 it. No state row may promise that an empty value refuses.
 
+**The palette key names the default a visitor without a theme cookie
+sees (revision 2.3).** The key stays one `KindString` threshold, and the
+two-axis model stays: the key still names one palette, and the stamp is
+still `<match>-<palette>`. What changes is its default and its doc
+string. The default moves from `gruvbox` to `system`, whose composed
+name `dubplate-system` is the system-following value R-5cii22 defines.
+`label` or `label-night` pins that palette for every visitor without a
+cookie. The doc string reads: "The theme a visitor without a theme
+cookie sees. `system` follows the device's light or dark preference
+between `label` and `label-night`, and falls back to `label`; a palette
+name pins that palette." No key is added, and the key does not name a
+pair: the pairing lives in the bundle's CSS (R-5cii22), so the key's
+accepted-set rule is unchanged. This is a planning miss the amendment
+records, not an owner fork: the behavior is Geoff's ruling, and the
+spelling `system` is the plan's. If the visual identity spec names the
+value otherwise, the rename is a data edit to Task 4's system file and
+this default.
+
 **The composed-name check reads the built CSS as measured.** The
 minified bundle writes the theme selector unquoted, inside a
 `theme-controller` form as well:
 `:is(:root:has(input.theme-controller[value=dubplate-gruvbox]:checked),[data-theme=dubplate-gruvbox])`
-(mechanics review, measured at the pins). The check finds the CSS files
+(mechanics review, measured at the pins, when the palette was still
+`gruvbox`; the form is the plugin's, so `dubplate-label` builds the
+same way). The hand-authored `dubplate-system` rule (R-5cii22) carries
+no `theme-controller` branch, and a minifier may merge it into a
+selector list, so the extraction reads every compound selector inside a
+list and never the list as a whole. The check finds the CSS files
 through each document's `rel="stylesheet"` links, extracts every
 `[data-theme=<name>]` selector in its quoted and unquoted forms, and
 matches the composed name as an exact token against that set. The
 palette's `[a-z0-9-]+` rule runs first, so a value carrying `"`, `>`,
 or whitespace never reaches the lookup or the attribute, and a prefix of
-a real name (`gruv`) fails the exact match.
+a real name (`label-n`) fails the exact match. The same extraction
+yields the stampable palette set R-5cii22's cookie is checked against:
+every extracted name that begins with `<match>-`, with that prefix
+removed.
 
 They register through one `registerWebConfig(reg)` call, one line in
 `newProductionRegistry` (`main.go`), which is a contested line with 6a
@@ -1031,8 +1115,8 @@ each one.
 | Server-file check | Task 3 | `web/src` |
 | G1 (no hardcoded colors) | Task 3 | `web/src` less `lib/themes/` |
 | G3 (no external origin) | Task 3 | `web/src` and the built bundle |
-| G2 (variable completeness) | Task 4 | the theme data files |
-| G9 (contrast) | Task 4 | the composed theme's declared values |
+| G2 (variable completeness) | Task 4 | the theme data files: the match blocks, both palette blocks, the ink blocks, and `system.css`'s parity with the composed themes (R-5cii22) |
+| G9 (contrast) | Task 4 | both composed themes' declared values and their inks (R-5cii22) |
 | G8 (branding surface) | Task 6 | the generated stylesheet |
 | G6 (headers) | Task 7 | each served document |
 | G7, link-order and cache half | Task 7 | each served document and asset |
@@ -1176,6 +1260,184 @@ The `_app` handler is a lookup in the embedded tree, never
 in `index.html`. A path carrying a `.` or `..` segment never reaches a
 route: `Normalize` refuses it with 400 first (`internal/serve/normalize.go`,
 rule 2), so a test aimed at a route uses a plain deeper segment.
+
+### R-5cii22: the default follows the system in CSS, and a cookie picks among stamped variants (revision 2.3)
+
+Geoff's visual identity ruling gives the theme three states in effect:
+follow the system (the default), light, and dark. Light is
+`dubplate-label`, dark is `dubplate-label-night`, and with no preference
+signal the system state shows `dubplate-label`. The binding must follow
+the system with no flash, under three standing rules:
+
+- **No inline theme script.** W5.10: "No inline theme script ships."
+  R-5cii7 enforces it: startup refuses any inline script whose hash kit's
+  meta lacks, and kit hashes only the scripts it generates.
+- **No DaisyUI `prefers-color-scheme` block.** W5.9: "There is no
+  `:root:not([data-theme])` guard and no `prefers-color-scheme` fallback
+  block." DaisyUI cannot key its block to a stamped value. Its theme
+  plugin (`daisyui@5.7.45`, `theme/index.js`) emits the block only as
+  `"@media (prefers-color-scheme: dark)": { [darkSelector]: ... }` with
+  `darkSelector = root === ":root" ? ":root:not([data-theme])" :
+  \`${root}:not([data-theme])\``, so the block matches only a document
+  with no `data-theme`, which R4.5 never serves.
+- **The stamp is the whole mechanism.** W5.9: "A system-following pick
+  is a third value the Go layer resolves and stamps."
+
+**The third value is `dubplate-system`, and CSS resolves it.** Task 4
+authors `web/src/lib/themes/system.css`, inside `@layer base` beside
+DaisyUI's theme blocks. It holds two rules at (0,1,0), in this order:
+
+1. `[data-theme=dubplate-system] { ... }`, unconditional, declaring
+   `dubplate-label`'s 32 values and its inks.
+2. `@media (prefers-color-scheme: dark) { [data-theme=dubplate-system] {
+   ... } }`, declaring `dubplate-label-night`'s 32 values and its inks.
+
+When both match, the later rule wins on source order at equal
+specificity. The light branch is the unconditional one, and never a
+`(prefers-color-scheme: light)` block, on Media Queries 5's own advice
+(section 12.5, `prefers-color-scheme`, value `light | dark`): "the most
+future-friendly way to use this media feature is by negation such as
+(prefers-color-scheme: dark) and (not (prefers-color-scheme: dark)),
+which ensures that new values fall into at least one of the styling
+blocks." So `dubplate-label` shows for each of these: a browser that
+reports `light`, a browser whose user set no preference, a future value,
+and a browser that does not evaluate the feature. That is the ruled
+fallback.
+
+This block is not W5.9's forbidden one. It is keyed to a value the Go
+layer stamps by default, so it is live code. It sits at (0,1,0), the
+same specificity as every DaisyUI theme block, and it lives in
+`@layer base`, which the unlayered `branding.css` outranks at any link
+order. DL R4.1's tiers hold.
+
+**Each branch declares its palette's `color-scheme`.** R2.1 counts it
+among the 21 palette names. CSS Color Adjustment 1 (section 2, "the
+element color scheme"): "The element color scheme affects things such as
+the value of system colors on the element, the value of the light-dark()
+function, and how user interface elements (like scrollbars) render." A
+stamped `dubplate-label` therefore draws light scrollbars and form
+controls even on a dark system, and `dubplate-system` draws whichever
+branch matched.
+
+**The document carries `<meta name="color-scheme" content="light
+dark">` in every variant** (Task 5, in `app.html`). CSS Color Adjustment
+1: "In HTML, the color-scheme <meta> sets the page color scheme", and
+"The page color scheme is queryable with the prefers-color-scheme media
+query". A single-scheme meta would pin the media query and break the
+system branch, so the meta never varies with the stamp. The same spec
+names this meta as the way a page "that responds to user preferences for
+light or dark display by using the prefers-color-scheme media feature"
+opts "the browser-controlled UI (scrollbars, inputs, etc) to match".
+An override is carried by the stamped block's own `color-scheme`
+property.
+
+**First paint agrees with the stamp by construction.** DaisyUI paints
+the root's background from the active theme
+(`daisyui@5.7.45`, `base/rootcolor.css`: `@layer
+base{:root,[data-theme]{background-color:var(--root-bg);color:var(--color-base-content)}
+... :where(:root,[data-theme]){--root-bg:var(--color-base-100)}}`). The
+stamp and the rule that sets `--color-base-100` arrive in the same
+render-blocking bundle stylesheet, so no painted frame can show one
+palette's background under another's stamp. Task 5 proves the static
+half. The rendered half (a first-paint sample under each emulated
+preference and each cookie) is 5c-iii's, with the rendered tooling.
+
+**The copy is checked, not generated.** DaisyUI's plugin takes one name
+per block and cannot key a block to a media query, so `system.css`
+repeats the two composed themes' values. G2's parity rows (Task 4) fail
+naming every declaration in which a branch differs from its composed
+theme. Declined alternatives:
+
+- A generator script: a second writer to keep in step with G2's parser,
+  for a copy one reader already guards.
+- `light-dark()` pairs in one block: this folds two palettes into one
+  block against R3.6. It also leaves every color that reads it unset in
+  a browser that cannot parse the function.
+- A client hint from the request: not every browser sends one, so the
+  fallback would govern those browsers regardless of the device setting.
+- DaisyUI's `prefersdark` with an unstamped document: this needs errata
+  to W5.9 and DL R4.5.
+
+**The inks are a third layer (W2.7), never palette names.**
+`web/src/lib/themes/inks.css`, in `@layer base`, holds one rule per
+composed theme, each declaring the full ink set: `--ink-primary` and
+`--ink-warning`. A value is a literal color or
+`var(--color-<same role>)`, since "The ink defaults to the fill" (W2.7).
+The draft tokens give `dubplate-label` `--ink-warning: #765000` and
+`--ink-primary: var(--color-primary)`, and give `dubplate-label-night`
+`--ink-primary: #ec7b6a` and `--ink-warning: var(--color-warning)`.
+`system.css` repeats each theme's inks in the matching branch. No
+`--ink-*` name enters a `daisyui/theme` block, so G2's 21-name count
+holds (R2.1). G8 refuses an `--ink-*` name in `DUBPLATE_BRANDING`,
+since it is outside R2.1's set, so an operator reaches the inks only
+through the operator file (W2.6). The utilities that read the inks are
+5c-iii's component CSS.
+
+**R2.6's third condition needs four exception markers, measured by the
+amendment.** Measured from the draft values with WCAG 2.2 relative
+luminance in sRGB, as text on `--color-base-100`:
+
+- `dubplate-label`: `--color-secondary` 1.83:1 and `--color-warning`
+  1.83:1, the same mustard, fill only.
+- `dubplate-label-night`: `--color-primary` 3.18:1, whose text uses
+  `--ink-primary`. `--color-neutral` measures 1.09:1, near-black on the
+  dark ground; it is a fill only (the header bar and the offset shadow).
+
+The draft tokens file says every other semantic color passes. That
+holds for every pair except night's neutral, which the draft missed.
+Each marker takes DL's fixed form, `/* contrast-exception: <variable>
+<ratio> <reason> */`, directly above the declaration. The reason names
+the fill-only role, and for night's primary also WCAG's 3:1
+UI-component tier. Task 4 recomputes each ratio. G9 then fails a marker
+whose pair passes, so a spec value that clears the floor retires its
+marker. Every other pair passes: each `-content` pair is 4.96:1 or
+higher, `--color-base-content` is 13.87:1 or higher on `--color-base-100`,
+and `--ink-warning` (6.02:1) and `--ink-primary` (6.34:1) pass on
+`--color-base-100`.
+
+**The cookie.** The cookie is named `__Host-dubplate_theme`, after
+`__Host-dubplate_session` (`internal/auth/session.go:20`), and the name
+is a named constant in `internal/serve`. Its value is a palette name:
+`label` or `label-night` from the toggle. 5c-iii's toggle is the only
+writer, with `Path=/; Secure; SameSite=Lax` and no `HttpOnly`, since
+W5.10 makes the cookie "readable by the client for its own state". The
+server never writes it. The reader uses `(*http.Request).Cookie`. `go
+doc`: "Cookie returns the named cookie provided in the request or
+ErrNoCookie if not found. If multiple cookies match the given name, only
+one cookie will be returned." The source settles which cookie
+(`net/http/cookie.go`, `readCookies`, go1.27.1). It returns the first
+cookie of that name whose value parses. It strips one pair of enclosing
+double quotes. It skips any cookie whose value holds a byte outside
+`0x20 <= b && b < 0x7f && b != '"' && b != ';' && b != '\\'`. A parsed
+value selects a variant only when it is an exact member of the
+stampable palette set (R-5cii12).
+
+**Variants, not per-request rewriting.** At startup the rewrite produces
+one body per document per stampable palette. Each request selects a
+body by the cookie, or by the operator's default when the cookie is
+absent or rejected. No request byte is copied into a document.
+
+**What lands where.** The system rule, the inks, and their gates land in
+Task 4. The meta, the cookie reader, the variants, and the stamp land in
+Task 5. `Vary: Cookie` lands in Task 7 (R-5cii8). 5c-iii builds these:
+
+- The toggle: an icon-only DaisyUI `swap` in the signed-in header's nav,
+  with the accessible name "Dark theme". The login page has none.
+- The `theme-color` metas: a media pair of `#1f1b16` (light) and
+  `#110f0d` (dark), each palette's `--color-neutral`, when the stamp is
+  `dubplate-system`, and a single meta matching the stamped palette
+  otherwise.
+- The rendered first-paint proof.
+- The fonts.
+
+The toggle waits for 5c-iii because the header it lives in is 5c-iii's
+first styled page, and no 5c-ii stub has a nav. The `theme-color` metas
+wait for three reasons. Their colors match the header bar 5c-iii builds.
+Carrying CSS-derived values into attribute markup is the channel class
+Task 6 upshifts for, which would push Task 5 or Task 6 past four
+deliverables. And the mark and favicon (the draft's "5c-ii can ship
+without one") land in the same `<head>` pass. The 5c-iii handoff (Task
+8) carries every state the brainstorm named.
 
 ---
 
@@ -1783,98 +2045,203 @@ the repo plumbing).
 
 ---
 
-## Task 4: The composed theme as data
+## Task 4: The theme as data: two composed themes, their inks, and the system value
 
 Model: `sonnet`. Depends on Task 3. Skills: `daisyui`, `ts-conventions`.
-Ruling 3 governs the palette.
+Ruling 3, as amended, governs the palettes. R-5cii22 governs the system
+value and the inks. The values come from
+`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`,
+and each data file's header comment cites that file and the pending
+spec. **These files are replaceable data.** When the visual identity
+spec lands with a different value, the change is an edit to these files
+that G2 and G9 re-check, with no markup change.
 
 **Files:**
-- Create: `web/src/lib/themes/dubplate.css` (the match block, DL R2.1's
-  11 structural names), `web/src/lib/themes/gruvbox.css` (the palette
-  block, the 21 palette names), `web/scripts/gates/g2.ts`,
+- Create: `web/src/lib/themes/dubplate.css` (the match axis),
+  `web/src/lib/themes/label.css` and `web/src/lib/themes/label-night.css`
+  (the palettes), `web/src/lib/themes/inks.css`,
+  `web/src/lib/themes/system.css`, `web/scripts/gates/g2.ts`,
   `web/scripts/gates/g9.ts`
-- Modify: `web/src/app.css` (the theme binding), `scripts/check.sh` or
-  the Makefile's `web` target (the two new gates)
+- Modify: `web/src/app.css` (the theme imports, in the order the binding
+  names), `scripts/check.sh` or the Makefile's `web` target (the two new
+  gates)
 
 **Outcomes:**
 
-- **The data (R36):** one `dubplate` match block and one `gruvbox`
-  palette block. The match block's `--size-field` meets DL R3.7's floor.
-  Each font value ends in a CSS generic family (DL R2.7), naming no face
-  yet, since the faces are 5c-iii's.
-- **The binding:** the bundle carries exactly one composed DaisyUI theme,
-  named `dubplate-gruvbox` (DL R3.6), whose 32 variables are the two
-  files' union, composed when the bundle builds with no runtime
-  JavaScript. The mechanism is measured: two `@plugin "daisyui/theme"`
-  blocks carrying the same `name: "dubplate-gruvbox"`, in two imported
-  files, build to one merged rule holding both files' variables, in
-  `@layer base` (so the unlayered `branding.css` outranks it at any link
-  order). The task quotes the theme-plugin syntax from
-  `daisyui@5.7.45`'s source before relying on it. No
-  `:root:not([data-theme])` guard and no `prefers-color-scheme` block
-  (W5.9).
-- **G2 and G9** in the leg, per DL section 6.
+- **The data (R36).** The `dubplate` match axis carries DL R2.1's 11
+  structural names at the draft's values (`--radius-selector: 2rem`,
+  `--radius-field` and `--radius-box` at `.25rem`, `--size-selector:
+  .25rem`, `--border: 2px`, `--depth: 0`, `--noise: 1`), with one
+  exception. **`--size-field` is `0.275rem`, DL R3.7's floor, never the
+  draft's `.25rem`.** R3.7 records `.25rem` as yielding 40px, below the
+  44px floor, and G2 fails it. The task records the difference in its
+  report, and the handoff carries it to the visual identity spec (see
+  "Anything for Geoff" in the fold record's amendment). Each font value
+  is a generic stack only (`ui-sans-serif, system-ui, sans-serif`, and
+  the serif and mono equivalents), per DL R2.7. The ruled families (Alfa
+  Slab One, Work Sans, and IBM Plex Mono) arrive with their faces in
+  5c-iii, so no family is named before its face is embedded. The two
+  palettes carry DL R2.1's 21 palette names at the draft's values:
+  `label` declares `color-scheme: light` and `label-night` declares
+  `color-scheme: dark`. The four exception markers go directly above
+  their declarations (R-5cii22).
+- **The binding.** The bundle carries exactly two composed DaisyUI
+  themes, `dubplate-label` and `dubplate-label-night` (DL R3.6). Each
+  theme's 32 variables are the union of its match block and its palette
+  block, composed when the bundle builds, with no runtime JavaScript. The
+  mechanism is measured. Two `@plugin "daisyui/theme"` blocks that carry
+  the same name, in two imported files, build to one merged rule holding
+  both files' variables, in `@layer base`, so the unlayered
+  `branding.css` outranks it at any link order. `dubplate.css`
+  therefore holds two match blocks with identical values, one named
+  `dubplate-label` and one `dubplate-label-night`, because the plugin
+  takes one name per block. The plugin emits `color-scheme` on every
+  block it writes, the match blocks included (`theme/index.js`:
+  `"color-scheme": themeTokens["color-scheme"] ?? colorScheme ??
+  "normal"`). `app.css` therefore imports `dubplate.css` before the
+  palettes, so each merged rule ends with its palette's `light` or
+  `dark`. The import order is `dubplate.css`, `label.css`,
+  `label-night.css`, `inks.css`, `system.css`. The task quotes the
+  theme-plugin syntax from `daisyui@5.7.45`'s source before relying on
+  it. No block sets `default` or `prefersdark`, and the bundle has no
+  `:root:not([data-theme])` guard (W5.9).
+- **The system value and the inks (R-5cii22).** `inks.css` holds one ink
+  block per composed theme. `system.css` holds the unconditional
+  `[data-theme=dubplate-system]` rule with `dubplate-label`'s 32 values
+  and inks. It then holds the `@media (prefers-color-scheme: dark)` rule
+  with `dubplate-label-night`'s 32 values and inks. Both are plain CSS
+  in `@layer base`, with no `theme-controller` branch (DL R4.6).
+- **G2 and G9** in the leg, per DL section 6, extended for the inks and
+  the system copy as the state table below names. **Where the inks sit
+  for the gates:** they are declared in `inks.css` and in `system.css`'s
+  two branches, never in a `daisyui/theme` block. G2 reads the ink set
+  from one exported constant in `g2.ts` (`--ink-primary`,
+  `--ink-warning`), which G9 imports, so the inventory has one home
+  (W2.8). G9 resolves an ink's `var(--color-<role>)` against the same
+  composed theme's declared value and nothing else. A `var()` naming
+  anything else is unparseable, and G9 fails naming it. G9 then checks
+  each resolved ink as text on that theme's `--color-base-100` at
+  4.5:1. An ink admits no exception marker (W2.7: dubplate "holds every
+  status ink to 4.5:1 regardless"). No DaisyUI color name is added, and
+  R2.1's 21-name count holds.
 
 **States:**
 
 | Check | State | Report |
 | --- | --- | --- |
-| G2 | no theme file | fails by name |
+| G2 | no theme file, or no palette file | fails by name |
 | G2 | a block missing one name, or carrying one extra | fails naming the file and the name |
 | G2 | a font value without a generic tail | fails naming the variable |
-| G2 | `--size-field` below the floor | fails naming the value and the floor |
-| G9 | a pair below its floor with no exception marker | fails naming the pair and the ratio |
+| G2 | `--size-field` below the floor (the draft's `.25rem` is the fixture) | fails naming the value and the floor |
+| G2 | the two match blocks differ in any value | fails naming the variable and both values |
+| G2 | an ink block missing an ink name, or carrying an extra one | fails naming the file, the theme, and the name |
+| G2 | a `system.css` branch whose value differs from its composed theme's (match, palette, or ink) | fails naming the branch, the variable, and both values |
+| G2 | a `system.css` branch missing, or the light branch placed inside a media block | fails naming the branch |
+| G2 | a `prefers-color-scheme` block that holds any selector but `[data-theme=dubplate-system]`, or a `default` or `prefersdark` key in a theme block | fails naming the file and the selector or key |
+| G9 | a pair below its floor with no exception marker | fails naming the theme, the pair, and the ratio |
 | G9 | an exception marker on a pair that passes | fails naming the stale marker |
-| G9 | a value G9 cannot parse | fails naming it, never skipping it |
+| G9 | a value G9 cannot parse, a `var()` outside the same theme's `--color-*` names included | fails naming it, never skipping it |
+| G9 | an ink below 4.5:1 on `--color-base-100` | fails naming the theme, the ink, and the ratio |
+| G9 | an exception marker above an ink | fails naming it: inks admit none |
+| G9 | fewer than two composed themes, or a theme with no ink | fails by name: an empty iteration is not a pass |
 
 **Acceptance criteria:**
 
-- The built CSS contains a rule whose selector carries
-  `[data-theme=dubplate-gruvbox]` (the minifier drops the quotes;
-  R-5cii12 quotes the measured form, and the match accepts either form)
-  declaring all 32 names, each value equal to the data file's after both
-  are parsed, never compared as raw bytes, since the minifier may
-  rewrite a value's spelling. **Fixture state:** the built bundle, not
-  the source.
-- G2 and G9 each fail by name against a seeded defect per state row,
-  and the task reports each text.
-- Every hard-coded ratio floor in G9 cites DL R2.6.
+- **The built bundle carries each stampable value.** For each of
+  `dubplate-label` and `dubplate-label-night`, the built CSS holds a rule
+  whose selector list carries `[data-theme=<name>]` (quoted or unquoted;
+  the minifier drops the quotes, R-5cii12) and declares all 32 names.
+  Each value equals the data files' value after both are parsed, never
+  compared as raw bytes, since the minifier may rewrite a value's
+  spelling. `color-scheme` is `light` for `dubplate-label` and `dark` for
+  `dubplate-label-night`, never `normal`. For `dubplate-system`, the
+  built CSS holds one such rule outside any `@media` block, with
+  `dubplate-label`'s values, and one inside `@media
+  (prefers-color-scheme: dark)` with `dubplate-label-night`'s values.
+  The bundle's only `prefers-color-scheme` block is that one, and the
+  bundle holds no `:root:not([data-theme])` selector. The row also
+  catches a stray `dark:` utility. Tailwind 4's default `dark` variant
+  is media-based (`tailwindcss@4.3.3` `dist/lib.js`: `r("dark",["@media
+  (prefers-color-scheme: dark)"])`, re-quoted at the pin), so a `dark:`
+  class in `web/src` would style by the device and not by the stamp.
+  5c-iii's pages inherit this guard. **Fixture state:**
+  the built bundle, not the source. Tailwind's minifier might merge the
+  system light branch into `dubplate-label`'s selector list. The check
+  then still finds both names, since it reads compound selectors inside
+  a list.
+- G2 and G9 each fail by name against a seeded defect for every state
+  row, and the task reports each text. **Fixture state:** each seed
+  changes one declaration in a copy of the real data files, so a row
+  cannot pass because a file is empty.
+- The four exception markers carry the ratios the task recomputes, and
+  each recomputed ratio is reported beside the amendment's figure
+  (R-5cii22). A difference past the second decimal is reported, and the
+  marker is not edited to match without the report.
+- Every hard-coded ratio floor in G9 cites DL R2.6, or W2.7 for the
+  inks.
 - `bash scripts/check.sh` green.
 
 **Named mutations:**
 
 1. Let G2 treat a missing name as inherited → the missing-name row
    passes.
-2. Compare contrast on raw values without converting to sRGB → a
-   seeded `oklch` pair's ratio differs from its expectation. The
-   expected ratio comes from an independent source recorded in the test
-   beside its citation: the CSS Color 4 specification's published
-   OKLab-to-sRGB sample code run in a scratch, or a published reference
-   pair. Never the implementer's own arithmetic, which would share the
-   defect it tests.
+2. Compare contrast on raw values without converting to sRGB → a seeded
+   `oklch` pair's ratio differs from its expectation. The expected ratio
+   comes from an independent source recorded in the test beside its
+   citation: the CSS Color 4 specification's published OKLab-to-sRGB
+   sample code run in a scratch, or a published reference pair. Never
+   the implementer's own arithmetic, which would share the defect it
+   tests.
 3. Skip unparseable values in G9 → the unparseable row passes.
+4. Let G2 compare `system.css` only by name, not by value → a seeded
+   `--color-primary` edit in `label-night.css` alone passes the parity
+   row.
+5. Put the system light branch inside `@media (prefers-color-scheme:
+   light)` → the light-branch placement row fails in G2, and the
+   bundle's system rule outside any media block is missing.
+6. Set `prefersdark: true` on `label-night`'s block → the
+   `:root:not([data-theme])` bundle assertion and G2's key row both
+   fail.
+7. Import `label.css` before `dubplate.css` → the built rule's
+   `color-scheme` reads `normal` and the bundle row fails.
+8. Let G9 accept an exception marker on an ink → the ink-marker row
+   passes.
+9. Resolve an ink's `var(--color-warning)` against the other composed
+   theme → a seeded ink that passes only under the wrong theme's fill is
+   accepted, and the ink row passes.
 
 **2.0 hook: hook 5 through DL R4.2, neutral.** The per-member theme row
 is rung 6's.
 
-**Prior art:** DaisyUI 5's theme plugin, adopted; the gruvbox palette's
-published values, cited by URL in the data file's header.
+**Prior art:** DaisyUI 5's theme plugin, adopted for the two composed
+themes. Its `prefersdark` block is declined (W5.9, R-5cii22). The
+palette values are the draft tokens file's, which the visual identity
+spec supersedes. Media Queries 5's negation advice is adopted for the
+system rule's shape.
 
 **Independent: no** (Task 3's tree).
 
-**Deliverable count: 3** (the data, the binding, G2 and G9).
+**Pre-named split:** if the four deliverables cannot land in one green
+gate, the inks and their G2 and G9 rows move to the head of 5c-iii,
+whose ink utilities are their first reader. The system rule then
+carries palette values only, and its ink parity joins the inks.
+
+**Deliverable count: 4** (the match and palette data, the system value,
+the inks, and G2 and G9). Revision 2.2 counted three.
 
 ---
 
 ## Task 5: The embed path, the theme stamp, and the theme keys
 
-Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
+Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`. R-5cii22
+governs the stamp, the cookie, and the meta.
 
 **Files:**
 - Create: `web/embed.go` (package `web`), `web/embed_test.go`,
   `internal/serve/document.go`, `internal/serve/document_test.go`,
   `cmd/dubplate-server/web.go`, `cmd/dubplate-server/web_test.go`
-- Modify: `web/src/app.html` (the placeholder token),
+- Modify: `web/src/app.html` (the placeholder token, and `<meta
+  name="color-scheme" content="light dark">` ahead of `%sveltekit.head%`),
   `cmd/dubplate-server/main.go` (one line: `registerWebConfig(reg)` in
   `newProductionRegistry`), `cmd/dubplate-server/serve.go`,
   `cmd/dubplate-server/serve_test.go`
@@ -1886,11 +2253,22 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
   the placeholder-only tree, naming `npm run build`.
 - **The rewrite's first half (DL R4.5, W3.7):** one documented rewrite
   applied to each prerendered document, computed once at startup, not
-  per request. In this task it substitutes the placeholder token in
-  `app.html` with the validated composed name and changes no other
-  byte. Task 6 adds the two tier links in the same function, in the
-  commit that adds the routes they point at, so every task's prefix
-  proof is green on its own commit.
+  per request. At startup it produces one variant per document per
+  stampable palette (R-5cii22). Each variant substitutes the placeholder
+  token in `app.html` with that composed name and changes no other byte.
+  Task 6 adds the two tier links in the same function, in the commit
+  that adds the routes they point at, so every task's prefix proof is
+  green on its own commit.
+- **The theme stamp (R-5cii22, W5.9, W5.10).** Each document request
+  selects its variant from the `__Host-dubplate_theme` cookie when the
+  cookie's parsed value is an exact member of the stampable set, and
+  from the operator's default otherwise. At defaults the operator's
+  default is `system`, so a request with no cookie is served
+  `data-theme="dubplate-system"`, and the bundle's system rule follows
+  the device's preference. **This is the criterion that binds the
+  default to the system preference in 5c-ii**, with the toggle in
+  5c-iii. The handler never writes the cookie and never logs its
+  value.
 - **The theme keys (R-5cii12):** all four keys registered through
   `registerWebConfig`, the two optional ones with Ruling 4's defaults,
   consumed in Task 6. Serve's resolution refuses a match value outside
@@ -1915,11 +2293,21 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 | Match key | `dubplate` | proceeds |
 | Match key | unset or empty | resolves to `dubplate` and proceeds (the wall's convention, R-5cii12) |
 | Match key | anything else | serve refuses naming the accepted set |
-| Palette key | unset or empty | resolves to `gruvbox` and proceeds |
-| Palette key | composed name an exact token in the bundle's theme selectors | proceeds |
-| Palette key | composed name absent | serve refuses naming the composed name |
-| Palette key | a prefix of a real palette (`gruv`) | serve refuses naming the composed name |
+| Palette key | unset or empty | resolves to `system` and proceeds, stamping `dubplate-system` on a request with no cookie |
+| Palette key | `label`, `label-night`, or `system` (each an exact token in the bundle's theme selectors) | proceeds, stamping that composed name on a request with no cookie |
+| Palette key | composed name absent (`gruvbox`) | serve refuses naming the composed name |
+| Palette key | a prefix of a real palette (`label-n`) | serve refuses naming the composed name |
 | Palette key | carrying `"`, `>`, whitespace, or an uppercase letter | serve refuses naming the `[a-z0-9-]+` rule, never echoing the value into markup |
+| Theme cookie | absent | the operator's default (`dubplate-system` at defaults) |
+| Theme cookie | `label` | `dubplate-label` |
+| Theme cookie | `label-night` | `dubplate-label-night`, also under a palette key pinned to `label` (the cookie wins) |
+| Theme cookie | `system` | `dubplate-system`, also under a palette key pinned to `label-night` |
+| Theme cookie | `"label"` (enclosed in double quotes) | `dubplate-label`: `readCookies` strips one pair of quotes (R-5cii22) |
+| Theme cookie | an unknown palette (`gruvbox`), a prefix (`label-n`), another case (`Label`), an interior space (`label night`), or empty | the operator's default |
+| Theme cookie | a value holding a byte `readCookies` refuses (a backslash, an interior `"`, a control byte, a non-ASCII byte) | skipped by the parser, so the operator's default |
+| Theme cookie | two cookies of the name, the first `gruvbox` and the second `label-night` | the operator's default: only the first parsed cookie is read, per `go doc` |
+| Theme cookie | `label-night` under another name (`dubplate_theme`) | the operator's default |
+| Theme cookie | any value, on every row above | the response carries no `Set-Cookie`, no log record holds the value, and the body is byte-identical to one of the startup variants |
 | `login` path | exact document path | the rewritten document |
 | `login` path | the trailing-slash form, or any other path under the subtree | the terminator's 404 |
 | `login` method | anything but GET or HEAD | 405 with `Allow: GET, HEAD` |
@@ -1944,9 +2332,25 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 - The rewrite changes exactly the token: a test diffs each served
   document against its embedded original and asserts every inline
   `<script>` body byte-identical.
-- The served document carries `data-theme="dubplate-gruvbox"` on its
-  document element, and `DUBPLATE_THEME_MATCH=` (empty) stamps the same
-  value.
+- With no cookie and default keys, the served document carries
+  `data-theme="dubplate-system"` on its document element, and
+  `DUBPLATE_THEME_MATCH=` (empty) stamps the same value. Every cookie row
+  stamps its stated name. **Fixture state:** the real built bundle, whose
+  selectors include all three stampable names, so a cookie row cannot
+  pass because the set is empty. The test asserts that the extracted
+  stampable set is exactly `{label, label-night, system}` before any
+  cookie row runs.
+- **The no-flash static half (R-5cii22):** every variant of every
+  document carries exactly one `<meta name="color-scheme" content="light
+  dark">` before its first stylesheet link. Each stylesheet link sits in
+  `<head>` with no `media` and no `disabled` attribute. The built CSS
+  holds DaisyUI's root background rule reading `--root-bg` and its
+  `--root-bg:var(--color-base-100)` declaration, quoted from
+  `base/rootcolor.css` at the pin. The rendered first-paint proof is
+  5c-iii's.
+- **Variants are fixed at startup:** requests carrying each cookie row's
+  value each receive a body byte-equal to one variant computed at
+  startup, so no cookie byte can reach a body.
 - A clean checkout with no build fails the embed test by name (the
   ordering row Task 3 reported).
 - Every state row is a test.
@@ -1964,12 +2368,25 @@ Model: `sonnet`. Depends on Task 4. Skill: `go-conventions`.
 3. Serve a document at its trailing-slash path → the trailing-slash row
    answers 200.
 4. Accept any match value → the refused-match row passes.
-5. Match the composed name as a substring → the `gruv` row proceeds.
+5. Match the composed name as a substring → the `label-n` row proceeds.
 6. Serve `_app` through `http.FileServerFS` → the directory row answers
    a 200 listing.
+7. Stamp the cookie's value after only the `[a-z0-9-]+` check, without
+   the set membership → the `gruvbox` cookie row stamps
+   `dubplate-gruvbox`.
+8. Ignore the cookie → the `label` and `label-night` cookie rows stamp
+   the default.
+9. Stamp `dubplate-label` when no cookie is present → the absent-cookie
+   row fails, and the system preference is never followed.
+10. Search every cookie of the name for a valid value → the two-cookie
+    row stamps `dubplate-label-night`.
+11. Omit the `color-scheme` meta from `app.html` → the no-flash row
+    fails.
 
 **2.0 hook: neutral.** DL R4.2's per-member stamp keys on rung 6's
-surrogate id; this task stamps the operator's default only.
+surrogate id. This task stamps the operator's default and the signed-out
+cookie W5.10 names. Rung 6's stored pick becomes a third input to the
+same variant selection.
 
 **Prior art:** the salvage embed package and static handler, adopted in
 reasoning (the placeholder and `fs.Sub`) and re-derived (the cache
@@ -1977,8 +2394,16 @@ rule, R-5cii8, and the lookup that lists nothing, R-5cii21).
 
 **Independent: no.**
 
-**Deliverable count: 4** (the embed, the theme stamp, the theme keys,
-the `login` and `_app` routes with the prefix proof).
+**Deliverable count: 4** (the embed; the theme stamp with its cookie
+reader, variants, and meta; the theme keys; the `login` and `_app`
+routes with the prefix proof). The count is unchanged from revision
+2.2, but the stamp deliverable is larger: ten new cookie rows and
+five new mutations.
+
+**Pre-named split (revision 2.3):** if the four deliverables cannot
+land in one green gate, the cookie reader and its rows move to the head
+of Task 6. Task 5 then stamps the operator's default only, which at
+defaults is `dubplate-system`, so the system binding still lands here.
 
 ---
 
@@ -2151,7 +2576,9 @@ each a test.
   after `branding.css`; `login.html` served `no-cache`,
   `login/link.html` `no-store`, `members.html` `private, no-cache`, one
   `_app/immutable/` asset `public, max-age=31536000, immutable`,
-  `_app/version.json` `no-cache`, and both stylesheets `no-cache`.
+  `_app/version.json` `no-cache`, and both stylesheets `no-cache`. Each
+  of the three documents carries `Vary: Cookie`, and no 404, JSON
+  answer, asset, or stylesheet does (R-5cii8, revision 2.3).
 - **Every response carries the header step:** a document, an asset, a
   stylesheet, a JSON answer, a 400 from normalization, a 403 from the
   origin check, a 405, the terminator's 404, the gate's 404, and a 404
@@ -2200,6 +2627,9 @@ each a test.
    finds the token.
 10. Let G6 call the production extractor → the diff-reviewer rejects
     the shared function (a structural check the reviewer confirms).
+11. Set `Vary: Cookie` on every response → the members
+    indistinguishability row fails, since the terminator's 404 carries
+    none.
 
 **2.0 hook: neutral.** The header step is where rung 12 reconciles the
 streamer's own headers (carried as an edge).
@@ -2246,7 +2676,9 @@ the pass-end reviews with their folds.
   computed half, and G10 are not yet gates (to 5c-iii); the n5 set is
   pinned to Unicode 17.0.0; the header step wraps the fallthrough and
   rung 12 must reconcile it; no ESLint comment config for TypeScript
-  yet (to rung 7's W12 static rules). Also carried: rung 12 re-validates
+  yet (to rung 7's W12 static rules); the first-paint agreement between
+  the stamp and the background is proved statically, and its rendered
+  half is 5c-iii's (R-5cii22). Also carried: rung 12 re-validates
   every existing row's principal, not only new writes, since the API
   writes `streamer_username` from 5c-ii on; the shared-origin residual
   (script on the streamer's same-origin pages can call
@@ -2260,18 +2692,47 @@ the pass-end reviews with their folds.
   split (the second split); the web surface standard's section 15 line;
   the spec's "failing config load" row (R-5cii12); the spec's
   embed-path sentence on the CSP (R-5cii20); R-5cii3's withdrawal
-  of the 5c-i outline's 404-tracking line; the spec's staleness item
+  of the 5c-i outline's 404-tracking line; DL R3.6's "The estate's is
+  `dubplate-gruvbox`" and DL section 3's `palette gruvbox` (R-5cii22);
+  W5.10's "this clause lands at rung 7", whose cookie reader landed in
+  5c-ii and whose toggle lands in 5c-iii (R-5cii22); the spec's staleness item
   citing `CLAUDE.md:118`; and the HISTORY 5c-i entry's n5 sentence
   ("the standard `unicode` package does not expose" the table), which
   R-5cii5 corrects.
 - **The 5c-iii handoff:** the surface it builds on (the routes, the
   gate, the API's outcome values, the header step, the CSP builder that
-  hashes whatever the pages add); Ruling 3's outcome and any mockup
-  session output as a standing input; the fonts' candidate under R19
-  (Inter 4.1, OFL 1.1, license at
-  `https://github.com/rsms/inter/blob/master/LICENSE.txt`, one variable
-  file per style, which meets DL R5.5 without subsetting under R5.4),
-  recorded as a candidate for 5c-iii's plan to adopt or decline; the
+  hashes whatever the pages add); the visual identity spec
+  (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`) as the
+  standing input, with the draft tokens file as its predecessor, and any
+  value the spec changes applied as a data edit to Task 4's files. The
+  handoff also carries the theme work R-5cii22 routes to 5c-iii:
+  - The toggle: an icon-only DaisyUI `swap` in the signed-in header's
+    nav, with the accessible name "Dark theme". It writes
+    `__Host-dubplate_theme` with `Path=/; Secure; SameSite=Lax`, and the
+    login page has none.
+  - The `theme-color` metas and their states: a media pair from each
+    palette's `--color-neutral` under `dubplate-system`, and one meta
+    matching the stamped palette under a cookie or a pinned default.
+    Carrying CSS-derived colors into attribute markup takes a closed
+    color grammar, R-5cii14's class.
+  - The mark and the favicon.
+  - The ink utilities: dubplate's markup reaches text color through
+    them, never `text-warning` (W2.7). The warning ink is never text on
+    `--color-base-300` (4.46:1).
+  - The rendered first-paint proof under each emulated preference and
+    each cookie.
+  - The ruled families: Alfa Slab One (display), Work Sans (body), and
+    IBM Plex Mono (captions), all OFL, as woff2 with their `@font-face`
+    rules. They replace revision 2.2's Inter candidate.
+  - The component CSS the draft names outside DaisyUI's variables: the
+    hard offset shadow on `--color-neutral`, the sleeve grain, and the
+    record rim.
+  - Two items for the spec to settle, carried until it lands. First, the
+    draft's `--size-field: .25rem` against DL R3.7's floor, which Task 4
+    set to `0.275rem`. Second, night's `--color-neutral` exception
+    marker, which the draft's contrast section did not list.
+
+  The handoff also carries these: the
   rendered tooling W12.6 describes; that the members page component
   ships in public chunks, so nothing sensitive may live in it and the
   API alone authorizes (R-5cii19); and that `default-src 'self'` also
@@ -2312,7 +2773,9 @@ plan's scope, and each names its proving task.
    half, G8, and G9 pass, and each fails by name against a seeded
    violation or the placeholder-only tree (Tasks 3, 4, 6, 7).
 7. The served document carries the composed `data-theme` value and the
-   three stylesheets in tier order (Tasks 5, 6, 7).
+   three stylesheets in tier order (Tasks 5, 6, 7). With no theme cookie
+   and default keys the value is `dubplate-system`, and a valid cookie
+   stamps `dubplate-label` or `dubplate-label-night` (Task 5).
 8. Documents are `no-cache`, the consumption document is `no-store`, and
    a hashed asset is immutable (Task 7).
 9. `script-src` carries a hash for every inline script and no
@@ -2327,10 +2790,18 @@ plan's scope, and each names its proving task.
     reference resolving (Tasks 5, 6).
 14. Every route answers its exact paths only, and no directory is listed
     (R-5cii21; Tasks 5, 6, 7).
+15. The default follows the system preference with no script and no
+    DaisyUI guard block. The bundle's `dubplate-system` rule carries
+    `dubplate-label`'s values unconditionally and
+    `dubplate-label-night`'s under `@media (prefers-color-scheme: dark)`.
+    Every document carries `<meta name="color-scheme" content="light
+    dark">`. G2 and G9 cover both palettes and their inks (Tasks 4, 5;
+    R-5cii22).
 
 **Deferred to 5c-iii, by name:** G4, G5, G7's computed-value half, G10,
-the three pages as authored, and the render-and-read at W4.1's
-viewports.
+the three pages as authored, the render-and-read at W4.1's viewports,
+the theme toggle, the `theme-color` metas, the ink utilities, and the
+rendered first-paint proof (R-5cii22).
 
 ---
 

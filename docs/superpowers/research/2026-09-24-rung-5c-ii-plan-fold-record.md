@@ -211,3 +211,95 @@ before it was written.
 
 **Refused:** none. **Ceiling:** unchanged at 9.4M (flag 7.52M). The task
 count and deliverable count (31) are unchanged.
+
+## Amendment for the visual identity ruling
+
+Revision 2.2 (approved 2026-09-24) to revision 2.3. Input: Geoff's
+visual identity ruling from the brainstorm session dubplate-04, sent as
+`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`
+(`b36871c`, with the toggle and default-binding notes at `525b6b6`). The
+pending spec `docs/superpowers/specs/2026-09-24-visual-identity-design.md`
+becomes the source of truth when it lands. Task 4's files are
+replaceable data. The amendment changes the theme surface only. No
+ruling is reopened, and Ruling 3's answer (author the theme now) stands.
+
+| Section | Change | Why |
+| --- | --- | --- |
+| Status header | Revision 2.3, and a list of the touched sections | The approved plan is amended, not re-approved |
+| "What this pass is" | Task 4 authors two composed themes, their inks, and `dubplate-system`. Task 5 reads the theme cookie. | The ruling replaces one palette with two and a system default |
+| Ruling 3 | Adds an amendment note; the question stays as Geoff answered it | The answer stands and the palette changed under it |
+| Spec deviations | Adds R-5cii22: DL R3.6 and DL section 3's estate names, and W5.10's cookie split between 5c-ii (reader) and 5c-iii (toggle). W5.9 takes no erratum. | These are the ratified lines the ruling touches |
+| Primary inputs | Adds the draft tokens file as input 6 | Task 4's values come from it |
+| Goal | The stamp follows a valid cookie, and otherwise the default, which follows the system | The pass's outcome changed |
+| Privileged fields, theme row | The cookie is a second channel, checked by exact membership in the stampable set; never logged, echoed, or written by the server | A new channel sets a stamped field (planning-miss rule 3) |
+| R-5cii8 | Documents carry `Vary: Cookie`; no 404 or JSON answer does | The same URL now answers per visitor |
+| R-5cii12 | The palette default moves from `gruvbox` to `system`. The doc string is stated, the stampable set is derived from the same extraction, and the selector-list reading is stated. | See "Config keys" below |
+| R-5cii15 | G2 and G9 cover both palettes, the inks, and the system copy | Gates G2 and G9 now read more data |
+| R-5cii22 (new) | The binding mechanism, the meta, first-paint agreement, the inks, the four exception markers, the cookie reader, the variants, and what lands where | Needed by planning-miss rule 1: every relied-on behavior is quoted |
+| Task 4 | Rewritten: five data files, a parity-checked system copy, the inks, eight new state rows, six new mutations, a pre-named split, and four deliverables | This task carries the ruling |
+| Task 5 | The `color-scheme` meta, per-palette variants, the cookie reader with ten state rows, the no-flash static half, five new mutations, and a pre-named split | This task carries the default binding |
+| Task 7 | Adds the `Vary: Cookie` acceptance row and mutation 11 | Carries R-5cii8's new row |
+| Task 8 | New gaps, two errata, and the 5c-iii handoff's theme items. The ruled fonts replace the Inter candidate. | The handoff must carry what 5c-ii routes onward |
+| Exit gate | Item 7 extended, item 15 added, and the deferred list extended | Each new property names its proving task |
+| Token ceiling | Adds 0.25M. The projection is 7.00M, and the headroom under the flag is 0.52M. Any one pre-named split now crosses the flag. 5c-iii grows by about 0.15M. The deliverable count moves from 31 to 32. | Planning-miss rule: re-derive, never assume |
+
+**The default-binding mechanism.** The Go layer stamps `dubplate-system`
+when no valid cookie is present, which W5.9 anticipates as "a third
+value the Go layer resolves and stamps". The bundle resolves it in CSS:
+an unconditional rule carries `label`'s values, and a later `@media
+(prefers-color-scheme: dark)` rule carries `label-night`'s. Both sit at
+(0,1,0) in `@layer base`. Media Queries 5's negation advice makes the
+light branch the one for "no preference", for future values, and for
+browsers that do not evaluate the feature. `<meta name="color-scheme"
+content="light dark">` is constant on every document, because the page
+color scheme is what `prefers-color-scheme` queries. The mechanism has
+no script, so W5.10 and R-5cii7 hold. It has no DaisyUI guard, so W5.9
+holds. DaisyUI's plugin cannot express this rule (its `prefersdark`
+block keys on `:not([data-theme])`), so `system.css` is a hand-written
+copy that G2 checks for parity.
+
+**Where the toggle lands.** In 5c-iii. The cookie reader and the stamp
+land in 5c-ii's Task 5, so 5c-ii binds the default to the system
+preference (Task 5's criterion: no cookie at defaults stamps
+`dubplate-system`). The `theme-color` metas also land in 5c-iii. The
+brainstorm asked for them, but they match the header bar 5c-iii builds.
+They also carry CSS-derived colors into attribute markup, the class Task
+6 upshifts for, and landing them here would push Task 5 or Task 6 past
+four deliverables. The conductor can reverse this: they would land as a
+fifth deliverable of Task 6, at `opus`.
+
+**Config keys.** No key is added and none changes kind. The palette key
+still names one palette and still composes as `<match>-<palette>`. Its
+default moves from `gruvbox` to `system`, and its doc string says what
+`system` means. The pairing of light and dark lives in the bundle's
+CSS, so the key never names a pair. This is recorded as a planning miss,
+not an owner fork, because Geoff ruled the behavior. The spelling
+`system` is the plan's, and a spec rename is a data edit.
+
+**Planning misses recorded by this amendment.**
+
+1. The palette key's default, above.
+2. The draft's `--size-field: .25rem` fails DL R3.7's 44px floor. R3.7
+   itself records that `.25rem` yields 40px, and G2 gates the floor.
+   Task 4 authors `0.275rem`, and the handoff carries the conflict to
+   the spec.
+3. The draft's contrast section missed one pair. Measured with WCAG 2.2
+   relative luminance, night's `--color-neutral` as text on its
+   `--color-base-100` is 1.09:1. It needs a fourth R2.6 exception
+   marker, beside `label`'s secondary and warning (1.83:1 each) and
+   night's primary (3.18:1). Every other ratio the draft states
+   reproduces.
+4. The plugin emits `color-scheme` on the match blocks too (`?? "normal"`).
+   The import order is therefore load-bearing, so Task 4 fixes it and
+   the bundle row checks it.
+
+**Anything for Geoff.** Nothing blocks execution. Two data questions go
+to the visual identity spec's author, who may raise them with Geoff.
+First, whether the spec states `--size-field` at `0.275rem`, the floor
+Task 4 uses, or asks for an exception R3.7 does not provide. Second,
+whether night's neutral stays fill-only under its marker. Geoff may also
+want to see the adopter-facing spelling `DUBPLATE_THEME_PALETTE=system`.
+
+**Refused:** none. **Ceiling:** unchanged at 9.4M (flag 7.52M),
+projection 7.00M. **Deliverables:** 32. Tasks: unchanged at eight plus
+Task 0.
