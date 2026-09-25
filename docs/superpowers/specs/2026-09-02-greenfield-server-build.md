@@ -1,6 +1,6 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2.1, ratified 2026-09-02, with four errata.
+Status: revision 2.1, ratified 2026-09-02, with six dated errata.
 
 **Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
 `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
@@ -64,6 +64,18 @@ Ladder entry 12 (streamer driver and SSO) gains the streamer's own database to t
 it participates in; ladder entry 16 (launch cutover) declares the backup schedule key and
 renders the `RCLONE_CONFIG_*` template rows, superseding the R2-only backup language in both
 entries.
+
+**Erratum 2026-09-25 (group-scale principles spec,
+`docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`, ratified; conflicts 8 and
+9).** Two passages below gain a dated note. (1) The trust-boundary section's `/share/*` bypass
+is live until 0.8. Navidrome 0.63.2 defaults `EnableSharing` to on, the repo doesn't set it,
+and the tunnel forwards `/share/*` to Navidrome, so a member can create a public share link.
+The owner accepted this as a residual until dubplate's own streamer replaces Navidrome at 0.8
+(Geoff, 2026-09-25: "We'll fix it when we switch it over to dubplate."). No pin, gate leg, or
+deploy is owed, and nothing routes a pin to rung 12. Any later check on sharing reads the
+effective value, never a configuration file alone (that spec's row A13). (2) "Out of scope"
+gains the features the project refuses to build: fetching music, fetch integrations,
+federation between servers, and a public library.
 
 **The config wall is registry contents, not a closed table.** After
 rung 1b, `internal/config.Load` takes the registry it enforces against
@@ -481,7 +493,9 @@ identity-header spelling on ingress, before routing, for every path,
 the `/rest/*` and `/share/*` bypasses included; injection happens
 only on the session-gated proxy path. The strip set is driven by the
 driver's configured header name plus a fixed extras list, underscore
-variants included. The streamer's trusted source is pinned to serve's
+variants included. (Erratum 2026-09-25: the `/share/*` bypass
+serves Navidrome's own share links until 0.8, a residual the owner
+accepted; see the header erratum.) The streamer's trusted source is pinned to serve's
 single observed address, never a bridge subnet, and no other network
 path may reach the streamer. The ingress flip precedes enabling the
 streamer's externalized auth, stated as an ordering constraint
@@ -1003,6 +1017,14 @@ mirror, copy localization, native mobile clients. The local
 publish are post-launch work, outside this initiative. The packaging
 initiative remains sequenced after this one, and adopter-facing
 deployment artifacts are its work, not rung 16's.
+
+> Erratum, 2026-09-25 (group-scale principles spec, ratified, conflict 9): the project also
+> refuses these, in any release. Fetching music: no search-and-download feature and no
+> automation that fetches missing albums. Fetch integrations: no torrent, Usenet, or Soulseek
+> integration, and no shipped hook recipe or example that fetches music. Federation: no
+> dubplate server exchanges catalog, audio, or membership with another. A public library: no
+> anonymous stream of the library and no public collection; a bounded share link to one item
+> is the one exception, from 0.8.
 
 ## Process
 

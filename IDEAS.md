@@ -24,6 +24,20 @@ closes the request and tells the asker. A single-user streamer has no reason to 
 which is why it suits dubplate. Builds on intake's album matching and the notify path.
 Source: the 2026-09-24 differentiator review.
 
+The group wishlist folds into this entry: an album someone should buy. A member can claim
+it ("I'm buying this"), and the entry shows the album's buy links under the group-scale
+principles spec's rules ("Money points toward buying"). Requests and the wishlist live in
+the web app only. They stay out of the documented client
+API and emit no lifecycle-hook event, because a machine-readable want list is the input a
+fetcher consumes. Source: the group-scale principles spec, 2026-09-25.
+
+### Our record store
+An optional group setting that names a local record store the group likes. Its link shows
+beside the MusicBrainz buy links on album pages, so a member who wants the album on vinyl
+or CD can buy it close to home. Builds on the buy links (the group-scale principles spec,
+"Money points toward buying") and the store-backed settings table. Source: the group-scale
+principles spec, 2026-09-25.
+
 ### New-arrivals email
 A weekly email of what the group added, grouped by member, with each album's note (0.8
 group features). It brings people back to the library without any client feature. Builds

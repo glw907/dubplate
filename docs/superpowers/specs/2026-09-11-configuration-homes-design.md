@@ -4,7 +4,9 @@ Design spec. Revision 3, 2026-09-12. Status: **ratified, Geoff read the file 202
 six errata of that date (the founding library's hand-over, per-collection layout parity, and
 four the ratified rung 6 spec owes: the shadow pair stays on the wall, the roster file
 retires from the wall list, the backup schedule key is rung 16's, and apply mode plus the
-sensitive flag are registry metadata).
+sensitive flag are registry metadata), and two errata of 2026-09-25 from the ratified
+group-scale principles spec (the bounded-share exception to the sharing decline, and checkout
+scope under the served-volume meter).
 
 Revision 1 is dated 2026-09-11, revisions 2 and 3 fold five adversarial reviews
 (competitors and demand; collection interactions; technical design; threat model;
@@ -501,6 +503,12 @@ list, and cannot be mirrored back. A member asks for one directly, a hand-over l
 laptop's copy as one, and a seize demotes the laptop's copy to one. Writing it means asking
 for hand-over in the other direction.
 
+> Erratum, 2026-09-25 (group-scale principles spec, ratified, conflict 7, ruling 2): the
+> scope above is confirmed. A member may check out any server collection they can see. A
+> checkout is the laptop's version of a phone's offline cache, and its bytes are served under
+> a device credential, so the 0.8 served-volume meter counts a checkout like any other served
+> bytes.
+
 **Seize** is the admin's one recovery verb over a laptop-written collection: a unilateral
 hand-over that transfers the writer to the server. It is one transaction that bumps the
 writer epoch. Every row commit and every file link-in of a push re-checks the epoch inside
@@ -564,6 +572,16 @@ library. Both add a second identity kind, and this design has one: one roster, o
 flag, with capability differences as per-member overrides. Share rows keyed to an item and
 an expiry are filed as a schema hook beside visibility, so the two models are designed
 together if sharing ever ships.
+
+> Erratum, 2026-09-25 (group-scale principles spec,
+> `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`, ratified, conflict 1):
+> the decline gains one exception, the bounded share. From 0.8 a member may send a link to one
+> song, one album, or a playlist of up to 20 tracks. The link plays a lossy stream in the
+> browser for a clamped time and pauses when it draws a crowd, as that spec's "Bounded
+> shares" section sets out. A share is not a second identity kind and grants no account. The
+> roster stays the trust boundary for the library, and no collection becomes public. The share
+> rows reserved above stay reserved, with the fields the bounds need recorded in the 2.0
+> spec's forward hook 15, and the projector's share checks below stand.
 
 ## The writer is a device credential
 
