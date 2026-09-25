@@ -177,7 +177,10 @@ today and gate at the comment-cleanup task.
   family. Invoke `svelte-conventions` and `ts-conventions` before writing
   components or TS. `tus-js-client` pinned 4.3.x, from rung 7. Node is workstation
   build-time only; nothing Node ships to the box. Rung 5's login page is
-  the first page built under this rule.
+  the first page built under this rule. The look is the visual identity
+  spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
+  Geoff, 2026-09-25): every `web/` task reads it, and it outranks any
+  styling habit.
 - **systemd / cloud-init**: invoke the `vps-conventions` skill BEFORE
   touching `systemd/`, `cloud-init/`, or deploy/provision scripts. Units
   are code — hardened (`NoNewPrivileges`,
@@ -202,7 +205,10 @@ today and gate at the comment-cleanup task.
 ## Reviewers
 
 `diff-reviewer` per plan task. At pass end, fan out by surface:
-`svelte-reviewer` + `daisyui-a11y-reviewer` for `web/`,
+`svelte-reviewer` + `daisyui-a11y-reviewer` for `web/`, each dispatch
+passing the visual identity spec's path and asking for conformance to it
+(tokens, inks, the component layer, the copy register) graded alongside
+correctness, since those reviewers are workstation-wide,
 `web-auth-security-reviewer` for the serve/JWT surface,
 `cloudflare-workers-reviewer` only in the pings repo. Web UI work
 matches no streamer: dubplate replaces Navidrome at 2.0 and carries its

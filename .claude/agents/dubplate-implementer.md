@@ -26,6 +26,12 @@ Go. For Python under `internal/harness/oracle/` or `tools/`, `python-conventions
 `systemd/`, `cloud-init/`, or the deploy and provision scripts, `vps-conventions`; for `web/`,
 `svelte-conventions` and `ts-conventions` (SvelteKit in static mode, per CLAUDE.md).
 
+For `web/`, read the visual identity spec
+(`docs/superpowers/specs/2026-09-24-visual-identity-design.md`) before writing markup or CSS. The
+look comes only from it: the theme tokens, the inks for any colored text, the one focus-ring rule,
+and the component layer. Add no color, font, radius, or shadow outside it, and never ship a stock
+DaisyUI component without the component layer.
+
 Check the plan's citations against the real tree, and resolve every one by grepping for its
 subject rather than by trusting its line number. A `file:line` the plan cites may have moved
 since it was written, so `grep -n` the symbol, the sentence, or the marker the citation names
