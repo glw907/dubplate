@@ -103,3 +103,18 @@ metadata), all OFL, embedded as woff2 through go:embed.
   both palettes.
 - **The mark** (a record in the label's red and black) is still being tuned. The favicon is
   an SVG with a 32px PNG fallback, sent when final. 5c-ii can ship without one.
+
+## Settled after the 5c-ii amendment (third message from the brainstorm session)
+
+- `--size-field: 0.28125rem`, which replaces the draft's `.25rem` and the amendment's interim
+  `0.275rem`. Buttons come out at 45px, clearing DL R3.7, on a step DaisyUI's theme guidance
+  sanctions for larger fields. `--size-selector` stays `0.25rem`.
+- `label-night`'s `--color-neutral` is fill-only: it takes the R2.6 exception marker and no
+  text ink. Neutral is the header bar and the offset-shadow color, never text.
+- `label`'s `--color-secondary` (1.83:1) is fill-only the same way, with the R2.6 marker.
+- Warning keeps `--ink-warning`, because warning copy appears as text.
+- `DUBPLATE_THEME_PALETTE=system` is the adopter-facing spelling; the spec uses it.
+- 5c-iii's component CSS may grow from a component sheet under review with Geoff: printed
+  shadows on buttons and cards, ink borders, a red focus ring, mono uppercase badges,
+  underline tabs, a thick-thin rule under headings, a mono catalog line, and dotted-leader
+  tracklists. Exact rules follow if he approves.
