@@ -18,6 +18,9 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 
 ## Next action
 
+**Resume prompt:** execute `docs/superpowers/plans/2026-09-25-unattended-window.md` (Geoff's grants
+inside: closes plus three plans, 12M cap, read-only box). Read memory `session-2026-09-25-handoff`.
+
 1. **6b-i runs in lane 2** (ceiling 7.4M, flag 5.92M). All build tasks accepted (through Task 7,
    `67e5e10`); spend about 5.2M. Simplifier round in flight; the close (Task 8, merge, three reads)
    projects about 6.2M total, crossing the flag near the end. In Geoff's combined question.
