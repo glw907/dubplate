@@ -25,17 +25,17 @@ its second `fix`; the plans drafted alongside the fold; the architecture reads' 
 CLAUDE.md Gate line without its false "one validator" clause; the light gate lane on both window-2
 lanes until a browser leg exists; L3 (job `FailureMessage` text, admin-only) refused; the reviewer
 note flagging the matcher corpus case's non-hex mbid refused; mutation 4 on 6b-ii-a Task 1
-recorded reviewer-read (architecturally unfireable today). Owed: the visual identity spec's
+recorded reviewer-read (architecturally unfireable today). Readings (5c-iii segment A): G9 keeps DL R2.6's ratified direct-text check beside R-5ciii3's ink rows (the ratified standard outranks the plan's ambiguous line, no erratum); Task 2's light-lane gate accepted (no browser leg yet); the second fix round taken by the conductor (pin the 66-pair count, the fill-only list, and the fill-only markers). Navidrome sharing is on at 0.63.2's default with zero shares (read-only check 2026-09-25); Geoff accepts it until the switch to dubplate's streamer. Owed: the visual identity spec's
 errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus halo). Owed to the streamer (0.8) spec's next revision: the prior-art survey's eight errata (`research/2026-09-25-streamer-prior-art-survey.md`: the XML/XSD rule, the `transcoding` extension, ranges on an in-flight transcode, CORS, AAC container, short trigram queries, the "collections" name clash, stale table pins).
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | OPEN: 5c-iii Task 0 launched (`6e6fd12`), segment A (Tasks 1, 2) running; ceiling 10.8M |
+| 1 | main tree (master) | OPEN: 5c-iii segment A accepted (Task 1 `0f9a57d`+`f5d46cb`; Task 2 `5dc0714`+`3a5bfef`+`3c6ac4c`+`253e36d`, two fix rounds, the second the conductor's); segment B (3a, 3b) next, heavy lane |
 | 2 | (free) | CLOSED: 6b-ii-a merged at `6e6fd12`; 6b-ii-b next |
 
-Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 4.9M (matcher pass about 1.25M against 2.75M; 6b-ii-a
+Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 8.0M at segment A's boundary (incl. about 1.3M of attended extras: two prior-art surveys, the group-scale principles spec and its review) (matcher pass about 1.25M against 2.75M; 6b-ii-a
 about 1.95M against 3.90M, including five merge-side architecture reads split across both passes).
 Attended interactions after approval: 0 for both passes. AC online at launch.
 
