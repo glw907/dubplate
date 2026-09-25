@@ -134,6 +134,31 @@ that message shape now, whichever step has landed. Open input: whether
 anyone in the group has ever wanted to upload a non-FLAC file, which decides
 whether the MP3 pass moves ahead of the cutover.
 
+### Give back: permissive Go modules `give-back`
+Geoff, 2026-09-25: where dubplate fills a gap in the Go ecosystem, its reusable layer is
+authored so it can ship as its own permissively licensed module. Each candidate keeps a
+gate-enforced import boundary now (`go list -deps` shows no `github.com/glw907/dubplate/` path)
+and publishes only after a release has proven it. The evidence is in
+`docs/superpowers/research/2026-09-25-give-back-survey.md` and
+`2026-09-25-streamer-prior-art-survey.md`.
+- **OpenSubsonic protocol layer** (decided): wire types generated from the Apache-2.0 OpenAPI
+  file, a request-parsing handler over a backend interface, a client, and a conformance checker.
+  Built with 0.8 and published after 0.8 ships. Clean-room record: behavior cites the OpenSubsonic
+  spec or observation, never GPL source.
+- **Matcher** (a beets autotag scoring port, MIT with beets' and `lap`'s notices), together with
+  the beets translation half of `internal/engine/musicbrainz` and its conformance suite. Blocker:
+  the embedded transliteration table derives from Python Unidecode (GPL-2.0-or-later), so the
+  module ships a `func(rune) (string, bool)` seam and the generator, never the table.
+- **FLAC tag I/O** (`tagio`, MIT): a crash-safe Vorbis comment and PICTURE writer on mediafile's
+  field table, which no permissive Go library offers. Boundary work: cut `internal/atomicfile`,
+  vendor its test fixtures, rewrite process citations.
+- **Conformance corpus** (its own repo): strip MusicBrainz's `tags` and `genres` arrays
+  (CC BY-NC-SA) first, and rewrite the README for strangers.
+- Declined: a standalone MusicBrainz client (`musicbrainzws2` covers it), `atomicfile`, the
+  store's migrations, and the replay stub.
+- **Owner decision owed before any distribution of dubplate itself:** the repo is MIT-labeled
+  and the server binary embeds the GPL-derived table (see the survey's facts; not legal advice).
+
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): group accounts
 and live-use intake move to the new server's launch; what survives is the
