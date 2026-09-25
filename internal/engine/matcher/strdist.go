@@ -40,8 +40,8 @@ func StringDist(tun Tunables, str1, str2 *string) float64 {
 	var penalty float64
 	for _, pattern := range tun.StringDistPatterns {
 		re := sdRegexp(pattern.Pattern)
-		caseA := re.ReplaceAllString(a, "")
-		caseB := re.ReplaceAllString(b, "")
+		caseA := re.ReplaceAllString(a, pattern.Replacement)
+		caseB := re.ReplaceAllString(b, pattern.Replacement)
 		if caseA == a && caseB == b {
 			continue
 		}

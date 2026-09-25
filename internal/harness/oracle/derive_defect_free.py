@@ -31,9 +31,16 @@ baseline half: the caller runs the same subjects twice, once with no
 substitution to reproduce each case's committed distance bit-identically,
 and once with the named table to get the defect-free figure.
 
-The table is the same literals ``matcher.SDPatternsNoBracketDiscount``
-carries, so a divergence between the Go table and this script's table
-is visible in review rather than hidden in a monkeypatch.
+The table below carries beets' own literals, the same six
+``matcher.SDPatternsNoBracketDiscount`` is derived from, because this
+script runs inside Python's ``re`` and needs Python's Unicode-aware
+word-boundary check. The Go table carries the featuring row translated
+to two ASCII-boundary branches instead, since RE2's word boundary is
+ASCII-only, so this script's table and the Go one diverge on that one
+row's pattern text while still substituting beets' own credit for a
+non-ASCII letter or number directly before a featuring trigger. A
+divergence in what either table substitutes is visible in review
+rather than hidden in a monkeypatch.
 """
 
 from __future__ import annotations

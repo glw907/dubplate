@@ -336,9 +336,16 @@ func DefaultTunables() Tunables {
 // unanchored, over the whole string (contract 7: SD_PATTERNS never
 // anchor), and weight is the penalty added to the base distance for
 // each side the deletion changed.
+//
+// Replacement is a [regexp.Regexp.Expand] template substituted for the
+// match instead of Python's empty string. Every row carries the zero
+// value except the featuring row, whose rewrite must keep the
+// character its Unicode-aware boundary consumed; see BeetsSDPatterns'
+// doc comment.
 type SDPattern struct {
-	Pattern string
-	Weight  float64
+	Pattern     string
+	Weight      float64
+	Replacement string
 }
 
 // SDEndWords is SD_END_WORDS (autotag/distance.py:34): words moved
@@ -360,22 +367,47 @@ var SDReplace = []SDReplacement{
 	{Pattern: "&", Replacement: "and"},
 }
 
+// sdFeaturingPattern and sdFeaturingReplacement are the one row
+// BeetsSDPatterns and SDPatternsNoBracketDiscount share, kept in one
+// place so the two tables cannot drift apart on it.
+//
+// Beets' own featuring pattern is
+// [\[\(]?\b(featuring|feat|ft)\b[\. :].+ (autotag/distance.py:39).
+// Python re's \b is Unicode-aware and Go RE2's \b is ASCII-only, so a
+// straight port sees a word boundary inside "Geschäft" that Python does
+// not. sdFeaturingPattern translates the two \b checks into two
+// branches instead: a leading bracket needs no boundary check of its
+// own, because the trailing \b always holds (the separator class
+// [\. :] that must follow it carries no word character) and the
+// leading one is automatic after a bracket (a bracket is never a word
+// character, so the boundary there is already satisfied); every other
+// case reads the leading boundary as the start of the string or a rune
+// outside letters, digits, and underscore. That second branch keeps
+// the boundary rune in its own group, and sdFeaturingReplacement
+// reinserts it, because beets' Unicode-aware \b consumes no character
+// while the translated branch's [^\pL\pN_] does; without the
+// replacement the rewrite would delete a letter or digit the two
+// titles disagree about, which matters because unidecode maps some of
+// those runes to ASCII letters ("©" to "(c)", "™" to "(tm)").
+const (
+	sdFeaturingPattern     = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
+	sdFeaturingReplacement = `${1}`
+)
+
 // BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
 // six shipped discounts in their fixed order. It is the default of
-// [Tunables.StringDistPatterns] and must stay byte-identical to beets'
-// literals (TestBeetsSDPatternsMatchBeetsLiterals). The featuring
+// [Tunables.StringDistPatterns], held to beets' literals one for one
+// (TestBeetsSDPatternsMatchBeetsLiterals), with one named departure:
+// the featuring row carries sdFeaturingPattern and
+// sdFeaturingReplacement in place of beets' literal and its empty
+// substitution, per that pattern's doc comment above. The featuring
 // pattern carries the word boundaries upstream shipped in beets 2.14.0
 // (19d091440), so "ft" inside an ordinary word such as "Draft" no
 // longer reads as a featuring credit.
-//
-// Python re's \b is Unicode-aware and Go RE2's is ASCII-only, so the
-// two disagree where a non-ASCII letter abuts the trigger: "Rüft:"
-// fires the Go pattern and not beets' own. No committed case carries
-// such a string.
 var BeetsSDPatterns = []SDPattern{
 	{Pattern: `^the `, Weight: 0.1},
 	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
+	{Pattern: sdFeaturingPattern, Weight: 0.1, Replacement: sdFeaturingReplacement},
 	{Pattern: `\(.*?\)`, Weight: 0.3},
 	{Pattern: `\[.*?\]`, Weight: 0.3},
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
@@ -398,7 +430,7 @@ var BeetsSDPatterns = []SDPattern{
 var SDPatternsNoBracketDiscount = []SDPattern{
 	{Pattern: `^the `, Weight: 0.1},
 	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
+	{Pattern: sdFeaturingPattern, Weight: 0.1, Replacement: sdFeaturingReplacement},
 	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
 }
 

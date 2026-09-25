@@ -180,35 +180,21 @@ func TestDefaultTunables_StringDistPatternsDefaultsToBeets(t *testing.T) {
 	}
 }
 
-// TestBeetsSDPatterns_SixEntriesInBeetsOrder pins SD_PATTERNS
-// (autotag/distance.py:36-42) byte-for-byte in beets' own order.
-func TestBeetsSDPatterns_SixEntriesInBeetsOrder(t *testing.T) {
-	want := []SDPattern{
-		{Pattern: `^the `, Weight: 0.1},
-		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-		{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
-		{Pattern: `\(.*?\)`, Weight: 0.3},
-		{Pattern: `\[.*?\]`, Weight: 0.3},
-		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
-	}
-	if !reflect.DeepEqual(BeetsSDPatterns, want) {
-		t.Errorf("BeetsSDPatterns = %v, want %v", BeetsSDPatterns, want)
-	}
-}
-
 // TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved proves the
-// table carries the other four discounts byte-identical to
-// [BeetsSDPatterns] and drops exactly the two bracket patterns.
+// table carries the other four discounts byte-identical to beets'
+// literals, through the same sdTranslations map
+// TestBeetsSDPatternsMatchBeetsLiterals uses (so no test outside that
+// map ever writes the featuring row's Go form), and drops exactly the
+// two bracket patterns.
 func TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved(t *testing.T) {
-	want := []SDPattern{
-		{Pattern: `^the `, Weight: 0.1},
-		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-		{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
-		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+	var literalsLessBrackets []SDPattern
+	for _, literal := range beetsSDPatternLiterals {
+		if literal.Weight == 0.3 {
+			continue
+		}
+		literalsLessBrackets = append(literalsLessBrackets, literal)
 	}
-	if !reflect.DeepEqual(SDPatternsNoBracketDiscount, want) {
-		t.Errorf("SDPatternsNoBracketDiscount = %v, want %v", SDPatternsNoBracketDiscount, want)
-	}
+	assertMatchesTranslatedLiterals(t, "SDPatternsNoBracketDiscount", SDPatternsNoBracketDiscount, literalsLessBrackets)
 }
 
 // TestStringDistSeparatesNoBracketDiscount is the fixture that tells

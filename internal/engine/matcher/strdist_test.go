@@ -1,10 +1,13 @@
 package matcher
 
 import (
+	"encoding/json"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
+	"unicode"
 )
 
 // Every want below was measured by calling
@@ -59,6 +62,15 @@ func TestStringDist(t *testing.T) {
 		// TestStringDistFeaturingNeedsAWordBoundary.
 		{"ft inside a word", new("Draft: Ember Wharf"), new("Draft: Northern Lines"), 0.6111111111111112},
 
+		// The kept character: the featuring row's rewrite keeps the
+		// rune its boundary group consumed instead of deleting it, so
+		// "©", which unidecode maps to "(c)", survives into the
+		// residual string both sides are compared on. This row already
+		// passed before the rewrite, since Go's ASCII \b holds between
+		// "©" and "f" too; it exists to fail the mutation that drops
+		// the kept group.
+		{"kept character before ft", new("Ember Wharf ©ft. Northern"), new("Ember Wharf ©"), 0.047619047619047616},
+
 		// The three solo rows, where one side empties. "the " deletes
 		// to nothing and earns the full 0.1; "(ep)" deletes to nothing
 		// on both sides for a zero delta and earns nothing; ", an"
@@ -100,46 +112,102 @@ func TestStringDistPatternLoopAdoptsOnlyOnPositiveDelta(t *testing.T) {
 	}
 }
 
-// TestBeetsSDPatternsMatchBeetsLiterals holds BeetsSDPatterns to the
-// six literals at beets/autotag/distance.py:36-43, pinned 2.14.1, byte
-// for byte.
+// beetsSDPatternLiterals is SD_PATTERNS (autotag/distance.py:36-42),
+// beets' six shipped discounts, pinned 2.14.1 byte for byte.
 //
 // The literals are written out here rather than compared against
-// anything the package exports, so editing the shipped table takes
-// two edits and cannot happen quietly. Tier 0 cannot stand in for this
+// anything the package exports, so editing the shipped table takes two
+// edits and cannot happen quietly. Tier 0 cannot stand in for this
 // check: the featuring pattern's word boundaries change none of the 72
 // committed rows, so tier 0 is blind to exactly the edit most likely to
 // be made.
-func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
-	shipped := []SDPattern{
-		{Pattern: `^the `, Weight: 0.1},
-		{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-		{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
-		{Pattern: `\(.*?\)`, Weight: 0.3},
-		{Pattern: `\[.*?\]`, Weight: 0.3},
-		{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+var beetsSDPatternLiterals = []SDPattern{
+	{Pattern: `^the `, Weight: 0.1},
+	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
+	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
+	{Pattern: `\(.*?\)`, Weight: 0.3},
+	{Pattern: `\[.*?\]`, Weight: 0.3},
+	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+}
+
+// sdGoForm is the Go pattern and Expand template a shipped row carries
+// in place of one beets literal and its empty substitution.
+type sdGoForm struct {
+	pattern     string
+	replacement string
+}
+
+// sdTranslations maps a beets literal to the Go form this package
+// departs from, each written out independently of tunables.go's
+// sdFeaturingPattern and sdFeaturingReplacement so this test does not
+// merely compare production against itself. It has one entry today,
+// the featuring row; a row whose literal is absent from this
+// map must equal the literal exactly, with an empty Replacement, in
+// every shipped table.
+var sdTranslations = map[string]sdGoForm{
+	`[\[\(]?\b(featuring|feat|ft)\b[\. :].+`: {
+		pattern:     `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`,
+		replacement: `${1}`,
+	},
+}
+
+// wantSDPattern applies sdTranslations to literal, marking the
+// translation used, so a shipped table is checked against what it
+// should actually carry: the literal untouched, or the Go form on the
+// one row this package departs from.
+func wantSDPattern(literal SDPattern, used map[string]bool) SDPattern {
+	translation, translated := sdTranslations[literal.Pattern]
+	if !translated {
+		return literal
 	}
-	if len(BeetsSDPatterns) != len(shipped) {
-		t.Fatalf("BeetsSDPatterns has %d entries, beets ships %d", len(BeetsSDPatterns), len(shipped))
+	used[literal.Pattern] = true
+	return SDPattern{Pattern: translation.pattern, Weight: literal.Weight, Replacement: translation.replacement}
+}
+
+// assertMatchesTranslatedLiterals checks got against literals through
+// sdTranslations and fails on any map entry no row in literals uses.
+func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []SDPattern) {
+	t.Helper()
+	if len(got) != len(literals) {
+		t.Fatalf("%s has %d entries, beets ships %d", name, len(got), len(literals))
 	}
-	for i, want := range shipped {
-		if got := BeetsSDPatterns[i]; got != want {
-			t.Errorf("BeetsSDPatterns[%d] = {%q, %v}, beets ships {%q, %v}", i, got.Pattern, got.Weight, want.Pattern, want.Weight)
+	used := make(map[string]bool, len(sdTranslations))
+	for i, literal := range literals {
+		want := wantSDPattern(literal, used)
+		if got[i] != want {
+			t.Errorf("%s[%d] = {%q, %v, %q}, want {%q, %v, %q}", name, i, got[i].Pattern, got[i].Weight, got[i].Replacement, want.Pattern, want.Weight, want.Replacement)
 		}
 	}
-	if DefaultTunables().StringDistPatterns[2].Pattern != shipped[2].Pattern {
+	for literal := range sdTranslations {
+		if !used[literal] {
+			t.Errorf("%s: translation for %q unused", name, literal)
+		}
+	}
+}
+
+// TestBeetsSDPatternsMatchBeetsLiterals holds BeetsSDPatterns to
+// beetsSDPatternLiterals through sdTranslations: byte-identical except
+// for the featuring row, which carries its Go translation.
+func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
+	assertMatchesTranslatedLiterals(t, "BeetsSDPatterns", BeetsSDPatterns, beetsSDPatternLiterals)
+
+	wantFeaturing := wantSDPattern(beetsSDPatternLiterals[2], map[string]bool{})
+	if DefaultTunables().StringDistPatterns[2].Pattern != wantFeaturing.Pattern {
 		t.Error("DefaultTunables does not select the shipped table")
 	}
 }
 
 // TestStringDistFeaturingNeedsAWordBoundary pins both sides of the
-// featuring pattern's word boundaries, each figure measured against
+// featuring pattern's word boundary check, each figure measured against
 // pinned beets. A trigger inside a word fires nothing; a trigger after
-// a space or an opening bracket discounts the credit at 0.1. Dropping
-// the leading \b makes the "Draft:" and "Gift " rows read the pre-2.14
-// defect's 0.061111 and 0.064706. The trailing \b is always satisfied,
-// since the separator class that must follow it holds no word
-// character, so no row here can tell it apart.
+// a space or an opening bracket discounts the credit at 0.1. The
+// pre-2.14 defect never checked the boundary before the trigger, and
+// scored the "Draft:" and "Gift " rows at 0.061111 and 0.064706; beets
+// 2.14.0 added the check and this row's rewrite carries it in two
+// branches instead of \b (BeetsSDPatterns' doc comment). The trailing
+// boundary is always satisfied, since the separator class that must
+// follow the trigger holds no word character, so no row here can tell
+// it apart.
 func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -151,13 +219,342 @@ func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 		{"ft after a space", "Ember Wharf ft. Northern", "Ember Wharf", 0.05},
 		{"feat after a parenthesis", "Ember Wharf (feat. Northern)", "Ember Wharf", 0.05454545454545454},
 		{"ft after a bracket", "Ember Wharf [ft. Northern]", "Ember Wharf", 0.05},
+
+		// The gap this pass closes: a non-ASCII letter or number
+		// directly before the trigger, where Go's ASCII-only \b saw a
+		// boundary and Python's Unicode-aware one did not. Figures
+		// measured in the pinned venv (research brief, "Measured
+		// figures"); the same for both pattern tables, since neither
+		// table's other rows fire on these pairs.
+		{"non-ASCII letter before ft, umlaut", "Geschäft: Ember Wharf", "Geschäft: Northern Lines", 0.5238095238095238},
+		{"non-ASCII letter before ft, u-diaeresis", "Rüft: Ember Wharf", "Rüft: Northern Lines", 0.6470588235294118},
+		{"non-ASCII letter before ft, omega", "Ωft Ember Wharf", "Ωft Northern Lines", 0.6875},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := StringDist(DefaultTunables(), &tt.str1, &tt.str2); got != tt.want {
-				t.Errorf("StringDist(%q, %q) = %v, want %v", tt.str1, tt.str2, got, tt.want)
+	tables := []struct {
+		name     string
+		patterns []SDPattern
+	}{
+		{"beets shipped table", BeetsSDPatterns},
+		{"no-bracket-discount table", SDPatternsNoBracketDiscount},
+	}
+	for _, table := range tables {
+		for _, tt := range tests {
+			t.Run(table.name+"/"+tt.name, func(t *testing.T) {
+				tun := DefaultTunables()
+				tun.StringDistPatterns = table.patterns
+				if got := StringDist(tun, &tt.str1, &tt.str2); got != tt.want {
+					t.Errorf("StringDist(%q, %q) = %v, want %v", tt.str1, tt.str2, got, tt.want)
+				}
+			})
+		}
+	}
+}
+
+// TestStringDistFeaturingUppercaseDottedICaseMapping declares, rather
+// than fixes, the one divergence a sweep of every code point found
+// upstream of the featuring row, declared rather than fixed: Python's str.lower maps
+// U+0130 (İ) to "i" plus a combining dot, a mark \w rejects, so beets'
+// Unicode-aware boundary check still sees a boundary before "ft". Go's
+// strings.ToLower maps U+0130 to a bare "i", so the character directly
+// before the trigger is a plain ASCII word character on both sides and
+// neither pattern table's boundary check fires. The two pipelines
+// therefore charge the pair differently: beets discounts the credit at
+// 0.06875 (pinned venv, 2026-09-25) and Go, seeing no boundary, charges
+// the whole difference. TestStringDistCaseMappingSweep found U+0130 is
+// the only code point where Python's lowercase changes whether the
+// character before it reads as a word character; a toolchain bump that
+// moves Go's figure re-runs that sweep. A Go figure equal to beets'
+// 0.06875 means the divergence is fixed and this declaration comes out.
+func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
+	const wantGo = 0.6875
+	str1, str2 := "İft: Ember Wharf", "İft: Northern Lines"
+	tables := []struct {
+		name     string
+		patterns []SDPattern
+	}{
+		{"beets shipped table", BeetsSDPatterns},
+		{"no-bracket-discount table", SDPatternsNoBracketDiscount},
+	}
+	for _, table := range tables {
+		t.Run(table.name, func(t *testing.T) {
+			tun := DefaultTunables()
+			tun.StringDistPatterns = table.patterns
+			if got := StringDist(tun, &str1, &str2); got != wantGo {
+				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875)", str1, str2, got, wantGo)
 			}
 		})
+	}
+}
+
+// wantCuratedFeaturingLabels lists every curated label
+// featuring-golden.json must carry, so a curated row going
+// missing from the file is a named failure rather than a silently
+// weaker golden.
+var wantCuratedFeaturingLabels = []string{
+	"geschaft-mixed", "geschaft-lower",
+	"ruft-mixed", "ruft-lower",
+	"omegaft-mixed", "omegaft-lower",
+	"draft-mixed", "draft-lower",
+	"arft-mixed", "arft-lower",
+	"twoft-mixed", "twoft-lower",
+	"cafeft-mixed", "cafeft-lower",
+	"emberwharfft-mixed", "emberwharfft-lower",
+	"a-umlaut", "sharp-s", "omega", "titlecase-dz-caron",
+	"superscript-two", "roman-numeral-twelve", "combining-acute",
+	"underscore", "no-break-space", "paren-open", "bracket-open",
+	"copyright", "trademark", "euro",
+	"start", "two-triggers", "newline",
+}
+
+// featuringGoldenFile is featuring-golden.json's shape: a
+// provenance header, curated [label, input, beets_output] rows, and
+// drawn [input, beets_output] pairs.
+type featuringGoldenFile struct {
+	Header struct {
+		BeetsVersion       string `json:"beets_version"`
+		UnicodedataVersion string `json:"unicodedata_version"`
+		Literal            string `json:"literal"`
+	} `json:"header"`
+	Curated [][3]string `json:"curated"`
+	Drawn   [][2]string `json:"drawn"`
+}
+
+// The golden's two floors: below either, it is too weak to tell the
+// Go translation from a defect that merely deletes less than beets
+// does.
+const (
+	minFiredDrawnFeaturingRows = 150
+	minASCIILiteralDivergences = 40
+)
+
+// TestFeaturingRowMatchesBeetsGolden runs the shipped featuring row
+// over every curated and drawn input in featuring-golden.json and
+// requires beets' own substitution on each. The ASCII-literal control
+// compiles the golden's own recorded beets literal with Go's regexp
+// (Go's \b, ASCII-only) and counts how often that undiscounted port
+// disagrees with beets; that count, pinned at gen_featuring_golden.py's
+// MIN_FIRED-checked draw, is the test's own non-vacuity proof: a golden
+// too weak to separate the translation from the defect it replaces
+// would pass here for the wrong reason.
+func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
+	raw, err := os.ReadFile("testdata/featuring-golden.json")
+	if err != nil {
+		t.Fatalf("read featuring-golden.json: %v", err)
+	}
+	var golden featuringGoldenFile
+	if err := json.Unmarshal(raw, &golden); err != nil {
+		t.Fatalf("decode featuring-golden.json: %v", err)
+	}
+
+	if golden.Header.BeetsVersion != "2.14.1" {
+		t.Fatalf("header.beets_version = %q, want %q", golden.Header.BeetsVersion, "2.14.1")
+	}
+	if golden.Header.UnicodedataVersion != "15.1.0" {
+		t.Fatalf("header.unicodedata_version = %q, want %q", golden.Header.UnicodedataVersion, "15.1.0")
+	}
+	if golden.Header.Literal != beetsSDPatternLiterals[2].Pattern {
+		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[2].Pattern)
+	}
+
+	const wantCuratedRows = 33
+	if len(golden.Curated) != wantCuratedRows {
+		t.Fatalf("golden carries %d curated rows, want %d", len(golden.Curated), wantCuratedRows)
+	}
+	const wantDrawnRows = 7955
+	if len(golden.Drawn) != wantDrawnRows {
+		t.Fatalf("golden carries %d drawn rows, want %d", len(golden.Drawn), wantDrawnRows)
+	}
+
+	gotLabels := make(map[string]bool, len(golden.Curated))
+	for _, row := range golden.Curated {
+		gotLabels[row[0]] = true
+	}
+	for _, label := range wantCuratedFeaturingLabels {
+		if !gotLabels[label] {
+			t.Errorf("golden is missing curated label %q", label)
+		}
+	}
+
+	fired := 0
+	for _, row := range golden.Drawn {
+		if row[0] != row[1] {
+			fired++
+		}
+	}
+	if fired < minFiredDrawnFeaturingRows {
+		t.Fatalf("golden's drawn rows fired %d times, want at least %d: too weak to prove the row", fired, minFiredDrawnFeaturingRows)
+	}
+	const wantFired = 251
+	if fired != wantFired {
+		t.Errorf("golden's drawn rows fired %d times, want %d", fired, wantFired)
+	}
+
+	asciiLiteral := sdRegexp(golden.Header.Literal)
+	shipped := sdRegexp(sdFeaturingPattern)
+
+	type divergence struct {
+		label, input, want, got string
+	}
+	var diverged []divergence
+	asciiDivergences := 0
+	for _, row := range golden.Curated {
+		label, input, want := row[0], row[1], row[2]
+		if got := asciiLiteral.ReplaceAllString(input, ""); got != want {
+			asciiDivergences++
+		}
+		if got := shipped.ReplaceAllString(input, sdFeaturingReplacement); got != want {
+			diverged = append(diverged, divergence{label, input, want, got})
+		}
+	}
+	for _, row := range golden.Drawn {
+		input, want := row[0], row[1]
+		if got := asciiLiteral.ReplaceAllString(input, ""); got != want {
+			asciiDivergences++
+		}
+		if got := shipped.ReplaceAllString(input, sdFeaturingReplacement); got != want {
+			diverged = append(diverged, divergence{"", input, want, got})
+		}
+	}
+
+	if len(diverged) > 0 {
+		for i, d := range diverged {
+			if i >= 20 {
+				break
+			}
+			name := d.label
+			if name == "" {
+				name = strconv.Quote(d.input)
+			}
+			t.Errorf("row %s: got %q, want %q", name, d.got, d.want)
+		}
+		t.Errorf("%d of %d golden rows diverge from beets", len(diverged), len(golden.Curated)+len(golden.Drawn))
+	}
+
+	const wantASCIILiteralDivergences = 98
+	if asciiDivergences < minASCIILiteralDivergences {
+		t.Fatalf("ASCII-literal control diverged on %d rows, want at least %d: the golden cannot tell the translation from the defect", asciiDivergences, minASCIILiteralDivergences)
+	}
+	if asciiDivergences != wantASCIILiteralDivergences {
+		t.Errorf("ASCII-literal control diverged on %d rows, want %d", asciiDivergences, wantASCIILiteralDivergences)
+	}
+}
+
+// wantGoOnlyWordCodePoints is the measured gap between Go
+// 1.27.1's unicode.Version 17.0.0 and Python's word class at CPython
+// 3.13.15's unicodedata.unidata_version 15.1.0: 9,039 code points
+// Unicode 16.0 and 17.0 assigned that 15.1 leaves unassigned, and that
+// the shipped featuring row therefore reads as word characters where
+// beets' own Python does not.
+const wantGoOnlyWordCodePoints = 9039
+
+// pythonWordRangesFile is python-word-ranges.json's shape:
+// the same provenance header as the featuring golden, and Python's
+// whole \w class as sorted, non-overlapping inclusive hex ranges.
+type pythonWordRangesFile struct {
+	Header struct {
+		BeetsVersion       string `json:"beets_version"`
+		UnicodedataVersion string `json:"unicodedata_version"`
+		Literal            string `json:"literal"`
+	} `json:"header"`
+	Ranges [][2]string `json:"ranges"`
+}
+
+// TestFeaturingRowWordClassMatchesPythonRanges classifies every code
+// point outside the surrogates through the shipped featuring row
+// itself, never a copy of its class, by substituting on
+// "a"+string(r)+"ft. x": an unchanged output means r is a Go word
+// character, and an output of "a"+string(r) means it is not (the
+// bracket branch removes "(" and "[" outright, so their non-word
+// output is "a" alone). It compares that classification, code point by
+// code point, with python-word-ranges.json.
+func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
+	raw, err := os.ReadFile("testdata/python-word-ranges.json")
+	if err != nil {
+		t.Fatalf("read python-word-ranges.json: %v", err)
+	}
+	var file pythonWordRangesFile
+	if err := json.Unmarshal(raw, &file); err != nil {
+		t.Fatalf("decode python-word-ranges.json: %v", err)
+	}
+	if file.Header.UnicodedataVersion != "15.1.0" {
+		t.Fatalf("header.unicodedata_version = %q, want %q", file.Header.UnicodedataVersion, "15.1.0")
+	}
+
+	const wantRangeCount = 749
+	if len(file.Ranges) != wantRangeCount {
+		t.Fatalf("range file carries %d ranges, want %d", len(file.Ranges), wantRangeCount)
+	}
+
+	ranges := make([][2]rune, len(file.Ranges))
+	for i, hexRange := range file.Ranges {
+		lo, err := strconv.ParseUint(hexRange[0], 16, 32)
+		if err != nil {
+			t.Fatalf("range %d: parse low bound %q: %v", i, hexRange[0], err)
+		}
+		hi, err := strconv.ParseUint(hexRange[1], 16, 32)
+		if err != nil {
+			t.Fatalf("range %d: parse high bound %q: %v", i, hexRange[1], err)
+		}
+		if lo > hi {
+			t.Fatalf("range %d (%s-%s) is empty: low bound exceeds high bound", i, hexRange[0], hexRange[1])
+		}
+		ranges[i] = [2]rune{rune(lo), rune(hi)}
+		if i > 0 && ranges[i][0] <= ranges[i-1][1] {
+			t.Fatalf("range %d (%s-%s) overlaps or is unsorted against range %d", i, hexRange[0], hexRange[1], i-1)
+		}
+	}
+
+	isPythonWord := func(r rune) bool {
+		_, found := slices.BinarySearchFunc(ranges, r, func(rg [2]rune, target rune) int {
+			switch {
+			case target < rg[0]:
+				return 1
+			case target > rg[1]:
+				return -1
+			default:
+				return 0
+			}
+		})
+		return found
+	}
+
+	shipped := sdRegexp(sdFeaturingPattern)
+	var pythonOnly []rune
+	goOnly := 0
+	for r := rune(0); r <= 0x10FFFF; r++ {
+		if r >= 0xD800 && r <= 0xDFFF {
+			continue
+		}
+		input := "a" + string(r) + "ft. x"
+		got := shipped.ReplaceAllString(input, sdFeaturingReplacement)
+
+		goWord := got == input
+		switch {
+		case goWord:
+		case r == '(' || r == '[':
+			if got != "a" {
+				t.Fatalf("U+%04X: got %q, want %q (the bracket branch removes it)", r, got, "a")
+			}
+		case got == "a"+string(r):
+		default:
+			t.Fatalf("U+%04X: got %q, neither unchanged nor the non-word form", r, got)
+		}
+
+		switch pyWord := isPythonWord(r); {
+		case pyWord && !goWord:
+			pythonOnly = append(pythonOnly, r)
+		case goWord && !pyWord:
+			goOnly++
+		}
+	}
+	if len(pythonOnly) > 0 {
+		for _, r := range pythonOnly[:min(5, len(pythonOnly))] {
+			t.Errorf("U+%04X is a Python word character and not a Go one", r)
+		}
+		t.Fatalf("%d code points are Python word characters and not Go ones", len(pythonOnly))
+	}
+	if goOnly != wantGoOnlyWordCodePoints {
+		t.Errorf("Go-only word-character count = %d, want %d (unicode.Version %s): confirm the Python-only count is still zero, check whether any newly assigned code point can sit before a trigger in a real title, then update the count and record it in HISTORY", goOnly, wantGoOnlyWordCodePoints, unicode.Version)
 	}
 }
 
@@ -222,7 +619,11 @@ func TestStringDistDoesNotNormalizeUnicode(t *testing.T) {
 //
 // The mapping difference is U+0130, the case the port was checked for.
 // Python expands it to "i" plus a combining dot and Go maps it straight
-// to "i", and the strip removes the dot, so the two agree.
+// to "i". The strip this test sweeps removes the dot either way, so
+// the two agree here; the featuring row's boundary check runs before
+// any strip and sees the two lowercase forms differently, and that
+// divergence is declared, not fixed
+// (TestStringDistFeaturingUppercaseDottedICaseMapping).
 //
 // The skew is Go 1.27's Unicode 17.0.0 case tables against CPython
 // 3.13's 15.1.0, so Go lowercases code points Python leaves alone. The
