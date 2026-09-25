@@ -6,7 +6,33 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i, and rung 6's 6a and 6b-i are closed
 
 ## Next action
 
-**Resume prompt:** execute `docs/superpowers/plans/2026-09-25-unattended-window.md`. Three plans run as document lanes, no code lane open: the matcher word-boundary plan at its final fold; 6b-ii at fold verification; the 5c-iii plan (fonts, the three real pages, the rendered gates, the render-and-read, the identity spec's component layer), drafted against the carried items below, then `spec-plan-review` to "awaiting owner approval." Then the morning question.
+The 2026-09-25 unattended window is complete, at about 6.8M of its 12M cap (flag not reached).
+Three plans are reviewed and await approval, each executable under every answer to its rulings:
+
+- Matcher word boundary, `plans/2026-09-25-matcher-word-boundary.md` rev 3: Rulings 1-3.
+- 6b-ii restore and HTTP projection, `plans/2026-09-25-rung-6b-ii-restore-http.md` rev 4: Rulings 1-9.
+- 5c-iii pages, fonts, rendered gates, `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`
+  rev 4: Rulings 1-10.
+
+**Morning question (Geoff), one sitting:**
+1. Each plan's "Rulings awaiting owner" section. All 22 recommend yes, except where a ruling
+   says otherwise. 6b-ii Ruling 1 recommends no, which splits the pass into 6b-ii-a (3.90M) and
+   6b-ii-b (7.53M). 5c-iii Ruling 1 recommends yes, which splits it into 5c-iii (10.8M) and
+   5c-iv (8.5M).
+2. Rung 12: the roster API shares an origin with the Navidrome fallthrough (5c-ii security M2).
+   Accept as a rung 12 threat-model entry, or act sooner?
+3. Order: the matcher pass and 5c-iii both need lane 1 (the matcher touches corpus). The
+   recommendation is matcher first, then 5c-iii; 6b-ii takes lane 2 in parallel. From 5c-iii's
+   Task 3 on, every full gate launches Chromium (heavy lane).
+4. Readings to ratify or reverse (conductor, 2026-09-25): one more targeted round on 5c-ii
+   Fold A after its second `fix` (F-A3, accepted); the plans drafted alongside the fold rather
+   than after both closes; the architecture reads' routing (ops and backup findings to 6b-ii,
+   the rest to a cleanup pass; forward hooks removed there and re-added by the rung that
+   consumes them); the 6b-i CLAUDE.md Gate line without its false "one validator" clause.
+
+Also flagged: auth's revocation epoch has no production writer until the revoke verb; the
+visual identity spec takes errata (Permanent Marker is Apache-2.0; R5.4 cites should be R5.5);
+the workstation was on battery at the window's start.
 
 ## Lane registry
 
