@@ -493,12 +493,18 @@ lists a zero privilege.
 actor. The actor keeps the identity's channel, and its log form names it.
 
 The authorizer is an unexported interface in `opshttp` with one method:
-`authorize(ctx context.Context, op string, p ops.Privilege) (ops.Actor, error)`. It receives no
+`authorize(ctx context.Context, op string, p ops.Privilege) (ops.Actor, error)`. **Amended at
+6b-ii-a's security fold (conductor, 2026-09-25, `629f3df`):** the shape is now
+`authorize(ctx context.Context, op string) (ops.Actor, ops.Privilege, error)`. The authorizer
+returns the caller's granted privilege, and the layer checks it against `ops.PrivilegeOf(op)` on an
+allowlist (admin reaches admin and member, member reaches member, any other value is denied), so a
+nil error alone never admits. `p` was dropped so an authorizer cannot echo it back as its grant. The
+authorizer's error carries no identity text, and a denial logs a closed-set reason. It receives no
 `*http.Request`, so the in-process leg and the HTTP leg call it the same way. A verified identity
 reaches it only through `ctx`: rung 14's session middleware will set it there, as rung 5's admin
 gate passes its verified identity under a context key (`internal/auth/admin.go:84-91`,
 `adminKey`), and the contract suite's test authorizers read a test key the suite sets on both legs.
-A nil error admits; any error denies. The projection's constructor takes the authorizer and the
+Any error denies, and a nil error admits only when the grant reaches the operation's privilege (amended, see above). The projection's constructor takes the authorizer and the
 mount's channel (`identity.Channel`), and fails on a nil authorizer and on a channel that is not
 `Valid` or is `ChannelCommandLine`. The layer refuses, as `forbidden`, an actor whose channel
 differs from the mount's, so an authorizer wired to the wrong mount fails closed. `ChannelCookie`
