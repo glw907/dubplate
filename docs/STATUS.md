@@ -18,9 +18,9 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 
 ## Next action
 
-1. **6b-i runs in lane 2** (approved 2026-09-24; ceiling 7.4M, flag 5.92M). Segments A and B closed
-   green (1S-2 and 3-5, `4079422`..`6c2d287`); spend about 3.7M; re-derived total about 5.6M, under
-   the flag, so the pre-named split is not taken. Segment C (tidy 5T, Tasks 6-7) in flight.
+1. **6b-i runs in lane 2** (ceiling 7.4M, flag 5.92M). All build tasks accepted (through Task 7,
+   `67e5e10`); spend about 5.2M. Simplifier round in flight; the close (Task 8, merge, three reads)
+   projects about 6.2M total, crossing the flag near the end. In Geoff's combined question.
 2. **5c-ii at its flag** (lane 1; 9.4M ceiling, 7.52M flag, spend about 7.4M). Tasks 1-7 and the
    simplifier are in (`2424b9a`); the three reviews are committed (`71de914`): Svelte B1 (every gate
    passes vacuously under a path with a space), security M1 (operator CSS read through a symlink),
@@ -36,7 +36,7 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-ii since 2026-09-24; Segment A green, Segment B in flight |
-| 2 | worktree `.claude/worktrees/lane-2-6b-i`, branch `lane-2-6b-i` | OPEN on 6b-i since 2026-09-24; segment C (5T, 6, 7) in flight |
+| 2 | worktree `.claude/worktrees/lane-2-6b-i`, branch `lane-2-6b-i` | OPEN on 6b-i since 2026-09-24; build tasks done; simplifier round, then the close |
 
 ## Open items (carried)
 
