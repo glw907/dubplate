@@ -8,6 +8,10 @@ rulings yes); spend about 4.0M against the 6.8M ceiling (5.44M flag), zero atten
 after approval (HISTORY, top entry). Both touched packages graded workmanlike at the merge's
 architecture reads; store findings route to 6b-i, cmd findings to the architecture cleanup pass.
 Beets 2.14.1 is adopted and closed (`367564c`, `422efcd`, simplifier clean). 5c-ii runs in lane 1.
+The visual identity spec (`specs/2026-09-24-visual-identity-design.md`, `ecba52a`, revision 1)
+authors the web look: palettes, type, the record mark, the component layer, and the photo system.
+It awaits Geoff's review; 5c-ii Task 4 and 5c-iii build to it. Owed at its ratification: a web
+surface standard section 19 entry recording that its ruling 4 withdraws W1.3's illustrations.
 
 ## Rulings taken (Geoff, 2026-09-24)
 
@@ -18,11 +22,9 @@ Beets 2.14.1 is adopted and closed (`367564c`, `422efcd`, simplifier clean). 5c-
 
 ## Next action
 
-1. **6b-i's plan is at revision 2** (`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`),
-   in verification: `ops/local`'s export of the write method, `backup`, `leases/`, the staging-stager
-   rule, plus 6a's store architecture findings (test-only seams, unused production surface, duplicate
-   rollback/poll logic, hand-copied SQLite codes, an `open.go` file split). Lane 2 opens on 6b-i once
-   Geoff rules its four open questions.
+1. **6b-i's plan, revision 2.2** (`plans/2026-09-24-rung-6b-i-ops-seam-backup.md`, `874dcf8`),
+   reviewed and folded, awaits Geoff: four rulings plus a split question (recommended no). Lane 2
+   opens on it once ruled. Ceiling 7.4M, flag 5.92M, projection 5.49M.
 2. **5c-ii runs in lane 1** (revision 2.4, all seven rulings yes; 9.4M ceiling, 7.52M flag; visual
    identity tokens amended in: `label`/`label-night` palettes, `dubplate-system` stamp, the
    `__Host-dubplate_theme` cookie). Segment A closed green (`5637ecb`, `e9f7367`, `7769d25`); Segment
@@ -40,9 +42,7 @@ Beets 2.14.1 is adopted and closed (`367564c`, `422efcd`, simplifier clean). 5c-
 
 ## Open items (carried)
 
-- No deploy until 5d: the env template selects `magic-link` without its nine keys; `main.go`'s
-  `newProductionRegistry` is contested. To 5c-ii: the admin gate (R-5c12), the roster API (R-5c13),
-  serve wiring, `web/`, the rejoin sentences, security n5 on the write path.
+- No deploy until 5d: the env template selects `magic-link` without its nine keys.
 - To 5d: the "`doctor` exits 0" row, `ReadWritePaths`, the nine keys, the trusted proxy, the runbook
   rows (`member add` without secrets in argv, kind mode's enumeration bound, the mail-ceiling lever,
   plus 6a's owed lines: root-run refusal, `runuser` fix, owner-mismatch create, FUSE warning, btrfs

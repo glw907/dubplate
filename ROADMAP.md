@@ -161,6 +161,15 @@ verbs) and for every settings surface:
 `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
 (revision 3, 2026-09-12).
 
+### Photo curation for the web surface `photo-curation`
+Curate 100 or more openly licensed period photographs, show flyers, and zine covers for the
+login rotation, the credits gallery, the empty library, and the error pages, under the curation
+and licensing rules in the visual identity spec
+(`docs/superpowers/specs/2026-09-24-visual-identity-design.md`, `ecba52a`). Inputs:
+`docs/superpowers/research/2026-09-24-identity-photos/` (candidate reports, an unverified Flickr
+harvest, the NC licensing analysis, and a photographer and archive outreach list). Owner
+touchpoint: outreach approvals. Separate from the rung ladder; rung 7 and 5c-iii consume it.
+
 ## Someday
 
 ### Open-source the pair `oss-pair`
