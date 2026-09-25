@@ -327,6 +327,33 @@ export function selectorHasDataTheme(selector: string, name: string): boolean {
   return re.test(selector);
 }
 
+/** Splits a selector list at top-level commas, ignoring commas nested inside `[]` or `()`. */
+function splitSelectorList(selector: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of selector) {
+    if (ch === '[' || ch === '(') depth++;
+    else if (ch === ']' || ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
+/** Whether `selector`'s list holds nothing but the compound `[data-theme=<name>]`, quoted or not: every comma-separated entry, not just one. */
+export function selectorIsExactlyDataTheme(selector: string, name: string): boolean {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`^\\[data-theme=(?:"${escaped}"|${escaped})\\]$`);
+  const parts = splitSelectorList(selector);
+  return parts.length > 0 && parts.every((part) => re.test(part));
+}
+
 /** Normalizes an `@media` prelude for exact comparison (whitespace only; casing already matches ours). */
 export function normalizeMediaQuery(prelude: string): string {
   return prelude.replace(/\s+/g, '').toLowerCase();
@@ -537,7 +564,17 @@ export function run(): string[] {
   const sysRules = sysChildren.filter((n): n is RuleNode => n.kind === 'rule');
   const sysMedia = sysChildren.filter((n): n is AtRuleNode => n.kind === 'at-rule' && n.name === '@media');
 
-  const lightBranch = sysRules.find((r) => selectorHasDataTheme(r.selector, SYSTEM_NAME));
+  const lightCandidates = sysRules.filter((r) => selectorHasDataTheme(r.selector, SYSTEM_NAME));
+  let lightBranch: RuleNode | undefined;
+  for (const candidate of lightCandidates) {
+    if (selectorIsExactlyDataTheme(candidate.selector, SYSTEM_NAME)) {
+      lightBranch = candidate;
+    } else {
+      violations.push(
+        `g2: system.css: the unconditional branch holds an unexpected selector "${candidate.selector}"`
+      );
+    }
+  }
   if (!lightBranch) {
     violations.push('g2: system.css: the unconditional light branch is missing');
   }
@@ -555,7 +592,7 @@ export function run(): string[] {
   for (const media of darkMedia) {
     for (const child of media.children) {
       if (child.kind !== 'rule') continue;
-      if (selectorHasDataTheme(child.selector, SYSTEM_NAME)) {
+      if (selectorIsExactlyDataTheme(child.selector, SYSTEM_NAME)) {
         darkBranch = child;
       } else {
         violations.push(

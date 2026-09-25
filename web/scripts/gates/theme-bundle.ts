@@ -18,6 +18,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { isPlaceholderOnly } from './g3.ts';
 import {
+  type AtRuleNode,
   COMPOSED_NAMES,
   type DeclNode,
   INK_NAMES,
@@ -27,6 +28,7 @@ import {
   pluginBlocksNamed,
   scanNodes,
   selectorHasDataTheme,
+  selectorIsExactlyDataTheme,
   STRUCTURAL_NAMES,
   SYSTEM_NAME
 } from './g2.ts';
@@ -45,6 +47,19 @@ interface FlatRule {
   media: 'none' | 'dark' | 'other';
 }
 
+/** Every `@media` node in the tree whose prelude mentions `prefers-color-scheme`, recursively. */
+function collectPrefersColorSchemeBlocks(nodes: Node[]): AtRuleNode[] {
+  const out: AtRuleNode[] = [];
+  for (const node of nodes) {
+    if (node.kind !== 'at-rule') continue;
+    if (node.name === '@media' && /prefers-color-scheme/i.test(node.prelude)) {
+      out.push(node);
+    }
+    out.push(...collectPrefersColorSchemeBlocks(node.children));
+  }
+  return out;
+}
+
 function flattenRules(nodes: Node[], media: FlatRule['media']): FlatRule[] {
   const out: FlatRule[] = [];
   for (const node of nodes) {
@@ -59,11 +74,18 @@ function flattenRules(nodes: Node[], media: FlatRule['media']): FlatRule[] {
   return out;
 }
 
-/** Every rule in `context` whose selector list carries `[data-theme=<name>]`, in source order, later writes winning. */
+/**
+ * Every rule whose selector list carries `[data-theme=<name>]`, in source
+ * order, later writes winning. The `none` context reads only unconditional
+ * rules; the `dark` context reads both unconditional and dark-media rules,
+ * since the cascade applies both once the media query matches, and an
+ * unconditional rule that lands later in the bundle still wins.
+ */
 function effectiveValues(rules: FlatRule[], name: string, context: 'none' | 'dark'): Map<string, string> {
   const map = new Map<string, string>();
   for (const rule of rules) {
-    if (rule.media !== context) continue;
+    const applies = context === 'none' ? rule.media === 'none' : rule.media === 'none' || rule.media === 'dark';
+    if (!applies) continue;
     if (!selectorHasDataTheme(rule.selector, name)) continue;
     for (const decl of rule.declarations) map.set(decl.name, decl.value);
   }
@@ -200,11 +222,29 @@ export function run(): string[] {
     );
   }
 
-  const mediaMatches = bundleText.match(/@media\s*\(prefers-color-scheme:\s*dark\)/gi) ?? [];
-  if (mediaMatches.length !== 1) {
+  const mediaBlocks = collectPrefersColorSchemeBlocks(scanNodes(bundleText, 0, bundleText.length));
+  if (mediaBlocks.length !== 1) {
     violations.push(
-      `theme-bundle: the bundle carries ${mediaMatches.length} prefers-color-scheme block(s), want exactly 1`
+      `theme-bundle: the bundle carries ${mediaBlocks.length} prefers-color-scheme block(s), want exactly 1`
     );
+  } else {
+    const [block] = mediaBlocks;
+    if (normalizeMediaQuery(block.prelude) !== DARK_QUERY) {
+      violations.push(
+        `theme-bundle: the prefers-color-scheme block's query is "${block.prelude}", want "(prefers-color-scheme: dark)"`
+      );
+    }
+    for (const child of block.children) {
+      if (child.kind !== 'rule') {
+        violations.push('theme-bundle: the prefers-color-scheme block holds a non-rule node');
+        continue;
+      }
+      if (!selectorIsExactlyDataTheme(child.selector, SYSTEM_NAME)) {
+        violations.push(
+          `theme-bundle: the prefers-color-scheme block holds an unexpected selector "${child.selector}"`
+        );
+      }
+    }
   }
   if (/:root:not\(\[data-theme\]\)/.test(bundleText)) {
     violations.push('theme-bundle: the bundle carries a :root:not([data-theme]) guard');

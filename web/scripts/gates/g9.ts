@@ -55,6 +55,11 @@ const CONTENT_PAIRS: [string, string][] = [
   ['--color-error-content', '--color-error']
 ];
 
+/**
+ * The 4.5:1 contrast floor. The design-language standard's palette-pair
+ * ratio (DL R2.6) and the web surface standard's ink ratio (W2.7) are the
+ * same number, so both pairs and inks share this one constant.
+ */
 const FLOOR = 4.5;
 
 function srgbToLinearChannel(c: number): number {
