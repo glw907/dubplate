@@ -41,7 +41,7 @@ var errDiskFull = errors.New("store disk full")
 // than waiting for the one connection its own caller holds.
 type writeMark struct{}
 
-// update runs fn inside one IMMEDIATE transaction on the write pool
+// Update runs fn inside one IMMEDIATE transaction on the write pool
 // and commits only when fn returns nil and no statement fn issued
 // through tx failed. Otherwise it rolls back and returns fn's error,
 // or, when fn returned nil, the first statement error tx recorded.
@@ -53,16 +53,15 @@ type writeMark struct{}
 // process's write lock is bounded by the busy timeout alone: a
 // deadline shorter than the busy timeout does not shorten it.
 //
-// fn receives a context derived from ctx and marked, so an update
-// called on that context from inside fn returns errNestedWrite at
-// once. An update called from inside fn on ctx itself, or on any
+// fn receives a context derived from ctx and marked, so an Update
+// called on that context from inside fn fails at once. An Update
+// called from inside fn on ctx itself, or on any
 // context not derived from fn's, carries no mark and waits for the
 // connection fn's own transaction holds until that context ends.
 //
-// The first statement reads user_version, and update returns
-// errVersionMismatch without calling fn when it differs from the
-// binary's version.
-func (h *handle) update(ctx context.Context, fn func(ctx context.Context, tx *writeTx) error) error {
+// The first statement reads user_version, and Update refuses without
+// calling fn when it differs from the binary's version.
+func (h *Handle) Update(ctx context.Context, fn func(ctx context.Context, tx *Tx) error) error {
 	if ctx.Value(writeMark{}) != nil {
 		return errNestedWrite
 	}
@@ -74,10 +73,10 @@ func (h *handle) update(ctx context.Context, fn func(ctx context.Context, tx *wr
 	if err != nil {
 		return fmt.Errorf("begin write: %w", classifyErr(err))
 	}
-	tx := &writeTx{tx: sqlTx, path: h.path}
+	tx := &Tx{tx: sqlTx, path: h.path}
 
 	var got int
-	if err := tx.queryRow(ctx, "PRAGMA user_version").scan(&got); err != nil {
+	if err := tx.QueryRow(ctx, "PRAGMA user_version").Scan(&got); err != nil {
 		return tx.rollback(fmt.Errorf("read store version: %w", err))
 	}
 	if got != h.version {
@@ -96,12 +95,13 @@ func (h *handle) update(ctx context.Context, fn func(ctx context.Context, tx *wr
 	return nil
 }
 
-// writeTx is the transaction an update callback writes through. It
-// records the first statement error, and once one is recorded every
+// A Tx is the transaction an [Handle.Update] callback writes through.
+// It is valid only until the callback returns. It records the first
+// statement error, and once one is recorded every
 // later statement returns it without reaching SQLite: a transaction
 // SQLite rolled back on its own leaves the connection in autocommit
 // mode, where each later statement would commit by itself.
-type writeTx struct {
+type Tx struct {
 	tx   *sql.Tx
 	path string
 	err  error
@@ -110,7 +110,7 @@ type writeTx struct {
 // record remembers err as tx's first statement error and returns the
 // error the statement reports. sql.ErrNoRows is returned unrecorded:
 // a query that matched no row leaves the transaction intact.
-func (tx *writeTx) record(err error) error {
+func (tx *Tx) record(err error) error {
 	if err == nil || errors.Is(err, sql.ErrNoRows) {
 		return err
 	}
@@ -126,7 +126,7 @@ func (tx *writeTx) record(err error) error {
 // its own after one of the four failures lang_transaction.html section 3
 // names, in which case its "no transaction is active" answer is not a
 // second failure.
-func (tx *writeTx) rollback(err error) error {
+func (tx *Tx) rollback(err error) error {
 	rbErr := tx.tx.Rollback()
 	if rbErr == nil || errors.Is(rbErr, sql.ErrTxDone) || endsTransaction(tx.err) {
 		return err
@@ -134,8 +134,8 @@ func (tx *writeTx) rollback(err error) error {
 	return errors.Join(err, fmt.Errorf("roll back: %w", rbErr))
 }
 
-// exec runs a statement that returns no rows.
-func (tx *writeTx) exec(ctx context.Context, query string, args ...any) (sql.Result, error) {
+// Exec runs a statement that returns no rows.
+func (tx *Tx) Exec(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	if tx.err != nil {
 		return nil, tx.err
 	}
@@ -146,18 +146,19 @@ func (tx *writeTx) exec(ctx context.Context, query string, args ...any) (sql.Res
 	return res, nil
 }
 
-// queryRow runs a query expected to return at most one row. Its error,
-// the query's or the scan's, surfaces from the returned row's scan.
-func (tx *writeTx) queryRow(ctx context.Context, query string, args ...any) *txRow {
+// QueryRow runs a query expected to return at most one row. Its error,
+// the query's or the scan's, surfaces from the returned row's
+// [Row.Scan].
+func (tx *Tx) QueryRow(ctx context.Context, query string, args ...any) *Row {
 	if tx.err != nil {
-		return &txRow{tx: tx}
+		return &Row{tx: tx}
 	}
-	return &txRow{tx: tx, row: tx.tx.QueryRowContext(ctx, query, args...)}
+	return &Row{tx: tx, row: tx.tx.QueryRowContext(ctx, query, args...)}
 }
 
-// query runs a query that returns rows. The caller closes the returned
+// Query runs a query that returns rows. The caller closes the returned
 // rows.
-func (tx *writeTx) query(ctx context.Context, query string, args ...any) (*txRows, error) {
+func (tx *Tx) Query(ctx context.Context, query string, args ...any) (*Rows, error) {
 	if tx.err != nil {
 		return nil, tx.err
 	}
@@ -165,34 +166,34 @@ func (tx *writeTx) query(ctx context.Context, query string, args ...any) (*txRow
 	if err != nil {
 		return nil, tx.record(err)
 	}
-	return &txRows{tx: tx, rows: rows}, nil
+	return &Rows{tx: tx, rows: rows}, nil
 }
 
-// txRow is the result of writeTx.queryRow.
-type txRow struct {
-	tx  *writeTx
+// A Row is the result of [Tx.QueryRow].
+type Row struct {
+	tx  *Tx
 	row *sql.Row
 }
 
-// scan copies the row's columns into dest, as [sql.Row.Scan] does, and
-// records any error but sql.ErrNoRows.
-func (r *txRow) scan(dest ...any) error {
+// Scan copies the row's columns into dest, as [sql.Row.Scan] does, and
+// records any error but [sql.ErrNoRows], which it returns.
+func (r *Row) Scan(dest ...any) error {
 	if r.tx.err != nil {
 		return r.tx.err
 	}
 	return r.tx.record(r.row.Scan(dest...))
 }
 
-// txRows is the result of writeTx.query.
-type txRows struct {
-	tx   *writeTx
+// A Rows is the result of [Tx.Query].
+type Rows struct {
+	tx   *Tx
 	rows *sql.Rows
 }
 
-// next advances to the next row, as [sql.Rows.Next] does. When it
+// Next advances to the next row, as [sql.Rows.Next] does. When it
 // returns false because iteration failed, the failure is recorded, so a
-// caller that never checks err still cannot commit.
-func (r *txRows) next() bool {
+// caller that never checks an error still cannot commit.
+func (r *Rows) Next() bool {
 	if r.tx.err != nil {
 		return false
 	}
@@ -203,19 +204,19 @@ func (r *txRows) next() bool {
 	return false
 }
 
-// scan copies the current row's columns into dest and records any
+// Scan copies the current row's columns into dest and records any
 // error.
-func (r *txRows) scan(dest ...any) error {
+func (r *Rows) Scan(dest ...any) error {
 	if r.tx.err != nil {
 		return r.tx.err
 	}
 	return r.tx.record(r.rows.Scan(dest...))
 }
 
-// close closes the rows and returns the first error the transaction
+// Close closes the rows and returns the first error the transaction
 // recorded, which includes one that ended iteration, so it serves as
 // both [sql.Rows.Close] and [sql.Rows.Err].
-func (r *txRows) close() error {
+func (r *Rows) Close() error {
 	_ = r.tx.record(r.rows.Close())
 	return r.tx.err
 }

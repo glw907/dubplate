@@ -16,7 +16,7 @@ import (
 // populatedStore returns a store migrated to version 1 of the
 // synthetic set and holding populate's rows, so an empty copy reads
 // differently from it.
-func populatedStore(t *testing.T) (leaf, *handle) {
+func populatedStore(t *testing.T) (leaf, *Handle) {
 	t.Helper()
 	l, h := newMigrateStore(t)
 	mustMigrate(t, h, l, synthSet(1), defaultOpts())

@@ -70,7 +70,7 @@ type migrateOptions struct {
 // version files holds. files is the caller's already-parsed migration
 // source, each named "<version>_<label>.sql", numbered from 1 with no
 // gap: migrate parses nothing itself, so a caller that already read
-// its source (openServe's settle, above all) never reads it twice.
+// its source (OpenServe's settle, above all) never reads it twice.
 //
 // It refuses, changing nothing, a store whose user_version is above
 // files' highest, and a store whose ledger disagrees with files: a row
@@ -89,7 +89,7 @@ type migrateOptions struct {
 // and closes that connection afterward. The first statement migrate
 // issues reads user_version through the write pool, whose DSN sets WAL,
 // so a store is in WAL before its first file applies on either class.
-func migrate(ctx context.Context, h *handle, l leaf, files []migration, opts migrateOptions) error {
+func migrate(ctx context.Context, h *Handle, l leaf, files []migration, opts migrateOptions) error {
 	if opts.keep < 1 {
 		return fmt.Errorf("migrate %s: keep %d copies, want at least 1", h.path, opts.keep)
 	}
@@ -229,7 +229,7 @@ func checkLedger(ctx context.Context, db *sql.DB, files []migration, current int
 
 // applyMigration applies m in its own transaction, on the write pool
 // or, for a rebuild, on a maintenance connection with foreign keys off.
-func applyMigration(ctx context.Context, h *handle, m migration, busyTimeout time.Duration) error {
+func applyMigration(ctx context.Context, h *Handle, m migration, busyTimeout time.Duration) error {
 	if m.rebuild {
 		return applyRebuild(ctx, h.path, m, busyTimeout)
 	}

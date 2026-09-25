@@ -70,7 +70,7 @@ func defaultOpts() migrateOptions {
 // newMigrateStore makes a leaf under a fresh state directory with a
 // pre-created empty database, the shape serve leaves before its first
 // migration, and opens a handle on it, closed at cleanup.
-func newMigrateStore(t *testing.T) (leaf, *handle) {
+func newMigrateStore(t *testing.T) (leaf, *Handle) {
 	t.Helper()
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
@@ -84,7 +84,7 @@ func newMigrateStore(t *testing.T) (leaf, *handle) {
 	if err != nil {
 		t.Fatalf("openHandle: %v", err)
 	}
-	t.Cleanup(func() { _ = h.close() })
+	t.Cleanup(func() { _ = h.Close() })
 	return l, h
 }
 
@@ -102,7 +102,7 @@ func readMigrationsT(t *testing.T, src fs.FS) []migration {
 
 // mustMigrate reads src and runs migrate, failing the test on either
 // error.
-func mustMigrate(t *testing.T, h *handle, l leaf, src fstest.MapFS, opts migrateOptions) {
+func mustMigrate(t *testing.T, h *Handle, l leaf, src fstest.MapFS, opts migrateOptions) {
 	t.Helper()
 	if err := migrate(context.Background(), h, l, readMigrationsT(t, src), opts); err != nil {
 		t.Fatalf("migrate: %v", err)
@@ -248,19 +248,19 @@ func TestMigrate_Versions(t *testing.T) {
 	tests := []struct {
 		name string
 		// setup brings a fresh store to the row's starting state.
-		setup         func(t *testing.T, l leaf, h *handle)
+		setup         func(t *testing.T, l leaf, h *Handle)
 		wantErr       []string
 		wantVersion   int
 		wantSnapshots []string
 	}{
 		{
 			name:        "empty store applies every file and takes no copy",
-			setup:       func(*testing.T, leaf, *handle) {},
+			setup:       func(*testing.T, leaf, *Handle) {},
 			wantVersion: 3,
 		},
 		{
 			name: "older store is copied at its version, then brought to the head",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(1), defaultOpts())
 				populate(t, l.dbPath)
 			},
@@ -269,7 +269,7 @@ func TestMigrate_Versions(t *testing.T) {
 		},
 		{
 			name: "current store applies nothing",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(3), defaultOpts())
 			},
 			wantVersion: 3,
@@ -279,7 +279,7 @@ func TestMigrate_Versions(t *testing.T) {
 			// for; the version decides before the ledger is read, so a
 			// row that would fail every ledger check names nothing.
 			name: "newer store is refused on its version alone",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(3), defaultOpts())
 				rawExec(t, l.dbPath, `PRAGMA user_version = 4;
 INSERT INTO migrations (version, name, sha256) VALUES (4, '0004_ahead.sql', 'x');
@@ -292,7 +292,7 @@ UPDATE migrations SET sha256 = 'tampered' WHERE version = 1;`)
 			// A negative version indexes no file; refused rather than
 			// reaching the apply loop.
 			name: "negative version is refused",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(3), defaultOpts())
 				rawExec(t, l.dbPath, `PRAGMA user_version = -1`)
 			},
@@ -379,7 +379,7 @@ INSERT INTO no_such_table (a) VALUES (1);
 func TestMigrate_LedgerRefusals(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(t *testing.T, l leaf, h *handle)
+		setup   func(t *testing.T, l leaf, h *Handle)
 		src     fstest.MapFS
 		wantErr []string
 	}{
@@ -387,7 +387,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 			// The two hashes are sha256sum's output for file 2's bytes
 			// with one trailing newline and with two.
 			name: "a row's hash differs from the file's",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(2), defaultOpts())
 			},
 			src: withSecond(synthSet(3), synthName(2), tableMigration(2)+"\n"),
@@ -398,7 +398,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 		},
 		{
 			name: "a row's name differs from the file's",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(2), defaultOpts())
 			},
 			src:     withSecond(synthSet(3), "0002_renamed.sql", tableMigration(2)),
@@ -406,7 +406,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 		},
 		{
 			name: "a row above user_version",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(1), defaultOpts())
 				rawExec(t, l.dbPath, `INSERT INTO migrations (version, name, sha256) VALUES (2, '0002_step.sql', 'x')`)
 			},
@@ -415,7 +415,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 		},
 		{
 			name: "a version at or below user_version with no row",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(2), defaultOpts())
 				rawExec(t, l.dbPath, `CREATE TABLE t3 (a INTEGER); PRAGMA user_version = 3;`)
 			},
@@ -424,7 +424,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 		},
 		{
 			name: "a row for a version with no file",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(1), defaultOpts())
 				rawExec(t, l.dbPath, `INSERT INTO migrations (version, name, sha256) VALUES (0, '0000_none.sql', 'x')`)
 			},
@@ -433,7 +433,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 		},
 		{
 			name: "the ledger table is missing",
-			setup: func(t *testing.T, l leaf, h *handle) {
+			setup: func(t *testing.T, l leaf, h *Handle) {
 				mustMigrate(t, h, l, synthSet(1), defaultOpts())
 				rawExec(t, l.dbPath, `DROP TABLE migrations`)
 			},
@@ -515,8 +515,8 @@ ALTER TABLE parent_new RENAME TO parent;
 		h.version = 2
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		err := h.update(ctx, func(ctx context.Context, tx *writeTx) error {
-			_, err := tx.exec(ctx, "INSERT INTO child (id, parent_id) VALUES (9, 99)")
+		err := h.Update(ctx, func(ctx context.Context, tx *Tx) error {
+			_, err := tx.Exec(ctx, "INSERT INTO child (id, parent_id) VALUES (9, 99)")
 			return err
 		})
 		var se *sqlite.Error
@@ -558,7 +558,7 @@ func TestMigrate_FirstMigrationLeavesWAL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			l, h := newMigrateStore(t)
 			mustMigrate(t, h, l, fstest.MapFS{synthName(1): {Data: []byte(tt.first)}}, defaultOpts())
-			if err := h.close(); err != nil {
+			if err := h.Close(); err != nil {
 				t.Fatalf("close handle: %v", err)
 			}
 

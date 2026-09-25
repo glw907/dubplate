@@ -71,40 +71,49 @@ type dbClass struct {
 
 // leafState is what l.stat found.
 type leafState struct {
-	exists   bool
-	complete bool
-	hasLock  bool
+	exists    bool
+	complete  bool
+	hasLock   bool
+	hasLeases bool
 }
 
-// serveOptions carries serve mode's thresholds, each the caller's.
-type serveOptions struct {
-	busyTimeout time.Duration
+// ServeOptions carries serve mode's thresholds, each the caller's: the
+// store reads no environment.
+type ServeOptions struct {
+	// BusyTimeout bounds how long a statement waits on another
+	// connection's lock inside SQLite. It must be at least one
+	// millisecond.
+	BusyTimeout time.Duration
 
-	// migrationWait bounds each wait for the lock, shared or exclusive.
-	migrationWait time.Duration
+	// MigrationWait bounds each wait for the store lock, shared or
+	// exclusive.
+	MigrationWait time.Duration
 
-	// keep is how many pre-migration copies a migration keeps.
-	keep int
+	// Keep is how many pre-migration copies a migration keeps when
+	// Backup is off. It must be at least 1.
+	Keep int
 
-	// backup reports whether remote backup is on. settle passes it
-	// through to the runner unchanged, whose zero value keeps
-	// production's default: backup off, so a migration prunes
-	// pre-migration copies to keep.
-	backup bool
+	// Backup reports whether remote backup is on. The zero value is
+	// off, and a migration then prunes pre-migration copies to Keep;
+	// with it on, a migration prunes none.
+	Backup bool
 
-	// logger receives the lock holders during a wait, and a FUSE
-	// warning.
-	logger *slog.Logger
+	// Logger receives the lock holders during a wait, and a warning for
+	// a FUSE filesystem. It must not be nil.
+	Logger *slog.Logger
 }
 
-// openWrite opens the store under stateDir in write mode, holding its
+// OpenWrite opens the store under stateDir in write mode, holding its
 // lock shared until the handle closes. It never creates a store, the
-// leaf and lock file included, never migrates one, and never removes a
-// staging file: a live backup may be staging under its own shared
-// lock. It refuses an absent store naming "start serve first", and a
-// store at any version but the binary's. ctx bounds the wait for the
-// lock.
-func openWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) (*handle, error) {
+// leaf, lock file, and leases/ included, never migrates one, and never
+// removes a staging file: a live backup may be staging under its own
+// shared lock. It refuses an absent store naming "start serve first",
+// a leaf serve has not finished creating, and a store at any version
+// but the binary's. ctx bounds the wait for the lock.
+//
+// The handle takes no lease of its own; a caller that runs jobs takes
+// one with [Handle.TakeInstanceLease].
+func OpenWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) (*Handle, error) {
 	l := newLeaf(stateDir)
 	files, err := readMigrations(migrationSource())
 	if err != nil {
@@ -136,6 +145,9 @@ func openWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 	if err == nil {
 		err = writeRefusal(l, c, len(files))
 	}
+	if err == nil && !ls.hasLeases {
+		err = refusal(StateNotAStore, "leaf %s has no %s: start serve to finish creating it", l.root, l.leasesDir)
+	}
 	if err != nil {
 		return nil, errors.Join(err, lock.release())
 	}
@@ -145,6 +157,7 @@ func openWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 	}
 	h.version = len(files)
 	h.lock = lock
+	h.leasesDir = l.leasesDir
 	return h, nil
 }
 
@@ -164,9 +177,10 @@ func writeRefusal(l leaf, c dbClass, head int) error {
 	return nil
 }
 
-// openServe opens the store under stateDir in serve mode, the one mode
+// OpenServe opens the store under stateDir in serve mode, the one mode
 // that creates or migrates a store, and returns a handle at the
-// binary's version holding the lock shared until it closes.
+// binary's version holding the lock shared until it closes. It refuses
+// opts without a Logger before it touches any file.
 //
 // flock(2) does not convert a lock atomically: "the existing lock is
 // first removed, and then a new lock is established", and another
@@ -174,8 +188,11 @@ func writeRefusal(l leaf, c dbClass, head int) error {
 // holds no connection across a conversion, and after taking the lock
 // exclusively it reads the store afresh, since a restore may have
 // replaced it in the gap. Each wait for the lock, shared or exclusive,
-// is bounded by opts.migrationWait and logs the holders.
-func openServe(ctx context.Context, stateDir string, opts serveOptions) (*handle, error) {
+// is bounded by opts.MigrationWait and logs the holders.
+func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle, error) {
+	if opts.Logger == nil {
+		return nil, errors.New("open store for serving: nil logger")
+	}
 	l := newLeaf(stateDir)
 	files, err := readMigrations(migrationSource())
 	if err != nil {
@@ -196,7 +213,7 @@ func openServe(ctx context.Context, stateDir string, opts serveOptions) (*handle
 		return nil, err
 	}
 	if warning != "" {
-		opts.logger.Warn("store filesystem may span hosts", "detail", warning)
+		opts.Logger.Warn("store filesystem may span hosts", "detail", warning)
 	}
 
 	for {
@@ -204,14 +221,15 @@ func openServe(ctx context.Context, stateDir string, opts serveOptions) (*handle
 		if err != nil {
 			return nil, err
 		}
-		c, err := classify(ctx, l, opts.busyTimeout, files)
+		c, err := classify(ctx, l, opts.BusyTimeout, files)
 		if err == nil && c.kind == dbStore && c.version == head {
-			h, err := openHandle(l.dbPath, opts.busyTimeout)
+			h, err := openHandle(l.dbPath, opts.BusyTimeout)
 			if err != nil {
 				return nil, errors.Join(err, lock.release())
 			}
 			h.version = head
 			h.lock = lock
+			h.leasesDir = l.leasesDir
 			return h, nil
 		}
 		if err == nil && c.kind == dbStore && c.version > head {
@@ -235,11 +253,11 @@ func openServe(ctx context.Context, stateDir string, opts serveOptions) (*handle
 // the leaf, removes staging leftovers, and then creates, completes an
 // interrupted create of, or migrates the store. It closes every
 // connection it opens.
-func settle(ctx context.Context, l leaf, files []migration, opts serveOptions) (err error) {
+func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (err error) {
 	if err := l.checkIntent(); err != nil {
 		return err
 	}
-	c, err := classify(ctx, l, opts.busyTimeout, files)
+	c, err := classify(ctx, l, opts.BusyTimeout, files)
 	if err != nil {
 		return err
 	}
@@ -259,21 +277,21 @@ func settle(ctx context.Context, l leaf, files []migration, opts serveOptions) (
 		}
 	}
 
-	h, err := openHandle(l.dbPath, opts.busyTimeout)
+	h, err := openHandle(l.dbPath, opts.BusyTimeout)
 	if err != nil {
 		return err
 	}
-	defer func() { err = errors.Join(err, h.close()) }()
-	return migrate(ctx, h, l, files, migrateOptions{busyTimeout: opts.busyTimeout, keep: opts.keep, backup: opts.backup})
+	defer func() { err = errors.Join(err, h.Close()) }()
+	return migrate(ctx, h, l, files, migrateOptions{busyTimeout: opts.BusyTimeout, keep: opts.Keep, backup: opts.Backup})
 }
 
 // waitLock polls for path's lock in mode how (syscall.LOCK_SH or
-// syscall.LOCK_EX) until it wins or opts.migrationWait passes. While
+// syscall.LOCK_EX) until it wins or opts.MigrationWait passes. While
 // another process holds the lock, it logs the holders on the first
 // failed poll and every holdersLogInterval after. On expiry its error
 // names the holders.
-func waitLock(ctx context.Context, path string, how int, opts serveOptions) (*storeLock, error) {
-	ctx, cancel := context.WithTimeout(ctx, opts.migrationWait)
+func waitLock(ctx context.Context, path string, how int, opts ServeOptions) (*storeLock, error) {
+	ctx, cancel := context.WithTimeout(ctx, opts.MigrationWait)
 	defer cancel()
 	want := "shared"
 	if how == syscall.LOCK_EX {
@@ -292,22 +310,22 @@ func waitLock(ctx context.Context, path string, how int, opts serveOptions) (*st
 			return nil, err
 		}
 		if !logged {
-			opts.logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
+			opts.Logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
 			logTick.Reset(holdersLogInterval)
 			logged = true
 		}
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("wait %s for the store lock %s: %w", opts.migrationWait, want, err)
+			return nil, fmt.Errorf("wait %s for the store lock %s: %w", opts.MigrationWait, want, err)
 		case <-logTick.C:
-			opts.logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
+			opts.Logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
 		case <-time.After(lockPollInterval):
 		}
 	}
 }
 
 // stat runs the steps every mode takes before the filesystem
-// probe: it stats l's leaf and its four names, checks a present leaf's
+// probe: it stats l's leaf and its five names, checks a present leaf's
 // shape and its owner against geteuid(), and refuses when a
 // restore-intent record exists. An absent leaf reports exists false
 // and meets no owner check, since there is nothing yet to own.
@@ -327,14 +345,17 @@ func (l leaf) stat() (leafState, error) {
 	}
 
 	ls := leafState{exists: true, complete: true}
-	for _, p := range []string{l.lockPath, l.dbDir, l.snapshotsDir, l.stagingDir} {
+	for _, p := range []string{l.lockPath, l.dbDir, l.snapshotsDir, l.stagingDir, l.leasesDir} {
 		ok, err := pathExists(p)
 		if err != nil {
 			return leafState{}, err
 		}
 		ls.complete = ls.complete && ok
-		if p == l.lockPath {
+		switch p {
+		case l.lockPath:
 			ls.hasLock = ok
+		case l.leasesDir:
+			ls.hasLeases = ok
 		}
 	}
 	return ls, l.checkIntent()

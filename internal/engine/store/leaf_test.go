@@ -23,6 +23,7 @@ func TestNewLeaf(t *testing.T) {
 		dbPath:            "/var/lib/dubplate/store/db/dubplate.db",
 		snapshotsDir:      "/var/lib/dubplate/store/snapshots",
 		stagingDir:        "/var/lib/dubplate/store/staging",
+		leasesDir:         "/var/lib/dubplate/store/leases",
 		restoreIntentPath: "/var/lib/dubplate/store/restore-intent",
 	}
 	if l != want {
@@ -44,7 +45,7 @@ func withGeteuid(t *testing.T, uid int) {
 // makes exists at leafDirPerm and store.lock exists as a regular file.
 func assertLeafShape(t *testing.T, l leaf) {
 	t.Helper()
-	for _, dir := range []string{l.root, l.dbDir, l.snapshotsDir, l.stagingDir} {
+	for _, dir := range []string{l.root, l.dbDir, l.snapshotsDir, l.stagingDir, l.leasesDir} {
 		info, err := os.Stat(dir)
 		if err != nil {
 			t.Fatalf("stat %s: %v", dir, err)

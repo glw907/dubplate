@@ -51,14 +51,14 @@ func newWriteStore(t *testing.T) string {
 
 // openWriteHandle opens a handle on path against testVersion, closed
 // at cleanup.
-func openWriteHandle(t *testing.T, path string, busy time.Duration) *handle {
+func openWriteHandle(t *testing.T, path string, busy time.Duration) *Handle {
 	t.Helper()
 	h, err := openHandle(path, busy)
 	if err != nil {
 		t.Fatalf("openHandle: %v", err)
 	}
 	h.version = testVersion
-	t.Cleanup(func() { _ = h.close() })
+	t.Cleanup(func() { _ = h.Close() })
 	return h
 }
 
@@ -128,15 +128,15 @@ func TestUpdateCommitRule(t *testing.T) {
 
 	tests := []struct {
 		name string
-		fn   func(ctx context.Context, t *testing.T, tx *writeTx) error
-		// check inspects update's error.
+		fn   func(ctx context.Context, t *testing.T, tx *Tx) error
+		// check inspects Update's error.
 		check       func(t *testing.T, err error)
 		wantParents int
 	}{
 		{
 			name: "clean callback commits",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				res, err := tx.exec(ctx, insertParent, 1)
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				res, err := tx.Exec(ctx, insertParent, 1)
 				if err != nil {
 					return err
 				}
@@ -154,8 +154,8 @@ func TestUpdateCommitRule(t *testing.T) {
 		},
 		{
 			name: "callback error rolls back and is returned",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 					return err
 				}
 				return errStop
@@ -168,8 +168,8 @@ func TestUpdateCommitRule(t *testing.T) {
 		},
 		{
 			name: "orphan insert returned fails with the foreign-key code",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				_, err := tx.exec(ctx, insertOrphan)
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				_, err := tx.Exec(ctx, insertOrphan)
 				return err
 			},
 			check: func(t *testing.T, err error) {
@@ -183,11 +183,11 @@ func TestUpdateCommitRule(t *testing.T) {
 			// undoes only the failed statement and the transaction
 			// continues.
 			name: "swallowed foreign-key failure does not commit an earlier insert",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 					return err
 				}
-				_, _ = tx.exec(ctx, insertOrphan)
+				_, _ = tx.Exec(ctx, insertOrphan)
 				return nil
 			},
 			check: func(t *testing.T, err error) {
@@ -198,12 +198,12 @@ func TestUpdateCommitRule(t *testing.T) {
 		},
 		{
 			name: "swallowed single-row scan error does not commit",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 					return err
 				}
 				var n int
-				_ = tx.queryRow(ctx, `SELECT 'not a number'`).scan(&n)
+				_ = tx.QueryRow(ctx, `SELECT 'not a number'`).Scan(&n)
 				return nil
 			},
 			check: func(t *testing.T, err error) {
@@ -214,12 +214,12 @@ func TestUpdateCommitRule(t *testing.T) {
 		},
 		{
 			name: "swallowed single-row query error does not commit",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 					return err
 				}
 				var n int
-				_ = tx.queryRow(ctx, `SELECT v FROM missing`).scan(&n)
+				_ = tx.QueryRow(ctx, `SELECT v FROM missing`).Scan(&n)
 				return nil
 			},
 			check: func(t *testing.T, err error) {
@@ -232,23 +232,23 @@ func TestUpdateCommitRule(t *testing.T) {
 			// abs() of the smallest integer overflows on the second
 			// row, after the first scanned cleanly.
 			name: "swallowed iteration error does not commit",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 					return err
 				}
-				rows, err := tx.query(ctx, `SELECT abs(v) FROM nums ORDER BY rowid`)
+				rows, err := tx.Query(ctx, `SELECT abs(v) FROM nums ORDER BY rowid`)
 				if err != nil {
 					return err
 				}
 				var seen int
-				for rows.next() {
+				for rows.Next() {
 					var v int64
-					if err := rows.scan(&v); err != nil {
+					if err := rows.Scan(&v); err != nil {
 						return err
 					}
 					seen++
 				}
-				if err := rows.close(); err == nil || !strings.Contains(err.Error(), "integer overflow") {
+				if err := rows.Close(); err == nil || !strings.Contains(err.Error(), "integer overflow") {
 					t.Errorf("close after the overflow: %v, want the iteration error", err)
 				}
 				if seen != 1 {
@@ -264,19 +264,19 @@ func TestUpdateCommitRule(t *testing.T) {
 		},
 		{
 			name: "swallowed multi-row scan error does not commit",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
-				if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
+				if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 					return err
 				}
-				rows, err := tx.query(ctx, `SELECT 'not a number'`)
+				rows, err := tx.Query(ctx, `SELECT 'not a number'`)
 				if err != nil {
 					return err
 				}
-				for rows.next() {
+				for rows.Next() {
 					var n int
-					_ = rows.scan(&n)
+					_ = rows.Scan(&n)
 				}
-				_ = rows.close()
+				_ = rows.Close()
 				return nil
 			},
 			check: func(t *testing.T, err error) {
@@ -289,12 +289,12 @@ func TestUpdateCommitRule(t *testing.T) {
 			// A lookup that matches nothing is an answer, not a failure,
 			// so it leaves the transaction free to commit.
 			name: "no matching row is not recorded",
-			fn: func(ctx context.Context, t *testing.T, tx *writeTx) error {
+			fn: func(ctx context.Context, t *testing.T, tx *Tx) error {
 				var id int
-				if err := tx.queryRow(ctx, `SELECT id FROM parent WHERE id = ?`, 1).scan(&id); !errors.Is(err, sql.ErrNoRows) {
+				if err := tx.QueryRow(ctx, `SELECT id FROM parent WHERE id = ?`, 1).Scan(&id); !errors.Is(err, sql.ErrNoRows) {
 					t.Errorf("scan of an absent row: %v, want sql.ErrNoRows", err)
 				}
-				_, err := tx.exec(ctx, insertParent, 1)
+				_, err := tx.Exec(ctx, insertParent, 1)
 				return err
 			},
 			check: func(t *testing.T, err error) {
@@ -311,7 +311,7 @@ func TestUpdateCommitRule(t *testing.T) {
 			path := newWriteStore(t)
 			h := openWriteHandle(t, path, time.Second)
 
-			err := h.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
+			err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
 				return tt.fn(ctx, t, tx)
 			})
 			tt.check(t, err)
@@ -330,19 +330,19 @@ func TestUpdateStatementsAfterRecordedError(t *testing.T) {
 	h := openWriteHandle(t, path, time.Second)
 
 	var first error
-	err := h.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
-		_, first = tx.exec(ctx, insertOrphan)
+	err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
+		_, first = tx.Exec(ctx, insertOrphan)
 		if first == nil {
 			t.Fatal("orphan insert succeeded; the fixture cannot record an error")
 		}
-		if _, err := tx.exec(ctx, insertParent, 1); err != first {
+		if _, err := tx.Exec(ctx, insertParent, 1); err != first {
 			t.Errorf("exec after a recorded error: %v, want the recorded %v", err, first)
 		}
 		var n int
-		if err := tx.queryRow(ctx, `SELECT 1`).scan(&n); err != first {
+		if err := tx.QueryRow(ctx, `SELECT 1`).Scan(&n); err != first {
 			t.Errorf("queryRow after a recorded error: %v, want the recorded %v", err, first)
 		}
-		if _, err := tx.query(ctx, `SELECT 1`); err != first {
+		if _, err := tx.Query(ctx, `SELECT 1`); err != first {
 			t.Errorf("query after a recorded error: %v, want the recorded %v", err, first)
 		}
 		return nil
@@ -359,13 +359,13 @@ func TestUpdateStatementsAfterRecordedError(t *testing.T) {
 // already has, so a small row still fits in an existing page and an
 // oversized one fails with SQLITE_FULL. The cap is per-connection, so
 // the caller closes the handle rather than trusting a reset.
-func pinPageCount(ctx context.Context, t *testing.T, tx *writeTx) {
+func pinPageCount(ctx context.Context, t *testing.T, tx *Tx) {
 	t.Helper()
 	var pages int
-	if err := tx.queryRow(ctx, `PRAGMA page_count`).scan(&pages); err != nil {
+	if err := tx.QueryRow(ctx, `PRAGMA page_count`).Scan(&pages); err != nil {
 		t.Fatalf("read page_count: %v", err)
 	}
-	if _, err := tx.exec(ctx, "PRAGMA max_page_count = "+strconv.Itoa(pages)); err != nil {
+	if _, err := tx.Exec(ctx, "PRAGMA max_page_count = "+strconv.Itoa(pages)); err != nil {
 		t.Fatalf("pin max_page_count: %v", err)
 	}
 }
@@ -379,12 +379,12 @@ func TestUpdateDiskFull(t *testing.T) {
 	path := newWriteStore(t)
 	h := openWriteHandle(t, path, time.Second)
 
-	err := h.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
+	err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
 		pinPageCount(ctx, t, tx)
-		if _, err := tx.exec(ctx, `INSERT INTO small (v) VALUES (2)`); err != nil {
+		if _, err := tx.Exec(ctx, `INSERT INTO small (v) VALUES (2)`); err != nil {
 			t.Fatalf("small insert under the pinned cap: %v", err)
 		}
-		_, err := tx.exec(ctx, insertOversized)
+		_, err := tx.Exec(ctx, insertOversized)
 		return err
 	})
 	if !errors.Is(err, errDiskFull) {
@@ -399,7 +399,7 @@ func TestUpdateDiskFull(t *testing.T) {
 	if strings.Contains(err.Error(), "no transaction is active") {
 		t.Errorf("update: %q carries the rollback's answer", err)
 	}
-	if err := h.close(); err != nil {
+	if err := h.Close(); err != nil {
 		t.Fatalf("close handle: %v", err)
 	}
 	if got := countRows(t, path, "small"); got != 1 {
@@ -415,21 +415,21 @@ func TestUpdateNoAutocommitAfterRollback(t *testing.T) {
 	path := newWriteStore(t)
 	h := openWriteHandle(t, path, time.Second)
 
-	err := h.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
+	err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
 		pinPageCount(ctx, t, tx)
-		if _, err := tx.exec(ctx, `INSERT INTO small (v) VALUES (2)`); err != nil {
+		if _, err := tx.Exec(ctx, `INSERT INTO small (v) VALUES (2)`); err != nil {
 			t.Fatalf("small insert under the pinned cap: %v", err)
 		}
-		if _, err := tx.exec(ctx, insertOversized); sqliteCode(err)&0xff != sqliteFullCode {
+		if _, err := tx.Exec(ctx, insertOversized); sqliteCode(err)&0xff != sqliteFullCode {
 			t.Fatalf("oversized insert: %v, want SQLITE_FULL", err)
 		}
-		_, _ = tx.exec(ctx, `INSERT INTO small (v) VALUES (3)`)
+		_, _ = tx.Exec(ctx, `INSERT INTO small (v) VALUES (3)`)
 		return nil
 	})
 	if !errors.Is(err, errDiskFull) {
 		t.Errorf("update: %v, want errDiskFull", err)
 	}
-	if err := h.close(); err != nil {
+	if err := h.Close(); err != nil {
 		t.Fatalf("close handle: %v", err)
 	}
 	if got := countRows(t, path, "small"); got != 1 {
@@ -470,9 +470,9 @@ func TestUpdateVersionCheck(t *testing.T) {
 			}
 
 			var called bool
-			err = h.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
+			err = h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
 				called = true
-				_, err := tx.exec(ctx, insertParent, 1)
+				_, err := tx.Exec(ctx, insertParent, 1)
 				return err
 			})
 			if !errors.Is(err, tt.wantErr) {
@@ -519,8 +519,8 @@ func TestUpdateVersionReadInsideTransaction(t *testing.T) {
 		commitErr <- otx.Commit()
 	}()
 
-	err = h.update(deadline(t, 2*busy), func(ctx context.Context, tx *writeTx) error {
-		_, err := tx.exec(ctx, insertParent, 1)
+	err = h.Update(deadline(t, 2*busy), func(ctx context.Context, tx *Tx) error {
+		_, err := tx.Exec(ctx, insertParent, 1)
 		return err
 	})
 	if err := <-commitErr; err != nil {
@@ -554,7 +554,7 @@ func TestUpdateDeadline(t *testing.T) {
 		defer cancel()
 		done := make(chan error, 1)
 		go func() {
-			done <- h.update(ctx, func(context.Context, *writeTx) error { return nil })
+			done <- h.Update(ctx, func(context.Context, *Tx) error { return nil })
 		}()
 		timer := time.NewTimer(2 * time.Second)
 		defer timer.Stop()
@@ -579,7 +579,7 @@ func TestUpdateDeadline(t *testing.T) {
 		}
 		defer func() { _ = held.Close() }()
 
-		err = h.update(deadline(t, 100*time.Millisecond), func(context.Context, *writeTx) error { return nil })
+		err = h.Update(deadline(t, 100*time.Millisecond), func(context.Context, *Tx) error { return nil })
 		if !errors.Is(err, context.DeadlineExceeded) {
 			t.Errorf("update: %v, want context.DeadlineExceeded", err)
 		}
@@ -599,7 +599,7 @@ func TestUpdateDeadline(t *testing.T) {
 		defer func() { _ = otx.Rollback() }()
 
 		err = assertNotBefore(t, busy, func() error {
-			return h.update(deadline(t, 100*time.Millisecond), func(context.Context, *writeTx) error { return nil })
+			return h.Update(deadline(t, 100*time.Millisecond), func(context.Context, *Tx) error { return nil })
 		})
 		if !errors.Is(err, errBusy) {
 			t.Errorf("update: %v, want errBusy", err)
@@ -608,15 +608,15 @@ func TestUpdateDeadline(t *testing.T) {
 }
 
 func TestUpdateNesting(t *testing.T) {
-	noop := func(context.Context, *writeTx) error { return nil }
+	noop := func(context.Context, *Tx) error { return nil }
 
 	t.Run("on the callback's context fails at once", func(t *testing.T) {
 		path := newWriteStore(t)
 		h := openWriteHandle(t, path, time.Second)
 
 		var nested error
-		err := h.update(deadline(t, 3*time.Second), func(ctx context.Context, tx *writeTx) error {
-			nested = assertWithin(t, 500*time.Millisecond, func() error { return h.update(ctx, noop) })
+		err := h.Update(deadline(t, 3*time.Second), func(ctx context.Context, tx *Tx) error {
+			nested = assertWithin(t, 500*time.Millisecond, func() error { return h.Update(ctx, noop) })
 			return nil
 		})
 		if !errors.Is(nested, errNestedWrite) {
@@ -636,8 +636,8 @@ func TestUpdateNesting(t *testing.T) {
 
 		outer := deadline(t, 300*time.Millisecond)
 		var nested error
-		_ = h.update(outer, func(context.Context, *writeTx) error {
-			nested = h.update(outer, noop)
+		_ = h.Update(outer, func(context.Context, *Tx) error {
+			nested = h.Update(outer, noop)
 			return nil
 		})
 		if !errors.Is(nested, context.DeadlineExceeded) {
@@ -658,8 +658,8 @@ func TestUpdateTwoHandlesWait(t *testing.T) {
 	entered := make(chan struct{})
 	firstErr := make(chan error, 1)
 	go func() {
-		firstErr <- first.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
-			if _, err := tx.exec(ctx, insertParent, 1); err != nil {
+		firstErr <- first.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
+			if _, err := tx.Exec(ctx, insertParent, 1); err != nil {
 				return err
 			}
 			close(entered)
@@ -669,8 +669,8 @@ func TestUpdateTwoHandlesWait(t *testing.T) {
 	}()
 	<-entered
 
-	err := second.update(deadline(t, 5*time.Second), func(ctx context.Context, tx *writeTx) error {
-		_, err := tx.exec(ctx, insertParent, 2)
+	err := second.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
+		_, err := tx.Exec(ctx, insertParent, 2)
 		return err
 	})
 	if err != nil {

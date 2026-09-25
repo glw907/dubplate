@@ -67,7 +67,7 @@ func TestConnectionClassSettings(t *testing.T) {
 		if err != nil {
 			t.Fatalf("openHandle: %v", err)
 		}
-		t.Cleanup(func() { _ = h.close() })
+		t.Cleanup(func() { _ = h.Close() })
 
 		assertPragma(t, h.write, "journal_mode", "wal")
 		assertPragma(t, h.write, "foreign_keys", "1")
@@ -81,7 +81,7 @@ func TestConnectionClassSettings(t *testing.T) {
 		if err != nil {
 			t.Fatalf("openHandle: %v", err)
 		}
-		t.Cleanup(func() { _ = h.close() })
+		t.Cleanup(func() { _ = h.Close() })
 
 		assertFreshPragma(t, h.read, "journal_mode", "wal")
 		assertFreshPragma(t, h.read, "foreign_keys", "1")
@@ -258,7 +258,7 @@ func TestReadPoolRefusesWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("openHandle: %v", err)
 	}
-	t.Cleanup(func() { _ = h.close() })
+	t.Cleanup(func() { _ = h.Close() })
 
 	_, err = h.read.Exec(`CREATE TABLE t (id INTEGER)`)
 	if err == nil {
@@ -518,4 +518,37 @@ func TestBusyErrorClassifiesExtendedCode(t *testing.T) {
 			t.Fatalf("m commit: %v", err)
 		}
 	})
+}
+
+// TestHandle_QueryRow: the read path sees a committed write and runs on
+// the read pool, which refuses a write of its own.
+func TestHandle_QueryRow(t *testing.T) {
+	h := writeHandle(t, currentStore(t))
+	ctx := deadline(t, 5*time.Second)
+	jobID := NewID()
+	err := h.Update(ctx, func(ctx context.Context, tx *Tx) error {
+		_, err := tx.Exec(ctx,
+			`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
+			 VALUES (?, 'backup', 1, 'queued', 'inst', 'local:test', 0, 1)`, jobID)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("insert: %v", err)
+	}
+
+	var state string
+	if err := h.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", jobID).Scan(&state); err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if state != "queued" {
+		t.Errorf("state = %q, want queued", state)
+	}
+
+	var id []byte
+	err = h.QueryRow(ctx,
+		`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
+		 VALUES (?, 'backup', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, NewID()).Scan(&id)
+	if !errors.Is(classifyErr(err), errReadOnly) {
+		t.Errorf("write through the read path: err = %v, want read-only", err)
+	}
 }

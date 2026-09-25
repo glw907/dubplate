@@ -24,7 +24,7 @@ const (
 // with every migration's fixture, so a test has one user
 // (a1a1...a1), one collection (b1b1...b1) it owns, one album
 // (c1c1...c1), and one track (d1d1...d1) to build on.
-func fullyMigratedStore(t *testing.T) (leaf, *handle) {
+func fullyMigratedStore(t *testing.T) (leaf, *Handle) {
 	t.Helper()
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
@@ -135,7 +135,7 @@ func TestSchemaPathChecks(t *testing.T) {
 			_, err := h.write.ExecContext(ctx,
 				`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 				 VALUES (?, 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'group', 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
-				id(), tt.path,
+				NewID(), tt.path,
 			)
 			if tt.wantErr && err == nil {
 				t.Errorf("root_path %q: got nil error, want a CHECK refusal", tt.path)
@@ -151,7 +151,7 @@ func TestSchemaPathChecks(t *testing.T) {
 			_, err := h.write.ExecContext(ctx,
 				`INSERT INTO tracks (id, album_id, collection_id, rel_path, mb_recording_id, created_at, updated_at)
 				 VALUES (?, x'c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1', x'b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1', ?, NULL, 1, 1)`,
-				id(), tt.path,
+				NewID(), tt.path,
 			)
 			if tt.wantErr && err == nil {
 				t.Errorf("rel_path %q: got nil error, want a CHECK refusal", tt.path)
@@ -192,7 +192,7 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'member1@example.invalid', 'Someone Else', 'someoneelse', 0, NULL, 2, 2)`,
-			id(),
+			NewID(),
 		)
 		assertErrNames(t, err, "UNIQUE constraint failed: users.address")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
@@ -205,14 +205,14 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		if _, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'gone@example.invalid', 'Gone', 'gone', 0, 999, 2, 2)`,
-			id(),
+			NewID(),
 		); err != nil {
 			t.Fatalf("insert the tombstoned baseline: %v", err)
 		}
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'gone@example.invalid', 'Someone Else', 'someoneelse2', 0, NULL, 3, 3)`,
-			id(),
+			NewID(),
 		)
 		assertErrNames(t, err, "UNIQUE constraint failed: users.address")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
@@ -225,7 +225,7 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'other@example.invalid', 'Other', 'Member1', 0, NULL, 2, 2)`,
-			id(),
+			NewID(),
 		)
 		assertErrNames(t, err, "UNIQUE constraint failed: users.streamer_username")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
@@ -313,17 +313,17 @@ func TestSchemaMigrationHashPins(t *testing.T) {
 	}
 }
 
-// TestID asserts two successive id() calls return 16-byte values that
+// TestID asserts two successive NewID() calls return 16-byte values that
 // differ, the randomness evidence, and that a minted id inserted into
 // an entity table leaves rowid unequal to the id's own bytes read as
 // an integer, which proves only that the id is not the table's rowid.
 func TestID(t *testing.T) {
-	a, b := id(), id()
+	a, b := NewID(), NewID()
 	if len(a) != idLen {
-		t.Fatalf("len(id()) = %d, want %d", len(a), idLen)
+		t.Fatalf("len(NewID()) = %d, want %d", len(a), idLen)
 	}
 	if bytes.Equal(a, b) {
-		t.Fatalf("two successive id() calls returned the same value: %x", a)
+		t.Fatalf("two successive NewID() calls returned the same value: %x", a)
 	}
 
 	l, h := newMigrateStore(t)
@@ -331,7 +331,7 @@ func TestID(t *testing.T) {
 	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, 2)), defaultOpts()); err != nil {
 		t.Fatalf("migrate to version 2: %v", err)
 	}
-	minted := id()
+	minted := NewID()
 	if _, err := h.write.ExecContext(ctx,
 		`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, progress, failure_code, failure_message, started_at, updated_at, finished_at)
 		 VALUES (?, 'backup', 1, 'queued', 'inst', 'cli', 0, NULL, NULL, NULL, NULL, 1, NULL)`,

@@ -1,7 +1,20 @@
 // Package store manages the group's SQLite database: the leaf it lives
-// under, the lock that serializes access to it, and, as later work
-// lands, the connections, migrations, and write path built on that
-// foundation.
+// under, the lock that serializes access to it, its migrations, the
+// write path every change goes through, and the leases that tell a
+// live job's owner from a dead one.
+//
+// [OpenServe] creates or migrates a store and returns a handle at the
+// binary's version; [OpenWrite] opens only a store already at it.
+// Every change runs inside [Handle.Update], and [Inspect] reads a
+// store's state without changing it.
+//
+// # Leases
+//
+// The leaf's leases/ directory holds two kinds of lease, each an
+// exclusive flock(2) on a file there. A process that runs jobs holds
+// an instance lease for its life, and [Handle.TryLease] tells whether
+// the owner a job record names is still alive. A kind lease admits one
+// job of a kind at a time across every process.
 //
 // # Migrations
 //

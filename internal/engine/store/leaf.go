@@ -15,18 +15,17 @@ import (
 const leafDirName = "store"
 
 // leafDirPerm is the mode every directory in the leaf carries: the leaf
-// itself, db/, snapshots/, and staging/.
+// itself, db/, snapshots/, staging/, and leases/.
 const leafDirPerm = 0o700
 
-// lockFilePerm is store.lock's mode, a sensitive coordination file
-// inside a leafDirPerm directory.
+// lockFilePerm is the mode of store.lock and of every lease file, each
+// a sensitive coordination file inside a leafDirPerm directory.
 const lockFilePerm = 0o600
 
 // dbFileName is the database file's name inside db/.
 const dbFileName = "dubplate.db"
 
-// leaf names every path the store leaf holds. leases/ is not among
-// them: its first consumer lands with a later task.
+// leaf names every path the store leaf holds.
 type leaf struct {
 	root              string
 	lockPath          string
@@ -34,6 +33,7 @@ type leaf struct {
 	dbPath            string
 	snapshotsDir      string
 	stagingDir        string
+	leasesDir         string
 	restoreIntentPath string
 }
 
@@ -49,6 +49,7 @@ func newLeaf(stateDir string) leaf {
 		dbPath:            filepath.Join(dbDir, dbFileName),
 		snapshotsDir:      filepath.Join(root, "snapshots"),
 		stagingDir:        filepath.Join(root, "staging"),
+		leasesDir:         filepath.Join(root, "leases"),
 		restoreIntentPath: filepath.Join(root, "restore-intent"),
 	}
 }
@@ -61,7 +62,7 @@ func newLeaf(stateDir string) leaf {
 // at its default, os.Geteuid.
 var geteuid = os.Geteuid
 
-// create makes l's leaf, store.lock, and its three directories (each
+// create makes l's leaf, store.lock, and its four directories (each
 // leafDirPerm), tolerating any of them already existing: a crash can
 // stop an earlier create partway, and a second process can race it.
 // It refuses, creating nothing, when geteuid() does not own stateDir,
@@ -75,7 +76,7 @@ func (l leaf) create(stateDir string) error {
 		return fmt.Errorf("create leaf: state directory %s: %w", stateDir, err)
 	}
 
-	for _, dir := range []string{l.root, l.dbDir, l.snapshotsDir, l.stagingDir} {
+	for _, dir := range []string{l.root, l.dbDir, l.snapshotsDir, l.stagingDir, l.leasesDir} {
 		if err := os.MkdirAll(dir, leafDirPerm); err != nil {
 			return fmt.Errorf("create leaf: make %s: %w", dir, err)
 		}

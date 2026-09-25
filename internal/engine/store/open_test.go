@@ -56,10 +56,10 @@ func buildStore(t *testing.T, stateDir string, through int) leaf {
 	}
 	src := migrationSourceThrough(t, through)
 	if err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts()); err != nil {
-		_ = h.close()
+		_ = h.Close()
 		t.Fatalf("migrate through %d: %v", through, err)
 	}
-	if err := h.close(); err != nil {
+	if err := h.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}
 	return l
@@ -174,34 +174,34 @@ func (h *holdersHandler) recorded() []string {
 
 // serveOpts returns the serve options every test uses, logging to
 // logger, with a wait long enough that no row meets it by accident.
-func serveOpts(logger *slog.Logger) serveOptions {
-	return serveOptions{busyTimeout: openBusy, migrationWait: 30 * time.Second, keep: 2, logger: logger}
+func serveOpts(logger *slog.Logger) ServeOptions {
+	return ServeOptions{BusyTimeout: openBusy, MigrationWait: 30 * time.Second, Keep: 2, Logger: logger}
 }
 
 // quietServe opens stateDir in serve mode, discarding every log
 // record, and closes the handle at cleanup.
-func quietServe(t *testing.T, stateDir string) (*handle, error) {
+func quietServe(t *testing.T, stateDir string) (*Handle, error) {
 	t.Helper()
-	h, err := openServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)))
+	h, err := OpenServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)))
 	if err == nil {
-		t.Cleanup(func() { _ = h.close() })
+		t.Cleanup(func() { _ = h.Close() })
 	}
 	return h, err
 }
 
 // quietWrite opens stateDir in write mode and closes the handle at
 // cleanup.
-func quietWrite(t *testing.T, stateDir string) (*handle, error) {
+func quietWrite(t *testing.T, stateDir string) (*Handle, error) {
 	t.Helper()
-	h, err := openWrite(deadline(t, 5*time.Second), stateDir, openBusy)
+	h, err := OpenWrite(deadline(t, 5*time.Second), stateDir, openBusy)
 	if err == nil {
-		t.Cleanup(func() { _ = h.close() })
+		t.Cleanup(func() { _ = h.Close() })
 	}
 	return h, err
 }
 
 // TestOpenServe_BackupFieldControlsPruneOnMigrate is Task 1S's proof
-// that settle passes serveOptions.backup through to the migration
+// that settle passes ServeOptions.Backup through to the migration
 // runner unchanged: with it off, the runner prunes pre-migration
 // copies to keep after the migration it runs; with it on, it prunes
 // nothing. Fixture: a store one version back from head, with two
@@ -226,13 +226,13 @@ func TestOpenServe_BackupFieldControlsPruneOnMigrate(t *testing.T) {
 			}
 
 			opts := serveOpts(slog.New(slog.DiscardHandler))
-			opts.keep = 1
-			opts.backup = tt.backup
-			h, err := openServe(context.Background(), stateDir, opts)
+			opts.Keep = 1
+			opts.Backup = tt.backup
+			h, err := OpenServe(context.Background(), stateDir, opts)
 			if err != nil {
-				t.Fatalf("openServe: %v", err)
+				t.Fatalf("OpenServe: %v", err)
 			}
-			t.Cleanup(func() { _ = h.close() })
+			t.Cleanup(func() { _ = h.Close() })
 
 			if got := len(listDir(t, l.snapshotsDir)); got != tt.want {
 				t.Errorf("snapshots = %d, want %d", got, tt.want)
@@ -307,7 +307,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 
 			_, err := quietWrite(t, stateDir)
 			if err == nil {
-				t.Fatal("openWrite: got a handle, want a refusal")
+				t.Fatal("OpenWrite: got a handle, want a refusal")
 			}
 			if got := errState(t, err); got != tt.wantState {
 				t.Errorf("refusal state = %v, want %v (%v)", got, tt.wantState, err)
@@ -322,10 +322,10 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 func TestOpenWrite_AbsentCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	if _, err := quietWrite(t, stateDir); err == nil {
-		t.Fatal("openWrite: got a handle for an absent store")
+		t.Fatal("OpenWrite: got a handle for an absent store")
 	}
 	if _, err := os.Stat(newLeaf(stateDir).root); !errors.Is(err, fs.ErrNotExist) {
-		t.Errorf("stat leaf after openWrite = %v, want not-exist", err)
+		t.Errorf("stat leaf after OpenWrite = %v, want not-exist", err)
 	}
 }
 
@@ -342,7 +342,7 @@ func TestOpenWrite_Current(t *testing.T) {
 
 	h, err := quietWrite(t, stateDir)
 	if err != nil {
-		t.Fatalf("openWrite: %v", err)
+		t.Fatalf("OpenWrite: %v", err)
 	}
 	if h.version != binaryHead {
 		t.Errorf("handle version = %d, want %d", h.version, binaryHead)
@@ -354,7 +354,7 @@ func TestOpenWrite_Current(t *testing.T) {
 		t.Errorf("exclusive lock while the write handle is open = %v, want busy", err)
 	}
 	if got, err := os.ReadFile(planted); err != nil || string(got) != "staged" {
-		t.Errorf("planted staging file after openWrite = %q, %v; want it untouched", got, err)
+		t.Errorf("planted staging file after OpenWrite = %q, %v; want it untouched", got, err)
 	}
 }
 
@@ -364,9 +364,9 @@ func TestOpenWrite_LockHeldExclusively(t *testing.T) {
 	l := buildStore(t, stateDir, binaryHead)
 	takeRawExclusive(t, l.lockPath)
 
-	_, err := openWrite(deadline(t, 200*time.Millisecond), stateDir, openBusy)
+	_, err := OpenWrite(deadline(t, 200*time.Millisecond), stateDir, openBusy)
 	if !errors.Is(err, errLockBusy) {
-		t.Errorf("openWrite under an exclusive holder = %v, want errLockBusy", err)
+		t.Errorf("OpenWrite under an exclusive holder = %v, want errLockBusy", err)
 	}
 }
 
@@ -537,7 +537,7 @@ func TestOpenModes_InterruptedCreate(t *testing.T) {
 
 			h, err := quietServe(t, stateDir)
 			if err != nil {
-				t.Fatalf("openServe: %v", err)
+				t.Fatalf("OpenServe: %v", err)
 			}
 			if h.version != binaryHead {
 				t.Errorf("handle version = %d, want %d", h.version, binaryHead)
@@ -658,8 +658,8 @@ func TestOpenModes_OwnerAndFilesystemRefused(t *testing.T) {
 
 			withGeteuid(t, tt.euid)
 			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
-			_, werr := openWrite(deadline(t, 5*time.Second), stateDir, openBusy)
-			_, serr := openServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)))
+			_, werr := OpenWrite(deadline(t, 5*time.Second), stateDir, openBusy)
+			_, serr := OpenServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)))
 			reasons := map[string]string{"inspect": r.Reason}
 			if r.State != StateRefused {
 				t.Errorf("inspect state = %v (%s), want refused", r.State, r.Reason)
@@ -726,7 +726,7 @@ func TestOpenServe_ClearsStagingLeftover(t *testing.T) {
 	}
 
 	if _, err := quietServe(t, stateDir); err != nil {
-		t.Fatalf("openServe: %v", err)
+		t.Fatalf("OpenServe: %v", err)
 	}
 	if staged := listDir(t, l.stagingDir); len(staged) != 0 {
 		t.Errorf("staging after serve = %q, want empty", staged)
@@ -786,7 +786,7 @@ func TestOpenServe_CreatesAt0600(t *testing.T) {
 		stateDir := t.TempDir()
 		h, err := quietServe(t, stateDir)
 		if err != nil {
-			t.Fatalf("openServe: %v", err)
+			t.Fatalf("OpenServe: %v", err)
 		}
 		l := newLeaf(stateDir)
 		assertLeafShape(t, l)
@@ -810,7 +810,7 @@ func TestOpenServe_CreatesAt0600(t *testing.T) {
 		stateDir := t.TempDir()
 		l := buildStore(t, stateDir, 2)
 		if _, err := quietServe(t, stateDir); err != nil {
-			t.Fatalf("openServe: %v", err)
+			t.Fatalf("OpenServe: %v", err)
 		}
 		info, err := os.Stat(filepath.Join(l.snapshotsDir, "pre-migrate-v2.db"))
 		if err != nil {
@@ -851,10 +851,10 @@ func TestOpenServe_LockHeldPastMigrationWait(t *testing.T) {
 
 			logs := newHoldersHandler("")
 			opts := serveOpts(slog.New(logs))
-			opts.migrationWait = 300 * time.Millisecond
-			_, err = openServe(context.Background(), stateDir, opts)
+			opts.MigrationWait = 300 * time.Millisecond
+			_, err = OpenServe(context.Background(), stateDir, opts)
 			if !errors.Is(err, errLockBusy) {
-				t.Fatalf("openServe under a holder = %v, want errLockBusy", err)
+				t.Fatalf("OpenServe under a holder = %v, want errLockBusy", err)
 			}
 			if got := logs.recorded(); len(got) == 0 || got[0] != tt.want {
 				t.Errorf("holders records = %q, want the first wanting %s", got, tt.want)
@@ -866,19 +866,19 @@ func TestOpenServe_LockHeldPastMigrationWait(t *testing.T) {
 	}
 }
 
-// serveResult is one openServe run's outcome.
+// serveResult is one OpenServe run's outcome.
 type serveResult struct {
-	h   *handle
+	h   *Handle
 	err error
 }
 
-// startServe runs openServe in a goroutine, logging to logs, and
+// startServe runs OpenServe in a goroutine, logging to logs, and
 // returns its outcome's channel. The caller receives from it before the
 // test ends.
 func startServe(stateDir string, logs *holdersHandler) <-chan serveResult {
 	done := make(chan serveResult, 1)
 	go func() {
-		h, err := openServe(context.Background(), stateDir, serveOpts(slog.New(logs)))
+		h, err := OpenServe(context.Background(), stateDir, serveOpts(slog.New(logs)))
 		done <- serveResult{h, err}
 	}()
 	return done
@@ -935,9 +935,9 @@ func TestOpenServe_WaitsForExclusive(t *testing.T) {
 
 	res := <-done
 	if res.err != nil {
-		t.Fatalf("openServe: %v", res.err)
+		t.Fatalf("OpenServe: %v", res.err)
 	}
-	if err := res.h.close(); err != nil {
+	if err := res.h.Close(); err != nil {
 		t.Fatal(err)
 	}
 	if got := queryInt(t, l.dbPath, "PRAGMA user_version"); got != binaryHead {
@@ -988,9 +988,9 @@ func TestOpenServe_ConversionLost(t *testing.T) {
 
 			res := <-done
 			if res.err != nil {
-				t.Fatalf("openServe: %v", res.err)
+				t.Fatalf("OpenServe: %v", res.err)
 			}
-			if err := res.h.close(); err != nil {
+			if err := res.h.Close(); err != nil {
 				t.Fatal(err)
 			}
 			assertUnchanged(t, l.dbPath, want)
@@ -1054,7 +1054,7 @@ func TestOpenServe_CurrentKeepsSharedLock(t *testing.T) {
 
 	h, err := quietServe(t, stateDir)
 	if err != nil {
-		t.Fatalf("openServe: %v", err)
+		t.Fatalf("OpenServe: %v", err)
 	}
 	if h.version != binaryHead {
 		t.Errorf("handle version = %d, want %d", h.version, binaryHead)

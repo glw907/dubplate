@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -30,19 +31,18 @@ const (
 	sqliteReadOnlyCode = 8
 )
 
-// errBusy is the sentinel a caller matches with errors.Is when a write
-// finds SQLite's write lock held past the busy timeout.
+// errBusy wraps a failure after which SQLite's write lock stayed held
+// past the busy timeout.
 var errBusy = errors.New("store busy")
 
-// errReadOnly is the sentinel a caller matches with errors.Is when a
-// write reaches a connection SQLite itself refuses to write to.
+// errReadOnly wraps a write that reached a connection SQLite itself
+// refuses to write to.
 var errReadOnly = errors.New("store read-only")
 
-// handle holds the write pool's one connection and the read pool.
-// Every per-connection setting rides the DSN, because database/sql
-// opens connections at will; nothing here issues a PRAGMA statement
-// after open.
-type handle struct {
+// A Handle is an open store: the write pool's one connection, the read
+// pool, and the store lock its mode's open holds until [Handle.Close].
+// It is safe for concurrent use by multiple goroutines.
+type Handle struct {
 	write *sql.DB
 	read  *sql.DB
 
@@ -56,12 +56,18 @@ type handle struct {
 	// lock is the store lock a mode's open holds for the handle's
 	// life, or nil for a handle opened on a bare file.
 	lock *storeLock
+
+	// leasesDir is the leaf's leases/ directory, where every lease
+	// taken through the handle lives.
+	leasesDir string
 }
 
 // openHandle opens dbPath's write pool (capped at one connection) and
 // read pool. busyTimeout is the caller's threshold: the store reads no
-// environment.
-func openHandle(dbPath string, busyTimeout time.Duration) (*handle, error) {
+// environment. Every per-connection setting rides the DSN, because
+// database/sql opens connections at will; nothing here issues a PRAGMA
+// statement after open.
+func openHandle(dbPath string, busyTimeout time.Duration) (*Handle, error) {
 	write, err := sql.Open(sqliteDriverName, writeDSN(dbPath, busyTimeout))
 	if err != nil {
 		return nil, fmt.Errorf("open write pool: %w", err)
@@ -74,17 +80,27 @@ func openHandle(dbPath string, busyTimeout time.Duration) (*handle, error) {
 		return nil, fmt.Errorf("open read pool: %w", err)
 	}
 
-	return &handle{write: write, read: read, path: dbPath}, nil
+	return &Handle{write: write, read: read, path: dbPath}, nil
 }
 
-// close closes h's write and read pools, then releases its lock,
-// joining every error rather than stopping at the first.
-func (h *handle) close() error {
+// Close closes h's write and read pools, then releases the store lock,
+// joining every error rather than stopping at the first. A lease taken
+// through h is not released: its taker releases it.
+func (h *Handle) Close() error {
 	err := errors.Join(h.write.Close(), h.read.Close())
 	if h.lock != nil {
 		err = errors.Join(err, h.lock.release())
 	}
 	return err
+}
+
+// QueryRow runs query on h's read pool, which SQLite itself refuses to
+// write through, and returns at most one row. A read on the read pool
+// sees the last committed state but holds no lock against a write that
+// follows it, so it serves reports; a read that a write decides on
+// runs inside that write's [Handle.Update] callback instead.
+func (h *Handle) QueryRow(ctx context.Context, query string, args ...any) *sql.Row {
+	return h.read.QueryRowContext(ctx, query, args...)
 }
 
 // openMaintenanceConn opens a maintenance connection at dbPath for one

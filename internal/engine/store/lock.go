@@ -169,3 +169,26 @@ func procLockHolders(text string, major, minor, inode uint64) []string {
 	}
 	return pids
 }
+
+// dupCloexec duplicates f's descriptor with fcntl(F_DUPFD_CLOEXEC). The
+// duplicate shares f's open file description, and with it any flock
+// on f, and is close-on-exec, which a plain dup(2) would clear.
+func dupCloexec(f *os.File) (*os.File, error) {
+	rc, err := f.SyscallConn()
+	if err != nil {
+		return nil, fmt.Errorf("duplicate %s: %w", f.Name(), err)
+	}
+	var (
+		fd    uintptr
+		errno syscall.Errno
+	)
+	if err := rc.Control(func(src uintptr) {
+		fd, _, errno = syscall.Syscall(syscall.SYS_FCNTL, src, syscall.F_DUPFD_CLOEXEC, 0)
+	}); err != nil {
+		return nil, fmt.Errorf("duplicate %s: %w", f.Name(), err)
+	}
+	if errno != 0 {
+		return nil, fmt.Errorf("fcntl F_DUPFD_CLOEXEC on %s: %w", f.Name(), errno)
+	}
+	return os.NewFile(fd, f.Name()), nil
+}
