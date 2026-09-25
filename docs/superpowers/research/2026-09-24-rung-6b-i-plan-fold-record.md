@@ -211,3 +211,79 @@ The spec's "Not verified" rows this pass settles: `--max-delete` counting
 of `--backup-dir` moves (on `local`), the feature table, `os/exec`'s
 `WaitDelay` and `Cancel` wording, rclone's exit codes (7 on
 `--max-delete`, 130 on SIGINT mid-sync, 3 on a missing directory listing).
+
+## Second fold (revision 2.1)
+
+Inputs: the fresh-context verification read
+(`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-verification.md`,
+V1 to V10) and the `internal/engine/store` section of the 6a architecture
+read (`docs/superpowers/research/2026-09-24-rung-6a-architecture-reads.md`),
+taking only the items that shape a signature 6b-i exports or binds to.
+Base: master `0b6da0f` (6a merged at `8736528`; the store tree equals
+revision 2's `aa3b13e`).
+
+Verified before acting: `syscall.Dup` returns a descriptor with
+`FD_CLOEXEC` clear and `fcntl(F_DUPFD_CLOEXEC)` one with it set (fold probe
+on go1.27.1, `/tmp/claude-1000/fold6bi/dup/`); `syscall/exec_linux.go`
+pass 2 creates each `ExtraFiles` slot without close-on-exec; the `euid`
+parameters, `migrateOptions.backup` with `settle` omitting it
+(`open.go:261`) and the test helper defaulting it to true
+(`migrate_test.go:63-65`), and `migrate`'s `fs.FS` parameter all read as
+the architecture read states at `0b6da0f`.
+
+### Verification findings
+
+| ID | Disposition | Location in revision 2.1 |
+| --- | --- | --- |
+| V1 | Folded. The stand-in appends one line per SIGINT received; the group row asserts exactly one (the runner's `Cancel`), so dropping `Setpgid` fails it by count with no timing window. Task 4 mutation 5 and a new Task 6 mutation 7 name the row. | Task 4 stand-in and mutation 5; Task 6 criterion 20 and mutation 7; review focus 5 |
+| V2 | Folded. Duplicates use `fcntl(F_DUPFD_CLOEXEC)`, with the probe and the `exec_linux.go` pass 2 quote; a Task 1A row reads `FD_CLOEXEC` and mutation 7 tries plain `dup(2)`. | R-6bi12; R-6bi3; Task 1A; privileged fields |
+| V3 | Folded. One ownership sentence: lease values from the primitive, none taken by the handle, the runner the instance lease's one owner, the descriptor method on the kind-lease value. A Task 1A row proves a handle's open and close create no lease file (mutation 8). | R-6bi2; R-6bi3; Task 1A; privileged fields |
+| V4 | Folded. The store is the stamp layout's one home and exports a format and parse pair (Task 1B, `stamp.go`), with UTC conversion and the malformed-form rows. | R-6bi8; R-6bi3; Task 1B |
+| V5 | Folded. Ruling 1 now calls 2.1M a projection and states the margin as a number (0.43M, about one task) against the re-derived ceiling. | Ruling 1 |
+| V6 | Folded. Ruling 4's "no" has the conductor amend Task 1A's Files before dispatch and name the helper's home; the chmod step is stated as required. | Ruling 4 |
+| V7 | Folded. Pointer base `0b6da0f`; Task 0's diff base and rename commit (`f85e7be`) repointed. | Header; Primary inputs 3; Task 0 items 1 and 2 |
+| V8 | Folded. The rulings preamble says approval also approves the deviations, and that R-6bi15 and R-6bi16 qualify rulings 10 and 7. | Rulings preamble |
+| V9 | Folded (cheap). Precedence rule 1 applies to a nonzero exit or a signal death; an exit 0 continues and the next progress callback observes the cancel. | R-6bi12; Task 4 table |
+| V10 | Folded (cheap). The orphan exits at its next stderr write, which at the default log level may be the sync's end; the inherited locks, not a short window, keep it safe. | R-6bi12 |
+
+### Architecture read items taken
+
+| Item | Disposition | Location in revision 2.1 |
+| --- | --- | --- |
+| 1 (`euid` seam) | Taken. `var geteuid = os.Geteuid`; `inspect` folds into `Inspect`; `openWrite` and `openServe` lose the parameter before Task 1A exports them. Mutation 1. | New Task 1S |
+| 2 (`migrateOptions.backup`) | Taken, wired. Production is already the zero value (backup off, prune), but `settle` never passed the field; serve's options carry it through so 6d wires `DUBPLATE_BACKUP_ENABLED` without reshaping the type Ruling 4 may export. The test helper's default flips to the zero value. Mutation 2 and a backup-on serve row. | New Task 1S |
+| 3 (`migrate` takes `[]migration`) | Taken. Mutation 3, declared reviewer-read (a double parse only). | New Task 1S |
+| 4 (comment corrections) | Taken for everything 6b-i exports: each export's and each returned sentinel's doc names the `errors.Is` callers that now exist. | R-6bi3; Task 1A |
+| 7 (one `waitLock`) | Not taken in 6b-i. Its condition fails: 6b-i's leases use the non-blocking `tryLock`, not the poll loop, and write mode's bounded shared wait keeps its signature. Routed to the architecture cleanup pass. | none |
+| 8 (`primaryCode` with `sqlite3.SQLITE_*`) | Taken as a conditional rule: new code matches no raw SQLite code and reuses the store's classifiers; a task that must match one lands the helper first. Otherwise routed to the architecture cleanup pass. | Global constraints |
+| 5, 6, 9, 10, 11, 12 | Left to the architecture cleanup pass, as directed: `State.String` composition, the duplicate rollback, the DSN base list, the shared preamble, the file split, and the comment cleanup outside 6b-i's exports. | none |
+
+### Scope and the ceiling
+
+Task 1S adds two deliverables (33 in all) and about 0.25M, which re-derives
+the projection to 6.45M. The ceiling rises to 8.6M (flag 6.88M, 0.43M above
+the projection); the Task 3 split would bring the projection to 6.85M, just
+under the flag. Segment A grew to five tasks, so the pass now runs in four
+segments of at most four (A: 1S, 1A, 1B, 2; B: 3, 4, 5; C: 6, 7; D: 8), and
+segment B's end is the pre-named pass split point.
+
+### Rulings after the second fold
+
+1. Ceiling 8.6M execution, flag 6.88M. Recommendation: yes. No holds 5.9M
+   as a total, and the flag fires on plan.
+2. The features probe (`rclone backend features --low-level-retries 1`,
+   10 s). Recommendation: yes. No builds a static feature table.
+3. Exit codes 0, 1, 69, 75, and 130 for a cancel by any means.
+   Recommendation: yes. No uses 2, 3, and 4.
+4. Serve's open exported now for tests. Recommendation: yes. No builds a
+   checked-in leaf template, with the conductor amending Task 1A's Files.
+
+### Errata additions
+
+- **6bi-E9, amended (V2).** The transfer child's inherited descriptors are
+  close-on-exec duplicates (`F_DUPFD_CLOEXEC`) handed out by the kind-lease
+  value.
+- **6bi-E14 (V4).** The store owns the backup stamp layout
+  `20060102T150405.000000Z` and exports its format and parse pair.
+- **6bi-E15 (V9).** A transfer that exits 0 after a cancel request counts
+  as a success; the job observes the cancel at its next progress point.
