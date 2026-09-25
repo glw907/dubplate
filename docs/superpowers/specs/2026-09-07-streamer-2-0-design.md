@@ -1,6 +1,6 @@
 # dubplate-server 2.0: the built-in streamer
 
-Status: **Ratified 2026-09-07.** Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
+Status: **Ratified 2026-09-07.** Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
 Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`, sequenced after the
 greenfield ladder's launch (rung 17).
 
@@ -100,6 +100,23 @@ Starred, playlists, play history, and the saved queue ship at launch. Play histo
 day one; play counts, recently played, and most played are views over it. Ratings and external scrobbling wait for 2.1.
 Rejected: full Navidrome parity at launch (scrobbling brings credentials and rate limits into the launch), playlists
 only (starred and play counts are cheap and missed on day one).
+
+### Group features at launch
+
+Ruled by Geoff, 2026-09-24. Four features join the 2.0 target because they give a group a reason to prefer dubplate
+over Navidrome. Navidrome reads a folder it did not build and knows nothing of who built it. dubplate owns the pipeline
+and the roster, so it can do both.
+
+1. Report a problem. A member flags an admitted track or album from the listening side, and the report joins the
+   decision queue beside intake items.
+2. Added by and album notes. Each admitted album records the member who uploaded it, and that member may write a short
+   note on why.
+3. Collaborative playlists. A playlist's owner names members who may edit it.
+4. Smart playlists. A rule-based playlist evaluated at read time. Navidrome ships these as `.nsp` files, so a switcher
+   expects them.
+
+Not targeted for 2.0: the library health report, requests, the weekly new-arrivals email, and group
+listening views. Each builds on data 2.0 already records, so none needs a hook now.
 
 ### Relation to the current ladder
 
@@ -277,6 +294,32 @@ pass can change the rule without losing history. The play queue's edges are spec
 saved queue, `current` is required unless `id` is empty, an absent `position` means zero, and the response carries
 `changed` and `changedBy`.
 
+### Group features
+
+**Report a problem.** A report names one admitted track or album, a kind (wrong tags, bad audio, wrong art, wrong
+album grouping, other), an optional note, the reporting member's surrogate id, and a timestamp. It is an event-shaped
+row under the rung 6 table rule. It surfaces as a decision-queue item (hook 16) that an admin resolves or dismisses, and
+the reporter sees the outcome on the web app. OpenSubsonic has no report verb, so the web app carries the report page;
+whether clients get a second path is an open item.
+
+**Added by.** The album row carries `added_by`, the uploading member's surrogate id (hook 17). Intake sets it from the
+authenticated session and is the only channel that does: no client field, API parameter, or admin form writes it.
+Albums migrated at rung 16 carry null, shown as "unknown". **Album notes** are a 2.0 table, one note per album, written
+by the album's `added_by` member or an admin. The note reaches every client through `getAlbumInfo2`'s `notes` field,
+which Navidrome fills from Last.fm; dubplate fills it with the member's name and note.
+
+**Collaborative playlists.** The playlist header already carries an owner. A collaborator table keys on playlist id
+and surrogate user id. `updatePlaylist` accepts a write from the owner or a collaborator, and the stored-order delta
+semantics above already keep two editors from losing each other's writes. Deleting a playlist and managing its
+collaborators stay owner-only. OpenSubsonic has no collaborator verb, so the web app manages the list. A collaborator's
+client sees the playlist through `getPlaylists` as it sees any public playlist.
+
+**Smart playlists.** A smart playlist stores a rule set and no entries. `getPlaylist` evaluates it at read time for the
+calling member, since the rules can read per-user state. The rules range over catalog fields (genre, year, added date,
+added by, collection) and the caller's per-user state (starred, play count, last played, both derived from play
+history). Clients see a read-only playlist; `updatePlaylist` on one is refused. The web app authors rules. Importing
+Navidrome's `.nsp` files is an open item.
+
 ### API surface
 
 One handler set on the standard library mux under the owned prefix, answering XML and JSON from the same typed response
@@ -348,7 +391,8 @@ interval are set in its own plan, never here.
 5. Streaming and transcoding (L). Splits at its own planning; it carries the cache, the concurrency model, and range
    behavior on both paths.
 6. Identity, app passwords, and shares (M).
-7. Per-user state (M).
+7. Per-user state and group features (L). Splits at its own planning; it carries starred, playlists (collaborative and
+   smart), the queue, play history, album notes, and the report page.
 8. Shadow period, flip, and close-out (M). Retires Navidrome and records the post-mortem.
 
 Each slice is a pass with its own plan, ceiling, oracle diff, and roster walk, under the conducting loop in CLAUDE.md.
@@ -414,6 +458,12 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     Hook 6's capability report also declares a driver's shape constraints (subtree collections, art filenames read,
     tags read) and per-user folder access; private is unsettable without it. Design:
     `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
+16. A decision-queue item that names an admitted entity, rung 13. The queue's item model admits an item referencing an
+    admitted track or album, filed by a member, beside the intake items it holds today, so "Report a problem" joins the
+    queue without a second queue or a reshaped item table. Added 2026-09-24 (group features).
+17. The uploading member on the submission, rung 7, carried to the album row at rung 9's admission as `added_by`. The
+    submission knows its authenticated uploader only at intake; recovering it later means guessing. Only intake sets it.
+    Added 2026-09-24 (group features).
 
 ## Prior art
 
@@ -487,5 +537,11 @@ These do not block the study rung.
   ID3, and only gonic can grade it. The study rung brings the evidence.
 - The app-password key's exact name in the age store. The identity slice mints it.
 - The shadow period's length and the Navidrome retention window. Owner rulings at the cutover slice.
+- Whether clients get a report path beside the web app page. The candidate is a reserved per-member playlist named
+  "Report a problem": adding a track files a report, which works in every client with no new verb. The slice 7 plan
+  decides.
+- Whether an admin's fix for a reported album has an edit path by 2.0, or a report resolves by re-upload through
+  intake. Rung 13's plan records which one exists.
+- Whether smart playlists import Navidrome's `.nsp` files for switchers. The study rung records the format.
 - Whether the study rung runs beside the current ladder or after launch. A document lane is permitted by the standing
   grant; the conductor decides on the lane registry's state.

@@ -80,7 +80,10 @@ reports drift); app passwords minted per device from the roster account;
 ffmpeg transcoding under a content-keyed cache with a size cap; playlists,
 starred, timestamped play history, and the saved queue at launch; art
 resized on demand from a pipeline-admitted blob; FTS5 trigram search over
-folded text. Build shape A: an oracle harness (Navidrome and dubplate
+folded text. Group features join the target (Geoff, 2026-09-24; spec revision 2.3):
+report a problem into the decision queue, `added_by` and album notes, collaborative
+playlists, and smart playlists, with forward hooks 16 (rung 13) and 17 (rungs 7 and 9).
+Build shape A: an oracle harness (Navidrome and dubplate
 against one library, responses diffed and adjudicated) and a written
 Navidrome study first, then vertical slices each walked by a named client
 roster. Sequenced after launch (rung 17); the driver seam stays and
