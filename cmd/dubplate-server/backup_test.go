@@ -128,6 +128,39 @@ func appendBackupStandinLine(path, line string) {
 	_ = f.Close()
 }
 
+// TestBackupCmd_LongNamesExitCodes proves newBackupCmd's help text names
+// every exit status Ruling 3 assigns this verb, so a drift between the
+// codes and the documented table would fail here rather than only
+// showing up as a wrong number an operator reads past. Each real-trigger
+// test below (Unavailable, Conflict, Succeeded, Failed,
+// SignalHandling) proves the code itself; this proves the code is
+// documented.
+func TestBackupCmd_LongNamesExitCodes(t *testing.T) {
+	cmd := newBackupCmd(nil, newProductionRegistry(), io.Discard, io.Discard)
+	long := cmd.Long
+
+	tests := []struct {
+		name string
+		want string
+	}{
+		{"succeeded", "\n  0    the backup succeeded"},
+		{"failed", "\n  1    the backup failed"},
+		{"unavailable", "\n  " + strconv.Itoa(exitBackupUnavailable) + "   backup integration is disabled"},
+		{"conflict", "\n  " + strconv.Itoa(exitBackupConflict) + "   a backup is already running"},
+		{"canceled", "\n  " + strconv.Itoa(exitBackupCanceled) + "  canceled by any means"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if !strings.Contains(long, tt.want) {
+				t.Errorf("Long = %q, want it to contain %q", long, tt.want)
+			}
+		})
+	}
+	if !strings.Contains(long, "canceled by any means") {
+		t.Errorf("Long = %q, want it to contain %q", long, "canceled by any means")
+	}
+}
+
 // TestReportOutcome_Table proves the states table's terminal-state half
 // directly: every [ops.JobState] reportOutcome switches on, including
 // [ops.JobInterrupted], the state unreachable through a live job

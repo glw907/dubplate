@@ -187,19 +187,21 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor 
 	ticker := time.NewTicker(backupPollInterval)
 	defer ticker.Stop()
 
-	canceled := false
+	// done and hupCh are nil'd out once their cancel fires, so a
+	// signal already answered never wins the select again: a closed
+	// channel is always ready, and without this the loop would spin
+	// on JobStatus at full CPU for the rest of the wait instead of
+	// blocking on ticker.C.
+	done := signalCtx.Done()
+	hupCh := hup
 	for {
 		select {
-		case <-signalCtx.Done():
-			if !canceled {
-				canceled = true
-				requestCancel(opsCtx, runner, actor, h, logger)
-			}
-		case <-hup:
-			if !canceled {
-				canceled = true
-				requestCancel(opsCtx, runner, actor, h, logger)
-			}
+		case <-done:
+			done = nil
+			requestCancel(opsCtx, runner, actor, h, logger)
+		case <-hupCh:
+			hupCh = nil
+			requestCancel(opsCtx, runner, actor, h, logger)
 		case <-ticker.C:
 		}
 
