@@ -21,10 +21,12 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 1. **6b-i runs in lane 2** (approved 2026-09-24; ceiling 7.4M, flag 5.92M). Segments A and B closed
    green (1S-2 and 3-5, `4079422`..`6c2d287`); spend about 3.7M; re-derived total about 5.6M, under
    the flag, so the pre-named split is not taken. Segment C (tidy 5T, Tasks 6-7) in flight.
-2. **5c-ii runs in lane 1** (revision 2.4; 9.4M ceiling, 7.52M flag). Tasks 1-7 accepted (Task 5 in
-   `bdc41fb` after a conductor-ruled second fix; Task 7's escalation closed on R-5cii8's "none set"
-   for 404s, a conductor brief error). Spend about 6.9M. Simplifier round, then the svelte, a11y and
-   web-auth-security reviewers (the last also reads the new `serve.LogRequests`), then the close.
+2. **5c-ii at its flag** (lane 1; 9.4M ceiling, 7.52M flag, spend about 7.4M). Tasks 1-7 and the
+   simplifier are in (`2424b9a`); the three reviews are committed (`71de914`): Svelte B1 (every gate
+   passes vacuously under a path with a space), security M1 (operator CSS read through a symlink),
+   gate holes. Owed: one fold task (about 0.6M), then Task 8's close and the reads (about 0.8M), so
+   about 8.8M. **Asking Geoff** whether to continue under the ceiling. Carried: security M2 (the
+   roster API shares an origin with the fallthrough) to rung 12; a11y 4-6 to the identity spec.
 3. **Matcher word boundary: ruled yes** (Geoff, 2026-09-24): a documented Go translation of beets'
    featuring row, a parity golden, and a corpus case, as a small matcher pass after the current lanes
    (`research/2026-09-24-matcher-unicode-word-boundary.md`).
