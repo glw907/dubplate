@@ -55,8 +55,12 @@ interface Visit {
   consoleErrors: string[];
   /** Read before the page's context closes; empty for a JavaScript-disabled page. */
   violations: Violation[];
-  /** The page raises a violation on purpose, so the final sweep skips it. */
-  expectsViolation: boolean;
+  /**
+   * The one URL the page loads on purpose to be blocked by `img-src`:
+   * the final sweep forgives that violation and its console report,
+   * and nothing else.
+   */
+  expectedBlock: string | null;
 }
 
 /**
@@ -106,6 +110,9 @@ const VIOLATION_RECORDER = `
     window.__renderedViolations.push({ directive: e.effectiveDirective, blocked: e.blockedURI });
   });
 `;
+
+/** The off-origin image the listener row injects for `img-src` to block. */
+const LISTENER_PROBE = 'https://example.test/rendered-probe.png';
 
 /** The endpoints and fixture values the Go test hands the script. */
 interface Endpoints {
@@ -163,7 +170,7 @@ async function open(
   waitUntil: 'load' | 'domcontentloaded'
 ): Promise<{ visit: Visit; body: string }> {
   const page = await context.newPage();
-  const visit: Visit = { url, page, consoleErrors: [], violations: [], expectsViolation: false };
+  const visit: Visit = { url, page, consoleErrors: [], violations: [], expectedBlock: null };
   page.on('console', (msg) => {
     if (msg.type() !== 'error') return;
     const source = msg.location().url;
@@ -261,13 +268,34 @@ async function readTierState(context: BrowserContext, base: string): Promise<Tie
   return { brandingHref, brandingCSS, operatorHref, operatorCSS };
 }
 
-/** Reads `--color-primary`'s computed value on the document element under cookie and scheme. */
-async function readColorPrimary(
+/** sRGB bytes read back from a canvas: red, green, blue, alpha. */
+type RGBA = [number, number, number, number];
+
+/** The bytes a fully opaque `#rrggbb` literal paints. */
+function hexRGBA(hex: string): RGBA {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (m === null) throw new Refusal(`${hex} is not a #rrggbb literal`);
+  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), 255];
+}
+
+function sameRGBA(a: RGBA, b: RGBA): boolean {
+  return a.every((byte, i) => byte === b[i]);
+}
+
+/**
+ * Paints `--color-primary` as the document element resolves it onto a
+ * one-pixel canvas under cookie and scheme, and returns the sRGB bytes
+ * read back (W12.5): the browser resolves and paints the value, so the
+ * page's color syntax is never parsed here. The canvas is filled transparent
+ * first, so a value the canvas refuses reads back with alpha 0 and can
+ * never match an opaque expectation.
+ */
+async function paintedPrimary(
   browser: Browser,
   base: string,
   cookie: 'label' | 'label-night' | null,
   scheme: 'light' | 'dark'
-): Promise<string> {
+): Promise<RGBA> {
   const host = new URL(base).hostname;
   const context = await browser.newContext({ colorScheme: scheme });
   try {
@@ -275,17 +303,31 @@ async function readColorPrimary(
       await context.addCookies([{ name: THEME_COOKIE, value: cookie, domain: host, path: '/', secure: true }]);
     }
     const { visit } = await open(context, new URL('login', base).href, 'load');
-    return (
-      await visit.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-primary'))
-    ).trim();
+    return await visit.page.evaluate((): RGBA => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = 'var(--color-primary)';
+      document.documentElement.append(probe);
+      const resolved = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
+      if (ctx === null) throw new Error('the canvas has no 2d context');
+      ctx.fillStyle = 'transparent';
+      ctx.fillStyle = resolved;
+      ctx.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1, { colorSpace: 'srgb' }).data;
+      return [r, g, b, a];
+    });
   } finally {
     await context.close();
   }
 }
 
-/** No shipped theme's own `--color-primary`, quoted from
- * web/src/lib/themes/label.css, label-night.css, and system.css
- * (all `#c1352b`): the without-branding fixture's expectation. */
+/** Every shipped theme's own `--color-primary` (all `#c1352b`), quoted
+ * from web/src/lib/themes/label.css, label-night.css, and system.css:
+ * the without-branding fixture's expectation. */
 const G7_UNBRANDED_PRIMARY = '#c1352b';
 
 const G7_STATES: { id: string; cookie: 'label' | 'label-night' | null; scheme: 'light' | 'dark' }[] = [
@@ -330,8 +372,14 @@ async function g7ComputedRows(browser: Browser, endpoints: Endpoints): Promise<v
         });
         continue;
       }
-      const got = await readColorPrimary(browser, target.base, state.cookie, state.scheme);
-      report({ id, fixture, property: got === target.want, detail: `computed --color-primary ${got} (want ${target.want})` });
+      const got = await paintedPrimary(browser, target.base, state.cookie, state.scheme);
+      const want = hexRGBA(target.want);
+      report({
+        id,
+        fixture,
+        property: sameRGBA(got, want),
+        detail: `painted --color-primary [${got.join(',')}] (want [${want.join(',')}], ${target.want})`
+      });
     }
   }
 
@@ -357,12 +405,13 @@ async function g7ComputedRows(browser: Browser, endpoints: Endpoints): Promise<v
       detail: `branding.css ${JSON.stringify(opTier.brandingCSS)}; operator.css href ${opTier.operatorHref} content ${JSON.stringify(opTier.operatorCSS)}`
     });
   } else {
-    const got = await readColorPrimary(browser, endpoints.operatorBase, 'label', 'light');
+    const got = await paintedPrimary(browser, endpoints.operatorBase, 'label', 'light');
+    const want = hexRGBA(endpoints.operatorPrimary);
     report({
       id: opID,
       fixture: opFixture,
-      property: got === endpoints.operatorPrimary,
-      detail: `computed --color-primary ${got} (want ${endpoints.operatorPrimary}, over branding's ${endpoints.brandingPrimary})`
+      property: sameRGBA(got, want),
+      detail: `painted --color-primary [${got.join(',')}] (want [${want.join(',')}], ${endpoints.operatorPrimary}, over branding's ${endpoints.brandingPrimary})`
     });
   }
 }
@@ -578,16 +627,16 @@ async function violationListenerRow(browser: Browser, endpoints: Endpoints): Pro
   await context.addInitScript({ content: VIOLATION_RECORDER });
   try {
     const visit = await openBooted(context, endpoints.base, PAGES[0]);
-    visit.expectsViolation = true;
+    visit.expectedBlock = LISTENER_PROBE;
     const before = await violations(visit.page);
     const fixture = before.length === 0;
     let seen: Violation[] = [];
     if (fixture) {
-      await visit.page.evaluate(() => {
+      await visit.page.evaluate((probe: string) => {
         const img = document.createElement('img');
-        img.src = 'https://example.test/rendered-probe.png';
+        img.src = probe;
         document.body.append(img);
-      });
+      }, LISTENER_PROBE);
       await visit.page
         .waitForFunction(
           () =>
@@ -598,11 +647,12 @@ async function violationListenerRow(browser: Browser, endpoints: Endpoints): Pro
         )
         .catch(() => undefined);
       seen = await violations(visit.page);
+      visit.violations = seen;
     }
     report({
       id,
       fixture,
-      property: seen.some((v) => v.directive === 'img-src' && v.blocked.startsWith('https://example.test/')),
+      property: seen.some((v) => v.directive === 'img-src' && v.blocked === LISTENER_PROBE),
       detail: `violations before injection ${JSON.stringify(before)}; after ${JSON.stringify(seen)}`
     });
   } finally {
@@ -610,16 +660,34 @@ async function violationListenerRow(browser: Browser, endpoints: Endpoints): Pro
   }
 }
 
-/** Refuses the run when any page but a deliberate one reported a problem. */
+/**
+ * Whether a problem the browser reported is the one a page raised on
+ * purpose: `img-src` blocking its expected URL, as the violation event
+ * and as Chromium's console report of it.
+ */
+function isExpectedViolation(visit: Visit, v: Violation): boolean {
+  return visit.expectedBlock !== null && v.directive === 'img-src' && v.blocked === visit.expectedBlock;
+}
+
+function isExpectedConsoleError(visit: Visit, text: string): boolean {
+  return (
+    visit.expectedBlock !== null &&
+    text.startsWith(`Loading the image '${visit.expectedBlock}' violates the following Content Security Policy directive: "img-src `)
+  );
+}
+
+/** Refuses the run when any page reported a problem it did not raise on purpose. */
 function refuseUnclean(): void {
   for (const visit of visits) {
-    if (visit.expectsViolation) continue;
-    if (visit.violations.length > 0) {
-      const v = visit.violations[0];
-      throw new Refusal(`${visit.url}: securitypolicyviolation: ${v.directive} blocked ${v.blocked}`);
+    const violation = visit.violations.find((v) => !isExpectedViolation(visit, v));
+    if (violation !== undefined) {
+      throw new Refusal(
+        `${visit.url}: securitypolicyviolation: ${violation.directive} blocked ${violation.blocked}`
+      );
     }
-    if (visit.consoleErrors.length > 0) {
-      throw new Refusal(`${visit.url}: console error: ${visit.consoleErrors[0]}`);
+    const text = visit.consoleErrors.find((t) => !isExpectedConsoleError(visit, t));
+    if (text !== undefined) {
+      throw new Refusal(`${visit.url}: console error: ${text}`);
     }
   }
 }

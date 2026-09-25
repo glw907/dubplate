@@ -114,6 +114,11 @@ func BrandingStylesheet(decls string) ([]byte, error) {
 		return []byte{}, nil
 	}
 
+	// The block stays outside any cascade layer on purpose. The bundle
+	// declares every theme inside @layer base, and an unlayered
+	// declaration beats a layered one whatever the selectors'
+	// specificity or the stylesheets' order, so a branding value wins
+	// over the active theme's own value for the same name.
 	var buf bytes.Buffer
 	buf.WriteString(":root {\n")
 	seen := make(map[string]bool)
