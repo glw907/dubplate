@@ -50,7 +50,7 @@ the same shared subset rather than escaping the harness.
 
 Seven cases, chosen for machinery coverage (proving the capture-derive
 loop, the stub, and the shim round-trip correctly) rather than matcher
-coverage (pass 2b's structural stratum, 61 cases, is where matcher
+coverage (pass 2b's structural stratum, 62 cases today, is where matcher
 behavior itself gets exercised). Every case was captured live
 against MusicBrainz WS/2 through `harness capture` (1 request per
 second, identified User-Agent), derived through `oracle.Derive` via
@@ -263,7 +263,7 @@ rather than collapse together. Its candidate `Geschäft: Ember Wharf`
 and item albums `Geschäft: Northern Lines` share only the `Geschäft:`
 prefix, whose trigger character `ä` sits directly before `ft`. Go's
 `\b` is ASCII-only, so an untranslated port reads a word boundary
-between `ä` and `f` and strips everything after `Geschäft` as a
+between `ä` and `f` and strips `ft` and everything after it, leaving `geschä`, as a
 featuring credit, the same false positive the `adv-ft-*` family probes
 in ASCII; the translated row (and beets itself) reads no boundary
 there and scores the titles' true distance instead. No case in this
@@ -277,7 +277,7 @@ through `overrides` alone.
 | `strdist-feat-strip` | candidate album `"Nightbound (feat. Wren Salt)"`; every item's `album` overridden to `"Nightbound"`. The `feat` pattern's weight is 0.1, not 0.0, so stripping it only shrinks the base edit distance rather than erasing it (`test_relative_weights`'s own comparative shape, not `test_matching_distance`'s equality one): `album` reads 0.0091, still comfortably strong (0.0091 < 0.04). | none |
 | `strdist-ampersand` | candidate album `"Ash & Ferrous"`; every item's `album` overridden to `"Ash and Ferrous"`. `SD_REPLACE` folds `&` to `and` on both strings before comparison, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
 | `strdist-diacritic-translit` | candidate album `"Café Méridien"`; every item's `album` overridden to `"Cafe Meridien"`. `unidecode` transliterates the diacritics away before the edit-distance pass, netting `string_dist == 0.0`; `album` reads 0, distance 0, strong. | none |
-| `strdist-feat-unicode-boundary` | candidate album `"Geschäft: Ember Wharf"`; every item's `album` overridden to `"Geschäft: Northern Lines"`. `ä` sits directly before `ft`, the trigger the featuring row's word-boundary translation must not fire on: `string_dist` reads the titles' true distance rather than collapsing them to `gesch`; `album` reads 0.087302, distance 0.087302, medium, skip. | none |
+| `strdist-feat-unicode-boundary` | candidate album `"Geschäft: Ember Wharf"`; every item's `album` overridden to `"Geschäft: Northern Lines"`. `ä` sits directly before `ft`, the trigger the featuring row's word-boundary translation must not fire on: `string_dist` reads the titles' true distance rather than collapsing them to `geschä`; `album` reads 0.087302, distance 0.087302, medium, skip. | none |
 
 ### Family 5: single-source `data_source` penalty
 
@@ -2393,7 +2393,7 @@ now assume from pass 2d and no more.
 **The corpus carries expected applied tags at two altitudes, and they
 are not interchangeable.**
 
-1. **`Expected.AppliedFields`, on every one of the 215 committed
+1. **`Expected.AppliedFields`, on every one of the 216 committed
    cases**, is the in-memory record `match.apply_metadata()` produces:
    what beets decided to set on an `Item`, before any write. This is
    not a conformance target for a file-tag writer. It carries fields
