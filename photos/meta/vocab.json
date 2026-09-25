@@ -344,7 +344,8 @@
         "SK",
         "SM",
         "UA",
-        "VA"
+        "VA",
+        "XK"
       ]
     },
     "mena": {
@@ -446,7 +447,7 @@
       ]
     }
   },
-  "regions_source": "ISO 3166-1 alpha-2 officially assigned codes and UN M49 region/sub-region/intermediate-region groupings: datasets/country-codes CSV mirror of UN Statistics Division M49 data, https://raw.githubusercontent.com/datasets/country-codes/master/data/country-codes.csv (fetched 2026-09-25); MENA membership: World Bank country metadata API, https://api.worldbank.org/v2/country?format=json&per_page=400, region \"Middle East, North Africa, Afghanistan & Pakistan\" minus Afghanistan and Pakistan (retained in asia-pacific per M49 Southern Asia) (fetched 2026-09-25).",
+  "regions_source": "ISO 3166-1 alpha-2 officially assigned codes and UN M49 region/sub-region/intermediate-region groupings: datasets/country-codes CSV mirror of UN Statistics Division M49 data, https://raw.githubusercontent.com/datasets/country-codes/master/data/country-codes.csv (fetched 2026-09-25); MENA membership: World Bank country metadata API, https://api.worldbank.org/v2/country?format=json&per_page=400, region \"Middle East, North Africa, Afghanistan & Pakistan\" minus Afghanistan and Pakistan (retained in asia-pacific per M49 Southern Asia) (fetched 2026-09-25). XK (Kosovo) added to europe by hand: it has no officially assigned ISO 3166-1 alpha-2 code, so it is absent from the fetched dataset, but it is a widely used user-assigned code (ISO 3166-1 reserves the X* range for user assignment) and Kosovo is geographically and politically part of Europe under UN M49.",
   "licenses": [
     {
       "id": "LicenseRef-public-domain",

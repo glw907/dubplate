@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, copyFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, copyFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -97,7 +97,13 @@ function baseWithdrawnRecord(overrides = {}) {
 
 function basePackEntry(overrides = {}) {
   const { screen, ...rest } = BASE_CANDIDATE;
-  return { ...rest, status: 'pack', ...overrides };
+  return {
+    ...rest,
+    source_sha256: sha256(Buffer.from('pack-entry-source-bytes')),
+    license: 'CC-BY-NC-4.0', // a pack.json entry's license is always a pack class (Storage).
+    status: 'pack',
+    ...overrides,
+  };
 }
 
 // A known-good candidate record, loaded from testdata/base-candidate.json.
@@ -122,9 +128,86 @@ function writeCandidate(dir, id, overrides = {}, { skip = [] } = {}) {
   return record;
 }
 
-test('integrity: a fully populated passing pool exits 0 and ignores .candidates/', () => {
+test('integrity: a fully populated passing pool exercises every kind of record and exits 0', () => {
   const root = newRoot();
   writePicked(root, 'dischord-house-1984');
+
+  // A public-domain record.
+  writePicked(root, 'pd-record', {
+    source_id: 'commons:2001',
+    origin_id: undefined,
+    artists: [{ name: 'Unrelated Artist' }],
+    place: undefined,
+    license: 'LicenseRef-public-domain',
+    public_domain: {
+      basis: 'pre-1931',
+      jurisdiction: 'US',
+      us_status: 'public domain',
+      fact: '1920 first publication, no notice.',
+    },
+  });
+
+  // A flyer whose own artwork is separately public domain.
+  writePicked(root, 'pd-artwork-flyer', {
+    source_id: 'commons:2002',
+    origin_id: undefined,
+    artists: [],
+    place: undefined,
+    format: 'flyer',
+    artwork: {
+      artist: 'The Flyer Artist',
+      license: 'LicenseRef-public-domain',
+      credit: 'The Flyer Artist',
+      source_url: 'https://example.org/flyer-artwork',
+      verified: "Quoted from the archive's own catalog entry.",
+      public_domain: {
+        basis: 'us-government-work',
+        jurisdiction: 'US',
+        us_status: 'public domain',
+        fact: 'A US federal government work.',
+      },
+    },
+  });
+
+  // A size_exception record that reuses the base record's artist, so the
+  // artist-cap waiver below has a real breach to cover.
+  writePicked(root, 'size-exception-record', {
+    source_id: 'commons:2003',
+    origin_id: undefined,
+    place: undefined,
+    width: 1100,
+    height: 750,
+    size_exception: 'The only known photograph of this session.',
+  });
+
+  // A withdrawn record: no .webp, but the record itself still validates.
+  writeFileSync(
+    path.join(root, 'withdrawn-record.json'),
+    JSON.stringify(
+      baseWithdrawnRecord({
+        source_id: 'commons:2004',
+        origin_id: undefined,
+        artists: [],
+        place: undefined,
+      }),
+    ),
+  );
+
+  // A pack.json entry, with a pack-class license.
+  writeFileSync(
+    path.join(root, 'meta', 'pack.json'),
+    JSON.stringify([basePackEntry({ source_id: 'commons:2005', license: 'CC-BY-NC-4.0' })]),
+  );
+
+  // A rejected.json entry.
+  writeFileSync(path.join(root, 'meta', 'rejected.json'), JSON.stringify([{ source_id: 'commons:2006', reason: 'passed' }]));
+
+  // A waiver covering size-exception-record's shared artist.
+  writeFileSync(
+    path.join(root, 'meta', 'waivers.json'),
+    JSON.stringify([{ rule: 'artist', key: 'name:test sound system', reason: 'Geoff, round 1' }]),
+  );
+
   mkdirSync(path.join(root, '.candidates', 'a'), { recursive: true });
   writeCandidate(path.join(root, '.candidates', 'a'), 'commons-99999');
   const { status, stdout } = run(['integrity', '--root', root]);
@@ -257,7 +340,7 @@ const integrityCases = [
   },
   {
     name: 'a Commons record and its Flickr original sharing origin_id',
-    // Flip: give flickr-origin a different origin_id.
+    // Flip: give commons-copy a different origin_id.
     setup(root) {
       writePicked(root, 'commons-copy', {
         source_id: 'commons:1',
@@ -641,6 +724,224 @@ const integrityCases = [
     },
     wantRule: 'artist-cap',
   },
+  {
+    name: 'a waiver missing key',
+    // Flip: add key: "name:some band".
+    setup(root) {
+      writeFileSync(path.join(root, 'meta', 'waivers.json'), JSON.stringify([{ rule: 'artist', reason: 'Geoff, round 1' }]));
+    },
+    wantRule: 'waiver-key',
+  },
+  {
+    name: 'a waiver missing reason',
+    // Flip: add reason: "Geoff, round 1".
+    setup(root) {
+      writeFileSync(path.join(root, 'meta', 'waivers.json'), JSON.stringify([{ rule: 'artist', key: 'name:some band' }]));
+    },
+    wantRule: 'waiver-reason',
+  },
+  {
+    name: 'a flyer artwork with a public-domain license but no public_domain object',
+    // Flip: add a valid public_domain object to artwork.
+    setup(root) {
+      writePicked(root, 'flyer-pd-artwork-missing', {
+        format: 'flyer',
+        artwork: {
+          artist: 'The Artist',
+          license: 'LicenseRef-public-domain',
+          credit: 'The Artist',
+          source_url: 'https://example.org/flyer',
+          verified: "Quoted from the archive's catalog.",
+        },
+      });
+    },
+    wantRule: 'artwork-public-domain-required',
+  },
+  {
+    name: 'a flyer artwork missing artist',
+    // Flip: add artist: "The Artist".
+    setup(root) {
+      writePicked(root, 'flyer-no-artist', {
+        format: 'flyer',
+        artwork: {
+          license: 'CC-BY-2.0',
+          credit: 'The Artist',
+          source_url: 'https://example.org/flyer',
+          verified: "Quoted from the artist's own site.",
+        },
+      });
+    },
+    wantRule: 'artwork-artist',
+  },
+  {
+    name: 'a flyer artwork missing source_url',
+    // Flip: add source_url: "https://example.org/flyer".
+    setup(root) {
+      writePicked(root, 'flyer-no-source-url', {
+        format: 'flyer',
+        artwork: {
+          artist: 'The Artist',
+          license: 'CC-BY-2.0',
+          credit: 'The Artist',
+          verified: "Quoted from the artist's own site.",
+        },
+      });
+    },
+    wantRule: 'artwork-source-url',
+  },
+  {
+    name: 'a flyer artwork missing verified',
+    // Flip: add verified: "Quoted...".
+    setup(root) {
+      writePicked(root, 'flyer-no-verified', {
+        format: 'flyer',
+        artwork: {
+          artist: 'The Artist',
+          license: 'CC-BY-2.0',
+          credit: 'The Artist',
+          source_url: 'https://example.org/flyer',
+        },
+      });
+    },
+    wantRule: 'artwork-verified',
+  },
+  {
+    name: 'a flyer artwork with an unknown license',
+    // Flip: license: "CC-BY-2.0".
+    setup(root) {
+      writePicked(root, 'flyer-bad-artwork-license', {
+        format: 'flyer',
+        artwork: {
+          artist: 'The Artist',
+          license: 'not-a-real-license',
+          credit: 'The Artist',
+          source_url: 'https://example.org/flyer',
+          verified: "Quoted from the artist's own site.",
+        },
+      });
+    },
+    wantRule: 'artwork-vocab-license',
+  },
+  {
+    name: "a rejected entry sharing only a picked record's source_sha256",
+    // Flip: give the rejected.json entry a different source_sha256.
+    setup(root) {
+      writePicked(root, 'hash-share-record', { source_id: 'commons:3001', origin_id: undefined });
+      writeFileSync(
+        path.join(root, 'meta', 'rejected.json'),
+        JSON.stringify([
+          {
+            source_id: 'commons:3002',
+            source_sha256: sha256(Buffer.from('source-bytes-for-hash-share-record')),
+            reason: 'passed',
+          },
+        ]),
+      );
+    },
+    wantRule: 'duplicate-key',
+    wantMessage: /hash ".*" already used by/,
+  },
+  {
+    name: 'a picked record missing title',
+    // Flip: add title: "...".
+    setup(root) {
+      writePicked(root, 'no-title', { title: undefined });
+    },
+    wantRule: 'title',
+  },
+  {
+    name: 'a picked record missing photographer',
+    // Flip: add photographer: "...".
+    setup(root) {
+      writePicked(root, 'no-photographer', { photographer: undefined });
+    },
+    wantRule: 'photographer',
+  },
+  {
+    name: 'a picked record missing source_url',
+    // Flip: add source_url: "...".
+    setup(root) {
+      writePicked(root, 'no-source-url', { source_url: undefined });
+    },
+    wantRule: 'source-url',
+  },
+  {
+    name: 'a picked record missing file_url',
+    // Flip: add file_url: "...".
+    setup(root) {
+      writePicked(root, 'no-file-url', { file_url: undefined });
+    },
+    wantRule: 'file-url',
+  },
+  {
+    name: 'a picked record missing retrieved_at',
+    // Flip: add retrieved_at: "...".
+    setup(root) {
+      writePicked(root, 'no-retrieved-at', { retrieved_at: undefined });
+    },
+    wantRule: 'retrieved-at',
+  },
+  {
+    name: 'a picked record missing verified',
+    // Flip: add verified: "...".
+    setup(root) {
+      writePicked(root, 'no-verified', { verified: undefined });
+    },
+    wantRule: 'verified',
+  },
+  {
+    name: 'a picked record with a malformed source_sha256',
+    // Flip: source_sha256: a 64-hex string.
+    setup(root) {
+      writePicked(root, 'bad-source-sha256', { source_sha256: 'not-a-hash' });
+    },
+    wantRule: 'source-sha256',
+  },
+  {
+    name: 'a picked record with an empty subject list',
+    // Flip: subject: ["sound-systems"].
+    setup(root) {
+      writePicked(root, 'empty-subject', { subject: [] });
+    },
+    wantRule: 'subject',
+  },
+  {
+    name: 'a picked record missing year',
+    // Flip: add year: { value: 1978, precision: "circa" }.
+    setup(root) {
+      writePicked(root, 'no-year', { year: undefined });
+    },
+    wantRule: 'year',
+  },
+  {
+    name: 'a landmark missing name',
+    // Flip: add name: "..." to the landmark.
+    setup(root) {
+      writePicked(root, 'landmark-no-name', {
+        place: { city: 'Kingston', country_code: 'JM', landmark: { wikidata_id: 'Q1' } },
+      });
+    },
+    wantRule: 'landmark',
+  },
+  {
+    name: 'a pack.json entry with an unknown scene',
+    // Flip: scene.primary: "reggae".
+    setup(root) {
+      writeFileSync(
+        path.join(root, 'meta', 'pack.json'),
+        JSON.stringify([basePackEntry({ scene: { primary: 'not-a-real-scene' } })]),
+      );
+    },
+    wantRule: 'vocab:scene',
+  },
+  {
+    name: 'a pack.json entry with a shipped (CC BY) license',
+    // Flip: license: "CC-BY-NC-4.0" (a pack class).
+    setup(root) {
+      writeFileSync(path.join(root, 'meta', 'pack.json'), JSON.stringify([basePackEntry({ license: 'CC-BY-2.0' })]));
+    },
+    wantRule: 'pack-license',
+  },
 ];
 
 for (const c of integrityCases) {
@@ -667,6 +968,43 @@ test('integrity: a matching waiver passes the same breach the mismatched key fai
     path.join(root, 'meta', 'waivers.json'),
     JSON.stringify([{ rule: 'artist', key: 'name:test sound system', reason: 'Geoff, round 1' }]),
   );
+  const { status, stdout } = run(['integrity', '--root', root]);
+  assert.equal(status, 0, stdout);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('integrity: two artists with different MBIDs and the same name do not collide', () => {
+  const root = newRoot();
+  writePicked(root, 'record-a', {
+    source_id: 'commons:1',
+    origin_id: undefined,
+    artists: [{ name: 'Bob Marley', mbid: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' }],
+  });
+  writePicked(root, 'record-b', {
+    source_id: 'commons:2',
+    origin_id: undefined,
+    artists: [{ name: 'Bob Marley', mbid: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' }],
+    place: undefined,
+  });
+  const { status, stdout } = run(['integrity', '--root', root]);
+  assert.equal(status, 0, stdout);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('integrity: two landmarks with different Wikidata IDs and the same name do not collide', () => {
+  const root = newRoot();
+  writePicked(root, 'record-a', {
+    source_id: 'commons:1',
+    origin_id: undefined,
+    artists: [],
+    place: { city: 'Kingston', country_code: 'JM', landmark: { name: 'Studio One', wikidata_id: 'Q111' } },
+  });
+  writePicked(root, 'record-b', {
+    source_id: 'commons:2',
+    origin_id: undefined,
+    artists: [],
+    place: { city: 'Kingston', country_code: 'JM', landmark: { name: 'Studio One', wikidata_id: 'Q222' } },
+  });
   const { status, stdout } = run(['integrity', '--root', root]);
   assert.equal(status, 0, stdout);
   rmSync(root, { recursive: true, force: true });
@@ -865,6 +1203,36 @@ test('candidate: a source under the 1000px floor fails', () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+test('candidate: missing source_width/source_height fails', () => {
+  const root = newRoot();
+  const dir = path.join(root, '.candidates', 'a');
+  writeCandidate(dir, 'commons-1', { source_width: undefined, source_height: undefined });
+  const { status, stdout } = run(['candidate', dir]);
+  assert.equal(status, 1, stdout);
+  assert.match(stdout, /: source-dimensions: /);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('candidate: a missing screen fails', () => {
+  const root = newRoot();
+  const dir = path.join(root, '.candidates', 'a');
+  writeCandidate(dir, 'commons-1', { screen: undefined });
+  const { status, stdout } = run(['candidate', dir]);
+  assert.equal(status, 1, stdout);
+  assert.match(stdout, /: screen: /);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('candidate: an unknown people flag fails', () => {
+  const root = newRoot();
+  const dir = path.join(root, '.candidates', 'a');
+  writeCandidate(dir, 'commons-1', { flags: ['not-a-real-flag'] });
+  const { status, stdout } = run(['candidate', dir]);
+  assert.equal(status, 1, stdout);
+  assert.match(stdout, /: vocab:flag: /);
+  rmSync(root, { recursive: true, force: true });
+});
+
 test('candidate: an NC license without pack fails', () => {
   const root = newRoot();
   const dir = path.join(root, '.candidates', 'a');
@@ -1004,24 +1372,39 @@ test('sheet: a duplicate origin_id across two agents is dropped, not written twi
   rmSync(root, { recursive: true, force: true });
 });
 
-test('sheet: two agents using the same filename id for different source_ids are not deduped by the filename alone', () => {
+test('sheet: two agents both writing commons-1.json for the SAME source_id are deduped to one', () => {
   const root = newRoot();
-  // Both agents independently name their file "commons-1.json"; the works
-  // they found are unrelated (different source_id). Only the identity keys
-  // decide duplication, never the filename string coincidence.
   writeCandidate(path.join(root, '.candidates', 'agent-a'), 'commons-1', {
     source_id: 'commons:1',
     screen: { score: 5, note: 'Great.' },
   });
   writeCandidate(path.join(root, '.candidates', 'agent-b'), 'commons-1', {
-    source_id: 'commons:999',
+    source_id: 'commons:1',
     source_sha256: sha256(Buffer.from('agent-b-distinct-source-bytes')),
     screen: { score: 4, note: 'Also good.' },
   });
   const outDir = path.join(root, 'out');
   const { status, stdout } = run(['sheet', '--root', root, '--out', outDir]);
   assert.equal(status, 0, stdout);
-  assert.match(stdout, /wrote 2 candidate/, stdout);
+  assert.match(stdout, /wrote 1 candidate\(s\), dropped 1 duplicate/, stdout);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('sheet: a candidate whose source_id does not match its own filename is skipped, not compiled', () => {
+  const root = newRoot();
+  writeCandidate(path.join(root, '.candidates', 'agent-a'), 'commons-1', {
+    source_id: 'commons:99999', // does not match the filename "commons-1"
+    screen: { score: 5, note: 'Great.' },
+  });
+  writeCandidate(path.join(root, '.candidates', 'agent-a'), 'flickr-2', {
+    source_id: 'flickr:2',
+    screen: { score: 3, note: 'OK.' },
+  });
+  const outDir = path.join(root, 'out');
+  const { status, stdout } = run(['sheet', '--root', root, '--out', outDir]);
+  assert.equal(status, 0, stdout);
+  assert.match(stdout, /commons-1: filename-mismatch: /, stdout);
+  assert.deepEqual(readdirSync(outDir).sort(), ['flickr-2.json']);
   rmSync(root, { recursive: true, force: true });
 });
 

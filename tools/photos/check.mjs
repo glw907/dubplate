@@ -122,26 +122,34 @@ function landmarkIdentities(landmark) {
   return ids;
 }
 
-// Groups `entries` (each an { owner, subject }) into collision sets: an
-// owner collides with another if they share any identity key `identityFn`
-// returns for their subject. Returns a Map from owner to the Set of other
-// owners it collides with.
-function groupCollisions(entries, identityFn) {
-  const byKey = new Map(); // identity key -> [owner, ...]
-  for (const { owner, subject } of entries) {
-    for (const key of identityFn(subject)) {
-      if (!byKey.has(key)) byKey.set(key, []);
-      byKey.get(key).push(owner);
-    }
-  }
+// Two artists are the same artist when both carry an MBID and it matches,
+// or when at least one lacks an MBID and their normalized names match.
+// Two different MBIDs never collide on name alone: an ID, once present on
+// both sides, is the tie-breaker, not a hint (Pool size and balance).
+function artistsMatch(a, b) {
+  if (a.mbid && b.mbid) return a.mbid === b.mbid;
+  return normalizeName(a.name) === normalizeName(b.name);
+}
+
+function landmarksMatch(a, b) {
+  if (a.wikidata_id && b.wikidata_id) return a.wikidata_id === b.wikidata_id;
+  return normalizeName(a.name) === normalizeName(b.name);
+}
+
+// Groups `entries` (each an { owner, subject }) into collision sets by
+// pairwise `matchFn(a, b)`. Returns a Map from owner to the Set of other
+// owners it collides with. O(n^2), fine at the pool's few-hundred scale.
+function groupCollisions(entries, matchFn) {
   const collisions = new Map(); // owner -> Set(other owners)
-  for (const owners of byKey.values()) {
-    if (owners.length < 2) continue;
-    for (const owner of owners) {
-      if (!collisions.has(owner)) collisions.set(owner, new Set());
-      for (const other of owners) {
-        if (other !== owner) collisions.get(owner).add(other);
-      }
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      const a = entries[i];
+      const b = entries[j];
+      if (a.owner === b.owner || !matchFn(a.subject, b.subject)) continue;
+      if (!collisions.has(a.owner)) collisions.set(a.owner, new Set());
+      if (!collisions.has(b.owner)) collisions.set(b.owner, new Set());
+      collisions.get(a.owner).add(b.owner);
+      collisions.get(b.owner).add(a.owner);
     }
   }
   return collisions;
@@ -462,7 +470,7 @@ function runIntegrity(root) {
   // identity key.
   const artistCollisions = groupCollisions(
     artistEntries.map((e) => ({ owner: e.file, subject: e.artist })),
-    artistIdentities,
+    artistsMatch,
   );
   for (const { file, artist } of artistEntries) {
     const others = artistCollisions.get(file);
@@ -472,7 +480,7 @@ function runIntegrity(root) {
   }
   const landmarkCollisions = groupCollisions(
     landmarkEntries.map((e) => ({ owner: e.file, subject: e.landmark })),
-    landmarkIdentities,
+    landmarksMatch,
   );
   for (const { file, landmark } of landmarkEntries) {
     const others = landmarkCollisions.get(file);
@@ -501,6 +509,13 @@ function runIntegrity(root) {
     }
     forbidCandidateOnlyFields(entry, file, errors);
     validateCommonFields(entry, vocab, file, errors, { allowPackLicense: true });
+    // Round close moves a candidate to pack.json only for an NC or
+    // permission-only license (Storage); a shipped-license entry there is
+    // stale or mis-sorted data, not merely permitted.
+    const license = entry.license ? licenseById(entry.license, vocab) : undefined;
+    if (license && license.class !== 'pack') {
+      errors.push({ file, rule: 'pack-license', message: `license ${license.id} is not a pack class` });
+    }
   });
 
   return errors;
@@ -857,6 +872,13 @@ function runSheet(root, outDir) {
         continue; // check.mjs candidate reports parse errors; sheet only compiles what parses.
       }
       if (record.pack) continue; // pack candidates never appear on the sorting page.
+      if (record.source_id && record.source_id.replace(/:/g, '-') !== id) {
+        // The same filename-vs-source_id check candidate mode runs
+        // (filename-mismatch); sheet skips rather than compiles a
+        // mislabeled record onto the sorting page.
+        dropped.push({ id, agent, reason: 'filename-mismatch' });
+        continue;
+      }
 
       let duplicate = false;
       for (const [kind, value] of identityPairs(record)) {
@@ -900,8 +922,8 @@ function runSheet(root, outDir) {
     for (const artist of record.artists || []) artistEntries.push({ owner: id, subject: artist });
     if (record.place && record.place.landmark) landmarkEntries.push({ owner: id, subject: record.place.landmark });
   }
-  const artistCollisions = groupCollisions(artistEntries, artistIdentities);
-  const landmarkCollisions = groupCollisions(landmarkEntries, landmarkIdentities);
+  const artistCollisions = groupCollisions(artistEntries, artistsMatch);
+  const landmarkCollisions = groupCollisions(landmarkEntries, landmarksMatch);
 
   const docs = kept.map(({ id, record, agent }) => {
     const artistHit = artistCollisions.get(id);
@@ -978,8 +1000,9 @@ function main(argv) {
     } else if (mode === 'sheet') {
       if (!flags.out) throw new UnreadableInputError('sheet requires --out');
       const { docs, dropped } = runSheet(flags.root || DEFAULT_ROOT, flags.out);
-      process.stdout.write(`sheet: wrote ${docs.length} candidate(s), dropped ${dropped.length} duplicate(s)\n`);
-      for (const d of dropped) process.stdout.write(`${d.id}: duplicate: dropped in favor of an earlier agent's copy\n`);
+      const duplicateCount = dropped.filter((d) => d.reason === 'duplicate').length;
+      process.stdout.write(`sheet: wrote ${docs.length} candidate(s), dropped ${duplicateCount} duplicate(s)\n`);
+      for (const d of dropped) process.stdout.write(`${d.id}: ${d.reason}: ${d.agent}\n`);
       process.exit(0);
     } else {
       process.stderr.write(`usage: check.mjs <integrity|balance|candidate|sheet> [options]\n`);
