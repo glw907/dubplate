@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
 )
@@ -221,8 +222,8 @@ func TestPrune_FirstRun(t *testing.T) {
 
 	_, st := runBackup(t, h, remote, lib)
 	wantState(t, st, ops.JobSucceeded, "")
-	if st.Phase != "backup finished" {
-		t.Errorf("progress %q, want %q for a clean prune", st.Phase, "backup finished")
+	if st.Phase != backup.FinishedMessage {
+		t.Errorf("progress %q, want %q for a clean prune", st.Phase, backup.FinishedMessage)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
@@ -187,16 +188,15 @@ func backupFactsRows(now time.Time, report store.Report, checked bool) []backupF
 // lastSuccessStatus renders the backup kind's newest succeeded record
 // out of last: "never" when it has none, otherwise its age rounded to
 // minutes, with its final progress text appended when that text names
-// a skipped or failed prune (anything but the clean "backup finished"
-// [backup.Job.Run] returns for a run whose prune reported nothing of
-// its own).
+// a skipped or failed prune (anything but [backup.FinishedMessage],
+// the clean case).
 func lastSuccessStatus(now time.Time, last map[string]store.JobSuccess) string {
 	success, ok := last[ops.KindBackup]
 	if !ok {
 		return "never"
 	}
 	status := formatAge(now.Sub(success.Finished)) + " ago"
-	if success.Progress != "" && success.Progress != "backup finished" {
+	if success.Progress != "" && success.Progress != backup.FinishedMessage {
 		status += ": " + success.Progress
 	}
 	return status

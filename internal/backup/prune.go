@@ -86,7 +86,7 @@ func (p prune) run(ctx context.Context, logger *slog.Logger) string {
 func (p prune) checkSafety(entries []remoteEntry) (reason string, ok bool) {
 	found := false
 	for _, e := range entries {
-		stamp, isStamp := parseSnapshotName(e)
+		stamp, isStamp := e.snapshotStamp()
 		if !isStamp {
 			continue
 		}
@@ -110,7 +110,7 @@ func (p prune) checkSafety(entries []remoteEntry) (reason string, ok bool) {
 func (p prune) pruneSnapshots(ctx context.Context, entries []remoteEntry) error {
 	var others []string
 	for _, e := range entries {
-		stamp, isStamp := parseSnapshotName(e)
+		stamp, isStamp := e.snapshotStamp()
 		if !isStamp || stamp == p.stamp {
 			continue
 		}
@@ -197,19 +197,19 @@ func (p prune) pruneLocal() error {
 }
 
 // isLocalCopyName reports whether name is a pre-migration copy's
-// (pre-migrate-v<N>.db) or a pre-restore copy's
-// (pre-restore-<stamp>.db).
+// (store.PreMigratePrefix<N>.db) or a pre-restore copy's
+// (store.PreRestorePrefix<stamp>.db).
 func isLocalCopyName(name string) bool {
-	if rest, ok := strings.CutPrefix(name, "pre-migrate-v"); ok {
-		rest, ok = strings.CutSuffix(rest, ".db")
+	if rest, ok := strings.CutPrefix(name, store.PreMigratePrefix); ok {
+		rest, ok = strings.CutSuffix(rest, store.PreMigrateSuffix)
 		if !ok {
 			return false
 		}
 		n, err := strconv.Atoi(rest)
 		return err == nil && n >= 1
 	}
-	if rest, ok := strings.CutPrefix(name, "pre-restore-"); ok {
-		rest, ok = strings.CutSuffix(rest, ".db")
+	if rest, ok := strings.CutPrefix(name, store.PreRestorePrefix); ok {
+		rest, ok = strings.CutSuffix(rest, store.PreMigrateSuffix)
 		if !ok {
 			return false
 		}
@@ -225,10 +225,10 @@ type remoteEntry struct {
 	IsDir bool   `json:"IsDir"`
 }
 
-// parseSnapshotName reports the stamp e names, when e is a file named
+// snapshotStamp reports the stamp e names, when e is a file named
 // <stamp>.db with a stamp [store.ParseStamp] accepts. A directory, or
 // a name outside that shape, reports false.
-func parseSnapshotName(e remoteEntry) (string, bool) {
+func (e remoteEntry) snapshotStamp() (string, bool) {
 	if e.IsDir {
 		return "", false
 	}

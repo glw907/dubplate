@@ -18,17 +18,17 @@ import (
 	"github.com/glw907/dubplate/internal/atomicfile"
 )
 
-// preMigratePrefix and preMigrateSuffix frame a pre-migration copy's
+// PreMigratePrefix and PreMigrateSuffix frame a pre-migration copy's
 // name around its version.
 const (
-	preMigratePrefix = "pre-migrate-v"
-	preMigrateSuffix = ".db"
+	PreMigratePrefix = "pre-migrate-v"
+	PreMigrateSuffix = ".db"
 )
 
 // preMigrateName is the name of the copy taken before migrating a
 // store at version v.
 func preMigrateName(v int) string {
-	return preMigratePrefix + strconv.Itoa(v) + preMigrateSuffix
+	return PreMigratePrefix + strconv.Itoa(v) + PreMigrateSuffix
 }
 
 // takeSnapshot writes a verified copy of the store in l, at version
@@ -218,11 +218,11 @@ func pruneSnapshots(dir string, keep int) error {
 // parsePreMigrateName reports the version name carries when name is
 // exactly what preMigrateName writes for it.
 func parsePreMigrateName(name string) (int, bool) {
-	digits, ok := strings.CutPrefix(name, preMigratePrefix)
+	digits, ok := strings.CutPrefix(name, PreMigratePrefix)
 	if !ok {
 		return 0, false
 	}
-	digits, ok = strings.CutSuffix(digits, preMigrateSuffix)
+	digits, ok = strings.CutSuffix(digits, PreMigrateSuffix)
 	if !ok {
 		return 0, false
 	}
@@ -261,7 +261,7 @@ func (h *Handle) BackupCopy(ctx context.Context, logger *slog.Logger, instance s
 	if !validInstance(instance) {
 		return "", fmt.Errorf("backup copy: instance %q is not 32 lowercase hex characters", instance)
 	}
-	staged := filepath.Join(h.leaf.stagingDir, backupPrefix+instance+preMigrateSuffix)
+	staged := filepath.Join(h.leaf.stagingDir, backupPrefix+instance+PreMigrateSuffix)
 	if err := h.backupCopy(ctx, logger, staged); err != nil {
 		return "", fmt.Errorf("backup copy %s: %w", staged, err)
 	}
@@ -340,7 +340,7 @@ func (h *Handle) RemoveBackupStages() error {
 	}
 	for _, e := range entries {
 		name := e.Name()
-		if !strings.HasPrefix(name, backupPrefix) || !strings.HasSuffix(name, preMigrateSuffix) {
+		if !strings.HasPrefix(name, backupPrefix) || !strings.HasSuffix(name, PreMigrateSuffix) {
 			continue
 		}
 		if err := os.Remove(filepath.Join(h.leaf.stagingDir, name)); err != nil {

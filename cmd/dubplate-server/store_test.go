@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
@@ -320,7 +321,7 @@ func TestBackupFactsRows(t *testing.T) {
 			now:  testNow,
 			report: store.Report{State: store.StateCurrent, Facts: &store.Facts{
 				LastSuccess: map[string]store.JobSuccess{
-					ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: "backup finished"},
+					ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: backup.FinishedMessage},
 				},
 				WALSize:    4096,
 				FreeKnown:  false,
