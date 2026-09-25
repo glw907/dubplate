@@ -155,8 +155,11 @@ Node and npm required and named on failure, a stale or drifted
 `svelte-check` under strict TypeScript and the static web gates (no
 server-only file, no hardcoded color, no external origin, theme
 variable completeness, theme contrast, and the built bundle's stamped
-theme values). The rendered (browser) gates join this leg at rung
-5c-iii. Rung 6b-i's merge adds an `rclone`-dependent leg: `internal/backup`'s
+theme values). Since rung 5c-iii Task 3a, the leg also runs the rendered
+(browser) gates: a Playwright 1.63.0 script under a `rendered`-tagged Go
+test, two builds compared byte for byte, and first paint per theme, so
+every full gate launches Chromium and runs on the heavy lane (about 106s,
+about 560 MiB peak at 3a). Rung 6b-i's merge adds an `rclone`-dependent leg: `internal/backup`'s
 tests exercise the real `rclone` binary (`internal/backup`'s share of
 `go test ./...` runs about 8.3s of it). A check either
 gates or does not exist; never guard one with `command -v || skip`.
