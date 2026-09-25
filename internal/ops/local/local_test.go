@@ -334,6 +334,13 @@ func TestSeamBoundary_ContextCanceled(t *testing.T) {
 	if !errors.Is(err, ops.ErrCanceled) {
 		t.Fatalf("JobStatus() with an already-canceled context = %v, want it to match ops.ErrCanceled", err)
 	}
+	opsErr, ok := errors.AsType[*ops.Error](err)
+	if !ok {
+		t.Fatalf("JobStatus() with an already-canceled context = %v, want an *ops.Error in its chain", err)
+	}
+	if opsErr.Reason != "" {
+		t.Fatalf("JobStatus() with an already-canceled context has Reason %q, want it empty: the aborted store call's text must not reach the wire body", opsErr.Reason)
+	}
 }
 
 // TestSeamBoundary_ContextAliveClassifiesItsOwnError pins the seam

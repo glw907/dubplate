@@ -266,15 +266,20 @@ func (r *Runner) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRe
 // wrapCanceled reports err as an error matching [ops.ErrCanceled] when
 // ctx's own error is context.Canceled at a seam method's return, so a
 // caller whose context died sees the seam's canceled sentinel instead
-// of whatever error the aborted store call produced. It leaves err
-// unchanged when ctx is not canceled, including when ctx.Err() is
-// context.DeadlineExceeded: the seam boundary wraps only a caller's
-// own cancellation, never its deadline running out.
+// of whatever error the aborted store call produced. The returned
+// error's [*ops.Error] carries an empty Reason: the aborted call's own
+// text may name a path, and the wire projection never writes it to the
+// answer body. That text stays in the returned error's chain (formatted
+// with %v, not wrapped as a second sentinel) so a log line can still
+// report it. wrapCanceled leaves err unchanged when ctx is not
+// canceled, including when ctx.Err() is context.DeadlineExceeded: the
+// seam boundary wraps only a caller's own cancellation, never its
+// deadline running out.
 func wrapCanceled(ctx context.Context, err error) error {
 	if err == nil || ctx.Err() != context.Canceled {
 		return err
 	}
-	return ops.NewCanceledError(err.Error())
+	return fmt.Errorf("%w: %v", ops.NewCanceledError(""), err)
 }
 
 // CancelOwn cancels the context of the job h names when this runner
