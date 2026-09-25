@@ -1,6 +1,6 @@
 # Rung 6, Pass 6b-i (The Ops Seam and Backup) Implementation Plan
 
-Status: **revision 2.1, 2026-09-24; folded twice, awaiting approval.**
+Status: **revision 2.2, 2026-09-24; prose folded, awaiting owner approval.**
 Revision 1 (`b36871c`) took three lens reviews (contract C1 to C29,
 mechanics M1 to M14 and F1, risk R1 to R16), folded into revision 2
 (`5782d15`). Revision 2.1 folds the fresh-context verification read (V1 to
@@ -9,7 +9,10 @@ and the store findings of the 6a architecture read that shape a signature
 6b-i exports or binds to (`docs/superpowers/research/2026-09-24-rung-6a-architecture-reads.md`,
 items 1 to 4). The fold record
 (`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md`)
-carries one disposition per finding in both folds. Four rulings for Geoff
+carries one disposition per finding in every fold. Revision 2.2 folds the
+prose review (P1 to P20,
+`docs/superpowers/research/2026-09-24-rung-6b-i-plan-prose-review.md`),
+which re-based the ceiling on 6a's recorded actuals. Four rulings for Geoff
 are open ("Rulings for Geoff").
 
 Sources: the ratified rung 6 spec
@@ -75,37 +78,37 @@ any kind.** A task that believes it needs any of these stops and reports.
 ## Rulings for Geoff
 
 Four yes-or-no questions. The spec's fourteen rulings and 6a's four stand
-and are not reopened, with one qualification: approving this plan also
-approves the spec deviations listed below, and two of them, R-6bi15 and
-R-6bi16, qualify rulings 10 and 7 in ways an adopter can see (snapshots
-accumulate past 14 while the clock is behind, and a backup reference must
-be removed by hand to start a fresh store).
+and are not reopened. Approving this plan also approves the spec deviations
+listed below. Two of them qualify owner rulings in ways an adopter can see:
+R-6bi15 qualifies ruling 10, since snapshots accumulate past 14 while the
+clock is behind, and R-6bi16 qualifies ruling 7, since a backup reference
+must be removed by hand to start a fresh store.
 
-**1. Does 6b-i run under an 8.6M execution ceiling, with planning recorded
-separately?** Recommendation: yes. Reason: the folds split Task 1 in two,
-added the store-surface Task 1S, and grew Tasks 3 to 5, which brings the
-projection to 6.45M ("Token ceiling"). The spec's 5.9M row is a total that
-includes 0.95M of planning and a 0.6M close, while 6a's projected close side
-is about 2.1M. What each answer builds: yes sets the flag at 6.88M, 0.43M,
-about one task, above the projection. No holds 5.9M as a total, which sits below the
-projection, so the flag fires on plan and the conductor asks mid-pass.
+**1. Does 6b-i run under a 7.4M execution ceiling?** Recommendation: yes.
+Reason: 6a's recorded actuals ("Both budgets" in `docs/HISTORY.md`) price
+this plan at a 5.49M projection ("Token ceiling"), and 7.4M puts the 80%
+token flag at 5.92M, about one task above it. Planning is recorded against
+the rung, outside the ceiling, as 6a's Ruling 1 set. What each answer
+builds: yes sets the 80% flag at 5.92M. No holds the spec's 5.9M as a total
+that includes 0.95M of planning, so the execution budget is 4.95M, its 80%
+flag sits at 4.72M, below the projection, and the conductor asks mid-pass.
 
 **2. Does `doctor` ask rclone itself whether the backup remote supports
-server-side move or copy, running `rclone backend features
---low-level-retries 1` under a 10 s bound?** Recommendation: yes. Reason:
-rclone's own probe answers for the installed binary and every backend,
-crypt included, while a copied feature table goes stale and cannot see
-through a crypt remote (R-6bi9). A probe measured a B2 remote with bad
-credentials failing in 2.1 s with `401 bad_auth_token` under
-`--low-level-retries 1`, against 13.7 s at the default of 10, so the flag
-turns the probe's most useful catch into a named failure rather than a
-timeout. What each answer builds: yes runs one bounded subprocess per
-`doctor` run when the flag is on, which may contact the provider for some
-backends; a timeout reads "not checked" and never fails `doctor`. No builds
-a static table keyed on `RCLONE_CONFIG_<NAME>_TYPE` from rclone's published
-"Optional Features" table, with a crypt remote resolved to the type it
-wraps; it makes no network call and reports "unknown backend" for any type
-missing from the table.
+server-side move or copy, running `rclone backend features <remote>:
+--low-level-retries 1` with a 10-second timeout?** Recommendation: yes.
+Reason: rclone's own probe answers for the installed binary and every
+backend, crypt included, while a copied feature table goes stale and cannot
+see through a crypt remote (R-6bi9). A probe measured a B2 remote with bad
+credentials failing in 2.1 seconds with `401 bad_auth_token` at a retry
+limit of 1, against 13.7 seconds at rclone's default retry limit of 10, so
+the retry limit turns the probe's most useful catch into a named failure
+rather than a timeout. What each answer builds: yes runs one subprocess per
+`doctor` run when `DUBPLATE_BACKUP_ENABLED` is on, which may contact the
+provider for some backends; a timeout reads "not checked" and never fails
+`doctor`. No builds a static table keyed on `RCLONE_CONFIG_<NAME>_TYPE`
+from rclone's published "Optional Features" table, with a crypt remote
+resolved to the type it wraps; it makes no network call and reports
+"unknown backend" for any type missing from the table.
 
 **3. Does the `backup` verb exit with the codes below?** 0 succeeded, 1
 failed or refused before start, 69 unavailable, 75 conflict, and 130
@@ -119,30 +122,33 @@ SIGTERM, SIGHUP, or another process's cancel operation alike, since the job
 record names who canceled and one canceled code keeps the timer simple; the
 help text says "canceled by any means". What each answer builds: yes fixes
 these in the verb's help and in main's exit path. No uses 2, 3, and 4 for
-unavailable, conflict, and canceled, which the shell and cobra do not
-reserve but which carry no convention an operator recognizes.
+unavailable, conflict, and canceled. They carry no convention an operator
+recognizes, and 2 collides with the usage-error code that bash builtins and
+rclone ("2 - Syntax or usage error") already use.
 
 **4. Does Task 1A export serve mode's open now, ahead of 6d's `serve`, so
 the tests of `internal/ops/local`, `internal/backup`, and
 `cmd/dubplate-server` can build a current store?** Recommendation: yes.
-Reason: every criterion from Task 3 on names a current store as its
-fixture, and the store's only export today is `Inspect`. Write mode refuses
-an absent store, and a package outside the store cannot reach the
-unexported create or migration runner, so a test-support package such as
-`storetest` would need this same export to work. Serve mode's open is the
-surface 6d exports anyway; exporting it one pass early adds no new API,
-and its only 6b-i callers are tests. What each answer builds: yes exports
-the open and its options type with a nil-logger refusal (6a's carried
-item), names it as exit gate 11's one test-only export, and leaves the
-settle-loop bound with 6d. No keeps the open unexported and has the store's
-own test write a current leaf template under
-`internal/engine/store/testdata/leaf/`, which a store test fails on when
-the template drifts from head, and which each consuming test copies into a
-temporary directory and chmods to the leaf's modes, since git keeps none of
-them. On no, the conductor amends Task 1A's Files before dispatch to add
-the template, its regeneration test, and the copy-and-chmod helper, and
-names the helper's home, which the three consuming packages' tests
-import.
+Reason: Tasks 3 to 5, and Task 6's signal and exit-code rows, name a
+current store as their fixture, and the store's only exported function
+today is `Inspect`. Write mode refuses an absent store, and a package
+outside the store cannot reach the unexported create or migration runner,
+so a test-support package would need this same export to work. Serve
+mode's open is the surface 6d exports anyway; exporting it one pass early
+adds no new API, and its only 6b-i callers are tests. What each answer
+builds: yes exports the open and its options type with a nil-logger
+refusal (6a's carried item), names it as exit gate 11's test-only
+exception, and leaves the settle-loop bound with 6d. No keeps the open
+unexported. A new package, `internal/engine/store/storetest`, embeds a
+current leaf template (`storetest/leaf/`) and holds the one helper that
+copies it into a test's temporary directory and chmods it to the leaf's
+modes, since git keeps none of them. A store test regenerates the template
+through the unexported create and fails when the checked-in copy drifts
+from head. The three
+consuming packages' tests import it, and exit gate 11 names `storetest` as
+its test-only exception in place of serve's open. On no, the conductor
+adds the template, its regeneration test, and `storetest` to Task 1A's
+Files before dispatch.
 
 ### Spec deviations that take effect on approval
 
@@ -152,16 +158,16 @@ the close drafts the erratum text (Task 8).
 - R-6bi2: the lease primitive lives in `internal/engine/store`, and
   recovery policy lives in `ops/local`. The spec's package table names
   leases in both rows (`:200` and `:202`).
-- R-6bi5: 6b-i declares five of the seven sentinels and the local actor
-  kind only. `forbidden`, `internal`, and the network actor built from
+- R-6bi4 and R-6bi5: 6b-i declares five of the seven sentinels and the
+  local actor kind only. `forbidden`, `internal`, and the network actor built from
   `identity.Identity` land in 6b-ii with the projection that first raises
   or builds them, so `internal/ops` does not import `internal/identity` at
   6b-i.
-- R-6bi6: the backup's store copy is staged, verified, and sent from
+- R-6bi6 (the copy): the backup's store copy is staged, verified, and sent from
   `staging/`, and removed after the send. It is never renamed into
   `snapshots/`. The spec's "renames it, fsyncs the directory by hand"
   (`:624-626`) holds for the pre-migration copy only.
-- R-6bi6: a backup start, holding the backup kind lease, removes every
+- R-6bi6 (staging): a backup start, holding the backup kind lease, removes every
   `staging/backup-*.db`. Erratum E7 says write mode never removes staging;
   the kind lease proves no backup, orphaned transfer included, is live, so
   this is the one write-mode removal, and it touches no other name.
@@ -240,54 +246,56 @@ what the box runs.
 
 ---
 
-## Token ceiling: 8.6M execution for 6b-i (Ruling 1)
+## Token ceiling: 7.4M execution for 6b-i (Ruling 1)
 
-The basis is 6a's recorded spend (`docs/STATUS.md`, "Next action" 1, and
-the 6a HISTORY draft's "Both budgets"): about 1.66M for Tasks 0 to 3 and
-about 1.35M for Tasks 4 to 7, zero fix rounds in segment B, and a
-re-derived total of about 5.1M. So Tasks 0 to 7 cost about 3.0M, and the
-close side (the tidy fix, the simplifier round, segment C, the merge
-ritual, and two architecture reads) is projected at about 2.1M. Planning is
-recorded against the rung and outside this ceiling, as 6a's Ruling 1 set.
+The basis is 6a's recorded actuals (`docs/HISTORY.md`, the 6a entry's "Both
+budgets"): about 4.0M in total. Task 0 cost about 0.11M. Segments A and B
+(Tasks 1 to 7, two fix rounds included) cost about 1.55M and 1.35M, so
+about 0.41M a task. The close side cost about 0.92M: the tidy fix 0.13M,
+the simplifier round with its review and comment fix 0.35M, Task 8 0.13M,
+the merge ritual 0.05M, the merge re-review 0.06M, and two architecture
+reads 0.2M. Planning is recorded against the rung and outside this
+ceiling, as 6a's Ruling 1 set.
 
 **The arithmetic.**
 
-1. Task 0 at `opus` in fresh context: **0.20M**.
-2. Eight implementation tasks (1A, 1B, and 2 to 7) at 6a's measured 0.40M
-   ((3.0M − 0.2M) / 7): **3.20M**. Revision 1 carried seven; the first fold
-   split Task 1 because it passed four deliverables.
-3. Task 1S, the store-surface reshape the architecture read routes here
-   (second fold): a `sonnet` task of mechanical signature changes inside
-   one package, with its existing tests to lean on, priced below the
-   measured average at **0.25M**.
+1. Task 0 at `opus` in fresh context, at 6a's actual: **0.11M**.
+2. Eight implementation tasks (1A, 1B, and 2 to 7) at 6a's measured 0.41M
+   (2.90M / 7): **3.31M**. Revision 1 carried seven; the first fold split
+   Task 1 because it passed four deliverables.
+3. Task 1S, the store-surface reshape the architecture read routes here: a
+   `sonnet` task of mechanical signature changes inside one package, with
+   its existing tests to lean on, priced below the measured average at
+   **0.25M**.
 4. Two costs 6a did not carry: the first subprocess tests against a real
    `rclone`, with a stand-in in two signal modes, and the re-executed test
    binary that makes a second process real (Tasks 3, 4, and 6). Add
    **0.35M**.
-5. One fix round, since 6b-i's cross-process paths are new: **0.25M**.
-6. The close side at 6a's projection, plus three more architecture reads
-   (`internal/ops`, `internal/ops/local`, `internal/backup`, beside
-   `internal/engine/store` and `cmd/dubplate-server`): **2.20M**.
-7. **The projection is 6.45M.**
+5. One fix round beyond 6a's rate, since 6b-i's cross-process paths are
+   new: **0.25M**.
+6. The close side at 6a's actual 0.92M, plus three more architecture reads
+   at 0.1M each (`internal/ops`, `internal/ops/local`, `internal/backup`,
+   beside `internal/engine/store` and `cmd/dubplate-server`): **1.22M**.
+7. **The projection is 5.49M.**
 
-A ceiling of **8.6M** puts the 80% flag at **6.88M**, 0.43M above the
-projection, so the flag marks an overrun rather than firing on plan. The
-pre-named split in Task 3 adds about 0.40M and brings the projection to
-6.85M, just under the flag; one fix round beyond the one priced crosses
-it, and the conductor then asks at that boundary under the 80% rule. The
-spec's row reads 5.9M: 0.95M planning, 0.2M Task 0, nine tasks at 0.46M,
-and a 0.6M close. Re-derive at the segment A boundary from Tasks 1S to 2's
-reports, and again at segment B's from Task 3's, where the pre-named split
-shows.
+In one line: 5.49M projection + 0.41M (one task) = 5.90M flag target;
+5.90M / 0.8 = 7.375M, rounded to a **7.4M** ceiling with its 80% flag at
+**5.92M**.
+
+The pre-named split in Task 3 adds about 0.41M and brings the projection to
+5.90M, at the flag, so the conductor asks at that boundary under the 80%
+rule. The spec's row reads 5.9M: 0.95M planning, 0.2M Task 0, nine tasks at
+0.46M, and a 0.6M close. Re-derive at the segment A boundary from Tasks 1S
+to 2's reports, and again at segment B's from Task 3's, where the pre-named
+split shows.
 
 Checkpoint: STATUS at every segment boundary (after Tasks 2, 5, and 7) and
 at the close. Every task reports its spend, its mutation outcomes, and
 its measured gate wall time.
 
-Deliverable count: thirty-three across Tasks 1S to 8, plus Task 0's
-report. Tasks 3, 4, 5, 6, and 8 carry four each (20); Tasks 1A, 1B, and 7
-carry three each (9); Tasks 1S and 2 carry two each (4). No task passes
-four.
+Deliverable count: thirty-four across Tasks 1S to 8, plus Task 0's report.
+Tasks 1B, 3, 4, 5, 6, and 8 carry four each (24); Tasks 1A and 7 carry
+three each (6); Tasks 1S and 2 carry two each (4). No task passes four.
 
 ---
 
@@ -338,8 +346,9 @@ four.
 - **Nothing is exported ahead of a cross-package caller.** Within the pass,
   an export whose production caller lands in a later task is permitted, and
   the exported-unused leg warns meanwhile; at the close every export has a
-  production caller (exit gate 11), with two named exceptions: serve mode's
-  open, whose 6b-i callers are tests (Ruling 4), and the catalog operation,
+  production caller (exit gate 11), with two named exceptions: the
+  test-only store export Ruling 4 selects (serve mode's open on yes,
+  `internal/engine/store/storetest` on no), and the catalog operation,
   which spec criterion 8 requires at 6b-i and whose first production caller
   is 6b-ii's projection. Surfaces with no 6b-i criterion and no 6b-i caller
   (`forbidden`, `internal`, and the network actor) wait for 6b-ii.
@@ -430,7 +439,7 @@ pass.
 The spec's package table names leases in the store's row and in
 `ops/local`'s. The store already owns every `flock` in the leaf
 (`lock.go:84`, `tryLock`), the leaf's paths (`leaf.go:30-38`), and the
-holder list from `/proc/locks`. So the store exports one lease primitive:
+holder list from `/proc/locks`. The store therefore exports one lease primitive:
 take an instance lease under `leases/`, take a kind lease
 (`leases/kind-<kind>`), and try an instance's lease. `ops/local`
 owns what a lease means for a job record: the recovery table and the
@@ -465,7 +474,7 @@ Five rules close the lease's life cycle.
 - **Holder pids are "acquired by", never "held by".** `/proc/locks`
   records the pid that took a `flock`, which after the parent's death is a
   dead pid while an inheriting child holds the lock (probed, mechanics M8),
-  and on btrfs the list is empty (`lock.go`, `busyError`'s doc). So no
+  and on btrfs the list is empty (`lock.go`, `busyError`'s doc). No
   answer depends on a pid, and no test asserts one.
 
 `flock(2)` gives the property every in-process test relies on: "If a
@@ -473,7 +482,7 @@ process uses open(2) (or similar) to obtain more than one file descriptor
 for the same file, these file descriptors are treated independently by
 flock(). An attempt to lock the file using one of these file descriptors
 may be denied by a lock that the calling process has already placed via
-another file descriptor." So a second `ops/local` in one test process sees
+another file descriptor." A second `ops/local` in one test process thus sees
 the first's lease as held, and recovery in the owning process never reads
 its own lease as free.
 
@@ -496,7 +505,8 @@ Tasks 1A and 1B export, each with its first caller in this pass:
 - the backup copy (R-6bi6) and the backup reference (R-6bi16) (caller:
   `internal/backup`);
 - on Ruling 4's yes, serve mode's open and its options type (callers: the
-  new packages' tests; first production caller 6d's `serve`).
+  new packages' tests; first production caller 6d's `serve`); on no,
+  `internal/engine/store/storetest`'s template helper in its place.
 
 The migration runner and the pre-migration snapshot stay unexported until
 6d. A read a write decides on runs inside the write callback, never on the
@@ -574,7 +584,7 @@ of three files, one source file was removed and `rclone sync src
 remote/library --backup-dir remote/archive/s1 --max-delete 0` ran: it
 exited 7, logged `Failed to sync with 2 errors: last error was: failed to
 delete 1 files`, archived nothing, and left `remote/library` holding all
-three files. So a move into the backup directory counts as a delete, and
+three files. A move into the backup directory therefore counts as a delete, and
 the fallback abort is not built. The same probe measured a modified file
 being archived under `--max-delete 0` (`Server Side Moves: 1`), so the
 limit bounds deletions only, never replacements. Task 4 pins both facts
@@ -654,7 +664,7 @@ the five codes and says 130 means canceled by any means.
 `executeWithSignalContext` cancels the verb's context on SIGINT or SIGTERM
 (`main.go`, quoting `signal.NotifyContext`: the context "is marked done ...
 when one of the listed signals arrives"). The job must not run under that
-context, or a signal would kill rclone and bypass the record. So the verb
+context, or a signal would kill rclone and bypass the record. The verb
 starts the job on a context derived from `context.WithoutCancel`, and on
 the signal it calls the cancel operation with a fresh deadline context.
 The verb also treats SIGHUP as a cancel, because a closed terminal sends it
@@ -695,7 +705,7 @@ command's usual exit status." The mechanics review measured it: a child
 SIGINT killed returns `signal: interrupt` with `ExitCode()` -1, a child
 that exits 3 on SIGINT returns `exit status 3`, and a real rclone
 interrupted mid-sync returns `exit status 130` within 20 ms, leaving no
-partial file. So the outcome is decided in this order, and every states
+partial file. The outcome is decided in this order, and every states
 table below follows it:
 
 1. The child exits nonzero, or dies by any signal, after the job's context
@@ -717,33 +727,37 @@ its record, never failed because rclone died first. `Pdeathsig` is declined:
 its doc says "the signal is sent on thread termination, which may happen
 before process termination" (go.dev/issue/27505).
 
-An orphaned child is still possible when the parent is killed outright. So
-the child inherits the kind lease's and the store lock's descriptors
-through `ExtraFiles` ("additional open files to be inherited by the new
-process ... If non-nil, entry i becomes file descriptor 3+i"). Go opens
-every file close-on-exec (`os/file_unix.go`: `open(name,
-flag|syscall.O_CLOEXEC, ...)`), so nothing but `ExtraFiles` reaches the
-child. The store hands out duplicates made with `fcntl(F_DUPFD_CLOEXEC)`,
-never plain `dup(2)`: a fold probe on go1.27.1 read `FD_CLOEXEC` clear on a
-`syscall.Dup` result and set on an `F_DUPFD_CLOEXEC` one, and a plain
-duplicate would leak both locks into any concurrent `exec` once 6d runs
-backup inside `serve`. `os/exec` clears the flag in the child for each
-`ExtraFiles` slot (`syscall/exec_linux.go`, pass 2: "The new fd is created
-NOT close-on-exec, which is exactly what we want," and an `F_SETFD` clear
-when the descriptor already sits at its slot). The transport owns the
-duplicates and closes them after `Wait` (R-6bi3), so no caller can close the store's own
-descriptor and drop its lock early. `flock(2)`: "Locks created by flock()
-are associated with an open file description ... the lock is released
-either by an explicit LOCK_UN operation on any of these duplicate file
-descriptors, or when all such file descriptors have been closed." An orphan
-therefore keeps a second backup and a restore out until it exits (probed:
-a lock inherited by a child survived the parent's SIGKILL). The orphan's
-window is bounded only loosely: rclone is a Go program, and `os/signal` says
+**Why the child inherits the locks.** An orphaned child is still possible
+when the parent is killed outright. The child therefore inherits the kind
+lease's and the store lock's descriptors through `ExtraFiles` ("additional
+open files to be inherited by the new process ... If non-nil, entry i
+becomes file descriptor 3+i"). `flock(2)`: "Locks created by flock() are
+associated with an open file description ... the lock is released either by
+an explicit LOCK_UN operation on any of these duplicate file descriptors, or
+when all such file descriptors have been closed." An orphan keeps a second
+backup and a restore out until it exits (probed: a lock inherited by a
+child survived the parent's SIGKILL).
+
+**How the descriptors are duplicated.** Go opens every file close-on-exec
+(`os/file_unix.go`: `open(name, flag|syscall.O_CLOEXEC, ...)`), so nothing
+but `ExtraFiles` reaches the child. The store hands out duplicates made
+with `fcntl(F_DUPFD_CLOEXEC)`, never plain `dup(2)`. A fold probe on
+go1.27.1 read `FD_CLOEXEC` clear on a `syscall.Dup` result and set on an
+`F_DUPFD_CLOEXEC` one; a plain duplicate would leak both locks into any
+concurrent `exec` once 6d runs backup inside `serve`. `os/exec` clears the
+flag in the child for each `ExtraFiles` slot (`syscall/exec_linux.go`,
+pass 2: "The new fd is created NOT close-on-exec, which is exactly what we
+want," with an `F_SETFD` clear when the descriptor already sits at its
+slot). The transport owns the duplicates and closes them after `Wait`
+(R-6bi3), so no caller can close the store's own descriptor and drop its
+lock early.
+
+**How long an orphan lives.** rclone is a Go program, and `os/signal` says
 "A write to a broken pipe on file descriptors 1 or 2 ... will cause the
-program to exit with a SIGPIPE signal," so an orphan whose stderr pipes to
-the dead verb exits at its next stderr write, which at rclone's default
-log level may be the sync's end; a partway sync resumes at the next run.
-So the orphan window can last a whole sync, and the inherited locks are
+program to exit with a SIGPIPE signal." An orphan whose stderr pipes to the
+dead verb exits at its next stderr write, which at rclone's default log
+level may be the sync's end; a partway sync resumes at the next run. The
+orphan window can therefore last a whole sync, and the inherited locks are
 what keep it safe. For rung 16's unit, the close records a runbook line:
 `KillMode=mixed` sends SIGTERM "to the main process while the subsequent
 SIGKILL signal ... is sent to all remaining processes"
@@ -775,7 +789,7 @@ check is `doctor`'s, since the job reads no environment.
 The destinations are never built by string concatenation. The value splits
 at its first colon into a name and a path, and each destination is the
 name, a colon, and `path.Join(path, sub)` for `sub` in `library`,
-`archive/<stamp>`, and `snapshots/<stamp>.db`. So `name:` gives
+`archive/<stamp>`, and `snapshots/<stamp>.db`. Under this rule `name:` gives
 `name:library`, `name:dir` and `name:dir/` both give `name:dir/library`,
 and `name:/abs` keeps its absolute path. Revision 1's `<remote>/library`
 turned `name:` into `name:/library`, an absolute path from the backend's
@@ -795,7 +809,7 @@ is why this is a construction rule and a tested one.
 "The run's own snapshot is the newest" held only on a sane clock (contract
 C7, risk R2). If 14 or more remote stamps are later than the run's (a clock
 stepped back, a reset RTC, a restored box writing to the same remote),
-keep-14-newest deletes the snapshot the run just sent. So the prune:
+keep-14-newest deletes the snapshot the run just sent. The prune therefore:
 
 - lists `snapshots/` and requires the run's own `<stamp>.db` in the
   listing; absent, it skips every prune step;
@@ -820,7 +834,7 @@ pre-migration or pre-restore copy (`open.go`, `besideCopy` and
 Ruling 7 deletes those copies after each successful backup, so on a box
 with backup on, E11 would never fire again, and a lost database file would
 let serve create an empty store whose snapshots then displace every good
-one within 14 runs (risk R1). So a successful backup, after its send and
+one within 14 runs (risk R1). A successful backup, after its send and
 before its local deletion, writes `snapshots/backup-<stamp>.ref` through
 the store, holding the stamp and the remote, durably (temp file, fsync,
 rename, directory fsync, as the pre-migration path does), and removes the
@@ -1277,16 +1291,16 @@ by `VACUUM INTO`).
 the driver's backup API (`conn.go:1208-1219` in the module) stays the
 recorded alternative.
 
-**Deliverable count: 3** (the backup copy with its checkpoint and sweep,
-the stamp layout with the reference and the guard's reading of it, the two
-carried items with the report fields).
+**Deliverable count: 4** (the backup copy with its checkpoint and sweep;
+the stamp layout with the reference and the guard's reading of it; the
+inspect report's new fields; the two carried items).
 
 ---
 
 ## Task 2: `internal/ops`: the interface, wire types, codes, privileges, and catalog
 
-Model: `sonnet`. Depends on Task 0. **Independent by files of Tasks 1A and
-1B.** **Lands the ops-seam half of 2.0 hook 9** (the seam a later projector
+Model: `sonnet`. Depends on Task 0. **Independent by files of Tasks 1S,
+1A, and 1B.** **Lands the ops-seam half of 2.0 hook 9** (the seam a later projector
 joins).
 
 **Files:**
@@ -1570,7 +1584,8 @@ rung 7).
   `snapshots/<stamp>.db`, one stamp per run, taken at the job's start in
   R-6bi8's layout.
 - **The stand-in** records its argv to a file the test names, writes its
-  pid to another, exits with a code the test sets, and runs in one of two
+  pid to another, exits with a code the test sets per rclone subcommand,
+  and runs in one of two
   signal modes: one honors SIGINT (exits 130), and one ignores it, so only
   `WaitDelay`'s `Kill` ends it. In both modes it appends one line to its
   record file for every SIGINT it receives, so a test counts the signals
@@ -1669,7 +1684,8 @@ rung 7).
 
 **Prior art:** rclone as a probed subprocess, adopted (spec). The salvage
 tier's missing-root guard is adopted in reasoning, and its top-level-entry
-check is replaced by the count guard (`_salvage/internal/backup/backup.go:22-34`);
+check is replaced by the count guard (`_salvage/internal/backup/backup.go:23-34`
+for the two sentinels and `:117-135` for `checkLibraryDir`);
 nothing is imported.
 
 **Deliverable count: 4** (the guards with the root's resolution, the
@@ -1753,6 +1769,9 @@ Model: `sonnet`. Depends on Task 4. **Neutral on 2.0 hooks.**
   catalog tracks with a root missing one remote file, run against the real
   binary (criterion 13's shape): the run fails, all 15 snapshots and every
   local copy survive, and no reference is written.
+- The send-failure row: a stand-in that exits 0 for `sync` and 1 for
+  `copyto`: the run fails with `rclone-exit-1`, no reference is written,
+  and no prune runs.
 - `bash scripts/check.sh` green.
 
 **Named mutations this task reports:**
@@ -1766,7 +1785,7 @@ Model: `sonnet`. Depends on Task 4. **Neutral on 2.0 hooks.**
    unrelated `.db` fixture is lost.
 5. Measure archive age from the wall clock at prune time → report the row
    that fires, or name it reviewer-read.
-6. Write the reference before the send → the failed-run row finds one.
+6. Write the reference before the send → the send-failure row finds one.
 
 **Deliverable count: 4** (the reference, the safety rule with remote
 snapshot pruning, archive pruning, local deletion).
@@ -1861,8 +1880,9 @@ Model: `sonnet`. Depends on Tasks 3, 4, and 5. **Neutral on 2.0 hooks.**
 2. Cancel on the done context → the write fails at once and the
    in-process fallback masks it in the outcome, so criterion 20's rows
    also assert that the verb prints no cancel-write error.
-3. Ignore SIGHUP → the SIGHUP row's verb dies by the signal's default and
-   exits 129, not 130.
+3. Ignore SIGHUP → the SIGHUP row's verb dies by the signal's default:
+   the test reads `signal: hangup` with `ExitCode()` -1 rather than exit
+   130.
 4. Map every error to exit 1 → the exit-code table fails.
 5. Exit when the record turns terminal, before the runner's close → report
    whether the stage survives in any row, or name it reviewer-read.
@@ -1912,7 +1932,7 @@ Model: `sonnet`. Depends on Tasks 1B and 6. **Neutral on 2.0 hooks.**
 | Flag | off | backup: "unavailable: backup integration disabled" | 0 |
 | Remote | no colon | "invalid remote: want <name>:<path>" | 1 |
 | Remote name | empty (`:path`) | "invalid remote: want <name>:<path>" | 1 |
-| Remote name | a character outside letters, digits, underscore | names the character and rclone's rule | 1 |
+| Remote name | a character outside `[A-Za-z0-9_]` | names the character and rclone's rule | 1 |
 | Remote path | empty (`name:`) | accepted | 0 |
 | `_TYPE` | unset | names `RCLONE_CONFIG_<NAME>_TYPE` | 1 |
 | Crypt | `_REMOTE` unset | names `RCLONE_CONFIG_<NAME>_REMOTE` | 1 |
@@ -1937,11 +1957,11 @@ Model: `sonnet`. Depends on Tasks 1B and 6. **Neutral on 2.0 hooks.**
 **Acceptance criteria:**
 
 - Spec criterion 21: one golden line per row state above, each from a
-  constructed input, plus three end-to-end rows against a real `rclone`: a
-  valid `local` remote, an `http` remote at a loopback URL
-  (`http://127.0.0.1:9/`; the fold's probe measured `rclone backend
-  features` answering it with both false, exit 0, in 0.27 s with nothing
-  listening), both features false, and a crypt remote whose wrapped remote is undefined.
+  constructed input, plus three end-to-end rows against a real `rclone`:
+  (1) a valid `local` remote; (2) an `http` remote at the loopback URL
+  `http://127.0.0.1:9/`, which reports both features false; and (3) a
+  crypt remote whose wrapped remote is undefined. The fold's probe measured
+  rclone answering row 2 with exit 0 in 0.27 s with nothing listening.
 - `TestDoctorCmd_LineCountFollowsRegistry` names the backup rows' count
   as constants, one set for the flag off and one for on, and fails if a row
   prints twice.
@@ -2073,8 +2093,9 @@ the merge, plus every assertion below. Each is a spec 6b-i criterion
     and `backup`, the last through the write mode.
 11. Every symbol the pass exports has a production caller outside its own
     package and tests (the exported-unused leg's report, pasted), with
-    exactly two named exceptions: serve mode's open (Ruling 4's yes; its
-    6b-i callers are tests) and the catalog operation (spec criterion 8
+    exactly two named exceptions: the test-only store export Ruling 4
+    selects (serve mode's open on yes, `internal/engine/store/storetest` on
+    no; its 6b-i callers are tests) and the catalog operation (spec criterion 8
     requires it; 6b-ii's projection is its first production caller).
 
 ---
@@ -2128,8 +2149,8 @@ Not tasks; no implementer performs them.
 ## Execution model
 
 Workflow mode: the pass-execute chain per task, **sequential**, in **four
-segments** of at most four tasks (Task 1S made revision 2's segment A five
-long, so segment B splits at the pass's pre-named split point). Every task runs `dubplate-implementer`, then `diff-reviewer`
+segments** of at most four tasks; segment B ends at the pass's pre-named
+split point. Every task runs `dubplate-implementer`, then `diff-reviewer`
 (`claude-opus-5-5`), then the gate, with one re-dispatch on `fix` and a
 second `fix` as the conductor's decision. Every reviewer dispatch asks for
 correctness gaps ranked by consequence, not polish.
@@ -2172,14 +2193,22 @@ fresh context.
 
 **Where this pass splits, if it must:** at the Task 5 / Task 6 boundary,
 segment B's end, if segment A's or B's re-derivation projects past the
-ceiling. Tasks 6 and 7 then
-open a pass 6b-i-2, because the verb and `doctor` rows are what give the
-exports their production caller; 6b-i-1 would close with its exports
-warned by the exported-unused leg, which the conductor records. Inside the
-pass, Task 3 carries its pre-named split.
+ceiling, or on the owner's choice. **6b-i-1** carries Tasks 0, 1S, 1A, 1B,
+and 2 to 5 (the store surface, the ops seam, the runner, and the backup job
+with pruning) and its own close with four architecture reads; it closes
+with its exports warned by the exported-unused leg, since the verb and
+`doctor` give them their production caller. Its projection is 4.44M (0.11M
++ 0.25M + six tasks at 0.41M + 0.25M subprocess + 0.25M fix + 1.12M
+close), for a **6.1M** ceiling (80% flag 4.88M). **6b-i-2** carries a fresh
+Task 0, Tasks 6 and 7 (the class, the verb, signals, and `doctor`'s rows),
+and Task 8's close with one architecture read. Its projection is 1.85M
+(0.11M + two tasks at 0.41M + 0.10M re-exec + 0.82M close), for a **2.9M**
+ceiling (80% flag 2.32M). Together the halves project 6.29M, about 0.8M
+above the unsplit 5.49M for the second Task 0 and close. Inside the pass,
+Task 3 carries its pre-named split.
 
-**Budget:** 8.2M execution (Ruling 1), flag 6.56M, planning recorded
-separately, STATUS at each boundary, spend scored at close against the
+**Budget:** the execution ceiling and 80% flag in "Token ceiling" (Ruling
+1), planning recorded separately, STATUS at each boundary, spend scored at close against the
 ceiling and against zero attended interactions after approval.
 
 ---
@@ -2219,5 +2248,3 @@ the evidence for the rows it scored.
   pins it at or above v1.74.3.
 - A forward clock jump still purges archive directories early (R-6bi15);
   the safety rule catches a backward jump only.
-- The 6a close-side spend (about 2.1M) is STATUS's re-derived projection,
-  not a recorded actual; segment A re-derives this ceiling from it.

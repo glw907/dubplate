@@ -287,3 +287,58 @@ segment B's end is the pre-named pass split point.
   `20060102T150405.000000Z` and exports its format and parse pair.
 - **6bi-E15 (V9).** A transfer that exits 0 after a cancel request counts
   as a success; the job observes the cancel at its next progress point.
+
+## Prose review fold (revision 2.2)
+
+Input: `docs/superpowers/research/2026-09-24-rung-6b-i-plan-prose-review.md`
+(P1 to P20, `prose-voice-reviewer` on revision 2.1 at `e122e72`). Verified
+before acting: 6a's recorded actuals in `docs/HISTORY.md` ("Both budgets":
+about 4.0M total, close side about 0.92M); rclone v1.74.3's manual lists "2
+- Syntax or usage error"; `_salvage/internal/backup/backup.go` holds the
+two sentinels at `:23-34` and `checkLibraryDir` at `:117-135`.
+
+| ID | Disposition | Location in revision 2.2 |
+| --- | --- | --- |
+| P1 | Folded. The ceiling is re-based on recorded actuals: Task 0 0.11M, eight tasks at 0.41M (2.90M / 7), Task 1S 0.25M, subprocess and re-exec 0.35M, one fix round 0.25M, close 0.92M plus three reads at 0.1M. Projection 5.49M; 5.49M + 0.41M = 5.90M flag target; 5.90M / 0.8 rounds to a 7.4M ceiling, 80% flag 5.92M. The stale "Not verified" bullet is deleted. | Token ceiling; Ruling 1; Not verified |
+| P2 | Folded. The Execution model's budget line points at "Token ceiling" (it still carried revision 2's 8.2M). | Execution model, Budget |
+| P3 | Folded. "The 80% token flag", "the retry limit", `DUBPLATE_BACKUP_ENABLED` by name, and units ("10-second", "retry limit of 1") in Rulings 1 and 2. | Rulings 1 and 2 |
+| P4 | Folded. Ruling 4's "no" names `internal/engine/store/storetest` (embedding the leaf template and holding the copy-and-chmod helper) as the home and as exit gate 11's test-only exception in place of serve's open. | Ruling 4; Global constraints; R-6bi3; exit gate 11 |
+| P5 | Folded. The rule's own form, "a character outside `[A-Za-z0-9_]`". | Task 7 table |
+| P6 | Folded. Ruling 1 asks one question; its "no" states 5.9M as a total including 0.95M planning, a 4.95M execution budget, and its 80% flag at 4.72M below the projection. | Ruling 1 |
+| P7 | Folded. Narrowed to Tasks 3 to 5 and Task 6's signal and exit-code rows, and "only exported function". | Ruling 4 |
+| P8 | Folded. The "no" names the collision with bash builtins' and rclone's usage-error code 2. | Ruling 3 |
+| P9 | Folded. Mutation 3 reads `signal: hangup` with `ExitCode()` -1. | Task 6 mutation 3 |
+| P10 | Folded. A send-failure row (stand-in exits 0 for `sync`, 1 for `copyto`); mutation 6 names it; the stand-in's exit code is set per subcommand. | Task 5; Task 4 stand-in |
+| P11 | Folded. Criterion 21's end-to-end rows are numbered (1) to (3). | Task 7 criteria |
+| P12 | Folded. The preamble is split into four sentences. | Rulings preamble |
+| P13 | Folded. Revision history removed from the Execution model's parenthetical. | Execution model |
+| P14 | Folded. The two R-6bi6 deviations are labeled "(the copy)" and "(staging)"; the vocabulary deviation cites R-6bi4 and R-6bi5. | Spec deviations |
+| P15 | Folded. Task 2 is independent of Tasks 1S, 1A, and 1B. | Task 2 |
+| P16 | Folded. Task 1B now counts four deliverables (the inspect fields separate); the plan's total is 34. | Task 1B; Token ceiling |
+| P17 | Folded. Nine "So" openers in the Resolutions rewritten. | R-6bi2, R-6bi7, R-6bi11, R-6bi12, R-6bi14 to R-6bi16 |
+| P18 | Folded. R-6bi12's orphan paragraph split into three headed paragraphs (why the child inherits, how the descriptors are duplicated, how long an orphan lives). | R-6bi12 |
+| P19 | Folded. Ruling 2's command carries `<remote>:`. | Ruling 2 |
+| P20 | Folded as corrected on the evidence. The old `:22-34` already reached the second sentinel's last line (34); the range was missing the guard function itself, so the citation is now `:23-34` for the sentinels and `:117-135` for `checkLibraryDir`. | Task 4 prior art |
+
+### The split question
+
+The conductor will ask Geoff whether to split at segment B's end (after
+Task 5). The plan's "Where this pass splits" paragraph states both halves:
+6b-i-1 (Tasks 0, 1S, 1A, 1B, 2 to 5, and a close with four architecture
+reads) projects 4.44M for a 6.1M ceiling (flag 4.88M); 6b-i-2 (a fresh Task
+0, Tasks 6 and 7, and Task 8's close with one read) projects 1.85M for a
+2.9M ceiling (flag 2.32M). Together they are about 0.8M above the unsplit
+5.49M.
+
+### Rulings after the prose fold
+
+1. Ceiling 7.4M, 80% flag 5.92M. Recommendation: yes. No holds 5.9M total
+   (4.95M execution, flag 4.72M below the projection).
+2. `rclone backend features <remote>: --low-level-retries 1` with a
+   10-second timeout. Recommendation: yes. No builds a static feature table.
+3. Exit codes 0, 1, 69, 75, and 130 for a cancel by any means.
+   Recommendation: yes. No uses 2, 3, and 4, with 2 colliding with the
+   usage-error code.
+4. Serve's open exported now for tests. Recommendation: yes. No builds
+   `internal/engine/store/storetest` with an embedded leaf template, which
+   becomes exit gate 11's test-only exception.
