@@ -22,10 +22,11 @@ type authorizer interface {
 
 // An authorizingSeam is an [ops.Seam] that admits a call to next only
 // when its authorizer answers a caller whose privilege reaches the
-// operation's, and then only as the actor the authorizer answered. It discards the actor its own caller passes, so no caller
-// can choose the actor a job records. An admitted actor whose channel
-// differs from the mount's is refused, so an authorizer wired to the
-// wrong mount fails closed.
+// operation's, and then only as the actor the authorizer answered. It
+// discards the actor its own caller passes, so no caller can choose
+// the actor a job records. An admitted actor whose channel differs
+// from the mount's is refused, so an authorizer wired to the wrong
+// mount fails closed.
 type authorizingSeam struct {
 	next    ops.Seam
 	auth    authorizer
