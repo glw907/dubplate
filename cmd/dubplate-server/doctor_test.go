@@ -313,6 +313,50 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 }
 
+// TestDoctorCmd_BackupRowsWithFlagOn proves backupDoctorRowsOn's own
+// total against a full doctor run with DUBPLATE_BACKUP_ENABLED set and
+// a valid, fully-credentialed remote (through the rclone stand-in, so
+// the features probe never needs a real backend): the same five backup
+// rows print as with the flag off, and the "backup remote" row's own
+// content changes from "unavailable" to the probe's own answer.
+func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
+	useBackupStandin(t)
+	t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
+
+	environ := append(doctorEnviron(t),
+		"DUBPLATE_BACKUP_ENABLED=true",
+		"DUBPLATE_BACKUP_REMOTE=name:"+t.TempDir(),
+		"RCLONE_CONFIG_NAME_TYPE=local",
+	)
+	reg := productionRegistry()
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+
+	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn
+	if len(lines) != wantTotal {
+		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
+	}
+
+	wantPrefix := fmt.Sprintf("%-32s", backupRemoteRow)
+	found := false
+	for _, line := range lines {
+		if strings.HasPrefix(line, wantPrefix) {
+			found = true
+			if strings.Contains(line, "unavailable") {
+				t.Errorf("backup remote row = %q, want it to run the checks now the flag is on, not report unavailable", line)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("stdout has no %q row: %q", backupRemoteRow, stdout.String())
+	}
+}
+
 // TestDoctorCmd_IdentitySourceRows proves the per-source row's three
 // states and its silence about values: the selected source reports
 // active when its required rows resolve and "unsatisfied: " plus the
