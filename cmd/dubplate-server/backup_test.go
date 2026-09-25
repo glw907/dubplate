@@ -54,6 +54,15 @@ const (
 	// subcommand's first SIGINT; any other value ignores every SIGINT,
 	// so only the transport's WaitDelay kill ends it (R-6bi12).
 	backupStandinHonorEnv = "BACKUP_TEST_STANDIN_HONOR"
+
+	// backupStandinStdoutEnv holds the literal bytes the stand-in
+	// writes to stdout for the "backend" subcommand, Task 7's features
+	// probe.
+	backupStandinStdoutEnv = "BACKUP_TEST_STANDIN_STDOUT"
+
+	// backupStandinStderrEnv holds the literal bytes the stand-in
+	// writes to stderr for the "backend" subcommand.
+	backupStandinStderrEnv = "BACKUP_TEST_STANDIN_STDERR"
 )
 
 func TestMain(m *testing.M) {
@@ -80,6 +89,10 @@ func backupStandIn(args []string) int {
 	appendBackupStandinLine(record, "argv "+strings.Join(args, " "))
 	if pidFile := os.Getenv(backupStandinPIDEnv); pidFile != "" {
 		_ = os.WriteFile(pidFile, []byte(strconv.Itoa(os.Getpid())), 0o600)
+	}
+	if sub == "backend" {
+		_, _ = io.WriteString(os.Stdout, os.Getenv(backupStandinStdoutEnv))
+		_, _ = io.WriteString(os.Stderr, os.Getenv(backupStandinStderrEnv))
 	}
 	code := backupStandinExitCode(os.Getenv(backupStandinExitEnv), sub)
 	if os.Getenv(backupStandinSleepEnv) != sub {
@@ -749,4 +762,326 @@ func readDirNames(t *testing.T, dir string) []string {
 		names[i] = e.Name()
 	}
 	return names
+}
+
+// TestBackupRemoteRowStatus is the golden test for doctor's "backup
+// remote" row's name, colon, and credential checks (R-6bi14): every
+// case here is pure string and environment logic, run against a
+// constructed environ with no rclone on PATH at all, since none of
+// these states reaches the features probe.
+func TestBackupRemoteRowStatus(t *testing.T) {
+	on := func(kv ...string) []string {
+		return append([]string{"DUBPLATE_BACKUP_ENABLED=true"}, kv...)
+	}
+
+	tests := []struct {
+		name       string
+		environ    []string
+		wantStatus string
+		wantFailed bool
+	}{
+		{
+			name:       "flag off: unavailable, not a failure",
+			environ:    nil,
+			wantStatus: "unavailable: backup integration disabled",
+			wantFailed: false,
+		},
+		{
+			name:       "no colon",
+			environ:    on("DUBPLATE_BACKUP_REMOTE=relative/path"),
+			wantStatus: "invalid remote: want <name>:<path>",
+			wantFailed: true,
+		},
+		{
+			name:       "empty name",
+			environ:    on("DUBPLATE_BACKUP_REMOTE=:dir"),
+			wantStatus: "invalid remote: want <name>:<path>",
+			wantFailed: true,
+		},
+		{
+			name:       "a character outside rclone's remote-name alphabet",
+			environ:    on("DUBPLATE_BACKUP_REMOTE=my-remote:dir"),
+			wantStatus: `invalid remote: name "my-remote" holds "-", and rclone remote names "can only contain letters, digits, or the _ (underscore) character"`,
+			wantFailed: true,
+		},
+		{
+			name:       "empty path is accepted, and the check proceeds to _TYPE",
+			environ:    on("DUBPLATE_BACKUP_REMOTE=name:"),
+			wantStatus: "invalid remote: RCLONE_CONFIG_NAME_TYPE is not set",
+			wantFailed: true,
+		},
+		{
+			name:       "_TYPE unset",
+			environ:    on("DUBPLATE_BACKUP_REMOTE=name:dir"),
+			wantStatus: "invalid remote: RCLONE_CONFIG_NAME_TYPE is not set",
+			wantFailed: true,
+		},
+		{
+			name:       "crypt _REMOTE unset",
+			environ:    on("DUBPLATE_BACKUP_REMOTE=name:dir", "RCLONE_CONFIG_NAME_TYPE=crypt"),
+			wantStatus: "invalid remote: RCLONE_CONFIG_NAME_REMOTE is not set",
+			wantFailed: true,
+		},
+		{
+			name: "crypt wrapped remote's _TYPE unset",
+			environ: on("DUBPLATE_BACKUP_REMOTE=name:dir",
+				"RCLONE_CONFIG_NAME_TYPE=crypt",
+				"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub"),
+			wantStatus: "invalid remote: wrapped remote wrapped: RCLONE_CONFIG_WRAPPED_TYPE is not set",
+			wantFailed: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("PATH", t.TempDir()) // no rclone reachable: these states never look for it
+			status, failed := backupRemoteRowStatus(context.Background(), tt.environ)
+			if status != tt.wantStatus {
+				t.Errorf("status = %q, want %q", status, tt.wantStatus)
+			}
+			if failed != tt.wantFailed {
+				t.Errorf("failed = %v, want %v", failed, tt.wantFailed)
+			}
+		})
+	}
+}
+
+// TestBackupRemoteRowStatus_RcloneNotFound proves the "rclone not
+// found" row: a valid, fully-credentialed remote whose PATH holds no
+// rclone binary at all.
+func TestBackupRemoteRowStatus_RcloneNotFound(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+	environ := []string{
+		"DUBPLATE_BACKUP_ENABLED=true",
+		"DUBPLATE_BACKUP_REMOTE=name:dir",
+		"RCLONE_CONFIG_NAME_TYPE=local",
+	}
+	status, failed := backupRemoteRowStatus(context.Background(), environ)
+	if status != "rclone not found" {
+		t.Errorf("status = %q, want %q", status, "rclone not found")
+	}
+	if !failed {
+		t.Error("failed = false, want true")
+	}
+}
+
+// TestBackupRemoteRowStatus_NoSubprocessWhenFlagOff proves the flag-off
+// state runs no subprocess: the stand-in alone on PATH records no
+// invocation.
+func TestBackupRemoteRowStatus_NoSubprocessWhenFlagOff(t *testing.T) {
+	useBackupStandin(t)
+	status, failed := backupRemoteRowStatus(context.Background(), nil)
+	if status != "unavailable: backup integration disabled" {
+		t.Errorf("status = %q", status)
+	}
+	if failed {
+		t.Error("failed = true, want false")
+	}
+	if lines := backupStandinLines(t, os.Getenv(backupStandinRecordEnv)); len(lines) != 0 {
+		t.Errorf("stand-in recorded %d invocation(s), want 0: %v", len(lines), lines)
+	}
+}
+
+// TestBackupRemoteRowStatus_Features is the golden test for the
+// features probe's own states (R-6bi9, R-6bi12's precedence, Ruling
+// 2), each run through the rclone stand-in rather than a real backend.
+func TestBackupRemoteRowStatus_Features(t *testing.T) {
+	t.Run("crypt _REMOTE a plain path skips the wrapped check; the probe decides", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=crypt",
+			"RCLONE_CONFIG_NAME_REMOTE=/plain/path",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if status != "ok" {
+			t.Errorf("status = %q, want %q (no wrapped remote's _TYPE is set, so the wrapped check must have been skipped)", status, "ok")
+		}
+		if failed {
+			t.Error("failed = true, want false")
+		}
+	})
+
+	t.Run("crypt _REMOTE a connection string skips the wrapped check", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=crypt",
+			"RCLONE_CONFIG_NAME_REMOTE=:local,type=vfat:/mnt",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if status != "ok" {
+			t.Errorf("status = %q, want %q", status, "ok")
+		}
+		if failed {
+			t.Error("failed = true, want false")
+		}
+	})
+
+	t.Run("Copy and Move both false", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":false}}`)
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=http",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if !strings.Contains(status, "lacks server-side move and copy") {
+			t.Errorf("status = %q, want it to name the backend and rclone's --backup-dir requirement", status)
+		}
+		if !strings.Contains(status, "name") {
+			t.Errorf("status = %q, want it to name the backend", status)
+		}
+		if !failed {
+			t.Error("failed = false, want true")
+		}
+	})
+
+	t.Run("a nonzero exit before the deadline reports the last stderr line", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinExitEnv, "backend=1")
+		t.Setenv(backupStandinStderrEnv, "2026/09/24 12:00:00 NOTICE: some rclone context\n401 bad_auth_token\n")
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=crypt",
+			"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub",
+			"RCLONE_CONFIG_WRAPPED_TYPE=local",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if status != "401 bad_auth_token" {
+			t.Errorf("status = %q, want the last non-blank stderr line %q", status, "401 bad_auth_token")
+		}
+		if !failed {
+			t.Error("failed = false, want true")
+		}
+	})
+
+	t.Run("a deadline hit reads not checked, whatever the exit", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinSleepEnv, "backend")
+		t.Setenv(backupStandinHonorEnv, "1")
+		orig := featuresProbeTimeout
+		featuresProbeTimeout = 30 * time.Millisecond
+		t.Cleanup(func() { featuresProbeTimeout = orig })
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=crypt",
+			"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub",
+			"RCLONE_CONFIG_WRAPPED_TYPE=local",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if status != "not checked: rclone backend features timed out" {
+			t.Errorf("status = %q, want %q", status, "not checked: rclone backend features timed out")
+		}
+		if failed {
+			t.Error("failed = true, want false: a deadline hit never fails doctor")
+		}
+	})
+
+	t.Run("a non-crypt type carries ruling 14's warning, never a failure", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":true,"Move":false}}`)
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=s3",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if !strings.Contains(status, backupCryptWarning) {
+			t.Errorf("status = %q, want it to carry ruling 14's warning %q", status, backupCryptWarning)
+		}
+		if failed {
+			t.Error("failed = true, want false")
+		}
+	})
+
+	t.Run("a crypt type carries no warning", func(t *testing.T) {
+		useBackupStandin(t)
+		t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:dir",
+			"RCLONE_CONFIG_NAME_TYPE=crypt",
+			"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub",
+			"RCLONE_CONFIG_WRAPPED_TYPE=local",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if status != "ok" {
+			t.Errorf("status = %q, want %q", status, "ok")
+		}
+		if failed {
+			t.Error("failed = true, want false")
+		}
+	})
+}
+
+// TestBackupRemoteRowStatus_EndToEnd runs backupRemoteRowStatus against
+// the real rclone binary rather than the stand-in, spec criterion 21's
+// three end-to-end rows: a valid local remote, an http remote at a
+// closed loopback port (both features false), and a crypt remote
+// wrapping an undefined remote.
+func TestBackupRemoteRowStatus_EndToEnd(t *testing.T) {
+	if _, err := exec.LookPath("rclone"); err != nil {
+		t.Fatalf("rclone is a prerequisite of this test: %v", err)
+	}
+
+	t.Run("a valid local remote", func(t *testing.T) {
+		t.Setenv("RCLONE_CONFIG_E2ELOCAL_TYPE", "local")
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=e2elocal:" + t.TempDir(),
+			"RCLONE_CONFIG_E2ELOCAL_TYPE=local",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		// local is not crypt, so ruling 14's warning is appended.
+		if !strings.HasPrefix(status, "ok; ") {
+			t.Errorf("status = %q, want it to start with %q", status, "ok; ")
+		}
+		if failed {
+			t.Errorf("failed = true, want false: %s", status)
+		}
+	})
+
+	t.Run("an http remote at a closed loopback port reports both features false", func(t *testing.T) {
+		t.Setenv("RCLONE_CONFIG_E2EHTTP_TYPE", "http")
+		t.Setenv("RCLONE_CONFIG_E2EHTTP_URL", "http://127.0.0.1:9/")
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=e2ehttp:dir",
+			"RCLONE_CONFIG_E2EHTTP_TYPE=http",
+			"RCLONE_CONFIG_E2EHTTP_URL=http://127.0.0.1:9/",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if !strings.Contains(status, "lacks server-side move and copy") {
+			t.Errorf("status = %q, want it to report both features false", status)
+		}
+		if !failed {
+			t.Error("failed = false, want true")
+		}
+	})
+
+	t.Run("a crypt remote whose wrapped remote is undefined", func(t *testing.T) {
+		t.Setenv("RCLONE_CONFIG_E2ECRYPT_TYPE", "crypt")
+		t.Setenv("RCLONE_CONFIG_E2ECRYPT_REMOTE", "e2eundefined:sub")
+		environ := []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=e2ecrypt:dir",
+			"RCLONE_CONFIG_E2ECRYPT_TYPE=crypt",
+			"RCLONE_CONFIG_E2ECRYPT_REMOTE=e2eundefined:sub",
+		}
+		status, failed := backupRemoteRowStatus(context.Background(), environ)
+		if status != "invalid remote: wrapped remote e2eundefined: RCLONE_CONFIG_E2EUNDEFINED_TYPE is not set" {
+			t.Errorf("status = %q", status)
+		}
+		if !failed {
+			t.Error("failed = false, want true")
+		}
+	})
 }

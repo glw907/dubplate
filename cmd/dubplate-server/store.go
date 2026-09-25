@@ -8,6 +8,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/ops"
 )
 
 // storeBusyTimeoutThreshold is DUBPLATE_STORE_BUSY_TIMEOUT: the
@@ -79,22 +80,28 @@ func storeBusyTimeout(environ []string) (d time.Duration, parseErr, rangeErr err
 // fails to parse reports "not checked" without opening anything; a
 // busy timeout that parses outside its range reports "not checked"
 // naming the key and the bound.
-func storeRow(ctx context.Context, environ []string) (status string, failed bool) {
+//
+// It also returns the [store.Report] it read and whether it ran
+// [store.Inspect] at all (checked), so a caller building the backup
+// facts rows (R-6bi13) from the same report never inspects the store
+// twice: report is the zero value whenever checked is false.
+func storeRow(ctx context.Context, environ []string) (status string, failed bool, report store.Report, checked bool) {
 	stateDir, ok := lookupEnviron(environ, "DUBPLATE_STATE_DIR")
 	if !ok {
-		return "not checked", false
+		return "not checked", false, store.Report{}, false
 	}
 
 	d, parseErr, rangeErr := storeBusyTimeout(environ)
 	if parseErr != nil {
-		return "not checked", true
+		return "not checked", true, store.Report{}, false
 	}
 	if rangeErr != nil {
-		return "not checked: " + rangeErr.Error(), true
+		return "not checked: " + rangeErr.Error(), true, store.Report{}, false
 	}
 
 	r := store.Inspect(ctx, store.InspectOptions{StateDir: stateDir, BusyTimeout: d})
-	return storeRowStatus(r)
+	status, failed = storeRowStatus(r)
+	return status, failed, r, true
 }
 
 // storeRowStatus renders r as the "store" row's status text, and
@@ -139,4 +146,115 @@ func storeHolders(holders []string) string {
 		return "held by another process"
 	}
 	return "held by pid " + strings.Join(holders, ", ")
+}
+
+// backupFactRow is one doctor row [backupFactsRows] renders: a
+// printRow key and its status text.
+type backupFactRow struct {
+	key, status string
+}
+
+// backupFactsRows renders R-6bi13's read-only facts as doctor's four
+// backup rows: the newest succeeded backup's age (or "never"), the
+// store's -wal file size, the leaf's free space, and the local
+// snapshot copy count and size. Every row prints unconditionally, the
+// store row's own precedent (doctor.go's storeRow doc comment): a
+// store facts cannot vouch for is as reportable as one that can.
+//
+// Every row reads "not checked" when checked is false (storeRow never
+// ran [store.Inspect]) or report carries no Facts, which
+// [store.Inspect] leaves nil for a store this binary cannot read as
+// current: absent, busy, mid-restore, not a store, refused, newer, or
+// older below the version that added the jobs table.
+func backupFactsRows(now time.Time, report store.Report, checked bool) []backupFactRow {
+	if !checked || report.Facts == nil {
+		return []backupFactRow{
+			{backupLastSuccessRow, "not checked"},
+			{backupWALSizeRow, "not checked"},
+			{backupFreeSpaceRow, "not checked"},
+			{backupLocalCopiesRow, "not checked"},
+		}
+	}
+	f := report.Facts
+	return []backupFactRow{
+		{backupLastSuccessRow, lastSuccessStatus(now, f.LastSuccess)},
+		{backupWALSizeRow, formatBytes(f.WALSize)},
+		{backupFreeSpaceRow, freeSpaceStatus(f)},
+		{backupLocalCopiesRow, localCopiesStatus(f)},
+	}
+}
+
+// lastSuccessStatus renders the backup kind's newest succeeded record
+// out of last: "never" when it has none, otherwise its age rounded to
+// minutes, with its final progress text appended when that text names
+// a skipped or failed prune (anything but the clean "backup finished"
+// [backup.Job.Run] returns for a run whose prune reported nothing of
+// its own).
+func lastSuccessStatus(now time.Time, last map[string]store.JobSuccess) string {
+	success, ok := last[ops.KindBackup]
+	if !ok {
+		return "never"
+	}
+	status := formatAge(now.Sub(success.Finished)) + " ago"
+	if success.Progress != "" && success.Progress != "backup finished" {
+		status += ": " + success.Progress
+	}
+	return status
+}
+
+// formatAge renders d, rounded to whole minutes, as "<N>m" or, past an
+// hour or a day, "<N>h<N>m" or "<N>d<N>h": a negative or sub-minute d
+// (a finish time in the future, or in the last minute) renders as
+// "0m".
+func formatAge(d time.Duration) string {
+	if d < 0 {
+		d = 0
+	}
+	minutes := int64(d.Round(time.Minute) / time.Minute)
+	hours := minutes / 60
+	minutes %= 60
+	days := hours / 24
+	hours %= 24
+	switch {
+	case days > 0:
+		return fmt.Sprintf("%dd%dh", days, hours)
+	case hours > 0:
+		return fmt.Sprintf("%dh%dm", hours, minutes)
+	default:
+		return fmt.Sprintf("%dm", minutes)
+	}
+}
+
+// freeSpaceStatus renders f's free-space fact: "unknown" when statfs
+// failed, its byte count otherwise.
+func freeSpaceStatus(f *store.Facts) string {
+	if !f.FreeKnown {
+		return "unknown"
+	}
+	return formatBytes(int64(f.FreeBytes))
+}
+
+// localCopiesStatus renders f's local snapshot copy count and total
+// size: "0 copies" for none, the count and size otherwise.
+func localCopiesStatus(f *store.Facts) string {
+	if f.Copies == 0 {
+		return "0 copies"
+	}
+	return fmt.Sprintf("%d copies, %s", f.Copies, formatBytes(f.CopiesSize))
+}
+
+// formatBytes renders n in binary units (KiB, MiB, GiB, ...), the same
+// scale most disk-usage tools use: a value under 1024 renders as
+// "<n> B", and each larger unit carries one decimal place.
+func formatBytes(n int64) string {
+	const unit = 1024
+	if n < unit {
+		return fmt.Sprintf("%d B", n)
+	}
+	div, exp := int64(unit), 0
+	for v := n / unit; v >= unit; v /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %ciB", float64(n)/float64(div), "KMGTPE"[exp])
 }

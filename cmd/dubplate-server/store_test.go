@@ -6,9 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/ops"
 )
 
 // TestStoreRowStatus is the golden test for the store row's render: one
@@ -103,12 +105,18 @@ func TestStoreRowStatus(t *testing.T) {
 func TestStoreRow_EndToEnd(t *testing.T) {
 	t.Run("no leaf reports absent", func(t *testing.T) {
 		environ := []string{"DUBPLATE_STATE_DIR=" + t.TempDir()}
-		status, failed := storeRow(context.Background(), environ)
+		status, failed, report, checked := storeRow(context.Background(), environ)
 		if status != "absent" {
 			t.Errorf("storeRow() status = %q, want %q", status, "absent")
 		}
 		if failed {
 			t.Errorf("storeRow() failed = true, want false")
+		}
+		if !checked {
+			t.Error("storeRow() checked = false, want true")
+		}
+		if report.Facts != nil {
+			t.Errorf("storeRow() report.Facts = %+v, want nil for an absent store", report.Facts)
 		}
 	})
 
@@ -117,12 +125,15 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 		buildZeroByteStoreLeaf(t, stateDir)
 		environ := []string{"DUBPLATE_STATE_DIR=" + stateDir}
 
-		status, failed := storeRow(context.Background(), environ)
+		status, failed, _, checked := storeRow(context.Background(), environ)
 		if !strings.HasPrefix(status, "not a store: ") {
 			t.Errorf("storeRow() status = %q, want prefix %q", status, "not a store: ")
 		}
 		if !failed {
 			t.Errorf("storeRow() failed = false, want true")
+		}
+		if !checked {
+			t.Error("storeRow() checked = false, want true")
 		}
 	})
 }
@@ -137,12 +148,15 @@ func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
 		"DUBPLATE_STATE_DIR=" + t.TempDir(),
 		"DUBPLATE_STORE_BUSY_TIMEOUT=not-a-duration",
 	}
-	status, failed := storeRow(context.Background(), environ)
+	status, failed, _, checked := storeRow(context.Background(), environ)
 	if status != "not checked" {
 		t.Errorf("storeRow() status = %q, want %q", status, "not checked")
 	}
 	if !failed {
 		t.Errorf("storeRow() failed = false, want true")
+	}
+	if checked {
+		t.Error("storeRow() checked = true, want false: an unparseable busy timeout never runs Inspect")
 	}
 }
 
@@ -150,12 +164,15 @@ func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
 // DUBPLATE_STATE_DIR reports, with no failure of its own (the owned
 // wall row already reports the missing key).
 func TestStoreRow_StateDirUnset(t *testing.T) {
-	status, failed := storeRow(context.Background(), nil)
+	status, failed, _, checked := storeRow(context.Background(), nil)
 	if status != "not checked" {
 		t.Errorf("storeRow() status = %q, want %q", status, "not checked")
 	}
 	if failed {
 		t.Errorf("storeRow() failed = true, want false")
+	}
+	if checked {
+		t.Error("storeRow() checked = true, want false: a missing state directory never runs Inspect")
 	}
 }
 
@@ -240,6 +257,175 @@ func buildZeroByteStoreLeaf(t *testing.T, stateDir string) {
 	}
 	if err := os.WriteFile(filepath.Join(root, "db", "dubplate.db"), nil, 0o600); err != nil {
 		t.Fatalf("write dubplate.db: %v", err)
+	}
+}
+
+// testNow anchors every age computation in this file's goldens, so a
+// wall-clock read can never make a test flaky.
+var testNow = time.Date(2026, 9, 24, 12, 0, 0, 0, time.UTC)
+
+// TestBackupFactsRows is the golden test for R-6bi13's four backup
+// rows, each built from a constructed [store.Report] rather than a
+// real store: the states table's "not checked" row (checked false, or
+// a report whose Facts is nil), WAL size absent and present, free
+// space known and unknown, local copies none and several, and last
+// success never, an age, and an age with a prune's skipped or failed
+// text appended.
+func TestBackupFactsRows(t *testing.T) {
+	tests := []struct {
+		name    string
+		now     time.Time
+		report  store.Report
+		checked bool
+		want    []backupFactRow
+	}{
+		{
+			name:    "not checked at all: storeRow never ran Inspect",
+			now:     testNow,
+			report:  store.Report{},
+			checked: false,
+			want: []backupFactRow{
+				{backupLastSuccessRow, "not checked"},
+				{backupWALSizeRow, "not checked"},
+				{backupFreeSpaceRow, "not checked"},
+				{backupLocalCopiesRow, "not checked"},
+			},
+		},
+		{
+			name:    "checked, but the store carries no Facts (absent, busy, older, newer, not a store, refused, or mid-restore)",
+			now:     testNow,
+			report:  store.Report{State: store.StateAbsent},
+			checked: true,
+			want: []backupFactRow{
+				{backupLastSuccessRow, "not checked"},
+				{backupWALSizeRow, "not checked"},
+				{backupFreeSpaceRow, "not checked"},
+				{backupLocalCopiesRow, "not checked"},
+			},
+		},
+		{
+			name:    "no succeeded backup: never, no wal, free known, no copies",
+			now:     testNow,
+			report:  store.Report{State: store.StateCurrent, Facts: &store.Facts{FreeBytes: 2048, FreeKnown: true}},
+			checked: true,
+			want: []backupFactRow{
+				{backupLastSuccessRow, "never"},
+				{backupWALSizeRow, "0 B"},
+				{backupFreeSpaceRow, "2.0 KiB"},
+				{backupLocalCopiesRow, "0 copies"},
+			},
+		},
+		{
+			name: "a clean succeeded backup: age alone, wal present, free unknown, several copies",
+			now:  testNow,
+			report: store.Report{State: store.StateCurrent, Facts: &store.Facts{
+				LastSuccess: map[string]store.JobSuccess{
+					ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: "backup finished"},
+				},
+				WALSize:    4096,
+				FreeKnown:  false,
+				Copies:     3,
+				CopiesSize: 3*1024*1024 + 512*1024,
+			}},
+			checked: true,
+			want: []backupFactRow{
+				{backupLastSuccessRow, "1h35m ago"},
+				{backupWALSizeRow, "4.0 KiB"},
+				{backupFreeSpaceRow, "unknown"},
+				{backupLocalCopiesRow, "3 copies, 3.5 MiB"},
+			},
+		},
+		{
+			name: "a succeeded backup whose prune was skipped names the reason",
+			now:  testNow,
+			report: store.Report{State: store.StateCurrent, Facts: &store.Facts{
+				LastSuccess: map[string]store.JobSuccess{
+					ops.KindBackup: {Finished: testNow.Add(-30 * time.Second), Progress: "prune skipped: the run's stamp is not the newest on the remote"},
+				},
+			}},
+			checked: true,
+			want: []backupFactRow{
+				{backupLastSuccessRow, "1m ago: prune skipped: the run's stamp is not the newest on the remote"},
+				{backupWALSizeRow, "0 B"},
+				{backupFreeSpaceRow, "unknown"},
+				{backupLocalCopiesRow, "0 copies"},
+			},
+		},
+		{
+			name: "a succeeded backup whose prune failed names the reason",
+			now:  testNow,
+			report: store.Report{State: store.StateCurrent, Facts: &store.Facts{
+				LastSuccess: map[string]store.JobSuccess{
+					ops.KindBackup: {Finished: testNow.Add(-25 * time.Hour), Progress: "prune failed: list remote snapshots: exit status 1"},
+				},
+			}},
+			checked: true,
+			want: []backupFactRow{
+				{backupLastSuccessRow, "1d1h ago: prune failed: list remote snapshots: exit status 1"},
+				{backupWALSizeRow, "0 B"},
+				{backupFreeSpaceRow, "unknown"},
+				{backupLocalCopiesRow, "0 copies"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := backupFactsRows(tt.now, tt.report, tt.checked)
+			if len(got) != len(tt.want) {
+				t.Fatalf("backupFactsRows() = %d rows, want %d: %+v", len(got), len(tt.want), got)
+			}
+			for i, row := range got {
+				if row != tt.want[i] {
+					t.Errorf("backupFactsRows()[%d] = %+v, want %+v", i, row, tt.want[i])
+				}
+			}
+		})
+	}
+}
+
+// TestFormatBytes proves the binary-unit scale directly, so
+// TestBackupFactsRows's goldens are not the only proof a mutated
+// divisor or exponent step would fail.
+func TestFormatBytes(t *testing.T) {
+	tests := []struct {
+		n    int64
+		want string
+	}{
+		{0, "0 B"},
+		{1023, "1023 B"},
+		{1024, "1.0 KiB"},
+		{1536, "1.5 KiB"},
+		{1024 * 1024, "1.0 MiB"},
+		{1024 * 1024 * 1024, "1.0 GiB"},
+	}
+	for _, tt := range tests {
+		if got := formatBytes(tt.n); got != tt.want {
+			t.Errorf("formatBytes(%d) = %q, want %q", tt.n, got, tt.want)
+		}
+	}
+}
+
+// TestFormatAge proves the minute-rounded age rendering across every
+// scale it names: minutes alone, hours and minutes, and days and
+// hours, plus a future finish time clamped to "0m" rather than a
+// negative duration.
+func TestFormatAge(t *testing.T) {
+	tests := []struct {
+		d    time.Duration
+		want string
+	}{
+		{0, "0m"},
+		{-time.Minute, "0m"},
+		{30 * time.Second, "1m"},
+		{23 * time.Minute, "23m"},
+		{95 * time.Minute, "1h35m"},
+		{25 * time.Hour, "1d1h"},
+	}
+	for _, tt := range tests {
+		if got := formatAge(tt.d); got != tt.want {
+			t.Errorf("formatAge(%s) = %q, want %q", tt.d, got, tt.want)
+		}
 	}
 }
 

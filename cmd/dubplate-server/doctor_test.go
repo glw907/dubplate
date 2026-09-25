@@ -18,6 +18,23 @@ import (
 // alone must add it explicitly.
 const storeRowLines = 1
 
+// backupDoctorRowsOff and backupDoctorRowsOn are Task 7's backup
+// family's fixed contribution to doctor's line-count assertions: the
+// four facts rows (backupLastSuccessRow, backupWALSizeRow,
+// backupFreeSpaceRow, backupLocalCopiesRow) plus the one "backup
+// remote" row, all of which print unconditionally regardless of reg's
+// own declared families and regardless of DUBPLATE_BACKUP_ENABLED,
+// storeRowLines's own precedent: the backup remote row reads
+// "unavailable" rather than disappear while the flag is off, so both
+// constants carry the same total. Named separately, one per flag
+// state, because [backupRemoteRowStatus]'s content, not its presence,
+// is what the flag controls, and a caller asserting a flag-off total
+// should never have to know that fact to pick the right constant.
+const (
+	backupDoctorRowsOff = 5
+	backupDoctorRowsOn  = 5
+)
+
 func TestDoctorCmd(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -150,8 +167,7 @@ func TestDoctorCmd(t *testing.T) {
 
 			// The store row prints unconditionally, for every state
 			// row: this reg declares no identity source, so no
-			// roster row follows the thresholds, and the store row is
-			// the table's last line.
+			// roster row follows the thresholds.
 			if li >= len(lines) {
 				t.Fatalf("stdout ran out of lines before the store row")
 			}
@@ -160,8 +176,22 @@ func TestDoctorCmd(t *testing.T) {
 			}
 			li++
 
+			// The backup rows follow the store row (Task 7): none of
+			// these cases sets DUBPLATE_BACKUP_ENABLED, and the fresh
+			// state directory holds no store, so every one reads
+			// "not checked" or "unavailable".
+			for _, key := range []string{backupLastSuccessRow, backupWALSizeRow, backupFreeSpaceRow, backupLocalCopiesRow, backupRemoteRow} {
+				if li >= len(lines) {
+					t.Fatalf("stdout ran out of lines before backup row %s", key)
+				}
+				if wantPrefix := fmt.Sprintf("%-32s", key); !strings.HasPrefix(lines[li], wantPrefix) {
+					t.Errorf("backup row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+				}
+				li++
+			}
+
 			if li != len(lines) {
-				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store rows: %v", len(lines)-li, lines[li:])
+				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store+backup rows: %v", len(lines)-li, lines[li:])
 			}
 		})
 	}
@@ -193,9 +223,11 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	integrationCount := len(reg.IntegrationClasses())
 	thresholdCount := len(reg.Thresholds())
 	sourceCount := len(reg.IdentitySources())
-	// storeRowLines is the store row: it prints unconditionally, so it
-	// is not one of reg's own declared families.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines
+	// storeRowLines and backupDoctorRowsOff are the store row and
+	// Task 7's backup rows: both print unconditionally, so neither is
+	// one of reg's own declared families. doctorLines's own environ
+	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + backupDoctorRowsOff
 	if len(lines) != wantTotal {
 		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + 1 store)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
@@ -539,10 +571,11 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 		t.Errorf("stdout has %d line(s) starting with %q, want exactly 1: one line per source, not per key", matches, "magic-link")
 	}
 
-	// storeRowLines is the store row: it prints unconditionally, and
-	// doctorEnviron's roster names an admin, so no roster row adds a
-	// second.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines
+	// storeRowLines and backupDoctorRowsOff are the store row and
+	// Task 7's backup rows: doctorEnviron's roster names an admin, so
+	// no roster row adds a second, and it never sets
+	// DUBPLATE_BACKUP_ENABLED.
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -811,8 +844,9 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			}
 
 			// +1 for the roster row (this failing case), +1 for the
-			// store row, which always prints.
-			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2
+			// store row, which always prints, plus Task 7's backup
+			// rows (doctorEnviron never sets DUBPLATE_BACKUP_ENABLED).
+			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff
 			if len(lines) != wantTotal {
 				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row plus one store row); stdout = %q", len(lines), wantTotal, out)
 			}

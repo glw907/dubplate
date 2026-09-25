@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
@@ -105,12 +106,27 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// row, always printing exactly one line, absent state
 			// included: a store the doctor run cannot vouch for is as
 			// reportable as a missing config key.
-			storeStatus, storeFailed := storeRow(cmd.Context(), environ)
+			storeStatus, storeFailed, storeReport, storeChecked := storeRow(cmd.Context(), environ)
 			if err := printRow(stdout, "store", storeStatus); err != nil {
 				return err
 			}
 
-			if loadErr != nil || rosterFailed || storeFailed {
+			// The backup rows (R-6bi13, R-6bi14, Ruling 2) print
+			// unconditionally, the store row's own precedent: the facts
+			// rows read "not checked" rather than disappear when the
+			// store cannot supply them, and the remote row reads
+			// "unavailable" rather than disappear while the flag is off.
+			for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
+				if err := printRow(stdout, row.key, row.status); err != nil {
+					return err
+				}
+			}
+			backupRemoteStatus, backupRemoteFailed := backupRemoteRowStatus(cmd.Context(), environ)
+			if err := printRow(stdout, backupRemoteRow, backupRemoteStatus); err != nil {
+				return err
+			}
+
+			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil
