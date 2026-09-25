@@ -1,7 +1,7 @@
 # The dubplate project site
 
-Design spec. Revision 2.4, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
-Geoff's read.** Three owner rulings stay open (see "Open rulings"). Revision 1 (`e91f528`) went
+Design spec. Revision 2.5, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
+Geoff's read.** One ruling stays open, the domain (see "Open rulings"). Revision 1 (`e91f528`) went
 through five review lenses (contract, drift, consistency, mechanics, prior art) under
 `docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold record is
 `docs/superpowers/research/2026-09-25-project-site-fold.md`.
@@ -21,6 +21,9 @@ missing half, a site gate check that the lock's pin is the newest release.
 
 Revision 2.4 changelog: records Geoff's ruling on ruling 11, public binaries and public source at
 0.8, bounded by a fresh scrubbed repository and a stated contribution policy.
+
+Revision 2.5 changelog: records Geoff's rulings on 12 (no community channel at 0.8) and 13 (an
+undated "Coming later" list). Only the domain stays open.
 
 dubplate needs a public home where a stranger learns what it is, decides whether it fits their
 group, and sets up a server. This spec fixes who the site serves, where it lives, which pages it
@@ -126,7 +129,7 @@ which carries the credit itself.
 
 The "Get help" page names where an operator asks for help and what to include in a report. It gives
 a security contact with a stated scope, and it exists from the first public day. It states the
-contribution policy that ruling 11 sets, and its channels follow open ruling 12. Its
+contribution policy that ruling 11 sets, and its channels follow ruling 12. Its
 troubleshooting list covers the common failures (logs, mail
 not arriving), which is why the site carries no separate FAQ.
 
@@ -420,20 +423,13 @@ These continue the owner rulings' numbering.
     The site repository opens at the same time. Both `give-back` obligations (path 1 and the
     lawyer's confirmation) still apply before the release. Give-back's modules publish as their
     own repositories, as that entry already plans.
-12. **A community channel at 0.8.** Get help always carries a security contact, and the public
-    source brings a public issue tracker (ruling 11). The fork is whether dubplate
-    also opens a community channel, such as a forum or chat, which costs Geoff's time to tend.
-    - Yes: Get help names the channel, and someone tends it.
-    - No: the issue tracker and the security contact are the only channels.
-
-    Recommendation: no at 0.8. The issue tracker is the channel, under the contribution policy
-    that ruling 11 puts on Get help.
-13. **A "Coming later" list.** A reader with an MP3 library needs to know that other formats are
-    planned for 1.0, not refused.
-    - Yes: the is/isn't page carries the list, owned in `docs/guide/` with the rest of the page.
-    - No: the site says nothing about later versions.
-
-    Recommendation: yes, one undated list on the is/isn't page. It answers the fit question
+12. **A community channel at 0.8. Ruled (Geoff, 2026-09-25): no.** Get help carries a security
+    contact, and the public source brings a public issue tracker (ruling 11). dubplate opens no
+    forum or chat at 0.8. The issue tracker is the channel, under the contribution policy that
+    ruling 11 puts on Get help.
+13. **A "Coming later" list. Ruled (Geoff, 2026-09-25): yes.** A reader with an MP3 library needs
+    to know that other formats are planned for 1.0, not refused. The is/isn't page carries one
+    undated list, owned in `docs/guide/` with the rest of the page. It answers the fit question
     without a date.
 
 ## Out of scope

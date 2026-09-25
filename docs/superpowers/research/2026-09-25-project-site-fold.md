@@ -226,3 +226,9 @@ a fresh one from a scrubbed 0.8 snapshot, because the working repository's histo
 secret-scanned (gitleaks runs `--no-git`). The Get help page states a contribution policy, which
 is the maintainership decision `oss-pair` asks for, taken for the server. Open ruling 12's
 recommendation now names the issue tracker as the channel.
+
+## Owner rulings on 12 and 13
+
+Geoff ruled on 2026-09-25: 12, no community channel at 0.8 (the public issue tracker is the
+channel); 13, yes to one undated "Coming later" list on the is/isn't page. Revision 2.5 records
+both. Only ruling 10, the domain, stays open, due before Phase B registers it.
