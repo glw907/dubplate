@@ -1,12 +1,16 @@
-# Matcher Word-Boundary Pass Implementation Plan
+# Matcher word-boundary pass: implementation plan
 
-Status: **reviewed, fold 1; awaiting verification.** Revision 2, 2026-09-25.
-Three lens reviews ran (contract, mechanics, risk:
+Status: **reviewed; awaiting owner approval (Rulings 1-3).** Revision 3,
+2026-09-25. Three lens reviews ran (contract, mechanics, risk:
 `docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-review-*.md`),
-and one fold applied them
-(`docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-fold.md`,
-one disposition per finding). Three rulings for Geoff are open ("Rulings
-awaiting owner"), and the plan executes under either answer to each.
+and fold 1 applied them. A verification read
+(`2026-09-25-matcher-word-boundary-plan-fold-verification.md`) and a prose
+review (`2026-09-25-matcher-word-boundary-plan-prose-review.md`) followed,
+and fold 2 applied both. The fold record
+(`docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-fold.md`)
+gives one disposition per finding for both folds. Three rulings for Geoff
+are open ("Rulings awaiting owner"), and the plan executes under either
+answer to each.
 
 Source: the research brief
 `docs/superpowers/research/2026-09-24-matcher-unicode-word-boundary.md`,
@@ -43,10 +47,11 @@ oracle pin, and edits no `corpus/manifest.json`. It writes nothing under
 it needs any of these stops and reports.
 
 > For agentic workers: per-task Agent dispatch (five tasks, under the
-> workflow threshold, and no task is independent of its predecessor). Each
-> task runs `dubplate-implementer` (`sonnet`, effort `high`), then
+> workflow threshold, and no task is independent of its predecessor). Tasks
+> 1 to 4 each run `dubplate-implementer` (`sonnet`, effort `high`), then
 > `diff-reviewer` (`claude-opus-5-5`, effort `high`), then the gate inside
-> the chain. The conductor consumes structured reports and never reads a
+> the chain. Task 0 is a read-only `sonnet` dispatch whose report the
+> conductor reads directly. The conductor consumes structured reports and never reads a
 > diff, a test log, or a gate transcript inline. Subagents never dispatch
 > agents, so `code-simplifier` is the conductor's dispatch. The conductor owns
 > `docs/STATUS.md`, `docs/HISTORY.md`, `ROADMAP.md`, and the lane registry.
@@ -63,10 +68,11 @@ measured actuals, scaled down for tasks this size. Revision 1 asked for 2.5M
 against a 1.95M projection; the fold added the curated-row, draw-floor,
 class-through-the-shipped-row, and U+0130 proofs, which raise Tasks 1 to 3.
 A 2.75M ceiling puts the 80% flag at 2.2M, just above the projection.
-Planning is recorded outside the ceiling, as 6a's Ruling 1 set. What each
-answer builds: yes sets the flag at 2.2M. No holds a 2.5M ceiling (flag
-2.0M), which the projection crosses during the merge-side reads, so the
-conductor asks after Task 4, before those reads.
+Planning is recorded outside the ceiling, as 6a's Ruling 1 set.
+
+What each answer builds: yes sets the flag at 2.2M. No holds a 2.5M
+ceiling (flag 2.0M), which the projection crosses during the merge-side
+reads, so the conductor asks after Task 4, before those reads.
 
 **2. Does the golden also carry Python's whole `\w` class as code-point
 ranges, so the gate proves the rewrite's character class on every code point
@@ -77,13 +83,14 @@ measurement for this plan compared Python's `\w` (CPython 3.13.15,
 `unicode.Version` 17.0.0) over every code point outside the surrogates. No
 code point is a word character in Python and not in Go. 9,039 are word
 characters in Go and not in Python: letters and numbers (`Lo` 8,827, `Nd` 90,
-`LC` 106, and a few more) that Unicode 16.0 and 17.0 assigned and 15.1 leaves
-unassigned, starting at U+088F, U+0C5C, and U+0CDC. Python's whole word class
+`Lu` and `Ll` 106, and a few more) that Unicode 16.0 and 17.0 assigned and
+15.1 leaves unassigned, starting at U+088F, U+0C5C, and U+0CDC. Python's whole word class
 compresses to 749 ranges. The repo already pins a Unicode-version skew this
 way: `TestStringDistCaseMappingSweep` (`strdist_test.go:240-290`) declares
-its two known divergences so that a third one reds the gate. What each answer
-builds: yes adds a second golden file of 749 ranges and a test that drives
-every code point through the shipped featuring row (never a copy of its
+its two known divergences so that a third one reds the gate.
+
+What each answer builds: yes adds a second golden file of 749 ranges and a
+test that drives every code point through the shipped featuring row (never a copy of its
 class) and asserts zero Python-only word characters and exactly 9,039
 Go-only ones. A Go toolchain bump that moves the count fails the gate, and
 the failure message states the re-read procedure. No drops that file and
@@ -103,13 +110,14 @@ scores it near `0.6875`. A sweep of every code point found U+0130 the only
 one where Python's lowercase changes whether the last character is a word
 character. The divergence predates this pass, and its carrier is rare: an
 İ directly before `ft`, `feat`, or `featuring`. Declaring keeps the pass
-inside the 2026-09-24 ruling's five deliverables plus one row. What each
-answer builds: yes adds one known-divergence `StringDist` row to Task 2 that
-pins beets' `0.06875` and Go's measured figure, so a fix or a second
-instance reds the gate, narrows the Goal to name the one upstream
-divergence, and puts it in Task 4's "wrong to rediscover" list. No (fix
-now) adds a second named departure to Task 2: `StringDist` replaces U+0130
-with `i` plus U+0307 before `strings.ToLower` on both sides, and the same row
+inside the 2026-09-24 ruling's five deliverables plus one row.
+
+What each answer builds: yes adds one known-divergence `StringDist` row to
+Task 2. The row pins beets' `0.06875` and Go's measured figure, so a fix
+reds the gate. Yes also narrows the Goal to name the one upstream
+divergence and puts it in Task 4's "wrong to rediscover" list. No (fix now)
+adds a second named departure to Task 2: `StringDist` replaces U+0130 with
+`i` plus U+0307 before `strings.ToLower` on both sides. The same row then
 pins beets' `0.06875` under both tables. The fix leaves `sdStrip` agreeing,
 since the strip removes the dot. Filing the fix as an IDEAS entry is not
 recommended: the pinned row and the HISTORY line already keep it from being
@@ -175,7 +183,7 @@ from which the tables are derived."
 match that begins as early as possible in the input (leftmost), and among
 those it chooses the one that a backtracking search would have found first.
 This so-called leftmost-first matching is the same semantics that Perl,
-Python, and other implementations use."
+Python, and other implementations use ..."
 
 `go doc regexp.Regexp.ReplaceAllString`: "replacing matches of the Regexp
 with the replacement string repl. Inside repl, $ signs are interpreted as in
@@ -189,7 +197,8 @@ is taken to be as long as possible: $1x is equivalent to ${1x}, not ${1}x."
 
 `go doc regexp` (package doc): "The 'All' variants return an iterator over
 successive non-overlapping matches of the entire expression." The sentence
-names the `Find` family; `ReplaceAllString`'s own doc does not restate it.
+names the `All` iterator variants. `ReplaceAllString` is not one of them,
+and its own doc does not restate the rule.
 The two-trigger curated row is the proof that the replace path also takes
 successive non-overlapping matches, and the newline curated row is the proof
 that `[^\pL\pN_]` matches `\n`, which `regexp/syntax` does not state.
@@ -211,10 +220,10 @@ probe; `derive_defect_free.py:24-27` documents the same trap).
 
 Python's `re` semantics are quoted from the research brief, not re-fetched:
 `\w` "matches Unicode word characters; this includes all Unicode
-alphanumeric characters (as defined by `str.isalnum()`), as well as the
-underscore", and beets passes no `re.ASCII` flag. This plan confirmed the
+alphanumeric characters (as defined by `str.isalnum()`)", plus `_`, and
+beets passes no `re.ASCII` flag. This plan confirmed the
 behaviors it relies on in the pinned venv (CPython 3.13.15) on 2026-09-25:
-`re.match(r"\w", "́")` is false (a combining mark), `re.match(r"\w",
+`re.match(r"\w", "\u0301")` is false (a combining mark), `re.match(r"\w",
 "²")` and `re.match(r"\w", "Ⅻ")` are true, and `re.match(r"\w", "‿")` is
 false (connector punctuation other than `_`).
 
@@ -229,7 +238,8 @@ unchanged. Each beets output was read from the venv the same day.
 ## Goal
 
 After this pass, the featuring row matches pinned beets on every input it
-sees, in both pattern tables, so `StringDist` scores a title with a
+sees outside code points first assigned after Unicode 15.1 (Ruling 2), in
+both pattern tables, so `StringDist` scores a title with a
 non-ASCII letter or number before a featuring trigger as beets does. One
 case-mapping divergence upstream of the row, U+0130, is either declared by a
 pinned test (Ruling 3's yes) or fixed (its no). The gate proves the translated row against a committed
@@ -252,15 +262,16 @@ any change to what the box runs.
 
 The basis is 6a's recorded actuals (`docs/HISTORY.md`, the 6a entry's "Both
 budgets"): about 0.41M per implementation task, Task 0 about 0.11M, and a
-close side of about 0.92M across eight tasks. This pass's tasks are smaller
-than 6a's, and its close carries two architecture reads instead of two plus
-five.
+close side of about 0.92M: two architecture reads (about 0.2M) plus the tidy
+fix, the simplifier round, Task 8, the merge ritual, and a merge re-review.
+This pass's tasks are smaller than 6a's, and its close has no tidy fix or
+re-review.
 
 1. Task 0, a staleness read at `sonnet`: **0.08M**.
 2. Task 1, the generator and golden (Python and data only): **0.27M**,
    with the curated labels, the draw floors, and a third mutation.
 3. Task 2, the translation and its tests: **0.50M**, above 6a's per-task
-   average, since it carries four deliverables, eight or nine mutation
+   average, since it carries four deliverables, seven to nine mutation
    proofs, the class sweep through the shipped row, and the U+0130 row.
 4. Task 3, the corpus case: **0.50M**, above the average for the synth,
    freeze, and oracle ledger runs, whose wall time is long, plus the README
@@ -273,7 +284,7 @@ five.
    the merge ritual at **0.05M**.
 9. **The projection is 2.12M.**
 
-In one line: a 2.12M projection sits under a 2.2M flag, which is 80% of a
+A 2.12M projection sits under a 2.2M flag, which is 80% of a
 **2.75M** ceiling. Ruling 3's no (fix now) adds about 0.03M to Task 2 and
 stays under the flag.
 
@@ -411,9 +422,10 @@ seed, and the draw count) and two arrays. `curated` holds
 preceding-character class or shape (`ä`, `©`, `newline`, `start`, and so on).
 `drawn` holds `[input, beets_output]` pairs. JSON, not TSV, because a curated
 row carries a newline. It is written with `ensure_ascii=False` and one row
-per line: the mechanics lens measured the default ASCII-escaped encoding at
-348,821 bytes for a comparable draw, over the cap, and the compact
-unescaped one at 236,532. The generator reads the literal from beets' own
+per line. The mechanics lens measured the default ASCII-escaped encoding at
+348,821 bytes for a comparable draw, over the cap. The verification read
+measured 242,193 bytes for this draw's rows one per line, under the 300 KB
+cap. The generator reads the literal from beets' own
 table and refuses to write when it differs from the literal the script
 states, so a beets bump cannot silently regenerate against a different
 pattern.
@@ -434,11 +446,13 @@ file stays under 300 KB. Output is deterministic: two runs under the pin
 write identical bytes.
 
 Two floors guard the draw's power. At least 150 drawn rows fire (beets'
-output differs from the input; the mechanics lens measured 331 of 7,898
-distinct strings), and at least 40 rows diverge between beets and the beets
+output differs from the input), and at least 40 rows diverge between beets and the beets
 literal compiled by Go. Task 1 (Python only) stops below the first floor.
 Task 2's golden test fails below either floor and pins the exact measured
-counts.
+counts. The verification read reproduced this draw in the pinned venv:
+7,955 distinct strings, 251 fired, and about 92 rows where the beets literal
+under Python's `re.ASCII` flag (the proxy for Go's ASCII `\b`) diverges from
+beets.
 
 The curated rows are the brief's table inputs (`Geschäft:`, `Rüft:`, `Ωft`,
 `Draft:`, `Ärft.`, `2ft`, `Café ft.`, `Ember Wharf ft.`), each at both
@@ -459,12 +473,12 @@ CPython 3.13.15), with the same header.
 
 `GradeCases` grades the new case end to end in `ModeCompat` (bit identity on
 the record, the verdict, and the request set), which runs
-`BeetsSDPatterns`. `ModeDefault` re-scores under the corrected table and
-reports a moved verdict as a `VerdictMoves` entry that fails nothing
-(`case.go:672-680`). So the case pins the default table's shared row in
-compat mode only. The three unit rows run under both tables, and the
-translation-map test covers both, which is how the default table's featuring
-row is pinned. The plan claims no more than that. It does state one
+`BeetsSDPatterns`. `ModeDefault` re-scores under
+`SDPatternsNoBracketDiscount` and reports a moved verdict as a
+`VerdictMoves` entry that fails nothing (`case.go:672-680`). The case
+therefore pins the featuring row only as `BeetsSDPatterns` carries it. The
+three unit rows and the translation-map test run both tables, and they pin
+`SDPatternsNoBracketDiscount`'s row. The plan claims no more than that. It does state one
 expectation Task 3 checks: the case's titles carry no bracket, so both
 tables score them alike once both carry the translated row, and the case
 should be absent from `VerdictMoves`. Present means a default-mode figure
@@ -495,7 +509,8 @@ records the real values, and the task reports any difference.
    golden test counts its rows, its fired rows, and the rows where the ASCII
    literal diverges, holds each above the R-wb4 floors, and checks every
    curated label is present. Pinned in Task 2.
-4. **The default table drifting from the compat table on the shared row.**
+4. **`SDPatternsNoBracketDiscount` drifting from `BeetsSDPatterns` on the
+   shared row.**
    Expected: never; the unit rows and the translation-map test run both.
    Pinned in Task 2.
 5. **A corpus record written by hand.** Expected: never; freeze writes it.
@@ -584,8 +599,8 @@ test against the untranslated row would commit red.
 - Running the generator twice under the pin writes byte-identical files; the
   report pastes both `sha256sum` lines.
 - The report states the curated row count and label list, the distinct drawn
-  row count, the fired drawn count (at least 150; the mechanics lens
-  measured 331 for a comparable draw), and the file sizes (featuring golden
+  row count, the fired drawn count (at least 150; the verification read
+  measured 251 for this draw), and the file sizes (featuring golden
   under 300 KB).
 - On Ruling 2's yes, the range count reads 749 at CPython 3.13.15.
 - gitleaks passes over the new files. If it flags a drawn string, the task
@@ -596,8 +611,8 @@ test against the untranslated row would commit red.
 
 1. Change the stated literal in the generator by one character, then run it:
    it refuses and writes nothing.
-2. Drop the seed: a second run writes different bytes (report reviewer-read
-   if the draw is unseeded by construction).
+2. Drop the seed: a second run writes different bytes. If the generator
+   cannot run unseeded, the report marks this mutation reviewer-read.
 3. Change the expected beets version to `2.14.0`, then run it: it refuses,
    naming both versions, and writes nothing.
 
@@ -638,39 +653,44 @@ from it now.
   (`:365-366`) and the gap note (`:371-374`) with the one named departure:
   the beets literal, the two facts, and the kept character's reason. Three
   more comments that describe the untranslated row move with it:
-  `TestStringDistFeaturingNeedsAWordBoundary`'s doc comment
-  (`strdist_test.go:135-142`, which names "the leading \b" the shipped row
-  no longer carries); the case-mapping sweep's U+0130 sentence
-  (`strdist_test.go:222-225`), which holds for the strip but not for the
-  pattern loop, and which then names Ruling 3's outcome; and the
-  table-parity sentence in `derive_defect_free.py:34-36`, which then says
-  the Python table carries beets' literal and the Go table carries the
-  featuring row translated, and why.
-- **The parity tests.** `TestBeetsSDPatternsMatchBeetsLiterals` keeps its
-  written-out literal table and asserts every row of `BeetsSDPatterns`
-  through the translation map: a row whose literal is not in the map equals
-  it with an empty `Replacement`; a row whose literal is in the map carries
-  the map's Go form and template. Its closing check that `DefaultTunables`
-  selects the shipped table (`strdist_test.go:130-132`, which compares row
-  2's `Pattern` with the literal and would red after the translation) routes
-  through the same map; it is not weakened or dropped. A second assertion
-  does the same for `SDPatternsNoBracketDiscount` against the literal table
-  less its two bracket rows. Every map entry is used by at least one row.
-  `TestBeetsSDPatterns_SixEntriesInBeetsOrder` (`tunables_test.go:185-197`)
-  duplicates the literals test and is removed;
-  `TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved` (`:202-213`)
-  routes through the same map, so no test outside the map writes the Go
-  form. A golden test reads `featuring-golden.json` and runs the shipped
-  row's compiled pattern and template over every curated and drawn input,
-  expecting beets' output; it writes out the curated label list and the
-  R-wb4 floors. On Ruling 2's yes, a class test reads the range file and
-  classifies every code point `r` outside the surrogates through the shipped
-  row itself, never a copy of its class: it substitutes on
-  `"a" + string(r) + "ft. x"`, reads `r` as a Go word character when the
-  output is unchanged and as a non-word character when the output is
-  `"a" + string(r)` (or `"a"` for `(` and `[`, which the bracket branch
-  removes), and compares that with the range file. The report states the
-  sweep's wall time (about 1.1M substitutions).
+  - `TestStringDistFeaturingNeedsAWordBoundary`'s doc comment
+    (`strdist_test.go:135-142`). It names "the leading \b", which the
+    shipped row no longer carries.
+  - The case-mapping sweep's U+0130 sentence (`strdist_test.go:222-225`).
+    It holds for the strip but not for the pattern loop, and it then names
+    Ruling 3's outcome.
+  - The table-parity sentence in `derive_defect_free.py:34-36`. It then says
+    the Python table carries beets' literal, the Go table carries the
+    featuring row translated, and why.
+- **The parity tests.**
+  - `TestBeetsSDPatternsMatchBeetsLiterals` keeps its written-out literal
+    table and asserts every row of `BeetsSDPatterns` through the translation
+    map. A row whose literal is not in the map equals it with an empty
+    `Replacement`. A row whose literal is in the map carries the map's Go
+    form and template. The test's closing check that `DefaultTunables`
+    selects the shipped table (`strdist_test.go:130-132`) compares
+    `StringDistPatterns[2].Pattern`, the featuring row, with the literal
+    and would red after the translation. It routes through the same map and
+    is not weakened or dropped. A second assertion does the same for
+    `SDPatternsNoBracketDiscount` against the literal table less its two
+    bracket rows. Every map entry is used by at least one row.
+  - `TestBeetsSDPatterns_SixEntriesInBeetsOrder` (`tunables_test.go:185-197`)
+    duplicates the literals test and is removed.
+    `TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved` (`:202-213`)
+    routes through the same map, so no test outside the map writes the Go
+    form.
+  - A golden test reads `featuring-golden.json` and runs the shipped row's
+    compiled pattern and template over every curated and drawn input,
+    expecting beets' output. It writes out the curated label list and the
+    R-wb4 floors.
+  - On Ruling 2's yes, a class test reads the range file. It classifies
+    every code point `r` outside the surrogates through the shipped row
+    itself, never a copy of its class. For each `r`, it substitutes on
+    `"a" + string(r) + "ft. x"`. An unchanged output marks `r` a Go word
+    character, and the output `"a" + string(r)` marks it a non-word
+    character. The bracket branch removes `(` and `[`, so their expected
+    output is `"a"`. The test compares the result with the range file. The
+    report states the sweep's wall time (about 1.1M substitutions).
 - **The unit rows.** `TestStringDistFeaturingNeedsAWordBoundary` gains the
   `Geschäft`, `Rüft`, and `Ωft` pairs, each run under both tables. Measured
   in the pinned venv on 2026-09-25 with `repr`: `0.5238095238095238`,
@@ -805,7 +825,7 @@ case as a divergence and the gate reds. **Neutral on 2.0 hooks.**
   new case is neither: it is a no-fire case whose strings must stay apart.
   So the family's defining sentences (`:232-257`, "Four of the five pairs"
   included) are rewritten to admit one port-hazard probe of the Go port's
-  word boundary, not merely extended by a sentence. The structural inventory
+  word boundary. The structural inventory
   (`:1681`) gains the row and its count; the corpus totals (`:1572`,
   `:1607`, `:1612`, `:1917`) move from 215 to 216, the `:1917` sum moves its
   structural term from 61 to 62, and `:1572`'s attribution of all 61
@@ -883,7 +903,10 @@ Model: `sonnet`. Depends on Tasks 0 to 3 and the simplifier round.
   character's reason, the branch order under leftmost-first matching, the
   Unicode-version count Ruling 2 settled (or its comment-only record on
   no), the U+0130 case-mapping divergence as Ruling 3 settled it (declared
-  and pinned, or fixed as a second departure), the `-run Ledger` trap
+  and pinned, or fixed as a second departure), the sweep's finding that
+  U+0130 is the only code point whose Python lowercase changes whether the
+  last character is a word character (a later toolchain bump re-runs that
+  sweep), the `-run Ledger` trap
   (it rewrites two more ledgers), and the `CompilePatternOption` class left
   documented only. It also notes that `shadow.configHash`
   (`internal/engine/shadow/match.go:55-75`) hashes the Tunables JSON, so
@@ -915,8 +938,12 @@ green on master after the last commit, plus:
    featuring row carries a `Replacement`: the translation-map test asserts
    it (Task 2).
 5. No new exported symbol other than `SDPattern.Replacement`, which
-   `StringDist` reads: `go doc -all ./internal/engine/matcher` at the base
-   commit and at HEAD differ by the field and its doc comment alone.
+   `StringDist` reads. `go doc -short ./internal/engine/matcher` ("One-line
+   representation for each symbol", `go help doc`) prints the same lines at
+   the base commit and at HEAD. That listing elides struct fields
+   (`type SDPattern struct{ ... }`), so `go doc matcher.SDPattern` at the
+   two commits differs only by the `Replacement` field and the doc text
+   that describes it.
 
 ---
 
@@ -924,7 +951,7 @@ green on master after the last commit, plus:
 
 | Surface | Owner | This pass's position | Contention |
 | --- | --- | --- | --- |
-| `internal/engine/matcher` | rung 3 | Tasks 1 and 2 | none; no open lane touches it |
+| `internal/engine/matcher` | rung 3 | Tasks 1 and 2; Task 3, one case-count comment | none; no open lane touches it |
 | `internal/harness/conform` floors | rung 3/4 | Task 3, two constant blocks and case-count comments | none |
 | `internal/engine/tag/tag_test.go`, `internal/harness/oracle/derive_defect_free.py` | rung 3, rung 2 | one comment each (Tasks 3 and 2) | none; no open lane touches either |
 | `corpus/`, `corpus/analysis/ties.json` | rung 2 | Task 3 | none; main tree only |
@@ -957,9 +984,10 @@ Not tasks; no implementer performs them.
 ## Execution model
 
 Per-task Agent dispatch, sequential, one segment: Task 0, then Tasks 1 to 3,
-then the simplifier round, then Task 4. Every task runs
+then the simplifier round, then Task 4. Tasks 1 to 4 each run
 `dubplate-implementer` (`sonnet`, `high`), then `diff-reviewer`
-(`claude-opus-5-5`, `high`), then the gate. One re-dispatch on `fix`; a
+(`claude-opus-5-5`, `high`), then the gate. Task 0 is a read-only `sonnet`
+dispatch whose report the conductor reads directly. One re-dispatch on `fix`; a
 second `fix` is the conductor's decision. Every reviewer dispatch asks for
 correctness gaps ranked by consequence, not polish.
 
@@ -998,10 +1026,10 @@ every task is neutral.
   re-fetched. The behaviors this plan relies on were confirmed in the pinned
   venv.
 - The brief's 50,000-string differential run was not re-run by the plan's
-  author. The mechanics lens ran its own 60,000-string draw (seed 907, the
-  brief's tokens plus `©`, `™`, `€`, `\n`, `)`, `]`, `é`, and U+203F) and
-  found zero differences for the rewrite outside rows carrying a code point
-  first assigned after Unicode 15.1.
+  author. The mechanics lens ran its own 60,000-string draw (seed 907, 36
+  tokens, among them `©`, `™`, `€`, `\n`, `)`, `]`, `é`, U+203F, and
+  U+088F, a code point first assigned in Unicode 16.0), and found zero
+  differences for the rewrite outside the 452 U+088F rows.
 - The corpus case's figures (distance near 0.0873, medium, skip) are an
   arithmetic prediction from `adv-ft-draft-colon`'s ratio; freeze records the
   real ones.

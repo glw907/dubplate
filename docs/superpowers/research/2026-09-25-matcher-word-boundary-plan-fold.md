@@ -112,3 +112,60 @@ each stale comment joins the deliverable whose code it describes.
   them.
 - Planning spend for this fold is outside the execution ceiling, as Ruling 1
   states.
+
+## Fold 2
+
+Revision 2 folded to revision 3 (status "reviewed; awaiting owner approval
+(Rulings 1-3)"). Inputs: the verification read
+(`2026-09-25-matcher-word-boundary-plan-fold-verification.md`, findings
+V1-V4) and the prose review
+(`2026-09-25-matcher-word-boundary-plan-prose-review.md`, fact findings
+P1-P10, one blocker, four warnings, six suggestions). Each finding was
+checked against the tree at `b9e281b` before it was applied. The fold wrote
+only the plan and this record, committed nothing, and ran no gate. Task
+scope, the ceiling, and each ruling's substance are unchanged.
+
+Counts: 25 findings, 25 applied, 0 refused.
+
+Checks run: `go help doc` ("-short: One-line representation for each
+symbol. Cannot be combined with -all."); `go doc -short
+./internal/engine/matcher`, which prints `type SDPattern struct{ ... }` with
+the fields elided; `go doc matcher.SDPattern`; a reproduction of R-wb4's
+draw in the pinned venv (7,955 distinct, 251 fired, 92 `re.ASCII`
+divergences, 234,239 bytes for the rows joined by newlines without the
+7,954 separating commas, which is consistent with the verification's
+242,193); `tunables.go:324`, `compat.go:39-53`, `case.go:530-540`;
+`strdist_test.go:110-133`; `go doc regexp` (the "'All' variants return an
+iterator" sentence) and `go doc regexp.Compile` (the sentence continues
+past "use"); the 6a "Both budgets" entry in `docs/HISTORY.md`; and the
+mechanics lens's token list, size table, and category counts.
+
+| Finding | Disposition |
+| --- | --- |
+| V1, exit gate 5 | Applied. The gate now compares `go doc -short` listings, quoted from `go help doc`, and diffs `go doc matcher.SDPattern` for the field. It allows the doc text that describes the field, since the type's doc says the pattern is "deleted from both inputs". |
+| V2, stale draw figures | Applied. R-wb4 and Task 1 acceptance quote 7,955, 251, about 92, and 242,193 bytes, reproduced by this fold. |
+| V3, "second instance" | Applied. Dropped from Ruling 3; Task 4's HISTORY list gains the one-code-point sweep result. |
+| V4, Goal "every input" | Applied. The Goal excludes code points first assigned after Unicode 15.1 (Ruling 2). |
+| P1, "the default table" | Applied. R-wb5 and Review focus 4 name `SDPatternsNoBracketDiscount` and `BeetsSDPatterns`. |
+| P2, row 2 vs row 3 | Applied. The closing check is described as `StringDistPatterns[2].Pattern`, the featuring row. |
+| P3, package-doc gloss and Compile quote | Applied. The sentence names the `All` iterator variants; the Compile quote ends with "...". |
+| P4, ceiling basis | Applied. The close side lists its six parts. |
+| P5, "not verified" token list | Applied. It names 36 tokens with U+088F and the 452 rows. |
+| P6, size figure encoding | Applied with V2. |
+| P7, chain includes Task 0 | Applied in the header note and the execution model. |
+| P8, contested-surfaces row | Applied. |
+| P9, mutation count | Applied: "seven to nine". |
+| P10, `LC` label | Applied: "`Lu` and `Ll` 106", as the mechanics lens measured. |
+| Blocker, "underscore" | Applied. The quote stops at `str.isalnum()`, followed by "plus `_`". |
+| Warning, the comment-edit run-on | Applied as three sub-bullets. |
+| Warning, the class-test sentence | Applied as proposed. |
+| Warning, the parity-tests bullet | Applied as four sub-bullets. |
+| Warning, the ruling paragraphs | Applied. Each ruling starts a paragraph at "What each answer builds", and Ruling 3's yes and no are separate sentences. |
+| Suggestion, "In one line:" | Applied. |
+| Suggestion, title case | Applied. |
+| Suggestion, the combining mark in `re.match` | Applied as the `"́"` escape, since the literal character is invisible. |
+| Suggestion, mutation 2 wording | Applied. |
+| Suggestion, status line | Applied through the revision 3 status. |
+| Suggestion, "not merely extended" | Applied. |
+
+tellgrader `--register docs` on revision 3: 0 findings.
