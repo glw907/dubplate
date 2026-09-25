@@ -37,9 +37,34 @@ Read `docs/STATUS.md` and the memory entry `session-2026-09-25-handoff` first.
 Segments are ordered by the one contended resource: the main tree. Two executors never run
 in one tree.
 
-1. **Finish the 5c-ii fold** if STATUS shows it incomplete: relaunch only the unfinished fold
-   task through `pass-execute` (a run cannot resume across sessions), with a note to review
-   and finish any warm edits rather than start over.
+1. **Finish the 5c-ii fold.** Run `wf_02fe1440-91c` ended with Fold A at a second `fix`
+   (commits `d236d03`, `cc4649c`; the tree was clean) and Fold B not started. The conductor
+   ruled one more targeted round for Fold A. Launch `pass-execute` in the main tree with two
+   tasks, reusing that run's `commonNotes` (the dispatch text is in the run's journal, or rebuild
+   it from this plan and the 5c-ii plan):
+   - **F-A3** (sonnet), the two remaining blocking findings in
+     `web/scripts/gates/theme-bundle.ts`. First, `checkNameConfinement` must pass the enclosing
+     layer name down, not a boolean, and require every rule that sets a theme token name to sit
+     inside `@layer base` whatever its confining part (`:host`, `:where(:root)`, stock
+     `[data-theme=light|dark]`, theme-controller), with one exception: Tailwind's preflight
+     `:root,:host` rule inside `@layer theme`. Mutation rows that must fail: unlayered
+     `:root,:host{--color-primary:#00f}`, `:where(:root){...}`, `[data-theme=light]{...}`,
+     `:host{...}`, and `@layer utilities{:root,:host{...}}`. Second, `STOCK_THEME_CONTROLLER`
+     at `:174` has an alternation-precedence bug; use
+     `/input\.theme-controller\[value="?(?:light|dark)"?\]/` and add a
+     `.card[value=dark]{--color-primary:#00f}` mutation row that must fail. The real build must
+     stay green on g2, g9, and theme-bundle.
+   - **F-B** (opus), exactly as dispatched in `wf_02fe1440-91c`: security M1 (the operator CSS
+     symlink and stat-then-open fix, with symlink, parent-directory symlink, and FIFO rows),
+     L1 (bounded method in `LogRequests`), L2 (`isLoopbackHost` case, trailing dot, and
+     `.localhost`), L3 (CSP verified per served variant), L4 (members document `no-store`),
+     Svelte W4 (`img-src 'self' data:` in both the kit config and `internal/serve/csp.go`) and
+     W8 (a Go test pinning the meta and header directives equal), a11y W7 (a `<title>` on every
+     route and the error page), the identity spec ink values (label `--ink-primary` `#9d2f26`,
+     `--ink-warning` `#754f00`, in `inks.css` and `system.css`, markers updated to measured
+     ratios), and the corrected (0,4,1) specificity comment in `system.css`.
+   If STATUS or `git log` shows either already landed, skip it. Check `git status` for warm
+   edits first.
 2. **6b-i's merge ritual**, with the main tree quiet: in the worktree run
    `npm ci --prefix web` (master now carries 5c-ii's `web/`), then `git rebase master`
    (expect a textual conflict in `cmd/dubplate-server/main.go`, where both passes add a
