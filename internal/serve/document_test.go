@@ -1,7 +1,9 @@
 package serve
 
 import (
+	"bytes"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -9,6 +11,21 @@ import (
 	"testing"
 	"testing/fstest"
 )
+
+// captureDefaultLogger swaps slog.Default() for a logger writing to
+// the returned buffer, restoring the prior default when t ends.
+// NewDocument takes no logger of its own, so slog.Default is the only
+// sink a mutant logging the theme cookie's value could reach; the
+// caller must not run this test in parallel with another that reads
+// or writes slog.Default.
+func captureDefaultLogger(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	prior := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+	t.Cleanup(func() { slog.SetDefault(prior) })
+	return &buf
+}
 
 func TestRewriteDocument(t *testing.T) {
 	tests := []struct {
@@ -207,9 +224,17 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 			cookieHeader:   "__Host-dubplate_theme= label",
 			want:           "system",
 		},
+		{
+			name:           "an unknown value carrying a planted marker never matches, and the marker reaches no log",
+			defaultPalette: "system",
+			cookieHeader:   "__Host-dubplate_theme=qx7-plantedmarker-4kd9",
+			want:           "system",
+		},
 	}
+	defaultLogs := captureDefaultLogger(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defaultLogs.Reset()
 			handler := NewDocument(documentVariantFixture(), tt.defaultPalette)
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			if tt.cookieHeader != "" {
@@ -226,6 +251,13 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 			}
 			if set := rec.Header().Values("Set-Cookie"); len(set) != 0 {
 				t.Errorf("Set-Cookie = %v, want none", set)
+			}
+			// NewDocument's own doc comment promises it "logs
+			// nothing about the cookie's value"; a mutant that
+			// logs cookie.Value through slog.Default makes this
+			// buffer non-empty.
+			if defaultLogs.Len() != 0 {
+				t.Errorf("slog.Default buffer is not empty: %s", defaultLogs.String())
 			}
 		})
 	}

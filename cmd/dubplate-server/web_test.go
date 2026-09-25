@@ -354,6 +354,14 @@ func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) 
 func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 	prefix := webTestPrefix(t)
 
+	// The mutation this test guards against can write the cookie's
+	// value through either sink a handler in this chain could reach:
+	// the shell's own logger (captured per request below) or the
+	// package-wide slog.Default. captureDefaultLogger swaps the latter
+	// for the run and restores it on cleanup, so this test must not run
+	// in parallel with another that reads or writes slog.Default.
+	defaultLogs := captureDefaultLogger(t)
+
 	buildFS, err := fs.Sub(web.Assets, "build")
 	if err != nil {
 		t.Fatalf("fs.Sub: %v", err)
@@ -419,9 +427,11 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 		{name: "the same value under another cookie name is ignored", cookieHeader: "dubplate_theme=label-night", wantComposed: "dubplate-system"},
 		{name: "two cookies, the first unparseable: the second is read", cookieHeader: `__Host-dubplate_theme=a\b; __Host-dubplate_theme=label-night`, wantComposed: "dubplate-label-night"},
 		{name: "a padded value keeps the space inside, so it never matches", cookieHeader: "__Host-dubplate_theme= label", wantComposed: "dubplate-system"},
+		{name: "an unknown value carrying a planted marker never matches, and the marker reaches no log", cookieHeader: "__Host-dubplate_theme=qx7-plantedmarker-4kd9", wantComposed: "dubplate-system"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defaultLogs.Reset()
 			var environ []string
 			if tt.paletteEnv != "" {
 				environ = []string{"DUBPLATE_THEME_PALETTE=" + tt.paletteEnv}
@@ -456,8 +466,19 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 			if set := rec.Header().Values("Set-Cookie"); len(set) != 0 {
 				t.Errorf("Set-Cookie = %v, want none", set)
 			}
-			if tt.cookieHeader != "" && strings.Contains(logBuf.String(), tt.cookieHeader) {
-				t.Errorf("log buffer contains the cookie header %q: %s", tt.cookieHeader, logBuf.String())
+			// The shell's own logger writes only on refusal
+			// (internal/serve/serve.go's logRefusal), so a 200 row
+			// leaves it untouched; any content at all, not merely
+			// the cookie header as a substring, is the row logging
+			// something it must not.
+			if logBuf.Len() != 0 {
+				t.Errorf("shell log buffer is not empty: %s", logBuf.String())
+			}
+			// NewDocument reads no logger, so nothing on this path
+			// should reach slog.Default either; a mutant that logs
+			// cookie.Value through it makes this buffer non-empty.
+			if defaultLogs.Len() != 0 {
+				t.Errorf("slog.Default buffer is not empty: %s", defaultLogs.String())
 			}
 		})
 	}
