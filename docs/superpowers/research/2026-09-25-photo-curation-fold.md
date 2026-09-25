@@ -37,8 +37,8 @@ errata; M3 the one owner fork (Ruling 1). One sub-item, K15's future-website lin
 | C5 | Folded | One image per named artist, keyed by MBID or normalized name; listed in Changes. The closed `artists` list is refused: a normalized-name key catches the same duplicates without a conductor-maintained list. |
 | C6 | Folded in part | Landmark key is Wikidata ID or normalized name, with waivers. The closed landmark list in `vocab.json` is refused: a slipped second image of one landmark is a balance nit Geoff sees on the sorting page, not worth a per-round list edit. |
 | C7, D10, K4 | Folded | `artwork` field, required for flyer and zine cover, with the faithful-scan basis. |
-| C8 | Folded | Picked license limited to shipped classes by the integrity check; `public_domain` shape, required only for `LicenseRef-public-domain`. The basis values live in a closed list in `vocab.json` rather than in the spec, so no US term rule is stated from memory. |
-| C9, D6 | Folded | Sample size (every PD and flyer record, 20% of the rest, at least five); round logs; `file_url`, `archive_url`, `retrieved_at`; `verified` names who verified. Grants: letter asks for a public posting; an email-only grant commits a grant record (D6 option a, taken as settled: the record holds only what the grantor wants credited, and the repository is the durable record). |
+| C8 | Folded in part (closed at the second fold, V1) | Picked license limited to shipped classes by the integrity check; `public_domain` shape, required only for `LicenseRef-public-domain`. The basis values live in a closed list in `vocab.json` rather than in the spec, so no US term rule is stated from memory. The verification (V1) found three open paths: the US status was recorded but never required to be public domain, the `artwork` license escaped the shipped-class check, and `CC-PDM-1.0` clashed with the `public_domain` rule. |
+| C9; D6 | C9 folded; D6 folded in part | Sample size (every PD and flyer record, 20% of the rest, at least five); round logs; `file_url`, `archive_url`, `retrieved_at`; `verified` names who verified. Grants: letter asks for a public posting; an email-only grant commits a grant record (D6 option a, taken as settled: the record holds only what the grantor wants credited, and the repository is the durable record). D6 asked for `archive_url` to be required on picked and pack records; the fold made it optional ("when one succeeds"), which the verification (V7) found defensible but undisclosed. |
 | C10, K8, D9 | Folded | Non-picked records move to `photos/meta/` (rejected as dedupe keys plus a reason code, pack as full records); `screen` is stripped at commit; pair check covers picked only; status absent only in the candidate home. |
 | C11, M1, K2 | Folded | Licensing: per-version basis (4.0 section 2(a)(4); 2.0 and 3.0 by the CC format-change guidance), CREDITS notes the resize, `source_title` for 2.0 and 3.0; the Changes bullet now says the file is modified. |
 | C12, K15 (dimensions) | Folded | `width`, `height` of the stored file; crop judgment left to Geoff's sort. Source dimensions are not recorded: Ruling 1's floor is checked at screening. |
@@ -46,7 +46,7 @@ errata; M3 the one owner fork (Ruling 1). One sub-item, K15's future-website lin
 | C14 | Folded | The final-night clause stays as guidance with the `error` surface marking it; error and empty floors of three each. `closed-venue` subject refused: the surfaces facet already records the use. |
 | C15 | Folded | Agents set `pack` at screening; the page does not show pack candidates. |
 | M2 | Folded | Licensing: raw `curl` evidence under a descriptive UA, `action=raw` on Commons, license link on Flickr; the spot-check uses the same channel. |
-| M3 | Owner fork | Ruling 1 (size floor below 1600px). Upscaling (option c) is refused as the review recommends. |
+| M3 | Owner fork, ruled at the second fold | Ruling 1 (size floor below 1600px). Upscaling (option c) is refused as the review recommends. |
 | M5, D4 | Folded | `source_id`, `origin_id`; per-agent candidate subdirectories; no overwrite; conductor mints the slug at pick time with a uniqueness check; slug pattern; slugs never renamed; the check reports unparseable JSON. D4's temp-file-and-rename step is refused: per-agent directories already rule out a writer collision, and the check catches a truncated file. |
 | D5 | Folded in part | Upstream-most copy governs, and conflicting copies reject (Licensing); `source_id` and `origin_id` catch the Commons-Flickr transfer. The perceptual hash and near-duplicate pass are refused: they only catch duplicates that are both already in the pool, the laundering case D5 names comes from an original outside it (caught by the "own work" rule and the upstream-most rule), and Geoff sees near-duplicates in one grid. |
 | M6, D1, K15 (scratch) | Folded | `photos/.candidates/`, gitignored, gitleaks allowance landed by the conductor before round one; 25-file asset batches; roughly 600px thumbnails plus full files; prune after each round; shared database documents keyed by `source_id`. |
@@ -91,3 +91,35 @@ errata; M3 the one owner fork (Ruling 1). One sub-item, K15's future-website lin
   the `.gitleaks.toml` allowlist with a comment in the file's existing style.
 - After lane 1 finishes, in its batch: a `scripts/check.sh` leg running
   `node tools/photos/check.mjs` in integrity mode.
+
+## Second fold (revision 2.1)
+
+Input: `2026-09-25-photo-curation-fold-verification.md` (V1-V9), probes in
+`/tmp/claude-1000/verify-photo/`, and Geoff's ruling on Ruling 1. Scope was fixed by the
+conductor: V1, the ruling, the User-Agent contact, V3-V6, and the C8 and D6 corrections above.
+The fold re-checked two probes before acting: the scratch repo's log shows a plain commit
+sweeping a `git add` path (`lane1-task` carries `p2`) and leaving an intent-to-add path out
+(`lane1-task2` lacks `p3`), and `src_o.jpg` (2400x1200, orientation RightTop) encodes to
+1600x800 without `-auto-orient` and to 800x1600 with it.
+
+| ID | Disposition | Where |
+|---|---|---|
+| V1 | Folded | `public_domain` requires public domain in the US; public-domain works always take `LicenseRef-public-domain`, with a mark such as `CC-PDM-1.0` quoted in `verified`; `artwork.license` must be a shipped class and a public-domain artwork carries its own `public_domain`; the NC-artwork flyer joins the check's failing fixtures. |
+| Ruling 1 (M3, V2) | Ruled | Geoff, 2026-09-25: "We can lower for genuinely unique or valuble photos. We can go as low as 1000px, but the photo needs to justify that." Floor 1200px; 1000-1199px only with a `size_exception` line shown on the sorting page, Geoff's keep the approval; under 1000px never; no upscaling; integrity fails a picked record under 1000px or under 1200px without the line. The ruling's evidence is replaced by V2's table, the section becomes Decisions recorded, and the login-column promise to rung 7 is dropped. |
+| User-Agent contact | Folded | Licensing: every User-Agent contact comes from `DUBPLATE_HARNESS_CONTACT`, the variable `cmd/harness/capture.go` reads; no agent puts any other personal address in a request. The Artists facet points there. Raised because a verification probe sent the owner's login address to Commons. |
+| V3 | Folded | Round close step 5: `git add -N -- <paths>` then `git commit -- <paths>`. |
+| V4 | Folded | Storage: `-auto-orient` in the pinned encode, thumbnails the same. |
+| V5 | Folded | Round close step 3 runs the MBID step before integrity. Integrity now fails an unwaived second image of one artist or landmark; the sorting page marks such a candidate, and a keep on it is Geoff's waiver, written to `waivers.json` at close, so the close raises no mid-round question. MBIDs are kept rather than dropped (the verifier's section 5 alternative); the conductor did not route that trim. |
+| V6 | Folded | Round close step 3 moves pack candidates into `pack.json` with `screen` stripped; pack files are not kept, and packaging re-fetches them and checks `source_sha256`. |
+
+Owed to the rung plan, not folded here:
+
+- **V7** beyond the disclosure above: name the Wayback mechanism (anonymous
+  `GET web.archive.org/save/<source_url>`, retried after a `429`, snapshot URL from the `302`
+  `location`) and state that a Flickr-direct record without a capture rests on its raw `verified`
+  quote and `retrieved_at`.
+- **V8**: CREDITS should also say the image is displayed cropped and toned; rung 7 owns the
+  wording, and the spec's "on any reading" claim stands overstated until then.
+- **V9**: the rung 7 embed note's pattern should read `*.webp *.json` from inside `photos/`.
+
+The spec carries no open rulings after this fold.

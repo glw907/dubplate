@@ -1,6 +1,6 @@
 # Photo curation design
 
-Status: revision 2, folded from four lens reviews (fold record:
+Status: revision 2.1, folded from four lens reviews and a fold verification (fold record:
 `docs/superpowers/research/2026-09-25-photo-curation-fold.md`), for Geoff's read, 2026-09-25.
 Initiative: ROADMAP `photo-curation`.
 
@@ -102,8 +102,9 @@ Year
 Artists
 : The performers shown. Search agents record names only. The conductor adds MusicBrainz artist
   IDs in one serialized step at no more than one request per second, with a User-Agent naming
-  dubplate and a contact address, as MusicBrainz requires. Parallel agents on one IP would
-  otherwise draw 503 responses.
+  dubplate and a contact address (see Licensing for where the contact comes from), as
+  MusicBrainz requires. Parallel agents on one IP would
+  otherwise draw 503 responses. The step runs at round close, before the integrity check.
 
 Surfaces
 : One or more of: login, error, empty, gallery. An error-page photo shows a closed club, such as
@@ -149,12 +150,13 @@ A picked record carries the facets above and these provenance fields:
 | `archive_url` | A Wayback Machine snapshot of the source page, taken at verification, when one succeeds. For a Flickr transfer, the FlickreviewR template's `archive` link serves. |
 | `retrieved_at` | The full timestamp of the download. |
 | `license` | An ID from the closed license list in `vocab.json`. The list uses the SPDX ID where one exists (`CC-BY-2.0`, `CC-BY-SA-4.0`, `CC0-1.0`, `LAL-1.3` for the Free Art License) and a `LicenseRef-` ID otherwise (`LicenseRef-CC-BY-SA-3.0-NL`, `LicenseRef-public-domain`). The list maps each ID to its legal code URL. |
-| `public_domain` | Required for `LicenseRef-public-domain`, forbidden otherwise: a basis from a closed list in `vocab.json`, the jurisdiction, the US status, and the fact the basis rests on (a first-publication year or the author's death year). |
+| `public_domain` | Required for `LicenseRef-public-domain`, forbidden otherwise: a basis from a closed list in `vocab.json`, the jurisdiction, the US status, which must be public domain in the US, and the fact the basis rests on (a first-publication year or the author's death year). A public-domain work always takes `LicenseRef-public-domain`; a mark such as `CC-PDM-1.0` goes into `verified` as evidence, never into `license`. |
 | `verified` | The license evidence quoted verbatim from the raw source (see Licensing), the date, and who verified it. |
-| `artwork` | Required when the format is flyer or zine cover: the artwork's artist, license, credit, `source_url`, and `verified`. The top-level fields then describe the photograph or scan of it. A faithful flat scan that carries no separate right records that basis in place of a second license. |
+| `artwork` | Required when the format is flyer or zine cover: the artwork's artist, license, credit, `source_url`, and `verified`. Its license must be one of the shipped classes, and a public-domain artwork carries its own `public_domain` object under the same rule as the top level. The top-level fields then describe the photograph or scan of it. A faithful flat scan that carries no separate right records that basis in place of a second license. |
 | `source_sha256` | The hash of the file as downloaded. |
 | `sha256` | The hash of the stored file, written by the step that encodes it. |
 | `width`, `height` | The stored file's pixel dimensions. |
+| `size_exception` | Required when the stored long edge is 1000 to 1199px, forbidden otherwise: one line saying why the image is unique or valuable enough to fall below the 1200px floor. |
 | `status` | `picked`, or `withdrawn` for an image removed after commit (see Licensing). |
 
 Candidate records also carry `screen`, the search agent's 1-to-5 score and one-line note. It is
@@ -162,12 +164,20 @@ stripped when a record is committed, so no judgment of a named photographer's wo
 repository.
 
 Images are stored as WebP, resized down to a 1600px long edge and never upscaled, encoded with
-ImageMagick 7.1.2 and cwebp 1.6.0 as `magick <source> -resize '1600x1600>' <tmp>.png` then
-`cwebp -q 80 -m 6 -metadata icc`. That setting measured a 164KB mean on 24 real candidates,
+ImageMagick 7.1.2 and cwebp 1.6.0 as `magick <source> -auto-orient -resize '1600x1600>' <tmp>.png`
+then `cwebp -q 80 -m 6 -metadata icc`, and thumbnails the same way. `-auto-orient` matters because
+neither `-resize` nor cwebp applies the EXIF orientation, so a rotated source would otherwise be
+stored sideways. That setting measured a 164KB mean on 24 real candidates,
 which puts 300 images near 48MB. Keeping only the ICC profile preserves tone and drops EXIF GPS,
 and the record's `notice` field carries any embedded copyright notice into CREDITS. The
 silver-print treatment stays a render-time CSS filter, as the identity spec rules. The stored
-file is never tinted. Ruling 1 below settles what happens to a source smaller than 1600px.
+file is never tinted.
+
+The size floor is a 1200px long edge (Geoff, 2026-09-25: "We can lower for genuinely unique or
+valuble photos. We can go as low as 1000px, but the photo needs to justify that."). A source of
+1000 to 1199px is eligible only with a `size_exception` line in its record. The sorting page shows
+that line beside the image, and Geoff's keep is the approval. A source under 1000px is never
+eligible, and no image is upscaled. Agents also look for an archive's own larger scan.
 
 Only picked images are committed. Candidates wait in `photos/.candidates/`, one subdirectory per
 search agent, named by source ID in filename form (`commons-12345.jpg` and `.json`). The
@@ -186,15 +196,17 @@ reads `vocab.json` directly. It has two modes.
   of the shipped classes, the `public_domain` and `artwork` rules, that every picked record has
   its `.webp` with a matching `sha256`, that no `.webp` lacks a picked record, that no withdrawn
   record keeps an image, that no JSON file fails to parse, and that no `source_id`, `origin_id`,
-  or hash repeats across picked, rejected, and pack records. It also flags a second image of one
-  artist or landmark without a waiver.
+  or hash repeats across picked, rejected, and pack records. It fails a picked record whose long
+  edge is under 1000px, or under 1200px without `size_exception`, and it fails a second image of
+  one artist or landmark without a waiver.
 - **Balance** reports each share against its band, the region maximum, the posed share, the
   floor grid, and the surface floors, with waivers applied. It exits nonzero on any unwaived
   breach, but a breach blocks only the done checkpoint, because the pool fills over many
   commits.
 
 The script is proved able to fail once, against fixtures in `tools/photos/testdata/` with a
-duplicate artist, an NC-licensed pick, and an empty floor cell. The sorting page's count bar is
+duplicate artist, an NC-licensed pick, an NC-licensed flyer artwork under a CC BY scan, and an
+empty floor cell. The sorting page's count bar is
 seeded from the balance mode's output, so both read the same numbers.
 
 The pass adds no Go. A new package would join the `./...` gate that other lanes run, and nothing
@@ -214,8 +226,11 @@ it.
 
 License evidence is fetched raw with `curl` under a User-Agent naming dubplate and a contact
 address, never through a summarizing fetch tool, which returns a small model's paraphrase in
-place of a quote. Wikimedia may block a default script User-Agent (a probe with `python-requests` drew 403), so the descriptive one matters. On
-Commons, `verified` quotes the license template and any review template from the page's
+place of a quote. Wikimedia may block a default script User-Agent (a probe with `python-requests`
+drew 403), so the descriptive one matters. The contact in every User-Agent this pass sends, to
+Commons, Flickr, MusicBrainz, or an archive, comes from the `DUBPLATE_HARNESS_CONTACT` environment
+variable, the same one `cmd/harness/capture.go` reads. No agent puts any other personal address in
+a request. On Commons, `verified` quotes the license template and any review template from the page's
 `action=raw` wikitext. On Flickr, it quotes the license link from the page HTML. An aggregator's
 license field alone is never enough. For a Flickr-origin file, the license that counts is the one
 in force when it was granted, shown by the FlickreviewR record or an archive capture, because a
@@ -261,7 +276,8 @@ family, searched by name. Hip-hop starts close to empty, because the earlier res
 covered it.
 
 Each search agent looks at every candidate it keeps. It drops an image that is out of focus or
-below the size floor (Ruling 1). It gives each survivor a 1-to-5 gut score and a one-line note in
+below the size floor (Storage), and it writes `size_exception` for a 1000 to 1199px source it
+keeps. It gives each survivor a 1-to-5 gut score and a one-line note in
 `screen`. The score only sets the order Geoff sees candidates in, so it decides nothing. The crop
 to the login page's tall column is Geoff's judgment on the sorting page.
 
@@ -275,7 +291,10 @@ whole before Geoff sees it.
 Geoff sorts on a private artifact page. The page shows a grid of roughly 600px thumbnails in
 score order, each captioned with its subject, place, year, and license, and `Space` opens the
 full-size file. `Y` keeps a candidate, `N` passes it, and the arrow keys move between candidates.
-Clicks work too, so the page is usable on a phone. Filter chips narrow the grid by family,
+Clicks work too, so the page is usable on a phone. A candidate's `size_exception` line shows
+beside its image, and a candidate that would be a second image of a picked artist or landmark
+is marked; a keep on a marked candidate is Geoff's waiver, which the conductor writes to
+`waivers.json` at round close. Filter chips narrow the grid by family,
 subject, and region, and a bar shows running counts against the shares. Pack candidates are not
 shown. Candidates go to the artifact's asset store in batches of 25 files, the per-call limit,
 from `photos/.candidates/`, since a file outside the working directory takes a call of its own.
@@ -292,11 +311,16 @@ A round closes in this order:
    whose hash equals its record's `source_sha256`. A missing file or a mismatch goes back to
    Geoff unpicked, never onto a substitute.
 3. For each keep, the conductor mints the slug, encodes the WebP, writes `sha256`, `width`, and
-   `height`, strips `screen`, and moves the pair into `photos/`. Each pass goes into
-   `photos/meta/rejected.json`.
+   `height`, strips `screen`, and moves the pair into `photos/`. It then runs the serialized
+   MusicBrainz ID step over the keeps' artists and writes any waiver a marked keep carries. Each
+   pass goes into `photos/meta/rejected.json`. Each pack candidate goes into
+   `photos/meta/pack.json` with `screen` stripped; its file is not kept, and packaging re-fetches
+   it and checks it against `source_sha256`.
 4. The integrity check passes, and the round log records the counts.
-5. The conductor commits with `git add -- <paths>` then `git commit -- <paths>`, which commits
-   only the named paths and leaves anything lane 1 has staged untouched. It checks
+5. The conductor stages new paths with `git add -N -- <paths>` (intent-to-add) only, then
+   commits with `git commit -- <paths>`. Intent-to-add records no content, so another lane's
+   plain `git commit` cannot sweep a photo in, and `git commit -- <paths>` commits only the named
+   paths with full content, leaving anything lane 1 has staged untouched. It checks
    `git show --stat HEAD` against the path list, retries on `.git/index.lock`, and never deletes
    the lock.
 
@@ -352,12 +376,21 @@ This spec changes these things in the identity spec:
 
 The identity spec gets a one-line pointer to this spec when this spec is approved.
 
-## Rulings for Geoff
+## Decisions recorded
 
-1. **Does a source smaller than 1600px stay eligible, stored at its native size and never
-   upscaled, down to a 1200px long edge?** Recommendation: yes. A size query over 113 research
-   candidates found 51 under 1600px and 30 under 1000px, and the small ones are the period
-   material (Bundesarchiv, Tropenmuseum). Agents also look for an archive's own larger scan.
-   **Yes builds:** a 1200px floor, stored files between 1200 and 1600px, and a login column that
-   renders them without upscaling. **No builds:** a hard 1600px floor, which drops close to half
-   of the known candidates and thins the period record.
+1. **Size floor (Geoff, 2026-09-25):** "We can lower for genuinely unique or valuble photos. We
+   can go as low as 1000px, but the photo needs to justify that." The floor is a 1200px long
+   edge, with 1000 to 1199px eligible through `size_exception` and Geoff's keep (Storage). A
+   size query over 113 research candidates found these long edges:
+
+   | Long edge | Candidates |
+   |---|---|
+   | 1600px or more | 62 |
+   | 1200-1599px | 15 |
+   | 1000-1199px | 6 |
+   | under 1000px | 30 |
+
+   The cited period examples, Bundesarchiv at 568×608 and Tropenmuseum at 700×536, fall under
+   1000px, so they need an archive's larger scan.
+
+This spec carries no open rulings.
