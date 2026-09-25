@@ -29,10 +29,12 @@ errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus h
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | OPEN: matcher word-boundary pass (window 2, 2026-09-25); ceiling 2.75M, flag 2.2M; then 5c-iii segments |
-| 2 | worktree `lane-2-6b-ii-a` (branch `lane-2-6b-ii-a`, cut at `f6c8edb`) | OPEN: 6b-ii-a (window 2, 2026-09-25); ceiling 3.90M, flag 3.12M |
+| 1 | main tree (master) | OPEN: matcher word-boundary pass; Tasks 0-1 accepted (`362f73d`), Task 2 at `6751725` + fix `841cafe` in re-review; ceiling 2.75M, flag 2.2M; then 5c-iii segments |
+| 2 | worktree `lane-2-6b-ii-a` (branch `lane-2-6b-ii-a`, cut at `f6c8edb`) | OPEN: 6b-ii-a segment A1 done (Tasks 1-3 accepted, run `wf_0f376bd8-ee8`); Task 1's unfired canceled-chain mutation being pinned; then A2 (simplifier, security review, Task 8 drafts, merge); ceiling 3.90M, flag 3.12M |
 
-Window 2 spend against the 11M cap: 0 at launch. AC online at launch; `npm ci` done in the worktree.
+Window 2 spend against the 11M cap: about 2.1M (lane 1 about 0.75M incl. the version re-key docs round; lane 2 about 1.29M). AC online at launch.
+
+Readings taken this window (conductor, 2026-09-25; reversible): both lanes gate on `CAIRN_GATE_LANE=light` until 5c-iii Task 3a (no browser leg yet, as 5c-ii did); 6b-ii-a Task 1's `wrapCanceled` keeps the store text out of `Reason` (reviewer fix, `ab58067`); Task 0's note that `IntegrationValue` answers "" for a disabled class routes to 6b-ii-b's R-6bii9 row (key on `IntegrationEnabled`).
 
 ## Open items (carried)
 
