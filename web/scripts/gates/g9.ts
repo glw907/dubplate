@@ -69,6 +69,23 @@ const DIRECT_TEXT_COLORS = [
 ];
 
 /**
+ * DL R2.6's closed list, quoted independently of `DIRECT_TEXT_COLORS`
+ * so a deletion from that array is still caught: the two must agree,
+ * checked below in `run()`, rather than one being derived from the
+ * other.
+ */
+const DL_R2_6_DIRECT_TEXT_COLORS = [
+  '--color-primary',
+  '--color-secondary',
+  '--color-accent',
+  '--color-neutral',
+  '--color-error',
+  '--color-success',
+  '--color-warning',
+  '--color-info'
+];
+
+/**
  * The two fills VI marks fill-only, never measured as direct text
  * (visual identity spec :108, W2.6's marker): "never text, never a
  * focus or selector indicator".
@@ -275,14 +292,16 @@ const PALETTE_FILES: Record<string, string> = {
  * The closed list's size, per composed theme: every `-content` pair
  * (1 base each), `--color-base-content` (3 bases), every direct-text
  * color minus that theme's fill-only exclusions (1 base each), and
- * every ink (3 bases each).
+ * every ink (3 bases each). Sized off `DL_R2_6_DIRECT_TEXT_COLORS`, not
+ * `DIRECT_TEXT_COLORS`, so a deletion from the latter cannot shrink
+ * this count to match and pass silently.
  */
 const EXPECTED_MEASURED_PAIRS = COMPOSED_NAMES.reduce(
   (sum, composed) =>
     sum +
     CONTENT_PAIRS.length +
     BASES.length +
-    (DIRECT_TEXT_COLORS.length - FILL_ONLY_EXCLUSIONS.filter((e) => e.composed === composed).length) +
+    (DL_R2_6_DIRECT_TEXT_COLORS.length - FILL_ONLY_EXCLUSIONS.filter((e) => e.composed === composed).length) +
     INK_NAMES.length * BASES.length,
   0
 );
@@ -296,6 +315,18 @@ export interface Report {
 export function run(): Report {
   const violations: string[] = [];
   const lines: string[] = [];
+
+  for (const name of DL_R2_6_DIRECT_TEXT_COLORS) {
+    if (!DIRECT_TEXT_COLORS.includes(name)) {
+      violations.push(`g9: DIRECT_TEXT_COLORS is missing ${name}, which DL R2.6 names as direct text`);
+    }
+  }
+  for (const name of DIRECT_TEXT_COLORS) {
+    if (!DL_R2_6_DIRECT_TEXT_COLORS.includes(name)) {
+      violations.push(`g9: DIRECT_TEXT_COLORS names ${name}, which DL R2.6's closed list does not`);
+    }
+  }
+
   const inkRules = readInkRules(violations);
   let measuredPairs = 0;
 
