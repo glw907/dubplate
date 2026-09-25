@@ -100,7 +100,12 @@ the catalog row, the art blob recorded at admit, play history as events)
 and says per task whether it lands a hook or is neutral, and names which prior-art entries it consulted (rung 6: modernc sqlite, goose; rung 7: mewkiz/flac for the intake integrity check; rung 8: taglib via wazero and Picard's tag tables). 2.1 list:
 scrobbling (ListenBrainz, Last.fm), ratings, artist images, transcode
 pre-warming per profile, the web player, metrics, an edit-distance
-search rerank.
+search rerank. The web player needs a strong play-queue interface (Geoff,
+2026-09-24): now playing, up next, reorder, and add from album, track, or
+filter results. It is designed from a prior-art study, as library filtering
+was (`research/2026-09-24-library-filtering-prior-art.md`), in the visual
+identity spec's language, and it builds on 2.0's saved per-member play queue
+(`streamer-2-0-design.md:297-309`) so a queue carries between clients.
 
 
 ### dubplate-server 1.1: the format ladder `formats-1-1`
