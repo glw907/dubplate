@@ -22,10 +22,10 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
    closed green (1S, 1A, 1B, conductor tidy 1T, 2; `4079422`..`d7e8896`); spend about 2.36M against
    about 1.5M planned. Re-derived total about 6.9M: past the flag on projection, under the ceiling.
    Segment B (Tasks 3-5) in flight; the split decision is taken at its end on actual spend.
-2. **5c-ii runs in lane 1** (revision 2.4, all seven rulings yes; 9.4M ceiling, 7.52M flag; visual
-   identity tokens amended in: `label`/`label-night` palettes, `dubplate-system` stamp, the
-   `__Host-dubplate_theme` cookie). Segment A closed green (`5637ecb`, `e9f7367`, `7769d25`); Segment
-   B (Tasks 3-5) is in flight.
+2. **5c-ii runs in lane 1** (revision 2.4; 9.4M ceiling, 7.52M flag). Segments A and B green except
+   one proof: Tasks 1-4 accepted (Task 3 `66f6e14`, `493869b`; Task 4 `4092ec0`, `4c544a2`), Task 5
+   (`4489716`..`b0e01d6`) drew a second fix on one hollow log assertion; the conductor ruled one more
+   targeted round. Segment C (Tasks 6-7, simplifier, three reviewers) follows.
 3. **Matcher word boundary: ruled yes** (Geoff, 2026-09-24): a documented Go translation of beets'
    featuring row, a parity golden, and a corpus case, as a small matcher pass after the current lanes
    (`research/2026-09-24-matcher-unicode-word-boundary.md`).
