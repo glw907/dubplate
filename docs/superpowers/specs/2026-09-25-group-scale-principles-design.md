@@ -1,6 +1,6 @@
 # What dubplate is for, and what it isn't
 
-Design spec. Revision 3, 2026-09-25. Status: **awaiting Geoff's read; rulings 1 to 3 ruled, 4 to 12 open.**
+Design spec. Revision 3, 2026-09-25. Status: **ratified (Geoff, 2026-09-25); all twelve rulings ruled, 4 to 12 as recommended.**
 Revision 1 (`1d6bc6a`) went through four review lenses (contract, mechanics, misuse,
 consistency) and an early prose read. Revision 2 (`08c812f`) went through a fold verification
 read, and revision 3 folds that read and Geoff's rulings of 2026-09-25. The fold record,
@@ -677,6 +677,9 @@ organizer spec's refusal of scrapers rests on API fragility and concerns metadat
 as lyrics. This spec's refusal of music acquisition rests on the product's purpose.
 
 ## Rulings for Geoff
+
+Rulings 4 to 12 are ruled as recommended (Geoff, 2026-09-25). Each recommendation below is the
+spec's decision; the alternatives stay as a record of what was weighed.
 
 Rulings 1 to 3 are ruled (Geoff, 2026-09-25), and the body follows them. Rulings 4 to 12 are
 open. Rulings 8 to 12 come from the bounded-shares research. The numbers stay fixed, because
