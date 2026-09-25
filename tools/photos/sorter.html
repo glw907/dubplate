@@ -7,22 +7,30 @@
 
   meta/vocab                    one document, seeded once
     The full contents of photos/meta/vocab.json, copied in verbatim by
-    the conductor through ArtifactData. This page never hardcodes a
-    family, subject, region, or license list: every chip, label, and
-    caption term is read from this document (families, subjects,
-    regions, licenses, people_flags). Written only by the conductor.
+    the conductor through ArtifactData. This page reads families,
+    subjects, and regions from it for every chip, label, and caption
+    term, and people_flags to decide whether a flag slug gets a
+    slug-to-words label ("apparent-minor" -> "Apparent minor") or
+    shows verbatim. It never reads vocab.licenses: a candidate's
+    license_display (below) already carries the display name, and an
+    unrecognized flag slug or a missing license_display falls back to
+    the raw value rather than a second vocab lookup. Written only by
+    the conductor.
 
   rounds/<roundId>              one document per round
-    id            string   same value as the document id ("1", "2",
-                            ... or "test" for Task 6's test round)
+    id            string   same value as the document id, e.g. "1",
+                            "2", or "test" for Task 6's test round (the
+                            fixture fallback's document uses "fixture")
     closed        boolean  true once the round stops taking changes.
                             Always present (never omitted): a round
                             with closed === false is open.
     balance       object   the balance --json output (check.mjs
                             `balance`), verbatim. This page reads only
-                            balance.shares[<family>].count to seed the
-                            count bar, and ignores fields it does not
-                            recognize.
+                            balance.shares[<family>].count (the picked
+                            pool's current count) and
+                            balance.shares[<family>].target (the share
+                            target, a 0-1 fraction, for the count bar's
+                            +/-3pp band) and ignores every other field.
     Written only by the conductor through ArtifactData. The page has
     no control that sets `closed`; reopening a round means clearing it
     through ArtifactData directly. This page subscribes to the WHOLE
@@ -33,23 +41,25 @@
 
   candidates/<source_id>        one document per candidate on a round
     This page reads a candidate document as `check.mjs sheet` writes
-    it (one JSON object per kept candidate: source_id, title,
-    photographer, credit, year, year_precision, place, subject, shot,
-    format, license, size_exception, flags, screen, and the rest of
-    the candidate record's own fields), plus the round id on `round`,
-    and plus four fields the round-open agent adds on top of `sheet`'s
-    output:
+    it (source_id, title, photographer, credit, year, year_precision,
+    place, subject, shot, format, license, size_exception, flags,
+    screen, and the rest of the candidate record's own fields, plus
+    the three fields `sheet` itself derives and adds: family, region,
+    and second_image; `sheet` also adds id, agent, and primary_subject,
+    which this page does not read), plus three fields the round-open
+    agent adds on top of `sheet`'s output:
       thumb           { id: string, url: string }  the 600px thumbnail
       preview         { id: string, url: string }  the 1600px preview
-      round           string  always a string ("1" or "test")
       license_display string  the license's display name, looked up
-                               in vocab's license list
+                               in vocab's license list at round-open
+                               time (never re-derived by this page)
+    and `round`, the round id this candidate belongs to, string,
+    matching the round document's own `id`.
     `place`, when set, is `{ country_code: string, landmark?: { name,
     wikidata_id? } }` (check.mjs's own shape; there is no `place.city`
-    or `place.region`). `region` and `family` are top-level fields
-    `sheet` derives and adds. Captions read `place.landmark.name` and
-    the top-level `region`/`family`/`subject` fields, never a `city`
-    that does not exist on the record.
+    or `place.region`). Captions read `place.landmark.name` when set,
+    else the top-level `region` field, never a `city` that does not
+    exist on the record.
     Written only by the conductor through ArtifactData, from `sheet`'s
     output. The page never writes here. Pack candidates never appear:
     `sheet` drops them before this collection exists.
@@ -60,10 +70,14 @@
     choice        "keep"|"pass"
     decided_at    string   an RFC 3339 timestamp
     Written only by this page, on Geoff's Y / N / tap / Pass button,
-    one write in flight per source_id (a second decision on the same
-    candidate while a write is in flight queues and replaces the first;
-    a decision that repeats the last saved choice for that candidate is
-    never sent). Keyed by source_id, never by slug, so a sitting can
+    one write in flight per source_id: a second decision on the same
+    candidate while a write is in flight queues and replaces the first
+    (never piles up requests), and a decision that repeats the last
+    saved choice for that candidate is never sent. The round id a
+    write targets is captured when the write starts; if the round
+    closes or a different round becomes current before a queued write
+    goes out, the queued write is dropped rather than landing on the
+    wrong round. Keyed by source_id, never by slug, so a sitting can
     stop and resume on any device: on load the page reads existing
     choices for the open round and shows them as already decided.
 
@@ -73,17 +87,19 @@
   fixture fallback below, which has no real asset store and uses
   thumb.url / preview.url (a data: URI) directly.
 
-  FIXTURE FALLBACK. When `window.claude` does not exist at all (a
-  local file, another host; this is never true inside the claude.ai
-  viewer, where `window.claude` is always present even if `use()` resolves
-  null) and the page is served from localhost, the page loads
-  testdata/sorter-fixture.json and runs entirely in memory: one round
-  document, a fixed 150-candidate array, an embedded copy of vocab.json,
-  and choices held in a Map that never leaves the tab. This is the
-  headless render's path. Any other absence of a working `db` (window.claude
-  present but use("db") resolves null, or not on localhost) shows the
-  "choices can't be saved here" state with no grid, so no sitting can run
-  with its choices saved nowhere.
+  FIXTURE FALLBACK. The page runs on the fixture (testdata/sorter-
+  fixture.json, loaded entirely into memory: one round document, a
+  fixed 150-candidate array, an embedded copy of vocab.json, and
+  choices held in a plain object that never leaves the tab) when the
+  page is served from localhost AND `window.claude` is either absent
+  (a local file, another host; this is never true inside the claude.ai
+  viewer, where `window.claude` is always present even if `use()`
+  resolves null) or present without a callable `use()`. This is the
+  headless render's path. Any other absence of a working `db`
+  (window.claude present with a working use(), but use("db") resolves
+  null, or the page is not on localhost) shows the "choices can't be
+  saved here" state with no grid, so no sitting can run with its
+  choices saved nowhere.
 -->
 <title>Photo sorter</title>
 <style>
@@ -264,8 +280,8 @@
     width: 2px;
   }
   @media (max-width: 480px) {
-    #counts { gap: 0.5rem; padding: 0.4rem 0.75rem 0.55rem; flex-wrap: nowrap; overflow-x: auto; }
-    .count-chip { flex: none; }
+    #counts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.75rem; padding: 0.4rem 0.75rem 0.55rem; }
+    .count-chip { min-width: 0; }
     .count-track { width: 2.75rem; }
   }
 
@@ -596,8 +612,6 @@
   var ELLIPSIS = String.fromCharCode(0x2026);
   var RSQUO = String.fromCharCode(0x2019);
 
-  var FLAG_LABEL = { "personality-rights": "Personality rights", "apparent-minor": "Possible minor" };
-
   // ---- state ----------------------------------------------------------
   var state = {
     vocab: null, // photos/meta/vocab.json, verbatim
@@ -678,6 +692,17 @@
   function regionLabel(region) {
     var r = vocabRegions()[region];
     return (r && r.name) || region;
+  }
+  // A slug-to-words label for a people flag ("apparent-minor" ->
+  // "Apparent minor"), only for slugs vocab.people_flags lists; any
+  // other value (the vocabulary predates it, or a page bug) shows the
+  // raw slug rather than a wrong label.
+  function flagLabel(flag) {
+    var known = (state.vocab && state.vocab.people_flags) || [];
+    if (known.indexOf(flag) === -1) return flag;
+    var words = flag.split("-");
+    words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+    return words.join(" ");
   }
 
   // ---- rendering --------------------------------------------------------
@@ -869,7 +894,7 @@
     (candidate.flags || []).forEach(function (f) {
       var fb = document.createElement("span");
       fb.className = "badge flag";
-      fb.textContent = FLAG_LABEL[f] || f;
+      fb.textContent = flagLabel(f);
       badgeRow.appendChild(fb);
     });
     if (badgeRow.children.length) card.appendChild(badgeRow);
@@ -964,14 +989,15 @@
       pending.queued = choice;
       return;
     }
-    pendingWrite[candidate.source_id] = { inFlight: true, queued: null };
-    performWrite(candidate, choice);
+    var roundId = state.round.id;
+    pendingWrite[candidate.source_id] = { inFlight: true, queued: null, roundId: roundId };
+    performWrite(candidate, choice, roundId);
   }
 
-  function performWrite(candidate, choice) {
+  function performWrite(candidate, choice, roundId) {
     setStatus("Saving" + ELLIPSIS, false);
     state.store
-      .writeChoice(candidate, choice)
+      .writeChoice(candidate, choice, roundId)
       .then(function () {
         state.choices[candidate.source_id] = { choice: choice, decided_at: new Date().toISOString() };
         setStatus("Saved", true);
@@ -991,7 +1017,12 @@
     if (!pending) return;
     var queued = pending.queued;
     pending.queued = null;
-    if (queued === null) {
+    // A round change (closed, or replaced by a different round while this
+    // write was in flight) drops the queue: the captured round id is the
+    // one the write went to, and a queued write is never redirected to a
+    // round its decision was never made on.
+    var roundChanged = !state.round || state.round.closed || state.round.id !== pending.roundId;
+    if (queued === null || roundChanged) {
       pending.inFlight = false;
       return;
     }
@@ -1000,7 +1031,7 @@
       pending.inFlight = false;
       return;
     }
-    performWrite(candidate, queued);
+    performWrite(candidate, queued, pending.roundId);
   }
 
   // ---- preview --------------------------------------------------------
@@ -1079,6 +1110,14 @@
       var pc = list[state.focusIndex];
       if (pc) decide(pc, "pass");
     } else if (e.key === " ") {
+      // A focused button, chip, or other control gets its own Space
+      // press (activating it); only open the preview when focus is on
+      // the page at large (a card, or nothing in particular).
+      var active = document.activeElement;
+      var activeTag = active && active.tagName;
+      if (activeTag === "BUTTON" || activeTag === "INPUT" || activeTag === "SELECT" || activeTag === "TEXTAREA" || (active && active.isContentEditable)) {
+        return;
+      }
       e.preventDefault();
       var sc = list[state.focusIndex];
       if (sc) openPreview(sc);
@@ -1138,10 +1177,10 @@
   function initRealStore(db) {
     state.store = {
       mode: "real",
-      writeChoice: function (candidate, choice) {
+      writeChoice: function (candidate, choice, roundId) {
         return db.doc("choices/" + candidate.source_id).set({
           source_id: candidate.source_id,
-          round: state.round.id,
+          round: roundId,
           choice: choice,
           decided_at: new Date().toISOString(),
         });
@@ -1251,9 +1290,9 @@
         var choicesMap = {};
         state.store = {
           mode: "fixture",
-          writeChoice: function (candidate, choice) {
+          writeChoice: function (candidate, choice, roundId) {
             return new Promise(function (resolve) {
-              choicesMap[candidate.source_id] = { choice: choice, decided_at: new Date().toISOString() };
+              choicesMap[candidate.source_id] = { choice: choice, round: roundId, decided_at: new Date().toISOString() };
               resolve();
             });
           },
