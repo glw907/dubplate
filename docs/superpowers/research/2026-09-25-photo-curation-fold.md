@@ -123,3 +123,43 @@ Owed to the rung plan, not folded here:
 - **V9**: the rung 7 embed note's pattern should read `*.webp *.json` from inside `photos/`.
 
 The spec carries no open rulings after this fold.
+
+## Prose fold (revision 2.2)
+
+Input: `2026-09-25-photo-curation-prose-review.md` (B1-B2, W1-W12, S1-S9, against revision 2.1)
+and the conductor's rulings on B1, B2, W5, W7, and the suggestions. Each finding was checked
+against revision 2.1 before it was folded.
+
+Owner quotes behind W7, confirmed verbatim by the conductor from the 2026-09-25 conversation:
+
+- Pool size: "I don't think an additional ~45MB is going to turn anybody off. That's a tiny about
+  of space by modern standards."
+- Shares: "30% reggae, 20% punk, 20% hip-hop, 30% everthing else."
+
+| ID | Disposition | Where |
+|---|---|---|
+| B1 | Folded | Storage: the rung 7 embed note quotes `go doc embed` ("The patterns are interpreted relative to the package directory containing the source file."); the package sits inside `photos/`, so the pattern is `*.webp *.json`. The old "`//go:embed photos` directory pattern" clause is removed; the note now says the pattern leaves out `meta/` and `.candidates/`. Closes V9. |
+| B2 | Folded | Process and Out of scope: the pass's only `scripts/` edit is the queued `check.sh` line. Storage: `check.mjs` and that line retire when rung 7's Go gate leg carries the same checks. |
+| W1 | Folded | Candidate fields list defines `pack`; `status` gains `pack` for records in `pack.json`; a candidate record has no status. |
+| W2 | Folded | The slug is minted at round close (step 3). |
+| W3 | Folded | Waivers have `rule`, `key`, and `reason` with a key shape per rule, covering the region cap, posed ceiling, landmark floor, and surface floors; a sorting-page keep records the round and date as its reason. |
+| W4 | Folded | New `withdrawn` field (reason and date); Licensing lists Geoff's change of mind as a cause. |
+| W5 | Folded | Reason codes are a closed list in `vocab.json`, starting with `passed`, `blurred`, `too-small`, `license`, `duplicate`, extendable by the plan. Agents list drops in `drops.json`; the conductor merges them into `rejected.json` at round close. |
+| W6 | Folded | Step 3 says "each candidate Geoff passed, and each agent drop". |
+| W7 | Folded | The spec's quote stays; a sentence names 45MB as the early estimate and 48MB as measured. Both quotes are logged above. |
+| W8 | Folded | Storage: thumbnails are the same encode at a 600px long edge, written beside the candidate, never committed. |
+| W9 | Folded | The sorting-page paragraph splits into four (page, marks, uploads, saves) and defines the artifact, its file store, and its database. |
+| W10 | Folded | Changes list adds the US public-domain requirement, the widened core families, and the license URL moving into the license list. |
+| W11 | Folded | The floor grid is stated as 3 families by 5 subjects, 15 cells, plus the landmark and surface floors. |
+| W12 | Folded | The license list maps each ID to a display name, and the caption reads that name. |
+| S1 | Folded | Licensing splits at "On Commons". |
+| S2 | Folded | The lead drops "period"; the landmark-in-any-year sentence moves under Place. |
+| S3 | Folded | Both passives rewritten (waivers; the fixtures sentence). |
+| S4 | Folded | Decisions: the floor keeps 77 outright and 6 by exception; 30 need a larger scan, the two named examples among them. |
+| S5 | Folded | "Floor grid" and "region cap" used throughout, with "posed ceiling" and "surface floors". |
+| S6 | Folded | Step 5: a withdrawal names the record and the deleted `.webp` in the path list. Checked in a scratch repo: `git commit -- <deleted path>` records the deletion and leaves another staged path staged. |
+| S7 | Refused | "valuble" is Geoff's verbatim spelling; the quote stays as written. |
+| S8 | Folded | Licensing says why the history blob is acceptable: images reach users through the binary, and no later release carries a withdrawn image. |
+| S9 | Folded | The ragged wraps are reflowed. |
+
+tellgrader on revision 2.2: 0 findings, 273 sentences, 4493 words, cadence CV 0.55.
