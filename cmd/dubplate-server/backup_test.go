@@ -106,7 +106,7 @@ func backupStandIn(args []string) int {
 // backupStandinExitCode reads sub's exit code from spec, "name=code"
 // pairs joined by commas.
 func backupStandinExitCode(spec, sub string) int {
-	for _, pair := range strings.Split(spec, ",") {
+	for pair := range strings.SplitSeq(spec, ",") {
 		name, code, ok := strings.Cut(pair, "=")
 		if ok && name == sub {
 			n, _ := strconv.Atoi(code)
@@ -372,7 +372,7 @@ func TestBackupCmd_Failed(t *testing.T) {
 // until canceled, then starts a second while the first still runs: the
 // second answers conflict naming the first's handle and exits 75.
 func TestBackupCmd_Conflict(t *testing.T) {
-	_, pidFile := useBackupStandin(t)
+	pidFile := useBackupStandin(t)
 	t.Setenv(backupStandinSleepEnv, "sync")
 	t.Setenv(backupStandinHonorEnv, "1")
 	environ := backupJobEnviron(t)
@@ -628,7 +628,7 @@ func verbChildEnviron(t *testing.T, standinDir string) []string {
 // these same environment variables when its own Env is nil, since
 // t.Setenv changes the process's real environment (os/exec's own
 // default).
-func useBackupStandin(t *testing.T) (record, pid string) {
+func useBackupStandin(t *testing.T) (pid string) {
 	t.Helper()
 	exe, err := os.Executable()
 	if err != nil {
@@ -641,11 +641,11 @@ func useBackupStandin(t *testing.T) (record, pid string) {
 	t.Setenv("PATH", bin)
 
 	files := t.TempDir()
-	record = filepath.Join(files, "record")
+	record := filepath.Join(files, "record")
 	pid = filepath.Join(files, "pid")
 	t.Setenv(backupStandinRecordEnv, record)
 	t.Setenv(backupStandinPIDEnv, pid)
-	return record, pid
+	return pid
 }
 
 // awaitBackupStandinPID waits for the stand-in to write its pid to
