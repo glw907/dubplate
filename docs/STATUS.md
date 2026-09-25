@@ -30,9 +30,11 @@ awaits approval. R4's exclusion denominator is still unread, and owed before run
    after its tail ran in autocommit (6b-i); a failed snapshot rename leaves staging occupied; the
    rebuild marker matches exact bytes only; serve's settle loop is unbounded and `logger` unguarded
    (6d); mutation 4 is unobservable and mutation 11 panics inside `checkLedger`'s contract.
-2. **5c-ii is approved** (Geoff, 2026-09-24, all seven rulings yes): revision 2.2 at
-   `plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`, 9.4M ceiling, 5c-iii split off.
-   It opens in lane 1 once the beets adoption lands (one executor per tree).
+2. **5c-ii runs in lane 1** (approved 2026-09-24, all seven rulings yes; revision 2.2, 9.4M ceiling).
+   Segment A (Tasks 1-2) in flight. **Segment B is held for the visual identity tokens:** Geoff's
+   brainstorm (session dubplate-04, spec `specs/2026-09-24-visual-identity-design.md` pending) ruled
+   `label`/`label-night` themes, Alfa Slab One, Work Sans, IBM Plex Mono. Task 4 authors those tokens
+   in place of Ruling 3's `gruvbox`; fonts stay in 5c-iii.
 3. **Beets 2.14.1 adopted and closed** (`367564c`, fix round `422efcd`, simplifier clean): the ft
    compat class retired, six sanctioned empty-search responses, 215 cases re-frozen.
 4. The architecture cleanup pass joins the staged comment-cleanup task
