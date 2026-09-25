@@ -126,7 +126,8 @@ which carries the credit itself.
 
 The "Get help" page names where an operator asks for help and what to include in a report. It gives
 a security contact with a stated scope, and it exists from the first public day. It states the
-contribution policy that ruling 11 sets, and its channels follow open ruling 12. Its troubleshooting list covers the common failures (logs, mail
+contribution policy that ruling 11 sets, and its channels follow open ruling 12. Its
+troubleshooting list covers the common failures (logs, mail
 not arriving), which is why the site carries no separate FAQ.
 
 ## Credits
@@ -276,7 +277,8 @@ from a non-release commit says it previews an unreleased version. A stale pin is
 the reader. The Phase B deploy refuses a lock whose ref isn't a release tag. The site's gate
 also fails when the newest release-notes post names a version newer than the lock's tag, so a
 release announced on the site can't go out with an older guide. The site's build can't read
-dubplate's tags, since it fetches nothing from dubplate, so the post is the signal the gate reads. Geoff
+dubplate's tags, since it fetches nothing from dubplate, so the post is the signal the gate
+reads. Geoff
 ruled this pair of checks, option (b) of contract finding C2, on 2026-09-25. The step that bumps
 the site's pin belongs in the tool that cuts dubplate releases, which prints the sync command for
 the new tag. Until that tool exists, dubplate's release checklist carries the step, and the Phase
