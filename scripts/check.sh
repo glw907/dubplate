@@ -7,8 +7,10 @@ set -euo pipefail
 # SvelteKit static bundle built, then svelte-check and the static web
 # gates (no server-only file, no hardcoded color, no external origin,
 # theme variable completeness, theme contrast, and the built bundle's
-# stamped theme values). The rendered (browser) gates are not yet part
-# of this leg.
+# stamped theme values), after building the bundle twice and refusing
+# two builds that differ. `make check` then runs the rendered leg
+# (`make web-rendered`): the real serve shell on loopback, driven by
+# Playwright's own Chromium, so every full gate launches a browser.
 # Shellcheck still covers the scripts that remain (deploy.sh, check.sh
 # itself, vale-comments.sh, provision.sh), ruff covers the oracle shim's
 # Python, and gitleaks scans the whole tree in the full form (the corpus
@@ -22,18 +24,26 @@ set -euo pipefail
 #   check.sh                  the full gate over the whole tree. The form
 #                             every boundary, every merge gate, and every
 #                             pass end runs. Nothing is scoped away.
-#   check.sh --scope-changed  the full leg list, with the two
+#   check.sh --scope-changed  the full leg list, with three
 #                             blast-radius-insensitive legs narrowed to
 #                             what the tree actually changed: gitleaks
-#                             scans the derived change set, and the
+#                             scans the derived change set, the
 #                             internal/harness/conform suite runs only
 #                             when a file under internal/harness/,
-#                             internal/engine/, or corpus/ changed. Every
-#                             other leg runs exactly as in the full form.
+#                             internal/engine/, or corpus/ changed, and
+#                             the rendered leg runs only when a file
+#                             under web/, internal/serve/, internal/auth/,
+#                             or internal/identity/ changed, or one of
+#                             the serve shell's own files under
+#                             cmd/dubplate-server/ (web.go, serve.go,
+#                             auth.go, their tests, rendered_test.go).
+#                             Every other leg runs exactly as in the
+#                             full form.
 #   check.sh --reduced        the comment-only and docs-only form: vale
 #                             over Go comments, shellcheck, gitleaks over
 #                             the change set, and gofmt, go vet and go
-#                             test over the changed packages only. Never
+#                             test over the changed packages only; the
+#                             rendered leg does not run. Never
 #                             the final gate on master and never a
 #                             boundary gate; a change that reaches master
 #                             has had the full form run over it.
@@ -220,15 +230,44 @@ derive_conform_affected() {
   done
 }
 
+# The rendered leg is scoped the same way: it serves the bundle through
+# the serve shell and its auth routes, so only a change to one of those
+# can change what the browser sees.
+rendered_affected=1
+derive_rendered_affected() {
+  local f
+  rendered_affected=0
+  for f in "${changed_files[@]}"; do
+    case "$f" in
+    web/* | internal/serve/* | internal/auth/* | internal/identity/* | \
+      cmd/dubplate-server/web.go | cmd/dubplate-server/web_test.go | \
+      cmd/dubplate-server/serve.go | cmd/dubplate-server/serve_test.go | \
+      cmd/dubplate-server/auth.go | cmd/dubplate-server/auth_test.go | \
+      cmd/dubplate-server/rendered_test.go)
+      rendered_affected=1
+      return
+      ;;
+    esac
+  done
+}
+
 scope_gitleaks=full
 scope_conform=full
+scope_rendered=full
+if [ "$mode" = "reduced" ]; then
+  scope_rendered=skipped
+fi
 if [ "$mode" = "scope-changed" ] || [ "$mode" = "reduced" ]; then
   if derive_change_set; then
     derive_changed_packages
     derive_conform_affected
+    derive_rendered_affected
     scope_gitleaks=changed
     if [ "$mode" = "scope-changed" ] && [ "$conform_affected" -eq 0 ]; then
       scope_conform=skipped
+      if [ "$rendered_affected" -eq 0 ]; then
+        scope_rendered=skipped
+      fi
     fi
   else
     echo "check.sh: no merge base with master and no HEAD~1; falling back to the full scope." >&2
@@ -243,10 +282,10 @@ merge)
   echo "check.sh: scope=full+history; every leg over the whole tree, plus gitleaks over master..HEAD."
   ;;
 scope-changed)
-  echo "check.sh: scope=changed base=${change_base:-none} conform=$scope_conform gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=changed base=${change_base:-none} conform=$scope_conform rendered=$scope_rendered gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 reduced)
-  echo "check.sh: scope=reduced base=${change_base:-none} packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=reduced base=${change_base:-none} rendered=skipped packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 esac
 
@@ -307,6 +346,17 @@ if [ "$scope_conform" = "skipped" ]; then
   elif ! go test "${scoped_pkgs[@]}"; then
     status=1
   fi
+  # `make check` carries the rendered leg in every other form; this
+  # branch replaces it, so it runs the leg itself when the change set
+  # can reach it.
+  if [ "$scope_rendered" = "skipped" ]; then
+    echo "check.sh: the change set touches no web/, internal/serve/, internal/auth/, internal/identity/, or serve shell file; skipping the rendered leg."
+  else
+    echo "check.sh: the change set touches the rendered leg's inputs; running make web-rendered."
+    if ! make web-rendered; then
+      status=1
+    fi
+  fi
 elif [ "$mode" != "reduced" ]; then
   if ! make check; then
     status=1
@@ -314,9 +364,11 @@ elif [ "$mode" != "reduced" ]; then
 fi
 
 if [ "$mode" = "reduced" ]; then
-  # The comment-only form skips svelte-check and the static web gates
-  # (never a boundary gate), but still rebuilds the bundle, since a
-  # stale build is the one state every form refuses to read from.
+  # The comment-only form skips svelte-check, the static web gates, and
+  # the rendered leg (never a boundary gate), but still rebuilds the
+  # bundle, since a stale build is the one state every form refuses to
+  # read from.
+  echo "check.sh: the reduced form skips the rendered leg."
   echo "== npm run build --prefix web =="
   if ! npm run build --prefix web; then
     status=1

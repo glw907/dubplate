@@ -35,9 +35,11 @@ tidy-check:
 # then runs svelte-check and the static web gates (no server-only file,
 # no hardcoded color, no external origin, font delivery, theme
 # variable completeness, theme contrast, and the built bundle's
-# stamped theme values). The rendered (browser) gates are not yet part
-# of this leg. `check` runs it first because the Go tests that read
-# the embedded bundle need it current before `go test` runs.
+# stamped theme values). It builds the bundle twice and fails unless
+# the two build trees match file for file, so the build is
+# reproducible. `check` runs it first because the Go tests that read
+# the embedded bundle need it current before `go test` runs; the
+# rendered (browser) gates are the separate web-rendered target.
 web:
 	set -e; \
 	if ! command -v node >/dev/null 2>&1; then \
@@ -75,6 +77,17 @@ web:
 	rm -f "$$npm_ls_log"; \
 	(cd web && node scripts/gates/install-state.ts); \
 	npm run build --prefix web; \
+	build_first="$$(mktemp)"; \
+	build_second="$$(mktemp)"; \
+	trap 'rm -f "$$build_first" "$$build_second"' EXIT; \
+	(cd web/build && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) >"$$build_first"; \
+	npm run build --prefix web; \
+	(cd web/build && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) >"$$build_second"; \
+	if ! diff "$$build_first" "$$build_second" >&2; then \
+		echo "make web: two builds of the same source differ (the lines above); kit.version.name in web/svelte.config.js must be deterministic." >&2; \
+		exit 1; \
+	fi; \
+	echo "make web: two builds of the same source match ($$(sha256sum <"$$build_first" | cut -d' ' -f1))."; \
 	npm run check --prefix web; \
 	(cd web && node scripts/gates/server-files.ts); \
 	(cd web && node scripts/gates/g1.ts); \
@@ -84,7 +97,34 @@ web:
 	(cd web && node scripts/gates/g9.ts); \
 	(cd web && node scripts/gates/theme-bundle.ts)
 
-check: web vet lint test tidy-check
+# RENDERED_TIMEOUT bounds the rendered test binary. It is explicit
+# because go test's ten-minute default would bind long before a stuck
+# browser is noticed, and it stays at least twice the leg's measured
+# wall time (about 7s for the test, 11s with its compile).
+RENDERED_TIMEOUT := 3m
+
+# web-rendered is the rendered leg: cmd/dubplate-server's
+# rendered_test.go, under its build tag, serves the real shell on
+# loopback and drives Playwright's own Chromium against it through
+# web/scripts/rendered/run.ts. It vets and lints the tagged file,
+# since the default vet and lint targets never compile it. `go test`
+# exits 0 with "no tests to run" when -run selects nothing, so the
+# -json stream goes to a file and test-events.ts fails unless it
+# carries TestRendered's own pass event; the target keeps go test's
+# exit status either way. It reads the bundle `web` built, so it runs
+# after `web`.
+web-rendered:
+	go vet -tags rendered ./cmd/dubplate-server
+	golangci-lint run --build-tags rendered ./cmd/dubplate-server/...
+	set -e; \
+	events="$$(mktemp)"; \
+	trap 'rm -f "$$events"' EXIT; \
+	status=0; \
+	go test -json -tags rendered -count=1 -timeout $(RENDERED_TIMEOUT) -run '^TestRendered$$' ./cmd/dubplate-server >"$$events" || status=$$?; \
+	(cd web && node scripts/rendered/test-events.ts "$$events") || status=1; \
+	exit "$$status"
+
+check: web vet lint test web-rendered tidy-check
 
 # derive runs the oracle-tagged tests, the only ones that launch the
 # real Python shim and so the only ones needing the uv venv
@@ -101,4 +141,4 @@ derive:
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check web derive clean
+.PHONY: build build-linux test vet lint install tidy-check check web web-rendered derive clean
