@@ -1,0 +1,93 @@
+/*
+ * `dubplate-system`, the third stamped value: plain CSS, not a
+ * `daisyui/theme` block, because the plugin takes one name per block
+ * and cannot key a block to a media query. This file therefore repeats
+ * the two composed themes' 32 declarations plus their two `inks.css`
+ * values; G2's parity rows fail naming any branch that drifts from its
+ * composed theme.
+ *
+ * The light branch is unconditional and the dark branch is
+ * `@media (prefers-color-scheme: dark)`, never the reverse, per Media
+ * Queries 5 section 12.5's negation advice: a future preference value
+ * or a browser that cannot evaluate the feature both fall into the
+ * light branch rather than into neither. Both sit at the same
+ * specificity as a DaisyUI theme block, (0,1,0), inside `@layer base`.
+ */
+
+@layer base {
+  [data-theme="dubplate-system"] {
+    color-scheme: light;
+    --radius-selector: 0.25rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.25rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.28125rem;
+    --border: 2px;
+    --depth: 0;
+    --noise: 1;
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-serif: ui-serif, serif;
+    --font-mono: ui-monospace, monospace;
+    --color-base-100: #f4ead3;
+    --color-base-200: #eadcbc;
+    --color-base-300: #dccaa3;
+    --color-base-content: #1f1b16;
+    --color-primary: #c1352b;
+    --color-primary-content: #fff6ea;
+    --color-secondary: #e0a526;
+    --color-secondary-content: #1f1b16;
+    --color-accent: #2f6b3a;
+    --color-accent-content: #f4ead3;
+    --color-neutral: #1f1b16;
+    --color-neutral-content: #f4ead3;
+    --color-info: #2e5f8a;
+    --color-info-content: #ffffff;
+    --color-success: #2f6b3a;
+    --color-success-content: #ffffff;
+    --color-warning: #e0a526;
+    --color-warning-content: #1f1b16;
+    --color-error: #a8261d;
+    --color-error-content: #ffffff;
+    --ink-primary: var(--color-primary);
+    --ink-warning: #765000;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    [data-theme="dubplate-system"] {
+      color-scheme: dark;
+      --radius-selector: 0.25rem;
+      --radius-field: 0.25rem;
+      --radius-box: 0.25rem;
+      --size-selector: 0.25rem;
+      --size-field: 0.28125rem;
+      --border: 2px;
+      --depth: 0;
+      --noise: 1;
+      --font-sans: ui-sans-serif, system-ui, sans-serif;
+      --font-serif: ui-serif, serif;
+      --font-mono: ui-monospace, monospace;
+      --color-base-100: #1c1916;
+      --color-base-200: #24201c;
+      --color-base-300: #342e28;
+      --color-base-content: #efe4cc;
+      --color-primary: #c1352b;
+      --color-primary-content: #fff6ea;
+      --color-secondary: #e5ad33;
+      --color-secondary-content: #1c1916;
+      --color-accent: #5a9e66;
+      --color-accent-content: #1c1916;
+      --color-neutral: #110f0d;
+      --color-neutral-content: #efe4cc;
+      --color-info: #6d9cc7;
+      --color-info-content: #1c1916;
+      --color-success: #5a9e66;
+      --color-success-content: #1c1916;
+      --color-warning: #e5ad33;
+      --color-warning-content: #1c1916;
+      --color-error: #e0604f;
+      --color-error-content: #1c1916;
+      --ink-primary: #ec7b6a;
+      --ink-warning: var(--color-warning);
+    }
+  }
+}

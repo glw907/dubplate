@@ -1,0 +1,43 @@
+/*
+ * The `label-night` palette (dark): the 21 palette declarations a
+ * composed theme carries alongside its match axis, pinned in
+ * docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md,
+ * overridden where
+ * docs/superpowers/specs/2026-09-24-visual-identity-design.md differs.
+ * Composed with `dubplate.css`'s match block into
+ * `dubplate-label-night`. Replaceable data: a later token change lands
+ * here, re-checked by G2 and G9, with no markup change.
+ *
+ * `--color-primary` measures 3.18:1 as text on `--color-base-100`,
+ * below the 4.5:1 floor but above WCAG 2.2's 3:1 UI-component and
+ * large-text tier, so `--ink-primary` (`inks.css`) is the text-safe
+ * substitute. `--color-neutral` measures 1.09:1 and is fill-only (the
+ * header bar and the offset-shadow color): it takes no ink.
+ */
+
+@plugin "daisyui/theme" {
+  name: "dubplate-label-night";
+  color-scheme: dark;
+  --color-base-100: #1c1916;
+  --color-base-200: #24201c;
+  --color-base-300: #342e28;
+  --color-base-content: #efe4cc;
+  /* contrast-exception: --color-primary 3.18:1 clears WCAG 3:1 UI-component/large-text tier, text uses --ink-primary */
+  --color-primary: #c1352b;
+  --color-primary-content: #fff6ea;
+  --color-secondary: #e5ad33;
+  --color-secondary-content: #1c1916;
+  --color-accent: #5a9e66;
+  --color-accent-content: #1c1916;
+  /* contrast-exception: --color-neutral 1.09:1 fill only, never rendered as text */
+  --color-neutral: #110f0d;
+  --color-neutral-content: #efe4cc;
+  --color-info: #6d9cc7;
+  --color-info-content: #1c1916;
+  --color-success: #5a9e66;
+  --color-success-content: #1c1916;
+  --color-warning: #e5ad33;
+  --color-warning-content: #1c1916;
+  --color-error: #e0604f;
+  --color-error-content: #1c1916;
+}

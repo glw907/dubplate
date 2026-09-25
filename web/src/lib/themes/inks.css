@@ -1,0 +1,22 @@
+/*
+ * The measured status inks: a third layer, outside the palette block's
+ * 21 names, that dubplate's own markup reaches through a named ink
+ * utility, never `text-warning` or the like. An ink defaults to its
+ * fill and is overridden only where the fill fails the 4.5:1 text
+ * floor. Values are pinned in
+ * docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md.
+ * No ink admits a contrast-exception marker: G9 holds every status ink
+ * to 4.5:1 regardless.
+ */
+
+@layer base {
+  [data-theme="dubplate-label"] {
+    --ink-primary: var(--color-primary);
+    --ink-warning: #765000;
+  }
+
+  [data-theme="dubplate-label-night"] {
+    --ink-primary: #ec7b6a;
+    --ink-warning: var(--color-warning);
+  }
+}

@@ -2,3 +2,17 @@
 @plugin "daisyui" {
   themes: light --default, dark;
 }
+
+/*
+ * The `dubplate` theme as data: the match axis before the palettes, so
+ * each composed theme's effective `color-scheme` is its palette's,
+ * never the match block's own `normal` default; the inks after both,
+ * since they read `var(--color-*)` from the palette that precedes
+ * them; `system.css` last, since its parity check assumes the composed
+ * themes it repeats are already declared.
+ */
+@import './lib/themes/dubplate.css';
+@import './lib/themes/label.css';
+@import './lib/themes/label-night.css';
+@import './lib/themes/inks.css';
+@import './lib/themes/system.css';

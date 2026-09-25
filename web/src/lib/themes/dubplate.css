@@ -1,0 +1,54 @@
+/*
+ * The `dubplate` match axis: the eleven structural declarations
+ * (radius, size, border, depth, noise, and the three font stacks) a
+ * composed theme carries alongside its palette. Values are pinned in
+ * docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md,
+ * overridden where docs/superpowers/specs/2026-09-24-visual-identity-design.md
+ * differs. This file is replaceable data: a later token change lands
+ * here, re-checked by G2 and G9, with no markup change.
+ *
+ * `daisyui@5.7.46`'s theme plugin (`theme/index.js`) takes one theme
+ * `name` per `@plugin "daisyui/theme"` block and never composes two
+ * names into one block, so the match axis is duplicated here once per
+ * composed theme. Neither block declares `color-scheme`, so the
+ * plugin's own fallback (`themeTokens["color-scheme"] ?? colorScheme ??
+ * "normal"`) applies; each palette file, imported after this one,
+ * overrides it with `light` or `dark` at the same selector and
+ * specificity, later in source order.
+ *
+ * Each font value is quoted. Tailwind 4's `@plugin` block parses an
+ * unquoted comma inside a declaration value as a list separator, which
+ * silently drops every family but the last from the emitted custom
+ * property (measured against the built bundle); the quotes round-trip
+ * intact and Tailwind strips them from the emitted value.
+ */
+
+@plugin "daisyui/theme" {
+  name: "dubplate-label";
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.28125rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 1;
+  --font-sans: "ui-sans-serif, system-ui, sans-serif";
+  --font-serif: "ui-serif, serif";
+  --font-mono: "ui-monospace, monospace";
+}
+
+@plugin "daisyui/theme" {
+  name: "dubplate-label-night";
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.28125rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 1;
+  --font-sans: "ui-sans-serif, system-ui, sans-serif";
+  --font-serif: "ui-serif, serif";
+  --font-mono: "ui-monospace, monospace";
+}
