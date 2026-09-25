@@ -28,7 +28,7 @@ func fullyMigratedStore(t *testing.T) (leaf, *handle) {
 	t.Helper()
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
-	if err := migrate(ctx, h, l, migrationSource(), defaultOpts()); err != nil {
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts()); err != nil {
 		t.Fatalf("migrate to head: %v", err)
 	}
 	for _, name := range []string{"0001_ledger.sql", "0002_jobs.sql", "0003_catalog.sql"} {
@@ -65,7 +65,7 @@ func TestSchemaJobFixtureSnapshotSurvivesUpgrade(t *testing.T) {
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
 
-	if err := migrate(ctx, h, l, migrationSourceThrough(t, 2), defaultOpts()); err != nil {
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, 2)), defaultOpts()); err != nil {
 		t.Fatalf("migrate to version 2: %v", err)
 	}
 	fixture, err := os.ReadFile(filepath.Join("testdata", "fixtures", "0002_jobs.sql"))
@@ -76,7 +76,7 @@ func TestSchemaJobFixtureSnapshotSurvivesUpgrade(t *testing.T) {
 		t.Fatalf("apply fixture: %v", err)
 	}
 
-	if err := migrate(ctx, h, l, migrationSource(), defaultOpts()); err != nil {
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts()); err != nil {
 		t.Fatalf("migrate to head: %v", err)
 	}
 
@@ -328,7 +328,7 @@ func TestID(t *testing.T) {
 
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
-	if err := migrate(ctx, h, l, migrationSourceThrough(t, 2), defaultOpts()); err != nil {
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, 2)), defaultOpts()); err != nil {
 		t.Fatalf("migrate to version 2: %v", err)
 	}
 	minted := id()

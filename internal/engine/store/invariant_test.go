@@ -450,7 +450,7 @@ func equalStrings(a, b []string) bool {
 func TestSchemaSkeletonSatisfiesInvariants(t *testing.T) {
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
-	if err := migrate(ctx, h, l, migrationSource(), defaultOpts()); err != nil {
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts()); err != nil {
 		t.Fatalf("migrate to head: %v", err)
 	}
 	violations, err := checkInvariants(ctx, h.write)
@@ -476,7 +476,7 @@ func TestSchemaMigrationsCarryPopulatedFixtures(t *testing.T) {
 		t.Run(m.name, func(t *testing.T) {
 			l, h := newMigrateStore(t)
 			ctx := context.Background()
-			if err := migrate(ctx, h, l, migrationSourceThrough(t, m.version), defaultOpts()); err != nil {
+			if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, m.version)), defaultOpts()); err != nil {
 				t.Fatalf("migrate to version %d: %v", m.version, err)
 			}
 
@@ -489,7 +489,7 @@ func TestSchemaMigrationsCarryPopulatedFixtures(t *testing.T) {
 				t.Fatalf("apply fixture %s: %v", fixturePath, err)
 			}
 
-			if err := migrate(ctx, h, l, migrationSource(), defaultOpts()); err != nil {
+			if err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts()); err != nil {
 				t.Fatalf("migrate %s's fixture forward to head: %v", m.name, err)
 			}
 			violations, err := checkInvariants(ctx, h.write)

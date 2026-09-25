@@ -32,7 +32,7 @@ func newLeafDir(t *testing.T) (string, leaf) {
 	t.Helper()
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	if err := l.create(stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	return stateDir, l
@@ -44,7 +44,7 @@ func newLeafDir(t *testing.T) (string, leaf) {
 func buildStore(t *testing.T, stateDir string, through int) leaf {
 	t.Helper()
 	l := newLeaf(stateDir)
-	if err := l.create(stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	if err := preCreate(l.dbPath); err != nil {
@@ -55,7 +55,7 @@ func buildStore(t *testing.T, stateDir string, through int) leaf {
 		t.Fatalf("openHandle: %v", err)
 	}
 	src := migrationSourceThrough(t, through)
-	if err := migrate(context.Background(), h, l, src, defaultOpts()); err != nil {
+	if err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts()); err != nil {
 		_ = h.close()
 		t.Fatalf("migrate through %d: %v", through, err)
 	}
@@ -182,7 +182,7 @@ func serveOpts(logger *slog.Logger) serveOptions {
 // record, and closes the handle at cleanup.
 func quietServe(t *testing.T, stateDir string) (*handle, error) {
 	t.Helper()
-	h, err := openServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)), os.Geteuid())
+	h, err := openServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)))
 	if err == nil {
 		t.Cleanup(func() { _ = h.close() })
 	}
@@ -193,11 +193,52 @@ func quietServe(t *testing.T, stateDir string) (*handle, error) {
 // cleanup.
 func quietWrite(t *testing.T, stateDir string) (*handle, error) {
 	t.Helper()
-	h, err := openWrite(deadline(t, 5*time.Second), stateDir, openBusy, os.Geteuid())
+	h, err := openWrite(deadline(t, 5*time.Second), stateDir, openBusy)
 	if err == nil {
 		t.Cleanup(func() { _ = h.close() })
 	}
 	return h, err
+}
+
+// TestOpenServe_BackupFieldControlsPruneOnMigrate is Task 1S's proof
+// that settle passes serveOptions.backup through to the migration
+// runner unchanged: with it off, the runner prunes pre-migration
+// copies to keep after the migration it runs; with it on, it prunes
+// nothing. Fixture: a store one version back from head, with two
+// pre-migration copies already planted in snapshots/, keep 1.
+func TestOpenServe_BackupFieldControlsPruneOnMigrate(t *testing.T) {
+	tests := []struct {
+		name   string
+		backup bool
+		want   int
+	}{
+		{name: "off prunes to keep", backup: false, want: 1},
+		{name: "on keeps every copy", backup: true, want: 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			l := buildStore(t, stateDir, binaryHead-1)
+			for _, name := range []string{"pre-migrate-v1.db", "pre-migrate-v99.db"} {
+				if err := os.WriteFile(filepath.Join(l.snapshotsDir, name), []byte("planted"), 0o600); err != nil {
+					t.Fatalf("plant %s: %v", name, err)
+				}
+			}
+
+			opts := serveOpts(slog.New(slog.DiscardHandler))
+			opts.keep = 1
+			opts.backup = tt.backup
+			h, err := openServe(context.Background(), stateDir, opts)
+			if err != nil {
+				t.Fatalf("openServe: %v", err)
+			}
+			t.Cleanup(func() { _ = h.close() })
+
+			if got := len(listDir(t, l.snapshotsDir)); got != tt.want {
+				t.Errorf("snapshots = %d, want %d", got, tt.want)
+			}
+		})
+	}
 }
 
 // TestOpenWrite_RefusesAllButCurrent is spec criterion 13's write-mode
@@ -220,7 +261,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 			name: "zero-byte file",
 			setup: func(t *testing.T, stateDir string) {
 				l := newLeaf(stateDir)
-				if err := l.create(stateDir, os.Geteuid()); err != nil {
+				if err := l.create(stateDir); err != nil {
 					t.Fatal(err)
 				}
 				precreateFile(t, l.dbPath)
@@ -232,7 +273,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 			name: "text file",
 			setup: func(t *testing.T, stateDir string) {
 				l := newLeaf(stateDir)
-				if err := l.create(stateDir, os.Geteuid()); err != nil {
+				if err := l.create(stateDir); err != nil {
 					t.Fatal(err)
 				}
 				text := strings.Repeat("this is not a database\n", 200)
@@ -323,7 +364,7 @@ func TestOpenWrite_LockHeldExclusively(t *testing.T) {
 	l := buildStore(t, stateDir, binaryHead)
 	takeRawExclusive(t, l.lockPath)
 
-	_, err := openWrite(deadline(t, 200*time.Millisecond), stateDir, openBusy, os.Geteuid())
+	_, err := openWrite(deadline(t, 200*time.Millisecond), stateDir, openBusy)
 	if !errors.Is(err, errLockBusy) {
 		t.Errorf("openWrite under an exclusive holder = %v, want errLockBusy", err)
 	}
@@ -355,7 +396,7 @@ func TestOpenModes_ForeignDatabaseUntouched(t *testing.T) {
 		open func(t *testing.T, stateDir string) error
 	}{
 		{"inspect", func(t *testing.T, stateDir string) error {
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			return refusal(r.State, "%s", r.Reason)
 		}},
 		{"write", func(t *testing.T, stateDir string) error { _, err := quietWrite(t, stateDir); return err }},
@@ -424,7 +465,7 @@ func TestOpenModes_LeafWithoutDatabase(t *testing.T) {
 			tt.setup(t, l, stateDir)
 			before := treeListing(t, l.root)
 
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			if r.State != StateAbsent {
 				t.Errorf("inspect state = %v (%s), want absent", r.State, r.Reason)
 			}
@@ -487,7 +528,7 @@ func TestOpenModes_InterruptedCreate(t *testing.T) {
 			stateDir, l := newLeafDir(t)
 			tt.setup(t, l.dbPath)
 
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			if r.State != StateNotAStore || !strings.Contains(r.Reason, "start serve to finish creating it") {
 				t.Errorf("inspect = %v (%s), want not a store naming the fix", r.State, r.Reason)
 			}
@@ -520,7 +561,7 @@ func TestOpenModes_ZeroBytesBesideWAL(t *testing.T) {
 	before := treeListing(t, l.dbDir)
 	walHash := hashFile(t, wal)
 
-	r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 	if r.State != StateNotAStore {
 		t.Errorf("inspect = %v (%s), want not a store", r.State, r.Reason)
 	}
@@ -558,7 +599,7 @@ func TestOpenModes_UnreadableDatabase(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(l.dbPath, 0o600) })
 
-	r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 	if r.State != StateRefused || !strings.Contains(r.Reason, l.dbPath) {
 		t.Errorf("inspect = %v (%s), want refused naming %s", r.State, r.Reason, l.dbPath)
 	}
@@ -615,9 +656,10 @@ func TestOpenModes_OwnerAndFilesystemRefused(t *testing.T) {
 				statfsFunc = tt.statfs
 			}
 
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, tt.euid)
-			_, werr := openWrite(deadline(t, 5*time.Second), stateDir, openBusy, tt.euid)
-			_, serr := openServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)), tt.euid)
+			withGeteuid(t, tt.euid)
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+			_, werr := openWrite(deadline(t, 5*time.Second), stateDir, openBusy)
+			_, serr := openServe(context.Background(), stateDir, serveOpts(slog.New(slog.DiscardHandler)))
 			reasons := map[string]string{"inspect": r.Reason}
 			if r.State != StateRefused {
 				t.Errorf("inspect state = %v (%s), want refused", r.State, r.Reason)
@@ -658,7 +700,7 @@ func TestOpenModes_RestoreIntent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 	if r.State != StateRestoreInProgress {
 		t.Errorf("inspect state = %v (%s), want restore in progress", r.State, r.Reason)
 	}
@@ -722,7 +764,7 @@ func TestOpenModes_LostDatabaseBesideCopy(t *testing.T) {
 
 			_, err := quietServe(t, stateDir)
 			assertErrNames(t, err, cp, "restore --from-file")
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			if r.State != StateRefused || !strings.Contains(r.Reason, cp) {
 				t.Errorf("inspect = %v (%s), want refused naming %s", r.State, r.Reason, cp)
 			}
@@ -810,7 +852,7 @@ func TestOpenServe_LockHeldPastMigrationWait(t *testing.T) {
 			logs := newHoldersHandler("")
 			opts := serveOpts(slog.New(logs))
 			opts.migrationWait = 300 * time.Millisecond
-			_, err = openServe(context.Background(), stateDir, opts, os.Geteuid())
+			_, err = openServe(context.Background(), stateDir, opts)
 			if !errors.Is(err, errLockBusy) {
 				t.Fatalf("openServe under a holder = %v, want errLockBusy", err)
 			}
@@ -836,7 +878,7 @@ type serveResult struct {
 func startServe(stateDir string, logs *holdersHandler) <-chan serveResult {
 	done := make(chan serveResult, 1)
 	go func() {
-		h, err := openServe(context.Background(), stateDir, serveOpts(slog.New(logs)), os.Geteuid())
+		h, err := openServe(context.Background(), stateDir, serveOpts(slog.New(logs)))
 		done <- serveResult{h, err}
 	}()
 	return done
@@ -928,7 +970,7 @@ func TestOpenServe_ConversionLost(t *testing.T) {
 			l := newLeaf(stateDir)
 			if tt.through > 0 {
 				buildStore(t, stateDir, tt.through)
-			} else if err := l.create(stateDir, os.Geteuid()); err != nil {
+			} else if err := l.create(stateDir); err != nil {
 				t.Fatal(err)
 			}
 			placed := buildStore(t, t.TempDir(), binaryHead).dbPath

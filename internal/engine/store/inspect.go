@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"errors"
-	"os"
 	"time"
 )
 
@@ -114,14 +113,10 @@ type Report struct {
 // bytes and mode are unchanged afterward; SQLite may create the -wal
 // and -shm files beside a database that has none. It takes the store's
 // lock shared and does not wait for it: a lock held exclusively
-// reports StateBusy.
+// reports StateBusy. It checks the leaf's owner against the package's
+// geteuid seam, which a test swaps to meet a leaf owned by another
+// user without running as one.
 func Inspect(ctx context.Context, opts InspectOptions) Report {
-	return inspect(ctx, opts, os.Geteuid())
-}
-
-// inspect is Inspect with the effective uid as a parameter, so a test
-// can meet a leaf owned by another user without running as one.
-func inspect(ctx context.Context, opts InspectOptions, euid int) Report {
 	l := newLeaf(opts.StateDir)
 	files, err := readMigrations(migrationSource())
 	if err != nil {
@@ -129,7 +124,7 @@ func inspect(ctx context.Context, opts InspectOptions, euid int) Report {
 	}
 	r := Report{BinaryVersion: len(files)}
 
-	ls, err := l.stat(euid)
+	ls, err := l.stat()
 	if err != nil {
 		return reportFrom(r, err)
 	}

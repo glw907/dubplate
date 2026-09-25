@@ -148,7 +148,7 @@ func TestMigrate_SnapshotRefusals(t *testing.T) {
 			src, names := tt.setup(t, l)
 			before := readState(t, l.dbPath)
 
-			err := migrate(context.Background(), h, l, src, defaultOpts())
+			err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
 			assertErrNames(t, err, names...)
 			assertUnchanged(t, l.dbPath, before)
 			if snaps := listDir(t, l.snapshotsDir); len(snaps) != 0 {

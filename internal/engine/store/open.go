@@ -86,6 +86,12 @@ type serveOptions struct {
 	// keep is how many pre-migration copies a migration keeps.
 	keep int
 
+	// backup reports whether remote backup is on. settle passes it
+	// through to the runner unchanged, whose zero value keeps
+	// production's default: backup off, so a migration prunes
+	// pre-migration copies to keep.
+	backup bool
+
 	// logger receives the lock holders during a wait, and a FUSE
 	// warning.
 	logger *slog.Logger
@@ -98,13 +104,13 @@ type serveOptions struct {
 // lock. It refuses an absent store naming "start serve first", and a
 // store at any version but the binary's. ctx bounds the wait for the
 // lock.
-func openWrite(ctx context.Context, stateDir string, busyTimeout time.Duration, euid int) (*handle, error) {
+func openWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) (*handle, error) {
 	l := newLeaf(stateDir)
 	files, err := readMigrations(migrationSource())
 	if err != nil {
 		return nil, err
 	}
-	ls, err := l.stat(euid)
+	ls, err := l.stat()
 	if err != nil {
 		return nil, err
 	}
@@ -169,19 +175,19 @@ func writeRefusal(l leaf, c dbClass, head int) error {
 // exclusively it reads the store afresh, since a restore may have
 // replaced it in the gap. Each wait for the lock, shared or exclusive,
 // is bounded by opts.migrationWait and logs the holders.
-func openServe(ctx context.Context, stateDir string, opts serveOptions, euid int) (*handle, error) {
+func openServe(ctx context.Context, stateDir string, opts serveOptions) (*handle, error) {
 	l := newLeaf(stateDir)
 	files, err := readMigrations(migrationSource())
 	if err != nil {
 		return nil, err
 	}
 	head := len(files)
-	ls, err := l.stat(euid)
+	ls, err := l.stat()
 	if err != nil {
 		return nil, err
 	}
 	if !ls.complete {
-		if err := l.create(stateDir, euid); err != nil {
+		if err := l.create(stateDir); err != nil {
 			return nil, err
 		}
 	}
@@ -258,7 +264,7 @@ func settle(ctx context.Context, l leaf, files []migration, opts serveOptions) (
 		return err
 	}
 	defer func() { err = errors.Join(err, h.close()) }()
-	return migrate(ctx, h, l, migrationSource(), migrateOptions{busyTimeout: opts.busyTimeout, keep: opts.keep})
+	return migrate(ctx, h, l, files, migrateOptions{busyTimeout: opts.busyTimeout, keep: opts.keep, backup: opts.backup})
 }
 
 // waitLock polls for path's lock in mode how (syscall.LOCK_SH or
@@ -302,10 +308,10 @@ func waitLock(ctx context.Context, path string, how int, opts serveOptions) (*st
 
 // stat runs the steps every mode takes before the filesystem
 // probe: it stats l's leaf and its four names, checks a present leaf's
-// shape and its owner against euid, and refuses when a restore-intent
-// record exists. An absent leaf reports exists false and meets no
-// owner check, since there is nothing yet to own.
-func (l leaf) stat(euid int) (leafState, error) {
+// shape and its owner against geteuid(), and refuses when a
+// restore-intent record exists. An absent leaf reports exists false
+// and meets no owner check, since there is nothing yet to own.
+func (l leaf) stat() (leafState, error) {
 	info, err := os.Stat(l.root)
 	if errors.Is(err, fs.ErrNotExist) {
 		return leafState{}, nil
@@ -316,7 +322,7 @@ func (l leaf) stat(euid int) (leafState, error) {
 	if err := checkLeafShape(info, l.root); err != nil {
 		return leafState{}, refusal(StateRefused, "%v", err)
 	}
-	if err := checkOwner(info, euid); err != nil {
+	if err := checkOwner(info); err != nil {
 		return leafState{}, refusal(StateRefused, "leaf %s: %v", l.root, err)
 	}
 

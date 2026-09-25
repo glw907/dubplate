@@ -67,11 +67,13 @@ type migrateOptions struct {
 }
 
 // migrate brings the store h opened, whose leaf is l, to the highest
-// version src holds. src holds only migration files, each named
-// "<version>_<label>.sql", numbered from 1 with no gap.
+// version files holds. files is the caller's already-parsed migration
+// source, each named "<version>_<label>.sql", numbered from 1 with no
+// gap: migrate parses nothing itself, so a caller that already read
+// its source (openServe's settle, above all) never reads it twice.
 //
 // It refuses, changing nothing, a store whose user_version is above
-// src's highest, and a store whose ledger disagrees with src: a row
+// files' highest, and a store whose ledger disagrees with files: a row
 // whose name or hash differs from the file at its version, a row above
 // user_version or with no file, or a version from 1 through
 // user_version with no row. Before applying anything to a store at a
@@ -87,13 +89,9 @@ type migrateOptions struct {
 // and closes that connection afterward. The first statement migrate
 // issues reads user_version through the write pool, whose DSN sets WAL,
 // so a store is in WAL before its first file applies on either class.
-func migrate(ctx context.Context, h *handle, l leaf, src fs.FS, opts migrateOptions) error {
+func migrate(ctx context.Context, h *handle, l leaf, files []migration, opts migrateOptions) error {
 	if opts.keep < 1 {
 		return fmt.Errorf("migrate %s: keep %d copies, want at least 1", h.path, opts.keep)
-	}
-	files, err := readMigrations(src)
-	if err != nil {
-		return fmt.Errorf("migrate %s: %w", h.path, err)
 	}
 	head := len(files)
 

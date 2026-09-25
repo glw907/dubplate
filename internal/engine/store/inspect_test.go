@@ -38,7 +38,7 @@ func TestInspectChildWrite(t *testing.T) {
 	}
 	switch action {
 	case "older":
-		if err := migrate(ctx, h, l, migrationSourceThrough(t, 2), defaultOpts()); err != nil {
+		if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, 2)), defaultOpts()); err != nil {
 			t.Fatalf("child migrate: %v", err)
 		}
 	case "newer":
@@ -89,7 +89,7 @@ func TestInspect_HotWAL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			if tt.through == 0 {
-				r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+				r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 				if r.State != tt.wantState {
 					t.Errorf("state = %v (%s), want %v", r.State, r.Reason, tt.wantState)
 				}
@@ -106,7 +106,7 @@ func TestInspect_HotWAL(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			if r.State != tt.wantState {
 				t.Errorf("state = %v (%s), want %v", r.State, r.Reason, tt.wantState)
 			}
@@ -163,7 +163,7 @@ func TestInspect_EveryOtherState(t *testing.T) {
 			name: "not a store",
 			setup: func(t *testing.T, stateDir string) {
 				l := newLeaf(stateDir)
-				if err := l.create(stateDir, os.Geteuid()); err != nil {
+				if err := l.create(stateDir); err != nil {
 					t.Fatal(err)
 				}
 				precreateFile(t, l.dbPath)
@@ -188,12 +188,11 @@ func TestInspect_EveryOtherState(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			tt.setup(t, stateDir)
-			euid := tt.euid
-			if euid == 0 {
-				euid = os.Geteuid()
+			if tt.euid != 0 {
+				withGeteuid(t, tt.euid)
 			}
 
-			r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, euid)
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			if r.State != tt.wantState {
 				t.Errorf("state = %v (%s), want %v", r.State, r.Reason, tt.wantState)
 			}
@@ -213,7 +212,8 @@ func TestInspect_EveryOtherState(t *testing.T) {
 // on the absent branch would refuse.
 func TestInspect_AbsentLeafSkipsOwnerCheck(t *testing.T) {
 	stateDir := t.TempDir()
-	r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid()+1)
+	withGeteuid(t, os.Geteuid()+1)
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 	if r.State != StateAbsent {
 		t.Errorf("state = %v (%s), want absent", r.State, r.Reason)
 	}
@@ -231,7 +231,7 @@ func TestInspect_FUSEWarns(t *testing.T) {
 		return nil
 	}
 
-	r := inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy}, os.Geteuid())
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 	if r.State != StateCurrent {
 		t.Errorf("state = %v (%s), want current", r.State, r.Reason)
 	}

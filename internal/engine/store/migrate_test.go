@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"slices"
 	"strings"
@@ -71,7 +72,7 @@ func newMigrateStore(t *testing.T) (leaf, *handle) {
 	t.Helper()
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	if err := l.create(stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	if err := preCreate(l.dbPath); err != nil {
@@ -85,10 +86,23 @@ func newMigrateStore(t *testing.T) (leaf, *handle) {
 	return l, h
 }
 
-// mustMigrate runs migrate and fails the test on an error.
+// readMigrationsT reads src and fails the test on an error, so a
+// migrate call site parses its own source, the way a production
+// caller does, rather than sharing one cached parse across a table.
+func readMigrationsT(t *testing.T, src fs.FS) []migration {
+	t.Helper()
+	files, err := readMigrations(src)
+	if err != nil {
+		t.Fatalf("readMigrations: %v", err)
+	}
+	return files
+}
+
+// mustMigrate reads src and runs migrate, failing the test on either
+// error.
 func mustMigrate(t *testing.T, h *handle, l leaf, src fstest.MapFS, opts migrateOptions) {
 	t.Helper()
-	if err := migrate(context.Background(), h, l, src, opts); err != nil {
+	if err := migrate(context.Background(), h, l, readMigrationsT(t, src), opts); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 }
@@ -290,7 +304,7 @@ UPDATE migrations SET sha256 = 'tampered' WHERE version = 1;`)
 			tt.setup(t, l, h)
 			before := readState(t, l.dbPath)
 
-			err := migrate(context.Background(), h, l, synthSet(3), defaultOpts())
+			err := migrate(context.Background(), h, l, readMigrationsT(t, synthSet(3)), defaultOpts())
 			if tt.wantErr != nil {
 				assertErrNames(t, err, tt.wantErr...)
 				if strings.Contains(err.Error(), "ledger") {
@@ -350,7 +364,7 @@ INSERT INTO no_such_table (a) VALUES (1);
 			before := readState(t, l.dbPath)
 
 			src := withSecond(synthSet(2), synthName(2), tt.file2)
-			err := migrate(context.Background(), h, l, src, defaultOpts())
+			err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
 			assertErrNames(t, err, tt.wantErr, synthName(2))
 			assertUnchanged(t, l.dbPath, before)
 		})
@@ -431,7 +445,7 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 			tt.setup(t, l, h)
 			before := readState(t, l.dbPath)
 
-			err := migrate(context.Background(), h, l, tt.src, defaultOpts())
+			err := migrate(context.Background(), h, l, readMigrationsT(t, tt.src), defaultOpts())
 			assertErrNames(t, err, tt.wantErr...)
 			assertUnchanged(t, l.dbPath, before)
 			if snaps := listDir(t, l.snapshotsDir); len(snaps) != 0 {
@@ -446,7 +460,7 @@ func TestMigrate_FileEndingItsOwnTransaction(t *testing.T) {
 	mustMigrate(t, h, l, synthSet(1), defaultOpts())
 
 	src := withSecond(synthSet(2), synthName(2), "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nCREATE TABLE e4 (a INTEGER);\n")
-	err := migrate(context.Background(), h, l, src, defaultOpts())
+	err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
 	assertErrNames(t, err, synthName(2), "ends its own transaction")
 }
 
@@ -458,7 +472,7 @@ func TestMigrate_KeepBelowOneRefusedBeforeApply(t *testing.T) {
 
 			opts := defaultOpts()
 			opts.keep = keep
-			err := migrate(context.Background(), h, l, synthSet(2), opts)
+			err := migrate(context.Background(), h, l, readMigrationsT(t, synthSet(2)), opts)
 			assertErrNames(t, err, fmt.Sprintf("keep %d", keep))
 			assertUnchanged(t, l.dbPath, before)
 		})
@@ -515,7 +529,7 @@ ALTER TABLE parent_new RENAME TO parent;
 		populate(t, l.dbPath)
 		before := readState(t, l.dbPath)
 
-		err := migrate(context.Background(), h, l, withSecond(synthSet(2), synthName(2), rebuild(" WHERE id = 1")), defaultOpts())
+		err := migrate(context.Background(), h, l, readMigrationsT(t, withSecond(synthSet(2), synthName(2), rebuild(" WHERE id = 1"))), defaultOpts())
 		assertErrNames(t, err, synthName(2), "table child")
 		assertUnchanged(t, l.dbPath, before)
 		if got := queryInt(t, l.dbPath, "SELECT count(*) FROM parent"); got != 3 {

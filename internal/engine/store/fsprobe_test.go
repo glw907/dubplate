@@ -36,7 +36,7 @@ func TestProbeFilesystem(t *testing.T) {
 	// subtest varies.
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	if err := l.create(stateDir, os.Geteuid()); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	target := l.probeTarget()

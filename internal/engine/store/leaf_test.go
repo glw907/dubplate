@@ -30,6 +30,16 @@ func TestNewLeaf(t *testing.T) {
 	}
 }
 
+// withGeteuid swaps the package's geteuid seam to always return uid,
+// restoring the real syscall at cleanup; the store's no-t.Parallel
+// rule makes the swap safe.
+func withGeteuid(t *testing.T, uid int) {
+	t.Helper()
+	orig := geteuid
+	geteuid = func() int { return uid }
+	t.Cleanup(func() { geteuid = orig })
+}
+
 // assertLeafShape fails the test unless every directory create
 // makes exists at leafDirPerm and store.lock exists as a regular file.
 func assertLeafShape(t *testing.T, l leaf) {
@@ -58,14 +68,13 @@ func assertLeafShape(t *testing.T, l leaf) {
 func TestCreateLeaf_FirstRunAndIdempotentRetry(t *testing.T) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	euid := os.Geteuid()
 
-	if err := l.create(stateDir, euid); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("first create: %v", err)
 	}
 	assertLeafShape(t, l)
 
-	if err := l.create(stateDir, euid); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("second create: %v", err)
 	}
 	assertLeafShape(t, l)
@@ -74,7 +83,6 @@ func TestCreateLeaf_FirstRunAndIdempotentRetry(t *testing.T) {
 func TestCreateLeaf_CompletesAPartialCreate(t *testing.T) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	euid := os.Geteuid()
 
 	// A crash after the leaf, store.lock, and db/ land but before
 	// snapshots/ or staging/ do. db/ is planted at 0755 so
@@ -94,7 +102,7 @@ func TestCreateLeaf_CompletesAPartialCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := l.create(stateDir, euid); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("create over a partial leaf: %v", err)
 	}
 	assertLeafShape(t, l)
@@ -103,14 +111,14 @@ func TestCreateLeaf_CompletesAPartialCreate(t *testing.T) {
 func TestCreateLeaf_OwnerMismatchRefusesAndCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	mismatchEuid := os.Geteuid() + 1
 
 	cur, err := user.Current()
 	if err != nil {
 		t.Skipf("no current user info: %v", err)
 	}
 
-	err = l.create(stateDir, mismatchEuid)
+	withGeteuid(t, os.Geteuid()+1)
+	err = l.create(stateDir)
 	if err == nil {
 		t.Fatal("create: want a refusal for a mismatched euid, got nil")
 	}
@@ -132,14 +140,13 @@ func TestCreateLeaf_OwnerMismatchRefusesAndCreatesNothing(t *testing.T) {
 func TestCreateLeaf_OwnerCheckRunsOnARetryToo(t *testing.T) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
-	euid := os.Geteuid()
 
-	if err := l.create(stateDir, euid); err != nil {
+	if err := l.create(stateDir); err != nil {
 		t.Fatalf("first create: %v", err)
 	}
 
-	mismatchEuid := euid + 1
-	if err := l.create(stateDir, mismatchEuid); err == nil {
+	withGeteuid(t, os.Geteuid()+1)
+	if err := l.create(stateDir); err == nil {
 		t.Fatal("create: want a refusal on retry with a mismatched euid, got nil")
 	}
 }
@@ -173,7 +180,8 @@ func TestCheckOwner(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := checkOwner(info, tt.euid)
+			withGeteuid(t, tt.euid)
+			err := checkOwner(info)
 			if tt.wantErr && err == nil {
 				t.Fatal("checkOwner: want an error, got nil")
 			}

@@ -53,21 +53,25 @@ func newLeaf(stateDir string) leaf {
 	}
 }
 
+// geteuid is the seam the package reads the effective uid through,
+// the form fsprobe.go's statfsFunc already uses for syscall.Statfs. A
+// test swaps it to exercise an owner mismatch without running as a
+// different real user, and restores it with t.Cleanup; the store's
+// no-t.Parallel rule makes that safe. Every production path leaves it
+// at its default, os.Geteuid.
+var geteuid = os.Geteuid
+
 // create makes l's leaf, store.lock, and its three directories (each
 // leafDirPerm), tolerating any of them already existing: a crash can
 // stop an earlier create partway, and a second process can race it.
-// It refuses, creating nothing, when euid does not own stateDir, so a
-// first run as root can never leave a root-owned leaf.
-//
-// euid is a parameter rather than a syscall.Geteuid() read inside the
-// method, so a test can exercise the mismatch without running as a
-// different real user; every production caller passes os.Geteuid().
-func (l leaf) create(stateDir string, euid int) error {
+// It refuses, creating nothing, when geteuid() does not own stateDir,
+// so a first run as root can never leave a root-owned leaf.
+func (l leaf) create(stateDir string) error {
 	info, err := os.Stat(stateDir)
 	if err != nil {
 		return fmt.Errorf("create leaf: stat state directory: %w", err)
 	}
-	if err := checkOwner(info, euid); err != nil {
+	if err := checkOwner(info); err != nil {
 		return fmt.Errorf("create leaf: state directory %s: %w", stateDir, err)
 	}
 
@@ -93,16 +97,15 @@ func (l leaf) create(stateDir string, euid int) error {
 	return nil
 }
 
-// checkOwner refuses when info's owning uid differs from euid, naming
-// the owner and the fix a caller running as the wrong user needs. It
-// takes euid as a parameter so a test can exercise the mismatch without
-// running as another user.
-func checkOwner(info fs.FileInfo, euid int) error {
+// checkOwner refuses when info's owning uid differs from geteuid(),
+// naming the owner and the fix a caller running as the wrong user
+// needs.
+func checkOwner(info fs.FileInfo) error {
 	st, ok := info.Sys().(*syscall.Stat_t)
 	if !ok {
 		return fmt.Errorf("check owner: no unix stat info for %s", info.Name())
 	}
-	if int(st.Uid) == euid {
+	if int(st.Uid) == geteuid() {
 		return nil
 	}
 	name := ownerName(st.Uid)
