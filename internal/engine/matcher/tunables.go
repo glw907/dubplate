@@ -386,9 +386,9 @@ var SDReplace = []SDReplacement{
 // the boundary rune in its own group, and sdFeaturingReplacement
 // reinserts it, because beets' Unicode-aware \b consumes no character
 // while the translated branch's [^\pL\pN_] does; without the
-// replacement the rewrite would delete a letter or digit the two
-// titles disagree about, which matters because unidecode maps some of
-// those runes to ASCII letters ("©" to "(c)", "™" to "(tm)").
+// replacement the rewrite would delete the non-word rune before the
+// trigger, which matters because unidecode maps some of those runes to
+// ASCII letters ("©" to "(c)", "™" to "(tm)").
 const (
 	sdFeaturingPattern     = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
 	sdFeaturingReplacement = `${1}`
@@ -399,11 +399,13 @@ const (
 // [Tunables.StringDistPatterns], held to beets' literals one for one
 // (TestBeetsSDPatternsMatchBeetsLiterals), with one named departure:
 // the featuring row carries sdFeaturingPattern and
-// sdFeaturingReplacement in place of beets' literal and its empty
-// substitution, per that pattern's doc comment above. The featuring
-// pattern carries the word boundaries upstream shipped in beets 2.14.0
-// (19d091440), so "ft" inside an ordinary word such as "Draft" no
-// longer reads as a featuring credit.
+// sdFeaturingReplacement, two ASCII-boundary branches sharing a
+// kept-character group, in place of beets' own literal and its empty
+// substitution, because Go RE2's \b is ASCII-only where Python re's is
+// Unicode-aware; see sdFeaturingPattern's doc comment above for the
+// full translation. The featuring pattern carries the word boundaries
+// upstream shipped in beets 2.14.0 (19d091440), so "ft" inside an
+// ordinary word such as "Draft" no longer reads as a featuring credit.
 var BeetsSDPatterns = []SDPattern{
 	{Pattern: `^the `, Weight: 0.1},
 	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},

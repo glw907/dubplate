@@ -31,11 +31,12 @@ baseline half: the caller runs the same subjects twice, once with no
 substitution to reproduce each case's committed distance bit-identically,
 and once with the named table to get the defect-free figure.
 
-The table below carries beets' own literals, the same six
-``matcher.SDPatternsNoBracketDiscount`` is derived from, because this
-script runs inside Python's ``re`` and needs Python's Unicode-aware
-word-boundary check. The Go table carries the featuring row translated
-to two ASCII-boundary branches instead, since RE2's word boundary is
+The table below carries beets' own literals for the same four rows
+``matcher.SDPatternsNoBracketDiscount`` is derived from (beets' six
+shipped discounts less the two bracket rows), because this script runs
+inside Python's ``re`` and needs Python's Unicode-aware word-boundary
+check. The Go table carries the featuring row translated to two
+ASCII-boundary branches instead, since RE2's word boundary is
 ASCII-only, so this script's table and the Go one diverge on that one
 row's pattern text while still substituting beets' own credit for a
 non-ASCII letter or number directly before a featuring trigger. A
@@ -58,8 +59,10 @@ from derive_oracle import build_items, pin_date, stable_json
 # shim cannot be mistaken for each other.
 SHIM_VERSION = "1"
 
-# matcher.SDPatternsNoBracketDiscount: BeetsSDPatterns' six discounts
-# with the two 0.3-weight bracket patterns removed.
+# Beets' own literals for the four rows matcher.SDPatternsNoBracketDiscount
+# carries (BeetsSDPatterns' six discounts less the two 0.3-weight bracket
+# patterns); the featuring row here stays beets' literal, not the Go
+# table's ASCII-boundary translation (module docstring above).
 SD_PATTERNS_NO_BRACKET_DISCOUNT = [
     (r"^the ", 0.1),
     (r"[\[\(]?(ep|single)[\]\)]?", 0.0),

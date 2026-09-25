@@ -151,6 +151,12 @@ var sdTranslations = map[string]sdGoForm{
 	},
 }
 
+// beetsFeaturingRowIndex is the featuring row's position in
+// BeetsSDPatterns and beetsSDPatternLiterals: its weight (0.1) is not
+// unique in the table, so index is how this file, like the production
+// loop's callers, locates it.
+const beetsFeaturingRowIndex = 2
+
 // wantSDPattern applies sdTranslations to literal, marking the
 // translation used, so a shipped table is checked against what it
 // should actually carry: the literal untouched, or the Go form on the
@@ -220,11 +226,10 @@ func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 		{"feat after a parenthesis", "Ember Wharf (feat. Northern)", "Ember Wharf", 0.05454545454545454},
 		{"ft after a bracket", "Ember Wharf [ft. Northern]", "Ember Wharf", 0.05},
 
-		// The gap this pass closes: a non-ASCII letter or number
-		// directly before the trigger, where Go's ASCII-only \b saw a
-		// boundary and Python's Unicode-aware one did not. Figures
-		// measured in the pinned venv (research brief, "Measured
-		// figures"); the same for both pattern tables, since neither
+		// A non-ASCII letter or number directly before the trigger,
+		// where Go's ASCII-only \b saw a boundary and Python's
+		// Unicode-aware one did not. Figures measured in the pinned
+		// venv; the same for both pattern tables, since neither
 		// table's other rows fire on these pairs.
 		{"non-ASCII letter before ft, umlaut", "Geschäft: Ember Wharf", "Geschäft: Northern Lines", 0.5238095238095238},
 		{"non-ASCII letter before ft, u-diaeresis", "Rüft: Ember Wharf", "Rüft: Northern Lines", 0.6470588235294118},
@@ -251,20 +256,19 @@ func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 }
 
 // TestStringDistFeaturingUppercaseDottedICaseMapping declares, rather
-// than fixes, the one divergence a sweep of every code point found
-// upstream of the featuring row, declared rather than fixed: Python's str.lower maps
-// U+0130 (İ) to "i" plus a combining dot, a mark \w rejects, so beets'
-// Unicode-aware boundary check still sees a boundary before "ft". Go's
-// strings.ToLower maps U+0130 to a bare "i", so the character directly
-// before the trigger is a plain ASCII word character on both sides and
-// neither pattern table's boundary check fires. The two pipelines
-// therefore charge the pair differently: beets discounts the credit at
-// 0.06875 (pinned venv, 2026-09-25) and Go, seeing no boundary, charges
-// the whole difference. TestStringDistCaseMappingSweep found U+0130 is
-// the only code point where Python's lowercase changes whether the
-// character before it reads as a word character; a toolchain bump that
-// moves Go's figure re-runs that sweep. A Go figure equal to beets'
-// 0.06875 means the divergence is fixed and this declaration comes out.
+// than fixes, one divergence upstream of the featuring row: Python's
+// str.lower maps U+0130 (İ) to "i" plus a combining dot, a mark \w
+// rejects, so beets' Unicode-aware boundary check still sees a
+// boundary before "ft". Go's strings.ToLower maps U+0130 to a bare
+// "i", so the character directly before the trigger is a plain ASCII
+// word character on both sides and neither pattern table's boundary
+// check fires. The two pipelines therefore charge the pair
+// differently: beets discounts the credit at 0.06875 (pinned venv,
+// 2026-09-25) and Go, seeing no boundary, charges the whole
+// difference. A sweep of every code point found U+0130 is the only
+// one whose Python lowercase changes whether it ends in a word
+// character; a toolchain bump that moves Go's figure re-runs that
+// sweep.
 func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
 	const wantGo = 0.6875
 	str1, str2 := "İft: Ember Wharf", "İft: Northern Lines"
@@ -280,7 +284,7 @@ func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
 			tun := DefaultTunables()
 			tun.StringDistPatterns = table.patterns
 			if got := StringDist(tun, &str1, &str2); got != wantGo {
-				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875)", str1, str2, got, wantGo)
+				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875; a figure equal to 0.06875 means the divergence was fixed, so update this row and its HISTORY note)", str1, str2, got, wantGo)
 			}
 		})
 	}
@@ -390,7 +394,8 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 	}
 
 	asciiLiteral := sdRegexp(golden.Header.Literal)
-	shipped := sdRegexp(sdFeaturingPattern)
+	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
+	shipped := sdRegexp(featuring.Pattern)
 
 	type divergence struct {
 		label, input, want, got string
@@ -402,7 +407,7 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 		if got := asciiLiteral.ReplaceAllString(input, ""); got != want {
 			asciiDivergences++
 		}
-		if got := shipped.ReplaceAllString(input, sdFeaturingReplacement); got != want {
+		if got := shipped.ReplaceAllString(input, featuring.Replacement); got != want {
 			diverged = append(diverged, divergence{label, input, want, got})
 		}
 	}
@@ -411,7 +416,7 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 		if got := asciiLiteral.ReplaceAllString(input, ""); got != want {
 			asciiDivergences++
 		}
-		if got := shipped.ReplaceAllString(input, sdFeaturingReplacement); got != want {
+		if got := shipped.ReplaceAllString(input, featuring.Replacement); got != want {
 			diverged = append(diverged, divergence{"", input, want, got})
 		}
 	}
@@ -518,7 +523,8 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 		return found
 	}
 
-	shipped := sdRegexp(sdFeaturingPattern)
+	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
+	shipped := sdRegexp(featuring.Pattern)
 	var pythonOnly []rune
 	goOnly := 0
 	for r := rune(0); r <= 0x10FFFF; r++ {
@@ -526,7 +532,7 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 			continue
 		}
 		input := "a" + string(r) + "ft. x"
-		got := shipped.ReplaceAllString(input, sdFeaturingReplacement)
+		got := shipped.ReplaceAllString(input, featuring.Replacement)
 
 		goWord := got == input
 		switch {

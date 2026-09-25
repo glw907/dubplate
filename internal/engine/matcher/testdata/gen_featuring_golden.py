@@ -116,9 +116,9 @@ PRECEDING_CLASS_INPUTS = [
 ]
 
 # The shape rows: the trigger at the very start of the string, two
-# triggers on one line (each swallowed or matched under Python's
-# greedy, non-DOTALL .+), and two triggers split by a newline (which
-# the rewrite's negated class must also treat as a boundary).
+# triggers on separate lines (each matches once, since non-DOTALL .+
+# stops at the newline rather than swallowing the second trigger), and
+# a third row that puts the newline itself directly before a trigger.
 SHAPE_INPUTS = [
     ("start", "ft. x"),
     ("two-triggers", "a ft. b\nc ft. d"),
