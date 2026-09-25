@@ -30,7 +30,7 @@ func TestNewLeaf(t *testing.T) {
 	}
 }
 
-// assertLeafShape fails the test unless every directory createLeaf
+// assertLeafShape fails the test unless every directory create
 // makes exists at leafDirPerm and store.lock exists as a regular file.
 func assertLeafShape(t *testing.T, l leaf) {
 	t.Helper()
@@ -61,12 +61,12 @@ func TestCreateLeaf_FirstRunAndIdempotentRetry(t *testing.T) {
 	euid := os.Geteuid()
 
 	if err := l.create(stateDir, euid); err != nil {
-		t.Fatalf("first createLeaf: %v", err)
+		t.Fatalf("first create: %v", err)
 	}
 	assertLeafShape(t, l)
 
 	if err := l.create(stateDir, euid); err != nil {
-		t.Fatalf("second createLeaf: %v", err)
+		t.Fatalf("second create: %v", err)
 	}
 	assertLeafShape(t, l)
 }
@@ -95,7 +95,7 @@ func TestCreateLeaf_CompletesAPartialCreate(t *testing.T) {
 	}
 
 	if err := l.create(stateDir, euid); err != nil {
-		t.Fatalf("createLeaf over a partial leaf: %v", err)
+		t.Fatalf("create over a partial leaf: %v", err)
 	}
 	assertLeafShape(t, l)
 }
@@ -112,21 +112,21 @@ func TestCreateLeaf_OwnerMismatchRefusesAndCreatesNothing(t *testing.T) {
 
 	err = l.create(stateDir, mismatchEuid)
 	if err == nil {
-		t.Fatal("createLeaf: want a refusal for a mismatched euid, got nil")
+		t.Fatal("create: want a refusal for a mismatched euid, got nil")
 	}
 	if !strings.Contains(err.Error(), cur.Username) {
-		t.Errorf("createLeaf error %q does not name the owner %q", err, cur.Username)
+		t.Errorf("create error %q does not name the owner %q", err, cur.Username)
 	}
 	if !strings.Contains(err.Error(), "runuser -u "+cur.Username+" --") {
-		t.Errorf("createLeaf error %q does not name the fix", err)
+		t.Errorf("create error %q does not name the fix", err)
 	}
 	if _, statErr := os.Stat(l.root); !errors.Is(statErr, fs.ErrNotExist) {
-		t.Errorf("createLeaf: want no leaf on refusal, stat returned %v", statErr)
+		t.Errorf("create: want no leaf on refusal, stat returned %v", statErr)
 	}
 }
 
 // TestCreateLeaf_OwnerCheckRunsOnARetryToo proves the owner check runs
-// every time createLeaf is called, not only when the leaf is absent:
+// every time create is called, not only when the leaf is absent:
 // a second call against an already-created leaf, with a mismatched
 // euid, must still refuse.
 func TestCreateLeaf_OwnerCheckRunsOnARetryToo(t *testing.T) {
@@ -135,12 +135,12 @@ func TestCreateLeaf_OwnerCheckRunsOnARetryToo(t *testing.T) {
 	euid := os.Geteuid()
 
 	if err := l.create(stateDir, euid); err != nil {
-		t.Fatalf("first createLeaf: %v", err)
+		t.Fatalf("first create: %v", err)
 	}
 
 	mismatchEuid := euid + 1
 	if err := l.create(stateDir, mismatchEuid); err == nil {
-		t.Fatal("createLeaf: want a refusal on retry with a mismatched euid, got nil")
+		t.Fatal("create: want a refusal on retry with a mismatched euid, got nil")
 	}
 }
 

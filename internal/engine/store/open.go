@@ -69,7 +69,7 @@ type dbClass struct {
 	version int
 }
 
-// leafState is what statLeaf found.
+// leafState is what l.stat found.
 type leafState struct {
 	exists   bool
 	complete bool
@@ -300,7 +300,7 @@ func waitLock(ctx context.Context, path string, how int, opts serveOptions) (*st
 	}
 }
 
-// statLeaf runs the steps every mode takes before the filesystem
+// stat runs the steps every mode takes before the filesystem
 // probe: it stats l's leaf and its four names, checks a present leaf's
 // shape and its owner against euid, and refuses when a restore-intent
 // record exists. An absent leaf reports exists false and meets no
@@ -346,7 +346,7 @@ func (l leaf) checkIntent() error {
 	return nil
 }
 
-// probeLeaf refuses when l sits on a filesystem that spans hosts, and
+// probe refuses when l sits on a filesystem that spans hosts, and
 // returns a warning for FUSE, which may.
 func (l leaf) probe() (warning string, err error) {
 	target := l.probeTarget()

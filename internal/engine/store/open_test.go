@@ -33,7 +33,7 @@ func newLeafDir(t *testing.T) (string, leaf) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
 	if err := l.create(stateDir, os.Geteuid()); err != nil {
-		t.Fatalf("createLeaf: %v", err)
+		t.Fatalf("create: %v", err)
 	}
 	return stateDir, l
 }
@@ -45,7 +45,7 @@ func buildStore(t *testing.T, stateDir string, through int) leaf {
 	t.Helper()
 	l := newLeaf(stateDir)
 	if err := l.create(stateDir, os.Geteuid()); err != nil {
-		t.Fatalf("createLeaf: %v", err)
+		t.Fatalf("create: %v", err)
 	}
 	if err := preCreate(l.dbPath); err != nil {
 		t.Fatalf("preCreate: %v", err)

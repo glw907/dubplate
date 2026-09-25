@@ -53,14 +53,14 @@ func newLeaf(stateDir string) leaf {
 	}
 }
 
-// createLeaf makes l's leaf, store.lock, and its three directories
-// (each leafDirPerm), tolerating any of them already existing: a crash
-// can stop an earlier create partway, and a second process can race it.
+// create makes l's leaf, store.lock, and its three directories (each
+// leafDirPerm), tolerating any of them already existing: a crash can
+// stop an earlier create partway, and a second process can race it.
 // It refuses, creating nothing, when euid does not own stateDir, so a
 // first run as root can never leave a root-owned leaf.
 //
 // euid is a parameter rather than a syscall.Geteuid() read inside the
-// function, so a test can exercise the mismatch without running as a
+// method, so a test can exercise the mismatch without running as a
 // different real user; every production caller passes os.Geteuid().
 func (l leaf) create(stateDir string, euid int) error {
 	info, err := os.Stat(stateDir)

@@ -72,7 +72,7 @@ func newMigrateStore(t *testing.T) (leaf, *handle) {
 	stateDir := t.TempDir()
 	l := newLeaf(stateDir)
 	if err := l.create(stateDir, os.Geteuid()); err != nil {
-		t.Fatalf("createLeaf: %v", err)
+		t.Fatalf("create: %v", err)
 	}
 	if err := preCreate(l.dbPath); err != nil {
 		t.Fatalf("preCreate: %v", err)
