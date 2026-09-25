@@ -6,6 +6,7 @@ set -euo pipefail
 # required, a stale or drifted `npm ci --prefix web` refused, the
 # SvelteKit static bundle built, then svelte-check and the static web
 # gates (no server-only file, no hardcoded color, no external origin).
+# The rendered (browser) gates are not yet part of this leg.
 # Shellcheck still covers the scripts that remain (deploy.sh, check.sh
 # itself, vale-comments.sh, provision.sh), ruff covers the oracle shim's
 # Python, and gitleaks scans the whole tree in the full form (the corpus

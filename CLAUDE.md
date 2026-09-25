@@ -143,9 +143,10 @@ The `web/` leg runs today, first in `make check`'s prerequisite chain:
 Node and npm required and named on failure, a stale or drifted
 `npm ci --prefix web` refused, the SvelteKit static bundle built, then
 `svelte-check` under strict TypeScript and the static web gates (no
-server-only file, no hardcoded color, no external origin). A check
-either gates or does not exist; never guard one with `command -v ||
-skip`. Never commit red. The process-citation leg
+server-only file, no hardcoded color, no external origin). The
+rendered (browser) gates join this leg at rung 5c-iii. A check either
+gates or does not exist; never guard one with `command -v || skip`.
+Never commit red. The process-citation leg
 (no rung, task, resolution, or plan-line citation in shipped Go comments)
 and the exported-unused leg (an exported `internal/` symbol whose only
 references are its own file and `_test.go` files) are staged: they warn

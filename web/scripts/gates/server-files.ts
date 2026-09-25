@@ -2,9 +2,8 @@
  * The server-file check. Server-only SvelteKit files and form actions
  * are forbidden (CLAUDE.md's web stack rule): the Go binary is the
  * only server, so a `+page.server.ts` or a `hooks.server.ts` would run
- * nowhere. `src/app.d.ts` states no state row differently than the
- * others, so an absent or empty `web/src` fails rather than passing on
- * an empty iteration.
+ * nowhere. An absent or empty `src` fails rather than passing on an
+ * empty iteration.
  */
 import { readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';

@@ -6,9 +6,8 @@
  * against npm's own hidden lockfile
  * (`web/node_modules/.package-lock.json`), which is what was actually
  * installed. Node/npm presence, the Node major floor, and `npm ls`
- * itself are bash-side checks in `scripts/check.sh`'s web leg, run
- * before this comparison so it never has to guess why `node_modules`
- * is missing.
+ * itself are checks in the Makefile's `web` target, run before this
+ * comparison so it never has to guess why `node_modules` is missing.
  */
 import { readFileSync } from 'node:fs';
 import { fail } from './lib.ts';

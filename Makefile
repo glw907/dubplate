@@ -33,9 +33,10 @@ tidy-check:
 # The web legs run today: `web` requires Node and npm, refuses a stale
 # or drifted `npm ci --prefix web`, builds the SvelteKit static bundle,
 # then runs svelte-check and the static web gates (no server-only file,
-# no hardcoded color, no external origin). `check` runs it first
-# because the Go tests that read the embedded bundle need it current
-# before `go test` runs.
+# no hardcoded color, no external origin). The rendered (browser) gates
+# are not yet part of this leg. `check` runs it first because the Go
+# tests that read the embedded bundle need it current before `go test`
+# runs.
 web:
 	set -e; \
 	if ! command -v node >/dev/null 2>&1; then \
@@ -46,7 +47,15 @@ web:
 		echo "make web: npm not found on PATH; install it via mise (mise use -g node@lts)." >&2; \
 		exit 1; \
 	fi; \
-	node_major="$$(node -p 'process.versions.node.split(".")[0]')"; \
+	node_version="$$(node --version)"; \
+	node_major="$${node_version#v}"; \
+	node_major="$${node_major%%.*}"; \
+	case "$$node_major" in \
+		''|*[!0-9]*) \
+			echo "make web: could not parse a node major version from '$$node_version'; 24 or later required." >&2; \
+			exit 1; \
+			;; \
+	esac; \
 	if [ "$$node_major" -lt 24 ]; then \
 		echo "make web: node major $$node_major found, 24 or later required." >&2; \
 		exit 1; \
