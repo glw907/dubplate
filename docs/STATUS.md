@@ -26,7 +26,7 @@ CLAUDE.md Gate line without its false "one validator" clause; the light gate lan
 lanes until a browser leg exists; L3 (job `FailureMessage` text, admin-only) refused; the reviewer
 note flagging the matcher corpus case's non-hex mbid refused; mutation 4 on 6b-ii-a Task 1
 recorded reviewer-read (architecturally unfireable today). Owed: the visual identity spec's
-errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus halo).
+errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus halo). Owed to the streamer (0.8) spec's next revision: the prior-art survey's eight errata (`research/2026-09-25-streamer-prior-art-survey.md`: the XML/XSD rule, the `transcoding` extension, ranges on an in-flight transcode, CORS, AAC container, short trigram queries, the "collections" name clash, stale table pins).
 
 ## Lane registry
 
