@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -221,6 +223,50 @@ WHERE id = ? AND state = 'interrupted'`, shift, shift, shift, id)
 			}
 			if n, want := countRecords(t, h), len(keep)+1; n != want {
 				t.Errorf("%d records after the start, want %d (the kept ones and job %s)", n, want, resp.JobID)
+			}
+		})
+	}
+}
+
+// TestNew_BindsBackupBody pins the backup kind's binding: a start
+// through [New] runs the backup body with the configuration's remote
+// and library root, each refused in turn before rclone runs.
+func TestNew_BindsBackupBody(t *testing.T) {
+	if _, err := exec.LookPath("rclone"); err != nil {
+		t.Fatalf("rclone is a prerequisite of this test: %v", err)
+	}
+	absent := filepath.Join(t.TempDir(), "absent")
+	tests := []struct {
+		name     string
+		remote   string
+		root     string
+		wantCode string
+		wantMsg  string
+	}{
+		{name: "remote", remote: "no-colon", root: absent, wantCode: "remote-invalid", wantMsg: `"no-colon"`},
+		{name: "library root", remote: "name:dir", root: absent, wantCode: "library-missing", wantMsg: absent},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, h := newStore(t)
+			r, err := New(context.Background(), Config{
+				Store:  h,
+				Backup: BackupConfig{Enabled: true, Remote: tt.remote, LibraryRoot: tt.root},
+				Logger: slog.New(slog.DiscardHandler),
+			})
+			if err != nil {
+				t.Fatalf("New: %v", err)
+			}
+			resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			if err != nil {
+				t.Fatalf("StartBackup: %v", err)
+			}
+			if err := r.Close(); err != nil {
+				t.Fatalf("Close: %v", err)
+			}
+			rec := mustRecord(t, h, idOf(t, resp.JobID))
+			if rec.state != "failed" || rec.code != tt.wantCode || !strings.Contains(rec.message, tt.wantMsg) {
+				t.Errorf("record = %s, %q, %q; want failed, %q, naming %q", rec.state, rec.code, rec.message, tt.wantCode, tt.wantMsg)
 			}
 		})
 	}

@@ -42,6 +42,13 @@ type BackupConfig struct {
 	// Enabled reports whether backup integration is on. While it is
 	// off, a backup start answers unavailable and writes nothing.
 	Enabled bool
+
+	// Remote is the rclone destination, name:path. A job refuses a
+	// malformed one before it reads the library.
+	Remote string
+
+	// LibraryRoot is the library tree a backup syncs.
+	LibraryRoot string
 }
 
 // A Runner runs jobs in this process and answers the four operations
@@ -52,8 +59,8 @@ type Runner struct {
 	logger *slog.Logger
 	backup BackupConfig
 
-	// backupBody is the backup kind's job body.
-	backupBody body
+	// bindBackup makes the backup kind's job body.
+	bindBackup binder
 
 	mu   sync.Mutex
 	jobs map[ops.Handle]*job
@@ -67,10 +74,16 @@ var _ ops.Seam = (*Runner)(nil)
 // interrupted. It fails, releasing the lease, when a record's owner
 // lease cannot be read. ctx bounds the recovery's write.
 func New(ctx context.Context, cfg Config) (*Runner, error) {
-	return newRunner(ctx, cfg, nil)
+	r, err := open(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	r.bindBackup = r.backupJob
+	return r, nil
 }
 
-func newRunner(ctx context.Context, cfg Config, backupBody body) (*Runner, error) {
+// open is New without the backup kind's binding.
+func open(ctx context.Context, cfg Config) (*Runner, error) {
 	if cfg.Logger == nil {
 		return nil, errors.New("open job runner: nil logger")
 	}
@@ -79,12 +92,11 @@ func newRunner(ctx context.Context, cfg Config, backupBody body) (*Runner, error
 		return nil, fmt.Errorf("open job runner: %w", err)
 	}
 	r := &Runner{
-		store:      cfg.Store,
-		lease:      lease,
-		logger:     cfg.Logger,
-		backup:     cfg.Backup,
-		backupBody: backupBody,
-		jobs:       make(map[ops.Handle]*job),
+		store:  cfg.Store,
+		lease:  lease,
+		logger: cfg.Logger,
+		backup: cfg.Backup,
+		jobs:   make(map[ops.Handle]*job),
 	}
 	if err := r.recoverJobs(ctx); err != nil {
 		return nil, errors.Join(fmt.Errorf("open job runner: %w", err), lease.Release())
@@ -132,7 +144,7 @@ func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBa
 	if !r.backup.Enabled {
 		return ops.StartBackupResponse{}, ops.NewUnavailableError(backupDisabled)
 	}
-	h, err := r.start(ctx, actor, ops.KindBackup, r.backupBody)
+	h, err := r.start(ctx, actor, ops.KindBackup, r.bindBackup)
 	if err != nil {
 		return ops.StartBackupResponse{}, err
 	}
@@ -140,8 +152,9 @@ func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBa
 }
 
 // start takes kind's lease, recovers, prunes, inserts a queued record,
-// and runs body on a goroutine that releases the lease when it ends.
-func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, b body) (ops.Handle, error) {
+// and runs the body bind makes on a goroutine that releases the lease
+// when it ends.
+func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind binder) (ops.Handle, error) {
 	kl, err := r.store.TakeKindLease(kind)
 	if errors.Is(err, store.ErrLeaseBusy) {
 		return "", r.conflict(ctx, kind)
@@ -152,10 +165,11 @@ func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, b body
 	if err := r.recoverJobs(ctx); err != nil {
 		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
-	j, err := r.insert(ctx, actor, kind, b)
+	j, err := r.insert(ctx, actor, kind, nil)
 	if err != nil {
 		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
+	j.body = bind(kl, j.handle)
 
 	r.mu.Lock()
 	r.jobs[j.handle] = j

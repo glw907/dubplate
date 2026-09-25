@@ -98,6 +98,16 @@ func (b *syncBuffer) String() string {
 	return b.buf.String()
 }
 
+// newRunner is [New] with b as every backup job's body.
+func newRunner(ctx context.Context, cfg Config, b body) (*Runner, error) {
+	r, err := open(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	r.bindBackup = func(*store.KindLease, ops.Handle) body { return b }
+	return r, nil
+}
+
 // newRunnerFor opens a runner over h with backup on and body as the
 // backup body, logging to logs when it is non-nil, and closes it at
 // cleanup.

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
 )
@@ -30,6 +31,24 @@ const jobErrorCode = "job-error"
 // progress text for its record; one that fails returns an error, whose
 // failure code the runner reads through a [coded] in its chain.
 type body func(ctx context.Context, progress func(phase string) error) (final string, err error)
+
+// A binder makes a job's body once the runner holds its kind lease
+// and has named its handle.
+type binder func(kl *store.KindLease, h ops.Handle) body
+
+// backupJob binds the backup kind's body to the job h names, run under
+// kl.
+func (r *Runner) backupJob(kl *store.KindLease, h ops.Handle) body {
+	return backup.Job{
+		Store:       r.store,
+		Lease:       kl,
+		Instance:    r.lease.Instance(),
+		RunID:       string(h),
+		Remote:      r.backup.Remote,
+		LibraryRoot: r.backup.LibraryRoot,
+		Logger:      r.logger,
+	}.Run
+}
 
 // coded is implemented by a body error that names its own failure
 // code. Any other error is recorded as [jobErrorCode].
