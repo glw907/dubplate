@@ -1,51 +1,55 @@
 <!--
   DATABASE LAYOUT (ArtifactData / the `db` capability)
   ======================================================
-  One store per artifact, three collections. Field names below are the
-  contract: Task 6's round-open and round-close agents write to this
-  shape, and this page reads and writes nothing else.
+  One store per artifact, four documents/collections. Field names below
+  are the contract: Task 6's round-open and round-close agents write to
+  this shape, and this page reads and writes nothing else.
+
+  meta/vocab                    one document, seeded once
+    The full contents of photos/meta/vocab.json, copied in verbatim by
+    the conductor through ArtifactData. This page never hardcodes a
+    family, subject, region, or license list: every chip, label, and
+    caption term is read from this document (families, subjects,
+    regions, licenses, people_flags). Written only by the conductor.
 
   rounds/<roundId>              one document per round
-    id            string   same value as the document id
+    id            string   same value as the document id ("1", "2",
+                            ... or "test" for Task 6's test round)
     closed        boolean  true once the round stops taking changes.
-                            Always present (never omitted): the open
-                            round is the one with closed === false.
+                            Always present (never omitted): a round
+                            with closed === false is open.
     balance       object   the balance --json output (check.mjs
-                            `balance`). This page reads only
-                            balance.shares[<family>] = { count,
-                            target_low_pct, target_high_pct } to seed
-                            the count bar, and ignores fields it does
-                            not recognize.
+                            `balance`), verbatim. This page reads only
+                            balance.shares[<family>].count to seed the
+                            count bar, and ignores fields it does not
+                            recognize.
     Written only by the conductor through ArtifactData. The page has
     no control that sets `closed`; reopening a round means clearing it
-    through ArtifactData directly.
+    through ArtifactData directly. This page subscribes to the WHOLE
+    rounds collection once, picks the open round if one exists, else
+    the newest closed round (by numeric id; "test" never outranks a
+    numbered round), and refuses changes when the chosen round is
+    closed.
 
-  candidates/<source_id>        one document per candidate on this round
-    source_id     string   the candidate's source_id, e.g. "commons:12345"
-                            or "fixture:1"; also the document id.
-    title         string   the caption title (the subject line)
-    source_title  string?  the source's own title, verbatim, or null
-    photographer  string?  the maker, as credited
-    credit        string?  the attribution string, or null
-    year          number?  the year the image was made
-    year_precision "exact"|"circa"|"decade"
-    place         { city: string, region: string }?  optional
-    region        string?  the derived region, for the region filter
-    family        "reggae"|"punk"|"hiphop"|"other"    the derived family
-    subject       string[]  facets; subject[0] is the primary subject
-    shot          "live"|"candid"|"posed"|"interior"|"exterior"|"still-life"
-    format        "photograph"|"flyer"|"zine-cover"
-    license       string   a license ID from vocab.json's shipped list
-    license_display string the license's display name
-    size_exception string? the size_exception line, or null when unset
-    second_image  boolean  true when this would be a second image of a
-                            picked artist or landmark (Geoff's keep is
-                            the waiver)
-    flags         string[] any of "personality-rights", "apparent-minor"
-    screen        { score: number, note: string }  sets grid order only
-    thumb         { id: string, url: string }   the 600px thumbnail
-    preview       { id: string, url: string }   the 1600px preview
-    round         string   the round id this candidate belongs to
+  candidates/<source_id>        one document per candidate on a round
+    This page reads a candidate document as `check.mjs sheet` writes
+    it (one JSON object per kept candidate: source_id, title,
+    photographer, credit, year, year_precision, place, subject, shot,
+    format, license, size_exception, flags, screen, and the rest of
+    the candidate record's own fields), plus the round id on `round`,
+    and plus four fields the round-open agent adds on top of `sheet`'s
+    output:
+      thumb           { id: string, url: string }  the 600px thumbnail
+      preview         { id: string, url: string }  the 1600px preview
+      round           string  always a string ("1" or "test")
+      license_display string  the license's display name, looked up
+                               in vocab's license list
+    `place`, when set, is `{ country_code: string, landmark?: { name,
+    wikidata_id? } }` (check.mjs's own shape; there is no `place.city`
+    or `place.region`). `region` and `family` are top-level fields
+    `sheet` derives and adds. Captions read `place.landmark.name` and
+    the top-level `region`/`family`/`subject` fields, never a `city`
+    that does not exist on the record.
     Written only by the conductor through ArtifactData, from `sheet`'s
     output. The page never writes here. Pack candidates never appear:
     `sheet` drops them before this collection exists.
@@ -55,10 +59,13 @@
     round         string   the round id this choice belongs to
     choice        "keep"|"pass"
     decided_at    string   an RFC 3339 timestamp
-    Written only by this page, on Geoff's Y / N / tap / Pass button.
-    Keyed by source_id, never by slug, so a sitting can stop and
-    resume on any device: on load the page reads existing choices for
-    the open round and shows them as already decided.
+    Written only by this page, on Geoff's Y / N / tap / Pass button,
+    one write in flight per source_id (a second decision on the same
+    candidate while a write is in flight queues and replaces the first;
+    a decision that repeats the last saved choice for that candidate is
+    never sent). Keyed by source_id, never by slug, so a sitting can
+    stop and resume on any device: on load the page reads existing
+    choices for the open round and shows them as already decided.
 
   Images render from "/_blob/" + <thumb|preview>.id (the assets
   contract's durable pointer), never from the stored `url`, which is
@@ -71,12 +78,12 @@
   viewer, where `window.claude` is always present even if `use()` resolves
   null) and the page is served from localhost, the page loads
   testdata/sorter-fixture.json and runs entirely in memory: one round
-  document, a fixed 150-candidate array, and choices held in a Map
-  that never leaves the tab. This is the headless render's path. Any
-  other absence of a working `db` (window.claude present but
-  use("db") resolves null, or not on localhost) shows the "choices
-  can't be saved here" state with no grid, so no sitting can run with
-  its choices saved nowhere.
+  document, a fixed 150-candidate array, an embedded copy of vocab.json,
+  and choices held in a Map that never leaves the tab. This is the
+  headless render's path. Any other absence of a working `db` (window.claude
+  present but use("db") resolves null, or not on localhost) shows the
+  "choices can't be saved here" state with no grid, so no sitting can run
+  with its choices saved nowhere.
 -->
 <title>Photo sorter</title>
 <style>
@@ -203,7 +210,7 @@
     background: radial-gradient(
       circle at center,
       var(--color-primary) 0 38%,
-      #0b0a09 39% 100%
+      var(--color-neutral) 39% 100%
     );
     flex: none;
   }
@@ -230,6 +237,7 @@
     opacity: 0.85;
     min-height: 1em;
   }
+  #save-status.error { opacity: 1; color: var(--color-secondary); }
 
   #counts {
     display: flex;
@@ -268,7 +276,6 @@
     gap: 0.35rem;
     flex-wrap: wrap;
   }
-  .filter-group + .filter-group { margin-left: 0.5rem; }
   .chip {
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.65rem;
@@ -289,10 +296,18 @@
 
   main#grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
     padding: 1rem;
     padding-inline: max(1rem, 16px);
+  }
+  @media (max-width: 480px) {
+    main#grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      padding: 0.6rem;
+      padding-inline: max(0.6rem, 16px);
+    }
   }
   .card {
     border: 2px solid var(--color-base-content);
@@ -339,45 +354,45 @@
   .badge-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem;
-    padding: 0.4rem 0.5rem 0;
+    gap: 0.25rem;
+    padding: 0.35rem 0.45rem 0;
   }
   .badge {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     border: 2px solid var(--ink-warning);
     color: var(--ink-warning);
     border-radius: var(--radius-field);
-    padding: 0.1rem 0.35rem;
+    padding: 0.1rem 0.3rem;
     background: transparent;
   }
   .badge.flag { border-color: var(--ink-error); color: var(--ink-error); }
   .card-caption {
-    padding: 0.5rem 0.6rem 0.7rem;
+    padding: 0.4rem 0.5rem 0.55rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.2rem;
     flex: 1;
   }
-  .card-title { font-size: 0.85rem; font-weight: 600; text-wrap: pretty; }
+  .card-title { font-size: 0.82rem; font-weight: 600; text-wrap: pretty; }
   .card-meta {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     letter-spacing: 0.02em;
     opacity: 0.85;
   }
   .card-license {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--ink-info);
   }
   .card-actions {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.35rem;
     margin-top: auto;
     padding-top: 0.3rem;
   }
@@ -385,8 +400,8 @@
     flex: 1;
     min-height: 44px;
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     border: 2px solid var(--color-base-content);
     border-radius: var(--radius-field);
@@ -429,7 +444,7 @@
   #preview-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(11, 10, 9, 0.92);
+    background: color-mix(in oklab, var(--color-neutral) 92%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -437,7 +452,7 @@
     z-index: 20;
   }
   .film-frame {
-    background: #0b0a09;
+    background: var(--color-neutral);
     padding: 0.6rem;
     max-width: min(92vw, 900px);
     max-height: 92vh;
@@ -452,7 +467,7 @@
     display: block;
   }
   .film-edge {
-    color: color-mix(in oklab, var(--color-secondary) 85%, #0b0a09);
+    color: color-mix(in oklab, var(--color-secondary) 85%, var(--color-neutral));
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.7rem;
     letter-spacing: 0.14em;
@@ -541,54 +556,35 @@
   var ELLIPSIS = String.fromCharCode(0x2026);
   var RSQUO = String.fromCharCode(0x2019);
 
-  var FAMILY_LABEL = { reggae: "Reggae", punk: "Punk", hiphop: "Hip-hop", other: "Everything else" };
-  var SUBJECT_LABEL = {
-    "performers": "Performers",
-    "crowds-and-dancers": "Crowds & dancers",
-    "sound-systems": "Sound systems",
-    "record-stores": "Record stores",
-    "clubs-and-venues": "Clubs & venues",
-    "recording-studios": "Recording studios",
-    "homes-and-label-hq": "Homes & label HQ",
-    "instruments": "Instruments",
-    "record-players-and-hifi": "Record players & hi-fi",
-    "radio-stations": "Radio stations",
-    "pressing-plants-and-cutting-lathes": "Pressing plants & lathes",
-    "streets-and-neighborhoods": "Streets & neighborhoods",
-  };
-  var REGION_LABEL = {
-    "caribbean": "Caribbean",
-    "uk-and-ireland": "UK & Ireland",
-    "north-america": "North America",
-    "africa": "Africa",
-    "latin-america": "Latin America",
-    "europe": "Europe",
-    "middle-east-and-north-africa": "Middle East & North Africa",
-    "asia-and-pacific": "Asia & Pacific",
-  };
+  var FLAG_LABEL = { "personality-rights": "Personality rights", "apparent-minor": "Possible minor" };
 
   // ---- state ----------------------------------------------------------
   var state = {
+    vocab: null, // photos/meta/vocab.json, verbatim
     round: null, // { id, closed, balance }
-    candidates: [], // full list, score order
+    candidates: [], // full list of the current round, score order
     choices: {}, // source_id -> { choice, decided_at }
     filters: { family: null, subject: null, region: null },
     focusIndex: 0,
-    localCounts: {}, // family -> running count, seeded from balance then bumped on keep
     store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice) }
   };
+
+  // One write in flight per candidate; a decision made while a write is
+  // in flight replaces the queued one rather than piling up requests.
+  var pendingWrite = {}; // source_id -> { inFlight: boolean, queued: "keep"|"pass"|null }
 
   function isLocalhost() {
     return location.hostname === "localhost" || location.hostname === "127.0.0.1";
   }
 
-  function setStatus(text) {
+  function setStatus(text, autoClear) {
     var el = document.getElementById("save-status");
     el.textContent = text;
-    if (text) {
-      window.clearTimeout(setStatus._t);
+    el.classList.toggle("error", !autoClear && !!text);
+    window.clearTimeout(setStatus._t);
+    if (autoClear) {
       setStatus._t = window.setTimeout(function () {
-        el.textContent = "";
+        if (el.textContent === text) el.textContent = "";
       }, 2000);
     }
   }
@@ -598,6 +594,49 @@
     document.getElementById("topbar").hidden = true;
     document.getElementById("filters").hidden = true;
     document.getElementById("grid").hidden = true;
+    document.getElementById("closed-banner").hidden = true;
+    document.getElementById("empty-state").hidden = true;
+  }
+
+  function showNoRoundOpen() {
+    document.getElementById("grid").hidden = true;
+    document.getElementById("filters").hidden = true;
+    document.getElementById("closed-banner").hidden = true;
+    var empty = document.getElementById("empty-state");
+    empty.hidden = false;
+    empty.querySelector("h2").textContent = "No round is open";
+    empty.querySelector("p").textContent = "There is nothing to sort right now.";
+  }
+
+  function hideNoRoundOpen() {
+    document.getElementById("filters").hidden = false;
+    document.getElementById("grid").hidden = false;
+    var empty = document.getElementById("empty-state");
+    empty.querySelector("h2").textContent = "No candidates match these filters";
+    empty.querySelector("p").textContent = "Clear a filter chip to see more of the round.";
+  }
+
+  // ---- vocabulary lookups ------------------------------------------------
+
+  function vocabFamilies() {
+    return (state.vocab && state.vocab.families) || {};
+  }
+  function vocabSubjects() {
+    return (state.vocab && state.vocab.subjects) || {};
+  }
+  function vocabRegions() {
+    return (state.vocab && state.vocab.regions) || {};
+  }
+  function familyLabel(fam) {
+    var f = vocabFamilies()[fam];
+    return (f && f.name) || fam;
+  }
+  function subjectLabel(subj) {
+    return vocabSubjects()[subj] || subj;
+  }
+  function regionLabel(region) {
+    var r = vocabRegions()[region];
+    return (r && r.name) || region;
   }
 
   // ---- rendering --------------------------------------------------------
@@ -615,6 +654,11 @@
     return String(c.year);
   }
 
+  function roundLabel(id) {
+    if (id === "test" || id === "fixture") return "Test round";
+    return "Round " + id;
+  }
+
   function filteredCandidates() {
     return state.candidates.filter(function (c) {
       if (state.filters.family && c.family !== state.filters.family) return false;
@@ -624,17 +668,42 @@
     });
   }
 
+  // Each family's displayed count is the picked pool's count from the
+  // round's balance document plus this round's keeps so far. No running
+  // total is kept in state: a re-render always recomputes it from the
+  // two sources of truth (balance.shares, state.choices), so a resumed
+  // sitting or another viewer's write is reflected without bookkeeping.
+  function familyCounts() {
+    var families = Object.keys(vocabFamilies());
+    var counts = {};
+    var shares = (state.round && state.round.balance && state.round.balance.shares) || {};
+    families.forEach(function (fam) {
+      counts[fam] = (shares[fam] && typeof shares[fam].count === "number") ? shares[fam].count : 0;
+    });
+    var byId = {};
+    state.candidates.forEach(function (c) {
+      byId[c.source_id] = c;
+    });
+    Object.keys(state.choices).forEach(function (sourceId) {
+      if (state.choices[sourceId].choice !== "keep") return;
+      var c = byId[sourceId];
+      if (c && Object.prototype.hasOwnProperty.call(counts, c.family)) counts[c.family] += 1;
+    });
+    return counts;
+  }
+
   function renderCounts() {
     var el = document.getElementById("counts");
     el.innerHTML = "";
-    var families = ["reggae", "punk", "hiphop", "other"];
-    var balance = (state.round && state.round.balance && state.round.balance.shares) || {};
+    var families = Object.keys(vocabFamilies());
+    var counts = familyCounts();
+    var total = families.reduce(function (sum, f) {
+      return sum + counts[f];
+    }, 0);
+    var shares = (state.round && state.round.balance && state.round.balance.shares) || {};
     families.forEach(function (fam) {
-      var band = balance[fam] || {};
-      var count = state.localCounts[fam] || 0;
-      var total = families.reduce(function (sum, f) {
-        return sum + (state.localCounts[f] || 0);
-      }, 0);
+      var band = shares[fam] || {};
+      var count = counts[fam];
       var pct = total ? (count / total) * 100 : 0;
       var wrap = document.createElement("div");
       wrap.className = "count-chip";
@@ -644,21 +713,22 @@
       fill.className = "count-fill";
       fill.style.width = Math.min(100, pct) + "%";
       track.appendChild(fill);
-      if (typeof band.target_low_pct === "number") {
+      // The +/-3pp band around the share target, the same constant
+      // check.mjs's balance mode uses (SHARE_BAND), applied to the
+      // target fraction the balance document names.
+      if (typeof band.target === "number") {
         var lo = document.createElement("div");
         lo.className = "count-band";
-        lo.style.left = band.target_low_pct + "%";
+        lo.style.left = Math.max(0, (band.target - 0.03) * 100) + "%";
         track.appendChild(lo);
-      }
-      if (typeof band.target_high_pct === "number") {
         var hi = document.createElement("div");
         hi.className = "count-band";
-        hi.style.left = band.target_high_pct + "%";
+        hi.style.left = Math.min(100, (band.target + 0.03) * 100) + "%";
         track.appendChild(hi);
       }
       wrap.appendChild(track);
       var label = document.createElement("span");
-      label.textContent = FAMILY_LABEL[fam] + " " + count;
+      label.textContent = familyLabel(fam) + " " + count;
       wrap.appendChild(label);
       el.appendChild(wrap);
     });
@@ -667,7 +737,7 @@
   function renderFilters() {
     var el = document.getElementById("filters");
     el.innerHTML = "";
-    function group(name, options, labels) {
+    function group(key, name, options, labelFor) {
       var g = document.createElement("div");
       g.className = "filter-group";
       g.setAttribute("role", "group");
@@ -676,8 +746,7 @@
         var b = document.createElement("button");
         b.type = "button";
         b.className = "chip";
-        b.textContent = labels[opt] || opt;
-        var key = name === "Family" ? "family" : name === "Subject" ? "subject" : "region";
+        b.textContent = labelFor(opt);
         var pressed = state.filters[key] === opt;
         b.setAttribute("aria-pressed", pressed ? "true" : "false");
         b.addEventListener("click", function () {
@@ -689,42 +758,12 @@
       });
       el.appendChild(g);
     }
-    group("Family", ["reggae", "punk", "hiphop", "other"], FAMILY_LABEL);
-    group(
-      "Subject",
-      [
-        "performers",
-        "crowds-and-dancers",
-        "sound-systems",
-        "record-stores",
-        "clubs-and-venues",
-        "recording-studios",
-        "homes-and-label-hq",
-        "instruments",
-        "record-players-and-hifi",
-        "radio-stations",
-        "pressing-plants-and-cutting-lathes",
-        "streets-and-neighborhoods",
-      ],
-      SUBJECT_LABEL,
-    );
-    group(
-      "Region",
-      [
-        "caribbean",
-        "uk-and-ireland",
-        "north-america",
-        "africa",
-        "latin-america",
-        "europe",
-        "middle-east-and-north-africa",
-        "asia-and-pacific",
-      ],
-      REGION_LABEL,
-    );
+    group("family", "Family", Object.keys(vocabFamilies()), familyLabel);
+    group("subject", "Subject", Object.keys(vocabSubjects()), subjectLabel);
+    group("region", "Region", Object.keys(vocabRegions()), regionLabel);
   }
 
-  function cardFor(candidate, index, list) {
+  function cardFor(candidate, index) {
     var closed = !!(state.round && state.round.closed);
     var existing = state.choices[candidate.source_id];
 
@@ -777,7 +816,7 @@
     (candidate.flags || []).forEach(function (f) {
       var fb = document.createElement("span");
       fb.className = "badge flag";
-      fb.textContent = f === "personality-rights" ? "Personality rights" : "Possible minor";
+      fb.textContent = FLAG_LABEL[f] || f;
       badgeRow.appendChild(fb);
     });
     if (badgeRow.children.length) card.appendChild(badgeRow);
@@ -790,8 +829,10 @@
     caption.appendChild(title);
 
     var metaBits = [];
-    if (candidate.subject && candidate.subject[0]) metaBits.push(SUBJECT_LABEL[candidate.subject[0]] || candidate.subject[0]);
-    if (candidate.place && candidate.place.city) metaBits.push(candidate.place.city);
+    if (candidate.subject && candidate.subject[0]) metaBits.push(subjectLabel(candidate.subject[0]));
+    var place = candidate.place;
+    if (place && place.landmark && place.landmark.name) metaBits.push(place.landmark.name);
+    else if (candidate.region) metaBits.push(regionLabel(candidate.region));
     var y = yearLabel(candidate);
     if (y) metaBits.push(y);
     var meta = document.createElement("div");
@@ -835,14 +876,13 @@
   }
 
   function render() {
+    if (!state.round) return;
     renderCounts();
     renderFilters();
     var badge = document.getElementById("round-badge");
-    if (state.round) {
-      badge.textContent = state.round.id;
-      badge.classList.toggle("test", state.round.id === "test" || state.round.id === "fixture");
-    }
-    document.getElementById("closed-banner").hidden = !(state.round && state.round.closed);
+    badge.textContent = roundLabel(state.round.id);
+    badge.classList.toggle("test", state.round.id === "test" || state.round.id === "fixture");
+    document.getElementById("closed-banner").hidden = !state.round.closed;
 
     var list = filteredCandidates();
     if (state.focusIndex >= list.length) state.focusIndex = Math.max(0, list.length - 1);
@@ -855,7 +895,7 @@
     }
     emptyState.hidden = true;
     list.forEach(function (c, i) {
-      grid.appendChild(cardFor(c, i, list));
+      grid.appendChild(cardFor(c, i));
     });
   }
 
@@ -863,25 +903,50 @@
 
   function decide(candidate, choice) {
     if (state.round && state.round.closed) return;
-    var wasKept = state.choices[candidate.source_id] && state.choices[candidate.source_id].choice === "keep";
-    setStatus("Saving" + ELLIPSIS);
+    var existing = state.choices[candidate.source_id];
+    if (existing && existing.choice === choice) return; // no-op: unchanged
+    var pending = pendingWrite[candidate.source_id];
+    if (pending && pending.inFlight) {
+      pending.queued = choice;
+      return;
+    }
+    pendingWrite[candidate.source_id] = { inFlight: true, queued: null };
+    performWrite(candidate, choice);
+  }
+
+  function performWrite(candidate, choice) {
+    setStatus("Saving" + ELLIPSIS, false);
     state.store
       .writeChoice(candidate, choice)
       .then(function () {
         state.choices[candidate.source_id] = { choice: choice, decided_at: new Date().toISOString() };
-        if (choice === "keep" && !wasKept) {
-          state.localCounts[candidate.family] = (state.localCounts[candidate.family] || 0) + 1;
-        }
-        if (choice !== "keep" && wasKept) {
-          state.localCounts[candidate.family] = Math.max(0, (state.localCounts[candidate.family] || 0) - 1);
-        }
-        setStatus("Saved");
+        setStatus("Saved", true);
         render();
       })
       .catch(function (err) {
-        setStatus("Couldn" + RSQUO + "t save " + MDASH + " try again");
+        setStatus("Couldn" + RSQUO + "t save " + MDASH + " try again", false);
         console.error("dubplate photo sorter: write failed", err);
+      })
+      .then(function () {
+        advanceWriteQueue(candidate);
       });
+  }
+
+  function advanceWriteQueue(candidate) {
+    var pending = pendingWrite[candidate.source_id];
+    if (!pending) return;
+    var queued = pending.queued;
+    pending.queued = null;
+    if (queued === null) {
+      pending.inFlight = false;
+      return;
+    }
+    var existing = state.choices[candidate.source_id];
+    if (existing && existing.choice === queued) {
+      pending.inFlight = false;
+      return;
+    }
+    performWrite(candidate, queued);
   }
 
   // ---- preview --------------------------------------------------------
@@ -946,10 +1011,12 @@
       scrollFocusIntoView();
     } else if (e.key === "y" || e.key === "Y") {
       e.preventDefault();
+      if (e.repeat) return;
       var kc = list[state.focusIndex];
       if (kc) decide(kc, "keep");
     } else if (e.key === "n" || e.key === "N") {
       e.preventDefault();
+      if (e.repeat) return;
       var pc = list[state.focusIndex];
       if (pc) decide(pc, "pass");
     } else if (e.key === " ") {
@@ -971,7 +1038,43 @@
     if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
+  // ---- round selection ----------------------------------------------
+
+  // Numbered rounds ("1", "2", ...) outrank "test": the newest closed
+  // round, when nothing is open, is the highest-numbered one. A
+  // non-numeric id (only ever "test") ranks below every numbered round.
+  function roundRank(id) {
+    return /^\d+$/.test(id) ? parseInt(id, 10) : -1;
+  }
+
+  function pickRound(rounds) {
+    for (var i = 0; i < rounds.length; i++) {
+      if (!rounds[i].closed) return rounds[i];
+    }
+    if (!rounds.length) return null;
+    var newest = rounds[0];
+    for (var j = 1; j < rounds.length; j++) {
+      if (roundRank(rounds[j].id) > roundRank(newest.id)) newest = rounds[j];
+    }
+    return newest;
+  }
+
   // ---- stores -----------------------------------------------------------
+
+  var unsubCandidates = null;
+  var unsubChoices = null;
+  var subscribedRoundId = null;
+
+  function unsubscribeCandidatesAndChoices() {
+    if (unsubCandidates) {
+      unsubCandidates();
+      unsubCandidates = null;
+    }
+    if (unsubChoices) {
+      unsubChoices();
+      unsubChoices = null;
+    }
+  }
 
   function initRealStore(db) {
     state.store = {
@@ -986,38 +1089,60 @@
       },
     };
 
-    db.collection("rounds")
-      .where("closed", "==", false)
-      .limit(1)
-      .onSnapshot(
-        function (snap) {
-          if (snap.empty) {
-            document.getElementById("grid").hidden = true;
-            document.getElementById("filters").hidden = true;
-            document.getElementById("empty-state").hidden = false;
-            document.getElementById("empty-state").querySelector("h2").textContent = "No round is open";
-            return;
-          }
-          var doc = snap.docs[0];
-          var data = doc.data();
-          state.round = { id: doc.id, closed: !!data.closed, balance: data.balance || {} };
-          state.localCounts = {};
-          var shares = (data.balance && data.balance.shares) || {};
-          Object.keys(shares).forEach(function (fam) {
-            state.localCounts[fam] = shares[fam].count || 0;
-          });
-          subscribeCandidatesAndChoices(db, doc.id);
+    db.doc("meta/vocab").onSnapshot(
+      function (snap) {
+        if (snap.exists) {
+          state.vocab = snap.data();
           render();
-        },
-        function (err) {
-          console.error("dubplate photo sorter: rounds subscription failed", err);
-          showNoDb();
-        },
-      );
+        }
+      },
+      function (err) {
+        console.error("dubplate photo sorter: vocab subscription failed", err);
+        showNoDb();
+      },
+    );
+
+    // Subscribe once to the whole rounds collection; pick the open round,
+    // or the newest closed one when none is open, on every delivery.
+    db.collection("rounds").onSnapshot(
+      function (snap) {
+        var rounds = snap.docs.map(function (d) {
+          var data = d.data();
+          return { id: d.id, closed: !!data.closed, balance: data.balance || {} };
+        });
+        var chosen = pickRound(rounds);
+        if (!chosen) {
+          state.round = null;
+          state.candidates = [];
+          state.choices = {};
+          if (subscribedRoundId !== null) {
+            unsubscribeCandidatesAndChoices();
+            subscribedRoundId = null;
+          }
+          showNoRoundOpen();
+          return;
+        }
+        state.round = chosen;
+        hideNoRoundOpen();
+        if (chosen.id !== subscribedRoundId) {
+          unsubscribeCandidatesAndChoices();
+          subscribedRoundId = chosen.id;
+          state.candidates = [];
+          state.choices = {};
+          subscribeCandidatesAndChoices(db, chosen.id);
+        }
+        render();
+      },
+      function (err) {
+        console.error("dubplate photo sorter: rounds subscription failed", err);
+        showNoDb();
+      },
+    );
   }
 
   function subscribeCandidatesAndChoices(db, roundId) {
-    db.collection("candidates")
+    unsubCandidates = db
+      .collection("candidates")
       .where("round", "==", roundId)
       .onSnapshot(
         function (snap) {
@@ -1032,9 +1157,11 @@
         },
         function (err) {
           console.error("dubplate photo sorter: candidates subscription failed", err);
+          showNoDb();
         },
       );
-    db.collection("choices")
+    unsubChoices = db
+      .collection("choices")
       .where("round", "==", roundId)
       .onSnapshot(
         function (snap) {
@@ -1048,6 +1175,7 @@
         },
         function (err) {
           console.error("dubplate photo sorter: choices subscription failed", err);
+          showNoDb();
         },
       );
   }
@@ -1058,13 +1186,9 @@
         return r.json();
       })
       .then(function (fixture) {
+        state.vocab = fixture.vocab;
         state.round = fixture.round;
         state.candidates = fixture.candidates;
-        state.localCounts = {};
-        var shares = (fixture.round.balance && fixture.round.balance.shares) || {};
-        Object.keys(shares).forEach(function (fam) {
-          state.localCounts[fam] = shares[fam].count || 0;
-        });
         var choicesMap = {};
         state.store = {
           mode: "fixture",

@@ -6,23 +6,31 @@
       "shares": {
         "reggae": {
           "count": 39,
-          "target_low_pct": 27,
-          "target_high_pct": 33
+          "total": 150,
+          "share": 0.26,
+          "target": 0.3,
+          "status": "short"
         },
         "punk": {
           "count": 31,
-          "target_low_pct": 17,
-          "target_high_pct": 23
+          "total": 150,
+          "share": 0.20666666666666667,
+          "target": 0.2,
+          "status": "ok"
         },
-        "hiphop": {
+        "hip-hop": {
           "count": 32,
-          "target_low_pct": 17,
-          "target_high_pct": 23
+          "total": 150,
+          "share": 0.21333333333333335,
+          "target": 0.2,
+          "status": "ok"
         },
         "other": {
           "count": 48,
-          "target_low_pct": 27,
-          "target_high_pct": 33
+          "total": 150,
+          "share": 0.32,
+          "target": 0.3,
+          "status": "ok"
         }
       }
     }
@@ -61,7 +69,9 @@
         "id": "fixture-preview-9",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-9",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:15",
@@ -96,7 +106,9 @@
         "id": "fixture-preview-15",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-15",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:23",
@@ -107,10 +119,9 @@
       "year": 1985,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "africa"
+        "country_code": "US"
       },
-      "region": "caribbean",
+      "region": "north-america",
       "family": "reggae",
       "subject": [
         "clubs-and-venues",
@@ -135,7 +146,9 @@
         "id": "fixture-preview-23",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDIzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-23",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:24",
@@ -146,14 +159,13 @@
       "year": 2004,
       "year_precision": "exact",
       "place": {
-        "city": "Bristol",
-        "region": "uk-and-ireland"
+        "country_code": "GB"
       },
-      "region": "europe",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "streets-and-neighborhoods",
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "posed",
       "format": "photograph",
@@ -174,7 +186,9 @@
         "id": "fixture-preview-24",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-24",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:29",
@@ -209,7 +223,9 @@
         "id": "fixture-preview-29",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-29",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:42",
@@ -244,7 +260,9 @@
         "id": "fixture-preview-42",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-42",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:43",
@@ -258,7 +276,7 @@
       "region": null,
       "family": "other",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "still-life",
       "format": "photograph",
@@ -279,7 +297,9 @@
         "id": "fixture-preview-43",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-43",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:45",
@@ -290,10 +310,9 @@
       "year": 1991,
       "year_precision": "exact",
       "place": {
-        "city": "Bristol",
-        "region": "europe"
+        "country_code": "GB"
       },
-      "region": "asia-and-pacific",
+      "region": "uk-ireland",
       "family": "punk",
       "subject": [
         "instruments",
@@ -318,7 +337,9 @@
         "id": "fixture-preview-45",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-45",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:52",
@@ -329,10 +350,9 @@
       "year": 1971,
       "year_precision": "exact",
       "place": {
-        "city": "London",
-        "region": "asia-and-pacific"
+        "country_code": "GB"
       },
-      "region": "asia-and-pacific",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "record-players-and-hifi"
@@ -356,7 +376,9 @@
         "id": "fixture-preview-52",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDUyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-52",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:53",
@@ -367,10 +389,9 @@
       "year": 1976,
       "year_precision": "circa",
       "place": {
-        "city": "Tokyo",
-        "region": "africa"
+        "country_code": "JP"
       },
-      "region": "caribbean",
+      "region": "asia-pacific",
       "family": "reggae",
       "subject": [
         "recording-studios"
@@ -394,7 +415,9 @@
         "id": "fixture-preview-53",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDUzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-53",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:61",
@@ -405,10 +428,9 @@
       "year": 1979,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "middle-east-and-north-africa"
+        "country_code": "RS"
       },
-      "region": "africa",
+      "region": "europe",
       "family": "reggae",
       "subject": [
         "record-players-and-hifi"
@@ -432,7 +454,9 @@
         "id": "fixture-preview-61",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDYxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-61",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:64",
@@ -468,7 +492,9 @@
         "id": "fixture-preview-64",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-64",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:67",
@@ -505,7 +531,9 @@
         "id": "fixture-preview-67",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-67",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:74",
@@ -540,7 +568,9 @@
         "id": "fixture-preview-74",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-74",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:77",
@@ -551,10 +581,9 @@
       "year": 1973,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "middle-east-and-north-africa"
+        "country_code": "US"
       },
-      "region": "asia-and-pacific",
+      "region": "north-america",
       "family": "punk",
       "subject": [
         "clubs-and-venues",
@@ -579,7 +608,9 @@
         "id": "fixture-preview-77",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-77",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:81",
@@ -590,10 +621,9 @@
       "year": 2001,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "latin-america"
+        "country_code": "RS"
       },
-      "region": "caribbean",
+      "region": "europe",
       "family": "punk",
       "subject": [
         "instruments"
@@ -617,7 +647,9 @@
         "id": "fixture-preview-81",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDgxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-81",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:82",
@@ -628,10 +660,9 @@
       "year": 1962,
       "year_precision": "exact",
       "place": {
-        "city": "London",
-        "region": "asia-and-pacific"
+        "country_code": "GB"
       },
-      "region": "uk-and-ireland",
+      "region": "uk-ireland",
       "family": "punk",
       "subject": [
         "pressing-plants-and-cutting-lathes",
@@ -656,7 +687,9 @@
         "id": "fixture-preview-82",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDgyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-82",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:84",
@@ -667,10 +700,9 @@
       "year": 1980,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "north-america"
+        "country_code": "US"
       },
-      "region": "europe",
+      "region": "north-america",
       "family": "punk",
       "subject": [
         "streets-and-neighborhoods"
@@ -694,7 +726,9 @@
         "id": "fixture-preview-84",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-84",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:105",
@@ -705,10 +739,9 @@
       "year": 1996,
       "year_precision": "circa",
       "place": {
-        "city": "London",
-        "region": "asia-and-pacific"
+        "country_code": "GB"
       },
-      "region": "europe",
+      "region": "uk-ireland",
       "family": "punk",
       "subject": [
         "crowds-and-dancers"
@@ -732,7 +765,9 @@
         "id": "fixture-preview-105",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwNTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-105",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:115",
@@ -743,10 +778,9 @@
       "year": 1967,
       "year_precision": "circa",
       "place": {
-        "city": "Bristol",
-        "region": "europe"
+        "country_code": "GB"
       },
-      "region": "asia-and-pacific",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "sound-systems",
@@ -771,7 +805,9 @@
         "id": "fixture-preview-115",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExNTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-115",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:119",
@@ -782,10 +818,9 @@
       "year": 1990,
       "year_precision": "decade",
       "place": {
-        "city": "Kingston",
-        "region": "africa"
+        "country_code": "JM"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "caribbean",
       "family": "other",
       "subject": [
         "record-players-and-hifi"
@@ -809,7 +844,9 @@
         "id": "fixture-preview-119",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExOTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-119",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:127",
@@ -820,10 +857,9 @@
       "year": 2000,
       "year_precision": "decade",
       "place": {
-        "city": "Bristol",
-        "region": "caribbean"
+        "country_code": "GB"
       },
-      "region": "north-america",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "record-players-and-hifi"
@@ -847,7 +883,9 @@
         "id": "fixture-preview-127",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyNzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-127",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:136",
@@ -858,10 +896,9 @@
       "year": 1990,
       "year_precision": "exact",
       "place": {
-        "city": "London",
-        "region": "africa"
+        "country_code": "GB"
       },
-      "region": "asia-and-pacific",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "pressing-plants-and-cutting-lathes"
@@ -885,7 +922,9 @@
         "id": "fixture-preview-136",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzNjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-136",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:137",
@@ -896,11 +935,10 @@
       "year": 2000,
       "year_precision": "decade",
       "place": {
-        "city": "Belgrade",
-        "region": "africa"
+        "country_code": "RS"
       },
-      "region": "caribbean",
-      "family": "hiphop",
+      "region": "europe",
+      "family": "hip-hop",
       "subject": [
         "streets-and-neighborhoods",
         "radio-stations"
@@ -926,7 +964,9 @@
         "id": "fixture-preview-137",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzNzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-137",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:140",
@@ -938,7 +978,7 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "record-players-and-hifi",
         "recording-studios"
@@ -962,7 +1002,9 @@
         "id": "fixture-preview-140",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0MDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-140",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:4",
@@ -973,10 +1015,9 @@
       "year": 2006,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "africa"
+        "country_code": "NG"
       },
-      "region": "asia-and-pacific",
+      "region": "africa",
       "family": "other",
       "subject": [
         "record-players-and-hifi"
@@ -1000,7 +1041,9 @@
         "id": "fixture-preview-4",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-4",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:7",
@@ -1011,11 +1054,10 @@
       "year": 1996,
       "year_precision": "circa",
       "place": {
-        "city": "Kingston",
-        "region": "caribbean"
+        "country_code": "JM"
       },
-      "region": "latin-america",
-      "family": "hiphop",
+      "region": "caribbean",
+      "family": "hip-hop",
       "subject": [
         "record-stores",
         "radio-stations"
@@ -1039,7 +1081,9 @@
         "id": "fixture-preview-7",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-7",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:11",
@@ -1050,10 +1094,9 @@
       "year": 2004,
       "year_precision": "circa",
       "place": {
-        "city": "London",
-        "region": "africa"
+        "country_code": "GB"
       },
-      "region": "africa",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "record-players-and-hifi"
@@ -1077,7 +1120,9 @@
         "id": "fixture-preview-11",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-11",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:16",
@@ -1088,10 +1133,9 @@
       "year": 1996,
       "year_precision": "circa",
       "place": {
-        "city": "Belgrade",
-        "region": "middle-east-and-north-africa"
+        "country_code": "RS"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "europe",
       "family": "reggae",
       "subject": [
         "instruments",
@@ -1116,7 +1160,9 @@
         "id": "fixture-preview-16",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-16",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:20",
@@ -1128,7 +1174,7 @@
       "year_precision": "decade",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "clubs-and-venues"
       ],
@@ -1151,7 +1197,9 @@
         "id": "fixture-preview-20",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDIwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-20",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:21",
@@ -1162,10 +1210,9 @@
       "year": 1999,
       "year_precision": "circa",
       "place": {
-        "city": "Bristol",
-        "region": "middle-east-and-north-africa"
+        "country_code": "GB"
       },
-      "region": "africa",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "recording-studios",
@@ -1190,7 +1237,9 @@
         "id": "fixture-preview-21",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDIxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-21",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:26",
@@ -1225,7 +1274,9 @@
         "id": "fixture-preview-26",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-26",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:30",
@@ -1260,7 +1311,9 @@
         "id": "fixture-preview-30",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDMwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-30",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:31",
@@ -1271,10 +1324,9 @@
       "year": 1964,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "asia-and-pacific"
+        "country_code": "JP"
       },
-      "region": "africa",
+      "region": "asia-pacific",
       "family": "reggae",
       "subject": [
         "clubs-and-venues",
@@ -1299,7 +1351,9 @@
         "id": "fixture-preview-31",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDMxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-31",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:33",
@@ -1310,10 +1364,9 @@
       "year": 1990,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "north-america"
+        "country_code": "JP"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "asia-pacific",
       "family": "other",
       "subject": [
         "pressing-plants-and-cutting-lathes"
@@ -1337,7 +1390,9 @@
         "id": "fixture-preview-33",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDMzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-33",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:49",
@@ -1348,11 +1403,10 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "Tokyo",
-        "region": "europe"
+        "country_code": "JP"
       },
-      "region": "latin-america",
-      "family": "hiphop",
+      "region": "asia-pacific",
+      "family": "hip-hop",
       "subject": [
         "pressing-plants-and-cutting-lathes"
       ],
@@ -1375,7 +1429,9 @@
         "id": "fixture-preview-49",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-49",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:57",
@@ -1386,11 +1442,13 @@
       "year": 2000,
       "year_precision": "exact",
       "place": {
-        "city": "Kingston",
-        "region": "africa"
+        "country_code": "JM",
+        "landmark": {
+          "name": "Studio One"
+        }
       },
       "region": "caribbean",
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "radio-stations",
         "pressing-plants-and-cutting-lathes"
@@ -1414,7 +1472,9 @@
         "id": "fixture-preview-57",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-57",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:63",
@@ -1425,8 +1485,7 @@
       "year": 1993,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "africa"
+        "country_code": "NG"
       },
       "region": "africa",
       "family": "other",
@@ -1453,7 +1512,9 @@
         "id": "fixture-preview-63",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDYzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-63",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:68",
@@ -1488,7 +1549,9 @@
         "id": "fixture-preview-68",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-68",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:70",
@@ -1499,10 +1562,9 @@
       "year": 1975,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "asia-and-pacific"
+        "country_code": "NG"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "africa",
       "family": "reggae",
       "subject": [
         "record-players-and-hifi"
@@ -1526,7 +1588,9 @@
         "id": "fixture-preview-70",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDcwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-70",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:76",
@@ -1538,7 +1602,7 @@
       "year_precision": "circa",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "streets-and-neighborhoods"
       ],
@@ -1561,7 +1625,9 @@
         "id": "fixture-preview-76",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-76",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:83",
@@ -1573,7 +1639,7 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "sound-systems"
       ],
@@ -1596,7 +1662,9 @@
         "id": "fixture-preview-83",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDgzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-83",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:89",
@@ -1607,10 +1675,9 @@
       "year": 1990,
       "year_precision": "exact",
       "place": {
-        "city": "Kingston",
-        "region": "africa"
+        "country_code": "JM"
       },
-      "region": "africa",
+      "region": "caribbean",
       "family": "punk",
       "subject": [
         "pressing-plants-and-cutting-lathes"
@@ -1634,7 +1701,9 @@
         "id": "fixture-preview-89",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-89",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:93",
@@ -1645,10 +1714,9 @@
       "year": 1997,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "north-america"
+        "country_code": "JP"
       },
-      "region": "north-america",
+      "region": "asia-pacific",
       "family": "reggae",
       "subject": [
         "radio-stations"
@@ -1672,7 +1740,9 @@
         "id": "fixture-preview-93",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDkzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-93",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:97",
@@ -1683,13 +1753,12 @@
       "year": 2002,
       "year_precision": "circa",
       "place": {
-        "city": "New York",
-        "region": "europe"
+        "country_code": "US"
       },
-      "region": "africa",
+      "region": "north-america",
       "family": "punk",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "still-life",
       "format": "flyer",
@@ -1712,7 +1781,9 @@
         "id": "fixture-preview-97",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-97",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:102",
@@ -1723,10 +1794,9 @@
       "year": 1995,
       "year_precision": "circa",
       "place": {
-        "city": "Tokyo",
-        "region": "north-america"
+        "country_code": "JP"
       },
-      "region": "caribbean",
+      "region": "asia-pacific",
       "family": "punk",
       "subject": [
         "streets-and-neighborhoods"
@@ -1750,7 +1820,9 @@
         "id": "fixture-preview-102",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwMjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-102",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:122",
@@ -1761,10 +1833,9 @@
       "year": 1980,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "asia-and-pacific"
+        "country_code": "US"
       },
-      "region": "uk-and-ireland",
+      "region": "north-america",
       "family": "other",
       "subject": [
         "performers"
@@ -1788,7 +1859,9 @@
         "id": "fixture-preview-122",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyMjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-122",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:129",
@@ -1824,7 +1897,9 @@
         "id": "fixture-preview-129",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyOTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-129",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:131",
@@ -1859,7 +1934,9 @@
         "id": "fixture-preview-131",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzMTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-131",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:145",
@@ -1870,10 +1947,9 @@
       "year": 1972,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "north-america"
+        "country_code": "US"
       },
-      "region": "uk-and-ireland",
+      "region": "north-america",
       "family": "reggae",
       "subject": [
         "instruments",
@@ -1898,7 +1974,9 @@
         "id": "fixture-preview-145",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0NTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-145",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:146",
@@ -1909,13 +1987,12 @@
       "year": 1972,
       "year_precision": "circa",
       "place": {
-        "city": "Belgrade",
-        "region": "latin-america"
+        "country_code": "RS"
       },
-      "region": "latin-america",
+      "region": "europe",
       "family": "reggae",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "exterior",
       "format": "photograph",
@@ -1936,7 +2013,9 @@
         "id": "fixture-preview-146",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0NjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-146",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:6",
@@ -1947,10 +2026,9 @@
       "year": 1960,
       "year_precision": "decade",
       "place": {
-        "city": "London",
-        "region": "latin-america"
+        "country_code": "GB"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "performers",
@@ -1977,7 +2055,9 @@
         "id": "fixture-preview-6",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-6",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:12",
@@ -1989,10 +2069,10 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "instruments",
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "exterior",
       "format": "zine-cover",
@@ -2013,7 +2093,9 @@
         "id": "fixture-preview-12",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-12",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:13",
@@ -2048,7 +2130,9 @@
         "id": "fixture-preview-13",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-13",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:17",
@@ -2060,7 +2144,7 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "crowds-and-dancers",
         "clubs-and-venues"
@@ -2084,7 +2168,9 @@
         "id": "fixture-preview-17",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-17",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:18",
@@ -2095,10 +2181,9 @@
       "year": 1984,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "europe"
+        "country_code": "RS"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "europe",
       "family": "other",
       "subject": [
         "record-players-and-hifi",
@@ -2123,7 +2208,9 @@
         "id": "fixture-preview-18",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-18",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:32",
@@ -2134,11 +2221,10 @@
       "year": 1982,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "middle-east-and-north-africa"
+        "country_code": "RS"
       },
-      "region": "caribbean",
-      "family": "hiphop",
+      "region": "europe",
+      "family": "hip-hop",
       "subject": [
         "record-stores"
       ],
@@ -2161,7 +2247,9 @@
         "id": "fixture-preview-32",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDMyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-32",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:35",
@@ -2173,7 +2261,7 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "recording-studios"
       ],
@@ -2196,7 +2284,9 @@
         "id": "fixture-preview-35",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-35",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:44",
@@ -2207,10 +2297,9 @@
       "year": 1979,
       "year_precision": "circa",
       "place": {
-        "city": "Belgrade",
-        "region": "north-america"
+        "country_code": "RS"
       },
-      "region": "uk-and-ireland",
+      "region": "europe",
       "family": "punk",
       "subject": [
         "streets-and-neighborhoods"
@@ -2234,7 +2323,9 @@
         "id": "fixture-preview-44",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-44",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:47",
@@ -2245,10 +2336,9 @@
       "year": 1996,
       "year_precision": "circa",
       "place": {
-        "city": "Tokyo",
-        "region": "middle-east-and-north-africa"
+        "country_code": "JP"
       },
-      "region": "north-america",
+      "region": "asia-pacific",
       "family": "other",
       "subject": [
         "recording-studios"
@@ -2272,7 +2362,9 @@
         "id": "fixture-preview-47",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-47",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:51",
@@ -2283,13 +2375,15 @@
       "year": 1960,
       "year_precision": "decade",
       "place": {
-        "city": "Lagos",
-        "region": "middle-east-and-north-africa"
+        "country_code": "NG",
+        "landmark": {
+          "name": "Fela Kuti's Shrine"
+        }
       },
-      "region": "latin-america",
+      "region": "africa",
       "family": "reggae",
       "subject": [
-        "homes-and-label-hq",
+        "homes-and-label-headquarters",
         "crowds-and-dancers"
       ],
       "shot": "candid",
@@ -2311,7 +2405,9 @@
         "id": "fixture-preview-51",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDUxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-51",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:54",
@@ -2322,13 +2418,12 @@
       "year": 1999,
       "year_precision": "exact",
       "place": {
-        "city": "London",
-        "region": "latin-america"
+        "country_code": "GB"
       },
-      "region": "uk-and-ireland",
-      "family": "hiphop",
+      "region": "uk-ireland",
+      "family": "hip-hop",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "live",
       "format": "flyer",
@@ -2349,7 +2444,9 @@
         "id": "fixture-preview-54",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-54",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:55",
@@ -2360,11 +2457,10 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "Bristol",
-        "region": "europe"
+        "country_code": "GB"
       },
-      "region": "africa",
-      "family": "hiphop",
+      "region": "uk-ireland",
+      "family": "hip-hop",
       "subject": [
         "clubs-and-venues"
       ],
@@ -2387,7 +2483,9 @@
         "id": "fixture-preview-55",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-55",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:58",
@@ -2399,10 +2497,10 @@
       "year_precision": "decade",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "crowds-and-dancers",
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "interior",
       "format": "photograph",
@@ -2423,7 +2521,9 @@
         "id": "fixture-preview-58",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-58",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:59",
@@ -2434,11 +2534,10 @@
       "year": 1972,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "africa"
+        "country_code": "US"
       },
-      "region": "asia-and-pacific",
-      "family": "hiphop",
+      "region": "north-america",
+      "family": "hip-hop",
       "subject": [
         "performers"
       ],
@@ -2461,7 +2560,9 @@
         "id": "fixture-preview-59",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-59",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:60",
@@ -2472,10 +2573,9 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "London",
-        "region": "africa"
+        "country_code": "GB"
       },
-      "region": "caribbean",
+      "region": "uk-ireland",
       "family": "punk",
       "subject": [
         "record-players-and-hifi"
@@ -2499,7 +2599,9 @@
         "id": "fixture-preview-60",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDYwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-60",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:69",
@@ -2510,13 +2612,12 @@
       "year": 1962,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "europe"
+        "country_code": "RS"
       },
-      "region": "africa",
-      "family": "hiphop",
+      "region": "europe",
+      "family": "hip-hop",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "still-life",
       "format": "flyer",
@@ -2537,7 +2638,9 @@
         "id": "fixture-preview-69",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-69",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:78",
@@ -2572,7 +2675,9 @@
         "id": "fixture-preview-78",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-78",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:87",
@@ -2583,10 +2688,9 @@
       "year": 1970,
       "year_precision": "decade",
       "place": {
-        "city": "Tokyo",
-        "region": "caribbean"
+        "country_code": "JP"
       },
-      "region": "north-america",
+      "region": "asia-pacific",
       "family": "reggae",
       "subject": [
         "sound-systems"
@@ -2610,7 +2714,9 @@
         "id": "fixture-preview-87",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-87",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:88",
@@ -2645,7 +2751,9 @@
         "id": "fixture-preview-88",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-88",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:94",
@@ -2656,10 +2764,9 @@
       "year": 1964,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "middle-east-and-north-africa"
+        "country_code": "NG"
       },
-      "region": "caribbean",
+      "region": "africa",
       "family": "other",
       "subject": [
         "radio-stations"
@@ -2683,7 +2790,9 @@
         "id": "fixture-preview-94",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-94",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:99",
@@ -2695,7 +2804,7 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "radio-stations"
       ],
@@ -2718,7 +2827,9 @@
         "id": "fixture-preview-99",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-99",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:107",
@@ -2754,7 +2865,9 @@
         "id": "fixture-preview-107",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwNzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-107",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:108",
@@ -2765,11 +2878,10 @@
       "year": 1981,
       "year_precision": "circa",
       "place": {
-        "city": "New York",
-        "region": "north-america"
+        "country_code": "US"
       },
-      "region": "middle-east-and-north-africa",
-      "family": "hiphop",
+      "region": "north-america",
+      "family": "hip-hop",
       "subject": [
         "record-stores"
       ],
@@ -2792,7 +2904,9 @@
         "id": "fixture-preview-108",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwODwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-108",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:113",
@@ -2803,10 +2917,9 @@
       "year": 2002,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "middle-east-and-north-africa"
+        "country_code": "US"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "north-america",
       "family": "reggae",
       "subject": [
         "performers",
@@ -2831,7 +2944,9 @@
         "id": "fixture-preview-113",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExMzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-113",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:114",
@@ -2842,10 +2957,9 @@
       "year": 1970,
       "year_precision": "decade",
       "place": {
-        "city": "London",
-        "region": "north-america"
+        "country_code": "GB"
       },
-      "region": "europe",
+      "region": "uk-ireland",
       "family": "punk",
       "subject": [
         "performers",
@@ -2870,7 +2984,9 @@
         "id": "fixture-preview-114",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExNDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-114",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:116",
@@ -2881,11 +2997,10 @@
       "year": 1977,
       "year_precision": "exact",
       "place": {
-        "city": "Bristol",
-        "region": "africa"
+        "country_code": "GB"
       },
-      "region": "latin-america",
-      "family": "hiphop",
+      "region": "uk-ireland",
+      "family": "hip-hop",
       "subject": [
         "record-players-and-hifi"
       ],
@@ -2908,7 +3023,9 @@
         "id": "fixture-preview-116",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExNjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-116",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:120",
@@ -2919,10 +3036,9 @@
       "year": 1969,
       "year_precision": "exact",
       "place": {
-        "city": "Bristol",
-        "region": "asia-and-pacific"
+        "country_code": "GB"
       },
-      "region": "africa",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "recording-studios",
@@ -2947,7 +3063,9 @@
         "id": "fixture-preview-120",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyMDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-120",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:121",
@@ -2958,10 +3076,9 @@
       "year": 1990,
       "year_precision": "decade",
       "place": {
-        "city": "Bristol",
-        "region": "europe"
+        "country_code": "GB"
       },
-      "region": "latin-america",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "recording-studios"
@@ -2985,7 +3102,9 @@
         "id": "fixture-preview-121",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyMTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-121",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:123",
@@ -2996,11 +3115,10 @@
       "year": 2006,
       "year_precision": "circa",
       "place": {
-        "city": "Bristol",
-        "region": "latin-america"
+        "country_code": "GB"
       },
-      "region": "north-america",
-      "family": "hiphop",
+      "region": "uk-ireland",
+      "family": "hip-hop",
       "subject": [
         "instruments"
       ],
@@ -3023,7 +3141,9 @@
         "id": "fixture-preview-123",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyMzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-123",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:130",
@@ -3034,10 +3154,9 @@
       "year": 1974,
       "year_precision": "exact",
       "place": {
-        "city": "Kingston",
-        "region": "uk-and-ireland"
+        "country_code": "JM"
       },
-      "region": "latin-america",
+      "region": "caribbean",
       "family": "reggae",
       "subject": [
         "crowds-and-dancers",
@@ -3062,7 +3181,9 @@
         "id": "fixture-preview-130",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzMDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-130",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:133",
@@ -3073,10 +3194,9 @@
       "year": 1993,
       "year_precision": "exact",
       "place": {
-        "city": "London",
-        "region": "africa"
+        "country_code": "GB"
       },
-      "region": "uk-and-ireland",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "performers"
@@ -3100,7 +3220,9 @@
         "id": "fixture-preview-133",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzMzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-133",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:134",
@@ -3135,7 +3257,9 @@
         "id": "fixture-preview-134",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzNDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-134",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:135",
@@ -3170,7 +3294,9 @@
         "id": "fixture-preview-135",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzNTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-135",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:142",
@@ -3205,7 +3331,9 @@
         "id": "fixture-preview-142",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0MjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-142",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:149",
@@ -3216,10 +3344,9 @@
       "year": 1972,
       "year_precision": "circa",
       "place": {
-        "city": "Tokyo",
-        "region": "asia-and-pacific"
+        "country_code": "JP"
       },
-      "region": "europe",
+      "region": "asia-pacific",
       "family": "other",
       "subject": [
         "sound-systems"
@@ -3243,7 +3370,9 @@
         "id": "fixture-preview-149",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0OTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-149",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:3",
@@ -3254,10 +3383,9 @@
       "year": 1963,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "latin-america"
+        "country_code": "JP"
       },
-      "region": "latin-america",
+      "region": "asia-pacific",
       "family": "other",
       "subject": [
         "instruments"
@@ -3281,7 +3409,9 @@
         "id": "fixture-preview-3",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-3",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:8",
@@ -3317,7 +3447,9 @@
         "id": "fixture-preview-8",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-8",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:22",
@@ -3352,7 +3484,9 @@
         "id": "fixture-preview-22",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDIyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-22",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:25",
@@ -3363,10 +3497,9 @@
       "year": 1975,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "uk-and-ireland"
+        "country_code": "JP"
       },
-      "region": "caribbean",
+      "region": "asia-pacific",
       "family": "reggae",
       "subject": [
         "streets-and-neighborhoods",
@@ -3391,7 +3524,9 @@
         "id": "fixture-preview-25",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-25",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:27",
@@ -3427,7 +3562,9 @@
         "id": "fixture-preview-27",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-27",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:28",
@@ -3462,7 +3599,9 @@
         "id": "fixture-preview-28",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-28",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:34",
@@ -3476,7 +3615,7 @@
       "region": null,
       "family": "reggae",
       "subject": [
-        "homes-and-label-hq",
+        "homes-and-label-headquarters",
         "sound-systems"
       ],
       "shot": "interior",
@@ -3498,7 +3637,9 @@
         "id": "fixture-preview-34",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-34",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:36",
@@ -3533,7 +3674,9 @@
         "id": "fixture-preview-36",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-36",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:37",
@@ -3544,11 +3687,10 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "Bristol",
-        "region": "north-america"
+        "country_code": "GB"
       },
-      "region": "uk-and-ireland",
-      "family": "hiphop",
+      "region": "uk-ireland",
+      "family": "hip-hop",
       "subject": [
         "pressing-plants-and-cutting-lathes"
       ],
@@ -3571,7 +3713,9 @@
         "id": "fixture-preview-37",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM3PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-37",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:40",
@@ -3582,10 +3726,9 @@
       "year": 1973,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "latin-america"
+        "country_code": "NG"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "africa",
       "family": "punk",
       "subject": [
         "instruments"
@@ -3609,7 +3752,9 @@
         "id": "fixture-preview-40",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-40",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:41",
@@ -3620,10 +3765,12 @@
       "year": 1990,
       "year_precision": "decade",
       "place": {
-        "city": "New York",
-        "region": "latin-america"
+        "country_code": "US",
+        "landmark": {
+          "name": "Apollo Theater"
+        }
       },
-      "region": "africa",
+      "region": "north-america",
       "family": "other",
       "subject": [
         "performers"
@@ -3647,7 +3794,9 @@
         "id": "fixture-preview-41",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-41",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:48",
@@ -3658,10 +3807,9 @@
       "year": 1975,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "middle-east-and-north-africa"
+        "country_code": "NG"
       },
-      "region": "latin-america",
+      "region": "africa",
       "family": "other",
       "subject": [
         "streets-and-neighborhoods"
@@ -3685,7 +3833,9 @@
         "id": "fixture-preview-48",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-48",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:56",
@@ -3720,7 +3870,9 @@
         "id": "fixture-preview-56",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-56",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:62",
@@ -3731,10 +3883,9 @@
       "year": 2000,
       "year_precision": "decade",
       "place": {
-        "city": "Tokyo",
-        "region": "africa"
+        "country_code": "JP"
       },
-      "region": "africa",
+      "region": "asia-pacific",
       "family": "punk",
       "subject": [
         "clubs-and-venues"
@@ -3758,7 +3909,9 @@
         "id": "fixture-preview-62",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDYyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-62",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:71",
@@ -3769,10 +3922,9 @@
       "year": 2006,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "middle-east-and-north-africa"
+        "country_code": "NG"
       },
-      "region": "europe",
+      "region": "africa",
       "family": "reggae",
       "subject": [
         "pressing-plants-and-cutting-lathes"
@@ -3796,7 +3948,9 @@
         "id": "fixture-preview-71",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDcxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-71",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:75",
@@ -3807,11 +3961,10 @@
       "year": 1976,
       "year_precision": "circa",
       "place": {
-        "city": "Tokyo",
-        "region": "latin-america"
+        "country_code": "JP"
       },
-      "region": "caribbean",
-      "family": "hiphop",
+      "region": "asia-pacific",
+      "family": "hip-hop",
       "subject": [
         "instruments"
       ],
@@ -3834,7 +3987,9 @@
         "id": "fixture-preview-75",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-75",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:79",
@@ -3845,10 +4000,9 @@
       "year": 1972,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "latin-america"
+        "country_code": "RS"
       },
-      "region": "north-america",
+      "region": "europe",
       "family": "other",
       "subject": [
         "performers"
@@ -3872,7 +4026,9 @@
         "id": "fixture-preview-79",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDc5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-79",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:86",
@@ -3883,10 +4039,9 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "London",
-        "region": "asia-and-pacific"
+        "country_code": "GB"
       },
-      "region": "latin-america",
+      "region": "uk-ireland",
       "family": "reggae",
       "subject": [
         "instruments",
@@ -3911,7 +4066,9 @@
         "id": "fixture-preview-86",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-86",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:90",
@@ -3922,10 +4079,9 @@
       "year": 2000,
       "year_precision": "circa",
       "place": {
-        "city": "Lagos",
-        "region": "europe"
+        "country_code": "NG"
       },
-      "region": "caribbean",
+      "region": "africa",
       "family": "other",
       "subject": [
         "record-players-and-hifi"
@@ -3949,7 +4105,9 @@
         "id": "fixture-preview-90",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDkwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-90",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:92",
@@ -3960,11 +4118,10 @@
       "year": 1978,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "middle-east-and-north-africa"
+        "country_code": "JP"
       },
-      "region": "uk-and-ireland",
-      "family": "hiphop",
+      "region": "asia-pacific",
+      "family": "hip-hop",
       "subject": [
         "instruments"
       ],
@@ -3987,7 +4144,9 @@
         "id": "fixture-preview-92",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDkyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-92",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:98",
@@ -3998,13 +4157,12 @@
       "year": 2002,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "north-america"
+        "country_code": "US"
       },
-      "region": "africa",
+      "region": "north-america",
       "family": "reggae",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "posed",
       "format": "flyer",
@@ -4025,7 +4183,9 @@
         "id": "fixture-preview-98",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-98",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:109",
@@ -4060,7 +4220,9 @@
         "id": "fixture-preview-109",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwOTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-109",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:110",
@@ -4071,13 +4233,15 @@
       "year": 1965,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "middle-east-and-north-africa"
+        "country_code": "NG",
+        "landmark": {
+          "name": "Fela Kuti's Shrine"
+        }
       },
-      "region": "caribbean",
+      "region": "africa",
       "family": "reggae",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "candid",
       "format": "flyer",
@@ -4100,7 +4264,9 @@
         "id": "fixture-preview-110",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExMDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-110",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:111",
@@ -4111,10 +4277,9 @@
       "year": 1983,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "north-america"
+        "country_code": "US"
       },
-      "region": "asia-and-pacific",
+      "region": "north-america",
       "family": "punk",
       "subject": [
         "record-players-and-hifi"
@@ -4140,7 +4305,9 @@
         "id": "fixture-preview-111",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExMTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-111",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:112",
@@ -4151,8 +4318,7 @@
       "year": 1985,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "uk-and-ireland"
+        "country_code": "NG"
       },
       "region": "africa",
       "family": "reggae",
@@ -4180,7 +4346,9 @@
         "id": "fixture-preview-112",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExMjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-112",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:125",
@@ -4215,7 +4383,9 @@
         "id": "fixture-preview-125",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyNTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-125",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:141",
@@ -4226,10 +4396,9 @@
       "year": 1963,
       "year_precision": "circa",
       "place": {
-        "city": "Bristol",
-        "region": "caribbean"
+        "country_code": "GB"
       },
-      "region": "latin-america",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "performers"
@@ -4253,7 +4422,9 @@
         "id": "fixture-preview-141",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0MTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-141",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:147",
@@ -4264,14 +4435,13 @@
       "year": 1976,
       "year_precision": "circa",
       "place": {
-        "city": "New York",
-        "region": "caribbean"
+        "country_code": "US"
       },
-      "region": "africa",
+      "region": "north-america",
       "family": "other",
       "subject": [
         "instruments",
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "exterior",
       "format": "photograph",
@@ -4292,7 +4462,9 @@
         "id": "fixture-preview-147",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0NzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-147",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:1",
@@ -4327,7 +4499,9 @@
         "id": "fixture-preview-1",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-1",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:2",
@@ -4341,7 +4515,7 @@
       "region": null,
       "family": "reggae",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "interior",
       "format": "zine-cover",
@@ -4362,7 +4536,9 @@
         "id": "fixture-preview-2",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDI8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-2",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:5",
@@ -4373,13 +4549,12 @@
       "year": 1985,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "uk-and-ireland"
+        "country_code": "RS"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "europe",
       "family": "punk",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "exterior",
       "format": "flyer",
@@ -4400,7 +4575,9 @@
         "id": "fixture-preview-5",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDU8L3RleHQ+PC9zdmc+"
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-5",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:10",
@@ -4411,10 +4588,9 @@
       "year": 1998,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "uk-and-ireland"
+        "country_code": "JP"
       },
-      "region": "uk-and-ireland",
+      "region": "asia-pacific",
       "family": "reggae",
       "subject": [
         "streets-and-neighborhoods"
@@ -4438,7 +4614,9 @@
         "id": "fixture-preview-10",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-10",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:14",
@@ -4449,10 +4627,9 @@
       "year": 1983,
       "year_precision": "exact",
       "place": {
-        "city": "Bristol",
-        "region": "middle-east-and-north-africa"
+        "country_code": "GB"
       },
-      "region": "uk-and-ireland",
+      "region": "uk-ireland",
       "family": "punk",
       "subject": [
         "recording-studios"
@@ -4476,7 +4653,9 @@
         "id": "fixture-preview-14",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-14",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:19",
@@ -4487,10 +4666,9 @@
       "year": 2000,
       "year_precision": "decade",
       "place": {
-        "city": "Tokyo",
-        "region": "caribbean"
+        "country_code": "JP"
       },
-      "region": "latin-america",
+      "region": "asia-pacific",
       "family": "other",
       "subject": [
         "record-players-and-hifi"
@@ -4514,7 +4692,9 @@
         "id": "fixture-preview-19",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-19",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:38",
@@ -4525,11 +4705,13 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "Kingston",
-        "region": "africa"
+        "country_code": "JM",
+        "landmark": {
+          "name": "Studio One"
+        }
       },
-      "region": "latin-america",
-      "family": "hiphop",
+      "region": "caribbean",
+      "family": "hip-hop",
       "subject": [
         "sound-systems",
         "recording-studios"
@@ -4553,7 +4735,9 @@
         "id": "fixture-preview-38",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM4PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-38",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:39",
@@ -4564,10 +4748,9 @@
       "year": 1992,
       "year_precision": "circa",
       "place": {
-        "city": "Lagos",
-        "region": "latin-america"
+        "country_code": "NG"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "africa",
       "family": "reggae",
       "subject": [
         "recording-studios",
@@ -4592,7 +4775,9 @@
         "id": "fixture-preview-39",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDM5PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-39",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:46",
@@ -4603,10 +4788,9 @@
       "year": 1981,
       "year_precision": "circa",
       "place": {
-        "city": "Kingston",
-        "region": "africa"
+        "country_code": "JM"
       },
-      "region": "asia-and-pacific",
+      "region": "caribbean",
       "family": "other",
       "subject": [
         "instruments"
@@ -4630,7 +4814,9 @@
         "id": "fixture-preview-46",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDQ2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-46",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:50",
@@ -4665,7 +4851,9 @@
         "id": "fixture-preview-50",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDUwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-50",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:65",
@@ -4676,10 +4864,9 @@
       "year": 1995,
       "year_precision": "exact",
       "place": {
-        "city": "London",
-        "region": "uk-and-ireland"
+        "country_code": "GB"
       },
-      "region": "caribbean",
+      "region": "uk-ireland",
       "family": "other",
       "subject": [
         "instruments"
@@ -4703,7 +4890,9 @@
         "id": "fixture-preview-65",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-65",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:66",
@@ -4714,11 +4903,10 @@
       "year": 1978,
       "year_precision": "circa",
       "place": {
-        "city": "Tokyo",
-        "region": "africa"
+        "country_code": "JP"
       },
-      "region": "caribbean",
-      "family": "hiphop",
+      "region": "asia-pacific",
+      "family": "hip-hop",
       "subject": [
         "performers"
       ],
@@ -4741,7 +4929,9 @@
         "id": "fixture-preview-66",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDY2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-66",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:72",
@@ -4752,10 +4942,9 @@
       "year": 2000,
       "year_precision": "exact",
       "place": {
-        "city": "Belgrade",
-        "region": "europe"
+        "country_code": "RS"
       },
-      "region": "asia-and-pacific",
+      "region": "europe",
       "family": "punk",
       "subject": [
         "record-players-and-hifi"
@@ -4779,7 +4968,9 @@
         "id": "fixture-preview-72",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDcyPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-72",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:73",
@@ -4814,7 +5005,9 @@
         "id": "fixture-preview-73",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDczPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-73",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:80",
@@ -4826,7 +5019,7 @@
       "year_precision": "exact",
       "place": null,
       "region": null,
-      "family": "hiphop",
+      "family": "hip-hop",
       "subject": [
         "radio-stations"
       ],
@@ -4851,7 +5044,9 @@
         "id": "fixture-preview-80",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDgwPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-80",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:85",
@@ -4888,7 +5083,9 @@
         "id": "fixture-preview-85",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDg1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-85",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:91",
@@ -4923,7 +5120,9 @@
         "id": "fixture-preview-91",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDkxPC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-91",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:95",
@@ -4959,7 +5158,9 @@
         "id": "fixture-preview-95",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk1PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-95",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:96",
@@ -4970,11 +5171,13 @@
       "year": 1979,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "uk-and-ireland"
+        "country_code": "NG",
+        "landmark": {
+          "name": "Fela Kuti's Shrine"
+        }
       },
-      "region": "caribbean",
-      "family": "hiphop",
+      "region": "africa",
+      "family": "hip-hop",
       "subject": [
         "radio-stations"
       ],
@@ -4997,7 +5200,9 @@
         "id": "fixture-preview-96",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDk2PC90ZXh0Pjwvc3ZnPg=="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-96",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:100",
@@ -5008,10 +5213,9 @@
       "year": 2000,
       "year_precision": "exact",
       "place": {
-        "city": "New York",
-        "region": "caribbean"
+        "country_code": "US"
       },
-      "region": "asia-and-pacific",
+      "region": "north-america",
       "family": "other",
       "subject": [
         "clubs-and-venues"
@@ -5035,7 +5239,9 @@
         "id": "fixture-preview-100",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwMDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-100",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:101",
@@ -5046,8 +5252,7 @@
       "year": 2005,
       "year_precision": "exact",
       "place": {
-        "city": "Lagos",
-        "region": "europe"
+        "country_code": "NG"
       },
       "region": "africa",
       "family": "other",
@@ -5075,7 +5280,9 @@
         "id": "fixture-preview-101",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwMTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-101",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:103",
@@ -5110,7 +5317,9 @@
         "id": "fixture-preview-103",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwMzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-103",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:104",
@@ -5121,11 +5330,10 @@
       "year": 1990,
       "year_precision": "circa",
       "place": {
-        "city": "Belgrade",
-        "region": "europe"
+        "country_code": "RS"
       },
-      "region": "latin-america",
-      "family": "hiphop",
+      "region": "europe",
+      "family": "hip-hop",
       "subject": [
         "sound-systems"
       ],
@@ -5148,7 +5356,9 @@
         "id": "fixture-preview-104",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwNDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-104",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:106",
@@ -5159,13 +5369,12 @@
       "year": 1980,
       "year_precision": "decade",
       "place": {
-        "city": "Kingston",
-        "region": "middle-east-and-north-africa"
+        "country_code": "JM"
       },
-      "region": "north-america",
-      "family": "hiphop",
+      "region": "caribbean",
+      "family": "hip-hop",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "live",
       "format": "photograph",
@@ -5186,7 +5395,9 @@
         "id": "fixture-preview-106",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEwNjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-106",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:117",
@@ -5221,7 +5432,9 @@
         "id": "fixture-preview-117",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExNzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-117",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:118",
@@ -5232,11 +5445,10 @@
       "year": 1960,
       "year_precision": "decade",
       "place": {
-        "city": "Tokyo",
-        "region": "north-america"
+        "country_code": "JP"
       },
-      "region": "europe",
-      "family": "hiphop",
+      "region": "asia-pacific",
+      "family": "hip-hop",
       "subject": [
         "crowds-and-dancers"
       ],
@@ -5259,7 +5471,9 @@
         "id": "fixture-preview-118",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDExODwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-118",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:124",
@@ -5270,10 +5484,9 @@
       "year": 1960,
       "year_precision": "decade",
       "place": {
-        "city": "Kingston",
-        "region": "middle-east-and-north-africa"
+        "country_code": "JM"
       },
-      "region": "asia-and-pacific",
+      "region": "caribbean",
       "family": "punk",
       "subject": [
         "clubs-and-venues"
@@ -5297,7 +5510,9 @@
         "id": "fixture-preview-124",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyNDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-124",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:126",
@@ -5332,7 +5547,9 @@
         "id": "fixture-preview-126",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyNjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-126",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:128",
@@ -5343,10 +5560,9 @@
       "year": 1986,
       "year_precision": "exact",
       "place": {
-        "city": "Tokyo",
-        "region": "uk-and-ireland"
+        "country_code": "JP"
       },
-      "region": "latin-america",
+      "region": "asia-pacific",
       "family": "other",
       "subject": [
         "performers",
@@ -5371,7 +5587,9 @@
         "id": "fixture-preview-128",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEyODwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-128",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:132",
@@ -5406,7 +5624,9 @@
         "id": "fixture-preview-132",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzMjwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-132",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:138",
@@ -5417,11 +5637,13 @@
       "year": 1979,
       "year_precision": "circa",
       "place": {
-        "city": "New York",
-        "region": "caribbean"
+        "country_code": "US",
+        "landmark": {
+          "name": "Apollo Theater"
+        }
       },
-      "region": "asia-and-pacific",
-      "family": "hiphop",
+      "region": "north-america",
+      "family": "hip-hop",
       "subject": [
         "record-players-and-hifi"
       ],
@@ -5444,7 +5666,9 @@
         "id": "fixture-preview-138",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UwYTUyNiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzODwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-138",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:139",
@@ -5479,7 +5703,9 @@
         "id": "fixture-preview-139",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDEzOTwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-139",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:143",
@@ -5514,7 +5740,9 @@
         "id": "fixture-preview-143",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJmNmIzYSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0MzwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-143",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:144",
@@ -5528,7 +5756,7 @@
       "region": null,
       "family": "punk",
       "subject": [
-        "homes-and-label-hq"
+        "homes-and-label-headquarters"
       ],
       "shot": "candid",
       "format": "flyer",
@@ -5549,7 +5777,9 @@
         "id": "fixture-preview-144",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0NDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-144",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:148",
@@ -5584,7 +5814,9 @@
         "id": "fixture-preview-148",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2MxMzUyYiIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE0ODwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-148",
+      "agent": "fixture"
     },
     {
       "source_id": "fixture:150",
@@ -5595,10 +5827,9 @@
       "year": 1969,
       "year_precision": "exact",
       "place": {
-        "city": "Kingston",
-        "region": "north-america"
+        "country_code": "JM"
       },
-      "region": "middle-east-and-north-africa",
+      "region": "caribbean",
       "family": "other",
       "subject": [
         "record-stores"
@@ -5622,7 +5853,440 @@
         "id": "fixture-preview-150",
         "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJlNWY4YSIvPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIyODQiIGhlaWdodD0iMjg0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjFiMTYiIHN0cm9rZS13aWR0aD0iNCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjZjRlYWQzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GSVhUVVJFIDE1MDwvdGV4dD48L3N2Zz4="
       },
-      "round": "fixture"
+      "round": "fixture",
+      "id": "fixture-150",
+      "agent": "fixture"
     }
-  ]
+  ],
+  "vocab": {
+    "scenes": {
+      "ska": {
+        "name": "Ska",
+        "family": "reggae"
+      },
+      "rocksteady": {
+        "name": "Rocksteady",
+        "family": "reggae"
+      },
+      "reggae": {
+        "name": "Reggae",
+        "family": "reggae"
+      },
+      "dub": {
+        "name": "Dub",
+        "family": "reggae"
+      },
+      "dancehall": {
+        "name": "Dancehall",
+        "family": "reggae"
+      },
+      "2-tone": {
+        "name": "2 Tone",
+        "family": "reggae"
+      },
+      "lovers-rock": {
+        "name": "Lovers rock",
+        "family": "reggae"
+      },
+      "protopunk": {
+        "name": "Protopunk",
+        "family": "punk"
+      },
+      "punk": {
+        "name": "Punk",
+        "family": "punk"
+      },
+      "hardcore": {
+        "name": "Hardcore",
+        "family": "punk"
+      },
+      "post-punk": {
+        "name": "Post-punk",
+        "family": "punk"
+      },
+      "hip-hop": {
+        "name": "Hip-hop",
+        "family": "hip-hop"
+      },
+      "go-go": {
+        "name": "Go-go",
+        "family": "hip-hop"
+      },
+      "graffiti": {
+        "name": "Graffiti",
+        "family": "hip-hop"
+      },
+      "b-boy": {
+        "name": "B-boy",
+        "family": "hip-hop"
+      },
+      "jazz": {
+        "name": "Jazz",
+        "family": "other"
+      },
+      "blues": {
+        "name": "Blues",
+        "family": "other"
+      },
+      "mod": {
+        "name": "Mod",
+        "family": "other"
+      },
+      "garage": {
+        "name": "Garage",
+        "family": "other"
+      },
+      "rockabilly": {
+        "name": "Rockabilly",
+        "family": "other"
+      },
+      "outsider-artists": {
+        "name": "Outsider artists",
+        "family": "other"
+      },
+      "highlife": {
+        "name": "Highlife",
+        "family": "other"
+      },
+      "afrobeat": {
+        "name": "Afrobeat",
+        "family": "other"
+      },
+      "cumbia": {
+        "name": "Cumbia",
+        "family": "other"
+      }
+    },
+    "families": {
+      "reggae": {
+        "name": "Reggae",
+        "share": 0.3
+      },
+      "punk": {
+        "name": "Punk",
+        "share": 0.2
+      },
+      "hip-hop": {
+        "name": "Hip-hop",
+        "share": 0.2
+      },
+      "other": {
+        "name": "Everything else",
+        "share": 0.3
+      }
+    },
+    "subjects": {
+      "performers": "Performers",
+      "crowds-and-dancers": "Crowds and dancers",
+      "sound-systems": "Sound systems",
+      "record-stores": "Record stores",
+      "clubs-and-venues": "Clubs and venues",
+      "recording-studios": "Recording studios",
+      "homes-and-label-headquarters": "Homes and label headquarters",
+      "instruments": "Instruments",
+      "record-players-and-hifi": "Record players and hi-fi",
+      "radio-stations": "Radio stations",
+      "pressing-plants-and-cutting-lathes": "Pressing plants and cutting lathes",
+      "streets-and-neighborhoods": "Streets and neighborhoods"
+    },
+    "floor_grid_subjects": [
+      "sound-systems",
+      "clubs-and-venues",
+      "recording-studios",
+      "record-stores",
+      "crowds-and-dancers"
+    ],
+    "shots": [
+      "live",
+      "candid",
+      "posed",
+      "interior",
+      "exterior",
+      "still-life"
+    ],
+    "formats": [
+      "photograph",
+      "flyer",
+      "zine-cover"
+    ],
+    "surfaces": [
+      "login",
+      "error",
+      "empty",
+      "gallery"
+    ],
+    "regions": {
+      "caribbean": {
+        "name": "Caribbean",
+        "country_codes": [
+          "JM",
+          "TT",
+          "BS",
+          "BB",
+          "CU",
+          "DO",
+          "HT",
+          "PR",
+          "BZ",
+          "GY",
+          "SR"
+        ]
+      },
+      "uk-ireland": {
+        "name": "UK and Ireland",
+        "country_codes": [
+          "GB",
+          "IE"
+        ]
+      },
+      "north-america": {
+        "name": "North America",
+        "country_codes": [
+          "US",
+          "CA",
+          "MX"
+        ]
+      },
+      "africa": {
+        "name": "Africa",
+        "country_codes": [
+          "NG",
+          "GH",
+          "ZA",
+          "SN",
+          "ET",
+          "KE",
+          "EG",
+          "MA",
+          "DZ",
+          "TN",
+          "CI",
+          "CM",
+          "TZ",
+          "UG",
+          "ZM",
+          "ZW",
+          "MZ",
+          "AO",
+          "CD",
+          "CG"
+        ]
+      },
+      "latin-america": {
+        "name": "Latin America",
+        "country_codes": [
+          "BR",
+          "AR",
+          "CL",
+          "CO",
+          "PE",
+          "VE",
+          "EC",
+          "BO",
+          "PY",
+          "UY",
+          "CR",
+          "PA",
+          "GT",
+          "HN",
+          "SV",
+          "NI"
+        ]
+      },
+      "europe": {
+        "name": "Europe",
+        "country_codes": [
+          "DE",
+          "FR",
+          "IT",
+          "ES",
+          "PT",
+          "NL",
+          "BE",
+          "SE",
+          "NO",
+          "DK",
+          "FI",
+          "PL",
+          "CZ",
+          "AT",
+          "CH",
+          "HU",
+          "RO",
+          "BG",
+          "GR",
+          "RS",
+          "HR",
+          "SI",
+          "SK",
+          "UA",
+          "RU"
+        ]
+      },
+      "mena": {
+        "name": "Middle East and North Africa",
+        "country_codes": [
+          "SA",
+          "AE",
+          "QA",
+          "KW",
+          "BH",
+          "OM",
+          "JO",
+          "LB",
+          "IQ",
+          "IR",
+          "IL",
+          "PS",
+          "TR",
+          "LY"
+        ]
+      },
+      "asia-pacific": {
+        "name": "Asia and Pacific",
+        "country_codes": [
+          "JP",
+          "CN",
+          "KR",
+          "IN",
+          "TH",
+          "VN",
+          "PH",
+          "ID",
+          "MY",
+          "SG",
+          "AU",
+          "NZ",
+          "PK",
+          "BD",
+          "LK"
+        ]
+      }
+    },
+    "licenses": [
+      {
+        "id": "LicenseRef-public-domain",
+        "name": "Public domain",
+        "legal_code_url": "https://en.wikipedia.org/wiki/Public_domain",
+        "class": "shipped"
+      },
+      {
+        "id": "CC0-1.0",
+        "name": "CC0 1.0",
+        "legal_code_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-1.0",
+        "name": "CC BY 1.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by/1.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-2.0",
+        "name": "CC BY 2.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by/2.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-2.5",
+        "name": "CC BY 2.5",
+        "legal_code_url": "https://creativecommons.org/licenses/by/2.5/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-3.0",
+        "name": "CC BY 3.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by/3.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-4.0",
+        "name": "CC BY 4.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by/4.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-SA-2.0",
+        "name": "CC BY-SA 2.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by-sa/2.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-SA-2.5",
+        "name": "CC BY-SA 2.5",
+        "legal_code_url": "https://creativecommons.org/licenses/by-sa/2.5/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-SA-3.0",
+        "name": "CC BY-SA 3.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "LicenseRef-CC-BY-SA-3.0-NL",
+        "name": "CC BY-SA 3.0 Netherlands",
+        "legal_code_url": "https://creativecommons.org/licenses/by-sa/3.0/nl/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-SA-4.0",
+        "name": "CC BY-SA 4.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+        "class": "shipped"
+      },
+      {
+        "id": "LAL-1.3",
+        "name": "Free Art License 1.3",
+        "legal_code_url": "https://artlibre.org/licence/lal/en/",
+        "class": "shipped"
+      },
+      {
+        "id": "CC-BY-NC-4.0",
+        "name": "CC BY-NC 4.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+        "class": "pack"
+      },
+      {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "CC BY-NC-ND 4.0",
+        "legal_code_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+        "class": "pack"
+      }
+    ],
+    "flickr_licenses": {},
+    "public_domain_bases": [
+      {
+        "id": "pre-1931",
+        "requires": "Publication before 1931 (the rolling 95-year term)."
+      },
+      {
+        "id": "us-government-work",
+        "requires": "A US federal government work."
+      },
+      {
+        "id": "us-pre-1978-no-notice",
+        "requires": "US publication before 1978 without notice."
+      },
+      {
+        "id": "us-1978-1989-no-notice-unregistered",
+        "requires": "US publication 1978 to 1989 without notice and with no registration within five years."
+      }
+    ],
+    "reasons": [
+      "passed",
+      "blurred",
+      "too-small",
+      "license",
+      "duplicate",
+      "unavailable",
+      "vocab",
+      "format"
+    ],
+    "people_flags": [
+      "personality-rights",
+      "apparent-minor"
+    ]
+  }
 }
