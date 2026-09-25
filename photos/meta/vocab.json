@@ -549,13 +549,37 @@
       "name": "CC BY-NC-ND 4.0",
       "legal_code_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
       "class": "pack"
+    },
+    {
+      "id": "CC-BY-NC-2.0",
+      "name": "CC BY-NC 2.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-nc/2.0/legalcode",
+      "class": "pack"
+    },
+    {
+      "id": "CC-BY-NC-SA-2.0",
+      "name": "CC BY-NC-SA 2.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-nc-sa/2.0/legalcode",
+      "class": "pack"
+    },
+    {
+      "id": "CC-BY-NC-ND-2.0",
+      "name": "CC BY-NC-ND 2.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-nc-nd/2.0/legalcode",
+      "class": "pack"
+    },
+    {
+      "id": "CC-BY-NC-SA-4.0",
+      "name": "CC BY-NC-SA 4.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode",
+      "class": "pack"
     }
   ],
   "flickr_licenses": {
     "0": null,
-    "1": null,
-    "2": null,
-    "3": null,
+    "1": "CC-BY-NC-SA-2.0",
+    "2": "CC-BY-NC-2.0",
+    "3": "CC-BY-NC-ND-2.0",
     "4": "CC-BY-2.0",
     "5": "CC-BY-SA-2.0",
     "6": null,
@@ -567,7 +591,7 @@
     "12": "CC-BY-SA-4.0",
     "13": null,
     "14": "CC-BY-NC-4.0",
-    "15": null,
+    "15": "CC-BY-NC-SA-4.0",
     "16": "CC-BY-NC-ND-4.0"
   },
   "flickr_licenses_source": "https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html (fetched 2026-09-25) -- the flickr.com API documentation page's example response, the site's static rendering of the license-models table; a live photo page (e.g. https://www.flickr.com/photos/library_of_congress/2179448298/) renders license names and URLs client-side only and carries no such table in its raw HTML.",
