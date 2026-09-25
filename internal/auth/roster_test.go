@@ -701,19 +701,29 @@ func TestOpenRoster_DefaultIgnorableAddressRefused(t *testing.T) {
 // refusal at AddMember, on both channels: a new member's address
 // carrying one of the ten code points is refused and changes no byte on
 // disk. Fixture state: the same address with no code point is accepted
-// by AddMember on the cookie channel, proved once, so the refusal below
+// by AddMember on both channels, proved once each, so the refusal below
 // is the code point's.
 func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-	plainPath := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true}]}`)
-	plainRoster, err := OpenRoster(plainPath)
-	if err != nil {
-		t.Fatalf("OpenRoster: %v", err)
-	}
-	plainCandidate := Member{Address: "ab@example.com", DisplayName: "A", StreamerUsername: "a"}
-	if err := plainRoster.AddMember(t.Context(), plainCandidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
-		t.Fatalf("AddMember(plain fixture) = %v, want nil", err)
+	for _, tt := range []struct {
+		channel  identity.Channel
+		actor    string
+		address  string
+		streamer string
+	}{
+		{identity.ChannelCookie, "admin@example.com", "ab@example.com", "a"},
+		{identity.ChannelCommandLine, "operator", "cd@example.com", "c"},
+	} {
+		plainPath := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true}]}`)
+		plainRoster, err := OpenRoster(plainPath)
+		if err != nil {
+			t.Fatalf("OpenRoster: %v", err)
+		}
+		plainCandidate := Member{Address: tt.address, DisplayName: "A", StreamerUsername: tt.streamer}
+		if err := plainRoster.AddMember(t.Context(), plainCandidate, tt.actor, tt.channel, "198.51.100.7", logger); err != nil {
+			t.Fatalf("AddMember(plain fixture, %s) = %v, want nil", tt.channel, err)
+		}
 	}
 
 	for _, tt := range defaultIgnorableRoster {

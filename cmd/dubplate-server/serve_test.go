@@ -1012,6 +1012,21 @@ func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 	}
 	handler := shell.Handler()
 
+	plainBody := "address=" + url.QueryEscape(`"ab"@example.com`)
+	plainRec := authRoutePOST(handler, prefix.String()+"/"+requestLinkRouteName, plainBody)
+	if plainRec.Code != http.StatusOK {
+		t.Fatalf("plain address status = %d, body = %s, want %d", plainRec.Code, plainRec.Body.String(), http.StatusOK)
+	}
+	var plainGot struct {
+		Outcome string `json:"outcome"`
+	}
+	if err := json.Unmarshal(plainRec.Body.Bytes(), &plainGot); err != nil {
+		t.Fatalf("json.Unmarshal(%s): %v", plainRec.Body.String(), err)
+	}
+	if plainGot.Outcome != "unknown" {
+		t.Errorf("plain address outcome = %q, want %q", plainGot.Outcome, "unknown")
+	}
+
 	for _, tt := range defaultIgnorableRoutingRows {
 		t.Run(tt.name, func(t *testing.T) {
 			address := "\"a" + string(tt.r) + "b\"@example.com"
