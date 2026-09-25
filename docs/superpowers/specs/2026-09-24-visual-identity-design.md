@@ -1,7 +1,8 @@
 # dubplate visual identity
 
-Status: revision 1, 2026-09-24, drafted from a live design session with Geoff. It awaits his
-review. This spec authors the look that the web surface standard
+Status: revision 1.1, 2026-09-24, drafted from a live design session with Geoff. It awaits his
+review. Revision 1.1 answers the 5c-ii accessibility review's warnings 4-6: a complete ink layer
+that passes on every surface, one focus-ring color, and the toggle's mechanism. This spec authors the look that the web surface standard
 (`2026-09-12-web-surface-standard.md`, W below) leaves open in W1.1 ("Rung 7 authors the look"),
 and it lands inside the mechanisms the design-language standard
 (`2026-09-07-design-language-standard.md`, DL below) already fixes. It decides the palette, the
@@ -90,16 +91,34 @@ The `label-night` palette (`color-scheme: dark`):
 | error | `#e0604f` | `#1c1916` |
 
 Every fill and its content color pass 4.5:1 in both palettes, and base-content passes 10.6:1 or
-better on every base. Three colors fail as text on the page ground and are handled as follows:
+better on every base. The semantic colors are fills. Text set in a semantic color never uses the
+`--color-*` value; it uses that color's ink, and every ink passes 4.5:1 on base-100, base-200, and
+base-300, so no component needs to know which surface it sits on:
 
-- `label` warning as text measures 1.83:1. Warning text uses the measured ink `--ink-warning:
-  #765000` (6.02:1 on base-100, 5.30:1 on base-200). It is not for text on base-300 (4.46:1).
-- `label-night` primary as text measures 3.18:1. Red text and links on the dark theme use
-  `--ink-primary: #ec7b6a` (6.34:1 on base-100, 4.85:1 on base-300), never `--color-primary`.
-- `label` secondary and `label-night` neutral are fill-only and carry W2.6's exception marker.
-  Neutral is the header bar and the shadow color, never text.
+| Ink | `label` | `label-night` | Worst case (base-300) |
+|---|---|---|---|
+| `--ink-primary` | `#9d2f26` | `#ec7b6a` | 4.54 / 4.85 |
+| `--ink-accent` (also success) | `#2d6136` | `#66a46e` | 4.53 / 4.53 |
+| `--ink-info` | `#2d5a81` | `#6d9cc7` | 4.50 / 4.61 |
+| `--ink-error` | `#a4261d` | `#e37866` | 4.53 / 4.56 |
+| `--ink-warning` | `#754f00` | `#e5ad33` | 4.53 / 6.61 |
 
-The inks live outside the DaisyUI blocks, so DL R2.1's 21 names are unchanged (W2.6).
+`label` secondary and `label-night` neutral are fill-only and carry W2.6's exception marker, which
+reads "never text, never a focus or selector indicator". Neutral is the header bar and the shadow
+color. Links, red text, and badge ink use the inks above.
+
+Every focus ring, on every focusable element, is a 2px `--ink-primary` outline at a 2px offset.
+This overrides DaisyUI's per-button `--btn-color` outline, so a fill-only or low-contrast fill
+never becomes a focus indicator. `--ink-primary` clears the 3:1 focus-appearance floor on every
+surface (4.54:1 or better). Checkbox, toggle, and radio modifiers never take a fill-only color.
+
+A `label-night` primary fill measures 2.94:1 on base-200 and 2.43:1 on base-300. A primary
+button is identified by its label text, which passes 5.15:1 on the fill, so the fill's own
+contrast against the surface is not what identifies the control. The 5c-ii accessibility review
+confirms or refutes that reading before 5c-iii builds; if it refutes it, a primary button on
+base-200 or base-300 in `label-night` takes a 2px `--ink-primary` keyline.
+
+The inks live outside the DaisyUI blocks, so DL R2.1's 21 names are unchanged (W2.6). Pass 5c-ii landed `--ink-primary` and `--ink-warning` from the draft; this table supersedes both values in `label` and adds the other three inks.
 
 With no cookie, the server stamps `dubplate-system`, whose stylesheet carries `label` values
 unconditionally and `label-night` values under `@media (prefers-color-scheme: dark)`. The
@@ -109,7 +128,9 @@ adopter-facing setting is `DUBPLATE_THEME_PALETTE=system`. Every document carrie
 as one value matching the stamped palette when the cookie overrides it. The theme toggle is an
 icon-only DaisyUI `swap` (sun and moon, accessible name "Dark theme") at the right end of the
 signed-in header's nav. The login page has no toggle. Choosing either state writes the
-`__Host-dubplate_theme` cookie. Returning to "follow the system" belongs to a later settings
+`__Host-dubplate_theme` cookie, and the server stamps `data-theme` on the next render. The toggle
+is never a DaisyUI `.theme-controller`: that input switches palettes through a `:has()` branch the
+inks don't follow, and DL R4.6 already bans the pattern. Returning to "follow the system" belongs to a later settings
 page.
 
 ## Type
