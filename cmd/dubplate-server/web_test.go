@@ -100,6 +100,18 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 			wantErrHas: "must match",
 		},
 		{
+			name:       "palette value carrying an angle bracket",
+			buildFS:    newFixtureBuildFS(1, 1),
+			environ:    []string{"DUBPLATE_THEME_PALETTE=label>"},
+			wantErrHas: "must match",
+		},
+		{
+			name:       "palette value carrying whitespace",
+			buildFS:    newFixtureBuildFS(1, 1),
+			environ:    []string{"DUBPLATE_THEME_PALETTE=la bel"},
+			wantErrHas: "must match",
+		},
+		{
 			name:       "palette composed name absent from the bundle",
 			buildFS:    newFixtureBuildFS(1, 1),
 			environ:    []string{"DUBPLATE_THEME_PALETTE=gruvbox"},
@@ -145,6 +157,33 @@ func TestNewWebRoutesFromFS_EmptyKeysResolveToDefaults(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), `data-theme="dubplate-system"`) {
 		t.Errorf("body = %q, want it to carry data-theme=%q", rec.Body.String(), "dubplate-system")
+	}
+}
+
+// TestNewWebRoutesFromFS_AcceptedPaletteValues proves each of the
+// bundle's three stampable names (R-5cii12's accepted set) proceeds
+// and stamps its own composed name on a request with no cookie.
+func TestNewWebRoutesFromFS_AcceptedPaletteValues(t *testing.T) {
+	prefix := webTestPrefix(t)
+	buildFS := newFixtureBuildFS(1, 1)
+
+	for _, palette := range []string{"label", "label-night", "system"} {
+		t.Run(palette, func(t *testing.T) {
+			routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=" + palette}, prefix, buildFS)
+			if err != nil {
+				t.Fatalf("newWebRoutesFromFS: %v", err)
+			}
+			r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
+			rec := httptest.NewRecorder()
+			routes.login.ServeHTTP(rec, r)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200", rec.Code)
+			}
+			want := `data-theme="dubplate-` + palette + `"`
+			if !strings.Contains(rec.Body.String(), want) {
+				t.Errorf("body = %q, want it to carry %s", rec.Body.String(), want)
+			}
+		})
 	}
 }
 
