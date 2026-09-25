@@ -215,6 +215,19 @@ which supersedes the visual identity spec's curation rules where they differ; th
 `docs/superpowers/research/2026-09-24-identity-photos/`. Owner touchpoints: the sorting sittings
 and sending the outreach letters. Separate from the rung ladder; rung 7 consumes it.
 
+### The project site `project-site`
+dubplate's public project home for strangers: a standard cairn site in its own repo
+(`~/Projects/dubplate-site`) that vendors the theme tokens, the guides, and the generated
+references from a pinned dubplate release, checked against a lock file. Spec:
+`docs/superpowers/specs/2026-09-25-project-site-design.md` (revision 2.5, approved 2026-09-25).
+**Trigger:** cairn's docs reset has closed and `create-cairn-site` is published on npm; the
+build doubles as a stranger's trial of cairn's docs. Phase A builds to a `noindex` preview and
+moves the principles spec's is/isn't lines and legal note into `docs/guide/` (its erratum then
+lands). Two owed dubplate lanes: the reject-page generator when rung 7 merges, and the
+configuration-reference generator when rung 14 merges. Phase B publishes with 0.8, beside public
+signed binaries and a fresh public source repository from a scrubbed 0.8 snapshot. Open: the
+domain, `dubplate.dev` or `dubplate.studio`, due before Phase B.
+
 ## Someday
 
 ### Open-source the pair `oss-pair`

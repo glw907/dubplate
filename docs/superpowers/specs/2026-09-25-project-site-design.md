@@ -1,7 +1,7 @@
 # The dubplate project site
 
-Design spec. Revision 2.5, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
-Geoff's read.** One ruling stays open, the domain (see "Open rulings"). Revision 1 (`e91f528`) went
+Design spec. Revision 2.5, 2026-09-25, drafted from a brainstorm with Geoff. Status: **approved
+(Geoff, 2026-09-25).** One ruling stays open, the domain (see "Open rulings"). Revision 1 (`e91f528`) went
 through five review lenses (contract, drift, consistency, mechanics, prior art) under
 `docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold record is
 `docs/superpowers/research/2026-09-25-project-site-fold.md`.
