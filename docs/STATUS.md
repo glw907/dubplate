@@ -21,10 +21,10 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 1. **6b-i runs in lane 2** (approved 2026-09-24; ceiling 7.4M, flag 5.92M). Segments A and B closed
    green (1S-2 and 3-5, `4079422`..`6c2d287`); spend about 3.7M; re-derived total about 5.6M, under
    the flag, so the pre-named split is not taken. Segment C (tidy 5T, Tasks 6-7) in flight.
-2. **5c-ii runs in lane 1** (revision 2.4; 9.4M ceiling, 7.52M flag). Segments A and B green except
-   one proof: Tasks 1-4 accepted (Task 3 `66f6e14`, `493869b`; Task 4 `4092ec0`, `4c544a2`), Task 5
-   (`4489716`..`b0e01d6`) drew a second fix on one hollow log assertion; the conductor ruled one more
-   targeted round. Segment C (Tasks 6-7, simplifier, three reviewers) follows.
+2. **5c-ii runs in lane 1** (revision 2.4; 9.4M ceiling, 7.52M flag). Tasks 1-7 accepted (Task 5 in
+   `bdc41fb` after a conductor-ruled second fix; Task 7's escalation closed on R-5cii8's "none set"
+   for 404s, a conductor brief error). Spend about 6.9M. Simplifier round, then the svelte, a11y and
+   web-auth-security reviewers (the last also reads the new `serve.LogRequests`), then the close.
 3. **Matcher word boundary: ruled yes** (Geoff, 2026-09-24): a documented Go translation of beets'
    featuring row, a parity golden, and a corpus case, as a small matcher pass after the current lanes
    (`research/2026-09-24-matcher-unicode-word-boundary.md`).
