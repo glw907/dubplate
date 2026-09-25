@@ -34,7 +34,7 @@ errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus h
 |---|---|---|
 | 1 | main tree (master) | OPEN: 5c-iii segments A and B accepted (3a accepted; 3b `591fe53`+`3db2708`); every full gate now runs heavy (Chromium; about 179s, about 560 MiB peak); segment C (Tasks 4, 5) next |
 | 2 | (free) | CLOSED: 6b-ii-a merged at `6e6fd12`; 6b-ii-b next |
-| photos | main tree (master), document lane | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 4.5M (flag 3.6M) |
+| photos | main tree (master), document lane | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M; raised by Geoff 2026-09-25) |
 
 Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 11.0M at segment B's boundary (incl. about 1.3M of attended extras: two prior-art surveys, the group-scale principles spec and its review) (matcher pass about 1.25M against 2.75M; 6b-ii-a
 about 1.95M against 3.90M, including five merge-side architecture reads split across both passes).

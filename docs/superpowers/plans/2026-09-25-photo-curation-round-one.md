@@ -23,8 +23,8 @@ day). Every task reads the spec sections it names; the spec wins on any conflict
 Fold record: `docs/superpowers/research/2026-09-25-photo-curation-plan-fold.md`.
 
 **Lane:** the photo document lane, in the main tree beside lane 1 (5c-iii, a code lane). Token
-ceiling 4.5M (raised from 3.5M at the fold; the fold record gives the arithmetic); the 80% flag
-is 3.6M. Checkpoint after Task 4 and before any question to Geoff. Execution mode: per-task Agent
+ceiling 5.5M (3.5M at drafting, 4.5M at the fold, 5.5M by Geoff on 2026-09-25 after Task 1's
+three review rounds); the 80% flag is 4.4M. Checkpoint after Task 4 and before any question to Geoff. Execution mode: per-task Agent
 dispatches (below six sequential tasks; Task 3 is already drafted).
 
 **Owner rulings built in (Geoff, 2026-09-25):**
