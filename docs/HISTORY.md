@@ -2,7 +2,311 @@
 
 Per-pass ledger, newest first.
 
-## Rung 5, pass 5c-ii (the admin gate, the roster API, and the `web/` tree born gated): closed 2026-09-25, lane 1
+## Rung 6, pass 6b-ii-a (the ops seam's HTTP projection): closed 2026-09-25, lane 2
+
+Executed against `docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`
+(revision 4, approved by Geoff 2026-09-25; Ruling 1 split the pass into
+6b-ii-a, this entry, and 6b-ii-b) in the lane 2 worktree
+(`.claude/worktrees/lane-2-6b-ii-a`, branch `lane-2-6b-ii-a`), from
+`f6c8edb`. Task 0's staleness read (`opus`, fresh context) found no
+drift against the plan's code pointers; one note routed forward (below).
+Scope: Task 0 and Tasks 1-3 only. Restore-side outcomes are 6b-ii-b's.
+
+### What landed
+
+Task 1 (`98edab6`, `sonnet`; reviewer fix `5370d75`) added `internal/ops`'s
+last two sentinels (`ErrForbidden`, `ErrInternal`), one classifier
+(`CodeOf`) and the full code set (`Codes`), the network kind of `Actor`
+(built from an `identity.Identity`, refused unless `Valid`, rendering
+`member:<principal>`), and the one privilege table (`PrivilegeOf`)
+`ops/local`'s `Catalog` now reads instead of restating. `5370d75` fixed
+`wrapCanceled`: `NewCanceledError` now takes an empty reason, so the
+store's own aborted-call text (which could carry a path) stays out of
+the wire `Reason` and reaches only the log line.
+
+Task 2 (`137f97b`, `claude-opus-5-5`) added `internal/ops/opshttp`: the
+unexported authorizing seam (looks up each operation's privilege, calls
+the authorizer, admits only as the authorizer's own actor, discarding
+the caller's) and the HTTP layer (exact-path `POST /<name>` dispatch,
+six pre-authorizer request refusals, the JSON error shape with a coded
+reason only).
+
+Task 3 (`c0942d3`, `claude-opus-5-5`) added the contract suite
+(`contract_test.go`, 955 lines): every wire code driven in-process
+through the authorizing layer over `ops/local` (deviation D1) and over
+HTTP through the whole projection, both legs asserted to classify to
+the same code; the job path over HTTP; a second process's job canceled
+through the projection; a coverage guard iterating `ops.Codes`.
+
+The `code-simplifier` round (`37fd7f9`) dropped `PrivilegeOf`'s
+redundant named-return reassignment; accepted by review with no other
+finding. The `web-auth-security-reviewer` fold (`9dd0a89`) reshaped the
+authorizer's shape (R-6bii2's amendment, below), closed-set denial
+logs, an unmapped code's 500 fallback, `CutPrefix` for the path match,
+and `Cache-Control: no-store` on every answer. Task 8's own commit
+(`6e6fd12`) rewrapped `authorizingSeam`'s doc comment to the file's
+width.
+
+### The merge
+
+6b-ii-a's seven commits (Task 1's two, Task 2, Task 3, the simplifier
+round, the security fold, and Task 8) rebased twice as master moved
+underneath the lane-2 worktree; the pre-rebase tips (`8059732`,
+`1237148`) survive only as unreachable objects. `git merge --ff-only`
+landed the rebased branch on master, a green gate ran on master, and a
+merged-range `diff-reviewer` read accepted it: the range-diff shows all
+seven patches identical to their worktree originals, touching disjoint
+files, with `go.mod` untouched. The worktree and branch were removed
+after the merge. Master gate green through `6e6fd12`.
+
+### The architecture reads
+
+Three `go-architecture-reader` grades ran at master `6e6fd12`, each
+with no plan in context, recorded in
+`docs/superpowers/research/2026-09-25-window-2-architecture-reads.md`:
+`internal/ops` (sound with nits, density 0.60 against `io/fs` 0.57),
+`internal/ops/local` (sound with nits, density 0.26 against
+`database/sql` 0.42), and `internal/ops/opshttp` (sound with nits,
+density 0.313 against `net/http/pprof` 0.318, correctly exporting
+nothing before a caller exists). Every finding routes to the
+architecture cleanup pass except two: `internal/ops`'s
+`NetworkActor`-exported-ahead-of-caller finding and `opshttp`'s
+authorizer-implementability forward note both route to rung 14, which
+mounts the projection and is the first production caller.
+
+### The gate evidence
+
+`go test -count=1 ./internal/ops/...`: 5.671s wall (`internal/ops`
+0.008s, `internal/ops/local` 2.721s, `internal/ops/opshttp` 4.654s; 62
+`--- PASS` lines from `-v`). `CAIRN_GATE_LANE=light cairn-run-gate
+'bash scripts/check.sh'`: exit 0, 227-line log; gitleaks scanned about
+113.59 MB in 59.5s, no leaks.
+
+Two staged legs stayed at warning: 326 process citations (unchanged)
+and 125 exported-unused `internal/` identifiers (`ops.Codes` and
+`ops.CodeOf` gained their production caller in `opshttp`'s non-test
+code this pass, but the projection itself is unmounted, so no binary
+reaches them yet).
+
+### R-6bii1 to R-6bii5, where each landed
+
+R-6bii1 (one privilege table, four literal values):
+`internal/ops/catalog.go`, Task 1. R-6bii2 (the network actor, the
+authorizer, the channel): `internal/ops/ops.go`, Task 1; the authorizer
+shape amended at the security fold, below. R-6bii3 (the authorizing
+layer is a seam decorator; the contract suite's in-process leg runs
+`ops/local` wrapped in it, D1): `internal/ops/opshttp/authorize.go`,
+Task 2; D1 in `contract_test.go`, Task 3. R-6bii4 (the wire mapping,
+exact-path `POST /<name>`, six pre-authorizer refusals, the JSON error
+shape): `internal/ops/opshttp/opshttp.go`, Task 2. R-6bii5
+(`ErrForbidden`/`ErrInternal`, the classifier, `Codes`):
+`internal/ops/errors.go`, Task 1.
+
+**R-6bii2's amendment (conductor, 2026-09-25, at the security fold
+`9dd0a89`).** The plan as approved gave the authorizer the shape
+`authorize(ctx, op string, p ops.Privilege) (ops.Actor, error)`. The
+security review found this let an authorizer's own privilege argument
+be echoed back as its grant. The fold changed the shape to
+`authorize(ctx context.Context, op string) (ops.Actor, ops.Privilege,
+error)`: the authorizer answers the caller's granted privilege, and the
+authorizing seam checks it against `ops.PrivilegeOf(op)` on an
+allowlist (admin reaches admin and member, member reaches member, any
+other grant is denied). The master copy of the plan was amended at
+`f3d407c` to match.
+
+### Task 0's routed note
+
+`IntegrationValue` answers `""` for a disabled backup-integration class
+(`cmd/dubplate-server/backup.go`). This routes to 6b-ii-b: R-6bii9's
+disabled-class row must key on `IntegrationEnabled`, not on
+`IntegrationValue`'s emptiness, since a disabled class and an enabled
+class with an empty value would otherwise read the same.
+
+### Mutations run, per task
+
+Task 1: four named mutations, three fired (each on its own named
+test). The fourth, "key the canceled wrap on the error chain rather
+than `ctx.Err()`", did not fire; recorded as reviewer-read, since no
+production path today separates `ctx.Err() == Canceled` from an error
+chain holding `context.Canceled` (every seam context derives from the
+caller's own and `storeContext` uses `context.WithoutCancel`). Task 2:
+8 named mutations, all fired. Task 3: 4 named mutations, all fired.
+
+### The pass-end review
+
+`web-auth-security-reviewer` ran over `internal/ops/opshttp` and the
+`internal/ops` actor and classifier, briefed that the projection is
+unmounted and that rung 5's admin gate is the comparison surface. It
+found no critical or high issues. M1, L1, L2, L4, and L8 were folded at
+`9dd0a89` (the grant allowlist, closed-set denial logs, a 500 on an
+unmapped code, `CutPrefix` for the path match, `Cache-Control:
+no-store`), and the fold's own `diff-reviewer` read accepted it. L3
+(job `FailureMessage` text) was refused: that text reaches only admins,
+so the risk the fix would remove is smaller than the fix's cost. L5 to
+L7 route to rung 14 (below).
+
+### Both budgets
+
+Tokens: about 1.95M against the 3.90M execution ceiling (flag 3.12M),
+including the five window-2 merge-side architecture reads split across
+this pass and the matcher pass. Attended time: zero attended
+interactions after approval. Fix rounds: Task 1 one, Task 2 none, Task
+3 none.
+
+### The 6b-ii-a to 6b-ii-b, rung 14, and rung 12 handoff
+
+To 6b-ii-b (fresh Task 0, Tasks 4A-7): `ServeOptions.Reconcile` and
+`backup.Reconcile` remain 6d's wiring; the store identity that would
+let restore refuse another store's snapshot is still unminted; the
+network actor's `member:<principal>` form against `Identity.UserID`,
+for restore's own actor needs if any arise; the routed note above
+(R-6bii9 keys on `IntegrationEnabled`).
+
+To rung 14 (the mount): the projection's mount point,
+`http.StripPrefix` without a trailing slash (`CutPrefix("/")` would 404
+every op); the production authorizer, answering `(Actor, Privilege,
+error)`, never granting a zero or unchecked privilege; the bearer
+channel (CH, spec :107-110) mounted alongside the cookie channel;
+Ruling 3's answer (a verified member lacking an operation's privilege
+gets HTTP 403 with code `forbidden`; a caller with no identity is rung
+14's own denial kind, 401 or 404); security L5-L7 (audit logging of
+admitted operations with actor and `client_ip`; `CancelJob` discards
+the actor it receives, so a durable id belongs in `jobs.actor` rather
+than principal reuse; the unauthenticated caller's response shape); and
+the 5c-ii security M2 question extended to the projection before the
+cookie mount lands (the roster API shares an origin with the Navidrome
+fallthrough; the bearer mount should go behind `addBearerBypass` only).
+Plus, from the architecture reads: `NetworkActor` exported ahead of its
+caller, and the authorizer-implementability forward note (`authorizer`
+has an unexported method, so only a type inside `opshttp` can implement
+it; the mounting rung decides on purpose whether the real authorizer
+lives in `opshttp` or outside).
+
+To rung 12: the streamer database's place in a restore (Geoff re-keyed
+versions 2026-09-25; the streamer formerly "2.0" is now 0.8, so this is
+a 0.8 forward-hook reference).
+
+### What a later pass would be wrong to rediscover
+
+- R-6bii2's authorizer shape changed mid-pass: a reader of the plan's
+  Task 2/R-6bii2 prose alone would build the three-argument
+  `authorize(ctx, op, p)` signature the fold replaced. The amended
+  master plan (`f3d407c`) and this entry are the record; the shipped
+  code is the two-return-value-plus-error form.
+- Mutation 4 on Task 1 is architecturally unfireable today, not a gap
+  in the test: no seam context in this codebase separates `ctx.Err() ==
+  context.Canceled` from an error chain already holding
+  `context.Canceled`, since every seam context derives from its
+  caller's and `storeContext` strips cancellation with
+  `context.WithoutCancel`. A future seam that builds its own
+  independent context would need this row re-checked.
+- `Codes` and `CodeOf` have a real caller today (`opshttp`'s
+  constructor and its error encoder) but no binary reaches either until
+  rung 14 mounts the projection; the exported-unused gate's 125 count
+  already reflects this and should not be read as "unused" in the
+  ordinary sense.
+
+## Matcher word-boundary translation (the featuring row's ASCII RE2 rewrite): closed 2026-09-25, lane 1
+
+Executed against `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`
+(ratified 2026-09-25, three rulings all yes), in the main tree, from
+`a12dff9` (Task 0: no drift, pre-fix figures confirmed).
+
+### What landed
+
+Task 1 (`362f73d`) added the featuring-row golden generator
+(`internal/engine/matcher/testdata/gen_featuring_golden.py`) and its two
+fixtures: the curated-and-drawn golden (33 curated rows, a 10,000-string
+draw yielding 7,955 distinct strings, 251 of which beets' pattern fires
+on, per `random.seed(907)`) and the 749-range Python `\w` class golden
+(Ruling 2, yes). 3/3 named mutations fired. Gate about 238s.
+
+Task 2 (`6751725`, fix round `841cafe` after comment-only review findings)
+translated the beets literal to non-capturing-trigger ASCII RE2
+(`(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+` on the un-bracketed
+branch, R-wb3) and added `SDPattern.Replacement` (R-wb1) plus the
+translation map living only in `strdist_test.go` (R-wb2). The golden
+tests were changed in the fix round to read the shipped table row
+through `beetsFeaturingRowIndex` rather than a copy of it. Figures
+pinned under both tables: Geschäft 0.5238095238095238, Rüft
+0.6470588235294118, Ωft 0.6875. The kept-character row (the bracket
+branch keeping `©`/`™`/`€` before the trigger) reads
+0.047619047619047616. The ASCII-literal control count is pinned at 98
+(the plan cited about 92 as a drawn-only proxy; the shipped constant is
+`wantASCIILiteralDivergences = 98`, `strdist_test.go:437`). The class
+sweep (`wantGoOnlyWordCodePoints = 9039`, `strdist_test.go:452`) finds 0
+Python-only word code points and exactly 9,039 Go-only ones. 8/8 named
+mutations fired; mutation 9 is N/A. `TestEngineNeverReadsTheClock`
+caught a `time.Now` call left in a test under `internal/engine`, which
+the fix round removed.
+
+**İft (U+0130) declared, not fixed (Ruling 3, yes).** Go scores
+`StringDist("İft: Ember Wharf", "İft: Northern Lines")` near 0.6875;
+beets scores it 0.06875. Go's `strings.ToLower` maps U+0130 to a bare
+`i`; Python's `str.lower()` maps it to `i` plus a combining mark `\w`
+rejects, so beets sees a word boundary before `ft` and Go does not. A
+sweep of every code point outside the surrogates found U+0130 the only
+one where Python's lowercase changes whether the last character is a
+word character. Pinned as a known-divergence `StringDist` row in Task
+2; a fix reds the gate.
+
+Task 3 (`04562e6`, plus README fixes `a23a3d5`) added the
+`strdist-feat-unicode-boundary` corpus case (`"Geschäft: Ember Wharf"`
+vs. `"Geschäft: Northern Lines"`), graded medium/skip at
+0.08730158730158731, absent from `VerdictMoves` as R-wb5 predicted.
+Floors moved: case 216 (`RequestCaseFloor`, `case.go:40`), lookup 304,
+search 55 (48 to 55 is catch-up: six `adv-ft-*` cases re-frozen at
+`367564c` plus this case), candidate/distance/track-vector 295,
+assignment 215 (candidate-bearing count, unchanged), verdict 216
+(`case.go:41-45`, `request.go:28-30`). `corpus/analysis/ties.json`
+grew by one row; the oracle ledger run
+(`go test -tags oracle ./internal/harness/oracle -run
+TestTieLedgerMatchesTheCorpus -update-ledgers`) took 474s, since tie
+derivation re-measures all 216 cases. 2/2 named mutations fired. The
+conductor refused a reviewer note flagging the case's invented mbid
+(`ubfa0001-...`) as non-hex: beets matches `\w` for that field, so a
+re-freeze under a hex-only mbid costs more than the risk it removes.
+
+Simplifier round (`107908c`, accepted, reviewed): routed the golden
+checks through `beetsFeaturingRowIndex` at all four call sites,
+dropping duplicated lookups; no behavior change.
+
+Alongside this pass, on the main tree: the version re-key (Geoff,
+2026-09-25: the ladder launch is a 0.x pre-release, 0.8 is the built-in
+streamer, 0.9 the paired local client, 1.0 is polish plus formats)
+landed at `3b0c138`, and CLAUDE.md's tracked-Python list gained the
+featuring-golden generator at `6773d3d`.
+
+### Spend
+
+Roughly: Task 0 0.08M, Task 1 0.14M plus review 0.06M, Task 2 about
+0.27M plus reviews 0.18M, Task 3 0.20M plus review 0.07M, simplifier
+0.11M plus review 0.04M, plus the version re-key and CLAUDE.md docs
+rounds and two `go-architecture-reader` reads after this pass's fold
+(shared with 6b-ii-a's three reads; recorded once in that entry).
+Lane total about 1.25M against the 2.75M ceiling (flag 2.2M, never
+reached). Attended interactions after plan approval: 0. (Geoff's
+version-numbering note that prompted the re-key was unrelated to
+either pass.)
+
+### Architecture reads
+
+Two `go-architecture-reader` grades ran at master `6e6fd12`, no plan in
+context, recorded in
+`docs/superpowers/research/2026-09-25-window-2-architecture-reads.md`:
+`internal/engine/matcher` (workmanlike, density 0.760 against `regexp`
+0.291; the pass added one exported field,
+`SDPattern.Replacement`, as its exit gate allowed, the rest standing
+debt from rung 3) and `internal/harness/conform` (workmanlike, density
+0.363 against `testing/fstest` 0.153; the pass touched only floors and
+case-count comments, so every finding is standing debt). Both packages'
+findings route to the architecture cleanup pass, leading its queue:
+`conform`'s dropped `ModeDefault` near misses in `GradeCases`' fold,
+and matcher's `Distance.Update` doc claiming a production caller it
+does not have, plus the drifted `quiet_fallback`/`none_rec_action`
+legality checks between `tunables.go` and `verdict.go`.
+
+### What a later pass would be wrong to rediscover (the admin gate, the roster API, and the `web/` tree born gated): closed 2026-09-25, lane 1
 
 Executed against
 `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
