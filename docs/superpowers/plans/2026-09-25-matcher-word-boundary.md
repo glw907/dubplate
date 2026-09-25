@@ -1,6 +1,6 @@
 # Matcher word-boundary pass: implementation plan
 
-Status: **reviewed; awaiting owner approval (Rulings 1-3).** Revision 3,
+Status: **approved (Geoff, 2026-09-25); rulings recorded.** Revision 3,
 2026-09-25. Three lens reviews ran (contract, mechanics, risk:
 `docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-review-*.md`),
 and fold 1 applied them. A verification read
@@ -58,7 +58,7 @@ it needs any of these stops and reports.
 
 ---
 
-## Rulings awaiting owner
+## Rulings (ruled 2026-09-25)
 
 Three yes-or-no questions. The 2026-09-24 ruling stands and is not reopened.
 
@@ -69,6 +69,8 @@ against a 1.95M projection; the fold added the curated-row, draw-floor,
 class-through-the-shipped-row, and U+0130 proofs, which raise Tasks 1 to 3.
 A 2.75M ceiling puts the 80% flag at 2.2M, just above the projection.
 Planning is recorded outside the ceiling, as 6a's Ruling 1 set.
+
+**Ruled (Geoff, 2026-09-25):** yes (2.75M ceiling, flag 2.2M).
 
 What each answer builds: yes sets the flag at 2.2M. No holds a 2.5M
 ceiling (flag 2.0M), which the projection crosses during the merge-side
@@ -88,6 +90,8 @@ characters in Go and not in Python: letters and numbers (`Lo` 8,827, `Nd` 90,
 compresses to 749 ranges. The repo already pins a Unicode-version skew this
 way: `TestStringDistCaseMappingSweep` (`strdist_test.go:240-290`) declares
 its two known divergences so that a third one reds the gate.
+
+**Ruled (Geoff, 2026-09-25):** yes (the 749-range golden and the class test).
 
 What each answer builds: yes adds a second golden file of 749 ranges and a
 test that drives every code point through the shipped featuring row (never a copy of its
@@ -111,6 +115,8 @@ one where Python's lowercase changes whether the last character is a word
 character. The divergence predates this pass, and its carrier is rare: an
 İ directly before `ft`, `feat`, or `featuring`. Declaring keeps the pass
 inside the 2026-09-24 ruling's five deliverables plus one row.
+
+**Ruled (Geoff, 2026-09-25):** yes (declare the U+0130 divergence, pinned row, unfixed).
 
 What each answer builds: yes adds one known-divergence `StringDist` row to
 Task 2. The row pins beets' `0.06875` and Go's measured figure, so a fix

@@ -1,6 +1,6 @@
 # Rung 5, Pass 5c-iii (Fonts, the Identity's Component Layer, the Rendered Gates, and the Three Real Pages) Implementation Plan
 
-Status: **revision 4, 2026-09-25: reviewed; awaiting owner approval (Rulings 1-10).** The
+Status: **approved (Geoff, 2026-09-25); rulings recorded.** The
 three `spec-plan-review` lenses (contract, mechanics, risk; `f0e3c00`) are folded, one
 disposition per finding, in `docs/superpowers/research/2026-09-25-rung-5c-iii-plan-fold.md`.
 The verification read (`2026-09-25-rung-5c-iii-plan-fold-verification.md`, `bbba7a8`) is
@@ -75,7 +75,7 @@ kind.** A task that believes it needs any of these stops and reports.
 
 ---
 
-## Rulings awaiting owner
+## Rulings (ruled 2026-09-25)
 
 Ten yes/no questions, each with a recommendation and what each answer builds. Rulings 1
 through 6 are revision 1's; Rulings 7 through 10 are forks the three plan-review lenses raised
@@ -106,6 +106,9 @@ rung 5 spec's 5c row and W section 15 take a third split erratum at 5c-iii's clo
 builds:** one pass of twelve tasks under a 17.4M ceiling (flag 13.92M); Task 6 becomes a
 STATUS checkpoint with no reviews, and the pass-end reviews run once, after Task 10.
 
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes; the split into 5c-iii (ceiling 10.8M) and 5c-iv (8.5M).
+
 **2. Does `playwright` join `web/package.json` as an exact `devDependency` at 1.63.0?**
 Recommendation: yes.
 
@@ -127,6 +130,9 @@ Playwright's own downloaded Chromium, so W12.6 holds. The package is the library
 gate, since W12.1 forbids a skipped check; G7's computed half, G10, the first-paint proof,
 and the render-and-read carry forward again.
 
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
+
 **3. Does the login page ship without the period photograph, as a single column (mark,
 wordmark, the site name as heading, one email field, the sign-in button), until the photo
 curation pass supplies licensed photos?** Recommendation: yes.
@@ -143,6 +149,9 @@ keep VI's plain sentence without the closed-club photo, for the same reason.
 **What yes builds:** Task 8's login page as the single column, with the two-column split
 routed to the curation pass. **What no builds:** 5c-iv blocks on the curation pass, or Geoff
 names one shipped photo and its license for Task 8 to carry with its film-edge caption.
+
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
 
 **4. Does VI's reading of WCAG 1.4.11 stand: a `label-night` primary button on `base-200` or
 `base-300` is identified by its label text, so it takes no `--ink-primary` keyline?**
@@ -169,6 +178,9 @@ toggle is present and that no icon-only control takes a primary fill. **What no 
 `btn-primary` over each of the two grounds, and Task 8 adds a row reading it on the login
 page's primary button when that button sits on either ground.
 
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
+
 **5. Do the sleeve grain, the record rim, the no-art die-cut sleeve, and the Permanent Marker
 face land with rung 7's album surfaces rather than in this pass?** Recommendation: yes.
 
@@ -186,6 +198,9 @@ admits Apache 2.0, so the face stays eligible and VI takes an erratum.
 carried to rung 7's plan. **What no builds:** Task 5 gains a fifth deliverable (the sleeve
 component CSS and the fourth woff2 file) with a fixture-only render, and a pre-named split.
 
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
+
 **6. Is the 5c reservation raised: 5c-iii and 5c-iv together project about 14.8M of execution
 (8.30M and 6.50M) against 5c-ii's provisional 5.0M for this scope?** Recommendation: yes.
 
@@ -200,6 +215,9 @@ reservation moves from about 41M to about 51M.
 **What yes builds:** the ceilings below. **What no builds:** the conductor cuts scope to fit
 the old figure; the render-and-read (Task 10) and the AI-tells rule would be the first
 candidates, and each is a ratified obligation, so the cut takes an erratum.
+
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
 
 **7. Does the signed-in header's focus ring take W9.1's page-colored halo (a `base-100` halo
 under the `--ink-primary` outline, spreading past the ring), so one ring color clears 3:1 on
@@ -234,6 +252,9 @@ since G1 refuses a literal outside `lib/themes/` (`web/scripts/gates/g1.ts:11`),
 Files gain that file. VI takes an erratum: the ring color is one per surface class, not one
 everywhere.
 
+**Ruled (Geoff, 2026-09-25):** yes (the base-100 halo on header controls' :focus-visible, one
+ring color).
+
 **8. Do W4.10's two tiers stand in this pass (the rendered rule fails below 24px on the
 activation region and reports below 44px as advisory), with VI's "Header nav links and the theme
 toggle meet 44px" (`:333`) as its own error row for the header controls?** Recommendation: yes.
@@ -248,6 +269,9 @@ carries 44 on the structural axis through `--size-field`, so a plain `.btn` rend
 exceptions and the square test, seeded with a 20px control; Task 9's 44px row on the header
 controls. **What no builds:** 44 becomes the error tier now, a declared deviation from W4.10's
 ruled tiers, and every control on every page must clear it.
+
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
 
 **9. Does a WOFF2 that drops the source's 8-byte empty `DSIG` stub and sets `head` flags bit 11,
 and so rewrites `checkSumAdjustment`, count as "unchanged except for WOFF compression" (OFL FAQ
@@ -270,6 +294,9 @@ Reserved Font Name. Under the rename, Task 1's comparison admits the `name` tabl
 expected difference and `FONTS.md` records the rename command; any other difference still
 stops the task.
 
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
+
 **10. When `DUBPLATE_BRANDING` sets `--color-neutral` to a functional color (`oklch()`,
 `rgb()`, `hsl()`), does the document carry no `theme-color` meta, with one startup log line
 naming the reason?** Recommendation: yes.
@@ -287,11 +314,16 @@ builds:** the meta carries the functional value, since HTML `theme-color` takes 
 the branding grammar already refuses `"`, `<`, `>`, `'`, `;`, and `\`; the value is escaped
 with `html.EscapeString` regardless, and the toggle writes the branding value.
 
+**Ruled (conductor, 2026-09-25, on Geoff's instruction to take architecturally settled
+answers):** yes.
+
 ---
 
 ### Spec deviations that take effect on approval
 
 Approving this plan approves these. The close drafts each erratum (Tasks 6 and 11).
+
+**Approved with the plan (2026-09-25).**
 
 - **DL R5.5 ("at most two families and at most four woff2 files").** VI's type section is
   Geoff's ruling and names three families (Alfa Slab One, Work Sans, IBM Plex Mono) plus a

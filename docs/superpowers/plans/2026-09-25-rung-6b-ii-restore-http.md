@@ -1,6 +1,6 @@
 # Rung 6, Pass 6b-ii (The Projection and Restore) Implementation Plan
 
-Status: **reviewed; awaiting owner approval (Rulings 1-9).** Revision 4, 2026-09-25. Three lenses
+Status: **approved (Geoff, 2026-09-25); rulings recorded.** Revision 4, 2026-09-25. Three lenses
 reviewed revision 1 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-review-contract.md`,
 `-mechanics.md`, and `-risk.md`), and an independent read verified revision 2's fold
 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold-verification.md`). A prose review read
@@ -65,7 +65,7 @@ any of these stops and reports.
 
 ---
 
-## Rulings awaiting owner
+## Rulings (ruled 2026-09-25)
 
 Nine yes-or-no questions. The spec's fourteen rulings, 6a's four, and 6b-i's four stand and are not
 reopened. Approving this plan also approves the spec deviations listed after the rulings.
@@ -80,6 +80,10 @@ file, and each has its own review class: the security read for the projection, t
 data-loss read for restore. As one pass, the data-destructive half runs last, under the
 conductor's heaviest context, where the 80% flag lands.
 Revision 1 recommended yes; the risk lens's split recommendation and the fold's growth change it.
+
+**Ruled (Geoff, 2026-09-25):** no, split into 6b-ii-a (Tasks 0-3 and a close, ceiling 3.90M, flag
+3.12M) and 6b-ii-b (fresh Task 0, Tasks 4A-7, close, ceiling 7.53M, flag 6.02M).
+
 What each answer builds:
 
 - **Yes:** one pass, one close, ceiling 10.30M, flag 8.24M, the four segments of "Execution
@@ -104,6 +108,8 @@ since SQLite's busy handler ignores the context (`internal/engine/store/write.go
 by the mechanics lens at 5.013 s for a 5 s timeout). No drops `canceled` from the vocabulary as a
 spec deviation, leaving six sentinels, and the contract suite's per-sentinel rule counts six.
 
+**Ruled (Geoff, 2026-09-25):** yes.
+
 **3. Does the projection answer a verified member who lacks an operation's privilege with HTTP 403
 and the code `forbidden`, where rung 5's admin gate answers a non-admin with the same 404 as an
 unregistered path?** Recommendation: yes. Reason: the catalog operation, a member privilege, already
@@ -117,6 +123,8 @@ carries it. What each answer builds: yes answers 403 with the JSON error body, a
 2's "returns forbidden over HTTP" holds literally. No answers exactly what `http.NotFound` answers
 for a denial, as the admin gate does, and the contract suite's forbidden case asserts the 404 and
 the absence of a job record instead.
+
+**Ruled (Geoff, 2026-09-25):** yes (403 forbidden).
 
 **4. Does the `restore` verb exit with the codes below?** 0 restored (or resumed to completion), 1
 refused or failed, 75 the store lock is held by another process, and 130 interrupted by a signal,
@@ -132,6 +140,8 @@ What each answer builds: yes fixes the four codes in the verb's help and adds no
 `main`, which already honors `exitCodeErr`. No exits 1 on every failure, and the help text says to
 check for a restore-intent record after an interrupt.
 
+**Ruled (Geoff, 2026-09-25):** yes (0/1/75/130; restore exits 1 on disabled integration).
+
 **5. After a restore, does the backup reference follow the restored state?** With
 `--snapshot <stamp>`, the reference is rewritten to name that stamp and the remote. With
 `--from-file`, the existing reference is left unchanged. Recommendation: yes. Reason: the
@@ -145,6 +155,8 @@ back the state the operator rolled away from. What each answer builds: yes adds 
 write to the snapshot path, through the restore session (R-6bii6), and none to the file path. No
 leaves the reference unchanged on both paths, so a lost database after a snapshot restore names the
 pre-restore backup stamp, which the operator had rejected.
+
+**Ruled (Geoff, 2026-09-25):** yes.
 
 **6. With `--library --into-nonempty`, does restore keep every local file the copy replaces, by
 moving it into a sibling directory `<root>.restore-displaced-<stamp>` through `rclone copy
@@ -167,6 +179,8 @@ files that exist on destination"), which keeps every local file and never restor
 version, or `--update` ("Skip files that are newer on the destination"), which keeps only local
 files newer than the backup's. Either changes Task 6's differing-file row.
 
+**Ruled (Geoff, 2026-09-25):** yes (--backup-dir into the displaced directory).
+
 **7. Should restore accept an empty library root on its parent's filesystem (possibly an unmounted
 mount point), print whether the root is a mount point, and leave the check to a runbook line owed to
 rung 16?** Recommendation: yes. Reason: an unmounted mount point is an existing, usually empty
@@ -178,12 +192,16 @@ prints the resolved root, whether it is a mount point, and the free space the li
 refuses an empty root on its parent's device unless `--root-not-a-mount` is given, a spec deviation
 that fires on every default layout's first restore.
 
+**Ruled (Geoff, 2026-09-25):** yes.
+
 **8. Does step 6's emptiness check ignore a `lost+found` directory at the library root?**
 Recommendation: yes. Reason: "There is normally a lost+found directory in the root directory of
 each file system" (`mklost+found(8)`), so a library on a freshly made ext volume reads as
 non-empty, and its first restore would need `--into-nonempty`, the flag that disarms the guard.
 What each answer builds: yes skips one directory entry named `lost+found` in the check, with a
 state row. No counts it, and such a root needs `--into-nonempty`.
+
+**Ruled (Geoff, 2026-09-25):** yes.
 
 **9. When `restore --resume` refuses a record, is the way out a runbook procedure owed to rung 16,
 rather than a new `restore --abandon` flag?** Recommendation: yes. Reason: the fold removes every
@@ -196,11 +214,16 @@ holds a store that verifies, first renames the named pre-restore copy back when 
 never deletes the staged file. That is a fifth deliverable for Task 7, so it becomes its own task
 (7B, `opus`, about 0.5M added to the restore half's ceiling).
 
+**Ruled (Geoff, 2026-09-25):** yes (runbook procedure, no --abandon flag; the conductor took this
+as the architecturally clear answer, per Geoff's instruction not to ask settled questions).
+
 ### Spec deviations that take effect on approval
 
 These change the ratified spec's meaning. Approving this plan approves them; Task 8 drafts the
 erratum text. D2 to D6 and D10 are clarifying or additive; D1, D7, D8, and D9 change what a sentence
 of the spec says.
+
+**Approved (Geoff, 2026-09-25):** D1 to D10.
 
 - **D1 (R-6bii3).** The contract suite's in-process leg runs against `ops/local` wrapped in the
   same authorizing layer the projection composes, not against `ops/local` bare. `ops/local`

@@ -6,33 +6,24 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i, and rung 6's 6a and 6b-i are closed
 
 ## Next action
 
-The 2026-09-25 unattended window is complete, at about 6.8M of its 12M cap (flag not reached).
-Three plans are reviewed and await approval, each executable under every answer to its rulings:
+Three plans are approved (Geoff, 2026-09-25), their rulings recorded in each plan:
 
-- Matcher word boundary, `plans/2026-09-25-matcher-word-boundary.md` rev 3: Rulings 1-3.
-- 6b-ii restore and HTTP projection, `plans/2026-09-25-rung-6b-ii-restore-http.md` rev 4: Rulings 1-9.
-- 5c-iii pages, fonts, rendered gates, `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`
-  rev 4: Rulings 1-10.
+- Matcher word boundary, `plans/2026-09-25-matcher-word-boundary.md`: lane 1, first; 2.75M.
+- 6b-ii restore and HTTP projection, `plans/2026-09-25-rung-6b-ii-restore-http.md`: split into
+  6b-ii-a (the projection, 3.90M) then 6b-ii-b (restore, 7.53M); lane 2, in parallel.
+- 5c-iii pages, fonts, rendered gates, `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`:
+  split into 5c-iii (10.8M) then 5c-iv (8.5M); lane 1 after the matcher pass. From its Task 3 on,
+  every full gate launches Chromium (heavy lane).
 
-**Morning question (Geoff), one sitting:**
-1. Each plan's "Rulings awaiting owner" section. All 22 recommend yes, except where a ruling
-   says otherwise. 6b-ii Ruling 1 recommends no, which splits the pass into 6b-ii-a (3.90M) and
-   6b-ii-b (7.53M). 5c-iii Ruling 1 recommends yes, which splits it into 5c-iii (10.8M) and
-   5c-iv (8.5M).
-2. Rung 12: the roster API shares an origin with the Navidrome fallthrough (5c-ii security M2).
-   Accept as a rung 12 threat-model entry, or act sooner?
-3. Order: the matcher pass and 5c-iii both need lane 1 (the matcher touches corpus). The
-   recommendation is matcher first, then 5c-iii; 6b-ii takes lane 2 in parallel. From 5c-iii's
-   Task 3 on, every full gate launches Chromium (heavy lane).
-4. Readings to ratify or reverse (conductor, 2026-09-25): one more targeted round on 5c-ii
-   Fold A after its second `fix` (F-A3, accepted); the plans drafted alongside the fold rather
-   than after both closes; the architecture reads' routing (ops and backup findings to 6b-ii,
-   the rest to a cleanup pass; forward hooks removed there and re-added by the rung that
-   consumes them); the 6b-i CLAUDE.md Gate line without its false "one validator" clause.
+**Resume prompt:** execute `docs/superpowers/plans/2026-09-25-unattended-window-2.md` (Geoff's grants
+inside: matcher and 6b-ii-a in parallel, then 5c-iii segments in lane 1; 11M cap; read-only box).
+Read memory `session-2026-09-25-handoff`. Rung 12 owns the roster API's shared origin
+with the Navidrome fallthrough (5c-ii security M2) as a threat-model entry (Geoff, 2026-09-25).
 
-Also flagged: auth's revocation epoch has no production writer until the revoke verb; the
-visual identity spec takes errata (Permanent Marker is Apache-2.0; R5.4 cites should be R5.5);
-the workstation was on battery at the window's start.
+Readings taken (conductor, 2026-09-25; reversible): one more targeted round on 5c-ii Fold A after
+its second `fix`; the plans drafted alongside the fold; the architecture reads' routing; the 6b-i
+CLAUDE.md Gate line without its false "one validator" clause. Owed: the visual identity spec's
+errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus halo).
 
 ## Lane registry
 
@@ -45,7 +36,7 @@ the workstation was on battery at the window's start.
 
 - No deploy until 5d: `magic-link` env template lacks its nine keys. Owed: `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys' `doctor` row, Ruling 6's old-browser `Referrer-Policy` residual, the branding-in-both-schemes line, `deploy.sh`'s clean-`web/`-build requirement, 6a's and 6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy).
 - To rung 7: guard counting, `--max-delete`, a remote-pruning regression floor, archive uploads. To rung 9: library filter, facets, trigram search.
-- To rung 12: no non-admin maps onto a streamer admin; a restore before then loses stars/playlists; roster API/Navidrome-fallthrough shared origin (security M2, a question for Geoff); Ruling 7's availability question; re-validate every roster row's `streamer_username`; the header step's fallthrough reconciliation. To the revoke verb: the epoch store's first writer.
+- To rung 12: no non-admin maps onto a streamer admin; a restore before then loses stars/playlists; roster API/Navidrome-fallthrough shared origin (security M2, a threat-model entry, Geoff 2026-09-25); Ruling 7's availability question; re-validate every roster row's `streamer_username`; the header step's fallthrough reconciliation. To the revoke verb: the epoch store's first writer.
 - To 5c-iii: the handoff in HISTORY's 5c-ii entry, the label-ink gate row (a11y W4), WCAG 1.4.11 on night-primary fills, S11, S12, I2.
 - To 6b-ii: the ops interface's operations/sentinels; `forbidden`/`internal`/the network actor with their first caller; the lease/staging/remote-join rules a restore must respect; the backup reference a restore replaces; `internal/ops`'s `Seam`/catalog gap and sentinel duplication; backup's rclone-launch/copy-classification duplication (incl. `cmd/dubplate-server/backup.go`'s second remote-name validator).
 - To the architecture cleanup pass: the 5c-ii reads (`internal/auth`, `internal/serve`, `internal/identity`), 6b-i's ops/local findings, 6a's cmd findings. To 6d: a store identity minted at create, the migration-wait key, serve's caller. To 6c: the `SAVEPOINT` check on `COMMIT;BEGIN;` (risk R13). L5/L6 (roster-POST throttle, n5 whole-roster doctor row): no pass assigned.
