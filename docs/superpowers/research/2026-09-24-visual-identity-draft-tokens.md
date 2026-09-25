@@ -82,3 +82,24 @@ no preference signal, the default is `dubplate-label`.
 
 Alfa Slab One (display only), Work Sans (body, variable), and IBM Plex Mono (captions and
 metadata), all OFL, embedded as woff2 through go:embed.
+
+## Toggle and default binding (second message from the brainstorm session)
+
+- **The toggle** lives in the app header's nav, right-aligned after the last nav link, as an
+  icon-only DaisyUI `swap` (sun and moon) with the accessible name "Dark theme", on every
+  signed-in page. The login page has no toggle: it follows the system preference or the
+  member's stored cookie. No design reason ties the toggle to 5c-ii.
+- **Three states in effect**: follow system (the default), light, and dark. The UI shows two,
+  and choosing either one writes the cookie. Returning to "follow system" can wait for a
+  later settings page.
+- **Head metas**: `<meta name="color-scheme" content="light dark">`, so browser-drawn UI
+  matches before the theme applies. A media pair of theme colors,
+  `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#1f1b16">` and
+  `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#110f0d">`, so
+  mobile browser chrome matches the header bar (neutral) in each palette. When the cookie
+  overrides the system choice, the server stamps a single `theme-color` that matches the
+  stamped palette, in place of the media pair.
+- **No flash**: the stamped `data-theme` and the body background agree on first paint in
+  both palettes.
+- **The mark** (a record in the label's red and black) is still being tuned. The favicon is
+  an SVG with a 32px PNG fallback, sent when final. 5c-ii can ship without one.
