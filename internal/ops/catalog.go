@@ -71,6 +71,26 @@ const (
 // KindBackup is the job kind a backup job's record and lease carry.
 const KindBackup = "backup"
 
+// privileges maps each of the four operation names to the privilege
+// it requires. It is the one table a caller's required privilege is
+// read from: [PrivilegeOf] is the only reader, so the catalog and an
+// authorizing layer can never disagree about what an operation needs.
+var privileges = map[string]Privilege{
+	OpStartBackup: PrivilegeAdmin,
+	OpJobStatus:   PrivilegeAdmin,
+	OpCancelJob:   PrivilegeAdmin,
+	OpCatalog:     PrivilegeMember,
+}
+
+// PrivilegeOf returns the privilege op requires and reports whether op
+// is a recognized operation name. An unrecognized name answers ok
+// false and a zero [Privilege], never a guessed one: its caller
+// answers not_found before any authorizer runs.
+func PrivilegeOf(op string) (p Privilege, ok bool) {
+	p, ok = privileges[op]
+	return p, ok
+}
+
 // A CatalogEntry reports one operation's privilege and whether a
 // caller can invoke it right now.
 type CatalogEntry struct {

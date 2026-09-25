@@ -317,3 +317,85 @@ func TestStartBackup_ReleasesKindLease(t *testing.T) {
 	}
 	_ = kl.Release()
 }
+
+// TestSeamBoundary_ContextCanceled pins R-6bii5's seam boundary: a
+// caller whose context is already canceled at the method's return
+// sees an error matching [ops.ErrCanceled], never the store's own
+// classification of the aborted call.
+func TestSeamBoundary_ContextCanceled(t *testing.T) {
+	_, h := newStore(t)
+	r := newRunnerFor(t, h, nil, succeed)
+	id := plant(t, h, record{state: "queued"})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := r.JobStatus(ctx, testActor, ops.JobStatusRequest{JobID: handleOf(id)})
+	if !errors.Is(err, ops.ErrCanceled) {
+		t.Fatalf("JobStatus() with an already-canceled context = %v, want it to match ops.ErrCanceled", err)
+	}
+}
+
+// TestSeamBoundary_ContextAliveClassifiesItsOwnError pins the seam
+// boundary's other row: a caller whose context is still alive gets
+// the store's own classification, never canceled, even for a job
+// handle that does not exist.
+func TestSeamBoundary_ContextAliveClassifiesItsOwnError(t *testing.T) {
+	_, h := newStore(t)
+	r := newRunnerFor(t, h, nil, succeed)
+	missing := ops.Handle("0123456789abcdef0123456789abcdef")
+
+	_, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: missing})
+	if !errors.Is(err, ops.ErrNotFound) {
+		t.Fatalf("JobStatus() for a missing handle = %v, want it to match ops.ErrNotFound", err)
+	}
+	if errors.Is(err, ops.ErrCanceled) {
+		t.Fatalf("JobStatus() for a missing handle also matches ops.ErrCanceled, want it not to")
+	}
+}
+
+// TestCancelJob_ContextCanceledDuringWrite pins R-6bii5's write-pool
+// row: a context canceled while CancelJob waits for the write pool's
+// one connection, held here by a concurrent Update on the same
+// handle, answers ops.ErrCanceled well before the store's busy
+// timeout, because database/sql's connection wait honors ctx directly
+// rather than falling through to SQLite's busy handler.
+func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
+	_, h := newStore(t)
+	r := newRunnerFor(t, h, nil, succeed)
+	id := plant(t, h, record{state: "running", owner: r.lease.Instance()})
+
+	holding := make(chan struct{})
+	release := make(chan struct{})
+	done := make(chan error, 1)
+	go func() {
+		done <- h.Update(deadline(t), func(context.Context, *store.Tx) error {
+			close(holding)
+			<-release
+			return nil
+		})
+	}()
+	<-holding
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		cancel()
+	}()
+
+	start := time.Now()
+	_, err := r.CancelJob(ctx, testActor, ops.CancelJobRequest{JobID: handleOf(id)})
+	elapsed := time.Since(start)
+
+	close(release)
+	if updateErr := <-done; updateErr != nil {
+		t.Fatalf("the blocking Update: %v", updateErr)
+	}
+
+	if !errors.Is(err, ops.ErrCanceled) {
+		t.Fatalf("CancelJob() while the write pool was held = %v, want it to match ops.ErrCanceled", err)
+	}
+	if elapsed >= testBusy {
+		t.Errorf("CancelJob() took %v to answer, want well under the %v busy timeout", elapsed, testBusy)
+	}
+}

@@ -73,6 +73,36 @@ func TestCatalogEntry_MarshalsPrivilegeAsText(t *testing.T) {
 	}
 }
 
+// TestPrivilegeOf pins R-6bii1's one privilege table against 6b-i's
+// shipped catalog values (local.go's Catalog method, before this
+// pass): start_backup, job_status, and cancel_job are admin, catalog
+// is member, and any other name is not found.
+func TestPrivilegeOf(t *testing.T) {
+	tests := []struct {
+		op     string
+		want   Privilege
+		wantOK bool
+	}{
+		{OpStartBackup, PrivilegeAdmin, true},
+		{OpJobStatus, PrivilegeAdmin, true},
+		{OpCancelJob, PrivilegeAdmin, true},
+		{OpCatalog, PrivilegeMember, true},
+		{"delete_everything", 0, false},
+		{"", 0, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.op, func(t *testing.T) {
+			got, ok := PrivilegeOf(tt.op)
+			if ok != tt.wantOK {
+				t.Fatalf("PrivilegeOf(%q) ok = %v, want %v", tt.op, ok, tt.wantOK)
+			}
+			if ok && got != tt.want {
+				t.Errorf("PrivilegeOf(%q) = %v, want %v", tt.op, got, tt.want)
+			}
+		})
+	}
+}
+
 // TestPrivilege_UnmarshalText proves UnmarshalText accepts only the
 // two wire literals, refusing any other text including empty.
 func TestPrivilege_UnmarshalText(t *testing.T) {

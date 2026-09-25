@@ -6,34 +6,58 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/glw907/dubplate/internal/identity"
 )
 
 // localActorPrefix frames a local [Actor]'s wire form.
 const localActorPrefix = "local"
 
+// networkActorPrefix frames a network [Actor]'s wire form.
+const networkActorPrefix = "member"
+
 // An Actor identifies who invoked an operation, verified before the
 // call reaches [Seam]: never a field a request type carries, so no
 // request body can widen its own privilege. This package builds the
-// local kind only, from an operating-system username; a later kind
-// carries the identity a verified network caller asserts.
+// local kind, from an operating-system username, and the network
+// kind, from a verified [identity.Identity].
 type Actor struct {
-	wire string
+	wire    string
+	channel identity.Channel
 }
 
 // LocalActor builds the local kind of [Actor] from username, the
 // operating-system user a CLI verb runs as (the shape
 // internal/engine/store's ownerName already produces, which never
 // returns an empty string). It renders as "local:<username>" on the
-// wire and in every log line.
+// wire and in every log line, and its channel reads as
+// [identity.ChannelCommandLine].
 func LocalActor(username string) Actor {
 	if username == "" {
 		panic("ops: LocalActor called with an empty username")
 	}
-	return Actor{wire: localActorPrefix + ":" + username}
+	return Actor{wire: localActorPrefix + ":" + username, channel: identity.ChannelCommandLine}
+}
+
+// NetworkActor builds the network kind of [Actor] from id, a verified
+// login. It panics unless id.Valid() holds, so a channel other than a
+// signed session (a command-line identity above all) can never become
+// a network actor. It renders as "member:<principal>" on the wire and
+// in every log line, and its channel is id's own.
+func NetworkActor(id identity.Identity) Actor {
+	if !id.Valid() {
+		panic("ops: NetworkActor called with an invalid identity")
+	}
+	return Actor{wire: networkActorPrefix + ":" + id.Principal, channel: id.Channel}
 }
 
 // String returns a's wire form.
 func (a Actor) String() string { return a.wire }
+
+// Channel returns how a was asserted: [identity.ChannelCommandLine]
+// for a local actor, or the channel the verified identity carried for
+// a network actor.
+func (a Actor) Channel() identity.Channel { return a.channel }
 
 // handleLen is a job [Handle]'s wire length: 32 lowercase hex
 // characters, the hex encoding of 16 random bytes. internal/ops

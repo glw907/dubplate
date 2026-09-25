@@ -117,17 +117,29 @@ func (r *Runner) Close() error {
 
 // Catalog lists the four operations. A backup start is unavailable
 // while backup integration is off; the other three always answer.
-func (r *Runner) Catalog(_ context.Context, _ ops.Actor, _ ops.CatalogRequest) (ops.CatalogResponse, error) {
-	start := ops.CatalogEntry{Name: ops.OpStartBackup, Privilege: ops.PrivilegeAdmin, Available: r.backup.Enabled}
-	if !r.backup.Enabled {
-		start.Reason = backupDisabled
+// Each entry's privilege comes from [ops.PrivilegeOf], never a literal
+// repeated here, so the catalog cannot drift from what an authorizing
+// layer enforces.
+func (r *Runner) Catalog(ctx context.Context, _ ops.Actor, _ ops.CatalogRequest) (resp ops.CatalogResponse, err error) {
+	defer func() { err = wrapCanceled(ctx, err) }()
+
+	entries := []ops.CatalogEntry{
+		{Name: ops.OpStartBackup, Available: r.backup.Enabled},
+		{Name: ops.OpJobStatus, Available: true},
+		{Name: ops.OpCancelJob, Available: true},
+		{Name: ops.OpCatalog, Available: true},
 	}
-	cat, err := ops.BuildCatalog(
-		start,
-		ops.CatalogEntry{Name: ops.OpJobStatus, Privilege: ops.PrivilegeAdmin, Available: true},
-		ops.CatalogEntry{Name: ops.OpCancelJob, Privilege: ops.PrivilegeAdmin, Available: true},
-		ops.CatalogEntry{Name: ops.OpCatalog, Privilege: ops.PrivilegeMember, Available: true},
-	)
+	if !r.backup.Enabled {
+		entries[0].Reason = backupDisabled
+	}
+	for i, e := range entries {
+		priv, ok := ops.PrivilegeOf(e.Name)
+		if !ok {
+			return ops.CatalogResponse{}, fmt.Errorf("catalog: operation %q has no privilege", e.Name)
+		}
+		entries[i].Privilege = priv
+	}
+	cat, err := ops.BuildCatalog(entries...)
 	if err != nil {
 		return ops.CatalogResponse{}, err
 	}
@@ -140,7 +152,9 @@ func (r *Runner) Catalog(_ context.Context, _ ops.Actor, _ ops.CatalogRequest) (
 // another backup holds the kind's lease: naming that job's handle when
 // its record is live, or a transfer that outlived its process when
 // none is.
-func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (resp ops.StartBackupResponse, err error) {
+	defer func() { err = wrapCanceled(ctx, err) }()
+
 	if !r.backup.Enabled {
 		return ops.StartBackupResponse{}, ops.NewUnavailableError(backupDisabled)
 	}
@@ -213,7 +227,9 @@ ORDER BY at DESC, id DESC LIMIT 1`, kind).Scan(&id, &state)
 }
 
 // JobStatus reads the record req names.
-func (r *Runner) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRequest) (ops.JobStatusResponse, error) {
+func (r *Runner) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRequest) (resp ops.JobStatusResponse, err error) {
+	defer func() { err = wrapCanceled(ctx, err) }()
+
 	id, err := parseID(req.JobID)
 	if err != nil {
 		return ops.JobStatusResponse{}, err
@@ -230,7 +246,9 @@ func (r *Runner) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRe
 // has its cancel_requested set, and its owner ends it canceled unless
 // it finishes first; the response reports it running. A finished job
 // is left unchanged and its state reported.
-func (r *Runner) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRequest) (ops.CancelJobResponse, error) {
+func (r *Runner) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRequest) (resp ops.CancelJobResponse, err error) {
+	defer func() { err = wrapCanceled(ctx, err) }()
+
 	id, err := parseID(req.JobID)
 	if err != nil {
 		return ops.CancelJobResponse{}, err
@@ -243,6 +261,20 @@ func (r *Runner) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRe
 		return ops.CancelJobResponse{}, err
 	}
 	return ops.CancelJobResponse{Job: st}, nil
+}
+
+// wrapCanceled reports err as an error matching [ops.ErrCanceled] when
+// ctx's own error is context.Canceled at a seam method's return, so a
+// caller whose context died sees the seam's canceled sentinel instead
+// of whatever error the aborted store call produced. It leaves err
+// unchanged when ctx is not canceled, including when ctx.Err() is
+// context.DeadlineExceeded: the seam boundary wraps only a caller's
+// own cancellation, never its deadline running out.
+func wrapCanceled(ctx context.Context, err error) error {
+	if err == nil || ctx.Err() != context.Canceled {
+		return err
+	}
+	return ops.NewCanceledError(err.Error())
 }
 
 // CancelOwn cancels the context of the job h names when this runner

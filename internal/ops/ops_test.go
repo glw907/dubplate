@@ -11,12 +11,17 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/glw907/dubplate/internal/identity"
 )
 
 func TestLocalActor(t *testing.T) {
 	got := LocalActor("geoff")
 	if got.String() != "local:geoff" {
 		t.Errorf("LocalActor(%q).String() = %q, want %q", "geoff", got.String(), "local:geoff")
+	}
+	if got.Channel() != identity.ChannelCommandLine {
+		t.Errorf("LocalActor(%q).Channel() = %v, want %v", "geoff", got.Channel(), identity.ChannelCommandLine)
 	}
 }
 
@@ -27,6 +32,56 @@ func TestLocalActor_EmptyUsernamePanics(t *testing.T) {
 		}
 	}()
 	LocalActor("")
+}
+
+// validIdentity is a cookie-verified login, valid by construction.
+func validIdentity() identity.Identity {
+	return identity.Identity{
+		Address:     "geoff@example.com",
+		Principal:   "geoff",
+		DisplayName: "Geoff",
+		Source:      "magic-link",
+		Channel:     identity.ChannelCookie,
+	}
+}
+
+// TestNetworkActor pins R-6bii2's wire form and channel for a valid
+// login.
+func TestNetworkActor(t *testing.T) {
+	got := NetworkActor(validIdentity())
+	if want := "member:geoff"; got.String() != want {
+		t.Errorf("NetworkActor(...).String() = %q, want %q", got.String(), want)
+	}
+	if got.Channel() != identity.ChannelCookie {
+		t.Errorf("NetworkActor(...).Channel() = %v, want %v", got.Channel(), identity.ChannelCookie)
+	}
+}
+
+// TestNetworkActor_RefusesInvalidIdentity proves construction refuses
+// both the zero identity and a command-line identity: neither is a
+// verified login a network caller can assert.
+func TestNetworkActor_RefusesInvalidIdentity(t *testing.T) {
+	tests := []struct {
+		name string
+		id   identity.Identity
+	}{
+		{"zero identity", identity.Identity{}},
+		{"command-line identity", func() identity.Identity {
+			id := validIdentity()
+			id.Channel = identity.ChannelCommandLine
+			return id
+		}()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Fatalf("NetworkActor(%+v) did not panic", tt.id)
+				}
+			}()
+			NetworkActor(tt.id)
+		})
+	}
 }
 
 func TestParseHandle(t *testing.T) {
@@ -176,12 +231,15 @@ func TestStartBackupRequest_IgnoresActorField(t *testing.T) {
 	}
 }
 
+// allowedInternalImport is the one internal import internal/ops may
+// carry: the network actor's channel type (Global constraints).
+const allowedInternalImport = "github.com/glw907/dubplate/internal/identity"
+
 // TestImportsStandardLibraryOnly parses every .go file this package
 // declares and fails if any import path's first segment carries a
 // dot, the shape every non-standard-library module path takes
-// (domain-qualified) and no standard-library path ever does.
-// internal/ops imports the standard library only at 6b-i (Global
-// constraints); its network-actor import lands with 6b-ii.
+// (domain-qualified) and no standard-library path ever does, unless
+// the import is exactly [allowedInternalImport].
 func TestImportsStandardLibraryOnly(t *testing.T) {
 	files, err := filepath.Glob("*.go")
 	if err != nil {
@@ -198,9 +256,12 @@ func TestImportsStandardLibraryOnly(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: unquote import %s: %v", path, imp.Path.Value, err)
 			}
+			if importPath == allowedInternalImport {
+				continue
+			}
 			first, _, _ := strings.Cut(importPath, "/")
 			if strings.Contains(first, ".") {
-				t.Errorf("%s: imports %s, which internal/ops must not at 6b-i", path, importPath)
+				t.Errorf("%s: imports %s, which internal/ops must not", path, importPath)
 			}
 		}
 	}

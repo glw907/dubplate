@@ -1,7 +1,10 @@
 package ops
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"slices"
 	"testing"
 )
 
@@ -21,6 +24,8 @@ func TestSentinelCodes(t *testing.T) {
 		{"conflict", NewConflictError, CodeConflict, ErrConflict},
 		{"invalid request", NewInvalidRequestError, CodeInvalidRequest, ErrInvalidRequest},
 		{"canceled", NewCanceledError, CodeCanceled, ErrCanceled},
+		{"forbidden", NewForbiddenError, CodeForbidden, ErrForbidden},
+		{"internal", NewInternalError, CodeInternal, ErrInternal},
 	}
 	wantLiterals := map[string]Code{
 		"unavailable":     "unavailable",
@@ -28,6 +33,8 @@ func TestSentinelCodes(t *testing.T) {
 		"conflict":        "conflict",
 		"invalid request": "invalid_request",
 		"canceled":        "canceled",
+		"forbidden":       "forbidden",
+		"internal":        "internal",
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -84,5 +91,50 @@ func TestError_ErrorString(t *testing.T) {
 				t.Errorf("Error() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestCodeOf pins R-6bii5's classifier: the first [*Error] in the
+// chain wins, else a canceled context answers [CodeCanceled], else
+// [CodeInternal] covers everything else, a deadline included.
+func TestCodeOf(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want Code
+	}{
+		{"unavailable, wrapped", fmt.Errorf("read status: %w", NewUnavailableError("off")), CodeUnavailable},
+		{"not found, wrapped", fmt.Errorf("read status: %w", NewNotFoundError("gone")), CodeNotFound},
+		{"conflict, wrapped", fmt.Errorf("read status: %w", NewConflictError("busy")), CodeConflict},
+		{"invalid request, wrapped", fmt.Errorf("read status: %w", NewInvalidRequestError("bad")), CodeInvalidRequest},
+		{"canceled sentinel, wrapped", fmt.Errorf("read status: %w", NewCanceledError("")), CodeCanceled},
+		{"forbidden, wrapped", fmt.Errorf("read status: %w", NewForbiddenError("")), CodeForbidden},
+		{"internal sentinel, wrapped", fmt.Errorf("read status: %w", NewInternalError("")), CodeInternal},
+		{"context.Canceled in the chain, no *Error", fmt.Errorf("write pool: %w", context.Canceled), CodeCanceled},
+		{"context.DeadlineExceeded alone", fmt.Errorf("write pool: %w", context.DeadlineExceeded), CodeInternal},
+		{"any other error", errors.New("sql: database is closed"), CodeInternal},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CodeOf(tt.err); got != tt.want {
+				t.Errorf("CodeOf(%v) = %q, want %q", tt.err, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestCodes proves the coverage guard's source: exactly the seven
+// literal wire codes, so a sentinel added to codes without a
+// corresponding contract case would grow this set past seven.
+func TestCodes(t *testing.T) {
+	want := []Code{
+		CodeUnavailable, CodeNotFound, CodeConflict, CodeInvalidRequest,
+		CodeCanceled, CodeForbidden, CodeInternal,
+	}
+	got := Codes()
+	slices.Sort(got)
+	slices.Sort(want)
+	if !slices.Equal(got, want) {
+		t.Errorf("Codes() = %v, want %v", got, want)
 	}
 }
