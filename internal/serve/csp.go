@@ -24,10 +24,15 @@ var (
 
 // The directives every served document's policy carries beside
 // script-src. frame-ancestors is among them because a meta policy
-// cannot carry it, so only the header can refuse framing.
+// cannot carry it, so only the header can refuse framing. img-src
+// admits data: because DaisyUI draws its --noise texture as a data:
+// SVG background image. The kit config in web/svelte.config.js writes
+// the same set into each document's meta, and a test in the serve verb
+// fails when the two differ.
 const (
 	cspDefaultSrc = "default-src 'self'"
 	cspStyleSrc   = "style-src 'self' 'unsafe-inline'"
+	cspImgSrc     = "img-src 'self' data:"
 	cspHardening  = "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'"
 )
 
@@ -69,7 +74,7 @@ func DocumentCSP(name string, doc []byte) (string, error) {
 	for _, h := range hashes {
 		scriptSrc.WriteString(" '" + h + "'")
 	}
-	return strings.Join([]string{cspDefaultSrc, scriptSrc.String(), cspStyleSrc, cspHardening}, "; "), nil
+	return strings.Join([]string{cspDefaultSrc, scriptSrc.String(), cspStyleSrc, cspImgSrc, cspHardening}, "; "), nil
 }
 
 // metaScriptHashes returns the sha256 sources, unquoted, that the

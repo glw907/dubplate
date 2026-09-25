@@ -9,11 +9,16 @@ const config = {
     // `prerender = true`), so adapter-static's default `strict: true`
     // has nothing dynamic to reject.
     adapter: adapter(),
+    // The meta policy these directives write must match the header
+    // internal/serve/csp.go sends, frame-ancestors aside (a meta policy
+    // cannot carry it); a Go test over the built documents fails when
+    // the two differ. img-src admits data: for DaisyUI's --noise texture.
     csp: {
       mode: 'hash',
       directives: {
         'default-src': ['self'],
         'style-src': ['self', 'unsafe-inline'],
+        'img-src': ['self', 'data:'],
         'frame-ancestors': ['none'],
         'base-uri': ['none'],
         'object-src': ['none'],

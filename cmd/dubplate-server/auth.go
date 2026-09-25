@@ -468,11 +468,15 @@ func validatePublicURL(value string) error {
 	return nil
 }
 
-// isLoopbackHost reports whether host is the name localhost or an IP
-// address in the loopback range, the whole loopback set R38's HTTPS
-// carve-out covers (fold 8, ruled, conductor 2026-09-12).
+// isLoopbackHost reports whether host is a loopback name or an IP
+// address in the loopback range, the whole loopback set the HTTPS
+// carve-out covers. A loopback name is localhost or any name under
+// .localhost, matched case-insensitively and with one trailing dot
+// removed, since RFC 6761 section 6.3 reserves that whole domain for
+// loopback and a browser resolves every name in it there.
 func isLoopbackHost(host string) bool {
-	if host == "localhost" {
+	name := strings.TrimSuffix(strings.ToLower(host), ".")
+	if name == "localhost" || strings.HasSuffix(name, ".localhost") {
 		return true
 	}
 	if ip := net.ParseIP(host); ip != nil {

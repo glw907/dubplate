@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -442,31 +443,72 @@ func TestNewServeShell_MissingRosterRefusesBeforeConstruction(t *testing.T) {
 
 // TestNewServeShell_OperatorCSSRefusesTheRosterFile proves the operator
 // CSS rule on the serve verb's own construction path: the key pointed
-// at the roster file this environment serves from refuses startup,
-// naming the key and the ".css" rule, and neither the path nor a byte
-// of the roster reaches the error. A shell that admitted any path
-// would build and publish the roster at <prefix>/operator.css.
+// at the roster file this environment serves from, at a ".css" hard
+// link to it, or at a ".css" file in the state directory refuses
+// startup, naming the key and the rule, and neither the path nor a
+// byte of the roster reaches the error. The last two rows fail unless
+// the verb hands the web routes its own roster path and state
+// directory. A shell that admitted any of them would build and publish
+// the file at <prefix>/operator.css.
 func TestNewServeShell_OperatorCSSRefusesTheRosterFile(t *testing.T) {
-	environ := serveAuthEnviron(t)
-	rosterPath := valueOf(t, environ, "DUBPLATE_ROSTER_FILE")
-	roster, err := os.ReadFile(rosterPath)
-	if err != nil {
-		t.Fatalf("read roster fixture: %v", err)
+	tests := []struct {
+		name    string
+		path    func(t *testing.T, rosterPath, stateDir string) string
+		wantErr string
+	}{
+		{
+			name:    "the roster file",
+			path:    func(_ *testing.T, rosterPath, _ string) string { return rosterPath },
+			wantErr: `DUBPLATE_OPERATOR_CSS_FILE: the path must end in ".css"`,
+		},
+		{
+			name: "a .css hard link to the roster",
+			path: func(t *testing.T, rosterPath, _ string) string {
+				p := filepath.Join(t.TempDir(), "operator.css")
+				if err := os.Link(rosterPath, p); err != nil {
+					t.Fatal(err)
+				}
+				return p
+			},
+			wantErr: "DUBPLATE_OPERATOR_CSS_FILE: the file is the roster",
+		},
+		{
+			name: "a .css file in the state directory",
+			path: func(t *testing.T, _, stateDir string) string {
+				p := filepath.Join(stateDir, "operator.css")
+				if err := os.WriteFile(p, []byte("body{}"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				return p
+			},
+			wantErr: "DUBPLATE_OPERATOR_CSS_FILE: the file is under the state directory",
+		},
 	}
-	environ = replaceKey(environ, "DUBPLATE_OPERATOR_CSS_FILE", rosterPath)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := serveAuthEnviron(t)
+			rosterPath := valueOf(t, environ, "DUBPLATE_ROSTER_FILE")
+			roster, err := os.ReadFile(rosterPath)
+			if err != nil {
+				t.Fatalf("read roster fixture: %v", err)
+			}
+			path := tt.path(t, rosterPath, valueOf(t, environ, "DUBPLATE_STATE_DIR"))
+			environ = replaceKey(environ, "DUBPLATE_OPERATOR_CSS_FILE", path)
 
-	shell, _, err := buildServeShell(t, environ)
-	if err == nil {
-		rec := httptest.NewRecorder()
-		shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dubplate/operator.css", nil))
-		t.Fatalf("buildServeShell: got nil error, want the operator CSS refusal; GET operator.css answers %d, serving the roster's bytes: %v",
-			rec.Code, bytes.Equal(rec.Body.Bytes(), roster))
-	}
-	if want := `DUBPLATE_OPERATOR_CSS_FILE: the path must end in ".css"`; err.Error() != want {
-		t.Errorf("error = %q, want %q", err.Error(), want)
-	}
-	if strings.Contains(err.Error(), rosterPath) || strings.Contains(err.Error(), string(roster)) {
-		t.Errorf("error = %q echoes the roster path or its bytes", err.Error())
+			shell, _, err := buildServeShell(t, environ)
+			if err == nil {
+				rec := httptest.NewRecorder()
+				shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dubplate/operator.css", nil))
+				t.Fatalf("buildServeShell: got nil error, want the operator CSS refusal; GET operator.css answers %d, serving the roster's bytes: %v",
+					rec.Code, bytes.Equal(rec.Body.Bytes(), roster))
+			}
+			if err.Error() != tt.wantErr {
+				t.Errorf("error = %q, want %q", err.Error(), tt.wantErr)
+			}
+			if strings.Contains(err.Error(), path) || strings.Contains(err.Error(), string(roster)) {
+				t.Errorf("error = %q echoes the path or the roster's bytes", err.Error())
+			}
+		})
 	}
 }
 
@@ -1132,6 +1174,11 @@ func TestSendsHSTS(t *testing.T) {
 		{publicURL: "http://localhost", want: false},
 		{publicURL: "https://localhost", want: false},
 		{publicURL: "https://localhost:8443", want: false},
+		{publicURL: "https://LOCALHOST", want: false},
+		{publicURL: "https://localhost.", want: false},
+		{publicURL: "https://a.localhost", want: false},
+		{publicURL: "https://localhost.example.test", want: true},
+		{publicURL: "https://notlocalhost", want: true},
 		{publicURL: "https://127.0.0.1", want: false},
 		{publicURL: "https://[::1]", want: false},
 		{publicURL: "http://127.0.0.1:8080", want: false},
@@ -1298,7 +1345,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	routes, err := newWebRoutesFromFS(environ, prefix, buildFS)
+	routes, err := newWebRoutesFromFS(environ, prefix, privateFiles{}, buildFS)
 	if err != nil {
 		return nil, err
 	}
@@ -1355,11 +1402,18 @@ func cspDirectives(policy string) map[string][]string {
 	return directives
 }
 
+// cspMetaContentRE captures the content attribute of a served
+// document's CSP meta, as the build writes it.
+var cspMetaContentRE = regexp.MustCompile(`<meta http-equiv="content-security-policy" content="([^"]*)">`)
+
 // checkServedCSP runs the design language's G6 over the documents
 // served from buildFS and returns every failure. For each document the
 // header must carry the directive set by name and value, and script-src
 // must carry a sha256 source for every inline script body, hashed
-// here, with no 'unsafe-inline'.
+// here, with no 'unsafe-inline'. The document's own CSP meta, which the
+// kit config writes, must carry the header's directives other than
+// script-src by name and value, frame-ancestors aside because a meta
+// policy cannot carry it, so the two policies cannot drift apart.
 func checkServedCSP(buildFS fs.FS) []string {
 	if failure := checkDocumentSet(buildFS); failure != "" {
 		return []string{failure}
@@ -1371,6 +1425,7 @@ func checkServedCSP(buildFS fs.FS) []string {
 	wantFixed := map[string][]string{
 		"default-src":     {"'self'"},
 		"style-src":       {"'self'", "'unsafe-inline'"},
+		"img-src":         {"'self'", "data:"},
 		"frame-ancestors": {"'none'"},
 		"base-uri":        {"'none'"},
 		"object-src":      {"'none'"},
@@ -1393,6 +1448,9 @@ func checkServedCSP(buildFS fs.FS) []string {
 		if _, ok := directives["font-src"]; ok {
 			failures = append(failures, name+": carries font-src, want none")
 		}
+		if failure := checkMetaMatchesHeader(rec.Body.Bytes(), directives); failure != "" {
+			failures = append(failures, name+": "+failure)
+		}
 		scriptSrc := directives["script-src"]
 		if len(scriptSrc) == 0 || scriptSrc[0] != "'self'" {
 			failures = append(failures, fmt.Sprintf("%s: script-src = %q, want 'self' first", name, scriptSrc))
@@ -1413,6 +1471,25 @@ func checkServedCSP(buildFS fs.FS) []string {
 		}
 	}
 	return failures
+}
+
+// checkMetaMatchesHeader reports a failure unless the CSP meta in doc
+// carries exactly header's directives, script-src and frame-ancestors
+// excepted, with the same sources in the same order.
+func checkMetaMatchesHeader(doc []byte, header map[string][]string) string {
+	m := cspMetaContentRE.FindSubmatch(doc)
+	if m == nil {
+		return "no CSP meta"
+	}
+	meta := cspDirectives(html.UnescapeString(string(m[1])))
+	delete(meta, "script-src")
+	want := maps.Clone(header)
+	delete(want, "script-src")
+	delete(want, "frame-ancestors")
+	if !maps.EqualFunc(meta, want, slices.Equal) {
+		return fmt.Sprintf("CSP meta directives %q, want the header's %q", meta, want)
+	}
+	return ""
 }
 
 // placeholderOnlyBuild is the build tree a checkout that has never run
@@ -1476,7 +1553,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 	wantCache := map[string]string{
 		"login.html":      "no-cache",
 		"login/link.html": "no-store",
-		"members.html":    "private, no-cache",
+		"members.html":    "no-store",
 	}
 	var failures []string
 	var bundleStylesheet string
@@ -1606,8 +1683,8 @@ func TestNewServeShell_MembersRoute(t *testing.T) {
 		if !strings.Contains(rec.Body.String(), `data-theme="dubplate-system"`) {
 			t.Errorf("body does not carry the stamped theme: %s", rec.Body.String())
 		}
-		if got := rec.Header().Get("Cache-Control"); got != "private, no-cache" {
-			t.Errorf("Cache-Control = %q, want %q", got, "private, no-cache")
+		if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+			t.Errorf("Cache-Control = %q, want %q", got, "no-store")
 		}
 		if rec.Header().Get("Content-Security-Policy") == "" {
 			t.Error("the members document carries no CSP")

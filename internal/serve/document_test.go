@@ -515,6 +515,40 @@ func TestLogRequests(t *testing.T) {
 	}
 }
 
+// TestLogRequests_MethodBounded proves a method outside the ones
+// net/http names is logged as "other", so a client-chosen method of any
+// length never reaches a record, while a named method is logged as sent.
+func TestLogRequests_MethodBounded(t *testing.T) {
+	tests := []struct {
+		name   string
+		method string
+		want   string
+	}{
+		{name: "GET", method: http.MethodGet, want: "GET"},
+		{name: "TRACE", method: http.MethodTrace, want: "TRACE"},
+		{name: "lowercase get", method: "get", want: "other"},
+		{name: "a long token", method: strings.Repeat("X", 4096), want: "other"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			logger := slog.New(slog.NewJSONHandler(&buf, nil))
+			handler := LogRequests(logger, http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+			r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
+			r.Method = tt.method
+			handler.ServeHTTP(httptest.NewRecorder(), r)
+
+			var rec map[string]any
+			if err := json.Unmarshal(buf.Bytes(), &rec); err != nil {
+				t.Fatalf("log = %q, want one JSON record: %v", buf.String(), err)
+			}
+			if rec["method"] != tt.want {
+				t.Errorf("method = %.40q, want %q", rec["method"], tt.want)
+			}
+		})
+	}
+}
+
 func TestNewDocument_PanicsOnMissingDefaultVariant(t *testing.T) {
 	defer func() {
 		if recover() == nil {

@@ -10,8 +10,14 @@
  * `@media (prefers-color-scheme: dark)`, never the reverse, per Media
  * Queries 5 section 12.5's negation advice: a future preference value
  * or a browser that cannot evaluate the feature both fall into the
- * light branch rather than into neither. Both sit at the same
- * specificity as a DaisyUI theme block, (0,1,0), inside `@layer base`.
+ * light branch rather than into neither. Both are (0,1,0) selectors
+ * inside `@layer base`. The built DaisyUI theme blocks are (0,4,1):
+ * each is an `:is()` list whose most specific entry is DaisyUI's
+ * `:root:has(input...:checked)` picker selector. That gap is safe
+ * because every DaisyUI block names only its own theme, never
+ * `dubplate-system`, so on a document stamped `dubplate-system` no
+ * DaisyUI block matches unless a checked picker input names another
+ * theme, a pattern the design language bans.
  */
 
 @layer base {
@@ -48,8 +54,8 @@
     --color-warning-content: #1f1b16;
     --color-error: #a8261d;
     --color-error-content: #ffffff;
-    --ink-primary: var(--color-primary);
-    --ink-warning: #765000;
+    --ink-primary: #9d2f26;
+    --ink-warning: #754f00;
   }
 
   @media (prefers-color-scheme: dark) {

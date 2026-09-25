@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"maps"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
+	"syscall"
 	"unicode/utf8"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -69,12 +72,21 @@ type webDocument struct {
 // serves. A document is no-cache by default: the stamp and the tier
 // links are fixed at startup, so a cache may keep it and revalidate.
 // The consumption document is no-store because its URL carried a
-// sign-in token. The members document is private because it answers
-// per requester, behind the admin gate.
+// sign-in token. The members document is no-store because it answers
+// only behind the admin gate, as the roster API it reads from does.
 var webDocuments = []webDocument{
 	{name: loginDocumentName, route: "/" + loginRouteName, cacheControl: "no-cache"},
 	{name: loginLinkDocumentName, route: "/" + loginRouteName + "/link", cacheControl: "no-store"},
-	{name: membersDocumentName, route: "/" + membersRouteName, cacheControl: "private, no-cache"},
+	{name: membersDocumentName, route: "/" + membersRouteName, cacheControl: "no-store"},
+}
+
+// privateFiles names the state the operator CSS file must never be:
+// the roster file and anything under the state directory. The operator
+// route is public, so a path naming either would publish it. An empty
+// field guards nothing.
+type privateFiles struct {
+	roster   string
+	stateDir string
 }
 
 // themeMatchThreshold is DUBPLATE_THEME_MATCH: the theme axis naming
@@ -159,15 +171,17 @@ func (wr webRoutes) register(shell *serve.Shell) {
 // DUBPLATE_OPERATOR_CSS_FILE names, rewrites the documents into one
 // variant per stampable palette with the tier links in place, and
 // returns the routes. It returns before any listener opens, so a
-// document with an inline script its CSP does not hash, a bad theme or
-// branding value, a refused operator file, or a missing build refuses
-// startup rather than the first request.
-func newWebRoutes(environ []string, prefix serve.Prefix) (webRoutes, error) {
+// document with an inline script its CSP does not hash, in the build
+// or in any rewritten variant, a bad theme or branding value, a
+// refused operator file, or a missing build refuses startup rather
+// than the first request. private names the files the operator CSS
+// path must not resolve to.
+func newWebRoutes(environ []string, prefix serve.Prefix, private privateFiles) (webRoutes, error) {
 	buildFS, err := fs.Sub(web.Assets, "build")
 	if err != nil {
 		return webRoutes{}, fmt.Errorf("web: %w", err)
 	}
-	return newWebRoutesFromFS(environ, prefix, buildFS)
+	return newWebRoutesFromFS(environ, prefix, private, buildFS)
 }
 
 // newWebRoutesFromFS is [newWebRoutes]'s logic, parameterized on
@@ -175,7 +189,7 @@ func newWebRoutes(environ []string, prefix serve.Prefix) (webRoutes, error) {
 // state a bad or missing build can be in is a fixture this file's own
 // tests build as an fstest.MapFS, since web.Assets is fixed to
 // whatever bundle this binary was compiled against.
-func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (webRoutes, error) {
+func newWebRoutesFromFS(environ []string, prefix serve.Prefix, private privateFiles, buildFS fs.FS) (webRoutes, error) {
 	placeholderOnly, err := isPlaceholderOnly(buildFS)
 	if err != nil {
 		return webRoutes{}, fmt.Errorf("web: %w", err)
@@ -230,7 +244,7 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 	if err != nil {
 		return webRoutes{}, err
 	}
-	operatorCSS, hasOperatorCSS, err := resolveOperatorCSS(environ)
+	operatorCSS, hasOperatorCSS, err := resolveOperatorCSS(environ, private)
 	if err != nil {
 		return webRoutes{}, err
 	}
@@ -240,6 +254,9 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 		variants, err := serve.BuildDocumentVariants(d.name, docs[i].raw, themePlaceholder, match, palettes,
 			tierHrefs(d.name, hasOperatorCSS))
 		if err != nil {
+			return webRoutes{}, err
+		}
+		if err := checkVariantCSP(d.name, variants); err != nil {
 			return webRoutes{}, err
 		}
 		documents[prefix.String()+d.route] = serve.NewDocument(serve.DocumentConfig{
@@ -270,6 +287,22 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (w
 	return routes, nil
 }
 
+// checkVariantCSP refuses when any served variant of the document
+// name holds an inline script the build's own CSP meta does not hash.
+// The rewrite is meant to touch no script, but a placeholder or a
+// stylesheet-link anchor the build left inside a script body would
+// change that script's hash, and the header, computed over the build's
+// document, would then block it in a browser; checking each served
+// body turns that into a startup refusal.
+func checkVariantCSP(name string, variants map[string][]byte) error {
+	for _, palette := range slices.Sorted(maps.Keys(variants)) {
+		if _, err := serve.DocumentCSP(name, variants[palette]); err != nil {
+			return fmt.Errorf("web: the %q variant: %w", palette, err)
+		}
+	}
+	return nil
+}
+
 // stylesheetRoute serves css at exactly <prefix>/<name> and answers
 // the terminator's 404 everywhere under it.
 func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler {
@@ -297,7 +330,7 @@ func resolveBranding(environ []string) ([]byte, error) {
 
 // resolveOperatorCSS reads the file DUBPLATE_OPERATOR_CSS_FILE names,
 // reporting false when the key is unset, empty, or "none".
-func resolveOperatorCSS(environ []string) ([]byte, bool, error) {
+func resolveOperatorCSS(environ []string, private privateFiles) ([]byte, bool, error) {
 	path, err := config.ParseString(environ, operatorCSSFileThreshold)
 	if err != nil {
 		return nil, false, err
@@ -305,7 +338,7 @@ func resolveOperatorCSS(environ []string) ([]byte, bool, error) {
 	if path == notConfigured {
 		return nil, false, nil
 	}
-	css, err := readOperatorCSS(path)
+	css, err := readOperatorCSS(path, private)
 	if err != nil {
 		return nil, false, fmt.Errorf("%s: %w", operatorCSSFileThreshold.Key, err)
 	}
@@ -316,26 +349,56 @@ func resolveOperatorCSS(environ []string) ([]byte, bool, error) {
 // that serves it is public, so the file's class is checked before its
 // bytes are kept: a wrong path would otherwise publish whatever the
 // service user can read, the roster or an environment file included.
-// The path must end in ".css", which none of those do, and the content
-// must be UTF-8 text holding no NUL byte and no more than
+//
+// The path must end in ".css", and so must the path it resolves to
+// once every symbolic link in it is followed, which is the path
+// opened: a link named x.css cannot stand in for the roster. The
+// resolved path must not lie under private.stateDir, and the file must
+// not be private.roster under any name. The file is opened once, with
+// O_NOFOLLOW so a link swapped in after resolution is refused, and
+// with O_NONBLOCK so a FIFO cannot hang startup; the class check
+// reads the open descriptor, so the file checked is the file read.
+// The content must be UTF-8 text holding no NUL byte and no more than
 // operatorCSSMaxBytes. A returned error names the rule or the reason
 // and never carries the path or any byte of the file.
-func readOperatorCSS(path string) ([]byte, error) {
+func readOperatorCSS(path string, private privateFiles) ([]byte, error) {
 	if !strings.HasSuffix(path, ".css") {
 		return nil, errors.New(`the path must end in ".css"`)
 	}
-	info, err := os.Stat(path)
+	resolved, err := resolvePath(path)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
+	}
+	if !strings.HasSuffix(resolved, ".css") {
+		return nil, errors.New(`the path must resolve to a file ending in ".css"`)
+	}
+	if private.stateDir != "" {
+		stateDir, err := resolvePath(private.stateDir)
+		if err != nil {
+			return nil, fmt.Errorf("cannot resolve the state directory: %w", withoutPath(err))
+		}
+		if rel, err := filepath.Rel(stateDir, resolved); err == nil && filepath.IsLocal(rel) {
+			return nil, errors.New("the file is under the state directory")
+		}
+	}
+
+	f, err := os.OpenFile(resolved, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK|syscall.O_CLOEXEC, 0)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
+	}
+	defer func() { _ = f.Close() }()
+	info, err := f.Stat()
 	if err != nil {
 		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
 	}
 	if !info.Mode().IsRegular() {
 		return nil, errors.New("the path is not a regular file")
 	}
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
+	if private.roster != "" {
+		if roster, err := os.Stat(private.roster); err == nil && os.SameFile(info, roster) {
+			return nil, errors.New("the file is the roster")
+		}
 	}
-	defer func() { _ = f.Close() }()
 	css, err := io.ReadAll(io.LimitReader(f, operatorCSSMaxBytes+1))
 	if err != nil {
 		return nil, fmt.Errorf("cannot read the file: %w", withoutPath(err))
@@ -349,6 +412,16 @@ func readOperatorCSS(path string) ([]byte, error) {
 		return nil, errors.New("the file holds a NUL byte")
 	}
 	return css, nil
+}
+
+// resolvePath returns path made absolute with every symbolic link in
+// it followed.
+func resolvePath(path string) (string, error) {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(abs)
 }
 
 // withoutPath returns the error inside err's *fs.PathError, or err

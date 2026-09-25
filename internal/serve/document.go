@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 )
@@ -163,17 +164,34 @@ func NewDocument(cfg DocumentConfig) http.Handler {
 // request once next has answered it: the method, the status, and the
 // path. The path is bounded as the shell's refusal record bounds it,
 // and the query string is never logged, since a document's URL may
-// carry a sign-in token there.
+// carry a sign-in token there. The method is logged only when it is
+// one net/http names and as "other" otherwise, since a client may send
+// any token as a method, up to the header size limit.
 func LogRequests(logger *slog.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		capture := &statusCapture{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(capture, r)
 		logger.Info("serve: document request",
-			"method", r.Method,
+			"method", loggedMethod(r.Method),
 			"path", boundedPath(r.URL.Path),
 			"status", capture.status,
 		)
 	})
+}
+
+// knownMethods is every method net/http names a constant for.
+var knownMethods = []string{
+	http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch,
+	http.MethodDelete, http.MethodConnect, http.MethodOptions, http.MethodTrace,
+}
+
+// loggedMethod returns method when it is one of knownMethods and
+// "other" otherwise.
+func loggedMethod(method string) string {
+	if slices.Contains(knownMethods, method) {
+		return method
+	}
+	return "other"
 }
 
 // NewAssets returns an http.Handler serving GET and HEAD only, looking

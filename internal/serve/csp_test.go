@@ -34,19 +34,19 @@ func TestDocumentCSP(t *testing.T) {
 			name: "every inline script hashed",
 			doc:  cspMeta(hashedMeta) + "<script>" + bootScript + "</script><p>x</p><script>" + nextScript + "</script>",
 			want: "default-src 'self'; script-src 'self' '" + bootScriptHash + "' '" + nextScriptHash + "'; " +
-				"style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+				"style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
 		},
 		{
 			name: "an entity-escaped meta is unescaped before it is read",
 			doc:  cspMeta("script-src &#39;self&#39; &#39;"+bootScriptHash+"&#39;") + "<script>" + bootScript + "</script>",
 			want: "default-src 'self'; script-src 'self' '" + bootScriptHash + "'; " +
-				"style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+				"style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
 		},
 		{
 			name: "a document with no script and a hashless script-src",
 			doc:  cspMeta("script-src 'self'") + "<p>x</p>",
 			want: "default-src 'self'; script-src 'self'; " +
-				"style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+				"style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
 		},
 		{
 			name:    "no CSP meta",

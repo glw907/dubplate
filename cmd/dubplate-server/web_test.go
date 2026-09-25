@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -12,6 +14,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
 	"testing/fstest"
 
@@ -164,7 +167,7 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := newWebRoutesFromFS(tt.environ, prefix, tt.buildFS)
+			_, err := newWebRoutesFromFS(tt.environ, prefix, privateFiles{}, tt.buildFS)
 			if err == nil {
 				t.Fatalf("newWebRoutesFromFS: got nil error, want one containing %q", tt.wantErrHas)
 			}
@@ -181,7 +184,7 @@ func TestNewWebRoutesFromFS_EmptyKeysResolveToDefaults(t *testing.T) {
 
 	routes, err := newWebRoutesFromFS(
 		[]string{"DUBPLATE_THEME_MATCH=", "DUBPLATE_THEME_PALETTE="},
-		prefix, buildFS,
+		prefix, privateFiles{}, buildFS,
 	)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS: %v", err)
@@ -207,7 +210,7 @@ func TestNewWebRoutesFromFS_AcceptedPaletteValues(t *testing.T) {
 
 	for _, palette := range []string{"label", "label-night", "system"} {
 		t.Run(palette, func(t *testing.T) {
-			routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=" + palette}, prefix, buildFS)
+			routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=" + palette}, prefix, privateFiles{}, buildFS)
 			if err != nil {
 				t.Fatalf("newWebRoutesFromFS: %v", err)
 			}
@@ -228,7 +231,7 @@ func TestNewWebRoutesFromFS_AcceptedPaletteValues(t *testing.T) {
 func TestNewWebRoutesFromFS_LoginRouting(t *testing.T) {
 	prefix := webTestPrefix(t)
 	buildFS := newFixtureBuildFS(1, 1)
-	routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=label"}, prefix, buildFS)
+	routes, err := newWebRoutesFromFS([]string{"DUBPLATE_THEME_PALETTE=label"}, prefix, privateFiles{}, buildFS)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS: %v", err)
 	}
@@ -305,7 +308,7 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 		t.Fatalf("fs.Sub: %v", err)
 	}
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	routes, err := newWebRoutes(environ, prefix)
+	routes, err := newWebRoutes(environ, prefix, privateFiles{})
 	if err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
@@ -381,7 +384,7 @@ func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) 
 	t.Helper()
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
-	routes, err := newWebRoutes(environ, prefix)
+	routes, err := newWebRoutes(environ, prefix, privateFiles{})
 	if err != nil {
 		t.Fatalf("newWebRoutes(%v): %v", environ, err)
 	}
@@ -582,7 +585,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 	}
 
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	routes, err := newWebRoutes(environ, prefix)
+	routes, err := newWebRoutes(environ, prefix, privateFiles{})
 	if err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
@@ -674,12 +677,32 @@ func writeOperatorCSS(t *testing.T, content []byte) string {
 	return path
 }
 
+// writeRosterFixture writes content to a fresh roster.json under
+// t.TempDir() and returns its path.
+func writeRosterFixture(t *testing.T, content string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "roster.json")
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write roster fixture: %v", err)
+	}
+	return path
+}
+
+// symlinkFixture creates link pointing at target and returns link.
+func symlinkFixture(t *testing.T, target, link string) string {
+	t.Helper()
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatalf("symlink fixture: %v", err)
+	}
+	return link
+}
+
 // newWebShellHandler builds a real [serve.Shell] mounting every route
 // [newWebRoutesFromFS] builds from buildFS under the default prefix.
 func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Handler {
 	t.Helper()
 	prefix := webTestPrefix(t)
-	routes, err := newWebRoutesFromFS(environ, prefix, buildFS)
+	routes, err := newWebRoutesFromFS(environ, prefix, privateFiles{}, buildFS)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS(%v): %v", environ, err)
 	}
@@ -732,7 +755,7 @@ func TestNewWebRoutesFromFS_BrandingRefusals(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := []string{"DUBPLATE_BRANDING=--color-base-100: #ffffff; " + tt.bad}
-			_, err := newWebRoutesFromFS(environ, prefix, newFixtureBuildFS(1, 1))
+			_, err := newWebRoutesFromFS(environ, prefix, privateFiles{}, newFixtureBuildFS(1, 1))
 			if err == nil {
 				t.Fatal("newWebRoutesFromFS: got nil error, want the branding refusal")
 			}
@@ -791,12 +814,12 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 	const marker = "qx7operatormarker"
 	tests := []struct {
 		name       string
-		path       func(t *testing.T) string
+		path       func(t *testing.T, private *privateFiles) string
 		wantErrHas string
 	}{
 		{
 			name: "path not ending in .css",
-			path: func(t *testing.T) string {
+			path: func(t *testing.T, _ *privateFiles) string {
 				p := filepath.Join(t.TempDir(), "operator.json")
 				if err := os.WriteFile(p, []byte(marker), 0o600); err != nil {
 					t.Fatal(err)
@@ -807,17 +830,17 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 		},
 		{
 			name:       "path ending in .CSS",
-			path:       func(t *testing.T) string { return filepath.Join(t.TempDir(), "operator.CSS") },
+			path:       func(t *testing.T, _ *privateFiles) string { return filepath.Join(t.TempDir(), "operator.CSS") },
 			wantErrHas: `the path must end in ".css"`,
 		},
 		{
 			name:       "path absent",
-			path:       func(t *testing.T) string { return filepath.Join(t.TempDir(), "missing.css") },
+			path:       func(t *testing.T, _ *privateFiles) string { return filepath.Join(t.TempDir(), "missing.css") },
 			wantErrHas: "cannot read the file: no such file or directory",
 		},
 		{
 			name: "not a regular file",
-			path: func(t *testing.T) string {
+			path: func(t *testing.T, _ *privateFiles) string {
 				p := filepath.Join(t.TempDir(), "dir.css")
 				if err := os.Mkdir(p, 0o700); err != nil {
 					t.Fatal(err)
@@ -828,7 +851,7 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 		},
 		{
 			name: "unreadable",
-			path: func(t *testing.T) string {
+			path: func(t *testing.T, _ *privateFiles) string {
 				if os.Geteuid() == 0 {
 					t.Skip("root reads a mode 0000 file")
 				}
@@ -842,26 +865,70 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 		},
 		{
 			name: "one byte over the bound",
-			path: func(t *testing.T) string {
+			path: func(t *testing.T, _ *privateFiles) string {
 				return writeOperatorCSS(t, append([]byte(marker), bytes.Repeat([]byte("a"), 262144+1-len(marker))...))
 			},
 			wantErrHas: "the file is over 262144 bytes",
 		},
 		{
 			name:       "invalid UTF-8",
-			path:       func(t *testing.T) string { return writeOperatorCSS(t, []byte(marker+"\xff\xfe")) },
+			path:       func(t *testing.T, _ *privateFiles) string { return writeOperatorCSS(t, []byte(marker+"\xff\xfe")) },
 			wantErrHas: "the file is not valid UTF-8",
 		},
 		{
 			name:       "a NUL byte",
-			path:       func(t *testing.T) string { return writeOperatorCSS(t, []byte(marker+"\x00body{}")) },
+			path:       func(t *testing.T, _ *privateFiles) string { return writeOperatorCSS(t, []byte(marker+"\x00body{}")) },
 			wantErrHas: "the file holds a NUL byte",
+		},
+		{
+			name: "a .css symlink to the roster",
+			path: func(t *testing.T, private *privateFiles) string {
+				private.roster = writeRosterFixture(t, marker)
+				return symlinkFixture(t, private.roster, filepath.Join(t.TempDir(), "operator.css"))
+			},
+			wantErrHas: `the path must resolve to a file ending in ".css"`,
+		},
+		{
+			name: "a .css hard link to the roster",
+			path: func(t *testing.T, private *privateFiles) string {
+				private.roster = writeRosterFixture(t, marker)
+				p := filepath.Join(t.TempDir(), "operator.css")
+				if err := os.Link(private.roster, p); err != nil {
+					t.Fatal(err)
+				}
+				return p
+			},
+			wantErrHas: "the file is the roster",
+		},
+		{
+			name: "a parent-directory symlink into the state directory",
+			path: func(t *testing.T, private *privateFiles) string {
+				private.stateDir = t.TempDir()
+				if err := os.WriteFile(filepath.Join(private.stateDir, "operator.css"), []byte(marker), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				dir := symlinkFixture(t, private.stateDir, filepath.Join(t.TempDir(), "styles"))
+				return filepath.Join(dir, "operator.css")
+			},
+			wantErrHas: "the file is under the state directory",
+		},
+		{
+			name: "a FIFO",
+			path: func(t *testing.T, _ *privateFiles) string {
+				p := filepath.Join(t.TempDir(), "operator.css")
+				if err := syscall.Mkfifo(p, 0o600); err != nil {
+					t.Fatal(err)
+				}
+				return p
+			},
+			wantErrHas: "the path is not a regular file",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := tt.path(t)
-			_, err := newWebRoutesFromFS([]string{"DUBPLATE_OPERATOR_CSS_FILE=" + path}, prefix, newFixtureBuildFS(1, 1))
+			var private privateFiles
+			path := tt.path(t, &private)
+			_, err := newWebRoutesFromFS([]string{"DUBPLATE_OPERATOR_CSS_FILE=" + path}, prefix, private, newFixtureBuildFS(1, 1))
 			if err == nil {
 				t.Fatalf("newWebRoutesFromFS: got nil error, want one containing %q", tt.wantErrHas)
 			}
@@ -904,6 +971,14 @@ func TestNewWebRoutesFromFS_OperatorCSSServed(t *testing.T) {
 				return []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, atBound)}
 			},
 			wantCode: http.StatusOK, wantBody: atBound, wantLink: true,
+		},
+		{
+			name: "a .css symlink to a .css file",
+			environ: func(t *testing.T) []string {
+				target := writeOperatorCSS(t, []byte("body { margin: 0 }\n"))
+				return []string{"DUBPLATE_OPERATOR_CSS_FILE=" + symlinkFixture(t, target, filepath.Join(t.TempDir(), "linked.css"))}
+			},
+			wantCode: http.StatusOK, wantBody: []byte("body { margin: 0 }\n"), wantLink: true,
 		},
 		{
 			name: "file with multibyte text",
@@ -1026,7 +1101,7 @@ func TestNewWebRoutes_TierLinkOrder(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		routes, err := newWebRoutes(tt.environ, prefix)
+		routes, err := newWebRoutes(tt.environ, prefix, privateFiles{})
 		if err != nil {
 			t.Fatalf("%s: newWebRoutes: %v", tt.name, err)
 		}
@@ -1060,7 +1135,7 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 
 	noLink := newFixtureBuildFS(1, 1)
 	noLink["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/entry/start.js" rel="modulepreload"></head></html>`)}
-	if _, err := newWebRoutesFromFS(nil, prefix, noLink); err == nil || !strings.Contains(err.Error(), `document "login.html": no stylesheet link`) {
+	if _, err := newWebRoutesFromFS(nil, prefix, privateFiles{}, noLink); err == nil || !strings.Contains(err.Error(), `document "login.html": no stylesheet link`) {
 		t.Errorf("no stylesheet link: error = %v, want one naming login.html", err)
 	}
 
@@ -1071,5 +1146,90 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 	hrefs := serve.StylesheetHrefs(serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes())
 	if want := []string{"./_app/assets/0.css", "./_app/assets/2.css", "./branding.css"}; !slices.Equal(hrefs, want) {
 		t.Errorf("stylesheet hrefs = %v, want %v", hrefs, want)
+	}
+}
+
+// TestNewWebRoutesFromFS_VariantCSPRefusals proves startup refuses a
+// build whose rewrite would change a hashed inline script: the
+// placeholder inside a script body, and the last stylesheet link (the
+// tier links' anchor) inside a script body. Each fixture's CSP meta
+// hashes the script as built, so the build's own document passes
+// [serve.DocumentCSP] and only the served variant can fail it.
+func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
+	prefix := webTestPrefix(t)
+	tests := []struct {
+		name   string
+		script string
+	}{
+		{name: "placeholder inside a script", script: `const theme = "` + themePlaceholder + `";`},
+		{name: "anchor inside a script", script: `document.head.insertAdjacentHTML("beforeend", '<link href="./_app/assets/0.css" rel="stylesheet">');`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sum := sha256.Sum256([]byte(tt.script))
+			meta := `<meta http-equiv="content-security-policy" content="script-src 'self' 'sha256-` + base64.StdEncoding.EncodeToString(sum[:]) + `'">`
+			theme := themePlaceholder
+			if strings.Contains(tt.script, themePlaceholder) {
+				theme = "stock"
+			}
+			buildFS := newFixtureBuildFS(1, 1)
+			buildFS["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + theme + `"><head>` + meta +
+				`<link href="./_app/assets/0.css" rel="stylesheet"><script>` + tt.script + `</script></head></html>`)}
+			if _, err := serve.DocumentCSP("login.html", buildFS["login.html"].Data); err != nil {
+				t.Fatalf("fixture: the build's own document fails DocumentCSP: %v", err)
+			}
+
+			_, err := newWebRoutesFromFS(nil, prefix, privateFiles{}, buildFS)
+			if err == nil {
+				t.Fatal("newWebRoutesFromFS: got nil error, want the variant's CSP refusal")
+			}
+			if want := "an inline script's hash is not in the CSP meta's script-src"; !strings.Contains(err.Error(), want) {
+				t.Errorf("error = %q, want it to contain %q", err.Error(), want)
+			}
+		})
+	}
+}
+
+// svelteHeadTitleRE captures the text of a <title> inside a route's
+// <svelte:head> block, markup expressions included.
+var svelteHeadTitleRE = regexp.MustCompile(`(?s)<svelte:head>.*?<title>(.+?)</title>.*?</svelte:head>`)
+
+// TestRoutes_EveryPageHasAUniqueTitle proves every page and the error
+// page in web/src/routes set a document title through <svelte:head>,
+// and that no two pages share one, so a screen reader announces which
+// page loaded. The build prerenders with ssr off, so the title is set
+// only once the client runs and no built document carries it; the
+// route source is what this reads.
+func TestRoutes_EveryPageHasAUniqueTitle(t *testing.T) {
+	root := filepath.Join("..", "..", "web", "src", "routes")
+	titles := make(map[string]string)
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if name := d.Name(); name != "+page.svelte" && name != "+error.svelte" {
+			return nil
+		}
+		src, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		m := svelteHeadTitleRE.FindSubmatch(src)
+		if m == nil {
+			t.Errorf("%s: no <title> inside <svelte:head>", p)
+			return nil
+		}
+		title := strings.TrimSpace(string(m[1]))
+		if other, ok := titles[title]; ok {
+			t.Errorf("%s: title %q is also %s's", p, title, other)
+		}
+		titles[title] = p
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk %s: %v", root, err)
+	}
+	if len(titles) < 4 {
+		t.Errorf("found %d titled routes, want the three pages and the error page", len(titles))
 	}
 }

@@ -8,6 +8,10 @@ lands on a path no route matches.
   import { page } from '$app/state';
 </script>
 
+<svelte:head>
+  <title>{page.status === 404 ? 'Page not found' : 'Something went wrong'} · dubplate</title>
+</svelte:head>
+
 <main>
   {#if page.status === 404}
     <h1>That page doesn't exist.</h1>

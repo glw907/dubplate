@@ -300,7 +300,10 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, c
 	}
 	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
 
-	webRoutes, err := newWebRoutes(environ, prefix)
+	webRoutes, err := newWebRoutes(environ, prefix, privateFiles{
+		roster:   cfg.IdentitySourceValue(rosterFileKey),
+		stateDir: cfg.StateDir,
+	})
 	if err != nil {
 		return nil, nil, err
 	}
