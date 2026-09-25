@@ -146,7 +146,9 @@ Node and npm required and named on failure, a stale or drifted
 server-only file, no hardcoded color, no external origin, theme
 variable completeness, theme contrast, and the built bundle's stamped
 theme values). The rendered (browser) gates join this leg at rung
-5c-iii. A check either
+5c-iii. Rung 6b-i's merge adds an `rclone`-dependent leg: `internal/backup`'s
+tests exercise the real `rclone` binary (`internal/backup`'s share of
+`go test ./...` runs about 8.3s of it). A check either
 gates or does not exist; never guard one with `command -v || skip`.
 Never commit red. The process-citation leg
 (no rung, task, resolution, or plan-line citation in shipped Go comments)
