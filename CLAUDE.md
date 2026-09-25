@@ -21,14 +21,22 @@ launches complete (Go matcher included). Two standing bars, from memory:
 exemplary Go (`idiomatic-beautiful-go`) and render-and-read every
 user-path page before any attended ask (`see-it-before-geoff-tests-it`).
 
-**Build for 2.0 (Geoff, 2026-09-07).** The next initiative after launch
-is dubplate-server 2.0, the built-in OpenSubsonic streamer that subsumes
-Navidrome (ROADMAP `streamer-2-0`; spec under `docs/superpowers/specs/`).
-Every rung plan authored from now on weighs its surface against that
-spec's forward-hooks list and states per task whether it lands a hook or
-is neutral; a rung 6 schema or a rung 12 driver seam built without 2.0 in
-view is rework. Route newly discovered hooks into that list; never build
-2.0 features early. The same spec carries a prior-art list (the
+**Versions (Geoff, 2026-09-25).** The ladder's rung 16 cutover, with
+Navidrome still streaming, is a 0.x pre-release. **0.8** is the first
+production release: the built-in streamer replaces Navidrome. **0.9** adds
+the paired local client. **1.0** adds polish and the remaining features,
+the format ladder among them. Documents written before this ruling say
+"1.0" for the launch, "1.1" for the formats, and "2.0" for the streamer,
+and they stay as written.
+
+**Build for 0.8 (Geoff, 2026-09-07, re-keyed 2026-09-25).** The next
+initiative after launch is dubplate-server 0.8, the built-in OpenSubsonic
+streamer that subsumes Navidrome (ROADMAP `streamer-0-8`; the spec under
+`docs/superpowers/specs/` still says 2.0). Every rung plan authored from
+now on weighs its surface against that spec's forward-hooks list and
+states per task whether it lands a hook or is neutral; a rung 6 schema or
+a rung 12 driver seam built without 0.8 in view is rework. Route newly
+discovered hooks into that list; never build 0.8 features early. The same spec carries a prior-art list (the
 OpenSubsonic specification, Navidrome and gonic for behavior only under
 GPL, taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag
 tables, chromaprint); a rung plan names which entries it consulted and
@@ -37,7 +45,7 @@ license-compatible library already does well. An adoption is judged on
 license, code quality against the house bar, maintenance (release
 cadence, open-issue age, bus factor), and adoption (importers, who
 depends on it), with the evidence recorded in the plan, never on
-familiarity alone. **Refined (Geoff, 2026-09-12):** a 2.0 forward hook is
+familiarity alone. **Refined (Geoff, 2026-09-12):** a 0.8 forward hook is
 named in the rung plan and built by the rung that first consumes it,
 and nothing is exported ahead of a caller.
 
@@ -213,7 +221,7 @@ passing the visual identity spec's path and asking for conformance to it
 correctness, since those reviewers are workstation-wide,
 `web-auth-security-reviewer` for the serve/JWT surface,
 `cloudflare-workers-reviewer` only in the pings repo. Web UI work
-matches no streamer: dubplate replaces Navidrome at 2.0 and carries its
+matches no streamer: dubplate replaces Navidrome at 0.8 and carries its
 own visual identity (Geoff, 2026-09-24), so no reference screenshots and
 no visual-fidelity chain. Every user-path page is rendered and read
 before Geoff sees it, and the rung 7 uploader is Geoff's design review.

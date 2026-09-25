@@ -24,7 +24,9 @@ below). Two tracks dependency-merge at rung 15: the architecture spine
 drivers/SSO, decision queue, versioned API) and an independent evidence
 track (corpus/harness, Go matcher, shadow against the live estate as
 oracle), closing with the launch cutover (rung 16: beets DB migration,
-box swap, interim retirement) and close-out (rung 17). Launch bar: the
+box swap, interim retirement) and close-out (rung 17). This launch is a
+0.x pre-release the group uses; 0.8 is the first production release
+(Geoff, 2026-09-25). Launch bar: the
 complete server, Go matcher past the two-tier conformance bar, a clean
 shadow record, layout parity. Old code is salvage tier, frozen at the
 `pre-greenfield` tag under `_salvage/`. Server before TUI is a hard
@@ -69,7 +71,8 @@ Folded from the organizer spec's "Roadmap revisions this spec carries"
 
 ## Planned
 
-### dubplate-server 2.0: the built-in streamer `streamer-2-0`
+### dubplate-server 0.8: the built-in streamer `streamer-0-8`
+(Re-keyed from "2.0"/`streamer-2-0`, Geoff, 2026-09-25: 0.8 is the first production release.)
 Subsume Navidrome so the estate is one clean integrated system (Geoff,
 2026-09-07; primary driver: one binary a stranger can set up). Brainstormed
 2026-09-07; spec at `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`
@@ -91,11 +94,11 @@ Build shape A: an oracle harness (Navidrome and dubplate
 against one library, responses diffed and adjudicated) and a written
 Navidrome study first, then vertical slices each walked by a named client
 roster. Sequenced after launch (rung 17); the driver seam stays and
-Navidrome remains the escape hatch through 2.0's first months. Navidrome
+Navidrome remains the escape hatch through 0.8's first months. Navidrome
 is GPLv3: study it for behavior, never copy; its permissive dependencies
 (taglib via wazero, x/image, fscache) are ours to use. **Standing rule
 while the ladder builds:** each rung's plan weighs its surface against
-the 2.0 spec's forward-hooks list (content hash and folded sort key on
+the 0.8 spec's forward-hooks list (content hash and folded sort key on
 the catalog row, the art blob recorded at admit, play history as events)
 and says per task whether it lands a hook or is neutral, and names which prior-art entries it consulted (rung 6: modernc sqlite, goose; rung 7: mewkiz/flac for the intake integrity check; rung 8: taglib via wazero and Picard's tag tables). 2.1 list:
 scrobbling (ListenBrainz, Last.fm), ratings, artist images, transcode
@@ -104,21 +107,27 @@ search rerank. The web player needs a strong play-queue interface (Geoff,
 2026-09-24): now playing, up next, reorder, and add from album, track, or
 filter results. It is designed from a prior-art study, as library filtering
 was (`research/2026-09-24-library-filtering-prior-art.md`), in the visual
-identity spec's language, and it builds on 2.0's saved per-member play queue
+identity spec's language, and it builds on 0.8's saved per-member play queue
 (`streamer-2-0-design.md:297-309`) so a queue carries between clients.
 
+### dubplate-server 0.9: the paired local client `local-client-0-9`
+The 0.9 feature (Geoff, 2026-09-25 ruling on version numbering): a local client
+paired with dubplate-server. Scope is unspecified; nothing else about it is
+settled yet.
 
-### dubplate-server 1.1: the format ladder `formats-1-1`
+### dubplate-server 1.0: the format ladder `formats-1-0`
+(Re-keyed from "1.1"/`formats-1-1`, Geoff, 2026-09-25: the format ladder is 1.0's
+feature; 0.8 and 0.9 stay FLAC-only.)
 Ruled by Geoff, 2026-09-08 (rung 8 spec, owner ruling 5, closing fork
-B): 1.0 ships FLAC-only, and the other formats target a 1.1 release,
-sequenced after launch and ahead of `streamer-2-0`. The ladder, each
+B): 0.8 and 0.9 ship FLAC-only, and the other formats target the 1.0
+release, sequenced after launch and after `streamer-0-8`. The ladder, each
 step its own pass in the shape of rung 8 (a per-container writer behind
 the seam, a golden container, a corpus stratum derived through beets,
 and a conformance run against the ledger): MP3 (ID3v2.4, the recorded
 version) with Ogg Vorbis and Opus riding the same pass; then M4A (AAC
 and ALAC, one container and one iTunes-atom tag model); then WAV and
 AIFF by transcode to FLAC at intake, which waits on the ffmpeg seam
-and may therefore reorder against 2.0. Everything else stays a reject
+and may therefore reorder against 0.8. Everything else stays a reject
 whose message names the supported set and suggests a lossless
 conversion to FLAC where one exists. Rung 7's reject copy is written to
 that message shape now, whichever step has landed. Open input: whether
@@ -148,8 +157,8 @@ VPS). Opens with a brainstorm; context staged in agent memory (distribution
 model: binary-as-installer vs clone floor; cloud-init generation; existing-box
 bootstrap; pre-setup-VPS option map). **Runs after `dubplate-organizer`**
 (resequenced 2026-09-01, was after `uploader`) so it packages the final
-two-binary shape rather than an intermediate. Five setup pieces moved into 2.0
-(2026-09-24): the TLS listener, the Navidrome import, arm64 builds, `dubplate
+two-binary shape rather than an intermediate. Five setup pieces moved into 0.8
+(2026-09-24; re-keyed from "2.0", Geoff, 2026-09-25): the TLS listener, the Navidrome import, arm64 builds, `dubplate
 init`, and `dubplate upgrade`; packaging builds on them rather than owning them. The `oss-pair` write-up below
 doubles as its demand test.
 Carried option (Geoff, 2026-09-03): evaluate a Wails desktop app as a

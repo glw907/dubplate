@@ -1,5 +1,8 @@
 # dubplate-server 2.0: the built-in streamer
 
+**Re-keyed to the 0.8 release (Geoff, 2026-09-25 ruling on version numbering).** Everywhere
+this document says "2.0" it means 0.8. The title and body are left as written.
+
 Status: **Ratified 2026-09-07.** Revision 2.4, 2026-09-24 (Geoff's ruling: five hosting and setup features join the 2.0 target, recorded under "Hosting and setup at launch", "Hosting and setup", the widened Navidrome import, forward hooks 18 and 19, and slice 8). Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
 Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`, sequenced after the
 greenfield ladder's launch (rung 17).
