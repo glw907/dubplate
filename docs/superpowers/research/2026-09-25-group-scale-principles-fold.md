@@ -329,3 +329,74 @@ stand.
 - Moot by owner ruling: 1 (m5).
 - Refused: 0.
 - Rulings: 1 to 3 ruled; 4 to 7 open.
+
+## Bounded shares
+
+Target: the spec's "Bounded shares" placeholder, still revision 3. Input:
+`2026-09-25-bounded-shares-research.md`. Owner direction (Geoff, 2026-09-25): "Casual one-off
+sharing is an important feature... I want to be as easy and permissive as I can without making
+dubplate attractive to pirates." Navidrome keeps its defaults until 0.8, confirmed.
+
+### Bounds adopted
+
+All six of the research's recommended bounds are adopted, each with its default, its evidence
+by research section, and its cost to honest use.
+
+1. One item per share: a song, an album, or a one-album folder directory. Anything else, or
+   more than one id, answers error 50.
+2. A lossy stream only: 128 kbps Opus VBR by default, with no download, original format, or
+   M3U.
+3. Expiry clamped, not refused: 7-day default, 30-day maximum, checked on every stream and art
+   request.
+4. A distinct-listener pause at 50, counted at the first audio byte and keyed by a per-browser
+   cookie. The member and admin each get one notice, and the member may resume once.
+5. An unguessable, unindexed link: a 128-bit token, `noindex` and `no-referrer` on every share
+   response, and no `robots.txt` entry for the share path.
+6. Server-side clamping in one share service, with the owner from authentication.
+
+Buy links stay on the share page as a feature, with the weak purchase evidence stated. The
+research's seven dropped bounds are listed with one-line reasons.
+
+### Choices this fold made beyond the research
+
+Each closes a state the research left without a report, per the planning-miss rule.
+
+- A time already past in `expires` clamps to the default, beside absent, null, and zero.
+- A stream request with no listener cookie counts as a new listener. This follows the
+  research's own reasoning that clearing the cookie can only raise the count.
+- The one resume doubles the threshold, and the second pause is final. The research says
+  "resume it once" and names no state after it. Ruling 9 carries this with the number.
+- Share traffic sits in the member's meter under the share's id where a credential id would
+  sit, since a share request carries no credential.
+- A one-album folder directory counts as an album, matching `download` (row A5).
+- A playlist share snapshots its tracks at creation, so a later edit can't grow it (ruling 11).
+- "Before 0.8" now states the running Navidrome's share defaults and the GHSA-82gh-4ggp-gfg5
+  fix that 0.63.2 predates. This is a fact under ruling 3, and nothing is owed for it.
+
+### Declined from the research
+
+- Ruling 4 in the research ("Playlists") offers two options without choosing. The spec
+  recommends allowing a 20-track playlist, since the owner asked for the most permissive
+  sharing that stays unattractive to pirates.
+- Nothing else is declined.
+
+### Acceptance and errata
+
+- Row A4 now runs every case through both the web app and a client `createShare`. The client
+  cases are Tempo's null `expires`, DSub's `expires=0` and two ids, an artist id answering
+  error 50, and an owner field naming another member, which is ignored.
+- Conflict 1 names the streamer "Shares" section's concrete changes: scope, expiry, audio,
+  the crowd pause, headers, owner, and hook 15's share fields. The token, compare, rate limit,
+  revoke, slice 6's name, share management, and the launch list stay. This supersedes item 1
+  of "Owed errata, revised" where it says the share section stays "until the follow-up names
+  its changes".
+
+### Rulings added
+
+Rulings 8 to 12, after the existing seven, whose numbers stay fixed.
+
+8. Share expiry default and maximum (recommend 7 and 30 days).
+9. Listener-pause threshold (recommend 50 over the life, one resume at double).
+10. Whether the share page names the member (recommend yes).
+11. Playlists (recommend up to 20 tracks).
+12. Share stream bitrate (recommend 128 kbps Opus, fallback codec confirmed at build).

@@ -1,11 +1,14 @@
 # What dubplate is for, and what it isn't
 
-Design spec. Revision 3, 2026-09-25. Status: **awaiting Geoff's read; rulings 1 to 3 ruled.**
+Design spec. Revision 3, 2026-09-25. Status: **awaiting Geoff's read; rulings 1 to 3 ruled, 4 to 12 open.**
 Revision 1 (`1d6bc6a`) went through four review lenses (contract, mechanics, misuse,
 consistency) and an early prose read. Revision 2 (`08c812f`) went through a fold verification
 read, and revision 3 folds that read and Geoff's rulings of 2026-09-25. The fold record,
 including its "Second fold" section, is
 `docs/superpowers/research/2026-09-25-group-scale-principles-fold.md`.
+
+Revision 3 changelog: bounded shares filled in from research
+(`docs/superpowers/research/2026-09-25-bounded-shares-research.md`), adding rulings 8 to 12.
 
 Owner intent (Geoff, 2026-09-25): "I would like dubplate to be a tool for groups of family and
 friends to share purchased music. I don't want it to be an easy way for stolen music to be
@@ -40,7 +43,8 @@ operator of a server can change the code.
 This section is website copy for dubplate from 0.8, the first release that serves audio
 itself. Every line is true of the product as decided from that release. The website publishes
 it when 0.8 ships. Until then the server runs Navidrome, and "Before 0.8" lists where the
-running server differs. A line about a feature that isn't built yet says so.
+running server differs. A line about a feature that isn't built yet says so. The share line's
+week and month follow ruling 8, and change with it.
 
 **dubplate is:**
 
@@ -50,8 +54,10 @@ running server differs. A line about a feature that isn't built yet says so.
   Bandcamp or Qobuz, rips of your own CDs and records, and music given to you as a gift, such
   as a CD or a gifted download.
 - A private server. An admin adds each member, and the library needs a login.
-- A way to send a friend one album. A member can share a link to one album or song, and the
-  link is limited so it can't stand in for the library.
+- A way to send a friend one album. A member can send a friend a link to one album or song
+  that plays in the browser for a week, and the member can extend it to a month. The friend
+  needs no account. The link streams and never downloads, so it can't stand in for the
+  library.
 - A tidy library. dubplate looks up every album in MusicBrainz, the open music encyclopedia,
   and files it in a consistent layout.
 - A record of who added each album and what they said about where it came from.
@@ -171,24 +177,130 @@ a one-step revoke ("Profiles in the TUI"). This spec adds three things.
 - **A one-step admin revoke** of any one credential, beside the roster-level revoke that the
   valid-after epoch already provides. A revoked credential's next request answers error 40.
 
-## Bounded shares (design pending research)
+## Bounded shares
 
-Casual one-off sharing is an important feature (Geoff, 2026-09-25). A member who sends a
-friend a link to one album is using dubplate as intended. A permanent public link to the
-library isn't. So 0.8 keeps OpenSubsonic shares, bounded so that a link is useless as a
-distribution tool. Research that follows this revision sets the exact bounds, and the next
-revision folds them in. The candidate bounds are:
+Casual one-off sharing is an important feature. Geoff, 2026-09-25: "I want to be as easy and
+permissive as I can without making dubplate attractive to pirates." A member who sends a friend
+a link to one album is using dubplate as intended. A permanent public link to the library
+isn't. So 0.8 keeps OpenSubsonic shares, with six bounds.
 
-- One item per share: one album or one song.
-- Stream-only, in a lossy format, with no download.
-- An expiry on every link.
-- A cap on plays per link.
-- A pause when a link draws more distinct listeners than a friend's household would.
-- A cap on live links per member.
-- Links that can't be found: no index, no listing, and no guessable token.
-- Attribution on the share page, naming the member who shared it, with buy links first.
-- Server-side clamping, so a share a client creates takes the same bounds as one the web app
-  creates.
+The bounds follow `docs/superpowers/research/2026-09-25-bounded-shares-research.md` (cited
+below as "the research"). A share link fails as a piracy tool when it offers nothing a pirate
+can't get more easily elsewhere. Released music is already free to stream as lossy audio, and
+stream ripping is the most common form of consumer piracy (the research, "How share links get
+abused"). What a pirate would want from a dubplate link is lossless files, many albums behind
+one link, and a link that lasts. The six bounds remove those things and leave the rest alone.
+
+The threat these bounds answer is a link that escapes its intended friend. A member acting in
+bad faith already holds downloads of the whole library under ruling 1, so no share bound stops
+that member. The meter is the tool for that case.
+
+Each bound below gives its default, its evidence, and its cost to honest use. Rulings 8 to 12
+set the numbers the evidence doesn't settle.
+
+**1. One item per share.** A share names one song or one album. A folder-view directory that
+holds exactly one album counts as that album, as it does for `download`. A playlist is ruling
+11. A request that names more than one id, or an artist, a music folder, or a directory above
+the album level, answers error 50 with a message that names the one-item rule. The web app
+offers only the allowed kinds.
+
+- Evidence: every documented abuse case is about a whole library, not an album. Navidrome
+  allows artists and several ids per share, and DSub sends every selected id (the research,
+  "How share links get abused" and "How casual sharing works today").
+- Cost to honest use: a member sends two links for two albums.
+
+**2. A lossy stream, never a file.** A share serves audio only as a lossy stream, at 128 kbps
+Opus VBR by default (ruling 12). A browser that can't play Opus gets a codec it plays at an
+equivalent rate. A share has no download route, never serves the original format, and has no
+M3U list of stream URLs. The encode runs under the streamer's transcode budget.
+
+- Evidence: the OpenSubsonic API has no downloadable flag, so the server decides. Communities
+  that value quality reject lossy sources. Navidrome's share dialog defaults to the original
+  format, which serves FLAC from a FLAC library (the research, "How casual sharing works
+  today" and "How share links get abused").
+- Cost to honest use: near zero, since Xiph calls Opus at 128 kbps "pretty much transparent"
+  for stereo music (the research, "What bounds cost honest listeners"). A friend who wants the
+  files follows the buy links.
+
+**3. Expiry clamped, not refused.** A share expires 7 days after creation by default, and
+never later than 30 days after creation (ruling 8). The member can extend a share up to that
+maximum. The server clamps `expires` instead of refusing it, so stock clients work.
+
+- An absent, null, or zero `expires`, or a time already past, becomes the default.
+- A time past the maximum becomes the maximum. `updateShare` clamps the same way, measured from
+  the share's creation.
+- Every stream and art request checks the share's expiry and deletion, not only the page.
+- Evidence: Navidrome's one-year default, and its bug that kept expired and deleted shares
+  streaming until v0.62.0. The Jellyfin ShareLinks plugin allows 24 hours to 30 days, and
+  Nextcloud lets an admin enforce a maximum. Secret links leak through mail scanners and search
+  indexes (the research, "How casual sharing works today", "How comparable products bound
+  private sharing", and "How share links get abused").
+- Cost to honest use: a friend who opens the link after day 7 asks for a new one. Messenger
+  links get half their clicks within hours of their peak (the research, "What bounds cost
+  honest listeners").
+
+**4. A pause when a link draws a crowd.** A share pauses when 50 distinct listeners have played
+it over its life (ruling 9). A paused share's page says the link is paused, and its streams
+answer no audio.
+
+- A listener counts at the first audio byte served, never at a page view, so a chat app's
+  link-preview fetch doesn't count.
+- The share page sets a random per-browser cookie, and that cookie is the listener key. An
+  address isn't, so one person moving between Wi-Fi and cellular counts once. A stream request
+  without the cookie counts as a new listener, so clearing the cookie can only raise the count.
+- At the pause, the member and the admin each get one notice through the notify path the
+  volume notice uses.
+- The member can resume a paused share once. The resume doubles the share's threshold, and the
+  second pause is final.
+- Share traffic counts in the sharing member's meter, under the share's id where a credential
+  id would sit.
+- Evidence: Bandcamp alerts an artist at more than 100 unique visits in 48 hours on a private
+  link. Chat groups among family and friends average 20 to 30 members (the research, "How
+  comparable products bound private sharing" and "What bounds cost honest listeners").
+- Cost to honest use: none below the threshold.
+
+**5. An unguessable, unindexed link.** The share token carries 128 bits from `crypto/rand` and
+is compared in constant time, as the streamer spec already requires. The share page and every
+share response send `X-Robots-Tag: noindex` and `Referrer-Policy: no-referrer`. No listing
+names a share, except the member's own shares and the admin's view. `robots.txt` never names
+the share path, because a crawler that robots.txt blocks can't read the page's noindex.
+
+- Evidence: OWASP asks for at least 64 bits in a session identifier, and Navidrome's share id
+  has about 59.5. Mail scanners and chat previews fetch every link they see, so a token is a
+  bearer secret that leaks (the research, "How casual sharing works today", "How share links
+  get abused", and bound 5 of its recommended set).
+- Cost to honest use: none.
+
+**6. Server-side clamping, owner from authentication.** One share service enforces bounds 1 to
+5, and the web app and `createShare` both call it. The share's owner is the authenticated
+member. Any owner, user, or username field in the request is ignored.
+
+- Evidence: DSub sends `expires=0` and every selected id, and Tempo sends a null `expires`.
+  Navidrome's High-severity advisory GHSA-82gh-4ggp-gfg5 came from trusting a client-supplied
+  `userId` (the research, "How casual sharing works today").
+- Cost to honest use: none.
+
+**Buy links are a feature, not a bound.** The share page shows the album's buy links under the
+rules in "Money points toward buying", the same as the album page. The evidence that they sell
+music is weak. No public data ties share pages to purchases, and studies of free listening
+find mixed effects on sales (the research, "The buy-link funnel"). They stay because they cost
+little and point a friend who likes the album toward the artist.
+
+**Considered and dropped.** Each of these costs honest listeners more than it costs an abuser,
+or it duplicates a bound above (the research, "Bounds considered and dropped").
+
+- A play cap. It stops a family chat on the third listener, and the listener pause bounds a
+  crowd without counting repeat listens.
+- A cap on live links per member. It can't stop a member acting in bad faith, who already holds
+  the library's downloads.
+- Preview clips. A clip defeats sending a friend an album, and a full lossy stream offers a
+  pirate nothing a free stream lacks.
+- Attribution as a deterrent. No evidence shows that naming the sharer deters a leak. Whether
+  the page names the member is ruling 10, decided on the friend's experience.
+- A password on the link. It is a second secret that travels with the first.
+- Per-link bandwidth caps. A lossy stream is small, and the pause and the transcode budget
+  already bound load.
+- A robots.txt block of the share path. It hides the noindex from the crawler it targets.
 
 ## dubplate never fetches music
 
@@ -296,7 +408,10 @@ is/isn't copy in three ways.
   neither the key in `config/navidrome.toml` nor `ND_ENABLESHARING` in the container's
   environment. The tunnel forwards every path, `/share/*` included, to Navidrome. So a member
   can create a public share link that serves audio without a login. A read-only check on
-  2026-09-25 found zero shares in production.
+  2026-09-25 found zero shares in production. Navidrome's share links there keep its defaults:
+  a one-year expiry, several ids of any kind, and the original format. The pinned 0.63.2 also
+  predates the fix for advisory GHSA-82gh-4ggp-gfg5, in which share creation trusted a
+  client-supplied `userId` (the bounded-shares research, "How casual sharing works today").
 - **Downloads are on, at Navidrome's default.** Navidrome 0.63.2 defaults `EnableDownloads` to
   `true` (`conf/configuration.go:758`), and its `download` returns artist and playlist zips.
 - **Credentials and volume aren't covered.** Navidrome has one Subsonic password per user, no
@@ -439,7 +554,7 @@ Status values:
 | Member cap on every add channel; preflight Navidrome import | Rung 14 settings; the roster's add path | new |
 | Route inventory with an auth class per route, the fallthrough classed as delegated | The next rung that registers a route | new |
 | Login required for audio, art, and catalog data | Rung 5 gates the web app; 0.8 API surface | specified for 0.8 |
-| Shares kept at 0.8, bounded so a link can't distribute a library | 0.8 slice 6; bounds set by the follow-up research | new (amends the streamer spec; design pending) |
+| Shares kept at 0.8 under six bounds: one item, lossy stream, clamped expiry, listener pause, unindexed token, server-side clamping | 0.8 slice 6 | new (amends the streamer spec) |
 | Navidrome sharing and downloads left at their defaults before 0.8 | Residual the owner accepted, 2026-09-25 | residual |
 | Any sharing check reads the effective value; escape-hatch `doctor` row on `shareRole` | 0.8 | new |
 | Group-visible as the visibility ceiling | Configuration homes spec; rung 14 API | specified |
@@ -478,7 +593,7 @@ can pass on an empty fixture. A rung plan cites rows by number.
 | A1 | Member cap | Roster at N-1 with cap N, on each of `member add`, the add-member page, `member import`, and `dubplate import navidrome`; an empty roster for the bootstrap; an over-cap roster at load | The Nth add lands; the next is refused naming the setting and offboarding; the bootstrap lands; the over-cap roster loads with a `doctor` row; an import over the cap writes nothing | The check is removed from any one channel |
 | A2 | Route inventory | The real serve shell, every registered route, the fallthrough set | Every route matches its table row and auth class (public, session, admin, or delegated); an unauthenticated request is refused on every session and admin row; the fallthrough is the only delegated row | A route is added without a row, or an auth wrapper is dropped |
 | A3 | OpenSubsonic auth | Every implemented endpoint, no credentials | Only `getOpenSubsonicExtensions` answers; every other endpoint answers error 10 or 40 | Any other endpoint returns data |
-| A4 | Shares bounded | Set by the follow-up research | Every bound the follow-up adopts holds on a share created by the web app and on one created by a client | Any adopted bound is missing on either path |
+| A4 | Shares bounded | Each case below twice, once through the web app's share service call and once through a client `createShare`: a song, an album, and a one-album folder directory; an artist id; two album ids, as DSub sends; Tempo's null `expires`; DSub's `expires=0`; an `expires` past the maximum; an `updateShare` past the maximum from creation; a request whose owner field names another member; an expired share and a deleted share, each fetched on the stream route; one share at threshold minus one listener, then a page view, a preview fetch of the page, and the next first audio byte; one cookie from two addresses; one stream request with no cookie; a resumed share at twice the threshold; under ruling 11, a playlist at and one track over the limit | Song, album, and one-album directory shares land; the artist, the two ids, and any other kind answer error 50 with the one-item message; null, zero, and past times clamp to the default, and a later time clamps to the maximum; the owner is the authenticated member; the stream is lossy at ruling 12's rate, and no download, original-format, or M3U request returns audio; expired and deleted shares serve no bytes; the count moves only at the first audio byte, counts one cookie once across addresses, and counts a cookieless request as new; the pause lands at the threshold with one notice each to the member and the admin, and the second pause refuses a resume; the page and every share response carry `noindex` and `no-referrer`, the token has 128 bits, and `robots.txt` names no share path; share bytes appear in the member's meter | Any bound is missing on either path, or a client field sets the owner |
 | A5 | Download scope | One id of every kind the catalog mints | A song and an album answer; a one-album folder directory answers as its album; every other kind answers error 50 with the song-or-album message | Any other kind returns a body |
 | A6 | Meter and notice | Two members, three credentials (two on one client name), one track served to two of one member's credentials, one aborted stream and its nonzero-offset Range continuation, and one member at threshold minus one then plus one; a restart between reads | Per credential, distinct tracks and bytes match the trailing-24-hour rule; the continuation adds bytes and no track; the shared track counts once for the member; the notice fires once, naming the member and credentials; nothing is refused; the restart changes nothing | Two credentials merge, the continuation counts a track, the notice fires twice or not at all, or the window resets |
 | A7 | Credential cap, admin list, and revoke | Mixed kinds at the cap, including an app password minted before the revoke; one credential used from three client addresses in trusted-proxy mode, and the same requests in the default mode | Minting is refused at the cap with the revoke list; the admin list shows three addresses in trusted-proxy mode, no count and a `doctor` row in the default mode; the revoked credential's next request answers error 40 | A kind escapes the count, the default mode shows a count, or the revoke lags |
@@ -499,10 +614,30 @@ its own document once Geoff approves this spec. This spec edits none of them.
 1. **Shares.** The streamer spec's "Shares" section ships four share endpoints at launch, with
    a public token path that serves audio. The configuration homes spec (ratified
    2026-09-23) declines sharing outside the roster and reserves share rows only "if sharing
-   ever ships". The streamer spec's erratum is: bound shares, per the follow-up. The
-   configuration homes spec's decline of sharing outside the roster gains the same exception,
-   and its reserved share rows and the rung 6 spec's reserved rows stay. The follow-up names
-   every passage its bounds touch.
+   ever ships". The streamer spec's erratum makes these changes, per "Bounded shares".
+   - Scope: "one album or one playlist" becomes one song or one album, with a playlist only as
+     ruling 11 decides. Every other id kind, and more than one id, answers error 50.
+   - Expiry: "An expiry is required" becomes an expiry clamped to the default and the maximum
+     (ruling 8), never refused. Every stream and art request checks expiry and deletion.
+   - Audio: "it serves the direct path, or a configured per-share encode budget" becomes a
+     lossy stream only, at ruling 12's rate, under the transcode budget. The direct path, the
+     original format, a download route, and an M3U list are gone from shares.
+   - Crowd: the listener pause, its cookie key, its notices, its one resume, and share bytes in
+     the member's meter join the section.
+   - Headers: the page and every share response send `noindex` and `no-referrer`, and
+     `robots.txt` never names the share path.
+   - Owner: the owner comes from authentication, and one share service serves the web app and
+     `createShare`.
+   - The 128-bit token, the constant-time compare, the per-address rate limit, and the revoke
+     stay as written. Slice 6's name, share management in "Web surface", and the launch list's
+     shares stay.
+   - Hook 15's reserved share rows gain the fields the bounds need: the item, creation and
+     expiry times, the listener count and threshold, the paused and resumed state, and the
+     listener keys.
+
+   The configuration homes spec's decline of sharing outside the roster gains the bounded-share
+   exception. Its "shares re-checked at fetch time" entry stands and matches bound 3. Its
+   reserved share rows and the rung 6 spec's reserved rows stay.
 2. **Download scope.** The streamer spec's "API surface" section has `download` return album,
    artist, or playlist zips, the playlist zip with an `.m3u8`. The erratum limits it per row
    A5. The "Digital audio players" section names `download` as the server's contribution to
@@ -541,8 +676,9 @@ as lyrics. This spec's refusal of music acquisition rests on the product's purpo
 
 ## Rulings for Geoff
 
-Rulings 1 to 3 are ruled (Geoff, 2026-09-25), and the body follows them. Rulings 4 to 7 are
-open. The numbers stay fixed, because the body and the fold record cite them.
+Rulings 1 to 3 are ruled (Geoff, 2026-09-25), and the body follows them. Rulings 4 to 12 are
+open. Rulings 8 to 12 come from the bounded-shares research. The numbers stay fixed, because
+the body and the fold record cite them.
 
 ### Ruled
 
@@ -597,3 +733,35 @@ open. The numbers stay fixed, because the body and the fold record cite them.
    - A later release: that release renders the links and captures them for albums already
      admitted. The uploader still captures the store link at rung 7, because upload is the
      only moment it exists.
+8. **Share expiry default and maximum.** The evidence spans 24 hours (the Jellyfin plugin) to
+   one year (Navidrome). Recommendation: a 7-day default and a 30-day maximum. Most clicks on
+   a messenger link come in its first hours, and a member can extend a link or send a new one.
+   - 7 and 30: the clamp and the is/isn't copy say "a week" and "a month".
+   - 14 and 30: the clamp and the copy say "two weeks" and "a month". This suits a group with
+     slow openers.
+9. **Listener-pause threshold.** Recommendation: 50 distinct listeners over the share's life,
+   with one member resume that doubles the threshold. The operator carries the hosting and
+   complaint risk, so a pause matters more for dubplate than for Bandcamp.
+   - 50 over the life: the store keeps a lifetime listener count per share.
+   - Bandcamp's 100 in 48 hours: the store keeps timestamped listener keys and a rolling
+     window.
+   - An alert with no pause: the notices fire at the threshold, and nothing stops the stream.
+10. **Whether the share page names the member.** Recommendation: show the member's display
+    name, as "Shared by Maya", since the friend already knows the sender. The cost is that an
+    escaped link shows that name to strangers.
+    - Named: the share page renders the display name, and the share response carries it.
+    - Unnamed: the page says "Shared from a dubplate library", and no share response carries
+      a member's name.
+11. **Playlists.** A playlist can hold any selection, which is why `download` refuses playlist
+    zips. Recommendation: allow a playlist share of up to 20 tracks, because a mixtape for a
+    friend is casual sharing at its most typical.
+    - Up to 20 tracks: the share snapshots the playlist's tracks at creation, so a later edit
+      doesn't grow it. A longer playlist answers error 50 with a message that names the limit.
+    - Left out at 0.8: a playlist id answers error 50, and the web app offers no playlist
+      share.
+12. **Share stream bitrate.** Recommendation: 128 kbps Opus VBR. The research didn't check
+    whether Safari plays Opus in the share page's audio element, so the slice that builds the
+    page confirms the fallback codec.
+    - 128 kbps: near transparent for stereo music.
+    - 96 kbps: within Xiph's streaming range, and saves bandwidth.
+    - 192 kbps: adds nothing a listener hears, and adds value to a rip.
