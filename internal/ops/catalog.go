@@ -86,8 +86,8 @@ var privileges = map[string]Privilege{
 // is a recognized operation name. An unrecognized name answers ok
 // false and a zero [Privilege], never a guessed one: its caller
 // answers not_found before any authorizer runs.
-func PrivilegeOf(op string) (p Privilege, ok bool) {
-	p, ok = privileges[op]
+func PrivilegeOf(op string) (Privilege, bool) {
+	p, ok := privileges[op]
 	return p, ok
 }
 
