@@ -6,9 +6,9 @@ Rungs 1b, 3, 4, 8, rung 5's 5a to 5c-i, and **rung 6's pass 6a** (the store foun
 `8736528`, about 4.0M against 6.8M; HISTORY, top entry) are closed. 6a's architecture findings route
 to 6b-i (store) and the architecture cleanup pass (cmd).
 Beets 2.14.1 is adopted and closed (`367564c`, `422efcd`, simplifier clean). 5c-ii runs in lane 1.
-The visual identity spec (`specs/2026-09-24-visual-identity-design.md`, `ecba52a`, revision 1)
-authors the web look: palettes, type, the record mark, the component layer, and the photo system.
-It awaits Geoff's review; 5c-ii Task 4 and 5c-iii build to it. Owed at its ratification: a web
+**The visual identity work is complete** (Geoff, 2026-09-25): spec revision 1.2 at `782d864`
+(`specs/2026-09-24-visual-identity-design.md`). Its refinement rules, inks, focus rule, and no-art
+sleeve route to 5c-iii; its unruled "Open for rung 7" items go to rung 7 for a verdict. Owed: a web
 surface standard section 19 entry recording that its ruling 4 withdraws W1.3's illustrations.
 
 ## Rulings taken (Geoff, 2026-09-24)
