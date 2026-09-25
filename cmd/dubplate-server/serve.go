@@ -337,16 +337,10 @@ func sendsHSTS(publicURL string) bool {
 // a request to <prefix>/roster/roster must answer the terminator's 404,
 // never the member list, and the terminator's 404 this wrap answers is
 // byte-equal to the admin gate's own refusal, so a non-admin sees the
-// same answer on either side of it.
+// same answer on either side of it. It is [newExactPathRoutes] (web.go)
+// narrowed to the one-route case.
 func exactPath(want string, next http.Handler) http.Handler {
-	terminator := serve.Terminator()
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != want {
-			terminator.ServeHTTP(w, r)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	return newExactPathRoutes(map[string]http.Handler{want: next})
 }
 
 // authHandlersConfig builds the [auth.HandlersConfig] newServeShell
