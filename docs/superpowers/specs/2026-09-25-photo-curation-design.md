@@ -118,6 +118,7 @@ A record carries the facets above and these provenance fields:
 | `source_sha256` | The hash of the file as downloaded. |
 | `sha256` | The hash of the stored file. |
 | `status` | `picked`, `rejected`, or `pack`. |
+| `screen` | Curation only: the search agent's 1-to-5 score and one-line note. |
 
 Images are stored as WebP at a 1600px long edge, about 150KB each, which puts 300 images near
 45MB. Resizing and re-encoding is a technical modification under CC 4.0, not an adaptation, so it
@@ -157,11 +158,21 @@ covered it.
 A fresh Opus reader then spot-checks a sample of the round's license quotes against the live
 source pages. A round with a wrong quote is re-verified whole before Geoff sees it.
 
-Geoff picks from a private contact-sheet artifact. It shows each candidate's thumbnail, caption,
-and license, with running counts per family, region, decade, subject, and shot. Picks and passes
-save to the artifact's database. The conductor reads them back, sets each record's status, moves
-picked images into `photos/`, and commits with path-scoped commits. Rounds continue until the
-picked pool meets the shares and the coverage floor.
+Each search agent looks at every candidate it keeps. It drops an image that is out of focus,
+too small for a 1600px display, or impossible to crop to the login page's tall column. It gives
+each survivor a 1-to-5 gut score and a one-line note, stored in the record's `screen` field. The
+binary ignores that field. The score only sets the order Geoff sees candidates in, so it decides
+nothing.
+
+Geoff sorts on a private artifact page. The page shows a grid of large thumbnails in score
+order, each captioned with its subject, place, year, and license. `Y` keeps a candidate, `N`
+passes it, the arrow keys move between candidates, and `Space` opens the full-size view. Clicks
+work too, so the page is usable on a phone. Filter chips narrow the grid by family, subject, and
+region. A bar shows running counts against the family shares. Choices save to the artifact's
+database as they are made, so a sitting can stop and resume on any device. The conductor reads
+the choices back, sets each record's status, moves the kept images into `photos/`, and commits
+with path-scoped commits. Rounds continue until the picked pool meets the shares and the
+coverage floor.
 
 ## Outreach
 
