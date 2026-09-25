@@ -303,3 +303,43 @@ want to see the adopter-facing spelling `DUBPLATE_THEME_PALETTE=system`.
 **Refused:** none. **Ceiling:** unchanged at 9.4M (flag 7.52M),
 projection 7.00M. **Deliverables:** 32. Tasks: unchanged at eight plus
 Task 0.
+
+## Second amendment fold
+
+Revision 2.3 (`30f2d5b`) to revision 2.4. Inputs: the amendment
+verification read
+(`docs/superpowers/research/2026-09-24-rung-5c-ii-amendment-verification.md`,
+A1 through A11), and the settled tokens in the last section of
+`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`.
+
+| ID | Severity | Disposition | Where |
+| --- | --- | --- | --- |
+| A1 | major | **Folded.** The "one merged rule" sentence is gone. The binding now cites the probe's measured output: a merged match rule carrying both names with `color-scheme:normal`, then one palette rule per theme. The bundle row reads the cascade's effective value: the last declaration in source order across every rule in a media context whose selector list carries the compound. Mutation 7 is kept, and the probe confirmed it dies. | Task 4 binding, acceptance, mutation 7 |
+| A2 | minor | **Folded.** The row lives in `web/scripts/gates/theme-bundle.ts`, which runs in the `web` target after the build, beside G3's built-bundle half. It is gate-resident, so a later `app.css` reorder or a `dark:` class fails it. R-5cii15 gains its row. | Task 4 Files and acceptance; R-5cii15 |
+| A3 | minor | **Folded.** Two G2 rows: a branch missing or adding a name against the 32 plus the ink set, and a name declared twice in one branch or ink block. Mutation 10 (iterate only the branch's own declarations) is killed by the missing-name row. | Task 4 states, mutation 10 |
+| A4 | minor | **Folded as the operator's risk, and no ruling.** DL R2.6 already rules tier 2 outside the contrast floor ("Tiers 2 and 3 sit outside this floor ... that risk is the operator's"). A serve or `doctor` contrast refusal would reverse a ratified line. It would also need Go to resolve every palette value from the built CSS. So 5c-ii adds no check. 5d's runbook row states that a branding color applies in both schemes, and the handoff carries per-scheme branding as a spec option. No adopter-visible behavior changes. | Task 8 gaps and handoff |
+| A5 | low | **Not folded, per the conductor.** The meta stays `light dark` under either model. | None |
+| A6 | low | **Folded.** Mutation 11's detector is now G7's row that no 404, JSON answer, asset, or stylesheet carries `Vary: Cookie`. | Task 7 mutation 11 |
+| A7 | low | **Folded, restated.** Mutation 7 now builds the variant set from the character rule instead of the extraction, which the stampable-set assertion kills. | Task 5 mutation 7 |
+| A8 | low | **Folded.** Two cookie rows: an unparseable first cookie is skipped, so a second `label-night` stamps; a padded value resolves to the default. | Task 5 states |
+| A9 | low | **Folded.** The pre-named split moves the cookie reader to its own Task 5b, and Task 6 keeps four deliverables. | Task 5 pre-named split |
+| A10 | low | **Folded.** Exit item 8 names `Vary: Cookie` (Task 7). | Exit gate |
+| A11 | low | **Folded.** The spec deviation now says W5.9 is met in spirit, not in letter. Task 8's errata list a one-line clarifying erratum to W5.9. This replaces revision 2.3's "no erratum". | Spec deviations; Task 8 errata |
+
+**Settled tokens applied.**
+
+- `--size-field` is `0.28125rem` (45px by the session's measure), which
+  replaces revision 2.3's interim `0.275rem`. G2's floor row gates it.
+- `label`'s `--color-secondary` and `label-night`'s `--color-neutral`
+  are fill-only, with the R2.6 marker and no ink. The marker count stays
+  four.
+- Warning keeps `--ink-warning`.
+- `DUBPLATE_THEME_PALETTE=system` is confirmed.
+- The two spec questions that revision 2.3 carried in Task 8's handoff
+  are closed. The component sheet under review with Geoff is carried as
+  possible 5c-iii CSS.
+
+**Refused:** none. **New rulings for Geoff:** none. **Ceiling:**
+unchanged at 9.4M (flag 7.52M), projection 7.00M, since the fold's
+additions are inside noise. **Deliverables:** 32, with Task 5b existing
+only if its split fires.
