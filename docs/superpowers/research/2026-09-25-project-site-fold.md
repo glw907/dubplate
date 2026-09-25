@@ -207,3 +207,11 @@ reads "Revision 3, 2026-09-25. Status: ratified (Geoff, 2026-09-25)"). The is/is
 legal-note move no longer waits on ratification, so it leaves the Phase B preconditions and joins
 the Phase A done list, landing in Phase A's dubplate lane with the other guides. The principles
 spec itself is not edited by this fold.
+
+## Owner ruling on C2
+
+Geoff ruled option (b) for C2 on 2026-09-25. The guide leg already carried its first half. The
+second half, a site-side check that the lock's pin is the newest release, was missing: the spec
+refused only a non-release ref. Revision 2.3 adds it in "What each check proves". The site's gate
+fails when the newest release-notes post names a version newer than the lock's tag, since the
+site's build can't read the private repo's tags.

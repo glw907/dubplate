@@ -1,6 +1,6 @@
 # The dubplate project site
 
-Design spec. Revision 2.2, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
+Design spec. Revision 2.3, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
 Geoff's read.** Four owner rulings stay open (see "Open rulings"). Revision 1 (`e91f528`) went
 through five review lenses (contract, drift, consistency, mechanics, prior art) under
 `docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold record is
@@ -15,6 +15,9 @@ owners for the late generators, open ruling 11 split three ways, and the exporte
 Revision 2.2 changelog: folds the prose review, adds a generated third-party notices list that the
 gate keeps current, and moves the is/isn't lines into Phase A now that the principles spec is
 ratified.
+
+Revision 2.3 changelog: records Geoff's ruling of option (b) on contract finding C2 and adds its
+missing half, a site gate check that the lock's pin is the newest release.
 
 dubplate needs a public home where a stranger learns what it is, decides whether it fits their
 group, and sets up a server. This spec fixes who the site serves, where it lives, which pages it
@@ -267,7 +270,11 @@ leg keeps current.
 
 Every vendored and generated page shows "Describes dubplate `<ref>`" from the lock, and a page
 from a non-release commit says it previews an unreleased version. A stale pin is then visible to
-the reader. The Phase B deploy refuses a lock whose ref isn't a release tag. The step that bumps
+the reader. The Phase B deploy refuses a lock whose ref isn't a release tag. The site's gate
+also fails when the newest release-notes post names a version newer than the lock's tag, so a
+release announced on the site can't go out with an older guide. The site's build can't read
+dubplate's tags, because the repo is private, so the post is the signal the gate reads. Geoff
+ruled this pair of checks, option (b) of contract finding C2, on 2026-09-25. The step that bumps
 the site's pin belongs in the tool that cuts dubplate releases, which prints the sync command for
 the new tag. Until that tool exists, dubplate's release checklist carries the step, and the Phase
 A dubplate lane creates that checklist.
