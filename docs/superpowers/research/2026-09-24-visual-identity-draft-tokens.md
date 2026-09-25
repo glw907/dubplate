@@ -118,3 +118,13 @@ metadata), all OFL, embedded as woff2 through go:embed.
   shadows on buttons and cards, ink borders, a red focus ring, mono uppercase badges,
   underline tabs, a thick-thin rule under headings, a mono catalog line, and dotted-leader
   tracklists. Exact rules follow if he approves.
+
+## Superseded by the visual identity spec (2026-09-24, `ecba52a`)
+
+The spec `docs/superpowers/specs/2026-09-24-visual-identity-design.md` has landed and
+supersedes this file. Where the two differ, the spec wins. One value changed for 5c-ii
+Task 4: `--radius-selector` is `.25rem`, not `2rem`, because Geoff ruled squared badges, so
+every corner is square. The rest of Task 4's values stand as settled above:
+`--size-field: .28125rem`; `label` secondary and `label-night` neutral fill-only with the
+W2.6 marker; `--ink-warning` #765000 (label) and `--ink-primary` #ec7b6a (label-night); the
+`dubplate-system` default, the metas, and `DUBPLATE_THEME_PALETTE=system`.
