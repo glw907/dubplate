@@ -2,6 +2,9 @@
 
 Status: drafted. Geoff sends from his own account; nothing has been sent.
 
+Checked again at the plan fold, 2026-09-25: the address still appears on the contact page, and
+the Mods, Skins & Mod Revival page returns 200.
+
 ## Contact route
 
 - Email: `contact@britishculturearchive.co.uk`. The contact page lists it "For orders and
@@ -38,30 +41,28 @@ quoted.
 Resolution of the originals is unknown; the letter asks for files at 1200 pixels or more.
 
 ## Letter
-
 **Subject:** Five People's Archive photographs for a small open-source music server
 
 Hello,
 
-My name is Geoff. I'm building dubplate, a free music server that lets a group of friends
-share one well-organized library. It's open source, released under the MIT license. The
-sign-in page shows a photograph from a music scene, and a credits page lists every photo. Each
-one is always credited.
+My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
+one well-organized library. It's open source, released under the MIT license. The sign-in page
+shows a photograph from a music scene, and a credits page lists every photo.
 
 The Mods, Skins & Mod Revival selection from The People's Archive shows those scenes as the
-people inside them saw them. I'd love to include five photographs from it: Tulse Hill, London,
-1979 (Lee Dema); Two Tone arrives in Dudley, 1980 (Tom); Pimlico, London, 1963 (Colin
-Staplehurst); Original Mods on Box Hill, Surrey, 1962 (Jack Oxford); and Skinheads in St
-Leonards-on-Sea, 1980 (Russell Macnay). Each credit would name the contributor and The
-People's Archive.
+people inside them saw them. I'd love to include five: Tulse Hill, London, 1979 (Lee Dema); Two
+Tone arrives in Dudley, 1980 (Tom); Pimlico, London, 1963 (Colin Staplehurst); Original Mods on
+Box Hill, Surrey, 1962 (Jack Oxford); and Skinheads in St Leonards-on-Sea, 1980 (Russell
+Macnay). Each credit would name the contributor and The People's Archive.
 
-Would you and the contributors consider releasing these five under CC BY 4.0? It lets anyone
-reuse a photo as long as they credit it. If you agree, a line on the archive's page naming the
-photos and the license would let anyone check it. I'd need files at least 1200 pixels on the
-long side.
+Would you and the contributors consider releasing these five under CC BY 4.0? CC BY lets anyone
+reuse and adapt a photo, commercially too, as long as they credit it. If you agree, a line on
+the archive's page naming the photos and license would let anyone check it. I'd need files at
+least 1200 pixels on the long side.
 
-If that isn't possible, would you allow them in an optional photo pack instead? People who run
-dubplate would choose whether to install it, and the terms would be yours to set.
+If that isn't possible, would you allow them in an optional photo pack instead? The pack is
+planned but has no date yet. It would be a separate download that people who run dubplate could
+choose to add, on terms you set.
 
 Thank you for gathering these pictures and keeping the names of the people who took them.
 

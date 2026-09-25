@@ -2,6 +2,9 @@
 
 Status: drafted. Geoff sends from his own account; nothing has been sent.
 
+Checked again at the plan fold, 2026-09-25: the address still appears on the DC Punk Archive
+page.
+
 ## Contact route
 
 - Email: `Peoples.Archive@dc.gov`, phone 202-727-1213. The DC Punk Archive page gives both for
@@ -36,30 +39,27 @@ The letter asks the library which of those photographs it holds the rights to, a
 the rest.
 
 ## Letter
-
 **Subject:** Photographs from the DC Punk Archive for a small open-source music server
 
 Hello,
 
-My name is Geoff. I'm building dubplate, a free music server that lets a group of friends
-share one well-organized library. It's open source, released under the MIT license. The
-sign-in page shows a photograph from a music scene, and a credits page lists every photo. Each
-one is always credited.
+My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
+one well-organized library. It's open source, released under the MIT license. The sign-in page
+shows a photograph from a music scene, and a credits page lists every photo.
 
-I'd love for DC punk to be part of it, and the DC Punk Archive holds the photographs I'd most
-want. I'm thinking of the scene photographs in the Punk 202 collection and in the Mike Ross
-collection from 1982 to 1987. I haven't picked single images yet, because I can't tell from
-Dig DC who holds the rights to each one.
+I'd love for DC punk to be part of it. I'm thinking of the scene photographs in the Punk 202
+collection and in the Mike Ross collection from 1982 to 1987. I haven't picked single images
+yet, because I can't tell from Dig DC who holds the rights to each one.
 
-Are there photographs in those collections that the library holds the copyright to? If so,
-would you consider releasing a few of them under CC BY 4.0? It lets anyone reuse a photo as
-long as they credit it. The rights field on Dig DC would be a good place for anyone to check
+Are there photographs in those collections that the library holds the copyright to? If so, would
+you consider releasing a few of them under CC BY 4.0? CC BY lets anyone reuse and adapt a photo,
+commercially too, as long as they credit it. The rights field on Dig DC would let anyone check
 it. For photographs whose rights sit with the photographer, could you tell me who to ask, or
 pass my note along?
 
-If an open license isn't possible, would the library allow a few in an optional photo pack?
-People who run dubplate would choose whether to install it, and the terms would be yours to
-set.
+If an open license isn't possible, would the library allow a few in an optional photo pack? The
+pack is planned but has no date yet. It would be a separate download that people who run
+dubplate could choose to add, on terms you set.
 
 Thank you for building an archive that keeps the scene's own record.
 

@@ -1,6 +1,12 @@
 # Charlie Phillips (Charlie Phillips Heritage Archive)
 
-Status: drafted. Geoff sends from his own account; nothing has been sent.
+Status: blocked. The contact route failed verification: `charliephillipsarchive.com` has no MX
+record (checked again 2026-09-25 at the plan fold), so mail to the archive address may bounce.
+The fallback route is Nicky Akehurst (below), who represents him for talks. Geoff decides whether
+to send through her. Nothing has been sent.
+
+Checked again at the plan fold, 2026-09-25: `dig MX charliephillipsarchive.com` returns nothing.
+The four V&A pages return 200.
 
 ## Contact route
 
@@ -37,27 +43,27 @@ The V&A holding a print does not settle who holds copyright; the letter asks Phi
 | Portobello Road | 1974 | <https://collections.vam.ac.uk/item/O1225393/> |
 
 ## Letter
-
 **Subject:** Four of your Notting Hill photographs for a small open-source music server
 
 Dear Mr Phillips,
 
-My name is Geoff. I'm building dubplate, a free music server that lets a group of friends
-share one well-organized library. It's open source, released under the MIT license. The
-sign-in page shows a photograph from a music scene, and a credits page lists every photo. Each
-one is always credited to the person who took it.
+My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
+one well-organized library. It's open source, released under the MIT license. The sign-in page
+shows a photograph from a music scene, and a credits page lists every photo. Each one is always
+credited to the person who took it.
 
 Your photographs of Notting Hill's West Indian community in the 1960s and 70s show a London I
 want the people using dubplate to see. I'd love to include four of them: Notting Hill Couple
 (1967), Cue Club Regulars (1966), Notting Hill Carnival (1968), and Portobello Road (1974).
 
-Would you consider releasing those four under CC BY 4.0? It lets anyone reuse a photo as long
-as they credit you. If you agree, a line on the archive's site naming the photos and the
-license would let anyone check it. I'd need files at least 1200 pixels on the long side.
+Would you consider releasing those four under CC BY 4.0? CC BY lets anyone reuse and adapt a
+photo, commercially too, as long as they credit you. If you agree, a line on the archive's site
+naming the photos and the license would let anyone check it. I'd need files at least 1200 pixels
+on the long side.
 
-If that isn't something you'd want, would you allow them in an optional photo pack instead?
-People who run dubplate would choose whether to install it, and the terms would be yours to
-set.
+If that isn't something you'd want, would you allow them in an optional photo pack instead? The
+pack is planned but has no date yet. It would be a separate download that people who run
+dubplate could choose to add, on terms you set.
 
 Thank you for the archive, and for the years of work behind it.
 

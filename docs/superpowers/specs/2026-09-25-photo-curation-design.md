@@ -1,8 +1,11 @@
 # Photo curation design
 
-Status: revision 2.2, folded from four lens reviews, a fold verification, and a prose review
-(fold record: `docs/superpowers/research/2026-09-25-photo-curation-fold.md`), for Geoff's read,
-2026-09-25. Initiative: ROADMAP `photo-curation`.
+Status: revision 2.3. Revision 2.2 was folded from four lens reviews, a fold verification, and a
+prose review (fold record: `docs/superpowers/research/2026-09-25-photo-curation-fold.md`) and
+approved by Geoff 2026-09-25. Revision 2.3 adds his two rulings from the round-one plan review
+(fold record: `docs/superpowers/research/2026-09-25-photo-curation-plan-fold.md`): people and
+minors are flagged for his decision, and passed images are no longer pruned from the sorting
+page's file store. Initiative: ROADMAP `photo-curation`.
 
 This pass builds dubplate's photo pool: about 300 openly licensed photographs of music scenes,
 show flyers, and zine covers. Each is stored under `photos/` with a record that says what it
@@ -171,12 +174,14 @@ A picked record carries the facets above and these provenance fields:
 | `status` | `picked`; `withdrawn` for an image removed after commit (see Licensing); or `pack` for a record in `pack.json`. A candidate record has no status. |
 | `withdrawn` | Required when the status is `withdrawn`, forbidden otherwise: the reason and the date. |
 
-Candidate records also carry two fields of their own:
+Candidate records also carry three fields of their own:
 
 - `screen`: the search agent's 1-to-5 score and one-line note. It is stripped when a record is
   committed, so no judgment of a named photographer's work enters the repository.
 - `pack`: `true` when the license is NC or grants dubplate-only permission. Round close moves
   such a record to `pack.json` with the status `pack` and drops the field.
+- `flags`: any people flags from the closed list in `vocab.json` (Process). It is stripped when a
+  record is committed, like `screen`.
 
 Images are stored as WebP, resized down to a 1600px long edge and never upscaled, encoded with
 ImageMagick 7.1.2 and cwebp 1.6.0 as `magick <source> -auto-orient -resize '1600x1600>' <tmp>.png`
@@ -327,9 +332,15 @@ Two kinds of candidate carry a mark. A candidate's `size_exception` line shows b
 A candidate that would be a second image of a picked artist or landmark is flagged, and a keep on
 it is Geoff's waiver, which the conductor writes to `waivers.json` at round close.
 
+People are flagged, never excluded (Geoff, 2026-09-25: "Flag, you decide"). A search agent flags a
+candidate whose Commons page carries a personality-rights template, or which shows an apparent
+minor in focus, in its `flags` field. The sorting page shows the flag, and Geoff's keep or pass
+decides.
+
 The conductor uploads candidates to the page's file store from `photos/.candidates/` in batches of
 25 files, the per-call limit, since a file outside the working directory takes a call of its own.
-Passed candidates are pruned from the file store after each round.
+Geoff approves each round's uploads in one burst, and passed candidates are never deleted from the
+file store, so a round asks for no delete approvals (Geoff, 2026-09-25: "Batch, no pruning").
 
 Each choice saves as a database document keyed by `source_id`, never by slug, so a sitting can
 stop and resume on any device.

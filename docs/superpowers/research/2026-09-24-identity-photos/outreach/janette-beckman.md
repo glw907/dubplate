@@ -2,6 +2,9 @@
 
 Status: drafted. Geoff sends from his own account; nothing has been sent.
 
+Checked again at the plan fold, 2026-09-25: the address still appears on her contact page, and
+all five site images return 200. Her Wikipedia article lists no death date.
+
 ## Contact route
 
 - Email: `janette.beckman@gmail.com`, listed on her contact page for general contact, for
@@ -30,28 +33,27 @@ larger files.
 | LADDBROKE GROVE SOUND SYSTEM 1981 | <https://janettebeckman.com/uk-youth/> | <https://janettebeckman.com/wp-content/uploads/2016/05/Ladbroke-Grove-Sound-System-London-1981.jpg> |
 
 ## Letter
-
 **Subject:** Five of your photographs for a small open-source music server
 
 Hi Janette,
 
-My name is Geoff. I'm building dubplate, a free music server that lets a group of friends
-share one well-organized library. It's open source, released under the MIT license. The
-sign-in page shows a photograph from a music scene, and a credits page lists every photo. Each
-one is always credited to the person who took it.
+My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
+one well-organized library. It's open source, released under the MIT license. The sign-in page
+shows a photograph from a music scene, and a credits page lists every photo. Each one is always
+credited to the person who took it.
 
-Early hip-hop is the scene I've found hardest to show, and your New York photographs from
-those years are the ones I'd most like to use. I'm hoping for five: Afrika Bambaataa in the
-Bronx in 1983, Grandmixer DST in 1982, and Run DMC and their posse in Hollis in 1984, along
-with 2 Tone Ska Fans from 1980 and the Ladbroke Grove sound system from 1981.
+Early hip-hop is the scene I've found hardest to show, and your New York photographs from those
+years are the ones I'd most like to use. I'm hoping for five: Afrika Bambaataa in the Bronx in
+1983, Grandmixer DST in 1982, and Run DMC and their posse in Hollis in 1984, along with 2 Tone
+Ska Fans from 1980 and the Ladbroke Grove sound system from 1981.
 
-Would you consider releasing those five under CC BY 4.0? It lets anyone reuse a photo as long
-as they credit you. If you agree, a line on your site naming the photos and the license would
-let anyone check it.
+Would you consider releasing those five under CC BY 4.0? CC BY lets anyone reuse and adapt a
+photo, commercially too, as long as they credit you. If you agree, a line on your site naming
+the photos and the license would let anyone check it.
 
-I know you license your pictures, so I understand if that's too much. If it is, would you
-allow them in an optional photo pack instead? People who run dubplate would choose whether to
-install it, and the terms would be yours to set.
+I know you license your pictures, so I understand if that's too much. If it is, would you allow
+them in an optional photo pack instead? The pack is planned but has no date yet. It would be a
+separate download that people who run dubplate could choose to add, on terms you set.
 
 Thank you for the work either way.
 
