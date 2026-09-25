@@ -215,3 +215,14 @@ second half, a site-side check that the lock's pin is the newest release, was mi
 refused only a non-release ref. Revision 2.3 adds it in "What each check proves". The site's gate
 fails when the newest release-notes post names a version newer than the lock's tag, since the
 site's build can't read the private repo's tags.
+
+## Owner ruling on open ruling 11
+
+Geoff ruled option (b) on 2026-09-25: public signed binaries and public source at 0.8. The
+conductor had recommended (a) and withdrew it when Geoff asked why the source shouldn't be public.
+Every comparable project publishes its source, and the ratified principles spec assumes it. Two
+conditions bound the irreversible step, and both went into revision 2.4. The public repository is
+a fresh one from a scrubbed 0.8 snapshot, because the working repository's history was never
+secret-scanned (gitleaks runs `--no-git`). The Get help page states a contribution policy, which
+is the maintainership decision `oss-pair` asks for, taken for the server. Open ruling 12's
+recommendation now names the issue tracker as the channel.

@@ -1,7 +1,7 @@
 # The dubplate project site
 
-Design spec. Revision 2.3, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
-Geoff's read.** Four owner rulings stay open (see "Open rulings"). Revision 1 (`e91f528`) went
+Design spec. Revision 2.4, 2026-09-25, drafted from a brainstorm with Geoff. Status: **awaiting
+Geoff's read.** Three owner rulings stay open (see "Open rulings"). Revision 1 (`e91f528`) went
 through five review lenses (contract, drift, consistency, mechanics, prior art) under
 `docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold record is
 `docs/superpowers/research/2026-09-25-project-site-fold.md`.
@@ -18,6 +18,9 @@ ratified.
 
 Revision 2.3 changelog: records Geoff's ruling of option (b) on contract finding C2 and adds its
 missing half, a site gate check that the lock's pin is the newest release.
+
+Revision 2.4 changelog: records Geoff's ruling on ruling 11, public binaries and public source at
+0.8, bounded by a fresh scrubbed repository and a stated contribution policy.
 
 dubplate needs a public home where a stranger learns what it is, decides whether it fits their
 group, and sets up a server. This spec fixes who the site serves, where it lives, which pages it
@@ -59,7 +62,7 @@ dubplate fits their group at all. Every page names which of these readers it ser
 
 The site is a standard cairn site in its own repo, `~/Projects/dubplate-site`. It's created with
 `npx create-cairn-site` and deployed to Cloudflare the way cairn's docs describe. The site repo
-starts private. It opens only if dubplate's source opens, which is open ruling 11's option (b).
+starts private and opens when dubplate's public source repository does, at Phase B (ruling 11).
 Keeping it out of the dubplate repo means cairn's publish flow, which commits edits to the site
 repo's main branch, never touches dubplate's tree or its lanes.
 
@@ -122,8 +125,8 @@ says in one sentence that the group's library ran on Navidrome before 0.8 and li
 which carries the credit itself.
 
 The "Get help" page names where an operator asks for help and what to include in a report. It gives
-a security contact with a stated scope, and it exists from the first public day. The channels it
-names follow open rulings 11 and 12. Its troubleshooting list covers the common failures (logs, mail
+a security contact with a stated scope, and it exists from the first public day. It states the
+contribution policy that ruling 11 sets, and its channels follow open ruling 12. Its troubleshooting list covers the common failures (logs, mail
 not arriving), which is why the site carries no separate FAQ.
 
 ## Credits
@@ -210,7 +213,7 @@ theme toggle's two names, and maps cairn's font and ink roles onto dubplate's. T
 only references such as `var(--ink-info)`, never values, so the one-way drift rule still holds.
 
 The site repo carries a sync script, run as `npm run sync-dubplate -- <ref>`, against a local
-dubplate checkout. The dubplate repo is private, so the site's build never fetches from it.
+dubplate checkout. The site's build never fetches from dubplate, which stays private until Phase B.
 
 ### What each check proves
 
@@ -273,15 +276,15 @@ from a non-release commit says it previews an unreleased version. A stale pin is
 the reader. The Phase B deploy refuses a lock whose ref isn't a release tag. The site's gate
 also fails when the newest release-notes post names a version newer than the lock's tag, so a
 release announced on the site can't go out with an older guide. The site's build can't read
-dubplate's tags, because the repo is private, so the post is the signal the gate reads. Geoff
+dubplate's tags, since it fetches nothing from dubplate, so the post is the signal the gate reads. Geoff
 ruled this pair of checks, option (b) of contract finding C2, on 2026-09-25. The step that bumps
 the site's pin belongs in the tool that cuts dubplate releases, which prints the sync command for
 the new tag. Until that tool exists, dubplate's release checklist carries the step, and the Phase
 A dubplate lane creates that checklist.
 
 The site describes one version, the latest release. An operator on an older release reads the
-changelog's upgrade notes, which cover every version. If the source opens (open ruling 11), the
-site links to the guides at each earlier tag. Until then it carries no earlier-version links.
+changelog's upgrade notes, which cover every version. The public source repository (ruling 11)
+holds the guides at each earlier tag, and the site links there.
 
 Drift runs one way only. When the site needs a token dubplate lacks, the token is added in
 dubplate first, and the site picks it up at the next sync.
@@ -372,7 +375,9 @@ either rung, its own lane builds that generator.
 Phase B publishes the site. Its preconditions are these:
 
 - 0.8 has shipped, and the lock names the 0.8 release tag. The planned-names list is empty.
-- A stranger can get the software, as open ruling 11 decides.
+- The signed 0.8 binaries are published. The public source repository exists as a fresh
+  repository from a scrubbed snapshot at the 0.8 tag, and a history-aware secret scan and a read
+  for production specifics both pass on that snapshot (ruling 11). The site repository is public.
 - The give-back path 1 pass has landed, and the lawyer's confirmation of the distribution reading
   is recorded (ROADMAP, `give-back`). The public setup guide is that release's front door.
 - All three generated pages carry real output.
@@ -393,42 +398,34 @@ These continue the owner rulings' numbering.
     (`POST /accounts/{account_id}/registrar/domain-check`), run by the conductor on 2026-09-25,
     which returned both as registrable. The ruling is due before Phase B registers the domain,
     and Geoff confirms the purchase then.
-11. **How a stranger gets the software at 0.8.** The dubplate repo is private today, and no
-    ratified document owns opening it. The channel and the source are separate decisions. 0.8's
-    `upgrade` command already downloads a release and verifies it against a signed release
-    manifest (streamer spec, "Hosting and setup"), which is evidence for public binaries, not for
-    public source. Opening the source is irreversible: a published repo and its history can't be
-    withdrawn. ROADMAP sequences `packaging` after the TUI and the local binary, which follow the
-    server build's launch, so waiting on `packaging` moves Phase B past 0.8.
-    - (a) Public signed release binaries only at 0.8, and the source stays private. Get help's
-      security contact is the only channel, and the site carries no earlier-version links. The
-      About page still names the MIT license and says the source isn't public yet. ROADMAP
-      records the channel in `streamer-0-8`.
-    - (b) Public binaries and public source at 0.8. This adds two costs. The first is the
-      maintainership decision that ROADMAP's `oss-pair` makes a precondition for publishing even
-      the smaller uploader and pings pair. The second is a pre-publication scrub, since tracked
-      files carry production specifics (`CLAUDE.md` names the box's address). A public issue
-      tracker and the earlier-version links follow.
-    - (c) Phase B waits for `packaging`. The site publishes after 0.8, and owner ruling 5 is
-      amended.
+11. **How a stranger gets the software at 0.8. Ruled (Geoff, 2026-09-25): public binaries and
+    public source.** 0.8 publishes signed release binaries, which the `upgrade` command already
+    needs (streamer spec, "Hosting and setup"), and a public source repository under the MIT
+    license. Every project on the comparison page publishes its source, and the ratified
+    principles spec is written as though the source is reachable ("Anyone with the source can
+    remove any limit this spec describes"). Opening the source is irreversible, so two conditions
+    bound what is published.
+    - The public repository is a fresh repository created from a scrubbed snapshot at the 0.8
+      tag. The working repository and its history are never published. Its history carries
+      production specifics (`CLAUDE.md` names the box's address) and years of working notes, and
+      the gate's gitleaks leg scans only the working tree (`--no-git`), so no check has ever read
+      the history.
+    - The "Get help" page states the contribution policy: support is best-effort, issues are
+      welcome, and a pull request starts with a discussion. The refused-features list in dubplate's
+      `CLAUDE.md` is the written answer to requests the project won't take. This is the
+      maintainership decision ROADMAP's `oss-pair` asks for, taken for the server.
 
-    Recommendation: (a). It keeps Phase B at 0.8, which ruling 5 fixed, and `upgrade` already
-    needs the signed binaries. It defers the one irreversible step until the maintainership
-    decision `oss-pair` calls for has been made, and (a) can still become (b) later while (b) can
-    never become (a). Its cost is a tension with the principles spec, which says dubplate's
-    "source carries an MIT license" and that "Anyone with the source can remove any limit this
-    spec describes." Those lines read naturally only once the source is reachable. Give-back's
-    modules publish after 0.8 as separate repositories under either option. Both obligations
-    `give-back` names before the first release strangers can install (path 1 and the lawyer's
-    confirmation) apply under (a) and (b) alike.
-12. **A community channel at 0.8.** Get help always carries a security contact, and a public issue
-    tracker follows the source if it opens (ruling 11, option b). The fork is whether dubplate
+    The site repository opens at the same time. Both `give-back` obligations (path 1 and the
+    lawyer's confirmation) still apply before the release. Give-back's modules publish as their
+    own repositories, as that entry already plans.
+12. **A community channel at 0.8.** Get help always carries a security contact, and the public
+    source brings a public issue tracker (ruling 11). The fork is whether dubplate
     also opens a community channel, such as a forum or chat, which costs Geoff's time to tend.
     - Yes: Get help names the channel, and someone tends it.
     - No: the issue tracker and the security contact are the only channels.
 
-    Recommendation: no at 0.8; Get help says support is best-effort through the issue tracker, or
-    through the security contact alone under ruling 11's option (a).
+    Recommendation: no at 0.8. The issue tracker is the channel, under the contribution policy
+    that ruling 11 puts on Get help.
 13. **A "Coming later" list.** A reader with an MP3 library needs to know that other formats are
     planned for 1.0, not refused.
     - Yes: the is/isn't page carries the list, owned in `docs/guide/` with the rest of the page.
