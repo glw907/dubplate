@@ -85,6 +85,7 @@ func newProductionRegistry() *config.Registry {
 	registerServeConfig(reg)
 	registerAuthConfig(reg)
 	registerStoreConfig(reg)
+	registerWebConfig(reg)
 	return reg
 }
 

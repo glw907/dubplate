@@ -47,6 +47,14 @@ const (
 // its POST/GET/HEAD surface.
 const rosterRouteName = "roster"
 
+// loginRouteName and assetsRouteName are the web subtree names
+// [newWebRoutes] builds routers for: the login documents and the
+// embedded bundle's hashed assets.
+const (
+	loginRouteName  = "login"
+	assetsRouteName = "_app"
+)
+
 // serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
 // are the rung 5a serve shell's own three keys, declared in this file
 // rather than internal/config (R-C, following rung 4's
@@ -173,7 +181,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			shell, _, err := newServeShell(cmd.Context(), prefix, cfg, authCfg)
+			shell, _, err := newServeShell(cmd.Context(), environ, prefix, cfg, authCfg)
 			if err != nil {
 				return err
 			}
@@ -189,9 +197,11 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // opens the auth store, the nonce and epoch stores, and the roster,
 // builds the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
-// prefix. It returns before any listener opens, so a caller refuses a
-// missing roster file, an unopenable store, or an unparseable mail
-// port without ever accepting a connection.
+// prefix, alongside the login and _app web routes [newWebRoutes]
+// builds from environ. It returns before any listener opens, so a
+// caller refuses a missing roster file, an unopenable store, an
+// unparseable mail port, or a bad theme value without ever accepting a
+// connection.
 //
 // It registers no bearer bypass: rung 5 has no bearer-authenticated
 // path, so every mount stays behind the origin check's cookie-carrying
@@ -213,7 +223,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // force, so proxyConfig's zero value governs both the strip and every
 // handler's ClientIP: PeerAddress is the client address until a later
 // rung configures otherwise.
-func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config, authCfg authConfig) (*serve.Shell, <-chan struct{}, error) {
+func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, cfg *config.Config, authCfg authConfig) (*serve.Shell, <-chan struct{}, error) {
 	var proxyConfig serve.TrustedProxyConfig
 	strip := serve.NewStrip("", auth.SessionCookieName, proxyConfig, serve.FrontExemption{})
 	shell := serve.NewShell(prefix, strip, nil)
@@ -269,6 +279,13 @@ func newServeShell(ctx context.Context, prefix serve.Prefix, cfg *config.Config,
 		BodyCap:  int64(authCfg.authRequestBodyCap),
 	}
 	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
+
+	webRoutes, err := newWebRoutes(environ, prefix)
+	if err != nil {
+		return nil, nil, err
+	}
+	shell.Register(loginRouteName, webRoutes.login)
+	shell.Register(assetsRouteName, webRoutes.assets)
 
 	done := startNonceSweep(ctx, nonces, shell.Logger())
 	return shell, done, nil

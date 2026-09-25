@@ -1,0 +1,279 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"io/fs"
+	"net/http"
+	"path"
+	"regexp"
+	"slices"
+	"strings"
+
+	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/web"
+)
+
+// themePlaceholder is the token app.html carries on <html data-theme>,
+// substituted once per stampable palette at serve startup. It must
+// match web/src/app.html's own literal exactly.
+const themePlaceholder = "__DUBPLATE_THEME__"
+
+// acceptedThemeMatch is the one value themeMatchThreshold accepts (DL
+// R3.2): the match axis names a group of themes rather than a single
+// one, and dubplate ships one group.
+const acceptedThemeMatch = "dubplate"
+
+// themePaletteGrammarRE is the shape [themePaletteThreshold] admits
+// before its value is looked up in the bundle's own extracted
+// selectors: refusing everything outside it first means a value
+// carrying a quote, an angle bracket, or whitespace never reaches a
+// selector-set lookup or an attribute.
+var themePaletteGrammarRE = regexp.MustCompile(`^[a-z0-9-]+$`)
+
+// The build tree's two document paths this task routes, relative to
+// the embedded build root.
+const (
+	loginDocumentName     = "login.html"
+	loginLinkDocumentName = "login/link.html"
+)
+
+// themeMatchThreshold is DUBPLATE_THEME_MATCH: the theme axis naming
+// which group of themes the server presents. Rung 5 ships one group,
+// so the only accepted value is acceptedThemeMatch.
+var themeMatchThreshold = config.Threshold{
+	Key:     "DUBPLATE_THEME_MATCH",
+	Kind:    config.KindString,
+	Default: acceptedThemeMatch,
+	Doc:     `exactly "dubplate"`,
+}
+
+// themePaletteThreshold is DUBPLATE_THEME_PALETTE: the theme a visitor
+// without a theme cookie sees. Its Doc string is the operator-facing
+// text this key's own doctor row and the config wall report.
+var themePaletteThreshold = config.Threshold{
+	Key:     "DUBPLATE_THEME_PALETTE",
+	Kind:    config.KindString,
+	Default: "system",
+	Doc:     `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
+}
+
+// brandingThreshold is DUBPLATE_BRANDING: the operator's declaration
+// list, consumed by the branding stylesheet Task 6 adds. Registered
+// here so the wall's four presentation keys register through one call.
+var brandingThreshold = config.Threshold{
+	Key:     "DUBPLATE_BRANDING",
+	Kind:    config.KindString,
+	Default: "none",
+	Doc:     `"none", or ";"-separated name: value declarations`,
+}
+
+// operatorCSSFileThreshold is DUBPLATE_OPERATOR_CSS_FILE: the
+// operator's own stylesheet path, consumed by the operator CSS route
+// Task 6 adds. Registered here for the same reason as
+// [brandingThreshold].
+var operatorCSSFileThreshold = config.Threshold{
+	Key:     "DUBPLATE_OPERATOR_CSS_FILE",
+	Kind:    config.KindString,
+	Default: "none",
+	Doc:     `"none", or a path to a .css file`,
+}
+
+// registerWebConfig adds the web surface's four presentation
+// thresholds to reg (R-5cii12). newProductionRegistry calls it after
+// registerStoreConfig.
+func registerWebConfig(reg *config.Registry) {
+	reg.AddThreshold(themeMatchThreshold)
+	reg.AddThreshold(themePaletteThreshold)
+	reg.AddThreshold(brandingThreshold)
+	reg.AddThreshold(operatorCSSFileThreshold)
+}
+
+// webRoutes are the http.Handlers newServeShell mounts under the
+// shell's owned prefix for this task's two subtrees: "login" and
+// "_app".
+type webRoutes struct {
+	login  http.Handler
+	assets http.Handler
+}
+
+// newWebRoutes reads web.Assets, refuses on a placeholder-only
+// embedded tree naming `npm run build`, resolves and validates
+// DUBPLATE_THEME_MATCH and DUBPLATE_THEME_PALETTE against the built
+// bundle's own extracted [data-theme=<name>] selectors, rewrites the
+// login documents into one variant per stampable palette, and returns
+// the login subtree's router and the _app asset handler. It returns
+// before any listener opens, so a bad theme value or a missing build
+// refuses startup rather than the first request.
+func newWebRoutes(environ []string, prefix serve.Prefix) (webRoutes, error) {
+	buildFS, err := fs.Sub(web.Assets, "build")
+	if err != nil {
+		return webRoutes{}, fmt.Errorf("web: %w", err)
+	}
+	return newWebRoutesFromFS(environ, prefix, buildFS)
+}
+
+// newWebRoutesFromFS is [newWebRoutes]'s logic, parameterized on
+// buildFS rather than reading the package-level [web.Assets]: every
+// state a bad or missing build can be in is a fixture this file's own
+// tests build as an fstest.MapFS, since web.Assets is fixed to
+// whatever bundle this binary was compiled against.
+func newWebRoutesFromFS(environ []string, prefix serve.Prefix, buildFS fs.FS) (webRoutes, error) {
+	placeholderOnly, err := isPlaceholderOnly(buildFS)
+	if err != nil {
+		return webRoutes{}, fmt.Errorf("web: %w", err)
+	}
+	if placeholderOnly {
+		return webRoutes{}, errors.New("web: the embedded build tree holds only the placeholder; run `npm run build` in web/")
+	}
+
+	loginRaw, err := fs.ReadFile(buildFS, loginDocumentName)
+	if err != nil {
+		return webRoutes{}, fmt.Errorf("web: document %q: %w", loginDocumentName, err)
+	}
+	linkRaw, err := fs.ReadFile(buildFS, loginLinkDocumentName)
+	if err != nil {
+		return webRoutes{}, fmt.Errorf("web: document %q: %w", loginLinkDocumentName, err)
+	}
+
+	match, err := config.ParseString(environ, themeMatchThreshold)
+	if err != nil {
+		return webRoutes{}, err
+	}
+	if match != acceptedThemeMatch {
+		return webRoutes{}, fmt.Errorf("%s: %q: must be exactly %q", themeMatchThreshold.Key, match, acceptedThemeMatch)
+	}
+
+	palette, err := config.ParseString(environ, themePaletteThreshold)
+	if err != nil {
+		return webRoutes{}, err
+	}
+	if !themePaletteGrammarRE.MatchString(palette) {
+		return webRoutes{}, fmt.Errorf("%s: %q: must match %s", themePaletteThreshold.Key, palette, themePaletteGrammarRE)
+	}
+
+	selectors, err := extractThemeSelectors(buildFS,
+		namedDocument{path: loginDocumentName, raw: loginRaw},
+		namedDocument{path: loginLinkDocumentName, raw: linkRaw},
+	)
+	if err != nil {
+		return webRoutes{}, err
+	}
+
+	composed := match + "-" + palette
+	if _, ok := selectors[composed]; !ok {
+		return webRoutes{}, fmt.Errorf("%s: %q: no theme selector named %q in the built bundle", themePaletteThreshold.Key, palette, composed)
+	}
+	palettes := stampablePalettes(selectors, match)
+
+	loginVariants, err := serve.BuildDocumentVariants(loginDocumentName, loginRaw, themePlaceholder, match, palettes)
+	if err != nil {
+		return webRoutes{}, err
+	}
+	linkVariants, err := serve.BuildDocumentVariants(loginLinkDocumentName, linkRaw, themePlaceholder, match, palettes)
+	if err != nil {
+		return webRoutes{}, err
+	}
+
+	login := newExactPathRoutes(map[string]http.Handler{
+		prefix.String() + "/login":      serve.NewDocument(loginVariants, palette),
+		prefix.String() + "/login/link": serve.NewDocument(linkVariants, palette),
+	})
+
+	assetsFS, err := fs.Sub(buildFS, "_app")
+	if err != nil {
+		return webRoutes{}, fmt.Errorf("web: %w", err)
+	}
+	assets := serve.NewAssets(assetsFS, prefix.String()+"/_app")
+
+	return webRoutes{login: login, assets: assets}, nil
+}
+
+// isPlaceholderOnly reports whether buildFS's root directory holds
+// nothing but placeholder.txt, the shape a checkout that has never run
+// `npm run build` leaves (web/embed.go, R-5cii9).
+func isPlaceholderOnly(buildFS fs.FS) (bool, error) {
+	entries, err := fs.ReadDir(buildFS, ".")
+	if err != nil {
+		return false, err
+	}
+	return len(entries) == 1 && entries[0].Name() == "placeholder.txt", nil
+}
+
+// namedDocument pairs a document's path inside the embedded build tree
+// with its raw bytes, so [extractThemeSelectors] can resolve each
+// stylesheet href it finds relative to the document that carries it.
+type namedDocument struct {
+	path string
+	raw  []byte
+}
+
+// extractThemeSelectors returns the union of every [data-theme=<name>]
+// selector name declared in the stylesheets docs link to, each href
+// resolved relative to its own document's path inside buildFS
+// (R-5cii12).
+func extractThemeSelectors(buildFS fs.FS, docs ...namedDocument) (map[string]struct{}, error) {
+	cssPaths := make(map[string]struct{})
+	for _, doc := range docs {
+		for _, href := range serve.StylesheetHrefs(doc.raw) {
+			cssPaths[resolveStylesheetPath(doc.path, href)] = struct{}{}
+		}
+	}
+	if len(cssPaths) == 0 {
+		return nil, fmt.Errorf("web: document %q: no stylesheet link found", docs[0].path)
+	}
+
+	selectors := make(map[string]struct{})
+	for cssPath := range cssPaths {
+		data, err := fs.ReadFile(buildFS, cssPath)
+		if err != nil {
+			return nil, fmt.Errorf("web: stylesheet %q: %w", cssPath, err)
+		}
+		for name := range serve.ThemeSelectors(data) {
+			selectors[name] = struct{}{}
+		}
+	}
+	return selectors, nil
+}
+
+// resolveStylesheetPath resolves href, a document-relative path a
+// built document's own <link> carries, against docPath, that
+// document's own path inside the embedded build tree, and returns the
+// result as a path relative to the tree's root.
+func resolveStylesheetPath(docPath, href string) string {
+	return path.Clean(path.Join(path.Dir(docPath), href))
+}
+
+// stampablePalettes returns every name in selectors that begins with
+// match+"-", with that prefix removed, sorted: the set
+// [serve.BuildDocumentVariants] builds a body for and a theme cookie's
+// value is checked against for exact membership (R-5cii12, R-5cii22).
+func stampablePalettes(selectors map[string]struct{}, match string) []string {
+	prefix := match + "-"
+	palettes := make([]string, 0, len(selectors))
+	for name := range selectors {
+		if after, ok := strings.CutPrefix(name, prefix); ok {
+			palettes = append(palettes, after)
+		}
+	}
+	slices.Sort(palettes)
+	return palettes
+}
+
+// newExactPathRoutes returns an http.Handler dispatching by exact
+// http.Request.URL.Path to routes, answering [serve.Terminator]'s 404
+// to any other path, the trailing-slash form of a route included:
+// [serve.Shell.Register] mounts a subtree's every deeper path to the
+// same handler, so the exact-match check here is what keeps a deeper
+// or trailing-slash path from reaching a document (R-5cii21).
+func newExactPathRoutes(routes map[string]http.Handler) http.Handler {
+	terminator := serve.Terminator()
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if h, ok := routes[r.URL.Path]; ok {
+			h.ServeHTTP(w, r)
+			return
+		}
+		terminator.ServeHTTP(w, r)
+	})
+}

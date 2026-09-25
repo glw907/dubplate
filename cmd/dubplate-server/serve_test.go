@@ -67,7 +67,7 @@ func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []str
 	if err != nil {
 		t.Fatalf("resolveAuthConfig: %v", err)
 	}
-	return newServeShell(ctx, prefix, cfg, authCfg)
+	return newServeShell(ctx, environ, prefix, cfg, authCfg)
 }
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
@@ -530,7 +530,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveAuthConfig: %v", err)
 			}
-			shell, _, err := newServeShell(t.Context(), prefix, cfg, authCfg)
+			shell, _, err := newServeShell(t.Context(), environ, prefix, cfg, authCfg)
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
@@ -543,11 +543,6 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
 			}
 
-			var loginReached bool
-			shell.Register("login", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				loginReached = true
-				w.WriteHeader(http.StatusOK)
-			}))
 			const sentinel = "fallthrough not invoked"
 			fallthroughQuery := sentinel
 			shell.SetFallthrough(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
@@ -568,10 +563,15 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			gotPaths[i] = u.Path
 
 			r := httptest.NewRequest(http.MethodGet, u.Path+"?"+u.RawQuery, nil)
-			shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, r)
 
-			if !loginReached {
-				t.Error("the registered login subtree was never reached")
+			// newServeShell's own "login" subtree is real now (Task 5):
+			// a minted link routes to its "login/link" document, so the
+			// registered-subtree proof is that it answers 200, never a
+			// 404 from the terminator or the fallthrough being reached.
+			if rec.Code != http.StatusOK {
+				t.Errorf("the registered login subtree answered %d, want 200", rec.Code)
 			}
 			if fallthroughQuery != sentinel {
 				t.Errorf("fallthrough saw RawQuery=%q, want it never reached", fallthroughQuery)
