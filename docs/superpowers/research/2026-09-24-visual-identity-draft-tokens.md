@@ -128,3 +128,14 @@ every corner is square. The rest of Task 4's values stand as settled above:
 `--size-field: .28125rem`; `label` secondary and `label-night` neutral fill-only with the
 W2.6 marker; `--ink-warning` #765000 (label) and `--ink-primary` #ec7b6a (label-night); the
 `dubplate-system` default, the metas, and `DUBPLATE_THEME_PALETTE=system`.
+
+## Spec revision 1.1 (2026-09-24): the inks shift
+
+The semantic `--color-*` values are fills only; text in a semantic color uses its ink, and
+every ink passes 4.5:1 on base-100, base-200, and base-300. Two values 5c-ii already shipped
+change for `label`: `--ink-primary` `#9d2f26` (was `#c1352b`) and `--ink-warning` `#754f00`
+(was `#765000`); 5c-ii's pass-end fold applies them. 5c-iii adds the remaining inks
+(`--ink-accent`, `--ink-info`, `--ink-error` in both palettes; success uses accent), one focus
+outline everywhere (2px `--ink-primary` at a 2px offset), and G9 rows on all three surfaces. The
+toggle writes the cookie and the server stamps `data-theme`; never a `.theme-controller`. The
+spec's Themes section is the source.
