@@ -18,10 +18,10 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 
 ## Next action
 
-1. **6b-i runs in lane 2** (approved 2026-09-24, all four rulings yes, no split; ceiling 7.4M).
-   Tasks 1S, 1A, 1B accepted (`4079422`..`089afe2`; 1B's escalation was the gate-string rule only,
-   reproduced green by its reviewer, accepted by the conductor). A tidy task 1T (lease-kind and
-   reference-remote validation) and Task 2 close segment A; spend about 1.47M so far.
+1. **6b-i runs in lane 2** (approved 2026-09-24, no split; ceiling 7.4M, flag 5.92M). Segment A
+   closed green (1S, 1A, 1B, conductor tidy 1T, 2; `4079422`..`d7e8896`); spend about 2.36M against
+   about 1.5M planned. Re-derived total about 6.9M: past the flag on projection, under the ceiling.
+   Segment B (Tasks 3-5) in flight; the split decision is taken at its end on actual spend.
 2. **5c-ii runs in lane 1** (revision 2.4, all seven rulings yes; 9.4M ceiling, 7.52M flag; visual
    identity tokens amended in: `label`/`label-night` palettes, `dubplate-system` stamp, the
    `__Host-dubplate_theme` cookie). Segment A closed green (`5637ecb`, `e9f7367`, `7769d25`); Segment
@@ -35,7 +35,7 @@ surface standard section 19 entry recording that its ruling 4 withdraws W1.3's i
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (`/var/home/glw907/Projects/dubplate`, master) | OPEN on 5c-ii since 2026-09-24; Segment A green, Segment B in flight |
-| 2 | worktree `.claude/worktrees/lane-2-6b-i`, branch `lane-2-6b-i` | OPEN on 6b-i since 2026-09-24; segment A (1T, 2) in flight |
+| 2 | worktree `.claude/worktrees/lane-2-6b-i`, branch `lane-2-6b-i` | OPEN on 6b-i since 2026-09-24; segment B (3-5) in flight |
 
 ## Open items (carried)
 
