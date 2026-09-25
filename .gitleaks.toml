@@ -21,8 +21,13 @@ useDefault = true
 # web/.svelte-kit/ is SvelteKit's generated build scratch, untracked
 # and rewritten on every `npm run build`. Scanning it is waste: the
 # tree the binary actually embeds is web/build/, which stays scanned.
+#
+# photos/.candidates/ is the photo curation pass's gitignored candidate
+# home: downloaded images and their draft records, never committed. The
+# picked images and records under photos/ stay scanned.
 paths = [
   '''.claude/worktrees/.*''',
   '''.superpowers/.*''',
   '''web/\.svelte-kit/.*''',
+  '''photos/\.candidates/.*''',
 ]

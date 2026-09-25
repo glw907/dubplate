@@ -34,6 +34,7 @@ errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus h
 |---|---|---|
 | 1 | main tree (master) | OPEN: 5c-iii segment A accepted (Task 1 `0f9a57d`+`f5d46cb`; Task 2 `5dc0714`+`3a5bfef`+`3c6ac4c`+`253e36d`, two fix rounds, the second the conductor's); segment B (3a, 3b) next, heavy lane |
 | 2 | (free) | CLOSED: 6b-ii-a merged at `6e6fd12`; 6b-ii-b next |
+| photos | main tree (master), document lane | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 3.5M |
 
 Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 8.0M at segment A's boundary (incl. about 1.3M of attended extras: two prior-art surveys, the group-scale principles spec and its review) (matcher pass about 1.25M against 2.75M; 6b-ii-a
 about 1.95M against 3.90M, including five merge-side architecture reads split across both passes).
@@ -50,4 +51,5 @@ Attended interactions after approval: 0 for both passes. AC online at launch.
 - To the architecture cleanup pass: the 5c-ii reads (`internal/auth`, `internal/serve`, `internal/identity`), 6b-i's ops/local findings, 6a's cmd findings, and this window's five reads (`internal/ops`, `internal/ops/local`, `internal/ops/opshttp`, `internal/engine/matcher`, `internal/harness/conform`), leading the queue: `conform`'s dropped `ModeDefault` near misses, and matcher's false `Distance.Update` doc plus the drifted `quiet_fallback`/`none_rec_action` legality checks. To 6d: a store identity minted at create, the migration-wait key, serve's caller. To 6c: the `SAVEPOINT` check on `COMMIT;BEGIN;` (risk R13). L5/L6 (roster-POST throttle, n5 whole-roster doctor row): no pass assigned.
 - A later Go toolchain bump re-runs the matcher's Unicode class sweep (`wantGoOnlyWordCodePoints`, `strdist_test.go:452`) and the U+0130 case-mapping sweep; both fail loudly with the re-read procedure if the count moves.
 - 99 declared coverage gaps, none blocking. Staged legs warn: 326 process citations, 125 exported-unused. Fork B: 0.8/0.9 FLAC-only, group non-FLAC carried.
+- Queued for the batch after lane 1 closes (photo lane): a `scripts/check.sh` line running `node tools/photos/check.mjs integrity`, and the 5c-iii plan's Ruling 3 erratum routing the photo column to rung 7.
 - Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.14.1`, mediafile `0.17.0`, unidecode `1.4.0`, lap `0.5.13`, `modernc.org/sqlite v1.59.0`, rclone v1.74.3. Spend: HISTORY.

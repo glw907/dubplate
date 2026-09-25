@@ -207,13 +207,13 @@ verbs) and for every settings surface:
 (revision 3, 2026-09-12).
 
 ### Photo curation for the web surface `photo-curation`
-Curate 100 or more openly licensed period photographs, show flyers, and zine covers for the
-login rotation, the credits gallery, the empty library, and the error pages, under the curation
-and licensing rules in the visual identity spec
-(`docs/superpowers/specs/2026-09-24-visual-identity-design.md`, `ecba52a`). Inputs:
-`docs/superpowers/research/2026-09-24-identity-photos/` (candidate reports, an unverified Flickr
-harvest, the NC licensing analysis, and a photographer and archive outreach list). Owner
-touchpoint: outreach approvals. Separate from the rung ladder; rung 7 and 5c-iii consume it.
+Curate about 300 openly licensed photographs of music scenes, show flyers, and zine covers for
+the login rotation, the credits gallery, the empty library, and the error pages. The design is
+`docs/superpowers/specs/2026-09-25-photo-curation-design.md` (revision 2.2, approved 2026-09-25),
+which supersedes the visual identity spec's curation rules where they differ; the active plan is
+`docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`. Inputs:
+`docs/superpowers/research/2026-09-24-identity-photos/`. Owner touchpoints: the sorting sittings
+and sending the outreach letters. Separate from the rung ladder; rung 7 consumes it.
 
 ## Someday
 

@@ -266,6 +266,10 @@ albums yet. Upload the first one."
 
 ### Curation rules
 
+The photo curation spec (`2026-09-25-photo-curation-design.md`, revision 2.2) is the later ruling on
+curation, licensing, and the manifest. Where the two differ, it wins; its last section lists the
+differences.
+
 The rotation is curated, not collected. The target is 100 or more photos, reached by a
 separate curation pass that this spec briefs:
 

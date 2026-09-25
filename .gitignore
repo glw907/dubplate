@@ -43,3 +43,9 @@ __pycache__/
 
 # Local brainstorm companion session state; never repo content.
 /.superpowers/
+
+# photos/.candidates/ is the photo curation pass's candidate home (see
+# docs/superpowers/specs/2026-09-25-photo-curation-design.md): downloaded
+# candidates wait here until Geoff picks them, and only picked images are
+# ever committed.
+/photos/.candidates/
