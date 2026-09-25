@@ -1,8 +1,10 @@
 # dubplate visual identity
 
-Status: revision 1.1, 2026-09-24, drafted from a live design session with Geoff. It awaits his
+Status: revision 1.2, 2026-09-25, drafted from a live design session with Geoff. It awaits his
 review. Revision 1.1 answers the 5c-ii accessibility review's warnings 4-6: a complete ink layer
-that passes on every surface, one focus-ring color, and the toggle's mechanism. This spec authors the look that the web surface standard
+that passes on every surface, one focus-ring color, and the toggle's mechanism. Revision 1.2 folds
+in the craft fixes from a three-lens refinement audit ("Refinement" below). Geoff closed the
+identity work on 2026-09-25; the items under "Open for rung 7" were shown but not ruled. This spec authors the look that the web surface standard
 (`2026-09-12-web-surface-standard.md`, W below) leaves open in W1.1 ("Rung 7 authors the look"),
 and it lands inside the mechanisms the design-language standard
 (`2026-09-07-design-language-standard.md`, DL below) already fixes. It decides the palette, the
@@ -182,9 +184,12 @@ square footprint. The record inside the sleeve uses the mark's treatment: lead-i
 run-out, and a label in one of the palette's inks. On `label-night`, that treatment is what
 keeps the record visible against the dark ground.
 
-An album with no cover art gets a plain sleeve in base-300 and a record with a cream label,
-where its title appears handwritten in Permanent Marker. This is the one use of the marker
-face.
+An album with no cover art gets a plain die-cut sleeve in base-300, like the sleeve a test
+pressing ships in. The record sits fully inside it, centered, and its cream label shows through
+the sleeve's centered hole with the title handwritten in Permanent Marker. This is the one use
+of the marker face. The die-cut hole replaces the peek as the sign that a record is inside;
+hover and focus still slide the record out. In dense lists, the no-art thumbnail is a base-300
+square with a small cream label.
 
 Dense lists, such as search results and the "Recently added" list, use a plain square cover
 thumbnail. A record is illegible at list-row size, so it appears only where it has room.
@@ -303,10 +308,47 @@ or a destructive confirm is never playful. Ruling 4 withdraws W1.3's vocabulary 
 ("Nothing cut yet", "Pressed and filed"). W's section 19 owes an entry recording that amendment
 when this spec is ratified.
 
+## Refinement
+
+A felt-refinement audit graded a specimen page built from this spec's tokens and CSS, through
+three read-only lenses (typography and rhythm; color, surface, and depth; interaction and
+states). Most knobs came back already right: the slab ladder, the 4px spacing grid, the line
+weights (1, 2, 3, and 4px, each with one role), the mark's optical centering on the wordmark,
+and the depth system. The ledgers and the refined specimen are in
+`docs/superpowers/research/2026-09-24-identity-refinement/`. These fixes are part of the spec:
+
+| Area | Rule |
+|---|---|
+| Display type | `.display` line-height 1.1 and `text-wrap: balance`. The tracklist heading is an h2 in the slab face, like "Recently added". |
+| Body copy | `text-wrap: pretty` on paragraphs and alert text, so no line ends on one word. |
+| Mono sizes | Three sizes only: 11px (badges, film edge), 12px (catalog line), 13px (tracklist numbers and durations). |
+| Mono tracking | `.08em` for label caps (badges, catalog line, column heads); `.14em` for film-edge print. |
+| Typographic marks | Curly quotes and apostrophes in all product copy. Catalog-line segments keep a non-breaking space inside each segment and before each separator. |
+| Tracklist | Track numbers right-aligned in a `2ch` column; each row carries visually hidden "Track" and duration labels for screen readers. |
+| Film edge | The caption wraps rather than clipping, so the credit is never truncated. Its ink is `color-mix(in oklab, var(--color-secondary) 85%, #0b0a09)`, and the carrier uses the vinyl black `#0b0a09`. The photo's `alt` is empty, and the film-edge caption is its text alternative. |
+| Framed objects | Every framed list takes the printed object rule (2px base-content border, 3px shadow). Three radius values: 2px for printed covers and thumbnails, `.25rem` for controls and cards, 0 for rules and the film edge. |
+| Dark keylines | On `label-night`, base-surface objects (default buttons, cards, lists) take a `#706a5f` keyline (base-content 40% into base-100, 3.26:1); color-filled objects (primary buttons, alerts) take black. |
+| Selection | `::selection` is highlighter gold: `color-mix(in oklab, var(--color-secondary) 45%, var(--color-base-100))` with base-content text. |
+| Placeholders | On `label`, placeholder text at 62% opacity, so it reads above 4.5:1. |
+| Interaction | Tabs and header links get a hover state; tabs, album figures, and list rows take a pointer cursor. Header nav links and the theme toggle meet 44px. |
+| Motion | Under `prefers-reduced-motion: reduce`, the record slide and the button press stop. |
+
 ## Open for rung 7
 
-Three designs remain for rung 7, whose uploader and album pages are already Geoff's scheduled
-design review. Each follows the rules above:
+These remain for rung 7, whose uploader and album pages are already Geoff's scheduled design
+review. Each follows the rules above. The first three were mocked and shown in the refinement
+round but not ruled, so rung 7 presents them for a verdict rather than building them as settled:
+
+- The phone header: the mark alone on phones (the wordmark stays on the login page).
+- Error alerts as a tinted panel with an error keyline, reserving solid red for the primary
+  action.
+- A library list view beside the grid: a Grid and List switch, and a catalog-index list with
+  mono column heads and a catalog-number column.
+- Library filtering, designed from the prior-art study at
+  `docs/superpowers/research/2026-09-24-library-filtering-prior-art.md`: facets with live counts
+  and include and exclude, OR within a facet and AND across facets, a beets-style query line kept
+  in sync with the controls, URL state, and saved views. The mocked row of dropdowns is a
+  placeholder, not the design. The study maps each facet to the rung 9 column that supplies it.
 
 - The album page: the large sleeve and record, the tracklist, the catalog line, and a small
   inscription in the record's run-out area naming who added the album and when, the way
