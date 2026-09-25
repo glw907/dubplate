@@ -1,0 +1,31 @@
+{
+  "title": "Sound system corner, Kingston",
+  "source_title": "Sound system, Kingston",
+  "photographer": "Jane Doe",
+  "credit": "Jane Doe / Wikimedia Commons",
+  "notice": "(c) Jane Doe",
+  "source_id": "commons:12345",
+  "origin_id": "flickr:99999",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Example.jpg",
+  "file_url": "https://upload.wikimedia.org/example.jpg",
+  "archive_url": "https://web.archive.org/web/2026/https://commons.wikimedia.org/wiki/File:Example.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "license": "CC-BY-2.0",
+  "verified": "Quoted from action=raw: {{cc-by-2.0}}, checked 2026-09-25 by the conductor.",
+  "scene": { "primary": "reggae", "secondary": ["dub"] },
+  "subject": ["sound-systems", "crowds-and-dancers"],
+  "shot": "candid",
+  "format": "photograph",
+  "place": {
+    "city": "Kingston",
+    "country_code": "JM",
+    "landmark": { "name": "Waterhouse", "wikidata_id": "Q12345" }
+  },
+  "year": { "value": 1978, "precision": "circa" },
+  "artists": [{ "name": "The Test Sound System", "mbid": null }],
+  "surfaces": ["gallery"],
+  "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "width": 1600,
+  "height": 1067,
+  "status": "picked"
+}

@@ -1,0 +1,226 @@
+{
+  "scenes": {
+    "ska": { "name": "Ska", "family": "reggae" },
+    "rocksteady": { "name": "Rocksteady", "family": "reggae" },
+    "reggae": { "name": "Reggae", "family": "reggae" },
+    "dub": { "name": "Dub", "family": "reggae" },
+    "dancehall": { "name": "Dancehall", "family": "reggae" },
+    "2-tone": { "name": "2 Tone", "family": "reggae" },
+    "lovers-rock": { "name": "Lovers rock", "family": "reggae" },
+    "protopunk": { "name": "Protopunk", "family": "punk" },
+    "punk": { "name": "Punk", "family": "punk" },
+    "hardcore": { "name": "Hardcore", "family": "punk" },
+    "post-punk": { "name": "Post-punk", "family": "punk" },
+    "hip-hop": { "name": "Hip-hop", "family": "hip-hop" },
+    "go-go": { "name": "Go-go", "family": "hip-hop" },
+    "graffiti": { "name": "Graffiti", "family": "hip-hop" },
+    "b-boy": { "name": "B-boy", "family": "hip-hop" },
+    "jazz": { "name": "Jazz", "family": "other" },
+    "blues": { "name": "Blues", "family": "other" },
+    "mod": { "name": "Mod", "family": "other" },
+    "garage": { "name": "Garage", "family": "other" },
+    "rockabilly": { "name": "Rockabilly", "family": "other" },
+    "outsider-artists": { "name": "Outsider artists", "family": "other" },
+    "highlife": { "name": "Highlife", "family": "other" },
+    "afrobeat": { "name": "Afrobeat", "family": "other" },
+    "cumbia": { "name": "Cumbia", "family": "other" }
+  },
+  "families": {
+    "reggae": { "name": "Reggae", "share": 0.30 },
+    "punk": { "name": "Punk", "share": 0.20 },
+    "hip-hop": { "name": "Hip-hop", "share": 0.20 },
+    "other": { "name": "Everything else", "share": 0.30 }
+  },
+  "subjects": {
+    "performers": "Performers",
+    "crowds-and-dancers": "Crowds and dancers",
+    "sound-systems": "Sound systems",
+    "record-stores": "Record stores",
+    "clubs-and-venues": "Clubs and venues",
+    "recording-studios": "Recording studios",
+    "homes-and-label-headquarters": "Homes and label headquarters",
+    "instruments": "Instruments",
+    "record-players-and-hifi": "Record players and hi-fi",
+    "radio-stations": "Radio stations",
+    "pressing-plants-and-cutting-lathes": "Pressing plants and cutting lathes",
+    "streets-and-neighborhoods": "Streets and neighborhoods"
+  },
+  "floor_grid_subjects": [
+    "sound-systems",
+    "clubs-and-venues",
+    "recording-studios",
+    "record-stores",
+    "crowds-and-dancers"
+  ],
+  "shots": ["live", "candid", "posed", "interior", "exterior", "still-life"],
+  "formats": ["photograph", "flyer", "zine-cover"],
+  "surfaces": ["login", "error", "empty", "gallery"],
+  "regions": {
+    "caribbean": {
+      "name": "Caribbean",
+      "country_codes": ["JM", "TT", "BS", "BB", "CU", "DO", "HT", "PR", "BZ", "GY", "SR"]
+    },
+    "uk-ireland": {
+      "name": "UK and Ireland",
+      "country_codes": ["GB", "IE"]
+    },
+    "north-america": {
+      "name": "North America",
+      "country_codes": ["US", "CA", "MX"]
+    },
+    "africa": {
+      "name": "Africa",
+      "country_codes": [
+        "NG", "GH", "ZA", "SN", "ET", "KE", "EG", "MA", "DZ", "TN", "CI", "CM",
+        "TZ", "UG", "ZM", "ZW", "MZ", "AO", "CD", "CG"
+      ]
+    },
+    "latin-america": {
+      "name": "Latin America",
+      "country_codes": [
+        "BR", "AR", "CL", "CO", "PE", "VE", "EC", "BO", "PY", "UY", "CR", "PA",
+        "GT", "HN", "SV", "NI"
+      ]
+    },
+    "europe": {
+      "name": "Europe",
+      "country_codes": [
+        "DE", "FR", "IT", "ES", "PT", "NL", "BE", "SE", "NO", "DK", "FI", "PL",
+        "CZ", "AT", "CH", "HU", "RO", "BG", "GR", "RS", "HR", "SI", "SK", "UA", "RU"
+      ]
+    },
+    "mena": {
+      "name": "Middle East and North Africa",
+      "country_codes": ["SA", "AE", "QA", "KW", "BH", "OM", "JO", "LB", "IQ", "IR", "IL", "PS", "TR", "LY"]
+    },
+    "asia-pacific": {
+      "name": "Asia and Pacific",
+      "country_codes": [
+        "JP", "CN", "KR", "IN", "TH", "VN", "PH", "ID", "MY", "SG", "AU", "NZ",
+        "PK", "BD", "LK"
+      ]
+    }
+  },
+  "licenses": [
+    {
+      "id": "LicenseRef-public-domain",
+      "name": "Public domain",
+      "legal_code_url": "https://en.wikipedia.org/wiki/Public_domain",
+      "class": "shipped"
+    },
+    {
+      "id": "CC0-1.0",
+      "name": "CC0 1.0",
+      "legal_code_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-1.0",
+      "name": "CC BY 1.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by/1.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-2.0",
+      "name": "CC BY 2.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by/2.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-2.5",
+      "name": "CC BY 2.5",
+      "legal_code_url": "https://creativecommons.org/licenses/by/2.5/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-3.0",
+      "name": "CC BY 3.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by/3.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-4.0",
+      "name": "CC BY 4.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by/4.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-SA-2.0",
+      "name": "CC BY-SA 2.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-sa/2.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-SA-2.5",
+      "name": "CC BY-SA 2.5",
+      "legal_code_url": "https://creativecommons.org/licenses/by-sa/2.5/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-SA-3.0",
+      "name": "CC BY-SA 3.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "LicenseRef-CC-BY-SA-3.0-NL",
+      "name": "CC BY-SA 3.0 Netherlands",
+      "legal_code_url": "https://creativecommons.org/licenses/by-sa/3.0/nl/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-SA-4.0",
+      "name": "CC BY-SA 4.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "class": "shipped"
+    },
+    {
+      "id": "LAL-1.3",
+      "name": "Free Art License 1.3",
+      "legal_code_url": "https://artlibre.org/licence/lal/en/",
+      "class": "shipped"
+    },
+    {
+      "id": "CC-BY-NC-4.0",
+      "name": "CC BY-NC 4.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+      "class": "pack"
+    },
+    {
+      "id": "CC-BY-NC-ND-4.0",
+      "name": "CC BY-NC-ND 4.0",
+      "legal_code_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+      "class": "pack"
+    }
+  ],
+  "flickr_licenses": {},
+  "public_domain_bases": [
+    {
+      "id": "pre-1931",
+      "requires": "Publication before 1931 (the rolling 95-year term)."
+    },
+    {
+      "id": "us-government-work",
+      "requires": "A US federal government work."
+    },
+    {
+      "id": "us-pre-1978-no-notice",
+      "requires": "US publication before 1978 without notice."
+    },
+    {
+      "id": "us-1978-1989-no-notice-unregistered",
+      "requires": "US publication 1978 to 1989 without notice and with no registration within five years."
+    }
+  ],
+  "reasons": [
+    "passed",
+    "blurred",
+    "too-small",
+    "license",
+    "duplicate",
+    "unavailable",
+    "vocab",
+    "format"
+  ],
+  "people_flags": ["personality-rights", "apparent-minor"]
+}

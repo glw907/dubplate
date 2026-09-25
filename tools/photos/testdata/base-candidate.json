@@ -1,0 +1,17 @@
+{
+  "title": "Sound system corner, Kingston",
+  "photographer": "Jane Doe",
+  "source_id": "commons:54321",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Example2.jpg",
+  "file_url": "https://upload.wikimedia.org/example2.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "license": "CC-BY-2.0",
+  "verified": "Quoted from action=raw: {{cc-by-2.0}}, checked 2026-09-25 by research-a.",
+  "subject": ["sound-systems"],
+  "shot": "candid",
+  "format": "photograph",
+  "year": { "value": 1978, "precision": "circa" },
+  "screen": { "score": 4, "note": "Sharp, well-lit, clear subject." },
+  "source_width": 1600,
+  "source_height": 1067
+}
