@@ -234,6 +234,19 @@ which is the unit the per-task `diff-reviewer` cannot see. Every
 `code-simplifier` dispatch pastes `.claude/instructions/simplifier-brief.md`
 verbatim; the four decidable patterns it names replace a clarity brief.
 
+## Refused features
+
+dubplate is for a group sharing music its members hold, and is built to be easy for that and
+hard to turn into a distribution hub (ratified: `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`).
+Never build, and never accept a contribution that adds:
+- anything that fetches music: search-and-download, torrent, Usenet, or Soulseek integrations,
+  or "fetch missing albums" automation (metadata sources are a separate question);
+- federation, or any link between two servers' catalogs;
+- a public library: anonymous browsing, public collections, or a link that opens a collection;
+- a `download` larger than one album (song or album ids only; other kinds answer error 50);
+- a share outside the six bounds (one item; lossy stream only; clamped expiry; the listener
+  pause; an unguessable, unindexed link; bounds enforced server-side with the owner from login).
+
 ## Facts agents get wrong
 
 - Failure pings are POST to `<url>/fail`; success is GET. The Worker 404s a
