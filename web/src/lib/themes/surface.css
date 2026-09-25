@@ -1,0 +1,43 @@
+/*
+ * The surface tokens: a fourth layer, beside the inks and outside the
+ * palette block's 21 names, that carries the print-surface values
+ * component CSS reaches by name rather than by a literal (DL R2.1,
+ * G2's parity rows, G9's a11y rows do not measure this layer; none of
+ * these values are text). Values are pinned in the visual identity
+ * spec (docs/superpowers/specs/2026-09-24-visual-identity-design.md:200-206,
+ * :330-331). Literal colors live here because G1 exempts `lib/themes/`
+ * alone (`web/scripts/gates/g1.ts:11`).
+ *
+ * - `--shadow-color` and `--shadow-strength-button`/`-card`: the offset
+ *   shadow's ink and its two strengths, neutral on `label`, black on
+ *   `label-night`, since `label-night`'s neutral is itself too dark to
+ *   read as a shadow tint.
+ * - `--keyline-base` and `--keyline-fill`: the border color for
+ *   base-surface objects (default buttons, cards, lists) and for
+ *   color-filled objects (primary buttons, alerts). Both equal
+ *   `--color-base-content`, the printed-object default, except on
+ *   `label-night`, where VI names its own keyline pair.
+ * - `--selection-ground`: `::selection`'s highlighter-gold mix, the
+ *   same formula in both themes, resolving against each theme's own
+ *   `--color-secondary` and `--color-base-100`.
+ */
+
+@layer base {
+  [data-theme="dubplate-label"] {
+    --shadow-color: var(--color-neutral);
+    --shadow-strength-button: 55%;
+    --shadow-strength-card: 45%;
+    --keyline-base: var(--color-base-content);
+    --keyline-fill: var(--color-base-content);
+    --selection-ground: color-mix(in oklab, var(--color-secondary) 45%, var(--color-base-100));
+  }
+
+  [data-theme="dubplate-label-night"] {
+    --shadow-color: #000000;
+    --shadow-strength-button: 65%;
+    --shadow-strength-card: 60%;
+    --keyline-base: #706a5f;
+    --keyline-fill: #000000;
+    --selection-ground: color-mix(in oklab, var(--color-secondary) 45%, var(--color-base-100));
+  }
+}

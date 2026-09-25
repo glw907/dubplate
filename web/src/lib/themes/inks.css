@@ -1,24 +1,34 @@
 /*
  * The measured status inks: a third layer, outside the palette block's
  * 21 names, that dubplate's own markup reaches through a named ink
- * utility, never `text-warning` or the like. An ink defaults to its
- * fill and is overridden where the fill fails the 4.5:1 text floor on
- * base-300, the darkest surface text sits on in `label`, so one ink
- * reads on every surface. Values are pinned in the visual identity
- * spec's ink table
- * (docs/superpowers/specs/2026-09-24-visual-identity-design.md).
- * No ink admits a contrast-exception marker: G9 holds every status ink
- * to 4.5:1 regardless.
+ * utility, never `text-warning` or the like. Text set in a semantic
+ * color never uses the raw `--color-*` fill; it uses that color's ink,
+ * and every ink clears 4.5:1 on `base-100`, `base-200`, and `base-300`,
+ * so no component needs to know which surface it sits on. Values are
+ * pinned in the visual identity spec's ink table
+ * (docs/superpowers/specs/2026-09-24-visual-identity-design.md:100-106).
+ * On `dubplate-label-night`, `--ink-info` and `--ink-warning` equal
+ * their own fill, so they read `var(--color-info)` and
+ * `var(--color-warning)`; every other ink, on both themes, is its own
+ * literal, since it diverges from the fill. No ink admits a
+ * contrast-exception marker: G9 holds every status ink to 4.5:1 on all
+ * three bases regardless.
  */
 
 @layer base {
   [data-theme="dubplate-label"] {
     --ink-primary: #9d2f26;
+    --ink-accent: #2d6136;
+    --ink-info: #2d5a81;
+    --ink-error: #a4261d;
     --ink-warning: #754f00;
   }
 
   [data-theme="dubplate-label-night"] {
     --ink-primary: #ec7b6a;
+    --ink-accent: #66a46e;
+    --ink-info: var(--color-info);
+    --ink-error: #e37866;
     --ink-warning: var(--color-warning);
   }
 }

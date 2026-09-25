@@ -31,6 +31,7 @@ import {
   selectorIsExactlyDataTheme,
   splitSelectorList,
   STRUCTURAL_NAMES,
+  SURFACE_NAMES,
   SYSTEM_NAME
 } from './g2.ts';
 import { fail, isMainModule, walk } from './lib.ts';
@@ -108,10 +109,29 @@ function normalizeValue(value: string): string {
   return joined.replace(/(^|[\s(,])0\.(\d)/g, '$1.$2');
 }
 
+/** Reads a `@layer base` file holding one rule per composed theme (`inks.css`, `surface.css`'s shape). */
+function readLayerBaseByTheme(file: string): Map<string, Map<string, string>> {
+  const out = new Map<string, Map<string, string>>();
+  const text = readFileSync(`${THEMES_DIR}/${file}`, 'utf8');
+  for (const node of scanNodes(text, 0, text.length)) {
+    if (node.kind !== 'at-rule' || node.name !== '@layer' || node.prelude !== 'base') continue;
+    for (const child of node.children) {
+      if (child.kind !== 'rule') continue;
+      for (const composed of COMPOSED_NAMES) {
+        if (selectorHasDataTheme(child.selector, composed)) {
+          out.set(composed, new Map(child.declarations.map((d) => [d.name, d.value])));
+        }
+      }
+    }
+  }
+  return out;
+}
+
 function readReferenceDeclarations(): {
   match: Map<string, Map<string, string>>;
   palette: Map<string, Map<string, string>>;
   inks: Map<string, Map<string, string>>;
+  surface: Map<string, Map<string, string>>;
 } {
   const match = new Map<string, Map<string, string>>();
   const dubplateText = readFileSync(`${THEMES_DIR}/dubplate.css`, 'utf8');
@@ -127,20 +147,9 @@ function readReferenceDeclarations(): {
     const block = pluginBlocksNamed(text).get(composed);
     if (block) palette.set(composed, new Map(block.declarations.map((d) => [d.name, d.value])));
   }
-  const inks = new Map<string, Map<string, string>>();
-  const inksText = readFileSync(`${THEMES_DIR}/inks.css`, 'utf8');
-  for (const node of scanNodes(inksText, 0, inksText.length)) {
-    if (node.kind !== 'at-rule' || node.name !== '@layer' || node.prelude !== 'base') continue;
-    for (const child of node.children) {
-      if (child.kind !== 'rule') continue;
-      for (const composed of COMPOSED_NAMES) {
-        if (selectorHasDataTheme(child.selector, composed)) {
-          inks.set(composed, new Map(child.declarations.map((d) => [d.name, d.value])));
-        }
-      }
-    }
-  }
-  return { match, palette, inks };
+  const inks = readLayerBaseByTheme('inks.css');
+  const surface = readLayerBaseByTheme('surface.css');
+  return { match, palette, inks, surface };
 }
 
 function checkStampedValues(
@@ -165,7 +174,7 @@ function checkStampedValues(
 }
 
 /** Every theme-stampable name G2 and G9 already track, the inventory a rogue rule could set. */
-const THEME_TOKEN_NAMES = new Set<string>([...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES]);
+const THEME_TOKEN_NAMES = new Set<string>([...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES, ...SURFACE_NAMES]);
 /** A `[data-theme=dubplate-*]` compound, quoted or not: the only selector shape a theme-token rule may confine itself to. */
 const DUBPLATE_THEME_COMPOUND = /\[data-theme=(?:"dubplate-[\w-]+"|dubplate-[\w-]+)\]/;
 /** DaisyUI's stock `light`/`dark` theme compound, quoted or not. */
@@ -272,11 +281,12 @@ export function run(): string[] {
     const matchRef = reference.match.get(composed) ?? new Map();
     const paletteRef = reference.palette.get(composed) ?? new Map();
     const inkRef = reference.inks.get(composed) ?? new Map();
-    const combinedRef = new Map([...matchRef, ...paletteRef, ...inkRef]);
+    const surfaceRef = reference.surface.get(composed) ?? new Map();
+    const combinedRef = new Map([...matchRef, ...paletteRef, ...inkRef, ...surfaceRef]);
     checkStampedValues(
       effective,
       combinedRef,
-      [...STRUCTURAL_NAMES, ...paletteNamesExceptScheme, ...INK_NAMES],
+      [...STRUCTURAL_NAMES, ...paletteNamesExceptScheme, ...INK_NAMES, ...SURFACE_NAMES],
       composed,
       violations
     );
@@ -301,11 +311,12 @@ export function run(): string[] {
     const matchRef = reference.match.get(composed) ?? new Map();
     const paletteRef = reference.palette.get(composed) ?? new Map();
     const inkRef = reference.inks.get(composed) ?? new Map();
-    const combinedRef = new Map([...matchRef, ...paletteRef, ...inkRef]);
+    const surfaceRef = reference.surface.get(composed) ?? new Map();
+    const combinedRef = new Map([...matchRef, ...paletteRef, ...inkRef, ...surfaceRef]);
     checkStampedValues(
       effective,
       combinedRef,
-      [...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES],
+      [...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES, ...SURFACE_NAMES],
       `dubplate-system (${label})`,
       violations
     );
@@ -324,6 +335,21 @@ export function run(): string[] {
       );
     }
     for (const child of block.children) {
+      if (child.kind === 'at-rule' && child.name === '@supports') {
+        // Lightning CSS wraps a `color-mix()` declaration in an
+        // `@supports` feature query with a plain fallback outside it
+        // (measured in the built bundle), so a real build carries
+        // this progressive-enhancement shape rather than a rogue
+        // selector. Its own children still hold to the same rule.
+        for (const grandchild of child.children) {
+          if (grandchild.kind !== 'rule' || !selectorIsExactlyDataTheme(grandchild.selector, SYSTEM_NAME)) {
+            violations.push(
+              `theme-bundle: the prefers-color-scheme block's @supports wrapper holds an unexpected node`
+            );
+          }
+        }
+        continue;
+      }
       if (child.kind !== 'rule') {
         violations.push('theme-bundle: the prefers-color-scheme block holds a non-rule node');
         continue;

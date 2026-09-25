@@ -33,9 +33,9 @@
   --border: 2px;
   --depth: 0;
   --noise: 1;
-  --font-sans: "ui-sans-serif, system-ui, sans-serif";
-  --font-serif: "ui-serif, serif";
-  --font-mono: "ui-monospace, monospace";
+  --font-sans: "Work Sans, ui-sans-serif, system-ui, sans-serif";
+  --font-serif: "Alfa Slab One, ui-serif, serif";
+  --font-mono: "IBM Plex Mono, ui-monospace, monospace";
 }
 
 @plugin "daisyui/theme" {
@@ -48,7 +48,7 @@
   --border: 2px;
   --depth: 0;
   --noise: 1;
-  --font-sans: "ui-sans-serif, system-ui, sans-serif";
-  --font-serif: "ui-serif, serif";
-  --font-mono: "ui-monospace, monospace";
+  --font-sans: "Work Sans, ui-sans-serif, system-ui, sans-serif";
+  --font-serif: "Alfa Slab One, ui-serif, serif";
+  --font-mono: "IBM Plex Mono, ui-monospace, monospace";
 }

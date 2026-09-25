@@ -1,19 +1,25 @@
 /**
- * G9: contrast, extended for the status inks. For each composed theme
- * in `label.css` and `label-night.css`, computes WCAG 2.2 relative
- * luminance in sRGB (converting `oklch()` first) and checks:
+ * G9: contrast, extended for the status inks and their per-surface
+ * rows (a11y W4). For each composed theme in `label.css` and
+ * `label-night.css`, computes WCAG 2.2 relative luminance in sRGB
+ * (converting `oklch()` first) and checks a closed list of pairs:
  *
- * - Each `-content` pair against its own fill, and `--color-base-content`
- *   against `--color-base-100`, at 4.5:1.
- * - The eight colors DaisyUI paints as text directly (`--color-primary`
- *   through `--color-info`) against `--color-base-100`, at 4.5:1,
- *   unless a `contrast-exception` marker directly above the declaration
- *   records a lower measured ratio. A marker above a pairing that
- *   clears the floor is itself a failure: a stale exemption cannot
- *   survive an edit.
+ * - Each `-content` pair against its own fill, at 4.5:1.
+ * - `--color-base-content` against each of `--color-base-100`,
+ *   `--color-base-200`, and `--color-base-300`, at 4.5:1.
  * - Each ink in `inks.css`, resolved through `var()` against the same
- *   composed theme's own palette and nothing else, against
- *   `--color-base-100`, at 4.5:1. No ink admits a marker.
+ *   composed theme's own palette and nothing else, against each of
+ *   the three bases, at 4.5:1. No ink admits a marker.
+ * - A pinned-value row: each resolved ink compared to the visual
+ *   identity spec's ink table (quoted below), so an ink that drifts
+ *   from the spec fails even when it still passes contrast.
+ *
+ * The fills themselves (`--color-primary` and so on) are never
+ * measured as text: dubplate's markup reaches a semantic color as
+ * text only through its ink. `label`'s `--color-secondary` and
+ * `label-night`'s `--color-neutral` are the two fills VI marks
+ * fill-only (`FILL_ONLY_EXCLUSIONS` below); every other fill is
+ * simply outside this closed list, for the same reason.
  */
 import { readFileSync } from 'node:fs';
 import { fail, isMainModule } from './lib.ts';
@@ -22,6 +28,7 @@ import {
   type DeclNode,
   declMap,
   type ExceptionMarker,
+  INK_NAMES,
   pluginBlocksNamed,
   selectorHasDataTheme,
   singleLayerBaseChildren,
@@ -30,17 +37,8 @@ import {
 
 const THEMES_DIR = 'src/lib/themes';
 
-/** The eight colors DaisyUI paints as text directly rather than through a `-content` token. */
-const DIRECT_TEXT_COLORS = [
-  '--color-primary',
-  '--color-secondary',
-  '--color-accent',
-  '--color-neutral',
-  '--color-info',
-  '--color-success',
-  '--color-warning',
-  '--color-error'
-];
+/** The three grounds every ink and `--color-base-content` must clear (a11y W4). */
+const BASES = ['--color-base-100', '--color-base-200', '--color-base-300'];
 
 /** Every `-content` pair: the content name and its fill. */
 const CONTENT_PAIRS: [string, string][] = [
@@ -53,6 +51,40 @@ const CONTENT_PAIRS: [string, string][] = [
   ['--color-warning-content', '--color-warning'],
   ['--color-error-content', '--color-error']
 ];
+
+/**
+ * The two fills VI marks fill-only, never measured as text (visual
+ * identity spec :108, W2.6's marker): "never text, never a focus or
+ * selector indicator".
+ */
+const FILL_ONLY_EXCLUSIONS: { composed: string; name: string; reason: string }[] = [
+  { composed: 'dubplate-label', name: '--color-secondary', reason: 'fill-only, never rendered as text' },
+  { composed: 'dubplate-label-night', name: '--color-neutral', reason: 'fill-only, never rendered as text' }
+];
+
+/**
+ * The visual identity spec's ink table, quoted verbatim
+ * (docs/superpowers/specs/2026-09-24-visual-identity-design.md:100-106),
+ * `label` then `label-night`. An ink whose resolved value drifts from
+ * this table fails the pinned-value row even when it still clears the
+ * contrast floor.
+ */
+const PINNED_INKS: Record<string, Record<string, string>> = {
+  'dubplate-label': {
+    '--ink-primary': '#9d2f26',
+    '--ink-accent': '#2d6136',
+    '--ink-info': '#2d5a81',
+    '--ink-error': '#a4261d',
+    '--ink-warning': '#754f00'
+  },
+  'dubplate-label-night': {
+    '--ink-primary': '#ec7b6a',
+    '--ink-accent': '#66a46e',
+    '--ink-info': '#6d9cc7',
+    '--ink-error': '#e37866',
+    '--ink-warning': '#e5ad33'
+  }
+};
 
 /**
  * The 4.5:1 contrast floor. The design-language standard's palette-pair
@@ -159,7 +191,7 @@ function checkFloor(
     violations.push(`g9: ${where}: ${variable}'s value "${text}" is not a parseable color`);
   }
   if (baseLum === null) {
-    violations.push(`g9: ${where}: ${variable}'s base --color-base-100 value "${base}" is not a parseable color`);
+    violations.push(`g9: ${where}: ${variable}'s base value "${base}" is not a parseable color`);
   }
   if (textLum === null || baseLum === null) return;
   const lighter = Math.max(textLum, baseLum);
@@ -210,9 +242,20 @@ const PALETTE_FILES: Record<string, string> = {
   'dubplate-label-night': 'label-night.css'
 };
 
+/**
+ * R-5ciii3's closed list, per composed theme: every `-content` pair
+ * (1 base each), `--color-base-content` (3 bases), and every ink (3
+ * bases each). `FILL_ONLY_EXCLUSIONS` sits outside this list on
+ * purpose: excluded pairs are never measured, so they never count
+ * toward it.
+ */
+const EXPECTED_MEASURED_PAIRS =
+  COMPOSED_NAMES.length * (CONTENT_PAIRS.length + BASES.length + INK_NAMES.length * BASES.length);
+
 export function run(): string[] {
   const violations: string[] = [];
   const inkRules = readInkRules(violations);
+  let measuredPairs = 0;
 
   for (const composed of COMPOSED_NAMES) {
     const declarations = readPaletteBlock(PALETTE_FILES[composed], composed);
@@ -221,11 +264,12 @@ export function run(): string[] {
       continue;
     }
     const palette = declMap(declarations);
-    const base100 = palette.get('--color-base-100');
-    if (!base100) {
-      violations.push(`g9: ${composed}: --color-base-100 is missing, contrast cannot be measured`);
-      continue;
+    const bases = new Map(BASES.map((name) => [name, palette.get(name)]));
+    for (const [name, value] of bases) {
+      if (!value) violations.push(`g9: ${composed}: ${name} is missing, contrast cannot be measured`);
     }
+    const base100 = bases.get('--color-base-100');
+    if (!base100) continue;
 
     for (const [contentName, fillName] of CONTENT_PAIRS) {
       const contentDecl = declarations.find((d) => d.name === contentName);
@@ -240,48 +284,76 @@ export function run(): string[] {
       }
       // -content pairs are always text: never a place for a contrast-exception marker.
       checkFloor(composed, contentName, contentDecl.value, fillValue, contentDecl.marker, false, violations);
+      measuredPairs++;
     }
+
     const baseContentDecl = declarations.find((d) => d.name === '--color-base-content');
     if (!baseContentDecl) {
       violations.push(`g9: ${composed}: --color-base-content is missing, contrast cannot be measured`);
     } else {
-      // base-content is always text too: same restriction as the -content pairs above.
-      checkFloor(
-        composed,
-        '--color-base-content',
-        baseContentDecl.value,
-        base100,
-        baseContentDecl.marker,
-        false,
-        violations
-      );
-    }
-    for (const name of DIRECT_TEXT_COLORS) {
-      const decl = declarations.find((d) => d.name === name);
-      if (!decl) {
-        violations.push(`g9: ${composed}: ${name} is missing, contrast cannot be measured`);
-        continue;
+      for (const [baseName, baseValue] of bases) {
+        if (!baseValue) continue;
+        // base-content is always text too: same restriction as the -content pairs above.
+        checkFloor(
+          `${composed} (${baseName})`,
+          '--color-base-content',
+          baseContentDecl.value,
+          baseValue,
+          baseContentDecl.marker,
+          false,
+          violations
+        );
+        measuredPairs++;
       }
-      checkFloor(composed, name, decl.value, base100, decl.marker, true, violations);
+    }
+
+    // The fill-only exclusions are documented, not measured: confirm each still exists
+    // in this theme's palette, so a renamed or dropped fill does not silently drop its
+    // own exclusion out of date.
+    for (const exclusion of FILL_ONLY_EXCLUSIONS.filter((e) => e.composed === composed)) {
+      if (!palette.has(exclusion.name)) {
+        violations.push(`g9: ${composed}: the documented exclusion ${exclusion.name} (${exclusion.reason}) is missing from the palette`);
+      }
     }
 
     const inkRule = inkRules.find((r) => selectorHasDataTheme(r.selector, composed));
-    if (!inkRule || inkRule.declarations.length === 0) {
-      violations.push(`g9: ${composed}: no ink block found, an empty iteration is not a pass`);
-      continue;
-    }
-    for (const ink of inkRule.declarations) {
-      if (ink.marker) {
-        violations.push(`g9: ${composed}: ${ink.name} carries an exception marker; inks admit none`);
+    const inkDecls = inkRule ? declMap(inkRule.declarations) : new Map<string, string>();
+    for (const inkName of INK_NAMES) {
+      const rawValue = inkDecls.get(inkName);
+      if (rawValue === undefined) {
+        violations.push(`g9: ${composed}: ${inkName} is missing from inks.css, contrast cannot be measured`);
         continue;
       }
-      const resolved = resolveAgainstPalette(ink.value, palette);
+      const inkDecl = inkRule?.declarations.find((d) => d.name === inkName) ?? null;
+      if (inkDecl?.marker) {
+        violations.push(`g9: ${composed}: ${inkName} carries an exception marker; inks admit none`);
+        continue;
+      }
+      const resolved = resolveAgainstPalette(rawValue, palette);
       if (resolved === null) {
-        violations.push(`g9: ${composed}: ${ink.name}'s value "${ink.value}" does not resolve against this theme's own --color-* set`);
+        violations.push(
+          `g9: ${composed}: ${inkName}'s value "${rawValue}" does not resolve against this theme's own --color-* set`
+        );
         continue;
       }
-      checkFloor(composed, ink.name, resolved, base100, null, false, violations);
+      const pinned = PINNED_INKS[composed]?.[inkName];
+      if (pinned !== undefined && resolved.toLowerCase() !== pinned.toLowerCase()) {
+        violations.push(
+          `g9: ${composed}: ${inkName} resolves to "${resolved}", the visual identity spec's ink table pins "${pinned}"`
+        );
+      }
+      for (const [baseName, baseValue] of bases) {
+        if (!baseValue) continue;
+        checkFloor(`${composed} (${baseName})`, inkName, resolved, baseValue, null, false, violations);
+        measuredPairs++;
+      }
     }
+  }
+
+  if (measuredPairs !== EXPECTED_MEASURED_PAIRS) {
+    violations.push(
+      `g9: measured ${measuredPairs} pair(s), want ${EXPECTED_MEASURED_PAIRS}: a missing declaration would otherwise pass silently`
+    );
   }
 
   return violations;

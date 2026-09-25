@@ -1,7 +1,7 @@
 /**
- * G2: variable completeness, extended for the inks and the
- * `dubplate-system` copy. Parses the five theme data files under
- * `src/lib/themes/` and asserts:
+ * G2: variable completeness, extended for the inks, the surface
+ * tokens, and the `dubplate-system` copy. Parses the six theme data
+ * files under `src/lib/themes/` and asserts:
  *
  * - `dubplate.css` carries two `@plugin "daisyui/theme"` blocks, named
  *   `dubplate-label` and `dubplate-label-night`, each declaring exactly
@@ -11,11 +11,17 @@
  * - `label.css` and `label-night.css` each carry one block declaring
  *   exactly the 21 palette names, no `default` or `prefersdark` key.
  * - `inks.css` carries one ink block per composed theme, each declaring
- *   exactly the ink set (`--ink-primary`, `--ink-warning`).
+ *   exactly the ink set (`--ink-primary`, `--ink-accent`, `--ink-info`,
+ *   `--ink-error`, `--ink-warning`).
+ * - `surface.css` carries one surface block per composed theme, each
+ *   declaring exactly the surface set (`--shadow-color`,
+ *   `--shadow-strength-button`, `--shadow-strength-card`,
+ *   `--keyline-base`, `--keyline-fill`, `--selection-ground`).
  * - `system.css` carries the unconditional and the
  *   `prefers-color-scheme: dark` `[data-theme="dubplate-system"]`
  *   branches, each repeating its composed theme's 32 names plus the
- *   ink set at parity, byte for byte after parsing.
+ *   ink set and the surface set at parity, byte for byte after
+ *   parsing.
  *
  * This module also exports the low-level CSS scanner `theme-bundle.ts`
  * and `g9.ts` reuse: a generic `@rule`/rule/`@plugin` tree walk that
@@ -66,8 +72,18 @@ export const PALETTE_NAMES = [
   '--color-error-content'
 ];
 
-/** The two status inks G9 also reads: the inventory's one home. */
-export const INK_NAMES = ['--ink-primary', '--ink-warning'];
+/** The five status inks G9 also reads: the inventory's one home. */
+export const INK_NAMES = ['--ink-primary', '--ink-accent', '--ink-info', '--ink-error', '--ink-warning'];
+
+/** The print-surface tokens: not measured by G9, since none of these values are text. */
+export const SURFACE_NAMES = [
+  '--shadow-color',
+  '--shadow-strength-button',
+  '--shadow-strength-card',
+  '--keyline-base',
+  '--keyline-fill',
+  '--selection-ground'
+];
 
 export const COMPOSED_NAMES = ['dubplate-label', 'dubplate-label-night'] as const;
 export const SYSTEM_NAME = 'dubplate-system';
@@ -366,6 +382,7 @@ interface ThemeFiles {
   label: string;
   labelNight: string;
   inks: string;
+  surface: string;
   system: string;
 }
 
@@ -375,6 +392,7 @@ function readThemeFiles(violations: string[]): ThemeFiles | null {
     ['label', 'label.css'],
     ['labelNight', 'label-night.css'],
     ['inks', 'inks.css'],
+    ['surface', 'surface.css'],
     ['system', 'system.css']
   ];
   const out: Partial<ThemeFiles> = {};
@@ -588,6 +606,23 @@ export function run(): string[] {
     checkDuplicates(where, rule.declarations, violations);
   }
 
+  // ---- surface.css: one surface block per composed theme, inside `@layer base`.
+  const surfaceDecls = new Map<string, DeclNode[]>();
+  const surfaceRules = singleLayerBaseChildren('surface.css', files.surface, violations).filter(
+    (n): n is RuleNode => n.kind === 'rule'
+  );
+  for (const composed of COMPOSED_NAMES) {
+    const rule = surfaceRules.find((r) => selectorHasDataTheme(r.selector, composed));
+    if (!rule) {
+      violations.push(`g2: surface.css: no surface block for "${composed}"`);
+      continue;
+    }
+    surfaceDecls.set(composed, rule.declarations);
+    const where = `surface.css surface block "${composed}"`;
+    checkCompleteness(where, rule.declarations.map((d) => d.name), SURFACE_NAMES, violations);
+    checkDuplicates(where, rule.declarations, violations);
+  }
+
   // ---- system.css: the unconditional branch and the dark-media branch.
   const sysChildren = singleLayerBaseChildren('system.css', files.system, violations);
   const sysRules = sysChildren.filter((n): n is RuleNode => n.kind === 'rule');
@@ -634,7 +669,7 @@ export function run(): string[] {
     violations.push('g2: system.css: the dark branch is missing');
   }
 
-  const expectedBranchNames = [...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES];
+  const expectedBranchNames = [...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES, ...SURFACE_NAMES];
   const branches: [string, RuleNode | undefined, string][] = [
     ['light', lightBranch, 'dubplate-label'],
     ['dark', darkBranch, 'dubplate-label-night']
@@ -648,7 +683,8 @@ export function run(): string[] {
     const reference = new Map<string, string>([
       ...declMap((matchBlocks.get(composed)?.declarations ?? []).filter((d) => !PLUGIN_METADATA_KEYS.has(d.name))),
       ...declMap(paletteDecls.get(composed) ?? []),
-      ...declMap(inkDecls.get(composed) ?? [])
+      ...declMap(inkDecls.get(composed) ?? []),
+      ...declMap(surfaceDecls.get(composed) ?? [])
     ]);
     for (const decl of branch.declarations) {
       const want = reference.get(decl.name);

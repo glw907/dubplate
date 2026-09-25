@@ -2,9 +2,9 @@
  * `dubplate-system`, the third stamped value: plain CSS, not a
  * `daisyui/theme` block, because the plugin takes one name per block
  * and cannot key a block to a media query. This file therefore repeats
- * the two composed themes' 32 declarations plus their two `inks.css`
- * values; G2's parity rows fail naming any branch that drifts from its
- * composed theme.
+ * the two composed themes' 32 declarations plus their five `inks.css`
+ * values and six `surface.css` values; G2's parity rows fail naming
+ * any branch that drifts from its composed theme.
  *
  * The light branch is unconditional and the dark branch is
  * `@media (prefers-color-scheme: dark)`, never the reverse, per Media
@@ -31,9 +31,9 @@
     --border: 2px;
     --depth: 0;
     --noise: 1;
-    --font-sans: ui-sans-serif, system-ui, sans-serif;
-    --font-serif: ui-serif, serif;
-    --font-mono: ui-monospace, monospace;
+    --font-sans: Work Sans, ui-sans-serif, system-ui, sans-serif;
+    --font-serif: Alfa Slab One, ui-serif, serif;
+    --font-mono: IBM Plex Mono, ui-monospace, monospace;
     --color-base-100: #f4ead3;
     --color-base-200: #eadcbc;
     --color-base-300: #dccaa3;
@@ -55,7 +55,16 @@
     --color-error: #a8261d;
     --color-error-content: #ffffff;
     --ink-primary: #9d2f26;
+    --ink-accent: #2d6136;
+    --ink-info: #2d5a81;
+    --ink-error: #a4261d;
     --ink-warning: #754f00;
+    --shadow-color: var(--color-neutral);
+    --shadow-strength-button: 55%;
+    --shadow-strength-card: 45%;
+    --keyline-base: var(--color-base-content);
+    --keyline-fill: var(--color-base-content);
+    --selection-ground: color-mix(in oklab, var(--color-secondary) 45%, var(--color-base-100));
   }
 
   @media (prefers-color-scheme: dark) {
@@ -69,9 +78,9 @@
       --border: 2px;
       --depth: 0;
       --noise: 1;
-      --font-sans: ui-sans-serif, system-ui, sans-serif;
-      --font-serif: ui-serif, serif;
-      --font-mono: ui-monospace, monospace;
+      --font-sans: Work Sans, ui-sans-serif, system-ui, sans-serif;
+      --font-serif: Alfa Slab One, ui-serif, serif;
+      --font-mono: IBM Plex Mono, ui-monospace, monospace;
       --color-base-100: #1c1916;
       --color-base-200: #24201c;
       --color-base-300: #342e28;
@@ -93,7 +102,16 @@
       --color-error: #e0604f;
       --color-error-content: #1c1916;
       --ink-primary: #ec7b6a;
+      --ink-accent: #66a46e;
+      --ink-info: var(--color-info);
+      --ink-error: #e37866;
       --ink-warning: var(--color-warning);
+      --shadow-color: #000000;
+      --shadow-strength-button: 65%;
+      --shadow-strength-card: 60%;
+      --keyline-base: #706a5f;
+      --keyline-fill: #000000;
+      --selection-ground: color-mix(in oklab, var(--color-secondary) 45%, var(--color-base-100));
     }
   }
 }
