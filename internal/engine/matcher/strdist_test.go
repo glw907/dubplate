@@ -153,8 +153,7 @@ var sdTranslations = map[string]sdGoForm{
 
 // beetsFeaturingRowIndex is the featuring row's position in
 // BeetsSDPatterns and beetsSDPatternLiterals: its weight (0.1) is not
-// unique in the table, so index is how this file, like the production
-// loop's callers, locates it.
+// unique in the table, so index is how this file locates it.
 const beetsFeaturingRowIndex = 2
 
 // wantSDPattern applies sdTranslations to literal, marking the
@@ -197,8 +196,8 @@ func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []
 func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
 	assertMatchesTranslatedLiterals(t, "BeetsSDPatterns", BeetsSDPatterns, beetsSDPatternLiterals)
 
-	wantFeaturing := wantSDPattern(beetsSDPatternLiterals[2], map[string]bool{})
-	if DefaultTunables().StringDistPatterns[2].Pattern != wantFeaturing.Pattern {
+	wantFeaturing := wantSDPattern(beetsSDPatternLiterals[beetsFeaturingRowIndex], map[string]bool{})
+	if DefaultTunables().StringDistPatterns[beetsFeaturingRowIndex].Pattern != wantFeaturing.Pattern {
 		t.Error("DefaultTunables does not select the shipped table")
 	}
 }
@@ -356,8 +355,8 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 	if golden.Header.UnicodedataVersion != "15.1.0" {
 		t.Fatalf("header.unicodedata_version = %q, want %q", golden.Header.UnicodedataVersion, "15.1.0")
 	}
-	if golden.Header.Literal != beetsSDPatternLiterals[2].Pattern {
-		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[2].Pattern)
+	if golden.Header.Literal != beetsSDPatternLiterals[beetsFeaturingRowIndex].Pattern {
+		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[beetsFeaturingRowIndex].Pattern)
 	}
 
 	const wantCuratedRows = 33
